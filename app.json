@@ -1,0 +1,19 @@
+{
+  "expo": {
+    "name": "HRIS Mobile",
+    "slug": "hris-mobile",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "scheme": "hrismobile",
+    "assetBundlePatterns": ["**/*"],
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.falah.hrismobile"
+    },
+    "android": {
+      "package": "com.falah.hrismobile"
+    },
+    "plugins": []
+  }
+}
