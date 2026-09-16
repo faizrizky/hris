@@ -1,7 +1,7 @@
 // Domain types dipakai bareng oleh mock API (sekarang) dan ERPNext API asli (nanti).
 // Field-nya sengaja dipetakan mirip DocType ERPNext supaya swap ke Fase 2 minim perubahan.
 
-export type Role = 'ess' | 'mss' | 'hr';
+export type Role = "ess" | "mss" | "hr";
 
 export interface Employee {
   id: string; // -> Employee.name di ERPNext
@@ -13,7 +13,7 @@ export interface Employee {
   avatarInitials: string;
 }
 
-export type AttendanceStatus = 'hadir' | 'telat' | 'izin';
+export type AttendanceStatus = "hadir" | "telat" | "izin";
 
 export interface AttendanceRecord {
   id: string;
@@ -24,14 +24,26 @@ export interface AttendanceRecord {
   status: AttendanceStatus;
 }
 
+export type AttendanceRequestedStatus = "pending" | "approved" | "rejected";
+
+export interface AttendanceCorrectionRequest {
+  id: string;
+  employeeId: string;
+  date: string;
+  requestedCheckIn: string;
+  requestedCheckOut: string;
+  reason: string;
+  status: AttendanceRequestedStatus;
+}
+
 export interface ClockState {
   clockedIn: boolean;
   lastCheckIn: string | null;
   lastCheckOut: string | null;
 }
 
-export type LeaveType = 'cuti' | 'lembur' | 'dinas_luar' | 'sakit';
-export type LeaveDecision = 'approve' | 'reject' | null;
+export type LeaveType = "cuti" | "lembur" | "dinas_luar" | "sakit";
+export type LeaveDecision = "approve" | "reject" | null;
 
 export interface LeaveRequest {
   id: string;
@@ -49,7 +61,7 @@ export interface LeaveBalance {
   type: LeaveType;
   label: string;
   remaining: number;
-  unit: 'hari' | 'jam';
+  unit: "hari" | "jam";
 }
 
 export interface Payslip {
@@ -64,7 +76,7 @@ export interface NotificationItem {
   id: string;
   title: string;
   subtitle: string;
-  tone: 'ok' | 'warn' | 'info' | 'bad';
+  tone: "ok" | "warn" | "info" | "bad";
   createdAt: string;
 }
 
@@ -87,8 +99,19 @@ export interface HrisApi {
     reason: string;
   }): Promise<LeaveRequest>;
 
+  submitAttendanceCorrection(input: {
+    employeeId: string;
+    date: string;
+    requestedCheckIn: string;
+    requestedCheckOut: string;
+    reason: string;
+  }): Promise<AttendanceCorrectionRequest>;
+
   getPendingApprovals(approverId: string): Promise<LeaveRequest[]>;
-  decideLeaveRequest(requestId: string, decision: 'approve' | 'reject'): Promise<LeaveRequest>;
+  decideLeaveRequest(
+    requestId: string,
+    decision: "approve" | "reject",
+  ): Promise<LeaveRequest>;
 
   getPayslips(employeeId: string): Promise<Payslip[]>;
 
