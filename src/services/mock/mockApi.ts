@@ -4,6 +4,7 @@
 // tidak perlu diubah sama sekali.
 
 import {
+  AttendanceCorrectionRequest,
   AttendanceRecord,
   ClockState,
   Employee,
@@ -12,7 +13,7 @@ import {
   LeaveRequest,
   NotificationItem,
   Payslip,
-} from '../types';
+} from "../types";
 import {
   MOCK_ATTENDANCE,
   MOCK_EMPLOYEES,
@@ -21,14 +22,19 @@ import {
   MOCK_NOTIFICATIONS,
   MOCK_PAYSLIPS,
   MOCK_PENDING_APPROVALS,
-} from './mockData';
+} from "./mockData";
 
 const delay = (ms = 300) => new Promise((resolve) => setTimeout(resolve, ms));
 
 // State in-memory sederhana supaya interaksi (clock in/out, ajukan cuti,
 // approve/reject) terlihat "nyata" selama fase mocking, tanpa persist ke disk.
-let clockState: ClockState = { clockedIn: false, lastCheckIn: null, lastCheckOut: null };
+let clockState: ClockState = {
+  clockedIn: false,
+  lastCheckIn: null,
+  lastCheckOut: null,
+};
 let leaveRequests: LeaveRequest[] = [...MOCK_LEAVE_REQUESTS];
+let attendanceCorrections: AttendanceCorrectionRequest[] = [];
 let pendingApprovals: LeaveRequest[] = [...MOCK_PENDING_APPROVALS];
 let currentEmployee: Employee = MOCK_EMPLOYEES.ess;
 
@@ -37,7 +43,7 @@ export const mockApi: HrisApi = {
     await delay();
     // Mocking: email apa saja bisa login, role ditentukan dari prefix email
     // (ess@, mss@, hr@) supaya gampang dites tiga role tanpa backend.
-    const prefix = email.split('@')[0]?.toLowerCase();
+    const prefix = email.split("@")[0]?.toLowerCase();
     currentEmployee = MOCK_EMPLOYEES[prefix] ?? MOCK_EMPLOYEES.ess;
     return currentEmployee;
   },
@@ -66,7 +72,11 @@ export const mockApi: HrisApi = {
   async clockOut(_employeeId: string): Promise<ClockState> {
     await delay();
     const now = new Date();
-    clockState = { ...clockState, clockedIn: false, lastCheckOut: now.toTimeString().slice(0, 5) };
+    clockState = {
+      ...clockState,
+      clockedIn: false,
+      lastCheckOut: now.toTimeString().slice(0, 5),
+    };
     return clockState;
   },
 
@@ -93,12 +103,29 @@ export const mockApi: HrisApi = {
       type: input.type,
       label: input.label,
       reason: input.reason,
-      stage: 'Tahap 1 dari 2',
-      quota: '—',
+      stage: "Tahap 1 dari 2",
+      quota: "—",
       decision: null,
       createdAt: new Date().toISOString().slice(0, 10),
     };
     leaveRequests = [created, ...leaveRequests];
+    return created;
+  },
+
+  async submitAttendanceCorrection(
+    input,
+  ): Promise<AttendanceCorrectionRequest> {
+    await delay();
+    const created: AttendanceCorrectionRequest = {
+      id: `c${Date.now()}`,
+      employeeId: input.employeeId,
+      date: input.date,
+      requestedCheckIn: input.requestedCheckIn,
+      requestedCheckOut: input.requestedCheckOut,
+      reason: input.reason,
+      status: "pending",
+    };
+    attendanceCorrections = [created, ...attendanceCorrections];
     return created;
   },
 
@@ -107,11 +134,16 @@ export const mockApi: HrisApi = {
     return pendingApprovals.filter((r) => r.decision === null);
   },
 
-  async decideLeaveRequest(requestId: string, decision: 'approve' | 'reject'): Promise<LeaveRequest> {
+  async decideLeaveRequest(
+    requestId: string,
+    decision: "approve" | "reject",
+  ): Promise<LeaveRequest> {
     await delay();
-    pendingApprovals = pendingApprovals.map((r) => (r.id === requestId ? { ...r, decision } : r));
+    pendingApprovals = pendingApprovals.map((r) =>
+      r.id === requestId ? { ...r, decision } : r,
+    );
     const updated = pendingApprovals.find((r) => r.id === requestId);
-    if (!updated) throw new Error('Leave request not found');
+    if (!updated) throw new Error("Leave request not found");
     return updated;
   },
 
