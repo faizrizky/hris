@@ -1,15 +1,26 @@
-import React, { useState } from 'react';
-import { KeyboardAvoidingView, Platform, StyleSheet, Text, TextInput, View } from 'react-native';
-import { PrimaryButton } from '@/components/PrimaryButton';
-import { colors } from '@/theme/colors';
-import { hrisApi } from '@/services/api';
-import { useSession } from '@/services/session';
+import React, { useState } from "react";
+import {
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
+import { colors } from "@/theme/colors";
+import { RadialGlow } from "@/components/RadialGlow";
+import { hrisApi } from "@/services/api";
+import { useSession } from "@/services/session";
 
 export function LoginScreen() {
   const { setEmployee } = useSession();
-  const [email, setEmail] = useState('ess@falah.co');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("ess@falah.co");
+  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [rememberMe, setRememberMe] = useState(true);
 
   const handleLogin = async () => {
     setLoading(true);
@@ -22,60 +33,264 @@ export function LoginScreen() {
   };
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-    >
-      <Text style={styles.title}>HRIS Mobile</Text>
-      <Text style={styles.subtitle}>Masuk untuk lanjut (mode mocking)</Text>
+    <View style={styles.container}>
+      <RadialGlow size={340} color={colors.glowTop} top={-120} right={-90} />
+      <RadialGlow size={320} color={colors.glowBottom} bottom={-140} left={-110} />
 
-      <View style={styles.field}>
-        <Text style={styles.fieldLabel}>Email</Text>
-        <TextInput
-          style={styles.input}
-          value={email}
-          onChangeText={setEmail}
-          autoCapitalize="none"
-          keyboardType="email-address"
-          placeholder="ess@falah.co / mss@falah.co / hr@falah.co"
-        />
+      {/* Hero — logo, headline, subtext, nempel ke bawah area gelap */}
+      <View style={styles.hero}>
+        <LinearGradient
+          colors={[colors.accent, colors.accent2]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.iconBadge}
+        >
+          <View style={styles.iconBadgeMark} />
+        </LinearGradient>
+
+        <Text style={styles.headline}>
+          Kelola HR Anda{"\n"}
+          <Text style={styles.headlineAccent}>dari satu aplikasi</Text>
+        </Text>
+        <Text style={styles.subtext}>
+          Presensi, cuti, payroll, dan approval — tersinkron langsung dengan
+          ERPNext.
+        </Text>
       </View>
 
-      <View style={styles.field}>
-        <Text style={styles.fieldLabel}>Password</Text>
-        <TextInput
-          style={styles.input}
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry
-          placeholder="bebas — belum terhubung ke ERPNext"
-        />
-      </View>
+      {/* Sheet putih melengkung di bawah — form login beneran */}
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        style={styles.sheet}
+      >
+        <Text style={styles.sheetTitle}>Masuk ke akun</Text>
+        <Text style={styles.sheetSubtitle}>Gunakan email kantor Anda</Text>
 
-      <PrimaryButton label="Masuk" onPress={handleLogin} loading={loading} />
+        <View style={styles.fieldsWrapper}>
+          <View style={styles.fieldBox}>
+            <Text style={styles.fieldLabel}>Email</Text>
+            <TextInput
+              style={styles.fieldInput}
+              value={email}
+              onChangeText={setEmail}
+              autoCapitalize="none"
+              keyboardType="email-address"
+              placeholder="ess@falah.co"
+              placeholderTextColor={colors.mutedLabel}
+            />
+          </View>
 
-      <Text style={styles.hint}>
-        Tip: ganti prefix email (ess / mss / hr) buat coba tampilan tiap role.
-      </Text>
-    </KeyboardAvoidingView>
+          <View style={styles.fieldBox}>
+            <Text style={styles.fieldLabel}>Password</Text>
+            <TextInput
+              style={styles.fieldInput}
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry
+              placeholder="bebas — belum terhubung ke ERPNext"
+              placeholderTextColor={colors.mutedLabel}
+            />
+          </View>
+        </View>
+
+        <View style={styles.rowBetween}>
+          <Pressable
+            style={styles.rememberRow}
+            onPress={() => setRememberMe((v) => !v)}
+          >
+            <View style={[styles.checkbox, rememberMe && styles.checkboxOn]}>
+              {rememberMe && (
+                <Ionicons name="checkmark" size={11} color="#fff" />
+              )}
+            </View>
+            <Text style={styles.rememberLabel}>Ingat saya</Text>
+          </Pressable>
+          <Text style={styles.forgotLabel}>Lupa password?</Text>
+        </View>
+
+        <Text style={styles.hint}>
+          Tip: ganti prefix email (ess / mss / hr) buat coba tampilan tiap
+          role.
+        </Text>
+
+        <Pressable onPress={handleLogin} disabled={loading}>
+          <LinearGradient
+            colors={[colors.accent, colors.accent2]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.submitButton}
+          >
+            <Text style={styles.submitLabel}>
+              {loading ? "Memproses..." : "Masuk"}
+            </Text>
+          </LinearGradient>
+        </Pressable>
+
+        <View style={styles.dividerRow}>
+          <View style={styles.dividerLine} />
+          <Text style={styles.dividerLabel}>atau</Text>
+          <View style={styles.dividerLine} />
+        </View>
+
+        <Pressable
+          style={styles.faceIdButton}
+          onPress={handleLogin}
+          disabled={loading}
+        >
+          <View style={styles.faceIdIcon}>
+            <View style={styles.faceIdIconInner} />
+          </View>
+          <Text style={styles.faceIdLabel}>Masuk dengan Face ID</Text>
+        </Pressable>
+      </KeyboardAvoidingView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.bg, padding: 24, justifyContent: 'center' },
-  title: { fontSize: 26, fontWeight: '700', color: colors.ink, marginBottom: 4 },
-  subtitle: { fontSize: 14, color: colors.muted, marginBottom: 28 },
-  field: { marginBottom: 16 },
-  fieldLabel: { fontSize: 13, color: colors.muted, marginBottom: 6 },
-  input: {
-    borderWidth: 1,
-    borderColor: colors.hair,
-    backgroundColor: colors.card,
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    fontSize: 15,
-    color: colors.ink,
+  container: { flex: 1, backgroundColor: colors.ink },
+  hero: {
+    flex: 1,
+    justifyContent: "flex-end",
+    paddingHorizontal: 28,
+    paddingBottom: 26,
   },
-  hint: { marginTop: 16, fontSize: 12, color: colors.muted, textAlign: 'center' },
+  iconBadge: {
+    width: 52,
+    height: 52,
+    borderRadius: 16,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 22,
+  },
+  iconBadgeMark: {
+    width: 18,
+    height: 18,
+    borderWidth: 3,
+    borderColor: "#fff",
+    borderRadius: 5,
+  },
+  headline: {
+    fontSize: 33,
+    lineHeight: 38,
+    fontWeight: "800",
+    color: "#fff",
+  },
+  headlineAccent: { color: colors.accentLight },
+  subtext: {
+    fontSize: 13.5,
+    lineHeight: 22,
+    color: "rgba(255,255,255,0.6)",
+    marginTop: 12,
+    maxWidth: 290,
+  },
+
+  sheet: {
+    backgroundColor: colors.card,
+    borderTopLeftRadius: 30,
+    borderTopRightRadius: 30,
+    paddingHorizontal: 24,
+    paddingTop: 26,
+    paddingBottom: 44,
+  },
+  sheetTitle: { fontSize: 16, fontWeight: "700", color: colors.ink },
+  sheetSubtitle: { fontSize: 12, color: colors.muted, marginTop: 5 },
+
+  fieldsWrapper: { marginTop: 18, gap: 10 },
+  fieldBox: {
+    borderWidth: 1,
+    borderColor: colors.fieldBorder,
+    borderRadius: 14,
+    paddingHorizontal: 14,
+    paddingVertical: 11,
+  },
+  fieldLabel: {
+    fontSize: 10,
+    fontWeight: "600",
+    letterSpacing: 0.6,
+    textTransform: "uppercase",
+    color: colors.mutedLabel,
+  },
+  fieldInput: {
+    fontSize: 14,
+    fontWeight: "500",
+    color: colors.ink,
+    marginTop: 3,
+    padding: 0,
+  },
+
+  rowBetween: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginTop: 14,
+  },
+  rememberRow: { flexDirection: "row", alignItems: "center", gap: 8 },
+  checkbox: {
+    width: 17,
+    height: 17,
+    borderRadius: 5,
+    borderWidth: 1.5,
+    borderColor: colors.accent,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  checkboxOn: { backgroundColor: colors.accent },
+  rememberLabel: { fontSize: 12, color: colors.muted, fontWeight: "500" },
+  forgotLabel: { fontSize: 12, fontWeight: "600", color: colors.accent2 },
+
+  hint: { fontSize: 11, color: colors.muted, marginTop: 10, lineHeight: 15 },
+
+  submitButton: {
+    marginTop: 18,
+    paddingVertical: 15,
+    borderRadius: 16,
+    alignItems: "center",
+    shadowColor: colors.accent,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.35,
+    shadowRadius: 20,
+    elevation: 6,
+  },
+  submitLabel: { color: "#fff", fontSize: 14.5, fontWeight: "700" },
+
+  dividerRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    marginTop: 16,
+    marginBottom: 14,
+  },
+  dividerLine: { flex: 1, height: 1, backgroundColor: "rgba(15,23,32,0.09)" },
+  dividerLabel: { fontSize: 11, color: colors.mutedLabel, fontWeight: "500" },
+
+  faceIdButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 9,
+    borderWidth: 1,
+    borderColor: colors.fieldBorder,
+    borderRadius: 16,
+    paddingVertical: 13,
+  },
+  faceIdIcon: {
+    width: 18,
+    height: 18,
+    borderWidth: 2,
+    borderColor: colors.accent,
+    borderRadius: 6,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  faceIdIconInner: {
+    position: "absolute",
+    top: 3,
+    left: 3,
+    right: 3,
+    bottom: 3,
+    borderRadius: 2,
+    backgroundColor: colors.info.bg,
+  },
+  faceIdLabel: { fontSize: 13.5, fontWeight: "600", color: colors.ink },
 });
