@@ -9,6 +9,7 @@ import { LoginScreen } from "@/screens/auth/LoginScreen";
 import { HomeScreen } from "@/screens/home/HomeScreen";
 import { ClockScreen } from "@/screens/attendance/ClockScreen";
 import { AttendanceHistoryScreen } from "@/screens/attendance/AttendanceHistoryScreen";
+import { AttendanceCorrectionHistoryScreen } from "@/screens/attendance/AttendanceCorrectionHistoryScreen";
 import { LeaveListScreen } from "@/screens/leave/LeaveListScreen";
 import { LeaveRequestScreen } from "@/screens/leave/LeaveRequestScreen";
 import { LeaveApprovalScreen } from "@/screens/leave/LeaveApprovalScreen";
@@ -16,6 +17,7 @@ import { PayslipListScreen } from "@/screens/payroll/PayslipListScreen";
 import { PayslipDetailScreen } from "@/screens/payroll/PayslipDetailScreen";
 import { ProfileScreen } from "@/screens/profile/ProfileScreen";
 import { AttendanceCorrectionScreen } from "@/screens/attendance/AttendanceCorrectionScreen";
+import { NavBar } from "@/components/NavBar";
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -24,7 +26,16 @@ const Stack = createNativeStackNavigator();
 // (List -> Request) supaya tetap 1 tab tapi bisa navigasi berjenjang.
 function AttendanceStack() {
   return (
-    <Stack.Navigator screenOptions={{ headerShown: true }}>
+    <Stack.Navigator
+      screenOptions={{
+        header: (props) => (
+          <NavBar
+            title={props.options.title ?? props.route.name}
+            onBack={props.back ? props.navigation.goBack : undefined}
+          />
+        ),
+      }}
+    >
       <Stack.Screen
         name="Clock"
         component={ClockScreen}
@@ -40,13 +51,27 @@ function AttendanceStack() {
         component={AttendanceCorrectionScreen}
         options={{ title: "Koreksi Absensi" }}
       />
+      <Stack.Screen
+        name="AttendanceCorrectionHistory"
+        component={AttendanceCorrectionHistoryScreen}
+        options={{ title: "Riwayat Koreksi" }}
+      />
     </Stack.Navigator>
   );
 }
 
 function LeaveStack() {
   return (
-    <Stack.Navigator screenOptions={{ headerShown: true }}>
+    <Stack.Navigator
+      screenOptions={{
+        header: (props) => (
+          <NavBar
+            title={props.options.title ?? props.route.name}
+            onBack={props.back ? props.navigation.goBack : undefined}
+          />
+        ),
+      }}
+    >
       <Stack.Screen
         name="LeaveList"
         component={LeaveListScreen}
@@ -63,7 +88,16 @@ function LeaveStack() {
 
 function PayrollStack() {
   return (
-    <Stack.Navigator screenOptions={{ headerShown: true }}>
+    <Stack.Navigator
+      screenOptions={{
+        header: (props) => (
+          <NavBar
+            title={props.options.title ?? props.route.name}
+            onBack={props.back ? props.navigation.goBack : undefined}
+          />
+        ),
+      }}
+    >
       <Stack.Screen
         name="PayslipList"
         component={PayslipListScreen}
@@ -85,22 +119,45 @@ function MainTabs() {
   return (
     <Tab.Navigator
       screenOptions={{
-        headerShown: false,
         tabBarActiveTintColor: colors.accent,
       }}
     >
-      <Tab.Screen name="Beranda" component={HomeScreen} />
-      <Tab.Screen name="Absensi" component={AttendanceStack} />
-      <Tab.Screen name="Cuti" component={LeaveStack} />
+      <Tab.Screen
+        name="Beranda"
+        component={HomeScreen}
+        options={{
+          header: () => <NavBar title="Beranda" />,
+        }}
+      />
+      <Tab.Screen
+        name="Absensi"
+        component={AttendanceStack}
+        options={{ headerShown: false }}
+      />
+      <Tab.Screen
+        name="Cuti"
+        component={LeaveStack}
+        options={{ headerShown: false }}
+      />
       {canApprove && (
         <Tab.Screen
           name="Approval"
           component={LeaveApprovalScreen}
-          options={{ headerShown: true, title: "Approval" }}
+          options={{ header: () => <NavBar title="Approval" /> }}
         />
       )}
-      <Tab.Screen name="Slip Gaji" component={PayrollStack} />
-      <Tab.Screen name="Profil" component={ProfileScreen} />
+      <Tab.Screen
+        name="Slip Gaji"
+        component={PayrollStack}
+        options={{ headerShown: false }}
+      />
+      <Tab.Screen
+        name="Profil"
+        component={ProfileScreen}
+        options={{
+          header: () => <NavBar title="Profil" />,
+        }}
+      />
     </Tab.Navigator>
   );
 }

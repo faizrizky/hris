@@ -5,20 +5,26 @@ import { StatusBadge } from "@/components/StatusBadge";
 import { colors } from "@/theme/colors";
 import { hrisApi } from "@/services/api";
 import { useSession } from "@/services/session";
-import { AttendanceRecord, AttendanceStatus } from "@/services/types";
 import {
-  ATTENDANCE_STATUS_LABEL as STATUS_LABEL,
-  ATTENDANCE_STATUS_TONE as STATUS_TONE,
+  AttendanceCorrectionRequest,
+  AttendanceRequestedStatus,
+} from "@/services/types";
+
+import {
+  CORRECTION_STATUS_LABEL as STATUS_LABEL,
+  CORRECTION_STATUS_TONE as STATUS_TONE,
 } from "@/constants/statusLabels";
 
-export function AttendanceHistoryScreen() {
+export function AttendanceCorrectionHistoryScreen() {
   const { employee } = useSession();
-  const [records, setRecords] = useState<AttendanceRecord[]>([]);
-  const [filter, setFilter] = useState<"semua" | AttendanceStatus>("semua");
+  const [records, setRecords] = useState<AttendanceCorrectionRequest[]>([]);
+  const [filter, setFilter] = useState<"semua" | AttendanceRequestedStatus>(
+    "semua",
+  );
 
   useEffect(() => {
     if (!employee) return;
-    hrisApi.getAttendanceHistory(employee.id).then(setRecords);
+    hrisApi.getAttendanceCorrections(employee.id).then(setRecords);
   }, [employee]);
 
   const filtered = records.filter(
@@ -28,7 +34,7 @@ export function AttendanceHistoryScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.filterRow}>
-        {(["semua", "hadir", "telat", "izin"] as const).map((f) => (
+        {(["semua", "pending", "approved", "rejected"] as const).map((f) => (
           <Text
             key={f}
             onPress={() => setFilter(f)}
@@ -48,8 +54,8 @@ export function AttendanceHistoryScreen() {
             <View style={{ flex: 1 }}>
               <Text style={styles.date}>{item.date}</Text>
               <Text style={styles.muted}>
-                {item.checkIn ?? "—"} - {item.checkOut ?? "—"} ·{" "}
-                {item.durationLabel ?? "—"}
+                {item.requestedCheckIn ?? "—"} - {item.requestedCheckOut ?? "—"}{" "}
+                · {item.reason ?? "—"}
               </Text>
             </View>
             <StatusBadge

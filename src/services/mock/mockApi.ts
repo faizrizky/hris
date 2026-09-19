@@ -85,6 +85,13 @@ export const mockApi: HrisApi = {
     return MOCK_ATTENDANCE;
   },
 
+  async getAttendanceCorrections(
+    employeeId: string,
+  ): Promise<AttendanceCorrectionRequest[]> {
+    await delay();
+    return attendanceCorrections.filter((r) => r.employeeId === employeeId);
+  },
+
   async getLeaveBalances(_employeeId: string): Promise<LeaveBalance[]> {
     await delay(150);
     return MOCK_LEAVE_BALANCES;
