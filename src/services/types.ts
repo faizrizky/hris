@@ -89,7 +89,9 @@ export interface HrisApi {
   clockIn(employeeId: string): Promise<ClockState>;
   clockOut(employeeId: string): Promise<ClockState>;
   getAttendanceHistory(employeeId: string): Promise<AttendanceRecord[]>;
-
+  getAttendanceCorrections(
+    employeeId: string,
+  ): Promise<AttendanceCorrectionRequest[]>;
   getLeaveBalances(employeeId: string): Promise<LeaveBalance[]>;
   getLeaveRequests(employeeId: string): Promise<LeaveRequest[]>;
   submitLeaveRequest(input: {

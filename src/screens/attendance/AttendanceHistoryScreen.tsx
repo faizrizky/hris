@@ -6,18 +6,10 @@ import { colors } from "@/theme/colors";
 import { hrisApi } from "@/services/api";
 import { useSession } from "@/services/session";
 import { AttendanceRecord, AttendanceStatus } from "@/services/types";
-
-const STATUS_TONE: Record<AttendanceStatus, "ok" | "warn" | "info"> = {
-  hadir: "ok",
-  telat: "warn",
-  izin: "info",
-};
-
-const STATUS_LABEL: Record<AttendanceStatus, string> = {
-  hadir: "Hadir",
-  telat: "Telat",
-  izin: "Izin",
-};
+import {
+  ATTENDANCE_STATUS_LABEL as STATUS_LABEL,
+  ATTENDANCE_STATUS_TONE as STATUS_TONE,
+} from "@/constants/statusLabels";
 
 export function AttendanceHistoryScreen() {
   const { employee } = useSession();

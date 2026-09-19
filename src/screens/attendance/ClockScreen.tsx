@@ -62,6 +62,10 @@ export function ClockScreen({ navigation }: any) {
           label="Ajukan koreksi / Clock In / Clock Out"
           onPress={() => navigation.navigate("AttendanceCorrection")}
         />
+        <PrimaryButton
+          label="Riwayat Koreksi"
+          onPress={() => navigation.navigate("AttendanceCorrectionHistory")}
+        />
         <Text style={styles.note}>
           Fase mocking: belum pakai GPS/face recognition — akan ditambah saat
           integrasi ERPNext.

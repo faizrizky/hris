@@ -57,9 +57,9 @@ export function HomeScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.bg },
-  content: { padding: 20 },
-  greeting: { fontSize: 22, fontWeight: "700", color: colors.ink },
-  role: { fontSize: 13, color: colors.muted, marginBottom: 20 },
+  content: { padding: 20, paddingTop: 4 },
+  greeting: { fontSize: 17, fontWeight: "600", color: colors.ink },
+  role: { fontSize: 13, color: colors.muted, marginBottom: 20, marginTop: 2 },
   cardTitle: {
     fontSize: 15,
     fontWeight: "600",
