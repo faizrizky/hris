@@ -125,9 +125,7 @@ function MainTabs() {
       <Tab.Screen
         name="Beranda"
         component={HomeScreen}
-        options={{
-          header: () => <NavBar title="Beranda" />,
-        }}
+        options={{ headerShown: false }}
       />
       <Tab.Screen
         name="Absensi"
