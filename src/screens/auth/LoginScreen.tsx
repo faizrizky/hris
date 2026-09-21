@@ -14,6 +14,7 @@ import { colors } from "@/theme/colors";
 import { RadialGlow } from "@/components/RadialGlow";
 import { hrisApi } from "@/services/api";
 import { useSession } from "@/services/session";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export function LoginScreen() {
   const { setEmployee } = useSession();
@@ -21,6 +22,8 @@ export function LoginScreen() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
+  const [showPassword, setShowPassword] = useState(false);
+  const insets = useSafeAreaInsets();
 
   const handleLogin = async () => {
     setLoading(true);
@@ -35,7 +38,12 @@ export function LoginScreen() {
   return (
     <View style={styles.container}>
       <RadialGlow size={340} color={colors.glowTop} top={-120} right={-90} />
-      <RadialGlow size={320} color={colors.glowBottom} bottom={-140} left={-110} />
+      <RadialGlow
+        size={320}
+        color={colors.glowBottom}
+        bottom={-140}
+        left={-110}
+      />
 
       {/* Hero — logo, headline, subtext, nempel ke bawah area gelap */}
       <View style={styles.hero}>
@@ -61,87 +69,97 @@ export function LoginScreen() {
       {/* Sheet putih melengkung di bawah — form login beneran */}
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : undefined}
-        style={styles.sheet}
       >
-        <Text style={styles.sheetTitle}>Masuk ke akun</Text>
-        <Text style={styles.sheetSubtitle}>Gunakan email kantor Anda</Text>
+        <View style={[styles.sheet, { paddingBottom: 10 + insets.bottom }]}>
+          <Text style={styles.sheetTitle}>Masuk ke akun</Text>
+          <Text style={styles.sheetSubtitle}>Gunakan email kantor Anda</Text>
 
-        <View style={styles.fieldsWrapper}>
-          <View style={styles.fieldBox}>
-            <Text style={styles.fieldLabel}>Email</Text>
-            <TextInput
-              style={styles.fieldInput}
-              value={email}
-              onChangeText={setEmail}
-              autoCapitalize="none"
-              keyboardType="email-address"
-              placeholder="ess@falah.co"
-              placeholderTextColor={colors.mutedLabel}
-            />
-          </View>
-
-          <View style={styles.fieldBox}>
-            <Text style={styles.fieldLabel}>Password</Text>
-            <TextInput
-              style={styles.fieldInput}
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry
-              placeholder="bebas — belum terhubung ke ERPNext"
-              placeholderTextColor={colors.mutedLabel}
-            />
-          </View>
-        </View>
-
-        <View style={styles.rowBetween}>
-          <Pressable
-            style={styles.rememberRow}
-            onPress={() => setRememberMe((v) => !v)}
-          >
-            <View style={[styles.checkbox, rememberMe && styles.checkboxOn]}>
-              {rememberMe && (
-                <Ionicons name="checkmark" size={11} color="#fff" />
-              )}
+          <View style={styles.fieldsWrapper}>
+            <View style={styles.fieldBox}>
+              <Text style={styles.fieldLabel}>Email</Text>
+              <TextInput
+                style={styles.fieldInput}
+                value={email}
+                onChangeText={setEmail}
+                autoCapitalize="none"
+                keyboardType="email-address"
+                placeholder="ess@falah.co"
+                placeholderTextColor={colors.mutedLabel}
+              />
             </View>
-            <Text style={styles.rememberLabel}>Ingat saya</Text>
-          </Pressable>
-          <Text style={styles.forgotLabel}>Lupa password?</Text>
-        </View>
 
-        <Text style={styles.hint}>
-          Tip: ganti prefix email (ess / mss / hr) buat coba tampilan tiap
-          role.
-        </Text>
-
-        <Pressable onPress={handleLogin} disabled={loading}>
-          <LinearGradient
-            colors={[colors.accent, colors.accent2]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.submitButton}
-          >
-            <Text style={styles.submitLabel}>
-              {loading ? "Memproses..." : "Masuk"}
-            </Text>
-          </LinearGradient>
-        </Pressable>
-
-        <View style={styles.dividerRow}>
-          <View style={styles.dividerLine} />
-          <Text style={styles.dividerLabel}>atau</Text>
-          <View style={styles.dividerLine} />
-        </View>
-
-        <Pressable
-          style={styles.faceIdButton}
-          onPress={handleLogin}
-          disabled={loading}
-        >
-          <View style={styles.faceIdIcon}>
-            <View style={styles.faceIdIconInner} />
+            <View style={styles.fieldBox}>
+              <View style={styles.passwordRow}>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.fieldLabel}>Password</Text>
+                  <TextInput
+                    style={styles.fieldInput}
+                    value={password}
+                    onChangeText={setPassword}
+                    secureTextEntry={!showPassword}
+                    placeholder="bebas — belum terhubung ke ERPNext"
+                    placeholderTextColor={colors.mutedLabel}
+                  />
+                </View>
+                <Pressable onPress={() => setShowPassword((v) => !v)}>
+                  <Text style={styles.showToggle}>
+                    {showPassword ? "Sembunyikan" : "Lihat"}
+                  </Text>
+                </Pressable>
+              </View>
+            </View>
           </View>
-          <Text style={styles.faceIdLabel}>Masuk dengan Face ID</Text>
-        </Pressable>
+
+          <View style={styles.rowBetween}>
+            <Pressable
+              style={styles.rememberRow}
+              onPress={() => setRememberMe((v) => !v)}
+            >
+              <View style={[styles.checkbox, rememberMe && styles.checkboxOn]}>
+                {rememberMe && (
+                  <Ionicons name="checkmark" size={11} color="#fff" />
+                )}
+              </View>
+              <Text style={styles.rememberLabel}>Ingat saya</Text>
+            </Pressable>
+            <Text style={styles.forgotLabel}>Lupa password?</Text>
+          </View>
+
+          <Text style={styles.hint}>
+            Tip: ganti prefix email (ess / mss / hr) buat coba tampilan tiap
+            role.
+          </Text>
+
+          <Pressable onPress={handleLogin} disabled={loading}>
+            <LinearGradient
+              colors={[colors.accent, colors.accent2]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.submitButton}
+            >
+              <Text style={styles.submitLabel}>
+                {loading ? "Memproses..." : "Masuk"}
+              </Text>
+            </LinearGradient>
+          </Pressable>
+
+          <View style={styles.dividerRow}>
+            <View style={styles.dividerLine} />
+            <Text style={styles.dividerLabel}>atau</Text>
+            <View style={styles.dividerLine} />
+          </View>
+
+          <Pressable
+            style={styles.faceIdButton}
+            onPress={handleLogin}
+            disabled={loading}
+          >
+            <View style={styles.faceIdIcon}>
+              <View style={styles.faceIdIconInner} />
+            </View>
+            <Text style={styles.faceIdLabel}>Masuk dengan Face ID</Text>
+          </Pressable>
+        </View>
       </KeyboardAvoidingView>
     </View>
   );
@@ -293,4 +311,10 @@ const styles = StyleSheet.create({
     backgroundColor: colors.info.bg,
   },
   faceIdLabel: { fontSize: 13.5, fontWeight: "600", color: colors.ink },
+  passwordRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-end",
+  },
+  showToggle: { fontSize: 11.5, fontWeight: "600", color: colors.accent2 },
 });
