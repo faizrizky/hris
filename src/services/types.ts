@@ -74,8 +74,10 @@ export interface Payslip {
 
 export interface NotificationItem {
   id: string;
+  initials: string;
   title: string;
   subtitle: string;
+  badge: string;
   tone: "ok" | "warn" | "info" | "bad";
   createdAt: string;
 }

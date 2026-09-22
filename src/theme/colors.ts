@@ -20,6 +20,10 @@ export const colors = {
 
   purple: { bg: "#EDE9FE", ink: "#7C3AED" }, // dipakai ikon Appraisal di Aksi cepat
 
+  chip: "#F1F5F9", // --list-chip / --list-btn: tombol sekunder & tombol back
+  track: "#CBD5E1", // --track: segmen progress yang belum aktif
+  panelBorder: "rgba(15,23,32,0.07)", // --list-bd, sedikit lebih tegas dari cardBorder
+
   ok: { bg: "#DCFCE7", ink: "#16A34A" }, // hadir / disetujui
   warn: { bg: "#FEF3C7", ink: "#B45309" }, // telat / pending
   info: { bg: "#DCEBFC", ink: "#1B6FC9" }, // izin

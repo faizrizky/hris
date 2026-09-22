@@ -39,7 +39,7 @@ function AttendanceStack() {
       <Stack.Screen
         name="Clock"
         component={ClockScreen}
-        options={{ title: "Absensi" }}
+        options={{ title: "Absensi", headerShown: false }}
       />
       <Stack.Screen
         name="History"

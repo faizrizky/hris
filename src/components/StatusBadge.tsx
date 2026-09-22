@@ -5,7 +5,7 @@ import { colors, SemanticTone } from "@/theme/colors";
 interface Props {
   label: string;
   tone: SemanticTone;
-  variant: "pill" | "compact";
+  variant?: "pill" | "compact";
 }
 
 export function StatusBadge({ label, tone, variant = "pill" }: Props) {
