@@ -17,6 +17,8 @@ import {
   LeaveBalance,
   AttendanceRecord,
 } from "@/services/types";
+import { LineIcon } from "@/components/LineIcon";
+import { ICON } from "@/constants/icons";
 
 export function HomeScreen() {
   const { employee } = useSession();
@@ -77,6 +79,62 @@ export function HomeScreen() {
   const cuti = balances.find((b) => b.type === "cuti");
   const lembur = balances.find((b) => b.type === "lembur");
   const telat = history.filter((r) => r.status === "telat").length;
+
+  const canApprove = employee.role === "mss" || employee.role === "hr";
+
+  const quikcActions = [
+    ...(canApprove
+      ? [
+          {
+            label: "Approval",
+            icon: ICON.approval,
+            bg: colors.warn.bg,
+            ink: colors.warn.ink,
+            onPress: () => navigation.navigate("Approval"),
+          },
+        ]
+      : []),
+    {
+      label: "Absensi",
+      icon: ICON.clock,
+      bg: colors.info.bg,
+      ink: colors.info.ink,
+      onPress: () => navigation.navigate("Absensi"),
+    },
+    {
+      label: "Cuti",
+      icon: ICON.leave,
+      bg: colors.info.bg,
+      ink: colors.info.ink,
+      onPress: () => navigation.navigate("Cuti"),
+    },
+    {
+      label: "Lembur",
+      icon: ICON.overtime,
+      bg: colors.warn.bg,
+      ink: colors.warn.ink,
+      onPress: () => navigation.navigate("Cuti"),
+    },
+    {
+      label: "Slip gaji",
+      icon: ICON.payslip,
+      bg: colors.ok.bg,
+      ink: colors.ok.ink,
+      onPress: () => navigation.navigate("Slip Gaji"),
+    },
+    {
+      label: "Appraisal",
+      icon: ICON.appraisal,
+      bg: colors.purple.bg,
+      ink: colors.purple.ink,
+    },
+    {
+      label: "PPh21 & BPJS",
+      icon: ICON.tax,
+      bg: colors.info.bg,
+      ink: colors.info.ink,
+    },
+  ];
 
   return (
     <View style={styles.container}>
@@ -153,25 +211,29 @@ export function HomeScreen() {
         <View style={styles.statGrid}>
           <StatCard
             iconBg={colors.info.bg}
-            icon={<View style={styles.iconCircle} />}
+            ink={colors.info.ink}
+            icon={ICON.attendanceRate}
             label="Kehadiran bulan ini"
             value={kehadiran}
           />
           <StatCard
             iconBg={colors.ok.bg}
-            icon={<View style={styles.iconSquareFill} />}
+            ink={colors.ok.ink}
+            icon={ICON.leave}
             label="Sisa cuti tahunan"
             value={cuti ? `${cuti.remaining} ${cuti.unit}` : "–"}
           />
           <StatCard
             iconBg={colors.warn.bg}
-            icon={<View style={styles.iconSquareLine} />}
+            ink={colors.warn.ink}
+            icon={ICON.overtime}
             label="Jam lembur"
             value={lembur ? `${lembur.remaining} ${lembur.unit}` : "–"}
           />
           <StatCard
             iconBg={colors.bad.bg}
-            icon={<View style={styles.iconDash} />}
+            ink={colors.bad.ink}
+            icon={ICON.late}
             label="Terlambat"
             value={`${telat} kali`}
           />
@@ -182,29 +244,16 @@ export function HomeScreen() {
         </View>
 
         <View style={styles.quickGrid}>
-          <QuickAction
-            iconBg={colors.info.bg}
-            icon={<View style={styles.quickCuti} />}
-            label="Cuti"
-            onPress={() => navigation.navigate("Cuti")}
-          />
-          <QuickAction
-            iconBg={colors.warn.bg}
-            icon={<View style={styles.quickLembur} />}
-            label="Lembur"
-            onPress={() => navigation.navigate("Cuti")}
-          />
-          <QuickAction
-            iconBg={colors.ok.bg}
-            icon={<Text style={styles.quickRp}>Rp</Text>}
-            label="Slip Gaji"
-            onPress={() => navigation.navigate("Slip Gaji")}
-          />
-          <QuickAction
-            iconBg={colors.purple.bg}
-            icon={<View style={styles.quickAppraisal} />}
-            label="Appraisal"
-          />
+          {quikcActions.map((q) => (
+            <QuickAction
+              key={q.label}
+              iconBg={q.bg}
+              ink={q.ink}
+              icon={q.icon}
+              label={q.label}
+              onPress={q.onPress}
+            />
+          ))}
         </View>
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>{feedTitle}</Text>
@@ -241,18 +290,22 @@ export function HomeScreen() {
 
 function StatCard({
   iconBg,
+  ink,
   icon,
   label,
   value,
 }: {
   iconBg: string;
-  icon: React.ReactNode;
+  ink: string;
+  icon: string;
   label: string;
   value: string;
 }) {
   return (
     <View style={styles.statCard}>
-      <View style={[styles.statIcon, { backgroundColor: iconBg }]}>{icon}</View>
+      <View style={[styles.statIcon, { backgroundColor: iconBg }]}>
+        <LineIcon d={icon} color={ink} size={16} />
+      </View>
       <Text style={styles.statLabel}>{label}</Text>
       <Text style={styles.statValue}>{value}</Text>
     </View>
@@ -261,19 +314,21 @@ function StatCard({
 
 function QuickAction({
   iconBg,
+  ink,
   icon,
   label,
   onPress,
 }: {
   iconBg: string;
-  icon: ReactNode;
+  ink: string;
+  icon: string;
   label: string;
   onPress?: () => void;
 }) {
   return (
     <Pressable style={styles.quickCard} onPress={onPress}>
       <View style={[styles.quickIcon, { backgroundColor: iconBg }]}>
-        {icon}
+        <LineIcon d={icon} color={ink} size={17} />
       </View>
       <Text style={styles.quickLabel}>{label}</Text>
     </Pressable>
@@ -343,7 +398,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
 
-  content: { padding: 18, paddingTop: 16, paddingBottom: 24 },
+  content: { padding: 18, paddingTop: 16, paddingBottom: 120 },
   sectionHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -483,35 +538,16 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
 
-  iconCircle: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    borderWidth: 2,
-    borderColor: colors.info.ink,
+  quickGrid: { flexDirection: "row", flexWrap: "wrap", gap: 9 },
+  quickIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 11,
+    alignItems: "center",
+    justifyContent: "center",
   },
-  iconSquareFill: {
-    width: 12,
-    height: 12,
-    borderRadius: 4,
-    backgroundColor: colors.ok.ink,
-  },
-  iconSquareLine: {
-    width: 12,
-    height: 12,
-    borderRadius: 3,
-    borderWidth: 2,
-    borderColor: colors.iconAmber,
-  },
-  iconDash: {
-    width: 12,
-    height: 3,
-    borderRadius: 2,
-    backgroundColor: colors.bad.ink,
-  },
-  quickGrid: { flexDirection: "row", gap: 9 },
   quickCard: {
-    flex: 1,
+    width: "22.5%",
     backgroundColor: colors.card,
     borderWidth: 1,
     borderColor: colors.cardBorder,
@@ -521,34 +557,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 8,
   },
-  quickIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: 11,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  quickLabel: { fontSize: 10.5, fontWeight: "600", color: colors.ink },
-
-  quickCuti: {
-    width: 13,
-    height: 13,
-    borderRadius: 4,
-    borderWidth: 2,
-    borderColor: colors.info.ink,
-  },
-  quickLembur: {
-    width: 13,
-    height: 13,
-    borderRadius: 6.5,
-    borderWidth: 2,
-    borderColor: colors.iconAmber,
-  },
-  quickRp: { fontSize: 11, fontWeight: "700", color: colors.ok.ink },
-  quickAppraisal: {
-    width: 13,
-    height: 13,
-    borderRadius: 3,
-    backgroundColor: colors.purple.ink,
+  quickLabel: {
+    fontSize: 10.5,
+    lineHeight: 13,
+    fontWeight: "600",
+    color: colors.ink,
+    textAlign: "center",
   },
 });

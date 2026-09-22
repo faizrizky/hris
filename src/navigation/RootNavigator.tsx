@@ -4,7 +4,7 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { colors } from "@/theme/colors";
 import { useSession } from "@/services/session";
-
+import { FloatingTabBar } from "@/components/FloatingTabBar";
 import { LoginScreen } from "@/screens/auth/LoginScreen";
 import { HomeScreen } from "@/screens/home/HomeScreen";
 import { ClockScreen } from "@/screens/attendance/ClockScreen";
@@ -117,11 +117,7 @@ function MainTabs() {
   const canApprove = employee?.role === "mss" || employee?.role === "hr";
 
   return (
-    <Tab.Navigator
-      screenOptions={{
-        tabBarActiveTintColor: colors.accent,
-      }}
-    >
+    <Tab.Navigator tabBar={(props) => <FloatingTabBar {...props} />}>
       <Tab.Screen
         name="Beranda"
         component={HomeScreen}
