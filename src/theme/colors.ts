@@ -18,7 +18,6 @@ export const colors = {
   glowBottom: "rgba(27,111,201,0.45)", // radial glow kiri-bawah
   glowHeader: "rgba(36,144,239,0.4)", // radial glow di header Beranda (lebih redup dari login)
 
-  iconAmber: "#D97706", // oranye khusus outline ikon — beda dari warn.ink (#B45309) yang buat teks badge
   purple: { bg: "#EDE9FE", ink: "#7C3AED" }, // dipakai ikon Appraisal di Aksi cepat
 
   ok: { bg: "#DCFCE7", ink: "#16A34A" }, // hadir / disetujui
