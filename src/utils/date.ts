@@ -44,3 +44,14 @@ export function tanggalAngka(iso: string) {
 export function bulanSingkat(iso: string) {
   return BULAN[fromISODate(iso).getMonth()].slice(0, 3).toUpperCase();
 }
+
+/** "2023-09-14" -> 3 (tahun penuh) */
+export function tahunSejak(iso: string) {
+  const d = fromISODate(iso);
+  const now = new Date();
+  let tahun = now.getFullYear() - d.getFullYear();
+  const belumUlangTahun =
+    now.getMonth() < d.getMonth() ||
+    (now.getMonth() === d.getMonth() && now.getDate() < d.getDate());
+  return Math.max(0, belumUlangTahun ? tahun - 1 : tahun);
+}

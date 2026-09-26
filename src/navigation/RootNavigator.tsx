@@ -149,7 +149,7 @@ function MainTabs() {
         name="Profil"
         component={ProfileScreen}
         options={{
-          header: () => <NavBar title="Profil" />,
+          headerShown: false,
         }}
       />
     </Tab.Navigator>
