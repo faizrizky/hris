@@ -64,12 +64,24 @@ export interface LeaveBalance {
   unit: "hari" | "jam";
 }
 
+export interface PayslipLine {
+  label: string;
+  amount: number;
+}
+
 export interface Payslip {
   id: string;
   period: string; // "Agustus 2026"
-  grossPay: number;
-  deductions: number;
-  netPay: number;
+  monthShort: string; // "AGT" — chip di daftar slip sebelumnya
+  note: string; // "Reguler" / "Termasuk THR"
+  status: string; // "Dibayar"
+  bankAccount: string; // -> bank_account_no
+  paidAt: string; // -> posting_date
+  earnings: PayslipLine[]; // -> Salary Slip.earnings
+  deductions: PayslipLine[]; // -> Salary Slip.deductions
+  grossPay: number; // -> gross_pay
+  totalDeduction: number; // -> total_deduction
+  netPay: number; // -> net_pay
 }
 
 export interface NotificationItem {
