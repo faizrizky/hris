@@ -101,7 +101,7 @@ function PayrollStack() {
       <Stack.Screen
         name="PayslipList"
         component={PayslipListScreen}
-        options={{ title: "Slip Gaji" }}
+        options={{ title: "Slip Gaji", headerShown: false }}
       />
       <Stack.Screen
         name="PayslipDetail"

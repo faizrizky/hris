@@ -5,6 +5,7 @@ import {
   LeaveRequest,
   NotificationItem,
   Payslip,
+  PayslipLine,
 } from "../types";
 
 export const MOCK_EMPLOYEES: Record<string, Employee> = {
@@ -158,27 +159,61 @@ export const MOCK_PENDING_APPROVALS: LeaveRequest[] = [
   },
 ];
 
+const EARNINGS_REGULER: PayslipLine[] = [
+  { label: "Gaji pokok", amount: 8500000 },
+  { label: "Tunjangan transport", amount: 750000 },
+  { label: "Tunjangan makan", amount: 600000 },
+];
+
+const POTONGAN_REGULER: PayslipLine[] = [
+  { label: "PPh 21 (TER bulanan)", amount: 246250 },
+  { label: "BPJS Kesehatan 1%", amount: 85000 },
+  { label: "JHT 2%", amount: 170000 },
+  { label: "Jaminan Pensiun 1%", amount: 85000 },
+];
+
 export const MOCK_PAYSLIPS: Payslip[] = [
   {
     id: "ps-2026-08",
     period: "Agustus 2026",
-    grossPay: 11500000,
-    deductions: 2236250,
+    monthShort: "AGT",
+    note: "Reguler",
+    status: "Dibayar",
+    bankAccount: "BCA •••• 4812",
+    paidAt: "29 Agt 2026",
+    earnings: EARNINGS_REGULER,
+    deductions: POTONGAN_REGULER,
+    grossPay: 9850000,
+    totalDeduction: 586250,
     netPay: 9263750,
   },
   {
     id: "ps-2026-07",
     period: "Juli 2026",
-    grossPay: 11500000,
-    deductions: 2236250,
-    netPay: 9263750,
+    monthShort: "JUL",
+    note: "Termasuk THR",
+    status: "Dibayar",
+    bankAccount: "BCA •••• 4812",
+    paidAt: "28 Jul 2026",
+    earnings: [...EARNINGS_REGULER, { label: "THR", amount: 8500000 }],
+    deductions: POTONGAN_REGULER,
+    grossPay: 18350000,
+    totalDeduction: 586250,
+    netPay: 17763750,
   },
   {
     id: "ps-2026-06",
     period: "Juni 2026",
-    grossPay: 11000000,
-    deductions: 2140000,
-    netPay: 8860000,
+    monthShort: "JUN",
+    note: "Reguler",
+    status: "Dibayar",
+    bankAccount: "BCA •••• 4812",
+    paidAt: "29 Jun 2026",
+    earnings: EARNINGS_REGULER,
+    deductions: POTONGAN_REGULER,
+    grossPay: 9850000,
+    totalDeduction: 586250,
+    netPay: 9263750,
   },
 ];
 
