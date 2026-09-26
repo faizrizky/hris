@@ -11,6 +11,8 @@ export interface Employee {
   jobTitle: string; // -> designation
   department: string; // -> department
   avatarInitials: string;
+  joinDate: string; // ISO, -> date_of_joining
+  kpiScore: number; // -> skor akhir Appraisal ERPNext
 }
 
 export type AttendanceStatus = "hadir" | "telat" | "izin";

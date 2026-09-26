@@ -17,6 +17,8 @@ export const MOCK_EMPLOYEES: Record<string, Employee> = {
     jobTitle: "Staff Finance",
     department: "Divisi Keuangan",
     avatarInitials: "RW",
+    joinDate: "2023-09-14",
+    kpiScore: 4.2,
   },
   mss: {
     id: "mss",
@@ -26,6 +28,8 @@ export const MOCK_EMPLOYEES: Record<string, Employee> = {
     jobTitle: "Manager Operasional",
     department: "Operasional",
     avatarInitials: "BP",
+    joinDate: "2019-02-04",
+    kpiScore: 4.5,
   },
   hr: {
     id: "hr",
@@ -35,6 +39,8 @@ export const MOCK_EMPLOYEES: Record<string, Employee> = {
     jobTitle: "HR Admin",
     department: "People Ops",
     avatarInitials: "DL",
+    joinDate: "2021-06-21",
+    kpiScore: 4.4,
   },
 };
 
