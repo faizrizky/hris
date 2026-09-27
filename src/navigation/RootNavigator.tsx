@@ -49,7 +49,7 @@ function AttendanceStack() {
       <Stack.Screen
         name="AttendanceCorrection"
         component={AttendanceCorrectionScreen}
-        options={{ title: "Koreksi Absensi" }}
+        options={{ title: "Koreksi Absensi", headerShown: false }}
       />
       <Stack.Screen
         name="AttendanceCorrectionHistory"
