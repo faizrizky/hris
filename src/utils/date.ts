@@ -37,6 +37,12 @@ export function jamMenit(menit: number) {
   return `${h}:${m}`;
 }
 
+// "08:02" -> 482. Kebalikan dari jamMenit().
+export function menitDari(jam: string) {
+  const [h, m] = jam.split(":").map(Number);
+  return h * 60 + m;
+}
+
 /** 2.5 -> "2j 30m" */
 export function durasiJam(jam: number) {
   const h = Math.floor(jam);

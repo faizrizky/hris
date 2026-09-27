@@ -54,7 +54,8 @@ export function FloatingTabBar({ state, navigation }: BottomTabBarProps) {
   const nestedRoute = nested?.routes?.[nested.index ?? 0]?.name;
   const left = ["Beranda", employee?.role === "mss" ? "Approval" : "Absensi"];
 
-  if (nestedRoute === "LeaveRequest") return null;
+  const HIDE_ON = ["LeaveRequest", "AttendanceCorrection"];
+  if (nestedRoute && HIDE_ON.includes(nestedRoute)) return null;
 
   const go = (routeName: string) => {
     const route = state.routes.find((r) => r.name === routeName);

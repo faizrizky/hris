@@ -22,6 +22,7 @@ interface Props {
   end: string | null;
   onChange: (start: string | null, end: string | null) => void;
   footer: FooterItem[];
+  allow?: "future" | "past";
 }
 
 export function DatePickerCard({
@@ -32,6 +33,7 @@ export function DatePickerCard({
   end,
   onChange,
   footer,
+  allow = "future",
 }: Props) {
   const [cursor, setCursor] = useState(() =>
     start ? fromISODate(start) : new Date(),
@@ -102,7 +104,7 @@ export function DatePickerCard({
           {row.map((cell, j) => {
             if (!cell) return <View key={j} style={styles.cell} />;
 
-            const past = cell.iso < today;
+            const mati = allow === "past" ? cell.iso > today : cell.iso < today;
             const edge = cell.iso === start || cell.iso === end;
             const inRange =
               !!start && !!end && cell.iso > start && cell.iso < end;
@@ -111,7 +113,7 @@ export function DatePickerCard({
             return (
               <Pressable
                 key={j}
-                disabled={past}
+                disabled={mati}
                 onPress={() => pick(cell.iso)}
                 style={[
                   styles.cell,
@@ -124,10 +126,10 @@ export function DatePickerCard({
                     styles.cellText,
                     edge && styles.cellTextEdge,
                     !edge && inRange && styles.cellTextInRange,
-                    !edge && !inRange && past && styles.cellTextPast,
+                    !edge && !inRange && mati && styles.cellTextPast,
                     !edge &&
                       !inRange &&
-                      !past &&
+                      !mati &&
                       weekend &&
                       styles.cellTextWeekend,
                   ]}

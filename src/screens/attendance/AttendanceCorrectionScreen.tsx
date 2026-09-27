@@ -1,108 +1,312 @@
-import { useState } from "react";
-import { StyleSheet, Text, ScrollView, TextInput } from "react-native";
+import { useEffect, useState } from "react";
+import {
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { colors } from "@/theme/colors";
 import { hrisApi } from "@/services/api";
 import { useSession } from "@/services/session";
-import { PrimaryButton } from "@/components/PrimaryButton";
+import { AttendanceRecord } from "@/services/types";
+import { ATTENDANCE_STATUS_LABEL } from "@/constants/statusLabels";
+import { DatePickerCard } from "@/components/DatePickerCard";
+import {
+  ApprovalFlowCard,
+  ApprovalStep,
+  FormDoneView,
+} from "@/screens/leave/FormFlowCards";
+import { BuktiFile } from "@/screens/leave/LemburFormCards";
+import {
+  AlasanKoreksiCard,
+  BuktiKoreksiCard,
+  JamAjuanCard,
+  JenisKoreksi,
+  TercatatCard,
+} from "./KoreksiCards";
+import {
+  durasiJam,
+  jamMenit,
+  menitDari,
+  namaHari,
+  tanggalPendek,
+} from "@/utils/date";
+
+const APPROVERS: ApprovalStep[] = [
+  { ini: "BP", name: "Bayu Pratama", role: "Atasan langsung" },
+  { ini: "DL", name: "Dinda Larasati", role: "HR Admin" },
+];
 
 export function AttendanceCorrectionScreen({ navigation }: any) {
   const { employee } = useSession();
+  const insets = useSafeAreaInsets();
 
-  const [date, setDate] = useState("");
-  const [requestedCheckIn, setRequestedCheckIn] = useState("");
-  const [requestedCheckOut, setRequestedCheckOut] = useState("");
-  const [reason, setReason] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [history, setHistory] = useState<AttendanceRecord[]>([]);
+  const [tanggal, setTanggal] = useState<string | null>(null);
+  const [masuk, setMasukRaw] = useState(8 * 60);
+  const [keluar, setKeluarRaw] = useState(17 * 60);
+  const [jenis, setJenis] = useState<JenisKoreksi>("Lupa absen masuk");
+  const [alasan, setAlasan] = useState("");
+  const [files, setFiles] = useState<BuktiFile[]>([]);
+  const [sending, setSending] = useState(false);
+  const [done, setDone] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!employee) return;
+    hrisApi.getAttendanceHistory(employee.id).then(setHistory);
+  }, [employee]);
+
+  const record = tanggal
+    ? (history.find((r) => r.date === tanggal) ?? null)
+    : null;
+
+  // Tiap ganti tanggal, isi ulang jam dari log yang tercatat kalau ada.
+  useEffect(() => {
+    if (!tanggal) return;
+    const r = history.find((x) => x.date === tanggal);
+    setMasukRaw(r?.checkIn ? menitDari(r.checkIn) : 8 * 60);
+    setKeluarRaw(r?.checkOut ? menitDari(r.checkOut) : 17 * 60);
+  }, [tanggal, history]);
+
+  // Clamp di setter: dua nilai ini independen, hubungannya diurus validasi.
+  const setMasuk = (v: number) =>
+    setMasukRaw(Math.min(Math.max(v, 5 * 60), 12 * 60));
+  const setKeluar = (v: number) =>
+    setKeluarRaw(Math.min(Math.max(v, 6 * 60), 23 * 60 + 45));
+
+  const buktiWajib = !!tanggal && !record;
+
+  const blockMsg = !tanggal
+    ? "Tanggal belum dipilih"
+    : keluar < masuk + 60
+      ? "Jam keluar minimal 1 jam setelah masuk"
+      : alasan.trim().length < 15
+        ? "Penjelasan minimal 15 karakter"
+        : buktiWajib && files.length === 0
+          ? "Tidak ada log absensi, bukti wajib dilampirkan"
+          : "";
+
+  const bisaKirim = !blockMsg && !sending;
+
+  const footer = tanggal
+    ? [
+        {
+          label: "Tanggal",
+          value: `${namaHari(tanggal)}, ${tanggalPendek(tanggal)}`,
+        },
+        {
+          label: "Log tercatat",
+          value: record ? ATTENDANCE_STATUS_LABEL[record.status] : "Tidak ada",
+          accent: !record,
+        },
+      ]
+    : [
+        { label: "Tanggal", value: "Belum dipilih" },
+        { label: "Log tercatat", value: "—" },
+      ];
+
+  const buatDoneRows = () => {
+    if (!tanggal) return [];
+    return [
+      { k: "Tanggal", v: `${namaHari(tanggal)}, ${tanggalPendek(tanggal)}` },
+      { k: "Jam diajukan", v: `${jamMenit(masuk)} – ${jamMenit(keluar)}` },
+      { k: "Jenis", v: jenis },
+      { k: "Bukti", v: `${files.length} file` },
+    ];
+  };
 
   const handleSubmit = async () => {
-    if (
-      !employee ||
-      !date ||
-      !requestedCheckIn ||
-      !requestedCheckOut ||
-      !reason
-    )
-      return;
-    setLoading(true);
+    if (!employee || !tanggal || !bisaKirim) return;
+    setSending(true);
     try {
-      await hrisApi.submitAttendanceCorrection({
+      const res = await hrisApi.submitAttendanceCorrection({
         employeeId: employee.id,
-        date,
-        requestedCheckIn,
-        requestedCheckOut,
-        reason,
+        date: tanggal,
+        requestedCheckIn: jamMenit(masuk),
+        requestedCheckOut: jamMenit(keluar),
+        reason: `${jenis} — ${alasan.trim()}`,
       });
-      navigation.goBack();
+      setDone(res.id);
     } finally {
-      setLoading(false);
+      setSending(false);
     }
   };
 
   return (
-    <ScrollView
-      style={styles.container}
-      contentContainerStyle={{ padding: 20 }}
-    >
-      <Text style={styles.fieldLabel}>Date</Text>
-      <TextInput
-        style={[styles.input]}
-        value={date}
-        onChangeText={setDate}
-        placeholder="Date"
-      />
+    <View style={styles.container}>
+      <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
+        <View style={styles.headerRow}>
+          <Pressable style={styles.backBtn} onPress={() => navigation.goBack()}>
+            <Ionicons name="chevron-back" size={18} color={colors.ink} />
+          </Pressable>
+          <View style={{ flex: 1, minWidth: 0 }}>
+            <Text style={styles.headerTitle}>Koreksi Absensi</Text>
+            <Text style={styles.headerSub}>Attendance Request</Text>
+          </View>
+        </View>
+      </View>
 
-      <Text style={styles.fieldLabel}>Requested Check In</Text>
-      <TextInput
-        style={[styles.input]}
-        value={requestedCheckIn}
-        onChangeText={setRequestedCheckIn}
-        placeholder="Requested Check In"
-      />
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+      >
+        <ScrollView
+          contentContainerStyle={styles.content}
+          keyboardShouldPersistTaps="handled"
+        >
+          {done ? (
+            <FormDoneView
+              title="Koreksi absensi terkirim"
+              waitingOn={APPROVERS[0].name}
+              rows={buatDoneRows()}
+              doc={`Attendance Request · HR-ATR-${done}`}
+              onLihat={() => navigation.navigate("AttendanceCorrectionHistory")}
+              onHome={() => navigation.getParent()?.navigate("Beranda")}
+            />
+          ) : (
+            <>
+              <DatePickerCard
+                mode="single"
+                allow="past"
+                title="Tanggal yang dikoreksi"
+                hint="Hanya tanggal yang sudah berjalan"
+                start={tanggal}
+                end={tanggal}
+                onChange={(s) => setTanggal(s)}
+                footer={footer}
+              />
 
-      <Text style={styles.fieldLabel}>Requested Check Out</Text>
-      <TextInput
-        style={[styles.input]}
-        value={requestedCheckOut}
-        onChangeText={setRequestedCheckOut}
-        placeholder="Requested Check Out"
-      />
+              {tanggal && <TercatatCard record={record} />}
 
-      <Text style={styles.fieldLabel}>Reason</Text>
-      <TextInput
-        style={[styles.input, styles.textarea]}
-        value={reason}
-        onChangeText={setReason}
-        placeholder="Alasan pengajuan"
-        multiline
-      />
+              <JamAjuanCard
+                masuk={masuk}
+                keluar={keluar}
+                onChangeMasuk={setMasuk}
+                onChangeKeluar={setKeluar}
+              />
 
-      <PrimaryButton
-        label="Kirim Koreksi"
-        onPress={handleSubmit}
-        loading={loading}
-      />
-    </ScrollView>
+              <AlasanKoreksiCard
+                jenis={jenis}
+                onPickJenis={setJenis}
+                alasan={alasan}
+                onChangeAlasan={setAlasan}
+              />
+
+              <BuktiKoreksiCard
+                files={files}
+                wajib={buktiWajib}
+                onAdd={() =>
+                  setFiles((prev) => [
+                    ...prev,
+                    {
+                      name: `bukti-koreksi-${prev.length + 1}.jpg`,
+                      size: "0,9 MB",
+                    },
+                  ])
+                }
+                onRemove={(i) =>
+                  setFiles((prev) => prev.filter((_, idx) => idx !== i))
+                }
+              />
+
+              <ApprovalFlowCard steps={APPROVERS} />
+            </>
+          )}
+        </ScrollView>
+      </KeyboardAvoidingView>
+
+      {!done && (
+        <View style={[styles.actionBar, { paddingBottom: insets.bottom + 14 }]}>
+          <View style={{ flex: 1, minWidth: 0 }}>
+            <Text
+              style={[
+                styles.sumSub,
+                blockMsg ? { color: colors.bad.ink } : null,
+              ]}
+            >
+              {blockMsg || "Siap dikirim"}
+            </Text>
+            <Text style={styles.sumTop}>
+              {tanggal && keluar > masuk
+                ? durasiJam((keluar - masuk) / 60)
+                : "—"}
+            </Text>
+          </View>
+          <Pressable onPress={handleSubmit} disabled={!bisaKirim}>
+            <LinearGradient
+              colors={
+                bisaKirim
+                  ? [colors.accent, colors.accent2]
+                  : [colors.track, colors.track]
+              }
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.submitBtn}
+            >
+              <Text
+                style={[
+                  styles.submitText,
+                  bisaKirim ? { color: "#fff" } : null,
+                ]}
+              >
+                {sending ? "Mengirim..." : "Kirim koreksi"}
+              </Text>
+            </LinearGradient>
+          </Pressable>
+        </View>
+      )}
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.bg },
-  fieldLabel: {
-    fontSize: 13,
-    color: colors.muted,
-    marginBottom: 8,
-    marginTop: 16,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: colors.hair,
+
+  header: {
+    paddingHorizontal: 20,
+    paddingBottom: 14,
     backgroundColor: colors.card,
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    fontSize: 15,
-    color: colors.ink,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.hair,
   },
-  textarea: { height: 90, textAlignVertical: "top" },
+  headerRow: { flexDirection: "row", alignItems: "center", gap: 12 },
+  backBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 12,
+    backgroundColor: colors.chip,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  headerTitle: { fontSize: 15, fontWeight: "700", color: colors.ink },
+  headerSub: {
+    fontSize: 10.5,
+    fontWeight: "600",
+    color: colors.muted,
+    marginTop: 3,
+  },
+
+  content: { paddingHorizontal: 18, paddingTop: 4, paddingBottom: 24 },
+
+  actionBar: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 14,
+    backgroundColor: colors.card,
+    borderTopWidth: 1,
+    borderTopColor: colors.hair,
+    paddingHorizontal: 18,
+    paddingTop: 12,
+  },
+  sumSub: { fontSize: 10.5, fontWeight: "600", color: colors.muted },
+  sumTop: { fontSize: 16, fontWeight: "800", color: colors.ink, marginTop: 3 },
+  submitBtn: { paddingHorizontal: 22, paddingVertical: 14, borderRadius: 16 },
+  submitText: { fontSize: 13.5, fontWeight: "700", color: colors.mutedLabel },
 });
