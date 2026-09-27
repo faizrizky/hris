@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   KeyboardAvoidingView,
   Platform,
@@ -8,6 +8,10 @@ import {
   Text,
   View,
 } from "react-native";
+import { CutiTypeCard, CutiDetailCard, JenisCuti } from "./CutiFormCards";
+import { hrisApi } from "@/services/api";
+import { useSession } from "@/services/session";
+import { LeaveBalance } from "@/services/types";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { colors } from "@/theme/colors";
@@ -34,6 +38,10 @@ const FORM_META: Record<FormKind, { title: string; subtitle: string }> = {
 };
 
 export function LeaveRequestScreen({ navigation, route }: any) {
+  const { employee } = useSession();
+  const [balances, setBalances] = useState<LeaveBalance[]>([]);
+  const [jenisCuti, setJenisCuti] = useState<JenisCuti>("Tahunan");
+  const [alasan, setAlasan] = useState("");
   const insets = useSafeAreaInsets();
   const [kind, setKind] = useState<FormKind>(route?.params?.kind ?? "cuti");
 
@@ -49,6 +57,14 @@ export function LeaveRequestScreen({ navigation, route }: any) {
   const start = isSingle ? otDate : rangeStart;
   const end = isSingle ? otDate : rangeEnd;
   const range = start && end;
+
+  useEffect(() => {
+    if (!employee) return;
+    hrisApi.getLeaveBalances(employee.id).then(setBalances);
+  }, [employee]);
+
+  const saldo = balances.find((b) => b.type === "cuti")?.remaining ?? 0;
+  const hariKerja = start && end ? hitungHariKerja(start, end) : 0;
 
   const handleDateChange = (s: string | null, e: string | null) => {
     if (isSingle) {
@@ -136,6 +152,15 @@ export function LeaveRequestScreen({ navigation, route }: any) {
           contentContainerStyle={styles.content}
           keyboardShouldPersistTaps="handled"
         >
+          {kind === "cuti" && (
+            <CutiTypeCard
+              jenis={jenisCuti}
+              onPick={setJenisCuti}
+              saldo={saldo}
+              hariKerja={hariKerja}
+            />
+          )}
+
           <DatePickerCard
             key={kind}
             mode={isSingle ? "single" : "range"}
@@ -146,13 +171,27 @@ export function LeaveRequestScreen({ navigation, route }: any) {
             onChange={handleDateChange}
             footer={footer}
           />
+
+          {kind === "cuti" && (
+            <CutiDetailCard
+              jenis={jenisCuti}
+              alasan={alasan}
+              onChangeAlasan={setAlasan}
+            />
+          )}
         </ScrollView>
       </KeyboardAvoidingView>
 
       <View style={[styles.actionBar, { paddingBottom: insets.bottom + 14 }]}>
         <View style={{ flex: 1, minWidth: 0 }}>
-          <Text style={styles.sumSub}>Belum lengkap</Text>
-          <Text style={styles.sumTop}>—</Text>
+          <Text style={styles.sumSub}>
+            {kind === "cuti" && start && end
+              ? `${jenisCuti} · ${tanggalPendek(start)} – ${tanggalPendek(end)}`
+              : "Belum lengkap"}
+          </Text>
+          <Text style={styles.sumTop}>
+            {kind === "cuti" && hariKerja > 0 ? `${hariKerja} hari kerja` : "—"}
+          </Text>
         </View>
         <Pressable style={styles.submitBtn} disabled>
           <Text style={styles.submitText}>Kirim pengajuan</Text>
