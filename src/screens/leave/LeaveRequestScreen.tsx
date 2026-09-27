@@ -11,6 +11,13 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { colors } from "@/theme/colors";
+import { DatePickerCard, FooterItem } from "@/components/DatePickerCard";
+import {
+  tanggalPendek,
+  hitungHari,
+  hitungHariKerja,
+  fromISODate,
+} from "@/utils/date";
 
 const SEGMENTS = [
   { key: "cuti", label: "Cuti" },
@@ -31,6 +38,64 @@ export function LeaveRequestScreen({ navigation, route }: any) {
   const [kind, setKind] = useState<FormKind>(route?.params?.kind ?? "cuti");
 
   const meta = FORM_META[kind];
+
+  const isSingle = kind === "lembur";
+
+  // Cuti & Dinas berbagi rentang; Lembur punya tanggal tunggalnya sendiri.
+  const [rangeStart, setRangeStart] = useState<string | null>(null);
+  const [rangeEnd, setRangeEnd] = useState<string | null>(null);
+  const [otDate, setOtDate] = useState<string | null>(null);
+
+  const start = isSingle ? otDate : rangeStart;
+  const end = isSingle ? otDate : rangeEnd;
+  const range = start && end;
+
+  const handleDateChange = (s: string | null, e: string | null) => {
+    if (isSingle) {
+      setOtDate(s);
+    } else {
+      setRangeStart(s);
+      setRangeEnd(e);
+    }
+  };
+
+  const calTitle =
+    kind === "dinas"
+      ? "Tanggal perjalanan"
+      : kind === "lembur"
+        ? "Tanggal lembur"
+        : "Tanggal cuti";
+
+  const calHint = isSingle
+    ? "Ketuk satu tanggal"
+    : "Ketuk tanggal mulai, lalu tanggal selesai";
+
+  const footer: FooterItem[] = isSingle
+    ? [
+        { label: "Tanggal", value: start ? tanggalPendek(start) : "Pilih" },
+        {
+          label: "Jenis hari",
+          value: start
+            ? [0, 6].includes(fromISODate(start).getDay())
+              ? "Hari libur"
+              : "Hari kerja"
+            : "—",
+        },
+        { label: "Durasi", value: "—", accent: true },
+      ]
+    : [
+        { label: "Mulai", value: start ? tanggalPendek(start) : "Pilih" },
+        { label: "Selesai", value: end ? tanggalPendek(end) : "Pilih" },
+        {
+          label: "Durasi",
+          value: range
+            ? kind === "dinas"
+              ? `${hitungHari(start!, end!)} hari`
+              : `${hitungHariKerja(start!, end!)} hari kerja`
+            : "—",
+          accent: true,
+        },
+      ];
 
   return (
     <View style={styles.container}>
@@ -71,12 +136,16 @@ export function LeaveRequestScreen({ navigation, route }: any) {
           contentContainerStyle={styles.content}
           keyboardShouldPersistTaps="handled"
         >
-          {/* F2–F5 mengisi bagian ini */}
-          <View style={styles.placeholder}>
-            <Text style={styles.placeholderText}>
-              Isian {meta.title.toLowerCase()} menyusul di langkah berikutnya.
-            </Text>
-          </View>
+          <DatePickerCard
+            key={kind}
+            mode={isSingle ? "single" : "range"}
+            title={calTitle}
+            hint={calHint}
+            start={start}
+            end={end}
+            onChange={handleDateChange}
+            footer={footer}
+          />
         </ScrollView>
       </KeyboardAvoidingView>
 
