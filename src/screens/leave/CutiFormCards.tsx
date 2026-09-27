@@ -11,6 +11,13 @@ export const JENIS_CUTI = [
   "Izin penting",
 ] as const;
 
+export const NAMA_CUTI: Record<JenisCuti, string> = {
+  Tahunan: "Cuti tahunan",
+  Sakit: "Cuti sakit",
+  Melahirkan: "Cuti melahirkan",
+  "Izin penting": "Izin penting",
+};
+
 export type JenisCuti = (typeof JENIS_CUTI)[number];
 
 function infoCuti(jenis: JenisCuti, saldo: number, hariKerja: number) {

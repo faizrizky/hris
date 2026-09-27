@@ -8,7 +8,13 @@ import {
   Text,
   View,
 } from "react-native";
-import { CutiTypeCard, CutiDetailCard, JenisCuti } from "./CutiFormCards";
+import {
+  CutiTypeCard,
+  CutiDetailCard,
+  JenisCuti,
+  NAMA_CUTI,
+} from "./CutiFormCards";
+import { ApprovalFlowCard, FormDoneView, ApprovalStep } from "./FormFlowCards";
 import {
   LemburJamCard,
   LemburUraianCard,
@@ -20,6 +26,7 @@ import {
   DinasDetailCard,
   Transportasi,
 } from "./DinasFormCards";
+
 import { DinasBiayaCard, Biaya, totalBiaya } from "./DinasBiayaCard";
 import { jamMenit, durasiJam } from "@/utils/date";
 import { hrisApi } from "@/services/api";
@@ -36,6 +43,7 @@ import {
   fromISODate,
 } from "@/utils/date";
 import { rupiah } from "@/utils/currency";
+import { LinearGradient } from "expo-linear-gradient";
 
 const SEGMENTS = [
   { key: "cuti", label: "Cuti" },
@@ -49,6 +57,25 @@ const FORM_META: Record<FormKind, { title: string; subtitle: string }> = {
   cuti: { title: "Pengajuan Cuti", subtitle: "Leave Application" },
   lembur: { title: "Pengajuan Lembur", subtitle: "Overtime Request" },
   dinas: { title: "Pengajuan Dinas Luar", subtitle: "Travel Request" },
+};
+
+const APPROVERS: Record<FormKind, ApprovalStep[]> = {
+  cuti: [
+    { ini: "BP", name: "Bayu Pratama", role: "Atasan langsung" },
+    { ini: "DL", name: "Dinda Larasati", role: "HR Admin" },
+  ],
+  lembur: [{ ini: "BP", name: "Bayu Pratama", role: "Atasan langsung" }],
+  dinas: [
+    { ini: "BP", name: "Bayu Pratama", role: "Atasan langsung" },
+    { ini: "DL", name: "Dinda Larasati", role: "HR / General Affairs" },
+    { ini: "FN", name: "Fajar Nugroho", role: "Finance · uang muka" },
+  ],
+};
+
+const DOC_PREFIX: Record<FormKind, string> = {
+  cuti: "Leave Application · HR-LAP",
+  lembur: "Overtime Request · HR-OT",
+  dinas: "Travel Request · HR-TRQ",
 };
 
 export function LeaveRequestScreen({ navigation, route }: any) {
@@ -87,6 +114,9 @@ export function LeaveRequestScreen({ navigation, route }: any) {
   const hariPerjalanan = start && end ? hitungHari(start, end) : 0;
   const totalDinas = totalBiaya(biaya, hariPerjalanan);
 
+  const [done, setDone] = useState<string | null>(null); // id pengajuan
+  const [sending, setSending] = useState(false);
+
   useEffect(() => {
     if (!employee) return;
     hrisApi.getLeaveBalances(employee.id).then(setBalances);
@@ -94,6 +124,88 @@ export function LeaveRequestScreen({ navigation, route }: any) {
 
   const saldo = balances.find((b) => b.type === "cuti")?.remaining ?? 0;
   const hariKerja = start && end ? hitungHariKerja(start, end) : 0;
+
+  const buktiBiayaKurang = biaya.filter(
+    (x) => Number(x.nominal) > 0 && !x.bukti,
+  ).length;
+
+  const blockMsg = !start
+    ? "Tanggal belum dipilih"
+    : kind === "cuti" && !alasan.trim()
+      ? "Alasan belum diisi"
+      : kind === "lembur" && !uraian.trim()
+        ? "Uraian pekerjaan belum diisi"
+        : kind === "lembur" && otFiles.length === 0
+          ? "Bukti lembur belum diunggah"
+          : kind === "dinas" && !dest.trim()
+            ? "Kota tujuan belum diisi"
+            : kind === "dinas" && !transport
+              ? "Transportasi belum dipilih"
+              : kind === "dinas" && buktiBiayaKurang
+                ? `${buktiBiayaKurang} bukti biaya belum diunggah`
+                : "";
+
+  const bisaKirim = !blockMsg && !sending;
+
+  const handleSubmit = async () => {
+    if (!bisaKirim || !employee) return;
+    setSending(true);
+    try {
+      const created = await hrisApi.submitLeaveRequest({
+        employeeId: employee.id,
+        type:
+          kind === "lembur"
+            ? "lembur"
+            : kind === "dinas"
+              ? "dinas_luar"
+              : jenisCuti === "Sakit"
+                ? "sakit"
+                : "cuti",
+        label:
+          kind === "cuti"
+            ? `${NAMA_CUTI[jenisCuti]} · ${hariKerja} hari kerja`
+            : kind === "lembur"
+              ? `Lembur ${durasiJam(otJam)} · ${tanggalPendek(start!)}`
+              : `Dinas luar · ${hariPerjalanan} hari`,
+        reason:
+          kind === "cuti"
+            ? alasan.trim()
+            : kind === "lembur"
+              ? uraian.trim()
+              : `${dest.trim()} · ${keperluan.trim()}`,
+      });
+      setDone(created.id);
+    } finally {
+      setSending(false);
+    }
+  };
+
+  const buatDoneRows = () => {
+    if (!start || !end) return [];
+
+    if (kind === "cuti") {
+      return [
+        { k: "Jenis", v: NAMA_CUTI[jenisCuti] },
+        { k: "Tanggal", v: `${tanggalPendek(start)} – ${tanggalPendek(end)}` },
+        { k: "Durasi", v: `${hariKerja} hari kerja` },
+      ];
+    }
+
+    if (kind === "lembur") {
+      return [
+        { k: "Tanggal", v: tanggalPendek(start) },
+        { k: "Jam", v: `${jamMenit(otStart)} – ${jamMenit(otEnd)}` },
+        { k: "Bukti", v: `${otFiles.length} file` },
+      ];
+    }
+
+    return [
+      { k: "Tujuan", v: dest },
+      { k: "Tanggal", v: `${tanggalPendek(start)} – ${tanggalPendek(end)}` },
+      { k: "Total biaya", v: rupiah(totalDinas.total) },
+      { k: "Bukti", v: `${biaya.filter((x) => x.bukti).length} file` },
+    ];
+  };
 
   const handleDateChange = (s: string | null, e: string | null) => {
     if (isSingle) {
@@ -185,120 +297,155 @@ export function LeaveRequestScreen({ navigation, route }: any) {
           contentContainerStyle={styles.content}
           keyboardShouldPersistTaps="handled"
         >
-          {kind === "cuti" && (
-            <CutiTypeCard
-              jenis={jenisCuti}
-              onPick={setJenisCuti}
-              saldo={saldo}
-              hariKerja={hariKerja}
+          {done ? (
+            <FormDoneView
+              title={`Pengajuan ${kind === "dinas" ? "dinas luar" : kind} terkirim`}
+              waitingOn={APPROVERS[kind][0].name}
+              rows={buatDoneRows()}
+              doc={`${DOC_PREFIX[kind]}-${done}`}
+              onLihat={() => navigation.goBack()}
+              onHome={() => navigation.getParent()?.navigate("Beranda")}
             />
-          )}
-          {kind === "dinas" && (
-            <DinasTujuanCard dest={dest} onChange={setDest} />
-          )}
-
-          <DatePickerCard
-            key={kind}
-            mode={isSingle ? "single" : "range"}
-            title={calTitle}
-            hint={calHint}
-            start={start}
-            end={end}
-            onChange={handleDateChange}
-            footer={footer}
-          />
-
-          {kind === "cuti" && (
-            <CutiDetailCard
-              jenis={jenisCuti}
-              alasan={alasan}
-              onChangeAlasan={setAlasan}
-            />
-          )}
-
-          {kind === "lembur" && (
+          ) : (
             <>
-              <LemburJamCard
-                holiday={otHoliday}
-                startLabel={jamMenit(otStart)}
-                endLabel={jamMenit(otEnd)}
-                rule={
-                  otHoliday
-                    ? "Hari libur · maks. 8 jam"
-                    : "Hari kerja · mulai setelah jam pulang, maks. 4 jam"
-                }
-                onMinus={() => setOtEndRaw(otEnd - 30)}
-                onPlus={() => setOtEndRaw(otEnd + 30)}
-              />
-              <LemburUraianCard uraian={uraian} onChange={setUraian} />
-              <LemburBuktiCard
-                files={otFiles}
-                onAdd={() =>
-                  setOtFiles((prev) => [
-                    ...prev,
-                    {
-                      name: `bukti-lembur-${prev.length + 1}.jpg`,
-                      size: "1,2 MB",
-                    },
-                  ])
-                }
-                onRemove={(i) =>
-                  setOtFiles((prev) => prev.filter((_, idx) => idx !== i))
-                }
-              />
-            </>
-          )}
+              {kind === "cuti" && (
+                <CutiTypeCard
+                  jenis={jenisCuti}
+                  onPick={setJenisCuti}
+                  saldo={saldo}
+                  hariKerja={hariKerja}
+                />
+              )}
+              {kind === "dinas" && (
+                <DinasTujuanCard dest={dest} onChange={setDest} />
+              )}
 
-          {kind === "dinas" && (
-            <DinasBiayaCard
-              items={biaya}
-              hari={hariPerjalanan}
-              onAdd={() =>
-                setBiaya((prev) => [
-                  ...prev,
-                  {
-                    id: `b${Date.now()}`,
-                    kategori: "Transportasi",
-                    keterangan: "",
-                    nominal: "",
-                    bukti: null,
-                  },
-                ])
-              }
-              onRemove={(id) =>
-                setBiaya((prev) => prev.filter((x) => x.id !== id))
-              }
-              onChange={(id, patch) =>
-                setBiaya((prev) =>
-                  prev.map((x) => (x.id === id ? { ...x, ...patch } : x)),
-                )
-              }
-            />
+              <DatePickerCard
+                key={kind}
+                mode={isSingle ? "single" : "range"}
+                title={calTitle}
+                hint={calHint}
+                start={start}
+                end={end}
+                onChange={handleDateChange}
+                footer={footer}
+              />
+
+              {kind === "cuti" && (
+                <CutiDetailCard
+                  jenis={jenisCuti}
+                  alasan={alasan}
+                  onChangeAlasan={setAlasan}
+                />
+              )}
+
+              {kind === "lembur" && (
+                <>
+                  <LemburJamCard
+                    holiday={otHoliday}
+                    startLabel={jamMenit(otStart)}
+                    endLabel={jamMenit(otEnd)}
+                    rule={
+                      otHoliday
+                        ? "Hari libur · maks. 8 jam"
+                        : "Hari kerja · mulai setelah jam pulang, maks. 4 jam"
+                    }
+                    onMinus={() => setOtEndRaw(otEnd - 30)}
+                    onPlus={() => setOtEndRaw(otEnd + 30)}
+                  />
+                  <LemburUraianCard uraian={uraian} onChange={setUraian} />
+                  <LemburBuktiCard
+                    files={otFiles}
+                    onAdd={() =>
+                      setOtFiles((prev) => [
+                        ...prev,
+                        {
+                          name: `bukti-lembur-${prev.length + 1}.jpg`,
+                          size: "1,2 MB",
+                        },
+                      ])
+                    }
+                    onRemove={(i) =>
+                      setOtFiles((prev) => prev.filter((_, idx) => idx !== i))
+                    }
+                  />
+                </>
+              )}
+
+              {kind === "dinas" && (
+                <DinasBiayaCard
+                  items={biaya}
+                  hari={hariPerjalanan}
+                  onAdd={() =>
+                    setBiaya((prev) => [
+                      ...prev,
+                      {
+                        id: `b${Date.now()}`,
+                        kategori: "Transportasi",
+                        keterangan: "",
+                        nominal: "",
+                        bukti: null,
+                      },
+                    ])
+                  }
+                  onRemove={(id) =>
+                    setBiaya((prev) => prev.filter((x) => x.id !== id))
+                  }
+                  onChange={(id, patch) =>
+                    setBiaya((prev) =>
+                      prev.map((x) => (x.id === id ? { ...x, ...patch } : x)),
+                    )
+                  }
+                />
+              )}
+            </>
           )}
         </ScrollView>
       </KeyboardAvoidingView>
-
-      <View style={[styles.actionBar, { paddingBottom: insets.bottom + 14 }]}>
-        <View style={{ flex: 1, minWidth: 0 }}>
-          <Text style={styles.sumSub}>
-            {kind === "cuti" && start && end
-              ? `${jenisCuti} · ${tanggalPendek(start)} – ${tanggalPendek(end)}`
-              : "Belum lengkap"}
-          </Text>
-          <Text style={styles.sumTop}>
-            {kind === "cuti" && hariKerja > 0
-              ? `${hariKerja} hari kerja`
-              : kind === "lembur" && otDate
-                ? durasiJam(otJam)
-                : kind === "dinas" && start && end
-                  ? rupiah(totalDinas.total)
-                  : "—"}
-          </Text>
+      {!done && (
+        <View style={[styles.actionBar, { paddingBottom: insets.bottom + 14 }]}>
+          <View style={{ flex: 1, minWidth: 0 }}>
+            <Text
+              style={[
+                styles.sumSub,
+                blockMsg ? { color: colors.bad.ink } : null,
+              ]}
+            >
+              {blockMsg || "Siap dikirim"}
+            </Text>
+            <Text style={styles.sumTop}>
+              {kind === "cuti" && hariKerja > 0
+                ? `${hariKerja} hari kerja`
+                : kind === "lembur" && otDate
+                  ? durasiJam(otJam)
+                  : kind === "dinas" && start && end
+                    ? rupiah(totalDinas.total)
+                    : "—"}
+            </Text>
+          </View>
+          <Pressable onPress={handleSubmit} disabled={!bisaKirim}>
+            <LinearGradient
+              colors={
+                bisaKirim
+                  ? [colors.accent, colors.accent2]
+                  : [colors.track, colors.track]
+              }
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.submitBtn}
+            >
+              <Text
+                style={[
+                  styles.submitText,
+                  bisaKirim ? { color: "#fff" } : null,
+                ]}
+              >
+                {sending ? "Mengirim..." : "Kirim pengajuan"}
+              </Text>
+            </LinearGradient>
+          </Pressable>
         </View>
-        <Pressable style={styles.submitBtn} disabled>
-          <Text style={styles.submitText}>Kirim pengajuan</Text>
-        </Pressable>
-      </View>
+      )}
     </View>
   );
 }
@@ -381,7 +528,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 22,
     paddingVertical: 14,
     borderRadius: 16,
-    backgroundColor: colors.track,
   },
   submitText: { fontSize: 13.5, fontWeight: "700", color: colors.mutedLabel },
 });
