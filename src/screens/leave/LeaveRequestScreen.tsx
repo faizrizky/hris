@@ -15,6 +15,12 @@ import {
   LemburBuktiCard,
   BuktiFile,
 } from "./LemburFormCards";
+import {
+  DinasTujuanCard,
+  DinasDetailCard,
+  Transportasi,
+} from "./DinasFormCards";
+import { DinasBiayaCard, Biaya, totalBiaya } from "./DinasBiayaCard";
 import { jamMenit, durasiJam } from "@/utils/date";
 import { hrisApi } from "@/services/api";
 import { useSession } from "@/services/session";
@@ -29,6 +35,7 @@ import {
   hitungHariKerja,
   fromISODate,
 } from "@/utils/date";
+import { rupiah } from "@/utils/currency";
 
 const SEGMENTS = [
   { key: "cuti", label: "Cuti" },
@@ -54,6 +61,10 @@ export function LeaveRequestScreen({ navigation, route }: any) {
   const [otEndRaw, setOtEndRaw] = useState(0);
   const [uraian, setUraian] = useState("");
   const [otFiles, setOtFiles] = useState<BuktiFile[]>([]);
+  const [dest, setDest] = useState("");
+  const [transport, setTransport] = useState<Transportasi | null>(null);
+  const [keperluan, setKeperluan] = useState("");
+  const [biaya, setBiaya] = useState<Biaya[]>([]);
 
   const meta = FORM_META[kind];
 
@@ -72,6 +83,9 @@ export function LeaveRequestScreen({ navigation, route }: any) {
   const otMax = otHoliday ? 8 * 60 : 4 * 60;
   const otEnd = Math.min(Math.max(otEndRaw, otStart + 60), otStart + otMax);
   const otJam = (otEnd - otStart) / 60;
+
+  const hariPerjalanan = start && end ? hitungHari(start, end) : 0;
+  const totalDinas = totalBiaya(biaya, hariPerjalanan);
 
   useEffect(() => {
     if (!employee) return;
@@ -179,6 +193,9 @@ export function LeaveRequestScreen({ navigation, route }: any) {
               hariKerja={hariKerja}
             />
           )}
+          {kind === "dinas" && (
+            <DinasTujuanCard dest={dest} onChange={setDest} />
+          )}
 
           <DatePickerCard
             key={kind}
@@ -231,6 +248,33 @@ export function LeaveRequestScreen({ navigation, route }: any) {
               />
             </>
           )}
+
+          {kind === "dinas" && (
+            <DinasBiayaCard
+              items={biaya}
+              hari={hariPerjalanan}
+              onAdd={() =>
+                setBiaya((prev) => [
+                  ...prev,
+                  {
+                    id: `b${Date.now()}`,
+                    kategori: "Transportasi",
+                    keterangan: "",
+                    nominal: "",
+                    bukti: null,
+                  },
+                ])
+              }
+              onRemove={(id) =>
+                setBiaya((prev) => prev.filter((x) => x.id !== id))
+              }
+              onChange={(id, patch) =>
+                setBiaya((prev) =>
+                  prev.map((x) => (x.id === id ? { ...x, ...patch } : x)),
+                )
+              }
+            />
+          )}
         </ScrollView>
       </KeyboardAvoidingView>
 
@@ -246,7 +290,9 @@ export function LeaveRequestScreen({ navigation, route }: any) {
               ? `${hariKerja} hari kerja`
               : kind === "lembur" && otDate
                 ? durasiJam(otJam)
-                : "—"}
+                : kind === "dinas" && start && end
+                  ? rupiah(totalDinas.total)
+                  : "—"}
           </Text>
         </View>
         <Pressable style={styles.submitBtn} disabled>
