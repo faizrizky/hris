@@ -9,6 +9,13 @@ import {
   View,
 } from "react-native";
 import { CutiTypeCard, CutiDetailCard, JenisCuti } from "./CutiFormCards";
+import {
+  LemburJamCard,
+  LemburUraianCard,
+  LemburBuktiCard,
+  BuktiFile,
+} from "./LemburFormCards";
+import { jamMenit, durasiJam } from "@/utils/date";
 import { hrisApi } from "@/services/api";
 import { useSession } from "@/services/session";
 import { LeaveBalance } from "@/services/types";
@@ -44,12 +51,14 @@ export function LeaveRequestScreen({ navigation, route }: any) {
   const [alasan, setAlasan] = useState("");
   const insets = useSafeAreaInsets();
   const [kind, setKind] = useState<FormKind>(route?.params?.kind ?? "cuti");
+  const [otEndRaw, setOtEndRaw] = useState(0);
+  const [uraian, setUraian] = useState("");
+  const [otFiles, setOtFiles] = useState<BuktiFile[]>([]);
 
   const meta = FORM_META[kind];
 
   const isSingle = kind === "lembur";
 
-  // Cuti & Dinas berbagi rentang; Lembur punya tanggal tunggalnya sendiri.
   const [rangeStart, setRangeStart] = useState<string | null>(null);
   const [rangeEnd, setRangeEnd] = useState<string | null>(null);
   const [otDate, setOtDate] = useState<string | null>(null);
@@ -57,6 +66,12 @@ export function LeaveRequestScreen({ navigation, route }: any) {
   const start = isSingle ? otDate : rangeStart;
   const end = isSingle ? otDate : rangeEnd;
   const range = start && end;
+
+  const otHoliday = !!otDate && [0, 6].includes(fromISODate(otDate).getDay());
+  const otStart = otHoliday ? 8 * 60 : 17 * 60;
+  const otMax = otHoliday ? 8 * 60 : 4 * 60;
+  const otEnd = Math.min(Math.max(otEndRaw, otStart + 60), otStart + otMax);
+  const otJam = (otEnd - otStart) / 60;
 
   useEffect(() => {
     if (!employee) return;
@@ -97,7 +112,11 @@ export function LeaveRequestScreen({ navigation, route }: any) {
               : "Hari kerja"
             : "—",
         },
-        { label: "Durasi", value: "—", accent: true },
+        {
+          label: "Durasi",
+          value: otDate ? durasiJam(otJam) : "—",
+          accent: true,
+        },
       ]
     : [
         { label: "Mulai", value: start ? tanggalPendek(start) : "Pilih" },
@@ -179,6 +198,39 @@ export function LeaveRequestScreen({ navigation, route }: any) {
               onChangeAlasan={setAlasan}
             />
           )}
+
+          {kind === "lembur" && (
+            <>
+              <LemburJamCard
+                holiday={otHoliday}
+                startLabel={jamMenit(otStart)}
+                endLabel={jamMenit(otEnd)}
+                rule={
+                  otHoliday
+                    ? "Hari libur · maks. 8 jam"
+                    : "Hari kerja · mulai setelah jam pulang, maks. 4 jam"
+                }
+                onMinus={() => setOtEndRaw(otEnd - 30)}
+                onPlus={() => setOtEndRaw(otEnd + 30)}
+              />
+              <LemburUraianCard uraian={uraian} onChange={setUraian} />
+              <LemburBuktiCard
+                files={otFiles}
+                onAdd={() =>
+                  setOtFiles((prev) => [
+                    ...prev,
+                    {
+                      name: `bukti-lembur-${prev.length + 1}.jpg`,
+                      size: "1,2 MB",
+                    },
+                  ])
+                }
+                onRemove={(i) =>
+                  setOtFiles((prev) => prev.filter((_, idx) => idx !== i))
+                }
+              />
+            </>
+          )}
         </ScrollView>
       </KeyboardAvoidingView>
 
@@ -190,7 +242,11 @@ export function LeaveRequestScreen({ navigation, route }: any) {
               : "Belum lengkap"}
           </Text>
           <Text style={styles.sumTop}>
-            {kind === "cuti" && hariKerja > 0 ? `${hariKerja} hari kerja` : "—"}
+            {kind === "cuti" && hariKerja > 0
+              ? `${hariKerja} hari kerja`
+              : kind === "lembur" && otDate
+                ? durasiJam(otJam)
+                : "—"}
           </Text>
         </View>
         <Pressable style={styles.submitBtn} disabled>

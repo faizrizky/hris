@@ -30,6 +30,20 @@ export function formatJam(d: Date = new Date()) {
   return `${jam}:${menit}`;
 }
 
+/** 1020 -> "17:00" */
+export function jamMenit(menit: number) {
+  const h = String(Math.floor(menit / 60)).padStart(2, "0");
+  const m = String(menit % 60).padStart(2, "0");
+  return `${h}:${m}`;
+}
+
+/** 2.5 -> "2j 30m" */
+export function durasiJam(jam: number) {
+  const h = Math.floor(jam);
+  const m = Math.round((jam % 1) * 60);
+  return `${h}j ${String(m).padStart(2, "0")}m`;
+}
+
 /** "2026-09-14" -> Date lokal (tanpa geser timezone) */
 export function fromISODate(iso: string) {
   const [y, m, d] = iso.split("-").map(Number);
