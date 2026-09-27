@@ -50,11 +50,16 @@ export type LeaveDecision = "approve" | "reject" | null;
 export interface LeaveRequest {
   id: string;
   employeeId: string;
+  employeeName: string; // -> employee_name
+  employeeInitials: string;
+  employeeJobTitle: string; // -> designation
   type: LeaveType;
-  label: string; // "Cuti tahunan · 3 hari"
+  label: string;
   reason: string;
-  stage: string; // "Tahap 1 dari 2"
-  quota: string; // "4 hari"
+  stage: string;
+  quota: string;
+  approverName: string;
+  approverInitials: string;
   decision: LeaveDecision;
   createdAt: string;
 }
@@ -63,6 +68,7 @@ export interface LeaveBalance {
   type: LeaveType;
   label: string;
   remaining: number;
+  total: number;
   unit: "hari" | "jam";
 }
 

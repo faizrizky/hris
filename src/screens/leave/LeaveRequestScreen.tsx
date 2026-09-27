@@ -1,97 +1,177 @@
-import React, { useState } from 'react';
-import { ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
-import { PrimaryButton } from '@/components/PrimaryButton';
-import { colors } from '@/theme/colors';
-import { hrisApi } from '@/services/api';
-import { useSession } from '@/services/session';
-import { LeaveType } from '@/services/types';
+import React, { useState } from "react";
+import {
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Ionicons } from "@expo/vector-icons";
+import { colors } from "@/theme/colors";
 
-const TYPE_OPTIONS: { value: LeaveType; label: string }[] = [
-  { value: 'cuti', label: 'Cuti' },
-  { value: 'lembur', label: 'Lembur' },
-  { value: 'dinas_luar', label: 'Dinas Luar' },
-  { value: 'sakit', label: 'Sakit' },
-];
+const SEGMENTS = [
+  { key: "cuti", label: "Cuti" },
+  { key: "lembur", label: "Lembur" },
+  { key: "dinas", label: "Dinas Luar" },
+] as const;
 
-export function LeaveRequestScreen({ navigation }: any) {
-  const { employee } = useSession();
-  const [type, setType] = useState<LeaveType>('cuti');
-  const [detail, setDetail] = useState('');
-  const [reason, setReason] = useState('');
-  const [loading, setLoading] = useState(false);
+export type FormKind = (typeof SEGMENTS)[number]["key"];
 
-  const handleSubmit = async () => {
-    if (!employee || !detail || !reason) return;
-    setLoading(true);
-    try {
-      await hrisApi.submitLeaveRequest({
-        employeeId: employee.id,
-        type,
-        label: detail,
-        reason,
-      });
-      navigation.goBack();
-    } finally {
-      setLoading(false);
-    }
-  };
+const FORM_META: Record<FormKind, { title: string; subtitle: string }> = {
+  cuti: { title: "Pengajuan Cuti", subtitle: "Leave Application" },
+  lembur: { title: "Pengajuan Lembur", subtitle: "Overtime Request" },
+  dinas: { title: "Pengajuan Dinas Luar", subtitle: "Travel Request" },
+};
+
+export function LeaveRequestScreen({ navigation, route }: any) {
+  const insets = useSafeAreaInsets();
+  const [kind, setKind] = useState<FormKind>(route?.params?.kind ?? "cuti");
+
+  const meta = FORM_META[kind];
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={{ padding: 20 }}>
-      <Text style={styles.fieldLabel}>Jenis pengajuan</Text>
-      <View style={styles.typeRow}>
-        {TYPE_OPTIONS.map((opt) => (
-          <Text
-            key={opt.value}
-            onPress={() => setType(opt.value)}
-            style={[styles.typeChip, type === opt.value && styles.typeChipActive]}
-          >
-            {opt.label}
-          </Text>
-        ))}
+    <View style={styles.container}>
+      <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
+        <View style={styles.headerRow}>
+          <Pressable style={styles.backBtn} onPress={() => navigation.goBack()}>
+            <Ionicons name="chevron-back" size={18} color={colors.ink} />
+          </Pressable>
+          <View style={{ flex: 1, minWidth: 0 }}>
+            <Text style={styles.headerTitle}>{meta.title}</Text>
+            <Text style={styles.headerSub}>{meta.subtitle}</Text>
+          </View>
+        </View>
+
+        <View style={styles.segment}>
+          {SEGMENTS.map((s) => {
+            const on = kind === s.key;
+            return (
+              <Pressable
+                key={s.key}
+                onPress={() => setKind(s.key)}
+                style={[styles.segBtn, on && styles.segBtnOn]}
+              >
+                <Text style={[styles.segText, on && styles.segTextOn]}>
+                  {s.label}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </View>
       </View>
 
-      <Text style={styles.fieldLabel}>Detail (mis. "Cuti tahunan · 3 hari")</Text>
-      <TextInput style={styles.input} value={detail} onChangeText={setDetail} placeholder="Detail singkat" />
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+      >
+        <ScrollView
+          contentContainerStyle={styles.content}
+          keyboardShouldPersistTaps="handled"
+        >
+          {/* F2–F5 mengisi bagian ini */}
+          <View style={styles.placeholder}>
+            <Text style={styles.placeholderText}>
+              Isian {meta.title.toLowerCase()} menyusul di langkah berikutnya.
+            </Text>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
 
-      <Text style={styles.fieldLabel}>Alasan</Text>
-      <TextInput
-        style={[styles.input, styles.textarea]}
-        value={reason}
-        onChangeText={setReason}
-        placeholder="Alasan pengajuan"
-        multiline
-      />
-
-      <PrimaryButton label="Kirim Pengajuan" onPress={handleSubmit} loading={loading} />
-    </ScrollView>
+      <View style={[styles.actionBar, { paddingBottom: insets.bottom + 14 }]}>
+        <View style={{ flex: 1, minWidth: 0 }}>
+          <Text style={styles.sumSub}>Belum lengkap</Text>
+          <Text style={styles.sumTop}>—</Text>
+        </View>
+        <Pressable style={styles.submitBtn} disabled>
+          <Text style={styles.submitText}>Kirim pengajuan</Text>
+        </Pressable>
+      </View>
+    </View>
   );
 }
-
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.bg },
-  fieldLabel: { fontSize: 13, color: colors.muted, marginBottom: 8, marginTop: 16 },
-  typeRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  typeChip: {
-    fontSize: 13,
-    fontWeight: '600',
+
+  header: {
+    paddingHorizontal: 20,
+    paddingBottom: 14,
+    backgroundColor: colors.card,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.hair,
+  },
+  headerRow: { flexDirection: "row", alignItems: "center", gap: 12 },
+  backBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 12,
+    backgroundColor: colors.chip,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  headerTitle: { fontSize: 15, fontWeight: "700", color: colors.ink },
+  headerSub: {
+    fontSize: 10.5,
+    fontWeight: "600",
     color: colors.muted,
-    backgroundColor: colors.card,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 999,
-    overflow: 'hidden',
+    marginTop: 3,
   },
-  typeChipActive: { backgroundColor: colors.accent, color: '#fff' },
-  input: {
+
+  segment: {
+    flexDirection: "row",
+    gap: 4,
+    padding: 4,
+    borderRadius: 14,
+    backgroundColor: colors.chip,
+    marginTop: 14,
+  },
+  segBtn: {
+    flex: 1,
+    paddingVertical: 9,
+    paddingHorizontal: 6,
+    borderRadius: 11,
+    alignItems: "center",
+  },
+  segBtnOn: {
+    backgroundColor: colors.card,
+    shadowColor: "#0F1720",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.14,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  segText: { fontSize: 12, fontWeight: "700", color: colors.muted },
+  segTextOn: { color: colors.ink },
+
+  content: { paddingHorizontal: 18, paddingTop: 16, paddingBottom: 24 },
+  placeholder: {
+    backgroundColor: colors.card,
     borderWidth: 1,
-    borderColor: colors.hair,
-    backgroundColor: colors.card,
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    fontSize: 15,
-    color: colors.ink,
+    borderColor: colors.cardBorder,
+    borderRadius: 22,
+    padding: 16,
   },
-  textarea: { height: 90, textAlignVertical: 'top' },
+  placeholderText: { fontSize: 12.5, color: colors.muted },
+
+  actionBar: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 14,
+    backgroundColor: colors.card,
+    borderTopWidth: 1,
+    borderTopColor: colors.hair,
+    paddingHorizontal: 18,
+    paddingTop: 12,
+  },
+  sumSub: { fontSize: 10.5, fontWeight: "600", color: colors.muted },
+  sumTop: { fontSize: 16, fontWeight: "800", color: colors.ink, marginTop: 3 },
+  submitBtn: {
+    paddingHorizontal: 22,
+    paddingVertical: 14,
+    borderRadius: 16,
+    backgroundColor: colors.track,
+  },
+  submitText: { fontSize: 13.5, fontWeight: "700", color: colors.mutedLabel },
 });

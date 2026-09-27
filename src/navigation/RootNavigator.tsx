@@ -75,12 +75,12 @@ function LeaveStack() {
       <Stack.Screen
         name="LeaveList"
         component={LeaveListScreen}
-        options={{ title: "Cuti & Pengajuan" }}
+        options={{ title: "Cuti & Pengajuan", headerShown: false }}
       />
       <Stack.Screen
         name="LeaveRequest"
         component={LeaveRequestScreen}
-        options={{ title: "Ajukan" }}
+        options={{ title: "Ajukan", headerShown: false }}
       />
     </Stack.Navigator>
   );
@@ -137,7 +137,7 @@ function MainTabs() {
         <Tab.Screen
           name="Approval"
           component={LeaveApprovalScreen}
-          options={{ header: () => <NavBar title="Approval" /> }}
+          options={{ headerShown: false }}
         />
       )}
       <Tab.Screen
