@@ -104,14 +104,20 @@ export const mockApi: HrisApi = {
 
   async submitLeaveRequest(input): Promise<LeaveRequest> {
     await delay();
+    const pemohon = MOCK_EMPLOYEES[input.employeeId];
     const created: LeaveRequest = {
       id: `l${Date.now()}`,
       employeeId: input.employeeId,
+      employeeName: pemohon?.fullName ?? "—",
+      employeeInitials: pemohon?.avatarInitials ?? "—",
+      employeeJobTitle: pemohon?.jobTitle ?? "—",
       type: input.type,
       label: input.label,
       reason: input.reason,
       stage: "Tahap 1 dari 2",
       quota: "—",
+      approverName: "Bayu P. → HR",
+      approverInitials: "BP",
       decision: null,
       createdAt: new Date().toISOString().slice(0, 10),
     };

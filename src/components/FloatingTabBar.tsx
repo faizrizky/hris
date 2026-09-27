@@ -3,6 +3,9 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import type { BottomTabBarProps } from "@react-navigation/bottom-tabs";
 import { colors } from "@/theme/colors";
+import { useSession } from "@/services/session";
+import { LineIcon } from "@/components/LineIcon";
+import { ICON } from "@/constants/icons";
 
 const ACTIVE = colors.accent;
 const INACTIVE = "rgba(255,255,255,0.45)";
@@ -15,6 +18,7 @@ const RIGHT = ["Slip Gaji", "Profil"];
 const LABEL: Record<string, string> = {
   Beranda: "Home",
   Absensi: "Absensi",
+  Approval: "Approval",
   "Slip Gaji": "Payroll",
   Profil: "Profil",
 };
@@ -35,12 +39,22 @@ function TabIcon({ route, color }: { route: string; color: string }) {
   if (route === "Slip Gaji") {
     return <Text style={[styles.rpIcon, { color }]}>Rp</Text>;
   }
+  if (route === "Approval") {
+    return <LineIcon d={ICON.approval} color={color} size={15} />;
+  }
   return <View style={[styles.circleIcon, { borderColor: color }]} />;
 }
 
 export function FloatingTabBar({ state, navigation }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
+  const { employee } = useSession();
   const currentRoute = state.routes[state.index].name;
+  const active = state.routes[state.index] as any;
+  const nested = active.state;
+  const nestedRoute = nested?.routes?.[nested.index ?? 0]?.name;
+  const left = ["Beranda", employee?.role === "mss" ? "Approval" : "Absensi"];
+
+  if (nestedRoute === "LeaveRequest") return null;
 
   const go = (routeName: string) => {
     const route = state.routes.find((r) => r.name === routeName);
@@ -94,7 +108,7 @@ export function FloatingTabBar({ state, navigation }: BottomTabBarProps) {
       </View>
 
       <View style={styles.bar}>
-        {LEFT.map(renderTab)}
+        {left.map(renderTab)}
         <View style={styles.fabGap} />
         {RIGHT.map(renderTab)}
       </View>
