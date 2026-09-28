@@ -1,86 +1,144 @@
-import React, { useEffect, useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
-import { Card } from "@/components/Card";
+import { useEffect, useState } from "react";
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Ionicons } from "@expo/vector-icons";
+
 import { colors } from "@/theme/colors";
 import { hrisApi } from "@/services/api";
 import { useSession } from "@/services/session";
 import { Payslip } from "@/services/types";
+import {
+  PayslipCompareCard,
+  PayslipHero,
+  PayslipInfoCard,
+  PayslipLinesCard,
+} from "./PayslipCards";
 
-function formatRupiah(value: number): string {
-  return `Rp ${value.toLocaleString("id-ID")}`;
-}
-
-export function PayslipDetailScreen({ route }: any) {
+export function PayslipDetailScreen({ navigation, route }: any) {
   const { employee } = useSession();
+  const insets = useSafeAreaInsets();
   const { payslipId } = route.params;
-  const [payslip, setPayslip] = useState<Payslip | null>(null);
+
+  const [payslips, setPayslips] = useState<Payslip[] | null>(null);
 
   useEffect(() => {
     if (!employee) return;
-    hrisApi.getPayslips(employee.id).then((list) => {
-      setPayslip(list.find((p) => p.id === payslipId) ?? null);
-    });
-  }, [employee, payslipId]);
+    hrisApi.getPayslips(employee.id).then(setPayslips);
+  }, [employee]);
 
-  if (!payslip) return null;
+  // Ambil seluruh daftar, bukan satu slip: layar ini butuh slip tetangganya
+  // untuk kartu perbandingan. Daftarnya sudah terurut dari terbaru.
+  const idx = payslips ? payslips.findIndex((p) => p.id === payslipId) : -1;
+  const payslip = idx >= 0 && payslips ? payslips[idx] : null;
+  const sebelumnya =
+    payslips && idx >= 0 && idx + 1 < payslips.length
+      ? payslips[idx + 1]
+      : null;
+
+  const header = (title: string, sub?: string) => (
+    <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
+      <Pressable style={styles.backBtn} onPress={() => navigation.goBack()}>
+        <Ionicons name="chevron-back" size={18} color={colors.ink} />
+      </Pressable>
+      <View style={{ flex: 1, minWidth: 0 }}>
+        <Text style={styles.headerTitle}>{title}</Text>
+        {sub && <Text style={styles.headerSub}>{sub}</Text>}
+      </View>
+      {payslip && (
+        <Pressable style={styles.pdfBtn}>
+          <Text style={styles.pdfText}>Unduh PDF</Text>
+        </Pressable>
+      )}
+    </View>
+  );
+
+  if (!payslip) {
+    return (
+      <View style={styles.container}>
+        {header("Detail Slip Gaji")}
+        <Text style={styles.state}>
+          {payslips === null ? "Memuat slip…" : "Slip gaji tidak ditemukan."}
+        </Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
-      <Card>
-        <Text style={styles.period}>{payslip.period}</Text>
+      {header(payslip.period, `Salary Slip · ${payslip.note}`)}
 
-        <View style={styles.row}>
-          <Text style={styles.label}>Gaji kotor</Text>
-          <Text style={styles.value}>{formatRupiah(payslip.grossPay)}</Text>
-        </View>
-        <View style={styles.row}>
-          <Text style={styles.label}>Potongan</Text>
-          <Text style={styles.valueNeg}>
-            - {formatRupiah(payslip.totalDeduction)}
-          </Text>
-        </View>
-        <View style={[styles.row, styles.totalRow]}>
-          <Text style={styles.totalLabel}>Take home pay</Text>
-          <Text style={styles.totalValue}>{formatRupiah(payslip.netPay)}</Text>
-        </View>
-      </Card>
+      <ScrollView contentContainerStyle={styles.content}>
+        <PayslipHero payslip={payslip} />
 
-      <Text style={styles.note}>
-        Data dummy — komponen gaji detail (tunjangan, pajak, BPJS, dll) akan
-        mengikuti struktur Salary Slip ERPNext saat integrasi Fase 2.
-      </Text>
+        <PayslipLinesCard
+          title="Pendapatan (Earnings)"
+          lines={payslip.earnings}
+          totalLabel="Bruto"
+          total={payslip.grossPay}
+        />
+
+        <PayslipLinesCard
+          tight
+          negative
+          title="Potongan (Deductions)"
+          lines={payslip.deductions}
+          totalLabel="Total potongan"
+          total={payslip.totalDeduction}
+        />
+
+        {sebelumnya && (
+          <PayslipCompareCard current={payslip} previous={sebelumnya} />
+        )}
+
+        <PayslipInfoCard payslip={payslip} />
+      </ScrollView>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.bg, padding: 20 },
-  period: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: colors.ink,
-    marginBottom: 16,
-  },
-  row: {
+  container: { flex: 1, backgroundColor: colors.bg },
+
+  header: {
     flexDirection: "row",
-    justifyContent: "space-between",
-    paddingVertical: 8,
+    alignItems: "center",
+    gap: 12,
+    paddingHorizontal: 20,
+    paddingBottom: 16,
+    backgroundColor: colors.card,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.hair,
   },
-  label: { fontSize: 14, color: colors.muted },
-  value: { fontSize: 14, color: colors.ink },
-  valueNeg: { fontSize: 14, color: colors.bad.ink },
-  totalRow: {
-    borderTopWidth: 1,
-    borderTopColor: colors.hair,
-    marginTop: 8,
-    paddingTop: 14,
+  backBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 12,
+    backgroundColor: colors.chip,
+    alignItems: "center",
+    justifyContent: "center",
   },
-  totalLabel: { fontSize: 15, fontWeight: "700", color: colors.ink },
-  totalValue: { fontSize: 15, fontWeight: "700", color: colors.accent },
-  note: {
-    fontSize: 11,
+  headerTitle: { fontSize: 15, fontWeight: "700", color: colors.ink },
+  headerSub: {
+    fontSize: 10.5,
+    fontWeight: "600",
     color: colors.muted,
-    marginTop: 16,
+    marginTop: 3,
+  },
+  pdfBtn: {
+    paddingHorizontal: 13,
+    paddingVertical: 8,
+    borderRadius: 999,
+    backgroundColor: colors.info.bg,
+  },
+  pdfText: { fontSize: 11.5, fontWeight: "600", color: colors.info.ink },
+
+  content: { paddingHorizontal: 18, paddingTop: 16, paddingBottom: 130 },
+
+  state: {
+    fontSize: 12.5,
+    fontWeight: "500",
+    color: colors.muted,
     textAlign: "center",
+    marginTop: 40,
   },
 });
