@@ -11,7 +11,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-
+import { gabungAlasan } from "@/utils/Correction";
 import { colors } from "@/theme/colors";
 import { hrisApi } from "@/services/api";
 import { useSession } from "@/services/session";
@@ -131,7 +131,7 @@ export function AttendanceCorrectionScreen({ navigation }: any) {
         date: tanggal,
         requestedCheckIn: jamMenit(masuk),
         requestedCheckOut: jamMenit(keluar),
-        reason: `${jenis} — ${alasan.trim()}`,
+        reason: gabungAlasan(jenis, alasan),
       });
       setDone(res.id);
     } finally {

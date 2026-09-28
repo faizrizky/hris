@@ -22,6 +22,7 @@ import {
   MOCK_NOTIFICATIONS,
   MOCK_PAYSLIPS,
   MOCK_PENDING_APPROVALS,
+  MOCK_CORRECTIONS,
 } from "./mockData";
 
 const delay = (ms = 300) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -34,7 +35,9 @@ let clockState: ClockState = {
   lastCheckOut: null,
 };
 let leaveRequests: LeaveRequest[] = [...MOCK_LEAVE_REQUESTS];
-let attendanceCorrections: AttendanceCorrectionRequest[] = [];
+let attendanceCorrections: AttendanceCorrectionRequest[] = [
+  ...MOCK_CORRECTIONS,
+];
 let pendingApprovals: LeaveRequest[] = [...MOCK_PENDING_APPROVALS];
 let currentEmployee: Employee = MOCK_EMPLOYEES.ess;
 
