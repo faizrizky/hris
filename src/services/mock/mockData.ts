@@ -1,4 +1,5 @@
 import {
+  AttendanceCorrectionRequest,
   AttendanceRecord,
   Employee,
   LeaveBalance,
@@ -100,6 +101,39 @@ export const MOCK_ATTENDANCE: AttendanceRecord[] = [
     checkOut: "17:02",
     durationLabel: "9j 15m",
     status: "hadir",
+  },
+];
+
+export const MOCK_CORRECTIONS: AttendanceCorrectionRequest[] = [
+  {
+    id: "k3",
+    employeeId: "ess",
+    date: "2026-09-11",
+    requestedCheckIn: "07:51",
+    requestedCheckOut: "17:05",
+    reason:
+      "Lupa absen keluar — Rapat dengan vendor sampai sore, jam keluar dicatat manual oleh security.",
+    status: "pending",
+  },
+  {
+    id: "k2",
+    employeeId: "ess",
+    date: "2026-09-04",
+    requestedCheckIn: "08:00",
+    requestedCheckOut: "17:00",
+    reason:
+      "Aplikasi gagal / error — Aplikasi force close saat tap absen masuk, sudah dilaporkan ke IT support.",
+    status: "approved",
+  },
+  {
+    id: "k1",
+    employeeId: "ess",
+    date: "2026-08-26",
+    requestedCheckIn: "08:15",
+    requestedCheckOut: "18:30",
+    reason:
+      "GPS tidak akurat — Titik lokasi terbaca 400 meter dari kantor sehingga absen ditolak sistem.",
+    status: "rejected",
   },
 ];
 
