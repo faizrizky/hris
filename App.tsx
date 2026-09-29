@@ -1,16 +1,18 @@
-import React from 'react';
-import { StatusBar } from 'expo-status-bar';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { SessionProvider } from '@/services/session';
-import { RootNavigator } from '@/navigation/RootNavigator';
+import { StatusBar } from "expo-status-bar";
+import { SafeAreaProvider } from "react-native-safe-area-context";
+import { SessionProvider } from "@/services/session";
+import { RootNavigator } from "@/navigation/RootNavigator";
+import { ThemeProvider } from "@/theme/ThemeContext";
 
 export default function App() {
   return (
     <SafeAreaProvider>
-      <SessionProvider>
-        <RootNavigator />
-        <StatusBar style="auto" />
-      </SessionProvider>
+      <ThemeProvider>
+        <SessionProvider>
+          <RootNavigator />
+          <StatusBar style="auto" />
+        </SessionProvider>
+      </ThemeProvider>
     </SafeAreaProvider>
   );
 }

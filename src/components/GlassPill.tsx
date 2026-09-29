@@ -1,27 +1,32 @@
 import React from "react";
 import { StyleSheet, View } from "react-native";
 import { BlurView } from "expo-blur";
+import { useThemeMode } from "@/theme/ThemeContext";
 
 interface Props {
   children: React.ReactNode;
   dark?: boolean;
 }
 
-export function GlassPill({ children, dark = false }: Props) {
+export function GlassPill({ children, dark }: Props) {
+  const { mode } = useThemeMode();
+  const gelap = dark ?? mode === "dark";
   return (
     <View
-      style={[styles.wrapper, dark ? styles.shadowDark : styles.shadowLight]}
+      style={[styles.wrapper, gelap ? styles.shadowDark : styles.shadowLight]}
     >
       <BlurView
         intensity={40}
-        tint={dark ? "dark" : "light"}
+        tint={gelap ? "dark" : "light"}
         style={StyleSheet.absoluteFill}
       />
       <View
         style={[
           StyleSheet.absoluteFill,
           styles.pill,
-          { borderColor: dark ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.06)" },
+          {
+            borderColor: gelap ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.06)",
+          },
         ]}
       />
       <View style={styles.content}>{children}</View>

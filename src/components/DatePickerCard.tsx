@@ -1,7 +1,8 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { colors } from "@/theme/colors";
+import { Palette } from "@/theme/colors";
+import { useTheme } from "@/theme/ThemeContext";
 import { toISODate, fromISODate, labelBulan } from "@/utils/date";
 
 const HARI_PENDEK = ["Sen", "Sel", "Rab", "Kam", "Jum", "Sab", "Min"];
@@ -38,6 +39,8 @@ export function DatePickerCard({
   const [cursor, setCursor] = useState(() =>
     start ? fromISODate(start) : new Date(),
   );
+  const c = useTheme();
+  const styles = useMemo(() => makeStyles(c), [c]);
 
   const today = toISODate(new Date());
 
@@ -82,11 +85,11 @@ export function DatePickerCard({
         </View>
         <View style={styles.monthNav}>
           <Pressable onPress={() => shiftMonth(-1)} hitSlop={8}>
-            <Ionicons name="chevron-back" size={15} color={colors.muted} />
+            <Ionicons name="chevron-back" size={15} color={c.muted} />
           </Pressable>
           <Text style={styles.monthLabel}>{labelBulan(cursor)}</Text>
           <Pressable onPress={() => shiftMonth(1)} hitSlop={8}>
-            <Ionicons name="chevron-forward" size={15} color={colors.muted} />
+            <Ionicons name="chevron-forward" size={15} color={c.muted} />
           </Pressable>
         </View>
       </View>
@@ -156,77 +159,78 @@ export function DatePickerCard({
   );
 }
 
-const styles = StyleSheet.create({
-  card: {
-    backgroundColor: colors.card,
-    borderWidth: 1,
-    borderColor: colors.cardBorder,
-    borderRadius: 22,
-    padding: 16,
-    marginTop: 12,
-    shadowColor: "#0F1720",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.06,
-    shadowRadius: 16,
-    elevation: 3,
-  },
-  head: { flexDirection: "row", alignItems: "center" },
-  title: { fontSize: 13.5, fontWeight: "700", color: colors.ink },
-  hint: {
-    fontSize: 10.5,
-    fontWeight: "500",
-    color: colors.muted,
-    marginTop: 3,
-  },
-  monthNav: { flexDirection: "row", alignItems: "center", gap: 10 },
-  monthLabel: { fontSize: 12, fontWeight: "700", color: colors.ink },
+const makeStyles = (c: Palette) =>
+  StyleSheet.create({
+    card: {
+      backgroundColor: c.card,
+      borderWidth: 1,
+      borderColor: c.cardBorder,
+      borderRadius: 22,
+      padding: 16,
+      marginTop: 12,
+      shadowColor: "#0F1720",
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.06,
+      shadowRadius: 16,
+      elevation: 3,
+    },
+    head: { flexDirection: "row", alignItems: "center" },
+    title: { fontSize: 13.5, fontWeight: "700", color: c.ink },
+    hint: {
+      fontSize: 10.5,
+      fontWeight: "500",
+      color: c.muted,
+      marginTop: 3,
+    },
+    monthNav: { flexDirection: "row", alignItems: "center", gap: 10 },
+    monthLabel: { fontSize: 12, fontWeight: "700", color: c.ink },
 
-  weekRow: { flexDirection: "row", gap: 4, marginTop: 14 },
-  weekLabel: {
-    flex: 1,
-    fontSize: 10,
-    fontWeight: "600",
-    color: colors.muted,
-    textAlign: "center",
-    paddingBottom: 4,
-  },
+    weekRow: { flexDirection: "row", gap: 4, marginTop: 14 },
+    weekLabel: {
+      flex: 1,
+      fontSize: 10,
+      fontWeight: "600",
+      color: c.muted,
+      textAlign: "center",
+      paddingBottom: 4,
+    },
 
-  row: { flexDirection: "row", gap: 4, marginBottom: 4 },
-  cell: {
-    flex: 1,
-    height: 36,
-    borderRadius: 11,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  cellEdge: { backgroundColor: colors.accent },
-  cellInRange: { backgroundColor: colors.info.bg },
-  cellText: { fontSize: 12.5, fontWeight: "600", color: colors.ink },
-  cellTextEdge: { color: "#fff", fontWeight: "800" },
-  cellTextInRange: { color: colors.info.ink },
-  cellTextPast: { color: colors.mutedLabel },
-  cellTextWeekend: { color: colors.muted },
+    row: { flexDirection: "row", gap: 4, marginBottom: 4 },
+    cell: {
+      flex: 1,
+      height: 36,
+      borderRadius: 11,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    cellEdge: { backgroundColor: c.accent },
+    cellInRange: { backgroundColor: c.info.bg },
+    cellText: { fontSize: 12.5, fontWeight: "600", color: c.ink },
+    cellTextEdge: { color: "#fff", fontWeight: "800" },
+    cellTextInRange: { color: c.info.ink },
+    cellTextPast: { color: c.mutedLabel },
+    cellTextWeekend: { color: c.muted },
 
-  footer: {
-    flexDirection: "row",
-    gap: 8,
-    marginTop: 10,
-    paddingTop: 14,
-    borderTopWidth: 1,
-    borderTopColor: colors.hair,
-  },
-  footerLabel: {
-    fontSize: 10,
-    fontWeight: "600",
-    letterSpacing: 0.6,
-    textTransform: "uppercase",
-    color: colors.mutedLabel,
-  },
-  footerValue: {
-    fontSize: 12.5,
-    fontWeight: "700",
-    color: colors.ink,
-    marginTop: 5,
-  },
-  footerAccent: { color: colors.accent },
-});
+    footer: {
+      flexDirection: "row",
+      gap: 8,
+      marginTop: 10,
+      paddingTop: 14,
+      borderTopWidth: 1,
+      borderTopColor: c.hair,
+    },
+    footerLabel: {
+      fontSize: 10,
+      fontWeight: "600",
+      letterSpacing: 0.6,
+      textTransform: "uppercase",
+      color: c.mutedLabel,
+    },
+    footerValue: {
+      fontSize: 12.5,
+      fontWeight: "700",
+      color: c.ink,
+      marginTop: 5,
+    },
+    footerAccent: { color: c.accent },
+  });

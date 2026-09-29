@@ -1,13 +1,13 @@
 import React, { useEffect, useRef } from "react";
 import { Animated, Easing, ViewStyle } from "react-native";
-import { colors } from "@/theme/colors";
+import { useTheme } from "@/theme/ThemeContext";
 
 export function Skeleton({
   width,
   height,
   radius = 8,
   style,
-  color = colors.track,
+  color,
 }: {
   width?: ViewStyle["width"];
   height: number;
@@ -16,6 +16,8 @@ export function Skeleton({
   style?: ViewStyle;
 }) {
   const anim = useRef(new Animated.Value(0)).current;
+  const c = useTheme();
+  const isi = color ?? c.track;
 
   useEffect(() => {
     const loop = Animated.loop(
@@ -52,7 +54,7 @@ export function Skeleton({
           width,
           height,
           borderRadius: radius,
-          backgroundColor: color,
+          backgroundColor: isi,
           opacity,
         },
         style,
