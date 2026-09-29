@@ -22,6 +22,7 @@ import { TaxScreen } from "@/screens/payroll/TaxScreen";
 import { AppraisalScreen } from "@/screens/appraisal/AppraisalScreen";
 import { StaffListScreen } from "@/screens/staff/StaffListScreen";
 import { StaffDetailScreen } from "@/screens/staff/StaffDetailScreen";
+import { StaffAttendanceScreen } from "@/screens/staff/StaffAttendanceScreen";
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -136,6 +137,7 @@ function HomeStack() {
       <Stack.Screen name="Appraisal" component={AppraisalScreen} />
       <Stack.Screen name="StaffList" component={StaffListScreen} />
       <Stack.Screen name="StaffDetail" component={StaffDetailScreen} />
+      <Stack.Screen name="StaffAttendance" component={StaffAttendanceScreen} />
     </Stack.Navigator>
   );
 }

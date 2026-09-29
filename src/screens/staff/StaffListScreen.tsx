@@ -84,6 +84,12 @@ export function StaffListScreen({ navigation }: any) {
             )}
           </View>
         </View>
+        <Pressable
+          style={styles.headerAction}
+          onPress={() => navigation.navigate("StaffAttendance")}
+        >
+          <Ionicons name="calendar-outline" size={17} color={colors.ink} />
+        </Pressable>
       </View>
 
       <View style={styles.searchBox}>
@@ -106,7 +112,7 @@ export function StaffListScreen({ navigation }: any) {
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-        style={{ flexGrow: 0 }}
+        style={{ flexGrow: 0, flexShrink: 0, marginBottom: 12 }}
         contentContainerStyle={styles.chipRow}
       >
         {loading
@@ -223,6 +229,14 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
+  headerAction: {
+    width: 36,
+    height: 36,
+    borderRadius: 12,
+    backgroundColor: colors.chip,
+    alignItems: "center",
+    justifyContent: "center",
+  },
   headerTitle: { fontSize: 15, fontWeight: "700", color: colors.ink },
   headerSub: {
     fontSize: 11,
@@ -254,7 +268,6 @@ const styles = StyleSheet.create({
 
   chipRow: {
     paddingHorizontal: 18,
-    paddingBottom: 12,
     gap: 7,
     alignItems: "center",
   },
