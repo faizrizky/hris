@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import {
   KeyboardAvoidingView,
   Platform,
@@ -12,7 +12,8 @@ import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { gabungAlasan } from "@/utils/Correction";
-import { colors } from "@/theme/colors";
+import { Palette } from "@/theme/colors";
+import { useTheme } from "@/theme/ThemeContext";
 import { hrisApi } from "@/services/api";
 import { useSession } from "@/services/session";
 import { AttendanceRecord } from "@/services/types";
@@ -57,6 +58,8 @@ export function AttendanceCorrectionScreen({ navigation }: any) {
   const [files, setFiles] = useState<BuktiFile[]>([]);
   const [sending, setSending] = useState(false);
   const [done, setDone] = useState<string | null>(null);
+  const c = useTheme();
+  const styles = useMemo(() => makeStyles(c), [c]);
 
   useEffect(() => {
     if (!employee) return;
@@ -144,7 +147,7 @@ export function AttendanceCorrectionScreen({ navigation }: any) {
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
         <View style={styles.headerRow}>
           <Pressable style={styles.backBtn} onPress={() => navigation.goBack()}>
-            <Ionicons name="chevron-back" size={18} color={colors.ink} />
+            <Ionicons name="chevron-back" size={18} color={c.ink} />
           </Pressable>
           <View style={{ flex: 1, minWidth: 0 }}>
             <Text style={styles.headerTitle}>Koreksi Absensi</Text>
@@ -226,10 +229,7 @@ export function AttendanceCorrectionScreen({ navigation }: any) {
         <View style={[styles.actionBar, { paddingBottom: insets.bottom + 14 }]}>
           <View style={{ flex: 1, minWidth: 0 }}>
             <Text
-              style={[
-                styles.sumSub,
-                blockMsg ? { color: colors.bad.ink } : null,
-              ]}
+              style={[styles.sumSub, blockMsg ? { color: c.bad.ink } : null]}
             >
               {blockMsg || "Siap dikirim"}
             </Text>
@@ -241,11 +241,7 @@ export function AttendanceCorrectionScreen({ navigation }: any) {
           </View>
           <Pressable onPress={handleSubmit} disabled={!bisaKirim}>
             <LinearGradient
-              colors={
-                bisaKirim
-                  ? [colors.accent, colors.accent2]
-                  : [colors.track, colors.track]
-              }
+              colors={bisaKirim ? [c.accent, c.accent2] : [c.track, c.track]}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
               style={styles.submitBtn}
@@ -266,47 +262,53 @@ export function AttendanceCorrectionScreen({ navigation }: any) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.bg },
+const makeStyles = (c: Palette) =>
+  StyleSheet.create({
+    container: { flex: 1, backgroundColor: c.bg },
 
-  header: {
-    paddingHorizontal: 20,
-    paddingBottom: 14,
-    backgroundColor: colors.card,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.hair,
-  },
-  headerRow: { flexDirection: "row", alignItems: "center", gap: 12 },
-  backBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 12,
-    backgroundColor: colors.chip,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  headerTitle: { fontSize: 15, fontWeight: "700", color: colors.ink },
-  headerSub: {
-    fontSize: 10.5,
-    fontWeight: "600",
-    color: colors.muted,
-    marginTop: 3,
-  },
+    header: {
+      paddingHorizontal: 20,
+      paddingBottom: 14,
+      backgroundColor: c.card,
+      borderBottomWidth: 1,
+      borderBottomColor: c.hair,
+    },
+    headerRow: { flexDirection: "row", alignItems: "center", gap: 12 },
+    backBtn: {
+      width: 36,
+      height: 36,
+      borderRadius: 12,
+      backgroundColor: c.chip,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    headerTitle: { fontSize: 15, fontWeight: "700", color: c.ink },
+    headerSub: {
+      fontSize: 10.5,
+      fontWeight: "600",
+      color: c.muted,
+      marginTop: 3,
+    },
 
-  content: { paddingHorizontal: 18, paddingTop: 4, paddingBottom: 24 },
+    content: { paddingHorizontal: 18, paddingTop: 4, paddingBottom: 24 },
 
-  actionBar: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 14,
-    backgroundColor: colors.card,
-    borderTopWidth: 1,
-    borderTopColor: colors.hair,
-    paddingHorizontal: 18,
-    paddingTop: 12,
-  },
-  sumSub: { fontSize: 10.5, fontWeight: "600", color: colors.muted },
-  sumTop: { fontSize: 16, fontWeight: "800", color: colors.ink, marginTop: 3 },
-  submitBtn: { paddingHorizontal: 22, paddingVertical: 14, borderRadius: 16 },
-  submitText: { fontSize: 13.5, fontWeight: "700", color: colors.mutedLabel },
-});
+    actionBar: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 14,
+      backgroundColor: c.card,
+      borderTopWidth: 1,
+      borderTopColor: c.hair,
+      paddingHorizontal: 18,
+      paddingTop: 12,
+    },
+    sumSub: { fontSize: 10.5, fontWeight: "600", color: c.muted },
+    sumTop: {
+      fontSize: 16,
+      fontWeight: "800",
+      color: c.ink,
+      marginTop: 3,
+    },
+    submitBtn: { paddingHorizontal: 22, paddingVertical: 14, borderRadius: 16 },
+    submitText: { fontSize: 13.5, fontWeight: "700", color: c.mutedLabel },
+  });

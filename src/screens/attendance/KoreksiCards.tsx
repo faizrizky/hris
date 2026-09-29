@@ -1,8 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-
-import { colors } from "@/theme/colors";
+import { Palette } from "@/theme/colors";
+import { useTheme } from "@/theme/ThemeContext";
 import { LineIcon } from "@/components/LineIcon";
 import { ICON } from "@/constants/icons";
 import { PickerSheet } from "@/components/PickerSheet";
@@ -31,6 +31,8 @@ const STEP = 15;
 /* ---------- Data tercatat (read-only) ---------- */
 
 export function TercatatCard({ record }: { record: AttendanceRecord | null }) {
+  const c = useTheme();
+  const styles = useMemo(() => makeStyles(c), [c]);
   return (
     <View style={[styles.card, { marginTop: 12 }]}>
       <View style={styles.headRow}>
@@ -77,6 +79,8 @@ function StepBox({
   nilai: number;
   onChange: (v: number) => void;
 }) {
+  const c = useTheme();
+  const styles = useMemo(() => makeStyles(c), [c]);
   return (
     <View style={styles.stepBox}>
       <View style={{ flex: 1, minWidth: 0 }}>
@@ -84,7 +88,7 @@ function StepBox({
         <Text style={styles.timeValue}>{jamMenit(nilai)}</Text>
       </View>
       <Pressable style={styles.stepBtn} onPress={() => onChange(nilai - STEP)}>
-        <Ionicons name="remove" size={15} color={colors.ink} />
+        <Ionicons name="remove" size={15} color={c.ink} />
       </Pressable>
       <Pressable
         style={[styles.stepBtn, styles.stepBtnOn]}
@@ -107,12 +111,14 @@ export function JamAjuanCard({
   onChangeMasuk: (v: number) => void;
   onChangeKeluar: (v: number) => void;
 }) {
+  const c = useTheme();
+  const styles = useMemo(() => makeStyles(c), [c]);
   return (
     <View style={[styles.card, { marginTop: 12 }]}>
       <View style={styles.headRow}>
         <Text style={styles.cardTitle}>Jam yang diajukan</Text>
-        <View style={[styles.badge, { backgroundColor: colors.info.bg }]}>
-          <Text style={[styles.badgeText, { color: colors.info.ink }]}>
+        <View style={[styles.badge, { backgroundColor: c.info.bg }]}>
+          <Text style={[styles.badgeText, { color: c.info.ink }]}>
             Langkah {STEP} menit
           </Text>
         </View>
@@ -143,6 +149,8 @@ export function AlasanKoreksiCard({
 }) {
   const [buka, setBuka] = useState(false);
   const panjang = alasan.trim().length;
+  const c = useTheme();
+  const styles = useMemo(() => makeStyles(c), [c]);
 
   return (
     <View style={[styles.card, { marginTop: 12 }]}>
@@ -151,7 +159,7 @@ export function AlasanKoreksiCard({
       <Text style={[styles.label, { marginTop: 14 }]}>Jenis</Text>
       <Pressable style={styles.selectBox} onPress={() => setBuka(true)}>
         <Text style={styles.selectText}>{jenis}</Text>
-        <Ionicons name="chevron-down" size={15} color={colors.muted} />
+        <Ionicons name="chevron-down" size={15} color={c.muted} />
       </Pressable>
 
       <Text style={[styles.label, { marginTop: 14 }]}>Penjelasan</Text>
@@ -160,10 +168,10 @@ export function AlasanKoreksiCard({
         value={alasan}
         onChangeText={onChangeAlasan}
         placeholder="Contoh: HP mati saat tiba di kantor, kehadiran dicatat manual oleh security."
-        placeholderTextColor={colors.mutedLabel}
+        placeholderTextColor={c.mutedLabel}
         multiline
       />
-      <Text style={[styles.counter, panjang < 15 && { color: colors.bad.ink }]}>
+      <Text style={[styles.counter, panjang < 15 && { color: c.bad.ink }]}>
         {panjang}/15 karakter minimum
       </Text>
 
@@ -193,22 +201,18 @@ export function BuktiKoreksiCard({
   onRemove: (index: number) => void;
 }) {
   const kurang = wajib && files.length === 0;
+  const c = useTheme();
+  const styles = useMemo(() => makeStyles(c), [c]);
 
   return (
     <View style={[styles.card, { marginTop: 12 }]}>
       <View style={styles.headRow}>
         <Text style={styles.cardTitle}>Bukti pendukung</Text>
         <View
-          style={[
-            styles.badge,
-            { backgroundColor: wajib ? colors.bad.bg : colors.chip },
-          ]}
+          style={[styles.badge, { backgroundColor: wajib ? c.bad.bg : c.chip }]}
         >
           <Text
-            style={[
-              styles.badgeText,
-              { color: wajib ? colors.bad.ink : colors.muted },
-            ]}
+            style={[styles.badgeText, { color: wajib ? c.bad.ink : c.muted }]}
           >
             {wajib ? "Wajib" : "Opsional"}
           </Text>
@@ -222,14 +226,14 @@ export function BuktiKoreksiCard({
         {files.map((f, i) => (
           <View key={`${f.name}-${i}`} style={styles.fileRow}>
             <View style={styles.fileIcon}>
-              <LineIcon d={ICON.fileCheck} color={colors.ok.ink} size={16} />
+              <LineIcon d={ICON.fileCheck} color={c.ok.ink} size={16} />
             </View>
             <View style={{ flex: 1, minWidth: 0 }}>
               <Text style={styles.fileName}>{f.name}</Text>
               <Text style={styles.fileSize}>{f.size}</Text>
             </View>
             <Pressable style={styles.removeBtn} onPress={() => onRemove(i)}>
-              <LineIcon d={ICON.close} color={colors.muted} size={14} />
+              <LineIcon d={ICON.close} color={c.muted} size={14} />
             </Pressable>
           </View>
         ))}
@@ -238,17 +242,15 @@ export function BuktiKoreksiCard({
           onPress={onAdd}
           style={[
             styles.addBox,
-            { borderColor: kurang ? colors.bad.ink : colors.fieldBorder },
+            { borderColor: kurang ? c.bad.ink : c.fieldBorder },
           ]}
         >
           <LineIcon
             d={ICON.upload}
-            color={kurang ? colors.bad.ink : colors.muted}
+            color={kurang ? c.bad.ink : c.muted}
             size={18}
           />
-          <Text
-            style={[styles.addText, kurang ? { color: colors.bad.ink } : null]}
-          >
+          <Text style={[styles.addText, kurang ? { color: c.bad.ink } : null]}>
             Tambah lampiran
           </Text>
         </Pressable>
@@ -257,164 +259,175 @@ export function BuktiKoreksiCard({
   );
 }
 
-const styles = StyleSheet.create({
-  card: {
-    backgroundColor: colors.card,
-    borderWidth: 1,
-    borderColor: colors.cardBorder,
-    borderRadius: 22,
-    padding: 16,
-    shadowColor: "#0F1720",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.06,
-    shadowRadius: 16,
-    elevation: 3,
-  },
-  headRow: { flexDirection: "row", alignItems: "center", gap: 10 },
-  cardTitle: { flex: 1, fontSize: 13.5, fontWeight: "700", color: colors.ink },
-  desc: {
-    fontSize: 11,
-    fontWeight: "500",
-    color: colors.muted,
-    lineHeight: 16,
-    marginTop: 6,
-  },
-  badge: { paddingHorizontal: 9, paddingVertical: 4, borderRadius: 999 },
-  badgeText: { fontSize: 9.5, fontWeight: "700" },
+const makeStyles = (c: Palette) =>
+  StyleSheet.create({
+    card: {
+      backgroundColor: c.card,
+      borderWidth: 1,
+      borderColor: c.cardBorder,
+      borderRadius: 22,
+      padding: 16,
+      shadowColor: "#0F1720",
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.06,
+      shadowRadius: 16,
+      elevation: 3,
+    },
+    headRow: { flexDirection: "row", alignItems: "center", gap: 10 },
+    cardTitle: {
+      flex: 1,
+      fontSize: 13.5,
+      fontWeight: "700",
+      color: c.ink,
+    },
+    desc: {
+      fontSize: 11,
+      fontWeight: "500",
+      color: c.muted,
+      lineHeight: 16,
+      marginTop: 6,
+    },
+    badge: { paddingHorizontal: 9, paddingVertical: 4, borderRadius: 999 },
+    badgeText: { fontSize: 9.5, fontWeight: "700" },
 
-  label: {
-    fontSize: 10,
-    fontWeight: "600",
-    letterSpacing: 0.6,
-    textTransform: "uppercase",
-    color: colors.mutedLabel,
-  },
+    label: {
+      fontSize: 10,
+      fontWeight: "600",
+      letterSpacing: 0.6,
+      textTransform: "uppercase",
+      color: c.mutedLabel,
+    },
 
-  timeRow: { flexDirection: "row", gap: 8, marginTop: 12 },
-  readBox: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: colors.fieldBorder,
-    backgroundColor: colors.chip,
-    borderRadius: 14,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-  },
-  readValue: {
-    fontSize: 17,
-    fontWeight: "800",
-    color: colors.muted,
-    marginTop: 4,
-  },
+    timeRow: { flexDirection: "row", gap: 8, marginTop: 12 },
+    readBox: {
+      flex: 1,
+      borderWidth: 1,
+      borderColor: c.fieldBorder,
+      backgroundColor: c.chip,
+      borderRadius: 14,
+      paddingHorizontal: 12,
+      paddingVertical: 10,
+    },
+    readValue: {
+      fontSize: 17,
+      fontWeight: "800",
+      color: c.muted,
+      marginTop: 4,
+    },
 
-  stepBox: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    borderWidth: 1,
-    borderColor: colors.fieldBorder,
-    borderRadius: 14,
-    paddingLeft: 12,
-    paddingRight: 8,
-    paddingVertical: 10,
-  },
-  timeValue: {
-    fontSize: 17,
-    fontWeight: "800",
-    color: colors.ink,
-    marginTop: 4,
-  },
-  stepBtn: {
-    width: 28,
-    height: 28,
-    borderRadius: 9,
-    backgroundColor: colors.chip,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  stepBtnOn: { backgroundColor: colors.accent },
-  rule: {
-    fontSize: 10.5,
-    fontWeight: "500",
-    color: colors.muted,
-    marginTop: 10,
-  },
-  selectBox: {
-    flexDirection: "row",
-    alignItems: "center",
-    borderWidth: 1,
-    borderColor: colors.fieldBorder,
-    borderRadius: 14,
-    paddingHorizontal: 13,
-    paddingVertical: 12,
-    marginTop: 7,
-  },
-  selectText: { flex: 1, fontSize: 12.5, fontWeight: "600", color: colors.ink },
+    stepBox: {
+      flex: 1,
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 6,
+      borderWidth: 1,
+      borderColor: c.fieldBorder,
+      borderRadius: 14,
+      paddingLeft: 12,
+      paddingRight: 8,
+      paddingVertical: 10,
+    },
+    timeValue: {
+      fontSize: 17,
+      fontWeight: "800",
+      color: c.ink,
+      marginTop: 4,
+    },
+    stepBtn: {
+      width: 28,
+      height: 28,
+      borderRadius: 9,
+      backgroundColor: c.chip,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    stepBtnOn: { backgroundColor: c.accent },
+    rule: {
+      fontSize: 10.5,
+      fontWeight: "500",
+      color: c.muted,
+      marginTop: 10,
+    },
+    selectBox: {
+      flexDirection: "row",
+      alignItems: "center",
+      borderWidth: 1,
+      borderColor: c.fieldBorder,
+      borderRadius: 14,
+      paddingHorizontal: 13,
+      paddingVertical: 12,
+      marginTop: 7,
+    },
+    selectText: {
+      flex: 1,
+      fontSize: 12.5,
+      fontWeight: "600",
+      color: c.ink,
+    },
 
-  textarea: {
-    borderWidth: 1,
-    borderColor: colors.fieldBorder,
-    borderRadius: 14,
-    paddingHorizontal: 13,
-    paddingVertical: 12,
-    marginTop: 7,
-    minHeight: 92,
-    fontSize: 12.5,
-    color: colors.ink,
-    textAlignVertical: "top",
-  },
-  counter: {
-    fontSize: 10,
-    fontWeight: "600",
-    color: colors.mutedLabel,
-    marginTop: 7,
-    textAlign: "right",
-  },
+    textarea: {
+      borderWidth: 1,
+      borderColor: c.fieldBorder,
+      borderRadius: 14,
+      paddingHorizontal: 13,
+      paddingVertical: 12,
+      marginTop: 7,
+      minHeight: 92,
+      fontSize: 12.5,
+      color: c.ink,
+      textAlignVertical: "top",
+    },
+    counter: {
+      fontSize: 10,
+      fontWeight: "600",
+      color: c.mutedLabel,
+      marginTop: 7,
+      textAlign: "right",
+    },
 
-  fileRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-    borderWidth: 1,
-    borderColor: colors.cardBorder,
-    backgroundColor: colors.chip,
-    borderRadius: 14,
-    padding: 10,
-  },
-  fileIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: 10,
-    backgroundColor: colors.ok.bg,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  fileName: { fontSize: 12, fontWeight: "700", color: colors.ink },
-  fileSize: {
-    fontSize: 10,
-    fontWeight: "500",
-    color: colors.muted,
-    marginTop: 2,
-  },
-  removeBtn: {
-    width: 26,
-    height: 26,
-    borderRadius: 8,
-    backgroundColor: colors.card,
-    alignItems: "center",
-    justifyContent: "center",
-  },
+    fileRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 10,
+      borderWidth: 1,
+      borderColor: c.cardBorder,
+      backgroundColor: c.chip,
+      borderRadius: 14,
+      padding: 10,
+    },
+    fileIcon: {
+      width: 32,
+      height: 32,
+      borderRadius: 10,
+      backgroundColor: c.ok.bg,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    fileName: { fontSize: 12, fontWeight: "700", color: c.ink },
+    fileSize: {
+      fontSize: 10,
+      fontWeight: "500",
+      color: c.muted,
+      marginTop: 2,
+    },
+    removeBtn: {
+      width: 26,
+      height: 26,
+      borderRadius: 8,
+      backgroundColor: c.card,
+      alignItems: "center",
+      justifyContent: "center",
+    },
 
-  addBox: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-    borderWidth: 1,
-    borderStyle: "dashed",
-    borderRadius: 14,
-    paddingVertical: 16,
-  },
-  addText: { fontSize: 12, fontWeight: "700", color: colors.muted },
-});
+    addBox: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 8,
+      borderWidth: 1,
+      borderStyle: "dashed",
+      borderRadius: 14,
+      paddingVertical: 16,
+    },
+    addText: { fontSize: 12, fontWeight: "700", color: c.muted },
+  });

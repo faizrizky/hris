@@ -30,7 +30,7 @@ export const lightColors = {
 
   purple: { bg: "#EDE9FE", ink: "#7C3AED" },
   ok: { bg: "#DCFCE7", ink: "#16A34A" },
-  warn: { bg: "#FEF3C7", ink: "#B45309" },
+  warn: { bg: "#FEF3C7", ink: "#FBBF24" },
   info: { bg: "#DCEBFC", ink: "#1B6FC9" },
   bad: { bg: "#FEE2E2", ink: "#DC2626" },
 

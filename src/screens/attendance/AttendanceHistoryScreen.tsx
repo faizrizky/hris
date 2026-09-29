@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import Svg, { Circle, G } from "react-native-svg";
 import { StatusBadge } from "@/components/StatusBadge";
-import { colors } from "@/theme/colors";
+import { Palette } from "@/theme/colors";
+import { useTheme } from "@/theme/ThemeContext";
 import { hrisApi } from "@/services/api";
 import { useSession } from "@/services/session";
 import { AttendanceRecord, AttendanceStatus } from "@/services/types";
@@ -26,6 +27,8 @@ export function AttendanceHistoryScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
   const [records, setRecords] = useState<AttendanceRecord[]>([]);
   const [filter, setFilter] = useState<Filter>("semua");
+  const c = useTheme();
+  const styles = useMemo(() => makeStyles(c), [c]);
 
   useEffect(() => {
     if (!employee) return;
@@ -57,7 +60,7 @@ export function AttendanceHistoryScreen({ navigation }: any) {
     <View style={styles.container}>
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
         <Pressable style={styles.backBtn} onPress={() => navigation.goBack()}>
-          <Ionicons name="chevron-back" size={18} color={colors.ink} />
+          <Ionicons name="chevron-back" size={18} color={c.ink} />
         </Pressable>
         <Text style={styles.headerTitle}>Riwayat Absensi</Text>
         <View style={{ flex: 1 }} />
@@ -92,19 +95,19 @@ export function AttendanceHistoryScreen({ navigation }: any) {
             <View style={{ flex: 1 }}>
               <Text style={styles.recapLabel}>Rekap bulan ini</Text>
               <View style={styles.recapRow}>
-                <Recap value={hadir} label="Hadir" color={colors.ink} />
-                <Recap value={telat} label="Telat" color={colors.warn.ink} />
-                <Recap value={izin} label="Izin" color={colors.info.ink} />
-                <Recap value={0} label="Alpha" color={colors.bad.ink} />
+                <Recap value={hadir} label="Hadir" color={c.ink} />
+                <Recap value={telat} label="Telat" color={c.warn.ink} />
+                <Recap value={izin} label="Izin" color={c.info.ink} />
+                <Recap value={0} label="Alpha" color={c.bad.ink} />
               </View>
             </View>
 
             <Donut
               label={persen}
               segments={[
-                { value: hadir, color: colors.accent },
-                { value: telat, color: "#FBBF24" },
-                { value: izin, color: colors.accentLight },
+                { value: hadir, color: c.accent },
+                { value: telat, color: c.warn.ink },
+                { value: izin, color: c.accentLight },
               ]}
             />
           </View>
@@ -145,6 +148,8 @@ function Recap({
   label: string;
   color: string;
 }) {
+  const c = useTheme();
+  const styles = useMemo(() => makeStyles(c), [c]);
   return (
     <View>
       <Text style={[styles.recapValue, { color }]}>{value}</Text>
@@ -161,6 +166,8 @@ function Donut({
   label: string;
 }) {
   const total = segments.reduce((sum, s) => sum + s.value, 0) || 1;
+  const c = useTheme();
+  const styles = useMemo(() => makeStyles(c), [c]);
   let walked = 0;
 
   return (
@@ -195,125 +202,126 @@ function Donut({
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.bg },
+const makeStyles = (c: Palette) =>
+  StyleSheet.create({
+    container: { flex: 1, backgroundColor: c.bg },
 
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    paddingHorizontal: 20,
-    paddingBottom: 16,
-  },
-  backBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 12,
-    backgroundColor: colors.chip,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  headerTitle: { fontSize: 15, fontWeight: "700", color: colors.ink },
-  exportBtn: {
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 999,
-    backgroundColor: colors.accent,
-  },
-  exportText: { fontSize: 11.5, fontWeight: "600", color: "#fff" },
+    header: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 12,
+      paddingHorizontal: 20,
+      paddingBottom: 16,
+    },
+    backBtn: {
+      width: 36,
+      height: 36,
+      borderRadius: 12,
+      backgroundColor: c.chip,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    headerTitle: { fontSize: 15, fontWeight: "700", color: c.ink },
+    exportBtn: {
+      paddingHorizontal: 14,
+      paddingVertical: 8,
+      borderRadius: 999,
+      backgroundColor: c.accent,
+    },
+    exportText: { fontSize: 11.5, fontWeight: "600", color: "#fff" },
 
-  chipRow: {
-    flexDirection: "row",
-    gap: 7,
-    paddingHorizontal: 18,
-    paddingBottom: 14,
-  },
-  chip: {
-    paddingHorizontal: 15,
-    paddingVertical: 9,
-    borderRadius: 999,
-    backgroundColor: colors.chip,
-  },
-  chipOn: { backgroundColor: colors.accent },
-  chipText: { fontSize: 12, fontWeight: "600", color: "#475569" },
-  chipTextOn: { color: "#fff" },
+    chipRow: {
+      flexDirection: "row",
+      gap: 7,
+      paddingHorizontal: 18,
+      paddingBottom: 14,
+    },
+    chip: {
+      paddingHorizontal: 15,
+      paddingVertical: 9,
+      borderRadius: 999,
+      backgroundColor: c.chip,
+    },
+    chipOn: { backgroundColor: c.accent },
+    chipText: { fontSize: 12, fontWeight: "600", color: "#475569" },
+    chipTextOn: { color: "#fff" },
 
-  list: { paddingHorizontal: 18, paddingBottom: 130 },
+    list: { paddingHorizontal: 18, paddingBottom: 130 },
 
-  recapCard: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 14,
-    borderRadius: 20,
-    backgroundColor: colors.card,
-    borderWidth: 1,
-    borderColor: colors.panelBorder,
-    padding: 16,
-    marginBottom: 14,
-  },
-  recapLabel: { fontSize: 11, fontWeight: "500", color: colors.muted },
-  recapRow: { flexDirection: "row", gap: 16, marginTop: 10 },
-  recapValue: { fontSize: 20, lineHeight: 21, fontWeight: "800" },
-  recapCaption: {
-    fontSize: 10,
-    fontWeight: "500",
-    color: colors.muted,
-    marginTop: 4,
-  },
+    recapCard: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 14,
+      borderRadius: 20,
+      backgroundColor: c.card,
+      borderWidth: 1,
+      borderColor: c.panelBorder,
+      padding: 16,
+      marginBottom: 14,
+    },
+    recapLabel: { fontSize: 11, fontWeight: "500", color: c.muted },
+    recapRow: { flexDirection: "row", gap: 16, marginTop: 10 },
+    recapValue: { fontSize: 20, lineHeight: 21, fontWeight: "800" },
+    recapCaption: {
+      fontSize: 10,
+      fontWeight: "500",
+      color: c.muted,
+      marginTop: 4,
+    },
 
-  donut: {
-    width: SIZE,
-    height: SIZE,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  donutHole: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: colors.bg,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  donutText: { fontSize: 12, fontWeight: "800", color: colors.ink },
+    donut: {
+      width: SIZE,
+      height: SIZE,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    donutHole: {
+      width: 48,
+      height: 48,
+      borderRadius: 24,
+      backgroundColor: c.card,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    donutText: { fontSize: 12, fontWeight: "800", color: c.ink },
 
-  row: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 11,
-    borderRadius: 18,
-    backgroundColor: colors.card,
-    borderWidth: 1,
-    borderColor: colors.panelBorder,
-    paddingVertical: 14,
-    paddingHorizontal: 15,
-    marginBottom: 10,
-  },
-  dateChip: {
-    width: 40,
-    height: 40,
-    borderRadius: 13,
-    backgroundColor: colors.chip,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  dateDay: {
-    fontSize: 14,
-    lineHeight: 15,
-    fontWeight: "800",
-    color: colors.ink,
-  },
-  dateMonth: {
-    fontSize: 8,
-    fontWeight: "600",
-    color: colors.muted,
-    marginTop: 2,
-  },
-  dow: { fontSize: 13, fontWeight: "600", color: colors.ink },
-  detail: {
-    fontSize: 10.5,
-    fontWeight: "500",
-    color: colors.muted,
-    marginTop: 3,
-  },
-});
+    row: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 11,
+      borderRadius: 18,
+      backgroundColor: c.card,
+      borderWidth: 1,
+      borderColor: c.panelBorder,
+      paddingVertical: 14,
+      paddingHorizontal: 15,
+      marginBottom: 10,
+    },
+    dateChip: {
+      width: 40,
+      height: 40,
+      borderRadius: 13,
+      backgroundColor: c.chip,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    dateDay: {
+      fontSize: 14,
+      lineHeight: 15,
+      fontWeight: "800",
+      color: c.ink,
+    },
+    dateMonth: {
+      fontSize: 8,
+      fontWeight: "600",
+      color: c.muted,
+      marginTop: 2,
+    },
+    dow: { fontSize: 13, fontWeight: "600", color: c.ink },
+    detail: {
+      fontSize: 10.5,
+      fontWeight: "500",
+      color: c.muted,
+      marginTop: 3,
+    },
+  });
