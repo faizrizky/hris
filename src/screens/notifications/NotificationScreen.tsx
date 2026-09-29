@@ -1,10 +1,10 @@
-import { useCallback, useState } from "react";
+import { useCallback, useState, useMemo } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-
-import { colors } from "@/theme/colors";
+import { Palette } from "@/theme/colors";
+import { useTheme } from "@/theme/ThemeContext";
 import { hrisApi } from "@/services/api";
 import { useSession } from "@/services/session";
 import { AppNotification, NotifCategory } from "@/services/types";
@@ -23,6 +23,8 @@ export function NotificationScreen({ navigation }: any) {
   const { employee } = useSession();
   const insets = useSafeAreaInsets();
   const [items, setItems] = useState<AppNotification[]>([]);
+  const c = useTheme();
+  const styles = useMemo(() => makeStyles(c), [c]);
 
   const muat = useCallback(() => {
     if (!employee) return;
@@ -47,7 +49,7 @@ export function NotificationScreen({ navigation }: any) {
     <View style={styles.container}>
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
         <Pressable style={styles.backBtn} onPress={() => navigation.goBack()}>
-          <Ionicons name="chevron-back" size={18} color={colors.ink} />
+          <Ionicons name="chevron-back" size={18} color={c.ink} />
         </Pressable>
         <Text style={styles.headerTitle}>Notifikasi</Text>
         <Pressable
@@ -58,7 +60,7 @@ export function NotificationScreen({ navigation }: any) {
           <Text
             style={[
               styles.markAll,
-              belumDibaca === 0 && { color: colors.mutedLabel },
+              belumDibaca === 0 && { color: c.mutedLabel },
             ]}
           >
             Tandai dibaca
@@ -70,7 +72,7 @@ export function NotificationScreen({ navigation }: any) {
         {items.length === 0 && (
           <View style={styles.emptyCard}>
             <View style={styles.emptyIcon}>
-              <LineIcon d={ICON.bell} color={colors.muted} size={22} />
+              <LineIcon d={ICON.bell} color={c.muted} size={22} />
             </View>
             <Text style={styles.emptyTitle}>Tidak ada notifikasi</Text>
             <Text style={styles.emptyText}>
@@ -87,14 +89,14 @@ export function NotificationScreen({ navigation }: any) {
               {items
                 .filter((n) => n.group === g)
                 .map((n) => {
-                  const tone = colors[n.tone];
+                  const tone = c[n.tone];
                   return (
                     <Pressable
                       key={n.id}
                       onPress={() => !n.read && tandai([n.id])}
                       style={[
                         styles.card,
-                        !n.read && { backgroundColor: colors.unread },
+                        !n.read && { backgroundColor: c.unread },
                       ]}
                     >
                       <View style={[styles.icon, { backgroundColor: tone.bg }]}>
@@ -125,116 +127,122 @@ export function NotificationScreen({ navigation }: any) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.bg },
+const makeStyles = (c: Palette) =>
+  StyleSheet.create({
+    container: { flex: 1, backgroundColor: c.bg },
 
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    paddingHorizontal: 20,
-    paddingBottom: 16,
-    backgroundColor: colors.card,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.hair,
-  },
-  backBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 12,
-    backgroundColor: colors.chip,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  headerTitle: { flex: 1, fontSize: 15, fontWeight: "700", color: colors.ink },
-  markAll: { fontSize: 11.5, fontWeight: "600", color: colors.accent },
+    header: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 12,
+      paddingHorizontal: 20,
+      paddingBottom: 16,
+      backgroundColor: c.card,
+      borderBottomWidth: 1,
+      borderBottomColor: c.hair,
+    },
+    backBtn: {
+      width: 36,
+      height: 36,
+      borderRadius: 12,
+      backgroundColor: c.chip,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    headerTitle: {
+      flex: 1,
+      fontSize: 15,
+      fontWeight: "700",
+      color: c.ink,
+    },
+    markAll: { fontSize: 11.5, fontWeight: "600", color: c.accent },
 
-  content: { paddingHorizontal: 18, paddingTop: 14, paddingBottom: 130 },
+    content: { paddingHorizontal: 18, paddingTop: 14, paddingBottom: 130 },
 
-  groupLabel: {
-    fontSize: 11,
-    fontWeight: "700",
-    letterSpacing: 0.7,
-    textTransform: "uppercase",
-    color: colors.muted,
-    marginHorizontal: 2,
-    marginBottom: 9,
-    marginTop: 14,
-  },
+    groupLabel: {
+      fontSize: 11,
+      fontWeight: "700",
+      letterSpacing: 0.7,
+      textTransform: "uppercase",
+      color: c.muted,
+      marginHorizontal: 2,
+      marginBottom: 9,
+      marginTop: 14,
+    },
 
-  card: {
-    flexDirection: "row",
-    gap: 12,
-    backgroundColor: colors.card,
-    borderWidth: 1,
-    borderColor: colors.cardBorder,
-    borderRadius: 22,
-    padding: 14,
-  },
-  icon: {
-    width: 36,
-    height: 36,
-    borderRadius: 12,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  title: {
-    fontSize: 13,
-    lineHeight: 18,
-    fontWeight: "600",
-    color: colors.ink,
-  },
-  body: {
-    fontSize: 11.5,
-    lineHeight: 17,
-    fontWeight: "500",
-    color: colors.muted,
-    marginTop: 4,
-  },
-  time: {
-    fontSize: 10,
-    fontWeight: "500",
-    color: colors.mutedLabel,
-    marginTop: 7,
-  },
-  dot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: colors.accent,
-    marginTop: 4,
-  },
+    card: {
+      flexDirection: "row",
+      gap: 12,
+      backgroundColor: c.card,
+      borderWidth: 1,
+      borderColor: c.cardBorder,
+      borderRadius: 22,
+      padding: 14,
+    },
+    icon: {
+      width: 36,
+      height: 36,
+      borderRadius: 12,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    title: {
+      fontSize: 13,
+      lineHeight: 18,
+      fontWeight: "600",
+      color: c.ink,
+    },
+    body: {
+      fontSize: 11.5,
+      lineHeight: 17,
+      fontWeight: "500",
+      color: c.muted,
+      marginTop: 4,
+    },
+    time: {
+      fontSize: 10,
+      fontWeight: "500",
+      color: c.mutedLabel,
+      marginTop: 7,
+    },
+    dot: {
+      width: 8,
+      height: 8,
+      borderRadius: 4,
+      backgroundColor: c.accent,
+      marginTop: 4,
+    },
 
-  emptyCard: {
-    alignItems: "center",
-    borderRadius: 22,
-    backgroundColor: colors.card,
-    borderWidth: 1,
-    borderColor: colors.cardBorder,
-    paddingVertical: 32,
-    paddingHorizontal: 24,
-    marginTop: 8,
-  },
-  emptyIcon: {
-    width: 52,
-    height: 52,
-    borderRadius: 17,
-    backgroundColor: colors.chip,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  emptyTitle: {
-    fontSize: 13.5,
-    fontWeight: "700",
-    color: colors.ink,
-    marginTop: 14,
-  },
-  emptyText: {
-    fontSize: 11.5,
-    fontWeight: "500",
-    color: colors.muted,
-    lineHeight: 17,
-    textAlign: "center",
-    marginTop: 6,
-  },
-});
+    emptyCard: {
+      alignItems: "center",
+      borderRadius: 22,
+      backgroundColor: c.card,
+      borderWidth: 1,
+      borderColor: c.cardBorder,
+      paddingVertical: 32,
+      paddingHorizontal: 24,
+      marginTop: 8,
+    },
+    emptyIcon: {
+      width: 52,
+      height: 52,
+      borderRadius: 17,
+      backgroundColor: c.chip,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    emptyTitle: {
+      fontSize: 13.5,
+      fontWeight: "700",
+      color: c.ink,
+      marginTop: 14,
+    },
+    emptyText: {
+      fontSize: 11.5,
+      fontWeight: "500",
+      color: c.muted,
+      lineHeight: 17,
+      textAlign: "center",
+      marginTop: 6,
+    },
+  });

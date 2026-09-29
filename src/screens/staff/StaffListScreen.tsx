@@ -9,8 +9,8 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-
-import { colors } from "@/theme/colors";
+import { Palette } from "@/theme/colors";
+import { useTheme } from "@/theme/ThemeContext";
 import { hrisApi } from "@/services/api";
 import { useSession } from "@/services/session";
 import { Staff, StaffDirectory } from "@/services/types";
@@ -25,6 +25,8 @@ export function StaffListScreen({ navigation }: any) {
   const [dir, setDir] = useState<StaffDirectory | null>(null);
   const [dept, setDept] = useState(SEMUA);
   const [cari, setCari] = useState("");
+  const c = useTheme();
+  const styles = useMemo(() => makeStyles(c), [c]);
 
   useEffect(() => {
     if (!employee) return;
@@ -67,7 +69,7 @@ export function StaffListScreen({ navigation }: any) {
     <View style={styles.container}>
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
         <Pressable style={styles.backBtn} onPress={() => navigation.goBack()}>
-          <Ionicons name="chevron-back" size={18} color={colors.ink} />
+          <Ionicons name="chevron-back" size={18} color={c.ink} />
         </Pressable>
         <View style={{ flex: 1, minWidth: 0 }}>
           <View style={{ flex: 1, minWidth: 0 }}>
@@ -88,23 +90,23 @@ export function StaffListScreen({ navigation }: any) {
           style={styles.headerAction}
           onPress={() => navigation.navigate("StaffAttendance")}
         >
-          <Ionicons name="calendar-outline" size={17} color={colors.ink} />
+          <Ionicons name="calendar-outline" size={17} color={c.ink} />
         </Pressable>
       </View>
 
       <View style={styles.searchBox}>
-        <Ionicons name="search" size={15} color={colors.mutedLabel} />
+        <Ionicons name="search" size={15} color={c.mutedLabel} />
         <TextInput
           style={styles.searchInput}
           value={cari}
           onChangeText={setCari}
           placeholder="Cari nama, jabatan, atau NIK"
-          placeholderTextColor={colors.mutedLabel}
+          placeholderTextColor={c.mutedLabel}
           autoCorrect={false}
         />
         {cari.length > 0 && (
           <Pressable onPress={() => setCari("")} hitSlop={8}>
-            <Ionicons name="close-circle" size={16} color={colors.mutedLabel} />
+            <Ionicons name="close-circle" size={16} color={c.mutedLabel} />
           </Pressable>
         )}
       </View>
@@ -170,8 +172,11 @@ export function StaffListScreen({ navigation }: any) {
 }
 
 function StaffRow({ staff, onPress }: { staff: Staff; onPress: () => void }) {
+  const c = useTheme();
+  const styles = useMemo(() => makeStyles(c), [c]);
+
   const tetap = staff.status === "Tetap";
-  const tone = tetap ? colors.ok : colors.info;
+  const tone = tetap ? c.ok : c.info;
 
   return (
     <Pressable style={styles.row} onPress={onPress}>
@@ -193,12 +198,15 @@ function StaffRow({ staff, onPress }: { staff: Staff; onPress: () => void }) {
           {staff.status}
         </Text>
       </View>
-      <Ionicons name="chevron-forward" size={14} color={colors.mutedLabel} />
+      <Ionicons name="chevron-forward" size={14} color={c.mutedLabel} />
     </Pressable>
   );
 }
 
 function StaffRowSkeleton() {
+  const c = useTheme();
+  const styles = useMemo(() => makeStyles(c), [c]);
+
   return (
     <View style={styles.row}>
       <Skeleton width={44} height={44} radius={22} />
@@ -211,129 +219,130 @@ function StaffRowSkeleton() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.bg },
+const makeStyles = (c: Palette) =>
+  StyleSheet.create({
+    container: { flex: 1, backgroundColor: c.bg },
 
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    paddingHorizontal: 20,
-    paddingBottom: 14,
-  },
-  backBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 12,
-    backgroundColor: colors.chip,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  headerAction: {
-    width: 36,
-    height: 36,
-    borderRadius: 12,
-    backgroundColor: colors.chip,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  headerTitle: { fontSize: 15, fontWeight: "700", color: colors.ink },
-  headerSub: {
-    fontSize: 11,
-    fontWeight: "500",
-    color: colors.muted,
-    marginTop: 2,
-  },
+    header: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 12,
+      paddingHorizontal: 20,
+      paddingBottom: 14,
+    },
+    backBtn: {
+      width: 36,
+      height: 36,
+      borderRadius: 12,
+      backgroundColor: c.chip,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    headerAction: {
+      width: 36,
+      height: 36,
+      borderRadius: 12,
+      backgroundColor: c.chip,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    headerTitle: { fontSize: 15, fontWeight: "700", color: c.ink },
+    headerSub: {
+      fontSize: 11,
+      fontWeight: "500",
+      color: c.muted,
+      marginTop: 2,
+    },
 
-  searchBox: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-    marginHorizontal: 18,
-    marginBottom: 12,
-    borderRadius: 14,
-    backgroundColor: colors.chip,
-    borderWidth: 1,
-    borderColor: colors.panelBorder,
-    paddingHorizontal: 14,
-    paddingVertical: 11,
-  },
-  searchInput: {
-    flex: 1,
-    fontSize: 12.5,
-    fontWeight: "500",
-    color: colors.ink,
-    padding: 0,
-  },
+    searchBox: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 10,
+      marginHorizontal: 18,
+      marginBottom: 12,
+      borderRadius: 14,
+      backgroundColor: c.chip,
+      borderWidth: 1,
+      borderColor: c.panelBorder,
+      paddingHorizontal: 14,
+      paddingVertical: 11,
+    },
+    searchInput: {
+      flex: 1,
+      fontSize: 12.5,
+      fontWeight: "500",
+      color: c.ink,
+      padding: 0,
+    },
 
-  chipRow: {
-    paddingHorizontal: 18,
-    gap: 7,
-    alignItems: "center",
-  },
-  chip: {
-    paddingHorizontal: 13,
-    paddingVertical: 8,
-    borderRadius: 999,
-    borderWidth: 1,
-    borderColor: colors.panelBorder,
-  },
-  chipOn: { backgroundColor: colors.accent, borderColor: colors.accent },
-  chipText: { fontSize: 11.5, fontWeight: "600", color: colors.muted },
-  chipTextOn: { color: "#fff" },
+    chipRow: {
+      paddingHorizontal: 18,
+      gap: 7,
+      alignItems: "center",
+    },
+    chip: {
+      paddingHorizontal: 13,
+      paddingVertical: 8,
+      borderRadius: 999,
+      borderWidth: 1,
+      borderColor: c.panelBorder,
+    },
+    chipOn: { backgroundColor: c.accent, borderColor: c.accent },
+    chipText: { fontSize: 11.5, fontWeight: "600", color: c.muted },
+    chipTextOn: { color: "#fff" },
 
-  list: { paddingHorizontal: 18, paddingBottom: 130 },
+    list: { paddingHorizontal: 18, paddingBottom: 130 },
 
-  row: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    borderRadius: 18,
-    backgroundColor: colors.card,
-    borderWidth: 1,
-    borderColor: colors.panelBorder,
-    paddingHorizontal: 14,
-    paddingVertical: 13,
-  },
-  avatar: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: colors.info.bg,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  avatarText: { fontSize: 13.5, fontWeight: "700", color: colors.info.ink },
-  name: { fontSize: 13.5, fontWeight: "700", color: colors.ink },
-  meta: {
-    fontSize: 11,
-    fontWeight: "500",
-    color: colors.muted,
-    marginTop: 3,
-  },
-  statusBadge: {
-    paddingHorizontal: 9,
-    paddingVertical: 4,
-    borderRadius: 8,
-  },
-  statusText: { fontSize: 10, fontWeight: "700" },
+    row: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 12,
+      borderRadius: 18,
+      backgroundColor: c.card,
+      borderWidth: 1,
+      borderColor: c.panelBorder,
+      paddingHorizontal: 14,
+      paddingVertical: 13,
+    },
+    avatar: {
+      width: 44,
+      height: 44,
+      borderRadius: 22,
+      backgroundColor: c.info.bg,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    avatarText: { fontSize: 13.5, fontWeight: "700", color: c.info.ink },
+    name: { fontSize: 13.5, fontWeight: "700", color: c.ink },
+    meta: {
+      fontSize: 11,
+      fontWeight: "500",
+      color: c.muted,
+      marginTop: 3,
+    },
+    statusBadge: {
+      paddingHorizontal: 9,
+      paddingVertical: 4,
+      borderRadius: 8,
+    },
+    statusText: { fontSize: 10, fontWeight: "700" },
 
-  emptyCard: {
-    alignItems: "center",
-    borderRadius: 22,
-    backgroundColor: colors.card,
-    borderWidth: 1,
-    borderColor: colors.panelBorder,
-    paddingVertical: 32,
-    paddingHorizontal: 24,
-  },
-  emptyTitle: { fontSize: 13.5, fontWeight: "700", color: colors.ink },
-  emptyText: {
-    fontSize: 11.5,
-    fontWeight: "500",
-    color: colors.muted,
-    lineHeight: 17,
-    textAlign: "center",
-    marginTop: 6,
-  },
-});
+    emptyCard: {
+      alignItems: "center",
+      borderRadius: 22,
+      backgroundColor: c.card,
+      borderWidth: 1,
+      borderColor: c.panelBorder,
+      paddingVertical: 32,
+      paddingHorizontal: 24,
+    },
+    emptyTitle: { fontSize: 13.5, fontWeight: "700", color: c.ink },
+    emptyText: {
+      fontSize: 11.5,
+      fontWeight: "500",
+      color: c.muted,
+      lineHeight: 17,
+      textAlign: "center",
+      marginTop: 6,
+    },
+  });
