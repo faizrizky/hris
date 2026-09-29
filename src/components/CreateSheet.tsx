@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useMemo } from "react";
 import {
   Animated,
   Easing,
@@ -10,8 +10,8 @@ import {
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-
-import { colors } from "@/theme/colors";
+import { Palette } from "@/theme/colors";
+import { useTheme } from "@/theme/ThemeContext";
 import { LineIcon } from "@/components/LineIcon";
 import { ICON } from "@/constants/icons";
 import { BATAS_LEMBUR_JAM } from "@/constants/payroll";
@@ -33,8 +33,10 @@ export function CreateSheet({
   onClose: () => void;
   navigation: any;
 }) {
-  const insets = useSafeAreaInsets();
+  const c = useTheme();
+  const styles = useMemo(() => makeStyles(c), [c]);
 
+  const insets = useSafeAreaInsets();
   const anim = useRef(new Animated.Value(0)).current;
   const [tinggi, setTinggi] = useState(460);
 
@@ -70,8 +72,8 @@ export function CreateSheet({
       title: "Cuti / izin",
       subtitle: "Tahunan, sakit, melahirkan",
       icon: ICON.leave,
-      bg: colors.info.bg,
-      ink: colors.info.ink,
+      bg: c.info.bg,
+      ink: c.info.ink,
       go: () =>
         navigation.navigate("Cuti", {
           screen: "LeaveRequest",
@@ -85,8 +87,8 @@ export function CreateSheet({
       // 18 tidak pernah beda antara menu ini dan kartu ringkasannya.
       subtitle: `Maksimal ${BATAS_LEMBUR_JAM} jam / bulan`,
       icon: ICON.overtime,
-      bg: colors.warn.bg,
-      ink: colors.warn.ink,
+      bg: c.warn.bg,
+      ink: c.warn.ink,
       go: () =>
         navigation.navigate("Cuti", {
           screen: "LeaveRequest",
@@ -98,8 +100,8 @@ export function CreateSheet({
       title: "Dinas luar",
       subtitle: "Travel request & uang muka",
       icon: ICON.briefcase,
-      bg: colors.purple.bg,
-      ink: colors.purple.ink,
+      bg: c.purple.bg,
+      ink: c.purple.ink,
       go: () =>
         navigation.navigate("Cuti", {
           screen: "LeaveRequest",
@@ -111,8 +113,8 @@ export function CreateSheet({
       title: "Self-assessment",
       subtitle: "Siklus H1 2026 · sampai 30 Sep",
       icon: ICON.appraisal,
-      bg: colors.purple.bg,
-      ink: colors.purple.ink,
+      bg: c.purple.bg,
+      ink: c.purple.ink,
       go: () => navigation.navigate("Beranda", { screen: "Appraisal" }),
     },
   ];
@@ -157,7 +159,7 @@ export function CreateSheet({
             >
               {item.gradient ? (
                 <LinearGradient
-                  colors={[colors.accent, colors.accent2]}
+                  colors={[c.accent, c.accent2]}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 1 }}
                   style={styles.icon}
@@ -182,63 +184,64 @@ export function CreateSheet({
   );
 }
 
-const styles = StyleSheet.create({
-  backdrop: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: "rgba(15,23,32,0.55)",
-  },
-  sheet: {
-    position: "absolute",
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: colors.card,
-    borderTopLeftRadius: 28,
-    borderTopRightRadius: 28,
-    paddingHorizontal: 20,
-    paddingTop: 12,
-  },
-  grabber: {
-    width: 42,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: colors.track,
-    alignSelf: "center",
-    marginBottom: 16,
-  },
-  title: { fontSize: 15.5, fontWeight: "700", color: colors.ink },
-  subtitle: {
-    fontSize: 11.5,
-    fontWeight: "500",
-    color: colors.muted,
-    marginTop: 4,
-  },
+const makeStyles = (c: Palette) =>
+  StyleSheet.create({
+    backdrop: {
+      position: "absolute",
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundColor: "rgba(15,23,32,0.55)",
+    },
+    sheet: {
+      position: "absolute",
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundColor: c.card,
+      borderTopLeftRadius: 28,
+      borderTopRightRadius: 28,
+      paddingHorizontal: 20,
+      paddingTop: 12,
+    },
+    grabber: {
+      width: 42,
+      height: 4,
+      borderRadius: 2,
+      backgroundColor: c.track,
+      alignSelf: "center",
+      marginBottom: 16,
+    },
+    title: { fontSize: 15.5, fontWeight: "700", color: c.ink },
+    subtitle: {
+      fontSize: 11.5,
+      fontWeight: "500",
+      color: c.muted,
+      marginTop: 4,
+    },
 
-  row: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    padding: 14,
-    borderRadius: 18,
-    backgroundColor: colors.bg,
-  },
-  icon: {
-    width: 38,
-    height: 38,
-    borderRadius: 13,
-    alignItems: "center",
-    justifyContent: "center",
-    overflow: "hidden",
-  },
-  rowTitle: { fontSize: 13, fontWeight: "700", color: colors.ink },
-  rowSub: {
-    fontSize: 10.5,
-    fontWeight: "500",
-    color: colors.muted,
-    marginTop: 2,
-  },
-});
+    row: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 12,
+      padding: 14,
+      borderRadius: 18,
+      backgroundColor: c.bg,
+    },
+    icon: {
+      width: 38,
+      height: 38,
+      borderRadius: 13,
+      alignItems: "center",
+      justifyContent: "center",
+      overflow: "hidden",
+    },
+    rowTitle: { fontSize: 13, fontWeight: "700", color: c.ink },
+    rowSub: {
+      fontSize: 10.5,
+      fontWeight: "500",
+      color: c.muted,
+      marginTop: 2,
+    },
+  });

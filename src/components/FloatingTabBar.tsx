@@ -1,15 +1,15 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import type { BottomTabBarProps } from "@react-navigation/bottom-tabs";
-import { colors } from "@/theme/colors";
+import { Palette } from "@/theme/colors";
+import { useTheme } from "@/theme/ThemeContext";
 import { useSession } from "@/services/session";
 import { LineIcon } from "@/components/LineIcon";
 import { ICON } from "@/constants/icons";
 import { CreateSheet } from "@/components/CreateSheet";
 
-const ACTIVE = colors.accent;
 const INACTIVE = "rgba(255,255,255,0.45)";
 
 const RIGHT = ["Slip Gaji", "Profil"];
@@ -27,26 +27,29 @@ const LABEL: Record<string, string> = {
 function TabIcon({ route, color }: { route: string; color: string }) {
   if (route === "Beranda") {
     return (
-      <View style={styles.gridIcon}>
+      <View style={iconStyles.gridIcon}>
         {[0, 1, 2, 3].map((i) => (
-          <View key={i} style={[styles.gridDot, { backgroundColor: color }]} />
+          <View
+            key={i}
+            style={[iconStyles.gridDot, { backgroundColor: color }]}
+          />
         ))}
       </View>
     );
   }
   if (route === "Absensi") {
-    return <View style={[styles.squareIcon, { borderColor: color }]} />;
+    return <View style={[iconStyles.squareIcon, { borderColor: color }]} />;
   }
   if (route === "AbsensiTim") {
     return <LineIcon d={ICON.user} color={color} size={15} />;
   }
   if (route === "Slip Gaji") {
-    return <Text style={[styles.rpIcon, { color }]}>Rp</Text>;
+    return <Text style={[iconStyles.rpIcon, { color }]}>Rp</Text>;
   }
   if (route === "Approval") {
     return <LineIcon d={ICON.approval} color={color} size={15} />;
   }
-  return <View style={[styles.circleIcon, { borderColor: color }]} />;
+  return <View style={[iconStyles.circleIcon, { borderColor: color }]} />;
 }
 
 export function FloatingTabBar({ state, navigation }: BottomTabBarProps) {
@@ -57,6 +60,9 @@ export function FloatingTabBar({ state, navigation }: BottomTabBarProps) {
   const active = state.routes[state.index] as any;
   const nested = active.state;
   const nestedRoute = nested?.routes?.[nested.index ?? 0]?.name;
+  const c = useTheme();
+  const styles = useMemo(() => makeStyles(c), [c]);
+
   const left = [
     "Beranda",
     employee?.role === "mss"
@@ -85,7 +91,7 @@ export function FloatingTabBar({ state, navigation }: BottomTabBarProps) {
   };
 
   const renderTab = (routeName: string) => {
-    const color = currentRoute === routeName ? ACTIVE : INACTIVE;
+    const color = currentRoute === routeName ? c.accent : INACTIVE;
     return (
       <Pressable
         key={routeName}
@@ -108,7 +114,7 @@ export function FloatingTabBar({ state, navigation }: BottomTabBarProps) {
       <View style={styles.fabWrap} pointerEvents="box-none">
         <Pressable style={styles.fabShadow} onPress={() => setSheet(true)}>
           <LinearGradient
-            colors={[colors.accent, colors.accent2]}
+            colors={[c.accent, c.accent2]}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={styles.fab}
@@ -134,69 +140,74 @@ export function FloatingTabBar({ state, navigation }: BottomTabBarProps) {
   );
 }
 
-const styles = StyleSheet.create({
-  wrapper: { position: "absolute", left: 16, right: 16, paddingTop: 26 },
-
-  bar: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "rgba(15,23,32,0.92)",
-    borderRadius: 26,
-    paddingVertical: 11,
-    paddingHorizontal: 14,
-    shadowColor: "#0F1720",
-    shadowOffset: { width: 0, height: 14 },
-    shadowOpacity: 0.35,
-    shadowRadius: 34,
-    elevation: 12,
-  },
-  tab: { flex: 1, alignItems: "center", gap: 5 },
-  iconSlot: { height: 15, alignItems: "center", justifyContent: "center" },
-  tabLabel: { fontSize: 9.5, fontWeight: "600" },
-  fabGap: { width: 58 },
-
+// Bentuk ikon tab: tidak mengandung warna sama sekali (warnanya lewat prop),
+// jadi tidak perlu ikut dibangun ulang saat tema berganti.
+const iconStyles = StyleSheet.create({
   gridIcon: { width: 14.5, flexDirection: "row", flexWrap: "wrap", gap: 2.5 },
   gridDot: { width: 6, height: 6, borderRadius: 2 },
   squareIcon: { width: 14, height: 14, borderRadius: 5, borderWidth: 2 },
   circleIcon: { width: 14, height: 14, borderRadius: 7, borderWidth: 2 },
   rpIcon: { fontSize: 12, lineHeight: 13, fontWeight: "800" },
-
-  fabWrap: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    alignItems: "center",
-    zIndex: 2,
-  },
-  fabShadow: {
-    borderRadius: 22,
-    shadowColor: colors.accent2,
-    shadowOffset: { width: 0, height: 12 },
-    shadowOpacity: 0.45,
-    shadowRadius: 26,
-    elevation: 10,
-  },
-  fab: {
-    width: 58,
-    height: 58,
-    borderRadius: 22,
-    alignItems: "center",
-    justifyContent: "center",
-    overflow: "hidden",
-  },
-  plusH: {
-    position: "absolute",
-    width: 20,
-    height: 3,
-    borderRadius: 2,
-    backgroundColor: "#fff",
-  },
-  plusV: {
-    position: "absolute",
-    width: 3,
-    height: 20,
-    borderRadius: 2,
-    backgroundColor: "#fff",
-  },
 });
+
+const makeStyles = (c: Palette) =>
+  StyleSheet.create({
+    wrapper: { position: "absolute", left: 16, right: 16, paddingTop: 26 },
+
+    bar: {
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: "rgba(15,23,32,0.92)",
+      borderRadius: 26,
+      paddingVertical: 11,
+      paddingHorizontal: 14,
+      shadowColor: "#0F1720",
+      shadowOffset: { width: 0, height: 14 },
+      shadowOpacity: 0.35,
+      shadowRadius: 34,
+      elevation: 12,
+    },
+    tab: { flex: 1, alignItems: "center", gap: 5 },
+    iconSlot: { height: 15, alignItems: "center", justifyContent: "center" },
+    tabLabel: { fontSize: 9.5, fontWeight: "600" },
+    fabGap: { width: 58 },
+
+    fabWrap: {
+      position: "absolute",
+      top: 0,
+      left: 0,
+      right: 0,
+      alignItems: "center",
+      zIndex: 2,
+    },
+    fabShadow: {
+      borderRadius: 22,
+      shadowColor: c.accent2,
+      shadowOffset: { width: 0, height: 12 },
+      shadowOpacity: 0.45,
+      shadowRadius: 26,
+      elevation: 10,
+    },
+    fab: {
+      width: 58,
+      height: 58,
+      borderRadius: 22,
+      alignItems: "center",
+      justifyContent: "center",
+      overflow: "hidden",
+    },
+    plusH: {
+      position: "absolute",
+      width: 20,
+      height: 3,
+      borderRadius: 2,
+      backgroundColor: "#fff",
+    },
+    plusV: {
+      position: "absolute",
+      width: 3,
+      height: 20,
+      borderRadius: 2,
+      backgroundColor: "#fff",
+    },
+  });
