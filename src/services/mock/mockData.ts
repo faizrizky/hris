@@ -9,6 +9,7 @@ import {
   OvertimeRecord,
   Payslip,
   PayslipLine,
+  TaxSummary,
 } from "../types";
 
 export const MOCK_EMPLOYEES: Record<string, Employee> = {
@@ -318,6 +319,33 @@ export const MOCK_PAYSLIPS: Payslip[] = [
     netPay: 9263750,
   },
 ];
+
+export const MOCK_TAX: TaxSummary = {
+  year: 2026,
+  scheme: "TER",
+  monthly: [
+    { monthShort: "Jan", amount: 246250 },
+    { monthShort: "Feb", amount: 254000 },
+    { monthShort: "Mar", amount: 238000 },
+    { monthShort: "Apr", amount: 410000 },
+    { monthShort: "Mei", amount: 262000 },
+    { monthShort: "Jun", amount: 250000 },
+    { monthShort: "Jul", amount: 258000 },
+    { monthShort: "Agt", amount: 246250 },
+  ],
+  peakReason: "THR",
+  basePeriod: "Agustus",
+  grossPay: 9850000,
+  terCategory: "TER A · 2,5%",
+  ptkpStatus: "TK/0",
+  npwpMasked: "•••• 8823",
+  monthTax: 246250,
+  bpjs: [
+    { label: "BPJS Kesehatan", employeePct: 1, companyPct: 4 },
+    { label: "JHT", employeePct: 2, companyPct: 3.7 },
+    { label: "Jaminan Pensiun", employeePct: 1, companyPct: 2 },
+  ],
+};
 
 export const MOCK_NOTIFICATIONS: NotificationItem[] = [
   {

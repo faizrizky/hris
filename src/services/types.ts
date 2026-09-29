@@ -105,6 +105,31 @@ export interface Payslip {
   netPay: number; // -> net_pay
 }
 
+export interface TaxMonthly {
+  monthShort: string; // "Jan"
+  amount: number;
+}
+
+export interface BpjsItem {
+  label: string; // "BPJS Kesehatan"
+  employeePct: number; // porsi karyawan, mis. 1
+  companyPct: number; // porsi perusahaan, mis. 4
+}
+
+export interface TaxSummary {
+  year: number;
+  scheme: string; // "TER"
+  monthly: TaxMonthly[]; // YTD dihitung dari sini, tidak disimpan terpisah
+  peakReason: string; // "THR" — alasan bulan tertinggi
+  basePeriod: string; // "Agustus"
+  grossPay: number;
+  terCategory: string; // "TER A · 2,5%"
+  ptkpStatus: string; // "TK/0"
+  npwpMasked: string; // "•••• 8823"
+  monthTax: number;
+  bpjs: BpjsItem[];
+}
+
 export interface NotificationItem {
   id: string;
   initials: string;
@@ -137,7 +162,6 @@ export interface AppNotification {
 export interface HrisApi {
   login(email: string, password: string): Promise<Employee>;
   getCurrentEmployee(): Promise<Employee>;
-
   getClockState(employeeId: string): Promise<ClockState>;
   clockIn(employeeId: string): Promise<ClockState>;
   clockOut(employeeId: string): Promise<ClockState>;
@@ -170,6 +194,8 @@ export interface HrisApi {
   ): Promise<LeaveRequest>;
 
   getPayslips(employeeId: string): Promise<Payslip[]>;
+
+  getTaxSummary(employeeId: string): Promise<TaxSummary>;
 
   getNotifications(employeeId: string): Promise<NotificationItem[]>;
 
