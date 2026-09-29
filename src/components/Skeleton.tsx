@@ -7,10 +7,12 @@ export function Skeleton({
   height,
   radius = 8,
   style,
+  color = colors.track,
 }: {
   width?: ViewStyle["width"];
   height: number;
   radius?: number;
+  color?: string;
   style?: ViewStyle;
 }) {
   const anim = useRef(new Animated.Value(0)).current;
@@ -50,7 +52,7 @@ export function Skeleton({
           width,
           height,
           borderRadius: radius,
-          backgroundColor: colors.track,
+          backgroundColor: color,
           opacity,
         },
         style,

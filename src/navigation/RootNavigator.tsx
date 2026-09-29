@@ -21,6 +21,7 @@ import { NotificationScreen } from "@/screens/notifications/NotificationScreen";
 import { TaxScreen } from "@/screens/payroll/TaxScreen";
 import { AppraisalScreen } from "@/screens/appraisal/AppraisalScreen";
 import { StaffListScreen } from "@/screens/staff/StaffListScreen";
+import { StaffDetailScreen } from "@/screens/staff/StaffDetailScreen";
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -134,6 +135,7 @@ function HomeStack() {
       <Stack.Screen name="Notifications" component={NotificationScreen} />
       <Stack.Screen name="Appraisal" component={AppraisalScreen} />
       <Stack.Screen name="StaffList" component={StaffListScreen} />
+      <Stack.Screen name="StaffDetail" component={StaffDetailScreen} />
     </Stack.Navigator>
   );
 }
