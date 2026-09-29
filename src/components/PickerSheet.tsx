@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useMemo } from "react";
 import {
   Animated,
   Easing,
@@ -10,7 +10,8 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import { colors } from "@/theme/colors";
+import { Palette } from "@/theme/colors";
+import { useTheme } from "@/theme/ThemeContext";
 
 interface Props {
   visible: boolean;
@@ -29,6 +30,9 @@ export function PickerSheet({
   onSelect,
   onClose,
 }: Props) {
+  const c = useTheme();
+  const styles = useMemo(() => makeStyles(c), [c]);
+
   const insets = useSafeAreaInsets();
 
   const anim = useRef(new Animated.Value(0)).current;
@@ -84,9 +88,7 @@ export function PickerSheet({
               <Text style={[styles.rowText, on && styles.rowTextOn]}>
                 {opt}
               </Text>
-              {on && (
-                <Ionicons name="checkmark" size={18} color={colors.accent} />
-              )}
+              {on && <Ionicons name="checkmark" size={18} color={c.accent} />}
             </Pressable>
           );
         })}
@@ -95,48 +97,49 @@ export function PickerSheet({
   );
 }
 
-const styles = StyleSheet.create({
-  backdrop: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: "rgba(15,23,32,0.45)",
-  },
-  sheet: {
-    position: "absolute",
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: colors.card,
-    borderTopLeftRadius: 28,
-    borderTopRightRadius: 28,
-    paddingHorizontal: 20,
-    paddingTop: 12,
-  },
-  grabber: {
-    width: 42,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: colors.track,
-    alignSelf: "center",
-    marginBottom: 16,
-  },
-  title: {
-    fontSize: 15.5,
-    fontWeight: "700",
-    color: colors.ink,
-    marginBottom: 6,
-  },
-  row: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingVertical: 14,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.hair,
-  },
-  rowText: { fontSize: 13.5, fontWeight: "500", color: colors.ink },
-  rowTextOn: { fontWeight: "700", color: colors.accent },
-});
+const makeStyles = (c: Palette) =>
+  StyleSheet.create({
+    backdrop: {
+      position: "absolute",
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundColor: "rgba(15,23,32,0.45)",
+    },
+    sheet: {
+      position: "absolute",
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundColor: c.card,
+      borderTopLeftRadius: 28,
+      borderTopRightRadius: 28,
+      paddingHorizontal: 20,
+      paddingTop: 12,
+    },
+    grabber: {
+      width: 42,
+      height: 4,
+      borderRadius: 2,
+      backgroundColor: c.track,
+      alignSelf: "center",
+      marginBottom: 16,
+    },
+    title: {
+      fontSize: 15.5,
+      fontWeight: "700",
+      color: c.ink,
+      marginBottom: 6,
+    },
+    row: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      paddingVertical: 14,
+      borderBottomWidth: 1,
+      borderBottomColor: c.hair,
+    },
+    rowText: { fontSize: 13.5, fontWeight: "500", color: c.ink },
+    rowTextOn: { fontWeight: "700", color: c.accent },
+  });
