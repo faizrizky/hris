@@ -1,10 +1,11 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useState, useMemo } from "react";
 import { useFocusEffect } from "@react-navigation/native";
 import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { StatusBadge } from "@/components/StatusBadge";
-import { colors } from "@/theme/colors";
+import { Palette } from "@/theme/colors";
+import { useTheme } from "@/theme/ThemeContext";
 import { LEAVE_TYPE_LABEL, LEAVE_TYPE_TONE } from "@/constants/statusLabels";
 import { hrisApi } from "@/services/api";
 import { useSession } from "@/services/session";
@@ -16,6 +17,8 @@ export function LeaveApprovalScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
   const [items, setItems] = useState<LeaveRequest[]>([]);
   const [busy, setBusy] = useState(false);
+  const c = useTheme();
+  const styles = useMemo(() => makeStyles(c), [c]);
 
   const load = useCallback(() => {
     if (!employee) return;
@@ -53,7 +56,7 @@ export function LeaveApprovalScreen({ navigation }: any) {
           style={styles.backBtn}
           onPress={() => navigation.navigate("Beranda")}
         >
-          <Ionicons name="chevron-back" size={18} color={colors.ink} />
+          <Ionicons name="chevron-back" size={18} color={c.ink} />
         </Pressable>
 
         <View style={{ flex: 1, minWidth: 0 }}>
@@ -90,12 +93,8 @@ export function LeaveApprovalScreen({ navigation }: any) {
           return (
             <View style={styles.card}>
               <View style={styles.topRow}>
-                <View
-                  style={[styles.avatar, { backgroundColor: colors[tone].bg }]}
-                >
-                  <Text
-                    style={[styles.avatarText, { color: colors[tone].ink }]}
-                  >
+                <View style={[styles.avatar, { backgroundColor: c[tone].bg }]}>
+                  <Text style={[styles.avatarText, { color: c[tone].ink }]}>
                     {item.employeeInitials}
                   </Text>
                 </View>
@@ -142,9 +141,7 @@ export function LeaveApprovalScreen({ navigation }: any) {
                     styles.result,
                     {
                       backgroundColor:
-                        item.decision === "approve"
-                          ? colors.ok.bg
-                          : colors.bad.bg,
+                        item.decision === "approve" ? c.ok.bg : c.bad.bg,
                     },
                   ]}
                 >
@@ -153,9 +150,7 @@ export function LeaveApprovalScreen({ navigation }: any) {
                       styles.resultText,
                       {
                         color:
-                          item.decision === "approve"
-                            ? colors.ok.ink
-                            : colors.bad.ink,
+                          item.decision === "approve" ? c.ok.ink : c.bad.ink,
                       },
                     ]}
                   >
@@ -172,109 +167,115 @@ export function LeaveApprovalScreen({ navigation }: any) {
     </View>
   );
 }
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.bg },
+const makeStyles = (c: Palette) =>
+  StyleSheet.create({
+    container: { flex: 1, backgroundColor: c.bg },
 
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    paddingHorizontal: 20,
-    paddingBottom: 14,
-  },
-  backBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 12,
-    backgroundColor: colors.chip,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  headerTitle: { fontSize: 15, fontWeight: "700", color: colors.ink },
-  headerSub: {
-    fontSize: 11,
-    fontWeight: "500",
-    color: colors.muted,
-    marginTop: 2,
-  },
-  approveAll: {
-    paddingHorizontal: 14,
-    paddingVertical: 9,
-    borderRadius: 999,
-    backgroundColor: colors.accent,
-  },
-  approveAllText: { fontSize: 11.5, fontWeight: "600", color: "#fff" },
+    header: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 12,
+      paddingHorizontal: 20,
+      paddingBottom: 14,
+    },
+    backBtn: {
+      width: 36,
+      height: 36,
+      borderRadius: 12,
+      backgroundColor: c.chip,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    headerTitle: { fontSize: 15, fontWeight: "700", color: c.ink },
+    headerSub: {
+      fontSize: 11,
+      fontWeight: "500",
+      color: c.muted,
+      marginTop: 2,
+    },
+    approveAll: {
+      paddingHorizontal: 14,
+      paddingVertical: 9,
+      borderRadius: 999,
+      backgroundColor: c.accent,
+    },
+    approveAllText: { fontSize: 11.5, fontWeight: "600", color: "#fff" },
 
-  content: { paddingHorizontal: 18, paddingTop: 4, paddingBottom: 130 },
-  empty: { fontSize: 13, color: colors.muted, marginHorizontal: 2 },
+    content: { paddingHorizontal: 18, paddingTop: 4, paddingBottom: 130 },
+    empty: { fontSize: 13, color: c.muted, marginHorizontal: 2 },
 
-  card: {
-    borderRadius: 20,
-    backgroundColor: colors.card,
-    borderWidth: 1,
-    borderColor: colors.panelBorder,
-    padding: 15,
-    marginBottom: 11,
-  },
-  topRow: { flexDirection: "row", alignItems: "center", gap: 11 },
-  avatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 14,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  avatarText: { fontSize: 12.5, fontWeight: "700" },
-  name: { fontSize: 13.5, fontWeight: "600", color: colors.ink },
-  jobTitle: {
-    fontSize: 11,
-    fontWeight: "500",
-    color: colors.muted,
-    marginTop: 3,
-  },
+    card: {
+      borderRadius: 20,
+      backgroundColor: c.card,
+      borderWidth: 1,
+      borderColor: c.panelBorder,
+      padding: 15,
+      marginBottom: 11,
+    },
+    topRow: { flexDirection: "row", alignItems: "center", gap: 11 },
+    avatar: {
+      width: 40,
+      height: 40,
+      borderRadius: 14,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    avatarText: { fontSize: 12.5, fontWeight: "700" },
+    name: { fontSize: 13.5, fontWeight: "600", color: c.ink },
+    jobTitle: {
+      fontSize: 11,
+      fontWeight: "500",
+      color: c.muted,
+      marginTop: 3,
+    },
 
-  detailBox: {
-    marginTop: 12,
-    borderRadius: 14,
-    backgroundColor: colors.chip,
-    paddingHorizontal: 13,
-    paddingVertical: 12,
-  },
-  detail: { fontSize: 12.5, fontWeight: "600", color: colors.ink },
-  reason: {
-    fontSize: 11,
-    lineHeight: 16.5,
-    fontWeight: "500",
-    color: colors.muted,
-    marginTop: 5,
-  },
-  metaRow: { flexDirection: "row", alignItems: "center", gap: 7, marginTop: 9 },
-  stage: { fontSize: 10, fontWeight: "600", color: colors.info.ink },
-  quota: { fontSize: 10, fontWeight: "500", color: colors.mutedLabel },
+    detailBox: {
+      marginTop: 12,
+      borderRadius: 14,
+      backgroundColor: c.chip,
+      paddingHorizontal: 13,
+      paddingVertical: 12,
+    },
+    detail: { fontSize: 12.5, fontWeight: "600", color: c.ink },
+    reason: {
+      fontSize: 11,
+      lineHeight: 16.5,
+      fontWeight: "500",
+      color: c.muted,
+      marginTop: 5,
+    },
+    metaRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 7,
+      marginTop: 9,
+    },
+    stage: { fontSize: 10, fontWeight: "600", color: c.info.ink },
+    quota: { fontSize: 10, fontWeight: "500", color: c.mutedLabel },
 
-  actions: { flexDirection: "row", gap: 9, marginTop: 12 },
-  rejectBtn: {
-    flex: 1,
-    paddingVertical: 12,
-    borderRadius: 13,
-    backgroundColor: colors.bad.bg,
-    alignItems: "center",
-  },
-  rejectText: { fontSize: 12.5, fontWeight: "700", color: colors.bad.ink },
-  approveBtn: {
-    flex: 2,
-    paddingVertical: 12,
-    borderRadius: 13,
-    backgroundColor: colors.accent,
-    alignItems: "center",
-  },
-  approveText: { fontSize: 12.5, fontWeight: "700", color: "#fff" },
+    actions: { flexDirection: "row", gap: 9, marginTop: 12 },
+    rejectBtn: {
+      flex: 1,
+      paddingVertical: 12,
+      borderRadius: 13,
+      backgroundColor: c.bad.bg,
+      alignItems: "center",
+    },
+    rejectText: { fontSize: 12.5, fontWeight: "700", color: c.bad.ink },
+    approveBtn: {
+      flex: 2,
+      paddingVertical: 12,
+      borderRadius: 13,
+      backgroundColor: c.accent,
+      alignItems: "center",
+    },
+    approveText: { fontSize: 12.5, fontWeight: "700", color: "#fff" },
 
-  result: {
-    marginTop: 12,
-    paddingVertical: 11,
-    borderRadius: 13,
-    alignItems: "center",
-  },
-  resultText: { fontSize: 12, fontWeight: "700" },
-});
+    result: {
+      marginTop: 12,
+      paddingVertical: 11,
+      borderRadius: 13,
+      alignItems: "center",
+    },
+    resultText: { fontSize: 12, fontWeight: "700" },
+  });

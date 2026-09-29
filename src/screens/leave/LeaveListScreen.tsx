@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState, useMemo } from "react";
 import { useFocusEffect } from "@react-navigation/native";
 import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
@@ -8,7 +8,8 @@ import { StatusBadge } from "@/components/StatusBadge";
 import { LineIcon } from "@/components/LineIcon";
 import { ICON } from "@/constants/icons";
 import { leaveDecisionBadge } from "@/constants/statusLabels";
-import { colors } from "@/theme/colors";
+import { Palette } from "@/theme/colors";
+import { useTheme } from "@/theme/ThemeContext";
 import { hrisApi } from "@/services/api";
 import { useSession } from "@/services/session";
 import { LeaveBalance, LeaveRequest } from "@/services/types";
@@ -35,6 +36,8 @@ export function LeaveListScreen({ navigation }: any) {
   const terpakai = cuti ? cuti.total - cuti.remaining : 0;
   const sisaPersen =
     cuti && cuti.total ? (cuti.remaining / cuti.total) * 100 : 0;
+  const c = useTheme();
+  const styles = useMemo(() => makeStyles(c), [c]);
 
   return (
     <View style={styles.container}>
@@ -43,7 +46,7 @@ export function LeaveListScreen({ navigation }: any) {
           style={styles.backBtn}
           onPress={() => navigation.getParent()?.navigate("Beranda")}
         >
-          <Ionicons name="chevron-back" size={18} color={colors.ink} />
+          <Ionicons name="chevron-back" size={18} color={c.ink} />
         </Pressable>
         <Text style={styles.headerTitle}>Cuti &amp; Izin</Text>
       </View>
@@ -56,7 +59,7 @@ export function LeaveListScreen({ navigation }: any) {
           <>
             <View style={styles.heroShadow}>
               <LinearGradient
-                colors={[colors.accent, colors.accent2]}
+                colors={[c.accent, c.accent2]}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
                 style={styles.heroCard}
@@ -103,12 +106,9 @@ export function LeaveListScreen({ navigation }: any) {
                 }
               >
                 <View
-                  style={[
-                    styles.actionIcon,
-                    { backgroundColor: colors.info.bg },
-                  ]}
+                  style={[styles.actionIcon, { backgroundColor: c.info.bg }]}
                 >
-                  <LineIcon d={ICON.plus} color={colors.info.ink} size={16} />
+                  <LineIcon d={ICON.plus} color={c.info.ink} size={16} />
                 </View>
                 <Text style={styles.actionTitle}>Ajukan cuti</Text>
                 <Text style={styles.actionSub}>Tahunan, sakit, melahirkan</Text>
@@ -121,16 +121,9 @@ export function LeaveListScreen({ navigation }: any) {
                 }
               >
                 <View
-                  style={[
-                    styles.actionIcon,
-                    { backgroundColor: colors.purple.bg },
-                  ]}
+                  style={[styles.actionIcon, { backgroundColor: c.purple.bg }]}
                 >
-                  <LineIcon
-                    d={ICON.location}
-                    color={colors.purple.ink}
-                    size={16}
-                  />
+                  <LineIcon d={ICON.location} color={c.purple.ink} size={16} />
                 </View>
                 <Text style={styles.actionTitle}>Dinas luar</Text>
                 <Text style={styles.actionSub}>
@@ -181,182 +174,183 @@ export function LeaveListScreen({ navigation }: any) {
     </View>
   );
 }
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.bg },
+const makeStyles = (c: Palette) =>
+  StyleSheet.create({
+    container: { flex: 1, backgroundColor: c.bg },
 
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    paddingHorizontal: 20,
-    paddingBottom: 16,
-    backgroundColor: colors.card,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.hair,
-  },
-  backBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 12,
-    backgroundColor: colors.chip,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  headerTitle: { fontSize: 15, fontWeight: "700", color: colors.ink },
+    header: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 12,
+      paddingHorizontal: 20,
+      paddingBottom: 16,
+      backgroundColor: c.card,
+      borderBottomWidth: 1,
+      borderBottomColor: c.hair,
+    },
+    backBtn: {
+      width: 36,
+      height: 36,
+      borderRadius: 12,
+      backgroundColor: c.chip,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    headerTitle: { fontSize: 15, fontWeight: "700", color: c.ink },
 
-  content: { paddingHorizontal: 18, paddingTop: 16, paddingBottom: 130 },
+    content: { paddingHorizontal: 18, paddingTop: 16, paddingBottom: 130 },
 
-  heroShadow: {
-    borderRadius: 22,
-    shadowColor: colors.accent2,
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.26,
-    shadowRadius: 26,
-    elevation: 6,
-  },
-  heroCard: { borderRadius: 22, padding: 18, overflow: "hidden" },
-  heroBlob: {
-    position: "absolute",
-    right: -40,
-    top: -40,
-    width: 140,
-    height: 140,
-    borderRadius: 70,
-    backgroundColor: "rgba(255,255,255,0.09)",
-  },
-  heroLabel: {
-    fontSize: 12,
-    fontWeight: "600",
-    color: "rgba(255,255,255,0.85)",
-  },
-  balanceRow: {
-    flexDirection: "row",
-    alignItems: "flex-end",
-    gap: 8,
-    marginTop: 8,
-  },
-  balanceBig: {
-    fontSize: 44,
-    lineHeight: 46,
-    fontWeight: "800",
-    letterSpacing: -1.8,
-    color: "#fff",
-  },
-  balanceTotal: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "rgba(255,255,255,0.8)",
-    paddingBottom: 5,
-  },
-  bar: {
-    height: 7,
-    borderRadius: 4,
-    backgroundColor: "rgba(255,255,255,0.22)",
-    marginTop: 14,
-    overflow: "hidden",
-  },
-  barFill: { height: "100%", borderRadius: 4, backgroundColor: "#fff" },
-  heroBoxes: { flexDirection: "row", gap: 10, marginTop: 14 },
-  heroBox: {
-    flex: 1,
-    backgroundColor: "rgba(255,255,255,0.15)",
-    borderRadius: 13,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-  },
-  heroBoxLabel: {
-    fontSize: 10.5,
-    fontWeight: "500",
-    color: "rgba(255,255,255,0.8)",
-  },
-  heroBoxValue: {
-    fontSize: 15,
-    fontWeight: "700",
-    color: "#fff",
-    marginTop: 3,
-  },
+    heroShadow: {
+      borderRadius: 22,
+      shadowColor: c.accent2,
+      shadowOffset: { width: 0, height: 10 },
+      shadowOpacity: 0.26,
+      shadowRadius: 26,
+      elevation: 6,
+    },
+    heroCard: { borderRadius: 22, padding: 18, overflow: "hidden" },
+    heroBlob: {
+      position: "absolute",
+      right: -40,
+      top: -40,
+      width: 140,
+      height: 140,
+      borderRadius: 70,
+      backgroundColor: "rgba(255,255,255,0.09)",
+    },
+    heroLabel: {
+      fontSize: 12,
+      fontWeight: "600",
+      color: "rgba(255,255,255,0.85)",
+    },
+    balanceRow: {
+      flexDirection: "row",
+      alignItems: "flex-end",
+      gap: 8,
+      marginTop: 8,
+    },
+    balanceBig: {
+      fontSize: 44,
+      lineHeight: 46,
+      fontWeight: "800",
+      letterSpacing: -1.8,
+      color: "#fff",
+    },
+    balanceTotal: {
+      fontSize: 14,
+      fontWeight: "600",
+      color: "rgba(255,255,255,0.8)",
+      paddingBottom: 5,
+    },
+    bar: {
+      height: 7,
+      borderRadius: 4,
+      backgroundColor: "rgba(255,255,255,0.22)",
+      marginTop: 14,
+      overflow: "hidden",
+    },
+    barFill: { height: "100%", borderRadius: 4, backgroundColor: "#fff" },
+    heroBoxes: { flexDirection: "row", gap: 10, marginTop: 14 },
+    heroBox: {
+      flex: 1,
+      backgroundColor: "rgba(255,255,255,0.15)",
+      borderRadius: 13,
+      paddingHorizontal: 12,
+      paddingVertical: 10,
+    },
+    heroBoxLabel: {
+      fontSize: 10.5,
+      fontWeight: "500",
+      color: "rgba(255,255,255,0.8)",
+    },
+    heroBoxValue: {
+      fontSize: 15,
+      fontWeight: "700",
+      color: "#fff",
+      marginTop: 3,
+    },
 
-  actionGrid: { flexDirection: "row", gap: 10, marginTop: 12 },
-  actionCard: {
-    flex: 1,
-    backgroundColor: colors.card,
-    borderWidth: 1,
-    borderColor: colors.cardBorder,
-    borderRadius: 22,
-    padding: 14,
-  },
-  actionIcon: {
-    width: 30,
-    height: 30,
-    borderRadius: 10,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  actionTitle: {
-    fontSize: 13,
-    fontWeight: "700",
-    color: colors.ink,
-    marginTop: 10,
-  },
-  actionSub: {
-    fontSize: 10.5,
-    fontWeight: "500",
-    color: colors.muted,
-    marginTop: 3,
-  },
+    actionGrid: { flexDirection: "row", gap: 10, marginTop: 12 },
+    actionCard: {
+      flex: 1,
+      backgroundColor: c.card,
+      borderWidth: 1,
+      borderColor: c.cardBorder,
+      borderRadius: 22,
+      padding: 14,
+    },
+    actionIcon: {
+      width: 30,
+      height: 30,
+      borderRadius: 10,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    actionTitle: {
+      fontSize: 13,
+      fontWeight: "700",
+      color: c.ink,
+      marginTop: 10,
+    },
+    actionSub: {
+      fontSize: 10.5,
+      fontWeight: "500",
+      color: c.muted,
+      marginTop: 3,
+    },
 
-  sectionTitle: {
-    fontSize: 14,
-    fontWeight: "700",
-    color: colors.ink,
-    marginTop: 20,
-    marginBottom: 10,
-    marginHorizontal: 2,
-  },
-  empty: { fontSize: 13, color: colors.muted, marginHorizontal: 2 },
+    sectionTitle: {
+      fontSize: 14,
+      fontWeight: "700",
+      color: c.ink,
+      marginTop: 20,
+      marginBottom: 10,
+      marginHorizontal: 2,
+    },
+    empty: { fontSize: 13, color: c.muted, marginHorizontal: 2 },
 
-  reqCard: {
-    backgroundColor: colors.card,
-    borderWidth: 1,
-    borderColor: colors.cardBorder,
-    borderRadius: 22,
-    padding: 15,
-    marginBottom: 10,
-    shadowColor: "#0F1720",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.06,
-    shadowRadius: 16,
-    elevation: 3,
-  },
-  reqTop: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-    gap: 10,
-  },
-  reqType: { fontSize: 13.5, fontWeight: "700", color: colors.ink },
-  reqMeta: {
-    fontSize: 11.5,
-    fontWeight: "500",
-    color: colors.muted,
-    marginTop: 4,
-  },
-  divider: { height: 1, backgroundColor: colors.hair, marginVertical: 12 },
-  approverRow: { flexDirection: "row", alignItems: "center", gap: 8 },
-  approverAvatar: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    backgroundColor: colors.info.bg,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  approverInitials: { fontSize: 9, fontWeight: "700", color: colors.info.ink },
-  approverName: {
-    fontSize: 11,
-    fontWeight: "500",
-    color: colors.muted,
-    flex: 1,
-  },
-  stage: { fontSize: 10.5, fontWeight: "600", color: colors.accent },
-});
+    reqCard: {
+      backgroundColor: c.card,
+      borderWidth: 1,
+      borderColor: c.cardBorder,
+      borderRadius: 22,
+      padding: 15,
+      marginBottom: 10,
+      shadowColor: "#0F1720",
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.06,
+      shadowRadius: 16,
+      elevation: 3,
+    },
+    reqTop: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "flex-start",
+      gap: 10,
+    },
+    reqType: { fontSize: 13.5, fontWeight: "700", color: c.ink },
+    reqMeta: {
+      fontSize: 11.5,
+      fontWeight: "500",
+      color: c.muted,
+      marginTop: 4,
+    },
+    divider: { height: 1, backgroundColor: c.hair, marginVertical: 12 },
+    approverRow: { flexDirection: "row", alignItems: "center", gap: 8 },
+    approverAvatar: {
+      width: 22,
+      height: 22,
+      borderRadius: 11,
+      backgroundColor: c.info.bg,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    approverInitials: { fontSize: 9, fontWeight: "700", color: c.info.ink },
+    approverName: {
+      fontSize: 11,
+      fontWeight: "500",
+      color: c.muted,
+      flex: 1,
+    },
+    stage: { fontSize: 10.5, fontWeight: "600", color: c.accent },
+  });

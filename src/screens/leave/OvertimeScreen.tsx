@@ -1,11 +1,11 @@
-import { useCallback, useState } from "react";
+import { useCallback, useState, useMemo } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-
-import { colors } from "@/theme/colors";
+import { Palette } from "@/theme/colors";
+import { useTheme } from "@/theme/ThemeContext";
 import { hrisApi } from "@/services/api";
 import { useSession } from "@/services/session";
 import { OvertimeRecord } from "@/services/types";
@@ -50,12 +50,14 @@ export function OvertimeScreen({ navigation }: any) {
   const persen = Math.min(100, (totalJam / BATAS_LEMBUR_JAM) * 100);
   const estimasi = totalJam * UPAH_LEMBUR_PER_JAM;
   const mepet = totalJam >= BATAS_LEMBUR_JAM * 0.8;
+  const c = useTheme();
+  const styles = useMemo(() => makeStyles(c), [c]);
 
   return (
     <View style={styles.container}>
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
         <Pressable style={styles.backBtn} onPress={() => navigation.goBack()}>
-          <Ionicons name="chevron-back" size={18} color={colors.ink} />
+          <Ionicons name="chevron-back" size={18} color={c.ink} />
         </Pressable>
         <Text style={styles.headerTitle}>Lembur (Overtime)</Text>
       </View>
@@ -69,12 +71,10 @@ export function OvertimeScreen({ navigation }: any) {
             <View
               style={[
                 styles.limitBadge,
-                mepet && { backgroundColor: colors.warn.bg },
+                mepet && { backgroundColor: c.warn.bg },
               ]}
             >
-              <Text
-                style={[styles.limitText, mepet && { color: colors.warn.ink }]}
-              >
+              <Text style={[styles.limitText, mepet && { color: c.warn.ink }]}>
                 Batas {BATAS_LEMBUR_JAM} j
               </Text>
             </View>
@@ -93,7 +93,7 @@ export function OvertimeScreen({ navigation }: any) {
                 styles.fill,
                 {
                   width: `${persen}%`,
-                  backgroundColor: mepet ? colors.warn.ink : colors.accent,
+                  backgroundColor: mepet ? c.warn.ink : c.accent,
                 },
               ]}
             />
@@ -111,7 +111,7 @@ export function OvertimeScreen({ navigation }: any) {
           }
         >
           <LinearGradient
-            colors={[colors.accent, colors.accent2]}
+            colors={[c.accent, c.accent2]}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={styles.cta}
@@ -125,7 +125,7 @@ export function OvertimeScreen({ navigation }: any) {
         {records.length === 0 ? (
           <View style={styles.emptyCard}>
             <View style={styles.emptyIcon}>
-              <LineIcon d={ICON.overtime} color={colors.muted} size={22} />
+              <LineIcon d={ICON.overtime} color={c.muted} size={22} />
             </View>
             <Text style={styles.emptyTitle}>Belum ada pengajuan lembur</Text>
             <Text style={styles.emptyText}>
@@ -164,173 +164,174 @@ export function OvertimeScreen({ navigation }: any) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.bg },
+const makeStyles = (c: Palette) =>
+  StyleSheet.create({
+    container: { flex: 1, backgroundColor: c.bg },
 
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    paddingHorizontal: 20,
-    paddingBottom: 16,
-    backgroundColor: colors.card,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.hair,
-  },
-  backBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 12,
-    backgroundColor: colors.chip,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  headerTitle: { fontSize: 15, fontWeight: "700", color: colors.ink },
+    header: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 12,
+      paddingHorizontal: 20,
+      paddingBottom: 16,
+      backgroundColor: c.card,
+      borderBottomWidth: 1,
+      borderBottomColor: c.hair,
+    },
+    backBtn: {
+      width: 36,
+      height: 36,
+      borderRadius: 12,
+      backgroundColor: c.chip,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    headerTitle: { fontSize: 15, fontWeight: "700", color: c.ink },
 
-  content: { paddingHorizontal: 18, paddingTop: 16, paddingBottom: 130 },
+    content: { paddingHorizontal: 18, paddingTop: 16, paddingBottom: 130 },
 
-  sheet: {
-    backgroundColor: colors.card,
-    borderWidth: 1,
-    borderColor: colors.cardBorder,
-    borderRadius: 22,
-    padding: 18,
-    shadowColor: "#0F1720",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.06,
-    shadowRadius: 16,
-    elevation: 3,
-  },
-  sheetHead: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    gap: 10,
-  },
-  sheetLabel: { fontSize: 11.5, fontWeight: "500", color: colors.muted },
-  limitBadge: {
-    paddingHorizontal: 9,
-    paddingVertical: 4,
-    borderRadius: 8,
-    backgroundColor: colors.info.bg,
-  },
-  limitText: { fontSize: 10, fontWeight: "700", color: colors.info.ink },
+    sheet: {
+      backgroundColor: c.card,
+      borderWidth: 1,
+      borderColor: c.cardBorder,
+      borderRadius: 22,
+      padding: 18,
+      shadowColor: "#0F1720",
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.06,
+      shadowRadius: 16,
+      elevation: 3,
+    },
+    sheetHead: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      gap: 10,
+    },
+    sheetLabel: { fontSize: 11.5, fontWeight: "500", color: c.muted },
+    limitBadge: {
+      paddingHorizontal: 9,
+      paddingVertical: 4,
+      borderRadius: 8,
+      backgroundColor: c.info.bg,
+    },
+    limitText: { fontSize: 10, fontWeight: "700", color: c.info.ink },
 
-  bigRow: {
-    flexDirection: "row",
-    alignItems: "flex-end",
-    gap: 7,
-    marginTop: 8,
-  },
-  bigValue: {
-    fontSize: 38,
-    lineHeight: 40,
-    fontWeight: "800",
-    letterSpacing: -1.3,
-    color: colors.ink,
-  },
-  bigUnit: {
-    fontSize: 13,
-    fontWeight: "600",
-    color: colors.muted,
-    paddingBottom: 5,
-  },
+    bigRow: {
+      flexDirection: "row",
+      alignItems: "flex-end",
+      gap: 7,
+      marginTop: 8,
+    },
+    bigValue: {
+      fontSize: 38,
+      lineHeight: 40,
+      fontWeight: "800",
+      letterSpacing: -1.3,
+      color: c.ink,
+    },
+    bigUnit: {
+      fontSize: 13,
+      fontWeight: "600",
+      color: c.muted,
+      paddingBottom: 5,
+    },
 
-  track: {
-    height: 7,
-    borderRadius: 4,
-    backgroundColor: colors.track,
-    marginTop: 14,
-    overflow: "hidden",
-  },
-  fill: { height: "100%", borderRadius: 4 },
+    track: {
+      height: 7,
+      borderRadius: 4,
+      backgroundColor: c.track,
+      marginTop: 14,
+      overflow: "hidden",
+    },
+    fill: { height: "100%", borderRadius: 4 },
 
-  payRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginTop: 8,
-  },
-  payLabel: { fontSize: 10.5, fontWeight: "500", color: colors.muted },
-  payValue: { fontSize: 11.5, fontWeight: "700", color: colors.ink },
+    payRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      marginTop: 8,
+    },
+    payLabel: { fontSize: 10.5, fontWeight: "500", color: c.muted },
+    payValue: { fontSize: 11.5, fontWeight: "700", color: c.ink },
 
-  cta: {
-    borderRadius: 22,
-    paddingVertical: 15,
-    alignItems: "center",
-    marginTop: 12,
-    shadowColor: colors.accent,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.28,
-    shadowRadius: 20,
-    elevation: 5,
-  },
-  ctaText: { fontSize: 13.5, fontWeight: "700", color: "#fff" },
+    cta: {
+      borderRadius: 22,
+      paddingVertical: 15,
+      alignItems: "center",
+      marginTop: 12,
+      shadowColor: c.accent,
+      shadowOffset: { width: 0, height: 8 },
+      shadowOpacity: 0.28,
+      shadowRadius: 20,
+      elevation: 5,
+    },
+    ctaText: { fontSize: 13.5, fontWeight: "700", color: "#fff" },
 
-  sectionTitle: {
-    fontSize: 14,
-    fontWeight: "700",
-    color: colors.ink,
-    marginTop: 20,
-    marginBottom: 10,
-    marginHorizontal: 2,
-  },
+    sectionTitle: {
+      fontSize: 14,
+      fontWeight: "700",
+      color: c.ink,
+      marginTop: 20,
+      marginBottom: 10,
+      marginHorizontal: 2,
+    },
 
-  row: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    backgroundColor: colors.card,
-    borderWidth: 1,
-    borderColor: colors.cardBorder,
-    borderRadius: 22,
-    padding: 15,
-  },
-  hourChip: {
-    width: 40,
-    height: 40,
-    borderRadius: 13,
-    backgroundColor: colors.warn.bg,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  hourText: { fontSize: 12, fontWeight: "700", color: colors.warn.ink },
-  rowTitle: { fontSize: 13, fontWeight: "600", color: colors.ink },
-  rowNote: {
-    fontSize: 11,
-    fontWeight: "500",
-    color: colors.muted,
-    marginTop: 3,
-  },
+    row: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 12,
+      backgroundColor: c.card,
+      borderWidth: 1,
+      borderColor: c.cardBorder,
+      borderRadius: 22,
+      padding: 15,
+    },
+    hourChip: {
+      width: 40,
+      height: 40,
+      borderRadius: 13,
+      backgroundColor: c.warn.bg,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    hourText: { fontSize: 12, fontWeight: "700", color: c.warn.ink },
+    rowTitle: { fontSize: 13, fontWeight: "600", color: c.ink },
+    rowNote: {
+      fontSize: 11,
+      fontWeight: "500",
+      color: c.muted,
+      marginTop: 3,
+    },
 
-  emptyCard: {
-    alignItems: "center",
-    borderRadius: 22,
-    backgroundColor: colors.card,
-    borderWidth: 1,
-    borderColor: colors.cardBorder,
-    paddingVertical: 32,
-    paddingHorizontal: 24,
-  },
-  emptyIcon: {
-    width: 52,
-    height: 52,
-    borderRadius: 17,
-    backgroundColor: colors.chip,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  emptyTitle: {
-    fontSize: 13.5,
-    fontWeight: "700",
-    color: colors.ink,
-    marginTop: 14,
-  },
-  emptyText: {
-    fontSize: 11.5,
-    fontWeight: "500",
-    color: colors.muted,
-    lineHeight: 17,
-    textAlign: "center",
-    marginTop: 6,
-  },
-});
+    emptyCard: {
+      alignItems: "center",
+      borderRadius: 22,
+      backgroundColor: c.card,
+      borderWidth: 1,
+      borderColor: c.cardBorder,
+      paddingVertical: 32,
+      paddingHorizontal: 24,
+    },
+    emptyIcon: {
+      width: 52,
+      height: 52,
+      borderRadius: 17,
+      backgroundColor: c.chip,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    emptyTitle: {
+      fontSize: 13.5,
+      fontWeight: "700",
+      color: c.ink,
+      marginTop: 14,
+    },
+    emptyText: {
+      fontSize: 11.5,
+      fontWeight: "500",
+      color: c.muted,
+      lineHeight: 17,
+      textAlign: "center",
+      marginTop: 6,
+    },
+  });
