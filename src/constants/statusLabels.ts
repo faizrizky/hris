@@ -1,7 +1,6 @@
 import { AttendanceStatus, AttendanceRequestedStatus } from "@/services/types";
 import { SemanticTone } from "@/theme/colors";
-import { LeaveType } from "@/services/types";
-import { LeaveDecision } from "@/services/types";
+import { LeaveType, LeaveDecision, OvertimeStatus } from "@/services/types";
 
 export function leaveDecisionBadge(decision: LeaveDecision): {
   label: string;
@@ -54,4 +53,18 @@ export const LEAVE_TYPE_TONE: Record<LeaveType, SemanticTone> = {
   lembur: "warn",
   dinas_luar: "info",
   sakit: "bad",
+};
+
+export const OVERTIME_STATUS_LABEL: Record<OvertimeStatus, string> = {
+  pending: "Pending",
+  approved: "Approved",
+  paid: "Dibayar",
+  rejected: "Ditolak",
+};
+
+export const OVERTIME_STATUS_TONE: Record<OvertimeStatus, SemanticTone> = {
+  pending: "warn",
+  approved: "ok",
+  paid: "info",
+  rejected: "bad",
 };

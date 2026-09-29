@@ -38,6 +38,19 @@ export interface AttendanceCorrectionRequest {
   status: AttendanceRequestedStatus;
 }
 
+export type OvertimeStatus = "pending" | "approved" | "paid" | "rejected";
+
+export interface OvertimeRecord {
+  id: string;
+  employeeId: string;
+  date: string; // ISO
+  startMinute: number; // 480 = 08:00, disimpan sebagai menit agar mudah dihitung
+  endMinute: number;
+  hours: number; // 4, 2, 0.5
+  note: string;
+  status: OvertimeStatus;
+}
+
 export interface ClockState {
   clockedIn: boolean;
   lastCheckIn: string | null;
@@ -114,6 +127,7 @@ export interface HrisApi {
   getAttendanceCorrections(
     employeeId: string,
   ): Promise<AttendanceCorrectionRequest[]>;
+  getOvertimes(employeeId: string): Promise<OvertimeRecord[]>;
   getLeaveBalances(employeeId: string): Promise<LeaveBalance[]>;
   getLeaveRequests(employeeId: string): Promise<LeaveRequest[]>;
   submitLeaveRequest(input: {

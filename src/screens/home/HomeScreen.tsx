@@ -113,7 +113,7 @@ export function HomeScreen() {
       icon: ICON.overtime,
       bg: colors.warn.bg,
       ink: colors.warn.ink,
-      onPress: () => navigation.navigate("Cuti"),
+      onPress: () => navigation.navigate("Cuti", { screen: "Overtime" }),
     },
     {
       label: "Slip gaji",
