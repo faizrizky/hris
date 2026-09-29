@@ -61,9 +61,7 @@ export function PayslipListScreen({ navigation }: any) {
               totalLabel="Total potongan"
               total={latest.totalDeduction}
               linkLabel="Rincian"
-              onLink={() =>
-                navigation.navigate("PayslipDetail", { payslipId: latest.id })
-              }
+              onLink={() => navigation.navigate("TaxDetail")}
             />
           </>
         )}

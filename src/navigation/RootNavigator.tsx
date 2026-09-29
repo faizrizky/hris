@@ -20,6 +20,7 @@ import { ProfileScreen } from "@/screens/profile/ProfileScreen";
 import { AttendanceCorrectionScreen } from "@/screens/attendance/AttendanceCorrectionScreen";
 import { NavBar } from "@/components/NavBar";
 import { NotificationScreen } from "@/screens/notifications/NotificationScreen";
+import { TaxScreen } from "@/screens/payroll/TaxScreen";
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -116,6 +117,11 @@ function PayrollStack() {
         name="PayslipDetail"
         component={PayslipDetailScreen}
         options={{ title: "Detail Slip Gaji" }}
+      />
+      <Stack.Screen
+        name="TaxDetail"
+        component={TaxScreen}
+        options={{ title: "PPh 21 & BPJS", headerShown: false }}
       />
     </Stack.Navigator>
   );
