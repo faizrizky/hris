@@ -165,7 +165,9 @@ export function StaffDetailScreen({ navigation, route }: any) {
           <View style={styles.sheetHead}>
             <Text style={styles.sheetTitle}>Absensi 5 hari terakhir</Text>
             <Pressable
-              onPress={() => navigation.navigate("StaffAttendance")}
+              onPress={() =>
+                navigation.navigate("StaffHistory", { staffId: staff.id })
+              }
               hitSlop={8}
             >
               <Text style={styles.sheetLink}>Semua</Text>

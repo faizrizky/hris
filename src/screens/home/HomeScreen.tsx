@@ -101,6 +101,17 @@ export function HomeScreen() {
           },
         ]
       : []),
+    ...(employee?.role === "mss"
+      ? [
+          {
+            label: "Absensi Tim",
+            icon: ICON.attendanceRate,
+            bg: colors.ok.bg,
+            ink: colors.ok.ink,
+            onPress: () => navigation.navigate("StaffAttendance"),
+          },
+        ]
+      : []),
     {
       label: "Absensi",
       icon: ICON.clock,

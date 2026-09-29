@@ -23,6 +23,7 @@ import { AppraisalScreen } from "@/screens/appraisal/AppraisalScreen";
 import { StaffListScreen } from "@/screens/staff/StaffListScreen";
 import { StaffDetailScreen } from "@/screens/staff/StaffDetailScreen";
 import { StaffAttendanceScreen } from "@/screens/staff/StaffAttendanceScreen";
+import { StaffHistoryScreen } from "@/screens/staff/StaffHistoryScreen";
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -138,6 +139,7 @@ function HomeStack() {
       <Stack.Screen name="StaffList" component={StaffListScreen} />
       <Stack.Screen name="StaffDetail" component={StaffDetailScreen} />
       <Stack.Screen name="StaffAttendance" component={StaffAttendanceScreen} />
+      <Stack.Screen name="StaffHistory" component={StaffHistoryScreen} />
     </Stack.Navigator>
   );
 }
@@ -158,6 +160,13 @@ function MainTabs() {
         component={AttendanceStack}
         options={{ headerShown: false }}
       />
+      {employee?.role === "hr" && (
+        <Tab.Screen
+          name="AbsensiTim"
+          component={StaffAttendanceScreen}
+          options={{ headerShown: false }}
+        />
+      )}
       <Tab.Screen
         name="Cuti"
         component={LeaveStack}
