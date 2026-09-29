@@ -17,6 +17,8 @@ import {
   AppNotification,
   TaxSummary,
   Appraisal,
+  Staff,
+  StaffDirectory,
 } from "../types";
 import {
   MOCK_ATTENDANCE,
@@ -31,6 +33,8 @@ import {
   MOCK_INBOX,
   MOCK_TAX,
   MOCK_APPRAISAL,
+  MOCK_STAFF,
+  TOTAL_KARYAWAN_AKTIF,
 } from "./mockData";
 
 const delay = (ms = 300) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -190,6 +194,22 @@ export const mockApi: HrisApi = {
   async getAppraisal(_employeeId: string): Promise<Appraisal> {
     await delay();
     return MOCK_APPRAISAL;
+  },
+
+  async getStaffDirectory(employeeId: string): Promise<StaffDirectory> {
+    await delay();
+    const pemanggil = Object.values(MOCK_EMPLOYEES).find(
+      (e) => e.id === employeeId,
+    );
+
+    // HR melihat semua; atasan hanya bawahan langsungnya. Penyaringan hak
+    // akses ada di service, bukan di layar — di Fase 2 ini jadi tugas backend.
+    const items: Staff[] =
+      pemanggil?.role === "hr"
+        ? MOCK_STAFF
+        : MOCK_STAFF.filter((s) => s.manager === pemanggil?.fullName);
+
+    return { totalActive: TOTAL_KARYAWAN_AKTIF, items };
   },
 
   async getNotifications(_employeeId: string): Promise<NotificationItem[]> {

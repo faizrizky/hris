@@ -20,6 +20,7 @@ import { NavBar } from "@/components/NavBar";
 import { NotificationScreen } from "@/screens/notifications/NotificationScreen";
 import { TaxScreen } from "@/screens/payroll/TaxScreen";
 import { AppraisalScreen } from "@/screens/appraisal/AppraisalScreen";
+import { StaffListScreen } from "@/screens/staff/StaffListScreen";
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -132,6 +133,7 @@ function HomeStack() {
       <Stack.Screen name="HomeMain" component={HomeScreen} />
       <Stack.Screen name="Notifications" component={NotificationScreen} />
       <Stack.Screen name="Appraisal" component={AppraisalScreen} />
+      <Stack.Screen name="StaffList" component={StaffListScreen} />
     </Stack.Navigator>
   );
 }

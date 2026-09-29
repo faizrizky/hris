@@ -92,6 +92,13 @@ export function HomeScreen() {
             ink: colors.warn.ink,
             onPress: () => navigation.navigate("Approval"),
           },
+          {
+            label: "Karyawan",
+            icon: ICON.user,
+            bg: colors.purple.bg,
+            ink: colors.purple.ink,
+            onPress: () => navigation.navigate("StaffList"),
+          },
         ]
       : []),
     {
