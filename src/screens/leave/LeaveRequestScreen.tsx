@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import {
   KeyboardAvoidingView,
   Platform,
@@ -34,7 +34,8 @@ import { useSession } from "@/services/session";
 import { LeaveBalance } from "@/services/types";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import { colors } from "@/theme/colors";
+import { Palette } from "@/theme/colors";
+import { useTheme } from "@/theme/ThemeContext";
 import { DatePickerCard, FooterItem } from "@/components/DatePickerCard";
 import {
   tanggalPendek,
@@ -92,6 +93,8 @@ export function LeaveRequestScreen({ navigation, route }: any) {
   const [transport, setTransport] = useState<Transportasi | null>(null);
   const [keperluan, setKeperluan] = useState("");
   const [biaya, setBiaya] = useState<Biaya[]>([]);
+  const c = useTheme();
+  const styles = useMemo(() => makeStyles(c), [c]);
 
   const meta = FORM_META[kind];
 
@@ -263,7 +266,7 @@ export function LeaveRequestScreen({ navigation, route }: any) {
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
         <View style={styles.headerRow}>
           <Pressable style={styles.backBtn} onPress={() => navigation.goBack()}>
-            <Ionicons name="chevron-back" size={18} color={colors.ink} />
+            <Ionicons name="chevron-back" size={18} color={c.ink} />
           </Pressable>
           <View style={{ flex: 1, minWidth: 0 }}>
             <Text style={styles.headerTitle}>{meta.title}</Text>
@@ -406,10 +409,7 @@ export function LeaveRequestScreen({ navigation, route }: any) {
         <View style={[styles.actionBar, { paddingBottom: insets.bottom + 14 }]}>
           <View style={{ flex: 1, minWidth: 0 }}>
             <Text
-              style={[
-                styles.sumSub,
-                blockMsg ? { color: colors.bad.ink } : null,
-              ]}
+              style={[styles.sumSub, blockMsg ? { color: c.bad.ink } : null]}
             >
               {blockMsg || "Siap dikirim"}
             </Text>
@@ -425,11 +425,7 @@ export function LeaveRequestScreen({ navigation, route }: any) {
           </View>
           <Pressable onPress={handleSubmit} disabled={!bisaKirim}>
             <LinearGradient
-              colors={
-                bisaKirim
-                  ? [colors.accent, colors.accent2]
-                  : [colors.track, colors.track]
-              }
+              colors={bisaKirim ? [c.accent, c.accent2] : [c.track, c.track]}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
               style={styles.submitBtn}
@@ -449,85 +445,86 @@ export function LeaveRequestScreen({ navigation, route }: any) {
     </View>
   );
 }
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.bg },
+const makeStyles = (c: Palette) =>
+  StyleSheet.create({
+    container: { flex: 1, backgroundColor: c.bg },
 
-  header: {
-    paddingHorizontal: 20,
-    paddingBottom: 14,
-    backgroundColor: colors.card,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.hair,
-  },
-  headerRow: { flexDirection: "row", alignItems: "center", gap: 12 },
-  backBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 12,
-    backgroundColor: colors.chip,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  headerTitle: { fontSize: 15, fontWeight: "700", color: colors.ink },
-  headerSub: {
-    fontSize: 10.5,
-    fontWeight: "600",
-    color: colors.muted,
-    marginTop: 3,
-  },
+    header: {
+      paddingHorizontal: 20,
+      paddingBottom: 14,
+      backgroundColor: c.card,
+      borderBottomWidth: 1,
+      borderBottomColor: c.hair,
+    },
+    headerRow: { flexDirection: "row", alignItems: "center", gap: 12 },
+    backBtn: {
+      width: 36,
+      height: 36,
+      borderRadius: 12,
+      backgroundColor: c.chip,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    headerTitle: { fontSize: 15, fontWeight: "700", color: c.ink },
+    headerSub: {
+      fontSize: 10.5,
+      fontWeight: "600",
+      color: c.muted,
+      marginTop: 3,
+    },
 
-  segment: {
-    flexDirection: "row",
-    gap: 4,
-    padding: 4,
-    borderRadius: 14,
-    backgroundColor: colors.chip,
-    marginTop: 14,
-  },
-  segBtn: {
-    flex: 1,
-    paddingVertical: 9,
-    paddingHorizontal: 6,
-    borderRadius: 11,
-    alignItems: "center",
-  },
-  segBtnOn: {
-    backgroundColor: colors.card,
-    shadowColor: "#0F1720",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.14,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  segText: { fontSize: 12, fontWeight: "700", color: colors.muted },
-  segTextOn: { color: colors.ink },
+    segment: {
+      flexDirection: "row",
+      gap: 4,
+      padding: 4,
+      borderRadius: 14,
+      backgroundColor: c.chip,
+      marginTop: 14,
+    },
+    segBtn: {
+      flex: 1,
+      paddingVertical: 9,
+      paddingHorizontal: 6,
+      borderRadius: 11,
+      alignItems: "center",
+    },
+    segBtnOn: {
+      backgroundColor: c.card,
+      shadowColor: "#0F1720",
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.14,
+      shadowRadius: 4,
+      elevation: 2,
+    },
+    segText: { fontSize: 12, fontWeight: "700", color: c.muted },
+    segTextOn: { color: c.ink },
 
-  content: { paddingHorizontal: 18, paddingTop: 16, paddingBottom: 24 },
-  placeholder: {
-    backgroundColor: colors.card,
-    borderWidth: 1,
-    borderColor: colors.cardBorder,
-    borderRadius: 22,
-    padding: 16,
-  },
-  placeholderText: { fontSize: 12.5, color: colors.muted },
+    content: { paddingHorizontal: 18, paddingTop: 16, paddingBottom: 24 },
+    placeholder: {
+      backgroundColor: c.card,
+      borderWidth: 1,
+      borderColor: c.cardBorder,
+      borderRadius: 22,
+      padding: 16,
+    },
+    placeholderText: { fontSize: 12.5, color: c.muted },
 
-  actionBar: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 14,
-    backgroundColor: colors.card,
-    borderTopWidth: 1,
-    borderTopColor: colors.hair,
-    paddingHorizontal: 18,
-    paddingTop: 12,
-  },
-  sumSub: { fontSize: 10.5, fontWeight: "600", color: colors.muted },
-  sumTop: { fontSize: 16, fontWeight: "800", color: colors.ink, marginTop: 3 },
-  submitBtn: {
-    paddingHorizontal: 22,
-    paddingVertical: 14,
-    borderRadius: 16,
-  },
-  submitText: { fontSize: 13.5, fontWeight: "700", color: colors.mutedLabel },
-});
+    actionBar: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 14,
+      backgroundColor: c.card,
+      borderTopWidth: 1,
+      borderTopColor: c.hair,
+      paddingHorizontal: 18,
+      paddingTop: 12,
+    },
+    sumSub: { fontSize: 10.5, fontWeight: "600", color: c.muted },
+    sumTop: { fontSize: 16, fontWeight: "800", color: c.ink, marginTop: 3 },
+    submitBtn: {
+      paddingHorizontal: 22,
+      paddingVertical: 14,
+      borderRadius: 16,
+    },
+    submitText: { fontSize: 13.5, fontWeight: "700", color: c.mutedLabel },
+  });
