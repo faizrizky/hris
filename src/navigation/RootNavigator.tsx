@@ -13,6 +13,7 @@ import { AttendanceCorrectionHistoryScreen } from "@/screens/attendance/Attendan
 import { LeaveListScreen } from "@/screens/leave/LeaveListScreen";
 import { LeaveRequestScreen } from "@/screens/leave/LeaveRequestScreen";
 import { LeaveApprovalScreen } from "@/screens/leave/LeaveApprovalScreen";
+import { OvertimeScreen } from "@/screens/leave/OvertimeScreen";
 import { PayslipListScreen } from "@/screens/payroll/PayslipListScreen";
 import { PayslipDetailScreen } from "@/screens/payroll/PayslipDetailScreen";
 import { ProfileScreen } from "@/screens/profile/ProfileScreen";
@@ -77,6 +78,13 @@ function LeaveStack() {
         component={LeaveListScreen}
         options={{ title: "Cuti & Pengajuan", headerShown: false }}
       />
+
+      <Stack.Screen
+        name="Overtime"
+        component={OvertimeScreen}
+        options={{ title: "Lembur", headerShown: false }}
+      />
+
       <Stack.Screen
         name="LeaveRequest"
         component={LeaveRequestScreen}

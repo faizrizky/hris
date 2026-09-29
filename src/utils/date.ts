@@ -24,6 +24,11 @@ export function tanggalPendek(iso: string) {
   return `${d.getDate()} ${BULAN[d.getMonth()].slice(0, 3)}`;
 }
 
+/** "2026-09-12" -> "12 Sep 2026" */
+export function tanggalPendekTahun(iso: string) {
+  return `${tanggalPendek(iso)} ${fromISODate(iso).getFullYear()}`;
+}
+
 export function formatJam(d: Date = new Date()) {
   const jam = String(d.getHours()).padStart(2, "0");
   const menit = String(d.getMinutes()).padStart(2, "0");
@@ -48,6 +53,15 @@ export function durasiJam(jam: number) {
   const h = Math.floor(jam);
   const m = Math.round((jam % 1) * 60);
   return `${h}j ${String(m).padStart(2, "0")}m`;
+}
+
+/** 4 -> "4j", 0.5 -> "30m", 2.5 -> "2j30m" — untuk chip sempit */
+export function durasiSingkat(jam: number) {
+  const h = Math.floor(jam);
+  const m = Math.round((jam % 1) * 60);
+  if (h === 0) return `${m}m`;
+  if (m === 0) return `${h}j`;
+  return `${h}j${m}m`;
 }
 
 /** "2026-09-14" -> Date lokal (tanpa geser timezone) */
@@ -82,6 +96,11 @@ export function bulanSingkat(iso: string) {
 /** Date -> "Sep 2026" */
 export function labelBulan(d: Date) {
   return `${BULAN[d.getMonth()].slice(0, 3)} ${d.getFullYear()}`;
+}
+
+/** Date -> "September" */
+export function namaBulan(d: Date = new Date()) {
+  return BULAN[d.getMonth()];
 }
 
 /** Jumlah hari kalender, inklusif kedua ujung */

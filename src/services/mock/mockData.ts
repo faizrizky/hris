@@ -5,6 +5,7 @@ import {
   LeaveBalance,
   LeaveRequest,
   NotificationItem,
+  OvertimeRecord,
   Payslip,
   PayslipLine,
 } from "../types";
@@ -134,6 +135,39 @@ export const MOCK_CORRECTIONS: AttendanceCorrectionRequest[] = [
     reason:
       "GPS tidak akurat — Titik lokasi terbaca 400 meter dari kantor sehingga absen ditolak sistem.",
     status: "rejected",
+  },
+];
+
+export const MOCK_OVERTIMES: OvertimeRecord[] = [
+  {
+    id: "ot3",
+    employeeId: "ess",
+    date: "2026-09-12",
+    startMinute: 8 * 60,
+    endMinute: 12 * 60,
+    hours: 4,
+    note: "Stock opname akhir periode",
+    status: "pending",
+  },
+  {
+    id: "ot2",
+    employeeId: "ess",
+    date: "2026-09-05",
+    startMinute: 8 * 60,
+    endMinute: 10 * 60,
+    hours: 2,
+    note: "Closing laporan bulanan",
+    status: "approved",
+  },
+  {
+    id: "ot1",
+    employeeId: "ess",
+    date: "2026-08-29",
+    startMinute: 8 * 60,
+    endMinute: 8 * 60 + 30,
+    hours: 0.5,
+    note: "Rekonsiliasi bank",
+    status: "paid",
   },
 ];
 

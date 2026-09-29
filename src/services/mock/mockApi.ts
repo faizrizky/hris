@@ -13,6 +13,7 @@ import {
   LeaveRequest,
   NotificationItem,
   Payslip,
+  OvertimeRecord,
 } from "../types";
 import {
   MOCK_ATTENDANCE,
@@ -23,6 +24,7 @@ import {
   MOCK_PAYSLIPS,
   MOCK_PENDING_APPROVALS,
   MOCK_CORRECTIONS,
+  MOCK_OVERTIMES,
 } from "./mockData";
 
 const delay = (ms = 300) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -93,6 +95,11 @@ export const mockApi: HrisApi = {
   ): Promise<AttendanceCorrectionRequest[]> {
     await delay();
     return attendanceCorrections.filter((r) => r.employeeId === employeeId);
+  },
+
+  async getOvertimes(employeeId: string): Promise<OvertimeRecord[]> {
+    await delay();
+    return MOCK_OVERTIMES.filter((r) => r.employeeId === employeeId);
   },
 
   async getLeaveBalances(_employeeId: string): Promise<LeaveBalance[]> {
