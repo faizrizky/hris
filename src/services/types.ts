@@ -153,6 +153,41 @@ export interface Appraisal {
   goals: AppraisalGoal[];
 }
 
+export type EmploymentStatus = "Tetap" | "Kontrak";
+export type StaffAttendanceState = "attend" | "late" | "leave";
+
+// Staff = karyawan lain yang dilihat atasan/HR. Dibedakan dari Employee,
+// yang khusus untuk user yang sedang login.
+export interface Staff {
+  id: string;
+  initials: string;
+  fullName: string;
+  jobTitle: string;
+  department: string;
+  code: string; // "EMP-0117"
+  status: EmploymentStatus;
+  employment: string; // "Permanent" / "Kontrak · s.d. Mei 2027"
+  joinDate: string; // ISO
+  manager: string;
+  shift: string;
+  email: string;
+  phone: string;
+  attendanceRate: number; // 96.2 persen
+  leaveLeft: number; // hari
+  kpiScore: number;
+  today: {
+    state: StaffAttendanceState;
+    checkIn: string | null;
+    checkOut: string | null;
+    label: string; // "Hadir" / "Telat" / "Sakit" / "Dinas luar"
+  };
+}
+
+export interface StaffDirectory {
+  totalActive: number; // total karyawan aktif perusahaan
+  items: Staff[]; // yang boleh dilihat oleh pemanggil
+}
+
 export interface NotificationItem {
   id: string;
   initials: string;
@@ -221,6 +256,8 @@ export interface HrisApi {
   getTaxSummary(employeeId: string): Promise<TaxSummary>;
 
   getAppraisal(employeeId: string): Promise<Appraisal>;
+
+  getStaffDirectory(employeeId: string): Promise<StaffDirectory>;
 
   getNotifications(employeeId: string): Promise<NotificationItem[]>;
 
