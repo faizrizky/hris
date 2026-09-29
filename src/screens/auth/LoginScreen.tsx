@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import {
   KeyboardAvoidingView,
   Platform,
@@ -10,7 +10,8 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
-import { colors } from "@/theme/colors";
+import { Palette } from "@/theme/colors";
+import { useTheme } from "@/theme/ThemeContext";
 import { RadialGlow } from "@/components/RadialGlow";
 import { hrisApi } from "@/services/api";
 import { useSession } from "@/services/session";
@@ -24,6 +25,8 @@ export function LoginScreen() {
   const [rememberMe, setRememberMe] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const insets = useSafeAreaInsets();
+  const c = useTheme();
+  const styles = useMemo(() => makeStyles(c), [c]);
 
   const handleLogin = async () => {
     setLoading(true);
@@ -37,18 +40,13 @@ export function LoginScreen() {
 
   return (
     <View style={styles.container}>
-      <RadialGlow size={340} color={colors.glowTop} top={-120} right={-90} />
-      <RadialGlow
-        size={320}
-        color={colors.glowBottom}
-        bottom={-140}
-        left={-110}
-      />
+      <RadialGlow size={340} color={c.glowTop} top={-120} right={-90} />
+      <RadialGlow size={320} color={c.glowBottom} bottom={-140} left={-110} />
 
       {/* Hero — logo, headline, subtext, nempel ke bawah area gelap */}
       <View style={styles.hero}>
         <LinearGradient
-          colors={[colors.accent, colors.accent2]}
+          colors={[c.accent, c.accent2]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={styles.iconBadge}
@@ -84,7 +82,7 @@ export function LoginScreen() {
                 autoCapitalize="none"
                 keyboardType="email-address"
                 placeholder="ess@falah.co"
-                placeholderTextColor={colors.mutedLabel}
+                placeholderTextColor={c.mutedLabel}
               />
             </View>
 
@@ -98,7 +96,7 @@ export function LoginScreen() {
                     onChangeText={setPassword}
                     secureTextEntry={!showPassword}
                     placeholder="bebas — belum terhubung ke ERPNext"
-                    placeholderTextColor={colors.mutedLabel}
+                    placeholderTextColor={c.mutedLabel}
                   />
                 </View>
                 <Pressable onPress={() => setShowPassword((v) => !v)}>
@@ -132,7 +130,7 @@ export function LoginScreen() {
 
           <Pressable onPress={handleLogin} disabled={loading}>
             <LinearGradient
-              colors={[colors.accent, colors.accent2]}
+              colors={[c.accent, c.accent2]}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
               style={styles.submitButton}
@@ -165,156 +163,157 @@ export function LoginScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.ink },
-  hero: {
-    flex: 1,
-    justifyContent: "flex-end",
-    paddingHorizontal: 28,
-    paddingBottom: 26,
-  },
-  iconBadge: {
-    width: 52,
-    height: 52,
-    borderRadius: 16,
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 22,
-  },
-  iconBadgeMark: {
-    width: 18,
-    height: 18,
-    borderWidth: 3,
-    borderColor: "#fff",
-    borderRadius: 5,
-  },
-  headline: {
-    fontSize: 33,
-    lineHeight: 38,
-    fontWeight: "800",
-    color: "#fff",
-  },
-  headlineAccent: { color: colors.accentLight },
-  subtext: {
-    fontSize: 13.5,
-    lineHeight: 22,
-    color: "rgba(255,255,255,0.6)",
-    marginTop: 12,
-    maxWidth: 290,
-  },
+const makeStyles = (c: Palette) =>
+  StyleSheet.create({
+    container: { flex: 1, backgroundColor: c.headerBg },
+    hero: {
+      flex: 1,
+      justifyContent: "flex-end",
+      paddingHorizontal: 28,
+      paddingBottom: 26,
+    },
+    iconBadge: {
+      width: 52,
+      height: 52,
+      borderRadius: 16,
+      alignItems: "center",
+      justifyContent: "center",
+      marginBottom: 22,
+    },
+    iconBadgeMark: {
+      width: 18,
+      height: 18,
+      borderWidth: 3,
+      borderColor: "#fff",
+      borderRadius: 5,
+    },
+    headline: {
+      fontSize: 33,
+      lineHeight: 38,
+      fontWeight: "800",
+      color: "#fff",
+    },
+    headlineAccent: { color: c.accentLight },
+    subtext: {
+      fontSize: 13.5,
+      lineHeight: 22,
+      color: "rgba(255,255,255,0.6)",
+      marginTop: 12,
+      maxWidth: 290,
+    },
 
-  sheet: {
-    backgroundColor: colors.card,
-    borderTopLeftRadius: 30,
-    borderTopRightRadius: 30,
-    paddingHorizontal: 24,
-    paddingTop: 26,
-    paddingBottom: 44,
-  },
-  sheetTitle: { fontSize: 16, fontWeight: "700", color: colors.ink },
-  sheetSubtitle: { fontSize: 12, color: colors.muted, marginTop: 5 },
+    sheet: {
+      backgroundColor: c.card,
+      borderTopLeftRadius: 30,
+      borderTopRightRadius: 30,
+      paddingHorizontal: 24,
+      paddingTop: 26,
+      paddingBottom: 44,
+    },
+    sheetTitle: { fontSize: 16, fontWeight: "700", color: c.ink },
+    sheetSubtitle: { fontSize: 12, color: c.muted, marginTop: 5 },
 
-  fieldsWrapper: { marginTop: 18, gap: 10 },
-  fieldBox: {
-    borderWidth: 1,
-    borderColor: colors.fieldBorder,
-    borderRadius: 14,
-    paddingHorizontal: 14,
-    paddingVertical: 11,
-  },
-  fieldLabel: {
-    fontSize: 10,
-    fontWeight: "600",
-    letterSpacing: 0.6,
-    textTransform: "uppercase",
-    color: colors.mutedLabel,
-  },
-  fieldInput: {
-    fontSize: 14,
-    fontWeight: "500",
-    color: colors.ink,
-    marginTop: 3,
-    padding: 0,
-  },
+    fieldsWrapper: { marginTop: 18, gap: 10 },
+    fieldBox: {
+      borderWidth: 1,
+      borderColor: c.fieldBorder,
+      borderRadius: 14,
+      paddingHorizontal: 14,
+      paddingVertical: 11,
+    },
+    fieldLabel: {
+      fontSize: 10,
+      fontWeight: "600",
+      letterSpacing: 0.6,
+      textTransform: "uppercase",
+      color: c.mutedLabel,
+    },
+    fieldInput: {
+      fontSize: 14,
+      fontWeight: "500",
+      color: c.ink,
+      marginTop: 3,
+      padding: 0,
+    },
 
-  rowBetween: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginTop: 14,
-  },
-  rememberRow: { flexDirection: "row", alignItems: "center", gap: 8 },
-  checkbox: {
-    width: 17,
-    height: 17,
-    borderRadius: 5,
-    borderWidth: 1.5,
-    borderColor: colors.accent,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  checkboxOn: { backgroundColor: colors.accent },
-  rememberLabel: { fontSize: 12, color: colors.muted, fontWeight: "500" },
-  forgotLabel: { fontSize: 12, fontWeight: "600", color: colors.accent2 },
+    rowBetween: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginTop: 14,
+    },
+    rememberRow: { flexDirection: "row", alignItems: "center", gap: 8 },
+    checkbox: {
+      width: 17,
+      height: 17,
+      borderRadius: 5,
+      borderWidth: 1.5,
+      borderColor: c.accent,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    checkboxOn: { backgroundColor: c.accent },
+    rememberLabel: { fontSize: 12, color: c.muted, fontWeight: "500" },
+    forgotLabel: { fontSize: 12, fontWeight: "600", color: c.accent2 },
 
-  hint: { fontSize: 11, color: colors.muted, marginTop: 10, lineHeight: 15 },
+    hint: { fontSize: 11, color: c.muted, marginTop: 10, lineHeight: 15 },
 
-  submitButton: {
-    marginTop: 18,
-    paddingVertical: 15,
-    borderRadius: 16,
-    alignItems: "center",
-    shadowColor: colors.accent,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.35,
-    shadowRadius: 20,
-    elevation: 6,
-  },
-  submitLabel: { color: "#fff", fontSize: 14.5, fontWeight: "700" },
+    submitButton: {
+      marginTop: 18,
+      paddingVertical: 15,
+      borderRadius: 16,
+      alignItems: "center",
+      shadowColor: c.accent,
+      shadowOffset: { width: 0, height: 8 },
+      shadowOpacity: 0.35,
+      shadowRadius: 20,
+      elevation: 6,
+    },
+    submitLabel: { color: "#fff", fontSize: 14.5, fontWeight: "700" },
 
-  dividerRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    marginTop: 16,
-    marginBottom: 14,
-  },
-  dividerLine: { flex: 1, height: 1, backgroundColor: "rgba(15,23,32,0.09)" },
-  dividerLabel: { fontSize: 11, color: colors.mutedLabel, fontWeight: "500" },
+    dividerRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 12,
+      marginTop: 16,
+      marginBottom: 14,
+    },
+    dividerLine: { flex: 1, height: 1, backgroundColor: "rgba(15,23,32,0.09)" },
+    dividerLabel: { fontSize: 11, color: c.mutedLabel, fontWeight: "500" },
 
-  faceIdButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 9,
-    borderWidth: 1,
-    borderColor: colors.fieldBorder,
-    borderRadius: 16,
-    paddingVertical: 13,
-  },
-  faceIdIcon: {
-    width: 18,
-    height: 18,
-    borderWidth: 2,
-    borderColor: colors.accent,
-    borderRadius: 6,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  faceIdIconInner: {
-    position: "absolute",
-    top: 3,
-    left: 3,
-    right: 3,
-    bottom: 3,
-    borderRadius: 2,
-    backgroundColor: colors.info.bg,
-  },
-  faceIdLabel: { fontSize: 13.5, fontWeight: "600", color: colors.ink },
-  passwordRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-end",
-  },
-  showToggle: { fontSize: 11.5, fontWeight: "600", color: colors.accent2 },
-});
+    faceIdButton: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 9,
+      borderWidth: 1,
+      borderColor: c.fieldBorder,
+      borderRadius: 16,
+      paddingVertical: 13,
+    },
+    faceIdIcon: {
+      width: 18,
+      height: 18,
+      borderWidth: 2,
+      borderColor: c.accent,
+      borderRadius: 6,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    faceIdIconInner: {
+      position: "absolute",
+      top: 3,
+      left: 3,
+      right: 3,
+      bottom: 3,
+      borderRadius: 2,
+      backgroundColor: c.info.bg,
+    },
+    faceIdLabel: { fontSize: 13.5, fontWeight: "600", color: c.ink },
+    passwordRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "flex-end",
+    },
+    showToggle: { fontSize: 11.5, fontWeight: "600", color: c.accent2 },
+  });

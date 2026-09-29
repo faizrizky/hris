@@ -1,11 +1,12 @@
-import React, { ReactNode, useEffect, useState } from "react";
+import React, { ReactNode, useEffect, useState, useMemo } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Card } from "@/components/Card";
 import { StatusBadge } from "@/components/StatusBadge";
 import { RadialGlow } from "@/components/RadialGlow";
-import { colors } from "@/theme/colors";
+import { Palette } from "@/theme/colors";
+import { useTheme } from "@/theme/ThemeContext";
 import { hrisApi } from "@/services/api";
 import { useSession } from "@/services/session";
 import { LinearGradient } from "expo-linear-gradient";
@@ -28,6 +29,8 @@ export function HomeScreen() {
   const [balances, setBalances] = useState<LeaveBalance[]>([]);
   const [history, setHistory] = useState<AttendanceRecord[]>([]);
   const insets = useSafeAreaInsets();
+  const c = useTheme();
+  const styles = useMemo(() => makeStyles(c), [c]);
 
   useEffect(() => {
     if (!employee) return;
@@ -88,15 +91,15 @@ export function HomeScreen() {
           {
             label: "Approval",
             icon: ICON.approval,
-            bg: colors.warn.bg,
-            ink: colors.warn.ink,
+            bg: c.warn.bg,
+            ink: c.warn.ink,
             onPress: () => navigation.navigate("Approval"),
           },
           {
             label: "Karyawan",
             icon: ICON.user,
-            bg: colors.purple.bg,
-            ink: colors.purple.ink,
+            bg: c.purple.bg,
+            ink: c.purple.ink,
             onPress: () => navigation.navigate("StaffList"),
           },
         ]
@@ -106,8 +109,8 @@ export function HomeScreen() {
           {
             label: "Absensi Tim",
             icon: ICON.attendanceRate,
-            bg: colors.ok.bg,
-            ink: colors.ok.ink,
+            bg: c.ok.bg,
+            ink: c.ok.ink,
             onPress: () => navigation.navigate("StaffAttendance"),
           },
         ]
@@ -115,55 +118,50 @@ export function HomeScreen() {
     {
       label: "Absensi",
       icon: ICON.clock,
-      bg: colors.info.bg,
-      ink: colors.info.ink,
+      bg: c.info.bg,
+      ink: c.info.ink,
       onPress: () => navigation.navigate("Absensi"),
     },
     {
       label: "Cuti",
       icon: ICON.leave,
-      bg: colors.info.bg,
-      ink: colors.info.ink,
+      bg: c.info.bg,
+      ink: c.info.ink,
       onPress: () => navigation.navigate("Cuti"),
     },
     {
       label: "Lembur",
       icon: ICON.overtime,
-      bg: colors.warn.bg,
-      ink: colors.warn.ink,
+      bg: c.warn.bg,
+      ink: c.warn.ink,
       onPress: () => navigation.navigate("Cuti", { screen: "Overtime" }),
     },
     {
       label: "Slip gaji",
       icon: ICON.payslip,
-      bg: colors.ok.bg,
-      ink: colors.ok.ink,
+      bg: c.ok.bg,
+      ink: c.ok.ink,
       onPress: () => navigation.navigate("Slip Gaji"),
     },
     {
       label: "Appraisal",
       icon: ICON.appraisal,
-      bg: colors.purple.bg,
-      ink: colors.purple.ink,
+      bg: c.purple.bg,
+      ink: c.purple.ink,
       onPress: () => navigation.navigate("Appraisal"),
     },
     {
       label: "PPh21 & BPJS",
       icon: ICON.tax,
-      bg: colors.info.bg,
-      ink: colors.info.ink,
+      bg: c.info.bg,
+      ink: c.info.ink,
     },
   ];
 
   return (
     <View style={styles.container}>
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
-        <RadialGlow
-          size={200}
-          color={colors.glowHeader}
-          top={-60}
-          right={-40}
-        />
+        <RadialGlow size={200} color={c.glowHeader} top={-60} right={-40} />
 
         <View style={styles.identityRow}>
           <View style={styles.avatar}>
@@ -194,7 +192,7 @@ export function HomeScreen() {
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.heroShadow}>
           <LinearGradient
-            colors={[colors.accent, colors.accent2]}
+            colors={[c.accent, c.accent2]}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={styles.heroCard}
@@ -232,29 +230,29 @@ export function HomeScreen() {
 
         <View style={styles.statGrid}>
           <StatCard
-            iconBg={colors.info.bg}
-            ink={colors.info.ink}
+            iconBg={c.info.bg}
+            ink={c.info.ink}
             icon={ICON.attendanceRate}
             label="Kehadiran bulan ini"
             value={kehadiran}
           />
           <StatCard
-            iconBg={colors.ok.bg}
-            ink={colors.ok.ink}
+            iconBg={c.ok.bg}
+            ink={c.ok.ink}
             icon={ICON.leave}
             label="Sisa cuti tahunan"
             value={cuti ? `${cuti.remaining} ${cuti.unit}` : "–"}
           />
           <StatCard
-            iconBg={colors.warn.bg}
-            ink={colors.warn.ink}
+            iconBg={c.warn.bg}
+            ink={c.warn.ink}
             icon={ICON.overtime}
             label="Jam lembur"
             value={lembur ? `${lembur.remaining} ${lembur.unit}` : "–"}
           />
           <StatCard
-            iconBg={colors.bad.bg}
-            ink={colors.bad.ink}
+            iconBg={c.bad.bg}
+            ink={c.bad.ink}
             icon={ICON.late}
             label="Terlambat"
             value={`${telat} kali`}
@@ -323,6 +321,9 @@ function StatCard({
   label: string;
   value: string;
 }) {
+  const c = useTheme();
+  const styles = useMemo(() => makeStyles(c), [c]);
+
   return (
     <View style={styles.statCard}>
       <View style={[styles.statIcon, { backgroundColor: iconBg }]}>
@@ -347,6 +348,9 @@ function QuickAction({
   label: string;
   onPress?: () => void;
 }) {
+  const c = useTheme();
+  const styles = useMemo(() => makeStyles(c), [c]);
+
   return (
     <Pressable style={styles.quickCard} onPress={onPress}>
       <View style={[styles.quickIcon, { backgroundColor: iconBg }]}>
@@ -357,233 +361,239 @@ function QuickAction({
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.bg },
+const makeStyles = (c: Palette) =>
+  StyleSheet.create({
+    container: { flex: 1, backgroundColor: c.bg },
 
-  header: {
-    backgroundColor: colors.ink,
-    paddingHorizontal: 20,
-    paddingBottom: 22,
-    borderBottomLeftRadius: 20,
-    borderBottomRightRadius: 28,
-    overflow: "hidden",
-  },
-  identityRow: { flexDirection: "row", alignItems: "center", gap: 11 },
-  avatar: {
-    width: 42,
-    height: 42,
-    borderRadius: 14,
-    backgroundColor: colors.info.bg,
-    alignItems: "center",
-    justifyContent: "center",
-  },
+    header: {
+      backgroundColor: c.headerBg,
+      paddingHorizontal: 20,
+      paddingBottom: 22,
+      borderBottomLeftRadius: 20,
+      borderBottomRightRadius: 28,
+      overflow: "hidden",
+    },
+    identityRow: { flexDirection: "row", alignItems: "center", gap: 11 },
+    avatar: {
+      width: 42,
+      height: 42,
+      borderRadius: 14,
+      backgroundColor: c.info.bg,
+      alignItems: "center",
+      justifyContent: "center",
+    },
 
-  avatarText: { fontSize: 14, fontWeight: "700", color: colors.info.ink },
-  name: { fontSize: 14.5, fontWeight: "700", color: "#fff" },
-  role: {
-    fontSize: 11.5,
-    fontWeight: "500",
-    color: "rgba(255,255,255,0.55)",
-    marginTop: 2,
-  },
-  notifButton: {
-    width: 38,
-    height: 38,
-    borderRadius: 12,
-    backgroundColor: "rgba(255,255,255,0.1)",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  notifDot: {
-    position: "absolute",
-    top: 8,
-    right: 9,
-    width: 7,
-    height: 7,
-    borderRadius: 3.5,
-    backgroundColor: "#F97316",
-    borderWidth: 1.5,
-    borderColor: colors.ink,
-  },
-  greeting: {
-    fontSize: 17,
-    lineHeight: 22,
-    fontWeight: "700",
-    color: "#fff",
-    marginTop: 16,
-  },
-  greetingSub: {
-    fontSize: 12,
-    lineHeight: 18,
-    fontWeight: "500",
-    color: "rgba(255,255,255,0.5)",
-    marginTop: 4,
-  },
+    avatarText: { fontSize: 14, fontWeight: "700", color: c.info.ink },
+    name: { fontSize: 14.5, fontWeight: "700", color: "#fff" },
+    role: {
+      fontSize: 11.5,
+      fontWeight: "500",
+      color: "rgba(255,255,255,0.55)",
+      marginTop: 2,
+    },
+    notifButton: {
+      width: 38,
+      height: 38,
+      borderRadius: 12,
+      backgroundColor: "rgba(255,255,255,0.1)",
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    notifDot: {
+      position: "absolute",
+      top: 8,
+      right: 9,
+      width: 7,
+      height: 7,
+      borderRadius: 3.5,
+      backgroundColor: "#F97316",
+      borderWidth: 1.5,
+      borderColor: c.headerBg,
+    },
+    greeting: {
+      fontSize: 17,
+      lineHeight: 22,
+      fontWeight: "700",
+      color: "#fff",
+      marginTop: 16,
+    },
+    greetingSub: {
+      fontSize: 12,
+      lineHeight: 18,
+      fontWeight: "500",
+      color: "rgba(255,255,255,0.5)",
+      marginTop: 4,
+    },
 
-  content: { padding: 18, paddingTop: 16, paddingBottom: 120 },
-  sectionHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginTop: 20,
-    marginBottom: 10,
-    marginHorizontal: 2,
-  },
-  sectionTitle: { fontSize: 14, fontWeight: "700", color: colors.ink },
-  sectionLink: { fontSize: 11.5, fontWeight: "600", color: colors.accent },
+    content: { padding: 18, paddingTop: 16, paddingBottom: 120 },
+    sectionHeader: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginTop: 20,
+      marginBottom: 10,
+      marginHorizontal: 2,
+    },
+    sectionTitle: { fontSize: 14, fontWeight: "700", color: c.ink },
+    sectionLink: { fontSize: 11.5, fontWeight: "600", color: c.accent },
 
-  feedCard: { padding: 0, overflow: "hidden", marginBottom: 0 },
-  feedRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    paddingVertical: 13,
-    paddingHorizontal: 15,
-  },
-  feedRowDivider: { borderBottomWidth: 1, borderBottomColor: colors.hair },
-  feedAvatar: {
-    width: 36,
-    height: 36,
-    borderRadius: 12,
-    backgroundColor: colors.info.bg,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  feedAvatarText: { fontSize: 12, fontWeight: "700", color: colors.info.ink },
-  feedTitle: { fontSize: 13, fontWeight: "600", color: colors.ink },
-  feedSub: {
-    fontSize: 11,
-    fontWeight: "500",
-    color: colors.muted,
-    marginTop: 3,
-  },
+    feedCard: { padding: 0, overflow: "hidden", marginBottom: 0 },
+    feedRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 12,
+      paddingVertical: 13,
+      paddingHorizontal: 15,
+    },
+    feedRowDivider: { borderBottomWidth: 1, borderBottomColor: c.hair },
+    feedAvatar: {
+      width: 36,
+      height: 36,
+      borderRadius: 12,
+      backgroundColor: c.info.bg,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    feedAvatarText: { fontSize: 12, fontWeight: "700", color: c.info.ink },
+    feedTitle: { fontSize: 13, fontWeight: "600", color: c.ink },
+    feedSub: {
+      fontSize: 11,
+      fontWeight: "500",
+      color: c.muted,
+      marginTop: 3,
+    },
 
-  heroShadow: {
-    borderRadius: 22,
-    shadowColor: colors.accent2,
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.28,
-    shadowRadius: 26,
-    elevation: 6,
-  },
-  heroCard: { borderRadius: 22, padding: 18, overflow: "hidden" },
-  heroBlob: {
-    position: "absolute",
-    right: -30,
-    bottom: -60,
-    width: 150,
-    height: 150,
-    borderRadius: 75,
-    backgroundColor: "rgba(255,255,255,0.09)",
-  },
-  heroTopRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  heroDate: {
-    fontSize: 12.5,
-    fontWeight: "600",
-    color: "rgba(255,255,255,0.85)",
-  },
-  heroTimePill: {
-    backgroundColor: "rgba(255,255,255,0.2)",
-    borderRadius: 999,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-  },
-  heroTimeText: { fontSize: 11, fontWeight: "600", color: "#fff" },
-  clockRow: { flexDirection: "row", gap: 10, marginTop: 16 },
-  clockBox: {
-    flex: 1,
-    backgroundColor: "rgba(255,255,255,0.16)",
-    borderRadius: 16,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-  },
-  clockLabel: {
-    fontSize: 11,
-    fontWeight: "500",
-    color: "rgba(255,255,255,0.8)",
-  },
-  clockValue: {
-    fontSize: 19,
-    lineHeight: 21,
-    fontWeight: "800",
-    color: "#fff",
-    marginTop: 5,
-  },
-  clockValueMuted: { color: "rgba(255,255,255,0.75)" },
-  heroCta: {
-    marginTop: 12,
-    paddingVertical: 13,
-    borderRadius: 14,
-    backgroundColor: "#fff",
-    alignItems: "center",
-  },
-  heroCtaText: { fontSize: 13.5, fontWeight: "700", color: colors.accent2 },
+    heroShadow: {
+      borderRadius: 22,
+      shadowColor: c.accent2,
+      shadowOffset: { width: 0, height: 10 },
+      shadowOpacity: 0.28,
+      shadowRadius: 26,
+      elevation: 6,
+    },
+    heroCard: { borderRadius: 22, padding: 18, overflow: "hidden" },
+    heroBlob: {
+      position: "absolute",
+      right: -30,
+      bottom: -60,
+      width: 150,
+      height: 150,
+      borderRadius: 75,
+      backgroundColor: "rgba(255,255,255,0.09)",
+    },
+    heroTopRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+    },
+    heroDate: {
+      fontSize: 12.5,
+      fontWeight: "600",
+      color: "rgba(255,255,255,0.85)",
+    },
+    heroTimePill: {
+      backgroundColor: "rgba(255,255,255,0.2)",
+      borderRadius: 999,
+      paddingHorizontal: 10,
+      paddingVertical: 4,
+    },
+    heroTimeText: { fontSize: 11, fontWeight: "600", color: "#fff" },
+    clockRow: { flexDirection: "row", gap: 10, marginTop: 16 },
+    clockBox: {
+      flex: 1,
+      backgroundColor: "rgba(255,255,255,0.16)",
+      borderRadius: 16,
+      paddingHorizontal: 14,
+      paddingVertical: 12,
+    },
+    clockLabel: {
+      fontSize: 11,
+      fontWeight: "500",
+      color: "rgba(255,255,255,0.8)",
+    },
+    clockValue: {
+      fontSize: 19,
+      lineHeight: 21,
+      fontWeight: "800",
+      color: "#fff",
+      marginTop: 5,
+    },
+    clockValueMuted: { color: "rgba(255,255,255,0.75)" },
+    heroCta: {
+      marginTop: 12,
+      paddingVertical: 13,
+      borderRadius: 14,
+      backgroundColor: "#fff",
+      alignItems: "center",
+    },
+    heroCtaText: { fontSize: 13.5, fontWeight: "700", color: c.accent2 },
 
-  statGrid: { flexDirection: "row", flexWrap: "wrap", gap: 10, marginTop: 12 },
-  statCard: {
-    flexBasis: "48%",
-    flexGrow: 1,
-    backgroundColor: colors.card,
-    borderWidth: 1,
-    borderColor: colors.cardBorder,
-    borderRadius: 22,
-    padding: 14,
-    shadowColor: "#0F1720",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.06,
-    shadowRadius: 16,
-    elevation: 3,
-  },
-  statIcon: {
-    width: 30,
-    height: 30,
-    borderRadius: 10,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  statLabel: {
-    fontSize: 11.5,
-    fontWeight: "500",
-    color: colors.muted,
-    marginTop: 10,
-  },
-  statValue: {
-    fontSize: 24,
-    lineHeight: 26,
-    fontWeight: "800",
-    letterSpacing: -0.5,
-    color: colors.ink,
-    marginTop: 4,
-  },
+    statGrid: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: 10,
+      marginTop: 12,
+    },
+    statCard: {
+      flexBasis: "48%",
+      flexGrow: 1,
+      backgroundColor: c.card,
+      borderWidth: 1,
+      borderColor: c.cardBorder,
+      borderRadius: 22,
+      padding: 14,
+      shadowColor: "#0F1720",
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.06,
+      shadowRadius: 16,
+      elevation: 3,
+    },
+    statIcon: {
+      width: 30,
+      height: 30,
+      borderRadius: 10,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    statLabel: {
+      fontSize: 11.5,
+      fontWeight: "500",
+      color: c.muted,
+      marginTop: 10,
+    },
+    statValue: {
+      fontSize: 24,
+      lineHeight: 26,
+      fontWeight: "800",
+      letterSpacing: -0.5,
+      color: c.ink,
+      marginTop: 4,
+    },
 
-  quickGrid: { flexDirection: "row", flexWrap: "wrap", gap: 9 },
-  quickIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: 11,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  quickCard: {
-    width: "22.5%",
-    backgroundColor: colors.card,
-    borderWidth: 1,
-    borderColor: colors.cardBorder,
-    borderRadius: 16,
-    paddingVertical: 12,
-    paddingHorizontal: 6,
-    alignItems: "center",
-    gap: 8,
-  },
-  quickLabel: {
-    fontSize: 10.5,
-    lineHeight: 13,
-    fontWeight: "600",
-    color: colors.ink,
-    textAlign: "center",
-  },
-});
+    quickGrid: { flexDirection: "row", flexWrap: "wrap", gap: 9 },
+    quickIcon: {
+      width: 32,
+      height: 32,
+      borderRadius: 11,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    quickCard: {
+      width: "22.5%",
+      backgroundColor: c.card,
+      borderWidth: 1,
+      borderColor: c.cardBorder,
+      borderRadius: 16,
+      paddingVertical: 12,
+      paddingHorizontal: 6,
+      alignItems: "center",
+      gap: 8,
+    },
+    quickLabel: {
+      fontSize: 10.5,
+      lineHeight: 13,
+      fontWeight: "600",
+      color: c.ink,
+      textAlign: "center",
+    },
+  });

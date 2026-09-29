@@ -1,5 +1,5 @@
 import React, { useMemo } from "react";
-import { StyleSheet, View, ViewProps, ViewStyle } from "react-native";
+import { StyleSheet, View, ViewStyle } from "react-native";
 import { Palette } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
 
@@ -8,7 +8,7 @@ export function Card({
   style,
 }: {
   children: React.ReactNode;
-  style: ViewStyle;
+  style?: ViewStyle;
 }) {
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
