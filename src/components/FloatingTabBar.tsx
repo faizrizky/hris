@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -6,6 +7,7 @@ import { colors } from "@/theme/colors";
 import { useSession } from "@/services/session";
 import { LineIcon } from "@/components/LineIcon";
 import { ICON } from "@/constants/icons";
+import { CreateSheet } from "@/components/CreateSheet";
 
 const ACTIVE = colors.accent;
 const INACTIVE = "rgba(255,255,255,0.45)";
@@ -48,6 +50,7 @@ function TabIcon({ route, color }: { route: string; color: string }) {
 export function FloatingTabBar({ state, navigation }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
   const { employee } = useSession();
+  const [sheet, setSheet] = useState(false);
   const currentRoute = state.routes[state.index].name;
   const active = state.routes[state.index] as any;
   const nested = active.state;
@@ -95,7 +98,7 @@ export function FloatingTabBar({ state, navigation }: BottomTabBarProps) {
       pointerEvents="box-none"
     >
       <View style={styles.fabWrap} pointerEvents="box-none">
-        <Pressable style={styles.fabShadow} onPress={() => go("Cuti")}>
+        <Pressable style={styles.fabShadow} onPress={() => setSheet(true)}>
           <LinearGradient
             colors={[colors.accent, colors.accent2]}
             start={{ x: 0, y: 0 }}
@@ -107,6 +110,12 @@ export function FloatingTabBar({ state, navigation }: BottomTabBarProps) {
           </LinearGradient>
         </Pressable>
       </View>
+
+      <CreateSheet
+        visible={sheet}
+        onClose={() => setSheet(false)}
+        navigation={navigation}
+      />
 
       <View style={styles.bar}>
         {left.map(renderTab)}
