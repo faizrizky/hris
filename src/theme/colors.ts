@@ -38,6 +38,8 @@ export const colors = {
     ink: "#FFFFFF",
     muted: "rgba(255,255,255,0.5)",
   },
+
+  unread: "#F2F8FF", // latar kartu notifikasi yang belum dibaca
 };
 
 export type SemanticTone = "ok" | "warn" | "info" | "bad";

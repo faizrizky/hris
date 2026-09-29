@@ -19,6 +19,7 @@ import { PayslipDetailScreen } from "@/screens/payroll/PayslipDetailScreen";
 import { ProfileScreen } from "@/screens/profile/ProfileScreen";
 import { AttendanceCorrectionScreen } from "@/screens/attendance/AttendanceCorrectionScreen";
 import { NavBar } from "@/components/NavBar";
+import { NotificationScreen } from "@/screens/notifications/NotificationScreen";
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -120,6 +121,15 @@ function PayrollStack() {
   );
 }
 
+function HomeStack() {
+  return (
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="HomeMain" component={HomeScreen} />
+      <Stack.Screen name="Notifications" component={NotificationScreen} />
+    </Stack.Navigator>
+  );
+}
+
 function MainTabs() {
   const { employee } = useSession();
   const canApprove = employee?.role === "mss" || employee?.role === "hr";
@@ -128,7 +138,7 @@ function MainTabs() {
     <Tab.Navigator tabBar={(props) => <FloatingTabBar {...props} />}>
       <Tab.Screen
         name="Beranda"
-        component={HomeScreen}
+        component={HomeStack}
         options={{ headerShown: false }}
       />
       <Tab.Screen
