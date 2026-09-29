@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import {
   Linking,
   Pressable,
@@ -9,8 +9,8 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-
-import { colors } from "@/theme/colors";
+import { Palette } from "@/theme/colors";
+import { useTheme } from "@/theme/ThemeContext";
 import { hrisApi } from "@/services/api";
 import { useSession } from "@/services/session";
 import { AttendanceRecord, Staff } from "@/services/types";
@@ -33,6 +33,8 @@ export function StaffDetailScreen({ navigation, route }: any) {
   const [staff, setStaff] = useState<Staff | null>(null);
   const [absensi, setAbsensi] = useState<AttendanceRecord[]>([]);
   const [loading, setLoading] = useState(true);
+  const c = useTheme();
+  const styles = useMemo(() => makeStyles(c), [c]);
 
   useEffect(() => {
     if (!employee) return;
@@ -57,7 +59,7 @@ export function StaffDetailScreen({ navigation, route }: any) {
 
   const header = (
     <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
-      <RadialGlow size={250} color={colors.glowHeader} top={-80} right={-50} />
+      <RadialGlow size={250} color={c.glowHeader} top={-80} right={-50} />
 
       <View style={styles.headerRow}>
         <Pressable style={styles.backBtn} onPress={() => navigation.goBack()}>
@@ -176,7 +178,7 @@ export function StaffDetailScreen({ navigation, route }: any) {
 
           <View style={{ gap: 10, marginTop: 13 }}>
             {absensi.map((a) => {
-              const tone = colors[ATTENDANCE_STATUS_TONE[a.status]];
+              const tone = c[ATTENDANCE_STATUS_TONE[a.status]];
               return (
                 <View key={a.id} style={styles.attRow}>
                   <View style={styles.dateChip}>
@@ -222,6 +224,9 @@ export function StaffDetailScreen({ navigation, route }: any) {
 }
 
 function Stat({ value, label }: { value: string; label: string }) {
+  const c = useTheme();
+  const styles = useMemo(() => makeStyles(c), [c]);
+
   return (
     <View style={{ flex: 1, alignItems: "center" }}>
       <Text style={styles.statValue}>{value}</Text>
@@ -231,6 +236,9 @@ function Stat({ value, label }: { value: string; label: string }) {
 }
 
 function Row({ k, v }: { k: string; v: string }) {
+  const c = useTheme();
+  const styles = useMemo(() => makeStyles(c), [c]);
+
   return (
     <View style={styles.lineRow}>
       <Text style={styles.lineKey}>{k}</Text>
@@ -239,171 +247,172 @@ function Row({ k, v }: { k: string; v: string }) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.bg },
+const makeStyles = (c: Palette) =>
+  StyleSheet.create({
+    container: { flex: 1, backgroundColor: c.bg },
 
-  header: {
-    backgroundColor: colors.dark.bg,
-    paddingHorizontal: 20,
-    paddingBottom: 46,
-    borderBottomLeftRadius: 28,
-    borderBottomRightRadius: 28,
-    overflow: "hidden",
-  },
-  headerRow: { flexDirection: "row", alignItems: "center", gap: 12 },
-  backBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 12,
-    backgroundColor: "rgba(255,255,255,0.1)",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  headerTitle: { flex: 1, fontSize: 14, fontWeight: "700", color: "#fff" },
+    header: {
+      backgroundColor: c.dark.bg,
+      paddingHorizontal: 20,
+      paddingBottom: 46,
+      borderBottomLeftRadius: 28,
+      borderBottomRightRadius: 28,
+      overflow: "hidden",
+    },
+    headerRow: { flexDirection: "row", alignItems: "center", gap: 12 },
+    backBtn: {
+      width: 36,
+      height: 36,
+      borderRadius: 12,
+      backgroundColor: "rgba(255,255,255,0.1)",
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    headerTitle: { flex: 1, fontSize: 14, fontWeight: "700", color: "#fff" },
 
-  identity: { alignItems: "center", marginTop: 16 },
-  avatar: {
-    width: 96,
-    height: 96,
-    borderRadius: 48,
-    backgroundColor: colors.info.bg,
-    borderWidth: 4,
-    borderColor: "rgba(255,255,255,0.14)",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  avatarText: { fontSize: 30, fontWeight: "800", color: colors.info.ink },
-  name: {
-    fontSize: 19,
-    lineHeight: 23,
-    fontWeight: "800",
-    color: "#fff",
-    marginTop: 13,
-  },
-  role: {
-    fontSize: 12.5,
-    fontWeight: "500",
-    color: "rgba(255,255,255,0.62)",
-    marginTop: 5,
-  },
-  code: {
-    fontSize: 10.5,
-    fontWeight: "600",
-    color: colors.accentLight,
-    marginTop: 7,
-  },
+    identity: { alignItems: "center", marginTop: 16 },
+    avatar: {
+      width: 96,
+      height: 96,
+      borderRadius: 48,
+      backgroundColor: c.info.bg,
+      borderWidth: 4,
+      borderColor: "rgba(255,255,255,0.14)",
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    avatarText: { fontSize: 30, fontWeight: "800", color: c.info.ink },
+    name: {
+      fontSize: 19,
+      lineHeight: 23,
+      fontWeight: "800",
+      color: "#fff",
+      marginTop: 13,
+    },
+    role: {
+      fontSize: 12.5,
+      fontWeight: "500",
+      color: "rgba(255,255,255,0.62)",
+      marginTop: 5,
+    },
+    code: {
+      fontSize: 10.5,
+      fontWeight: "600",
+      color: c.accentLight,
+      marginTop: 7,
+    },
 
-  content: {
-    paddingHorizontal: 18,
-    paddingBottom: 130,
-    marginTop: -28,
-  },
+    content: {
+      paddingHorizontal: 18,
+      paddingBottom: 130,
+      marginTop: -28,
+    },
 
-  statCard: {
-    flexDirection: "row",
-    backgroundColor: colors.card,
-    borderWidth: 1,
-    borderColor: colors.cardBorder,
-    borderRadius: 22,
-    padding: 14,
-    shadowColor: "#0F1720",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.06,
-    shadowRadius: 16,
-    elevation: 3,
-  },
-  statDivider: { width: 1, backgroundColor: colors.hair },
-  statValue: { fontSize: 17, fontWeight: "800", color: colors.ink },
-  statLabel: {
-    fontSize: 10.5,
-    fontWeight: "500",
-    color: colors.muted,
-    marginTop: 4,
-  },
+    statCard: {
+      flexDirection: "row",
+      backgroundColor: c.card,
+      borderWidth: 1,
+      borderColor: c.cardBorder,
+      borderRadius: 22,
+      padding: 14,
+      shadowColor: "#0F1720",
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.06,
+      shadowRadius: 16,
+      elevation: 3,
+    },
+    statDivider: { width: 1, backgroundColor: c.hair },
+    statValue: { fontSize: 17, fontWeight: "800", color: c.ink },
+    statLabel: {
+      fontSize: 10.5,
+      fontWeight: "500",
+      color: c.muted,
+      marginTop: 4,
+    },
 
-  sheet: {
-    backgroundColor: colors.card,
-    borderWidth: 1,
-    borderColor: colors.cardBorder,
-    borderRadius: 22,
-    padding: 16,
-    shadowColor: "#0F1720",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.06,
-    shadowRadius: 16,
-    elevation: 3,
-  },
-  sheetHead: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    gap: 10,
-  },
-  sheetTitle: { fontSize: 13.5, fontWeight: "700", color: colors.ink },
-  sheetLink: { fontSize: 11.5, fontWeight: "600", color: colors.accent },
+    sheet: {
+      backgroundColor: c.card,
+      borderWidth: 1,
+      borderColor: c.cardBorder,
+      borderRadius: 22,
+      padding: 16,
+      shadowColor: "#0F1720",
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.06,
+      shadowRadius: 16,
+      elevation: 3,
+    },
+    sheetHead: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      gap: 10,
+    },
+    sheetTitle: { fontSize: 13.5, fontWeight: "700", color: c.ink },
+    sheetLink: { fontSize: 11.5, fontWeight: "600", color: c.accent },
 
-  lines: { gap: 11, marginTop: 13 },
-  lineRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    gap: 12,
-  },
-  lineKey: { fontSize: 12.5, fontWeight: "500", color: colors.muted },
-  lineValue: {
-    flexShrink: 1,
-    fontSize: 12.5,
-    fontWeight: "600",
-    color: colors.ink,
-    textAlign: "right",
-  },
-  divider: { height: 1, backgroundColor: colors.hair },
+    lines: { gap: 11, marginTop: 13 },
+    lineRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      gap: 12,
+    },
+    lineKey: { fontSize: 12.5, fontWeight: "500", color: c.muted },
+    lineValue: {
+      flexShrink: 1,
+      fontSize: 12.5,
+      fontWeight: "600",
+      color: c.ink,
+      textAlign: "right",
+    },
+    divider: { height: 1, backgroundColor: c.hair },
 
-  attRow: { flexDirection: "row", alignItems: "center", gap: 11 },
-  dateChip: {
-    width: 34,
-    height: 34,
-    borderRadius: 11,
-    backgroundColor: colors.chip,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  dateDay: {
-    fontSize: 12,
-    lineHeight: 13,
-    fontWeight: "800",
-    color: colors.ink,
-  },
-  dateMonth: {
-    fontSize: 7.5,
-    fontWeight: "600",
-    color: colors.muted,
-    marginTop: 2,
-  },
-  attTime: { fontSize: 11.5, fontWeight: "600", color: colors.ink },
-  attDur: {
-    fontSize: 10.5,
-    fontWeight: "500",
-    color: colors.muted,
-    marginTop: 3,
-  },
-  attBadge: { paddingHorizontal: 9, paddingVertical: 4, borderRadius: 8 },
-  attBadgeText: { fontSize: 10, fontWeight: "700" },
+    attRow: { flexDirection: "row", alignItems: "center", gap: 11 },
+    dateChip: {
+      width: 34,
+      height: 34,
+      borderRadius: 11,
+      backgroundColor: c.chip,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    dateDay: {
+      fontSize: 12,
+      lineHeight: 13,
+      fontWeight: "800",
+      color: c.ink,
+    },
+    dateMonth: {
+      fontSize: 7.5,
+      fontWeight: "600",
+      color: c.muted,
+      marginTop: 2,
+    },
+    attTime: { fontSize: 11.5, fontWeight: "600", color: c.ink },
+    attDur: {
+      fontSize: 10.5,
+      fontWeight: "500",
+      color: c.muted,
+      marginTop: 3,
+    },
+    attBadge: { paddingHorizontal: 9, paddingVertical: 4, borderRadius: 8 },
+    attBadgeText: { fontSize: 10, fontWeight: "700" },
 
-  actions: { flexDirection: "row", gap: 9, marginTop: 12 },
-  secondaryBtn: {
-    flex: 1,
-    paddingVertical: 14,
-    borderRadius: 22,
-    backgroundColor: colors.chip,
-    alignItems: "center",
-  },
-  secondaryText: { fontSize: 12.5, fontWeight: "700", color: colors.ink },
-  primaryBtn: {
-    flex: 1,
-    paddingVertical: 14,
-    borderRadius: 22,
-    backgroundColor: colors.accent,
-    alignItems: "center",
-  },
-  primaryText: { fontSize: 12.5, fontWeight: "700", color: "#fff" },
-});
+    actions: { flexDirection: "row", gap: 9, marginTop: 12 },
+    secondaryBtn: {
+      flex: 1,
+      paddingVertical: 14,
+      borderRadius: 22,
+      backgroundColor: c.chip,
+      alignItems: "center",
+    },
+    secondaryText: { fontSize: 12.5, fontWeight: "700", color: c.ink },
+    primaryBtn: {
+      flex: 1,
+      paddingVertical: 14,
+      borderRadius: 22,
+      backgroundColor: c.accent,
+      alignItems: "center",
+    },
+    primaryText: { fontSize: 12.5, fontWeight: "700", color: "#fff" },
+  });

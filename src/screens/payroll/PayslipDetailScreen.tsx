@@ -1,9 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-
-import { colors } from "@/theme/colors";
+import { Palette } from "@/theme/colors";
+import { useTheme } from "@/theme/ThemeContext";
 import { hrisApi } from "@/services/api";
 import { useSession } from "@/services/session";
 import { Payslip } from "@/services/types";
@@ -18,6 +18,8 @@ export function PayslipDetailScreen({ navigation, route }: any) {
   const { employee } = useSession();
   const insets = useSafeAreaInsets();
   const { payslipId } = route.params;
+  const c = useTheme();
+  const styles = useMemo(() => makeStyles(c), [c]);
 
   const [payslips, setPayslips] = useState<Payslip[] | null>(null);
 
@@ -38,7 +40,7 @@ export function PayslipDetailScreen({ navigation, route }: any) {
   const header = (title: string, sub?: string) => (
     <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
       <Pressable style={styles.backBtn} onPress={() => navigation.goBack()}>
-        <Ionicons name="chevron-back" size={18} color={colors.ink} />
+        <Ionicons name="chevron-back" size={18} color={c.ink} />
       </Pressable>
       <View style={{ flex: 1, minWidth: 0 }}>
         <Text style={styles.headerTitle}>{title}</Text>
@@ -96,49 +98,50 @@ export function PayslipDetailScreen({ navigation, route }: any) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.bg },
+const makeStyles = (c: Palette) =>
+  StyleSheet.create({
+    container: { flex: 1, backgroundColor: c.bg },
 
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    paddingHorizontal: 20,
-    paddingBottom: 16,
-    backgroundColor: colors.card,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.hair,
-  },
-  backBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 12,
-    backgroundColor: colors.chip,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  headerTitle: { fontSize: 15, fontWeight: "700", color: colors.ink },
-  headerSub: {
-    fontSize: 10.5,
-    fontWeight: "600",
-    color: colors.muted,
-    marginTop: 3,
-  },
-  pdfBtn: {
-    paddingHorizontal: 13,
-    paddingVertical: 8,
-    borderRadius: 999,
-    backgroundColor: colors.info.bg,
-  },
-  pdfText: { fontSize: 11.5, fontWeight: "600", color: colors.info.ink },
+    header: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 12,
+      paddingHorizontal: 20,
+      paddingBottom: 16,
+      backgroundColor: c.card,
+      borderBottomWidth: 1,
+      borderBottomColor: c.hair,
+    },
+    backBtn: {
+      width: 36,
+      height: 36,
+      borderRadius: 12,
+      backgroundColor: c.chip,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    headerTitle: { fontSize: 15, fontWeight: "700", color: c.ink },
+    headerSub: {
+      fontSize: 10.5,
+      fontWeight: "600",
+      color: c.muted,
+      marginTop: 3,
+    },
+    pdfBtn: {
+      paddingHorizontal: 13,
+      paddingVertical: 8,
+      borderRadius: 999,
+      backgroundColor: c.info.bg,
+    },
+    pdfText: { fontSize: 11.5, fontWeight: "600", color: c.info.ink },
 
-  content: { paddingHorizontal: 18, paddingTop: 16, paddingBottom: 130 },
+    content: { paddingHorizontal: 18, paddingTop: 16, paddingBottom: 130 },
 
-  state: {
-    fontSize: 12.5,
-    fontWeight: "500",
-    color: colors.muted,
-    textAlign: "center",
-    marginTop: 40,
-  },
-});
+    state: {
+      fontSize: 12.5,
+      fontWeight: "500",
+      color: c.muted,
+      textAlign: "center",
+      marginTop: 40,
+    },
+  });

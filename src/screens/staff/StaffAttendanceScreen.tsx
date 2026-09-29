@@ -3,7 +3,8 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { colors } from "@/theme/colors";
+import { SemanticTone, Palette } from "@/theme/colors";
+import { useTheme } from "@/theme/ThemeContext";
 import { hrisApi } from "@/services/api";
 import { useSession } from "@/services/session";
 import { Staff, StaffAttendanceState, StaffDirectory } from "@/services/types";
@@ -22,10 +23,10 @@ const TABS: { key: StaffAttendanceState; label: string }[] = [
   { key: "leave", label: "Cuti" },
 ];
 
-const TONE: Record<StaffAttendanceState, { bg: string; ink: string }> = {
-  attend: colors.ok,
-  late: colors.warn,
-  leave: colors.info,
+const TONE: Record<StaffAttendanceState, SemanticTone> = {
+  attend: "ok",
+  late: "warn",
+  leave: "info",
 };
 
 export function StaffAttendanceScreen({ navigation }: any) {
@@ -35,6 +36,8 @@ export function StaffAttendanceScreen({ navigation }: any) {
   const [dir, setDir] = useState<StaffDirectory | null>(null);
   const [tab, setTab] = useState<StaffAttendanceState>("attend");
   const [dept, setDept] = useState(SEMUA);
+  const c = useTheme();
+  const styles = useMemo(() => makeStyles(c), [c]);
 
   useEffect(() => {
     if (!employee) return;
@@ -62,7 +65,7 @@ export function StaffAttendanceScreen({ navigation }: any) {
     <View style={styles.container}>
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
         <Pressable style={styles.backBtn} onPress={() => navigation.goBack()}>
-          <Ionicons name="chevron-back" size={18} color={colors.ink} />
+          <Ionicons name="chevron-back" size={18} color={c.ink} />
         </Pressable>
         <View style={{ flex: 1, minWidth: 0 }}>
           <Text style={styles.headerTitle}>Absensi Karyawan</Text>
@@ -167,7 +170,10 @@ function AttendanceCard({
   tanggal: string;
   onOpen: () => void;
 }) {
-  const tone = TONE[staff.today.state];
+  const c = useTheme();
+  const styles = useMemo(() => makeStyles(c), [c]);
+
+  const tone = c[TONE[staff.today.state]];
   const telat = staff.today.state === "late";
 
   return (
@@ -200,12 +206,12 @@ function AttendanceCard({
         <Cell
           label="Clock In"
           value={staff.today.checkIn ?? "—"}
-          color={telat ? colors.warn.ink : colors.ink}
+          color={telat ? c.warn.ink : c.ink}
         />
         <Cell
           label="Clock Out"
           value={staff.today.checkOut ?? "Belum"}
-          color={colors.muted}
+          color={c.muted}
         />
       </View>
     </View>
@@ -215,136 +221,141 @@ function AttendanceCard({
 function Cell({
   label,
   value,
-  color = colors.ink,
+  color,
 }: {
   label: string;
   value: string;
   color?: string;
 }) {
+  const c = useTheme();
+  const styles = useMemo(() => makeStyles(c), [c]);
+  const tinta = color ?? c.ink;
+
   return (
     <View style={{ flex: 1, minWidth: 0 }}>
       <Text style={styles.cellLabel}>{label}</Text>
-      <Text style={[styles.cellValue, { color }]} numberOfLines={1}>
+      <Text style={[styles.cellValue, { color: tinta }]} numberOfLines={1}>
         {value}
       </Text>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.bg },
+const makeStyles = (c: Palette) =>
+  StyleSheet.create({
+    container: { flex: 1, backgroundColor: c.bg },
 
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    paddingHorizontal: 20,
-    paddingBottom: 14,
-  },
-  backBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 12,
-    backgroundColor: colors.chip,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  headerTitle: { fontSize: 15, fontWeight: "700", color: colors.ink },
-  headerSub: {
-    fontSize: 11,
-    fontWeight: "500",
-    color: colors.muted,
-    marginTop: 2,
-  },
+    header: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 12,
+      paddingHorizontal: 20,
+      paddingBottom: 14,
+    },
+    backBtn: {
+      width: 36,
+      height: 36,
+      borderRadius: 12,
+      backgroundColor: c.chip,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    headerTitle: { fontSize: 15, fontWeight: "700", color: c.ink },
+    headerSub: {
+      fontSize: 11,
+      fontWeight: "500",
+      color: c.muted,
+      marginTop: 2,
+    },
 
-  tabRow: {
-    flexDirection: "row",
-    gap: 8,
-    paddingHorizontal: 18,
-    paddingBottom: 12,
-  },
-  tab: {
-    flex: 1,
-    paddingVertical: 11,
-    borderRadius: 14,
-    alignItems: "center",
-    backgroundColor: colors.chip,
-  },
-  tabOn: { backgroundColor: colors.accent },
-  tabText: { fontSize: 12, fontWeight: "700", color: colors.muted },
-  tabTextOn: { color: "#fff" },
+    tabRow: {
+      flexDirection: "row",
+      gap: 8,
+      paddingHorizontal: 18,
+      paddingBottom: 12,
+    },
+    tab: {
+      flex: 1,
+      paddingVertical: 11,
+      borderRadius: 14,
+      alignItems: "center",
+      backgroundColor: c.chip,
+    },
+    tabOn: { backgroundColor: c.accent },
+    tabText: { fontSize: 12, fontWeight: "700", color: c.muted },
+    tabTextOn: { color: "#fff" },
 
-  chipRow: {
-    paddingHorizontal: 18,
-    gap: 7,
-    alignItems: "center",
-  },
-  chip: {
-    paddingHorizontal: 13,
-    paddingVertical: 8,
-    borderRadius: 999,
-    borderWidth: 1,
-    borderColor: colors.panelBorder,
-  },
-  chipOn: { backgroundColor: colors.accent, borderColor: colors.accent },
-  chipText: { fontSize: 11.5, fontWeight: "600", color: colors.muted },
-  chipTextOn: { color: "#fff" },
+    chipRow: {
+      paddingHorizontal: 18,
+      gap: 7,
+      alignItems: "center",
+    },
+    chip: {
+      paddingHorizontal: 13,
+      paddingVertical: 8,
+      borderRadius: 999,
+      borderWidth: 1,
+      borderColor: c.panelBorder,
+    },
+    chipOn: { backgroundColor: c.accent, borderColor: c.accent },
+    chipText: { fontSize: 11.5, fontWeight: "600", color: c.muted },
+    chipTextOn: { color: "#fff" },
 
-  list: { paddingHorizontal: 18, paddingBottom: 130 },
+    list: { paddingHorizontal: 18, paddingBottom: 130 },
 
-  card: {
-    borderRadius: 18,
-    backgroundColor: colors.card,
-    borderWidth: 1,
-    borderColor: colors.panelBorder,
-    paddingHorizontal: 15,
-    paddingVertical: 14,
-  },
-  cardTop: { flexDirection: "row", alignItems: "center", gap: 11 },
-  cardDivider: {
-    height: 1,
-    backgroundColor: colors.panelBorder,
-    marginVertical: 12,
-  },
-  avatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: colors.info.bg,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  avatarText: { fontSize: 12.5, fontWeight: "700", color: colors.info.ink },
-  name: { fontSize: 13, fontWeight: "700", color: colors.ink },
-  role: {
-    fontSize: 10.5,
-    fontWeight: "500",
-    color: colors.muted,
-    marginTop: 3,
-  },
-  badge: { paddingHorizontal: 9, paddingVertical: 4, borderRadius: 8 },
-  badgeText: { fontSize: 10, fontWeight: "700" },
+    card: {
+      borderRadius: 18,
+      backgroundColor: c.card,
+      borderWidth: 1,
+      borderColor: c.panelBorder,
+      paddingHorizontal: 15,
+      paddingVertical: 14,
+    },
+    cardTop: { flexDirection: "row", alignItems: "center", gap: 11 },
+    cardDivider: {
+      height: 1,
+      backgroundColor: c.panelBorder,
+      marginVertical: 12,
+    },
+    avatar: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      backgroundColor: c.info.bg,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    avatarText: { fontSize: 12.5, fontWeight: "700", color: c.info.ink },
+    name: { fontSize: 13, fontWeight: "700", color: c.ink },
+    role: {
+      fontSize: 10.5,
+      fontWeight: "500",
+      color: c.muted,
+      marginTop: 3,
+    },
+    badge: { paddingHorizontal: 9, paddingVertical: 4, borderRadius: 8 },
+    badgeText: { fontSize: 10, fontWeight: "700" },
 
-  grid: { flexDirection: "row", gap: 8 },
-  cellLabel: { fontSize: 10, fontWeight: "500", color: colors.muted },
-  cellValue: { fontSize: 11.5, fontWeight: "600", marginTop: 4 },
+    grid: { flexDirection: "row", gap: 8 },
+    cellLabel: { fontSize: 10, fontWeight: "500", color: c.muted },
+    cellValue: { fontSize: 11.5, fontWeight: "600", marginTop: 4 },
 
-  emptyCard: {
-    alignItems: "center",
-    borderRadius: 22,
-    backgroundColor: colors.card,
-    borderWidth: 1,
-    borderColor: colors.panelBorder,
-    paddingVertical: 32,
-    paddingHorizontal: 24,
-  },
-  emptyTitle: { fontSize: 13.5, fontWeight: "700", color: colors.ink },
-  emptyText: {
-    fontSize: 11.5,
-    fontWeight: "500",
-    color: colors.muted,
-    lineHeight: 17,
-    textAlign: "center",
-    marginTop: 6,
-  },
-});
+    emptyCard: {
+      alignItems: "center",
+      borderRadius: 22,
+      backgroundColor: c.card,
+      borderWidth: 1,
+      borderColor: c.panelBorder,
+      paddingVertical: 32,
+      paddingHorizontal: 24,
+    },
+    emptyTitle: { fontSize: 13.5, fontWeight: "700", color: c.ink },
+    emptyText: {
+      fontSize: 11.5,
+      fontWeight: "500",
+      color: c.muted,
+      lineHeight: 17,
+      textAlign: "center",
+      marginTop: 6,
+    },
+  });

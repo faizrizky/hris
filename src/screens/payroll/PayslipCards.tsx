@@ -1,9 +1,9 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
-
-import { colors } from "@/theme/colors";
+import { Palette } from "@/theme/colors";
+import { useTheme } from "@/theme/ThemeContext";
 import { angka, rupiah } from "@/utils/currency";
 import { Payslip, PayslipLine } from "@/services/types";
 
@@ -16,10 +16,13 @@ export function PayslipHero({
   payslip: Payslip;
   label?: string;
 }) {
+  const c = useTheme();
+  const styles = useMemo(() => makeStyles(c), [c]);
+
   return (
     <View style={styles.heroShadow}>
       <LinearGradient
-        colors={[colors.accent, colors.accent2]}
+        colors={[c.accent, c.accent2]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={styles.heroCard}
@@ -47,6 +50,9 @@ export function PayslipHero({
 /* ---------- Kartu rincian baris (earnings / deductions) ---------- */
 
 function Line({ line, negative }: { line: PayslipLine; negative?: boolean }) {
+  const c = useTheme();
+  const styles = useMemo(() => makeStyles(c), [c]);
+
   return (
     <View style={styles.lineRow}>
       <Text style={styles.lineLabel}>{line.label}</Text>
@@ -77,6 +83,9 @@ export function PayslipLinesCard({
   onLink?: () => void;
   tight?: boolean;
 }) {
+  const c = useTheme();
+  const styles = useMemo(() => makeStyles(c), [c]);
+
   return (
     <View style={[styles.sheet, { marginTop: tight ? 10 : 12 }]}>
       <View style={styles.sheetHead}>
@@ -105,6 +114,9 @@ export function PayslipLinesCard({
 /* ---------- Informasi slip ---------- */
 
 export function PayslipInfoCard({ payslip }: { payslip: Payslip }) {
+  const c = useTheme();
+  const styles = useMemo(() => makeStyles(c), [c]);
+
   const rows = [
     { k: "Periode", v: payslip.period },
     { k: "Keterangan", v: payslip.note },
@@ -142,6 +154,9 @@ export function PayslipCompareCard({
   current: Payslip;
   previous: Payslip;
 }) {
+  const c = useTheme();
+  const styles = useMemo(() => makeStyles(c), [c]);
+
   const delta = current.netPay - previous.netPay;
   const naik = delta >= 0;
   const persen =
@@ -153,15 +168,12 @@ export function PayslipCompareCard({
 
       <View style={styles.compareRow}>
         <View
-          style={[
-            styles.arrow,
-            { backgroundColor: naik ? colors.ok.bg : colors.bad.bg },
-          ]}
+          style={[styles.arrow, { backgroundColor: naik ? c.ok.bg : c.bad.bg }]}
         >
           <Ionicons
             name={naik ? "arrow-up" : "arrow-down"}
             size={16}
-            color={naik ? colors.ok.ink : colors.bad.ink}
+            color={naik ? c.ok.ink : c.bad.ink}
           />
         </View>
 
@@ -169,7 +181,7 @@ export function PayslipCompareCard({
           <Text
             style={[
               styles.compareValue,
-              { color: naik ? colors.ok.ink : colors.bad.ink },
+              { color: naik ? c.ok.ink : c.bad.ink },
             ]}
           >
             {delta === 0 ? "" : naik ? "+ " : "− "}
@@ -195,6 +207,9 @@ export function PayslipHistoryCard({
   items: Payslip[];
   onPick: (p: Payslip) => void;
 }) {
+  const c = useTheme();
+  const styles = useMemo(() => makeStyles(c), [c]);
+
   return (
     <View style={styles.historyCard}>
       {items.map((p, i) => (
@@ -220,158 +235,159 @@ export function PayslipHistoryCard({
   );
 }
 
-const styles = StyleSheet.create({
-  heroShadow: {
-    borderRadius: 22,
-    shadowColor: colors.accent2,
-    shadowOffset: { width: 0, height: 12 },
-    shadowOpacity: 0.28,
-    shadowRadius: 28,
-    elevation: 6,
-  },
-  heroCard: { borderRadius: 22, padding: 20, overflow: "hidden" },
-  heroBlob: {
-    position: "absolute",
-    right: -50,
-    bottom: -70,
-    width: 190,
-    height: 190,
-    borderRadius: 95,
-    backgroundColor: "rgba(255,255,255,0.08)",
-  },
-  heroTop: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  heroLabel: {
-    flex: 1,
-    fontSize: 12,
-    fontWeight: "600",
-    color: "rgba(255,255,255,0.85)",
-  },
-  statusPill: {
-    paddingHorizontal: 9,
-    paddingVertical: 4,
-    borderRadius: 999,
-    backgroundColor: "rgba(255,255,255,0.2)",
-  },
-  statusText: { fontSize: 10, fontWeight: "700", color: "#fff" },
-  heroAmount: {
-    fontSize: 34,
-    lineHeight: 36,
-    fontWeight: "800",
-    letterSpacing: -1.2,
-    color: "#fff",
-    marginTop: 12,
-  },
-  heroSub: {
-    fontSize: 11.5,
-    fontWeight: "500",
-    color: "rgba(255,255,255,0.7)",
-    marginTop: 10,
-  },
+const makeStyles = (c: Palette) =>
+  StyleSheet.create({
+    heroShadow: {
+      borderRadius: 22,
+      shadowColor: c.accent2,
+      shadowOffset: { width: 0, height: 12 },
+      shadowOpacity: 0.28,
+      shadowRadius: 28,
+      elevation: 6,
+    },
+    heroCard: { borderRadius: 22, padding: 20, overflow: "hidden" },
+    heroBlob: {
+      position: "absolute",
+      right: -50,
+      bottom: -70,
+      width: 190,
+      height: 190,
+      borderRadius: 95,
+      backgroundColor: "rgba(255,255,255,0.08)",
+    },
+    heroTop: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+    },
+    heroLabel: {
+      flex: 1,
+      fontSize: 12,
+      fontWeight: "600",
+      color: "rgba(255,255,255,0.85)",
+    },
+    statusPill: {
+      paddingHorizontal: 9,
+      paddingVertical: 4,
+      borderRadius: 999,
+      backgroundColor: "rgba(255,255,255,0.2)",
+    },
+    statusText: { fontSize: 10, fontWeight: "700", color: "#fff" },
+    heroAmount: {
+      fontSize: 34,
+      lineHeight: 36,
+      fontWeight: "800",
+      letterSpacing: -1.2,
+      color: "#fff",
+      marginTop: 12,
+    },
+    heroSub: {
+      fontSize: 11.5,
+      fontWeight: "500",
+      color: "rgba(255,255,255,0.7)",
+      marginTop: 10,
+    },
 
-  sheet: {
-    backgroundColor: colors.card,
-    borderWidth: 1,
-    borderColor: colors.cardBorder,
-    borderRadius: 22,
-    padding: 16,
-    shadowColor: "#0F1720",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.06,
-    shadowRadius: 16,
-    elevation: 3,
-  },
-  sheetHead: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  sheetTitle: { fontSize: 13.5, fontWeight: "700", color: colors.ink },
-  sheetLink: { fontSize: 11.5, fontWeight: "600", color: colors.accent },
+    sheet: {
+      backgroundColor: c.card,
+      borderWidth: 1,
+      borderColor: c.cardBorder,
+      borderRadius: 22,
+      padding: 16,
+      shadowColor: "#0F1720",
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.06,
+      shadowRadius: 16,
+      elevation: 3,
+    },
+    sheetHead: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+    },
+    sheetTitle: { fontSize: 13.5, fontWeight: "700", color: c.ink },
+    sheetLink: { fontSize: 11.5, fontWeight: "600", color: c.accent },
 
-  lines: { gap: 11, marginTop: 13 },
-  lineRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    gap: 12,
-  },
-  lineLabel: { fontSize: 12.5, fontWeight: "500", color: colors.muted },
-  lineValue: { fontSize: 12.5, fontWeight: "600", color: colors.ink },
-  lineValueNeg: { color: colors.bad.ink },
-  infoValue: {
-    flexShrink: 1,
-    fontSize: 12.5,
-    fontWeight: "600",
-    color: colors.ink,
-    textAlign: "right",
-  },
-  divider: { height: 1, backgroundColor: colors.hair },
-  totalLabel: { fontSize: 12.5, fontWeight: "700", color: colors.ink },
-  totalValue: { fontSize: 13, fontWeight: "700", color: colors.ink },
+    lines: { gap: 11, marginTop: 13 },
+    lineRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      gap: 12,
+    },
+    lineLabel: { fontSize: 12.5, fontWeight: "500", color: c.muted },
+    lineValue: { fontSize: 12.5, fontWeight: "600", color: c.ink },
+    lineValueNeg: { color: c.bad.ink },
+    infoValue: {
+      flexShrink: 1,
+      fontSize: 12.5,
+      fontWeight: "600",
+      color: c.ink,
+      textAlign: "right",
+    },
+    divider: { height: 1, backgroundColor: c.hair },
+    totalLabel: { fontSize: 12.5, fontWeight: "700", color: c.ink },
+    totalValue: { fontSize: 13, fontWeight: "700", color: c.ink },
 
-  syncLabel: {
-    fontSize: 10,
-    fontWeight: "600",
-    letterSpacing: 0.6,
-    textTransform: "uppercase",
-    color: colors.mutedLabel,
-  },
-  syncValue: { fontSize: 11, fontWeight: "700", color: colors.accent },
+    syncLabel: {
+      fontSize: 10,
+      fontWeight: "600",
+      letterSpacing: 0.6,
+      textTransform: "uppercase",
+      color: c.mutedLabel,
+    },
+    syncValue: { fontSize: 11, fontWeight: "700", color: c.accent },
 
-  compareRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    marginTop: 13,
-  },
-  arrow: {
-    width: 38,
-    height: 38,
-    borderRadius: 13,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  compareValue: { fontSize: 16, fontWeight: "800" },
-  compareNote: {
-    fontSize: 10.5,
-    fontWeight: "500",
-    color: colors.muted,
-    marginTop: 3,
-  },
+    compareRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 12,
+      marginTop: 13,
+    },
+    arrow: {
+      width: 38,
+      height: 38,
+      borderRadius: 13,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    compareValue: { fontSize: 16, fontWeight: "800" },
+    compareNote: {
+      fontSize: 10.5,
+      fontWeight: "500",
+      color: c.muted,
+      marginTop: 3,
+    },
 
-  historyCard: {
-    backgroundColor: colors.card,
-    borderWidth: 1,
-    borderColor: colors.cardBorder,
-    borderRadius: 22,
-    overflow: "hidden",
-  },
-  historyRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    paddingHorizontal: 15,
-    paddingVertical: 13,
-  },
-  historyDivider: { borderBottomWidth: 1, borderBottomColor: colors.hair },
-  monthChip: {
-    width: 34,
-    height: 34,
-    borderRadius: 11,
-    backgroundColor: colors.chip,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  monthText: { fontSize: 10, fontWeight: "700", color: "#475569" },
-  historyPeriod: { fontSize: 12.5, fontWeight: "600", color: colors.ink },
-  historyNote: {
-    fontSize: 10.5,
-    fontWeight: "500",
-    color: colors.muted,
-    marginTop: 2,
-  },
-  historyAmount: { fontSize: 12, fontWeight: "700", color: colors.ink },
-});
+    historyCard: {
+      backgroundColor: c.card,
+      borderWidth: 1,
+      borderColor: c.cardBorder,
+      borderRadius: 22,
+      overflow: "hidden",
+    },
+    historyRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 12,
+      paddingHorizontal: 15,
+      paddingVertical: 13,
+    },
+    historyDivider: { borderBottomWidth: 1, borderBottomColor: c.hair },
+    monthChip: {
+      width: 34,
+      height: 34,
+      borderRadius: 11,
+      backgroundColor: c.chip,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    monthText: { fontSize: 10, fontWeight: "700", color: "#475569" },
+    historyPeriod: { fontSize: 12.5, fontWeight: "600", color: c.ink },
+    historyNote: {
+      fontSize: 10.5,
+      fontWeight: "500",
+      color: c.muted,
+      marginTop: 2,
+    },
+    historyAmount: { fontSize: 12, fontWeight: "700", color: c.ink },
+  });

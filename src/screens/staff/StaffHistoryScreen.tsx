@@ -1,9 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { colors } from "@/theme/colors";
+import { Palette } from "@/theme/colors";
+import { useTheme } from "@/theme/ThemeContext";
 import { hrisApi } from "@/services/api";
 import { useSession } from "@/services/session";
 import { AttendanceRecord, Staff } from "@/services/types";
@@ -21,6 +22,8 @@ export function StaffHistoryScreen({ navigation, route }: any) {
 
   const [staff, setStaff] = useState<Staff | null>(null);
   const [records, setRecords] = useState<AttendanceRecord[] | null>(null);
+  const c = useTheme();
+  const styles = useMemo(() => makeStyles(c), [c]);
 
   useEffect(() => {
     if (!employee) return;
@@ -49,7 +52,7 @@ export function StaffHistoryScreen({ navigation, route }: any) {
     <View style={styles.container}>
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
         <Pressable style={styles.backBtn} onPress={() => navigation.goBack()}>
-          <Ionicons name="chevron-back" size={18} color={colors.ink} />
+          <Ionicons name="chevron-back" size={18} color={c.ink} />
         </Pressable>
         <View style={{ flex: 1, minWidth: 0 }}>
           {loading ? (
@@ -68,19 +71,19 @@ export function StaffHistoryScreen({ navigation, route }: any) {
           <Recap
             value={loading ? "–" : hitung("hadir")}
             label="Hadir"
-            tone={colors.ok.ink}
+            tone={c.ok.ink}
           />
           <View style={styles.recapDivider} />
           <Recap
             value={loading ? "–" : hitung("telat")}
             label="Telat"
-            tone={colors.warn.ink}
+            tone={c.warn.ink}
           />
           <View style={styles.recapDivider} />
           <Recap
             value={loading ? "–" : hitung("izin")}
             label="Izin"
-            tone={colors.info.ink}
+            tone={c.info.ink}
           />
         </View>
 
@@ -97,7 +100,7 @@ export function StaffHistoryScreen({ navigation, route }: any) {
                 </View>
               ))
             : items.map((r) => {
-                const tone = colors[ATTENDANCE_STATUS_TONE[r.status]];
+                const tone = c[ATTENDANCE_STATUS_TONE[r.status]];
                 return (
                   <View key={r.id} style={styles.row}>
                     <View style={styles.dateChip}>
@@ -138,6 +141,9 @@ function Recap({
   label: string;
   tone: string;
 }) {
+  const c = useTheme();
+  const styles = useMemo(() => makeStyles(c), [c]);
+
   return (
     <View style={{ flex: 1, alignItems: "center" }}>
       <Text style={[styles.recapValue, { color: tone }]}>{value}</Text>
@@ -146,89 +152,89 @@ function Recap({
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.bg },
+const makeStyles = (c: Palette) =>
+  StyleSheet.create({
+    container: { flex: 1, backgroundColor: c.bg },
+    header: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 12,
+      paddingHorizontal: 20,
+      paddingBottom: 14,
+    },
+    backBtn: {
+      width: 36,
+      height: 36,
+      borderRadius: 12,
+      backgroundColor: c.chip,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    headerTitle: { fontSize: 15, fontWeight: "700", color: c.ink },
+    headerSub: {
+      fontSize: 11,
+      fontWeight: "500",
+      color: c.muted,
+      marginTop: 2,
+    },
 
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    paddingHorizontal: 20,
-    paddingBottom: 14,
-  },
-  backBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 12,
-    backgroundColor: colors.chip,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  headerTitle: { fontSize: 15, fontWeight: "700", color: colors.ink },
-  headerSub: {
-    fontSize: 11,
-    fontWeight: "500",
-    color: colors.muted,
-    marginTop: 2,
-  },
+    content: { paddingHorizontal: 18, paddingTop: 4, paddingBottom: 130 },
 
-  content: { paddingHorizontal: 18, paddingTop: 4, paddingBottom: 130 },
+    recapCard: {
+      flexDirection: "row",
+      backgroundColor: c.card,
+      borderWidth: 1,
+      borderColor: c.panelBorder,
+      borderRadius: 20,
+      paddingVertical: 16,
+    },
+    recapDivider: { width: 1, backgroundColor: c.hair },
+    recapValue: { fontSize: 20, lineHeight: 21, fontWeight: "800" },
+    recapLabel: {
+      fontSize: 10.5,
+      fontWeight: "500",
+      color: c.muted,
+      marginTop: 5,
+    },
 
-  recapCard: {
-    flexDirection: "row",
-    backgroundColor: colors.card,
-    borderWidth: 1,
-    borderColor: colors.panelBorder,
-    borderRadius: 20,
-    paddingVertical: 16,
-  },
-  recapDivider: { width: 1, backgroundColor: colors.hair },
-  recapValue: { fontSize: 20, lineHeight: 21, fontWeight: "800" },
-  recapLabel: {
-    fontSize: 10.5,
-    fontWeight: "500",
-    color: colors.muted,
-    marginTop: 5,
-  },
-
-  row: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 11,
-    borderRadius: 18,
-    backgroundColor: colors.card,
-    borderWidth: 1,
-    borderColor: colors.panelBorder,
-    paddingHorizontal: 15,
-    paddingVertical: 14,
-  },
-  dateChip: {
-    width: 40,
-    height: 40,
-    borderRadius: 13,
-    backgroundColor: colors.chip,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  dateDay: {
-    fontSize: 14,
-    lineHeight: 15,
-    fontWeight: "800",
-    color: colors.ink,
-  },
-  dateMonth: {
-    fontSize: 8,
-    fontWeight: "600",
-    color: colors.muted,
-    marginTop: 2,
-  },
-  dow: { fontSize: 13, fontWeight: "600", color: colors.ink },
-  detail: {
-    fontSize: 10.5,
-    fontWeight: "500",
-    color: colors.muted,
-    marginTop: 3,
-  },
-  badge: { paddingHorizontal: 9, paddingVertical: 4, borderRadius: 8 },
-  badgeText: { fontSize: 10, fontWeight: "700" },
-});
+    row: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 11,
+      borderRadius: 18,
+      backgroundColor: c.card,
+      borderWidth: 1,
+      borderColor: c.panelBorder,
+      paddingHorizontal: 15,
+      paddingVertical: 14,
+    },
+    dateChip: {
+      width: 40,
+      height: 40,
+      borderRadius: 13,
+      backgroundColor: c.chip,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    dateDay: {
+      fontSize: 14,
+      lineHeight: 15,
+      fontWeight: "800",
+      color: c.ink,
+    },
+    dateMonth: {
+      fontSize: 8,
+      fontWeight: "600",
+      color: c.muted,
+      marginTop: 2,
+    },
+    dow: { fontSize: 13, fontWeight: "600", color: c.ink },
+    detail: {
+      fontSize: 10.5,
+      fontWeight: "500",
+      color: c.muted,
+      marginTop: 3,
+    },
+    badge: { paddingHorizontal: 9, paddingVertical: 4, borderRadius: 8 },
+    badgeText: { fontSize: 10, fontWeight: "700" },
+  });

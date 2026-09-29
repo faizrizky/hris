@@ -92,8 +92,4 @@ export const darkColors: Palette = {
 
 export type Palette = typeof lightColors;
 
-// Alias supaya 38 file yang belum dimigrasi tetap jalan tanpa diubah.
-// Dihapus setelah file terakhir selesai disapu.
-export const colors = lightColors;
-
 export type SemanticTone = "ok" | "warn" | "info" | "bad";

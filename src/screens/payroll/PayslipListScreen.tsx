@@ -1,9 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-
-import { colors } from "@/theme/colors";
+import { Palette } from "@/theme/colors";
+import { useTheme } from "@/theme/ThemeContext";
 import { hrisApi } from "@/services/api";
 import { useSession } from "@/services/session";
 import { Payslip } from "@/services/types";
@@ -17,6 +17,8 @@ export function PayslipListScreen({ navigation }: any) {
   const { employee } = useSession();
   const insets = useSafeAreaInsets();
   const [payslips, setPayslips] = useState<Payslip[]>([]);
+  const c = useTheme();
+  const styles = useMemo(() => makeStyles(c), [c]);
 
   useEffect(() => {
     if (!employee) return;
@@ -33,7 +35,7 @@ export function PayslipListScreen({ navigation }: any) {
           style={styles.backBtn}
           onPress={() => navigation.getParent()?.navigate("Beranda")}
         >
-          <Ionicons name="chevron-back" size={18} color={colors.ink} />
+          <Ionicons name="chevron-back" size={18} color={c.ink} />
         </Pressable>
         <Text style={styles.headerTitle}>Slip Gaji</Text>
         <Pressable style={styles.pdfBtn}>
@@ -82,44 +84,50 @@ export function PayslipListScreen({ navigation }: any) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.bg },
+const makeStyles = (c: Palette) =>
+  StyleSheet.create({
+    container: { flex: 1, backgroundColor: c.bg },
 
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    paddingHorizontal: 20,
-    paddingBottom: 16,
-    backgroundColor: colors.card,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.hair,
-  },
-  backBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 12,
-    backgroundColor: colors.chip,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  headerTitle: { flex: 1, fontSize: 15, fontWeight: "700", color: colors.ink },
-  pdfBtn: {
-    paddingHorizontal: 13,
-    paddingVertical: 8,
-    borderRadius: 999,
-    backgroundColor: colors.info.bg,
-  },
-  pdfText: { fontSize: 11.5, fontWeight: "600", color: colors.info.ink },
+    header: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 12,
+      paddingHorizontal: 20,
+      paddingBottom: 16,
+      backgroundColor: c.card,
+      borderBottomWidth: 1,
+      borderBottomColor: c.hair,
+    },
+    backBtn: {
+      width: 36,
+      height: 36,
+      borderRadius: 12,
+      backgroundColor: c.chip,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    headerTitle: {
+      flex: 1,
+      fontSize: 15,
+      fontWeight: "700",
+      color: c.ink,
+    },
+    pdfBtn: {
+      paddingHorizontal: 13,
+      paddingVertical: 8,
+      borderRadius: 999,
+      backgroundColor: c.info.bg,
+    },
+    pdfText: { fontSize: 11.5, fontWeight: "600", color: c.info.ink },
 
-  content: { paddingHorizontal: 18, paddingTop: 16, paddingBottom: 130 },
+    content: { paddingHorizontal: 18, paddingTop: 16, paddingBottom: 130 },
 
-  sectionTitle: {
-    fontSize: 14,
-    fontWeight: "700",
-    color: colors.ink,
-    marginTop: 20,
-    marginBottom: 10,
-    marginHorizontal: 2,
-  },
-});
+    sectionTitle: {
+      fontSize: 14,
+      fontWeight: "700",
+      color: c.ink,
+      marginTop: 20,
+      marginBottom: 10,
+      marginHorizontal: 2,
+    },
+  });
