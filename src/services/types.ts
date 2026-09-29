@@ -130,6 +130,29 @@ export interface TaxSummary {
   bpjs: BpjsItem[];
 }
 
+export interface AppraisalRater {
+  name: string; // "Atasan langsung — Bayu P."
+  score: number; // 4.3
+  weight: number; // bobot dalam persen, mis. 50
+}
+
+export interface AppraisalGoal {
+  name: string;
+  progress: number; // persen, mis. 96
+  note: string;
+}
+
+export interface Appraisal {
+  cycle: string; // "Siklus H1 2026"
+  method: string; // "Penilaian 360° berbobot, final 30 Sep"
+  score: number; // 4.2 — sama dengan Employee.kpiScore
+  maxScore: number; // 5
+  rating: string; // "Exceeds"
+  ratingTone: "ok" | "warn" | "info" | "bad";
+  raters: AppraisalRater[];
+  goals: AppraisalGoal[];
+}
+
 export interface NotificationItem {
   id: string;
   initials: string;
@@ -196,6 +219,8 @@ export interface HrisApi {
   getPayslips(employeeId: string): Promise<Payslip[]>;
 
   getTaxSummary(employeeId: string): Promise<TaxSummary>;
+
+  getAppraisal(employeeId: string): Promise<Appraisal>;
 
   getNotifications(employeeId: string): Promise<NotificationItem[]>;
 

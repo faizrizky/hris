@@ -10,3 +10,8 @@ export function angka(value: number) {
 export function rupiah(value: number) {
   return `Rp ${angka(value)}`;
 }
+
+/** 4.2 -> "4,2" · 5 -> "5,0" — desimal gaya Indonesia */
+export function desimal(n: number, digit = 1) {
+  return n.toFixed(digit).replace(".", ",");
+}

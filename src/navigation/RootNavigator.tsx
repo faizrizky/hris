@@ -1,8 +1,6 @@
-import React from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import { colors } from "@/theme/colors";
 import { useSession } from "@/services/session";
 import { FloatingTabBar } from "@/components/FloatingTabBar";
 import { LoginScreen } from "@/screens/auth/LoginScreen";
@@ -21,6 +19,7 @@ import { AttendanceCorrectionScreen } from "@/screens/attendance/AttendanceCorre
 import { NavBar } from "@/components/NavBar";
 import { NotificationScreen } from "@/screens/notifications/NotificationScreen";
 import { TaxScreen } from "@/screens/payroll/TaxScreen";
+import { AppraisalScreen } from "@/screens/appraisal/AppraisalScreen";
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -132,6 +131,7 @@ function HomeStack() {
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="HomeMain" component={HomeScreen} />
       <Stack.Screen name="Notifications" component={NotificationScreen} />
+      <Stack.Screen name="Appraisal" component={AppraisalScreen} />
     </Stack.Navigator>
   );
 }

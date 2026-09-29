@@ -16,6 +16,7 @@ import {
   OvertimeRecord,
   AppNotification,
   TaxSummary,
+  Appraisal,
 } from "../types";
 import {
   MOCK_ATTENDANCE,
@@ -29,6 +30,7 @@ import {
   MOCK_OVERTIMES,
   MOCK_INBOX,
   MOCK_TAX,
+  MOCK_APPRAISAL,
 } from "./mockData";
 
 const delay = (ms = 300) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -183,6 +185,11 @@ export const mockApi: HrisApi = {
   async getTaxSummary(_employeeId: string): Promise<TaxSummary> {
     await delay();
     return MOCK_TAX;
+  },
+
+  async getAppraisal(_employeeId: string): Promise<Appraisal> {
+    await delay();
+    return MOCK_APPRAISAL;
   },
 
   async getNotifications(_employeeId: string): Promise<NotificationItem[]> {
