@@ -1,10 +1,10 @@
-import { useCallback, useState } from "react";
+import { useCallback, useState, useMemo } from "react";
 import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-
-import { colors } from "@/theme/colors";
+import { Palette } from "@/theme/colors";
+import { useTheme } from "@/theme/ThemeContext";
 import { hrisApi } from "@/services/api";
 import { useSession } from "@/services/session";
 import { StatusBadge } from "@/components/StatusBadge";
@@ -33,10 +33,11 @@ const CHIPS: { key: Filter; label: string }[] = [
 export function AttendanceCorrectionHistoryScreen({ navigation }: any) {
   const { employee } = useSession();
   const insets = useSafeAreaInsets();
-
   const [records, setRecords] = useState<AttendanceCorrectionRequest[]>([]);
   const [filter, setFilter] = useState<Filter>("semua");
   const [buka, setBuka] = useState<string | null>(null);
+  const c = useTheme();
+  const styles = useMemo(() => makeStyles(c), [c]);
 
   // useFocusEffect, bukan useEffect: layar ini tetap ter-mount di dalam stack,
   // jadi koreksi yang baru dikirim tidak akan muncul kalau cuma fetch sekali
@@ -64,7 +65,7 @@ export function AttendanceCorrectionHistoryScreen({ navigation }: any) {
     <View style={styles.container}>
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
         <Pressable style={styles.backBtn} onPress={() => navigation.goBack()}>
-          <Ionicons name="chevron-back" size={18} color={colors.ink} />
+          <Ionicons name="chevron-back" size={18} color={c.ink} />
         </Pressable>
         <Text style={styles.headerTitle}>Riwayat Koreksi</Text>
         <View style={{ flex: 1 }} />
@@ -109,37 +110,23 @@ export function AttendanceCorrectionHistoryScreen({ navigation }: any) {
               <Text style={styles.recapLabel}>Ringkasan pengajuan</Text>
 
               <View style={styles.recapRow}>
-                <Recap
-                  value={pending}
-                  label="Menunggu"
-                  color={colors.warn.ink}
-                />
-                <Recap
-                  value={approved}
-                  label="Disetujui"
-                  color={colors.ok.ink}
-                />
-                <Recap
-                  value={rejected}
-                  label="Ditolak"
-                  color={colors.bad.ink}
-                />
+                <Recap value={pending} label="Menunggu" color={c.warn.ink} />
+                <Recap value={approved} label="Disetujui" color={c.ok.ink} />
+                <Recap value={rejected} label="Ditolak" color={c.bad.ink} />
               </View>
 
               <View style={styles.bar}>
                 {approved > 0 && (
-                  <View
-                    style={{ flex: approved, backgroundColor: colors.ok.ink }}
-                  />
+                  <View style={{ flex: approved, backgroundColor: c.ok.ink }} />
                 )}
                 {pending > 0 && (
                   <View
-                    style={{ flex: pending, backgroundColor: colors.warn.ink }}
+                    style={{ flex: pending, backgroundColor: c.warn.ink }}
                   />
                 )}
                 {rejected > 0 && (
                   <View
-                    style={{ flex: rejected, backgroundColor: colors.bad.ink }}
+                    style={{ flex: rejected, backgroundColor: c.bad.ink }}
                   />
                 )}
               </View>
@@ -155,7 +142,7 @@ export function AttendanceCorrectionHistoryScreen({ navigation }: any) {
         ListEmptyComponent={
           <View style={styles.emptyCard}>
             <View style={styles.emptyIcon}>
-              <LineIcon d={ICON.fileCheck} color={colors.muted} size={22} />
+              <LineIcon d={ICON.fileCheck} color={c.muted} size={22} />
             </View>
             <Text style={styles.emptyTitle}>
               {total === 0
@@ -212,7 +199,7 @@ export function AttendanceCorrectionHistoryScreen({ navigation }: any) {
                 <Ionicons
                   name={terbuka ? "chevron-up" : "chevron-down"}
                   size={14}
-                  color={colors.mutedLabel}
+                  color={c.mutedLabel}
                 />
               </View>
 
@@ -246,6 +233,8 @@ function Recap({
   label: string;
   color: string;
 }) {
+  const c = useTheme();
+  const styles = useMemo(() => makeStyles(c), [c]);
   return (
     <View style={{ flex: 1 }}>
       <Text style={[styles.recapValue, { color }]}>{value}</Text>
@@ -254,188 +243,189 @@ function Recap({
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.bg },
+const makeStyles = (c: Palette) =>
+  StyleSheet.create({
+    container: { flex: 1, backgroundColor: c.bg },
 
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    paddingHorizontal: 20,
-    paddingBottom: 16,
-  },
-  backBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 12,
-    backgroundColor: colors.chip,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  headerTitle: { fontSize: 15, fontWeight: "700", color: colors.ink },
-  addBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 999,
-    backgroundColor: colors.accent,
-  },
-  addText: { fontSize: 11.5, fontWeight: "600", color: "#fff" },
+    header: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 12,
+      paddingHorizontal: 20,
+      paddingBottom: 16,
+    },
+    backBtn: {
+      width: 36,
+      height: 36,
+      borderRadius: 12,
+      backgroundColor: c.chip,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    headerTitle: { fontSize: 15, fontWeight: "700", color: c.ink },
+    addBtn: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 6,
+      paddingHorizontal: 14,
+      paddingVertical: 8,
+      borderRadius: 999,
+      backgroundColor: c.accent,
+    },
+    addText: { fontSize: 11.5, fontWeight: "600", color: c.card },
 
-  chipRow: {
-    flexDirection: "row",
-    gap: 7,
-    paddingHorizontal: 18,
-    paddingBottom: 14,
-  },
-  chip: {
-    paddingHorizontal: 14,
-    paddingVertical: 9,
-    borderRadius: 999,
-    backgroundColor: colors.chip,
-  },
-  chipOn: { backgroundColor: colors.accent },
-  chipText: { fontSize: 12, fontWeight: "600", color: "#475569" },
-  chipTextOn: { color: "#fff" },
+    chipRow: {
+      flexDirection: "row",
+      gap: 7,
+      paddingHorizontal: 18,
+      paddingBottom: 14,
+    },
+    chip: {
+      paddingHorizontal: 14,
+      paddingVertical: 9,
+      borderRadius: 999,
+      backgroundColor: c.chip,
+    },
+    chipOn: { backgroundColor: c.accent },
+    chipText: { fontSize: 12, fontWeight: "600", color: "#475569" },
+    chipTextOn: { color: c.card },
 
-  list: { paddingHorizontal: 18, paddingBottom: 130 },
+    list: { paddingHorizontal: 18, paddingBottom: 130 },
 
-  recapCard: {
-    borderRadius: 20,
-    backgroundColor: colors.card,
-    borderWidth: 1,
-    borderColor: colors.panelBorder,
-    padding: 16,
-    marginBottom: 14,
-  },
-  recapLabel: { fontSize: 11, fontWeight: "500", color: colors.muted },
-  recapRow: { flexDirection: "row", gap: 12, marginTop: 10 },
-  recapValue: { fontSize: 20, lineHeight: 21, fontWeight: "800" },
-  recapCaption: {
-    fontSize: 10,
-    fontWeight: "500",
-    color: colors.muted,
-    marginTop: 4,
-  },
-  bar: {
-    flexDirection: "row",
-    height: 6,
-    borderRadius: 3,
-    overflow: "hidden",
-    backgroundColor: colors.track,
-    marginTop: 14,
-  },
-  recapNote: {
-    fontSize: 10.5,
-    fontWeight: "500",
-    color: colors.muted,
-    marginTop: 10,
-  },
+    recapCard: {
+      borderRadius: 20,
+      backgroundColor: c.card,
+      borderWidth: 1,
+      borderColor: c.panelBorder,
+      padding: 16,
+      marginBottom: 14,
+    },
+    recapLabel: { fontSize: 11, fontWeight: "500", color: c.muted },
+    recapRow: { flexDirection: "row", gap: 12, marginTop: 10 },
+    recapValue: { fontSize: 20, lineHeight: 21, fontWeight: "800" },
+    recapCaption: {
+      fontSize: 10,
+      fontWeight: "500",
+      color: c.muted,
+      marginTop: 4,
+    },
+    bar: {
+      flexDirection: "row",
+      height: 6,
+      borderRadius: 3,
+      overflow: "hidden",
+      backgroundColor: c.track,
+      marginTop: 14,
+    },
+    recapNote: {
+      fontSize: 10.5,
+      fontWeight: "500",
+      color: c.muted,
+      marginTop: 10,
+    },
 
-  row: {
-    borderRadius: 18,
-    backgroundColor: colors.card,
-    borderWidth: 1,
-    borderColor: colors.panelBorder,
-    paddingVertical: 14,
-    paddingHorizontal: 15,
-    marginBottom: 10,
-  },
-  rowTop: { flexDirection: "row", alignItems: "center", gap: 10 },
-  dateChip: {
-    width: 40,
-    height: 40,
-    borderRadius: 13,
-    backgroundColor: colors.chip,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  dateDay: {
-    fontSize: 14,
-    lineHeight: 15,
-    fontWeight: "800",
-    color: colors.ink,
-  },
-  dateMonth: {
-    fontSize: 8,
-    fontWeight: "600",
-    color: colors.muted,
-    marginTop: 2,
-  },
-  rowTitle: { fontSize: 13, fontWeight: "700", color: colors.ink },
-  rowDetail: {
-    fontSize: 10.5,
-    fontWeight: "500",
-    color: colors.muted,
-    marginTop: 3,
-  },
+    row: {
+      borderRadius: 18,
+      backgroundColor: c.card,
+      borderWidth: 1,
+      borderColor: c.panelBorder,
+      paddingVertical: 14,
+      paddingHorizontal: 15,
+      marginBottom: 10,
+    },
+    rowTop: { flexDirection: "row", alignItems: "center", gap: 10 },
+    dateChip: {
+      width: 40,
+      height: 40,
+      borderRadius: 13,
+      backgroundColor: c.chip,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    dateDay: {
+      fontSize: 14,
+      lineHeight: 15,
+      fontWeight: "800",
+      color: c.ink,
+    },
+    dateMonth: {
+      fontSize: 8,
+      fontWeight: "600",
+      color: c.muted,
+      marginTop: 2,
+    },
+    rowTitle: { fontSize: 13, fontWeight: "700", color: c.ink },
+    rowDetail: {
+      fontSize: 10.5,
+      fontWeight: "500",
+      color: c.muted,
+      marginTop: 3,
+    },
 
-  rowBody: {
-    marginTop: 13,
-    paddingTop: 13,
-    borderTopWidth: 1,
-    borderTopColor: colors.hair,
-  },
-  bodyLabel: {
-    fontSize: 10,
-    fontWeight: "600",
-    letterSpacing: 0.6,
-    textTransform: "uppercase",
-    color: colors.mutedLabel,
-  },
-  bodyText: {
-    fontSize: 11.5,
-    fontWeight: "500",
-    color: colors.ink,
-    lineHeight: 17,
-    marginTop: 5,
-  },
-  bodyDoc: {
-    fontSize: 11,
-    fontWeight: "700",
-    color: colors.accent,
-    marginTop: 5,
-  },
+    rowBody: {
+      marginTop: 13,
+      paddingTop: 13,
+      borderTopWidth: 1,
+      borderTopColor: c.hair,
+    },
+    bodyLabel: {
+      fontSize: 10,
+      fontWeight: "600",
+      letterSpacing: 0.6,
+      textTransform: "uppercase",
+      color: c.mutedLabel,
+    },
+    bodyText: {
+      fontSize: 11.5,
+      fontWeight: "500",
+      color: c.ink,
+      lineHeight: 17,
+      marginTop: 5,
+    },
+    bodyDoc: {
+      fontSize: 11,
+      fontWeight: "700",
+      color: c.accent,
+      marginTop: 5,
+    },
 
-  emptyCard: {
-    alignItems: "center",
-    borderRadius: 22,
-    backgroundColor: colors.card,
-    borderWidth: 1,
-    borderColor: colors.panelBorder,
-    paddingVertical: 32,
-    paddingHorizontal: 24,
-  },
-  emptyIcon: {
-    width: 52,
-    height: 52,
-    borderRadius: 17,
-    backgroundColor: colors.chip,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  emptyTitle: {
-    fontSize: 13.5,
-    fontWeight: "700",
-    color: colors.ink,
-    marginTop: 14,
-  },
-  emptyText: {
-    fontSize: 11.5,
-    fontWeight: "500",
-    color: colors.muted,
-    lineHeight: 17,
-    textAlign: "center",
-    marginTop: 6,
-  },
-  emptyBtn: {
-    paddingHorizontal: 20,
-    paddingVertical: 11,
-    borderRadius: 14,
-    backgroundColor: colors.accent,
-    marginTop: 16,
-  },
-  emptyBtnText: { fontSize: 12.5, fontWeight: "700", color: "#fff" },
-});
+    emptyCard: {
+      alignItems: "center",
+      borderRadius: 22,
+      backgroundColor: c.card,
+      borderWidth: 1,
+      borderColor: c.panelBorder,
+      paddingVertical: 32,
+      paddingHorizontal: 24,
+    },
+    emptyIcon: {
+      width: 52,
+      height: 52,
+      borderRadius: 17,
+      backgroundColor: c.chip,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    emptyTitle: {
+      fontSize: 13.5,
+      fontWeight: "700",
+      color: c.ink,
+      marginTop: 14,
+    },
+    emptyText: {
+      fontSize: 11.5,
+      fontWeight: "500",
+      color: c.muted,
+      lineHeight: 17,
+      textAlign: "center",
+      marginTop: 6,
+    },
+    emptyBtn: {
+      paddingHorizontal: 20,
+      paddingVertical: 11,
+      borderRadius: 14,
+      backgroundColor: c.accent,
+      marginTop: 16,
+    },
+    emptyBtnText: { fontSize: 12.5, fontWeight: "700", color: "#fff" },
+  });

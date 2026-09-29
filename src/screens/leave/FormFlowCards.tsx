@@ -1,8 +1,9 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
-import { colors } from "@/theme/colors";
+import { Palette } from "@/theme/colors";
+import { useTheme } from "@/theme/ThemeContext";
 
 export interface ApprovalStep {
   ini: string;
@@ -11,6 +12,8 @@ export interface ApprovalStep {
 }
 
 export function ApprovalFlowCard({ steps }: { steps: ApprovalStep[] }) {
+  const c = useTheme();
+  const styles = useMemo(() => makeStyles(c), [c]);
   return (
     <View style={[styles.card, { marginTop: 12 }]}>
       <Text style={styles.cardTitle}>Alur approval</Text>
@@ -53,10 +56,13 @@ export function FormDoneView({
   onLihat: () => void;
   onHome: () => void;
 }) {
+  const c = useTheme();
+  const styles = useMemo(() => makeStyles(c), [c]);
+
   return (
     <>
       <LinearGradient
-        colors={[colors.accent, colors.accent2]}
+        colors={[c.accent, c.accent2]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={styles.doneCard}
@@ -95,103 +101,113 @@ export function FormDoneView({
   );
 }
 
-const styles = StyleSheet.create({
-  card: {
-    backgroundColor: colors.card,
-    borderWidth: 1,
-    borderColor: colors.cardBorder,
-    borderRadius: 22,
-    padding: 16,
-    shadowColor: "#0F1720",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.06,
-    shadowRadius: 16,
-    elevation: 3,
-  },
-  cardTitle: { fontSize: 13.5, fontWeight: "700", color: colors.ink },
+const makeStyles = (c: Palette) =>
+  StyleSheet.create({
+    card: {
+      backgroundColor: c.card,
+      borderWidth: 1,
+      borderColor: c.cardBorder,
+      borderRadius: 22,
+      padding: 16,
+      shadowColor: "#0F1720",
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.06,
+      shadowRadius: 16,
+      elevation: 3,
+    },
+    cardTitle: { fontSize: 13.5, fontWeight: "700", color: c.ink },
 
-  stepRow: { flexDirection: "row", gap: 12 },
-  rail: { alignItems: "center" },
-  avatar: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: colors.info.bg,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  avatarText: { fontSize: 11, fontWeight: "700", color: colors.info.ink },
-  line: {
-    width: 2,
-    flex: 1,
-    minHeight: 14,
-    marginVertical: 4,
-    backgroundColor: colors.hair,
-  },
-  stepBody: { flex: 1, minWidth: 0, paddingTop: 5, paddingBottom: 14 },
-  stepName: { fontSize: 12.5, fontWeight: "600", color: colors.ink },
-  stepRole: {
-    fontSize: 10.5,
-    fontWeight: "500",
-    color: colors.muted,
-    marginTop: 3,
-  },
+    stepRow: { flexDirection: "row", gap: 12 },
+    rail: { alignItems: "center" },
+    avatar: {
+      width: 32,
+      height: 32,
+      borderRadius: 16,
+      backgroundColor: c.info.bg,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    avatarText: { fontSize: 11, fontWeight: "700", color: c.info.ink },
+    line: {
+      width: 2,
+      flex: 1,
+      minHeight: 14,
+      marginVertical: 4,
+      backgroundColor: c.hair,
+    },
+    stepBody: { flex: 1, minWidth: 0, paddingTop: 5, paddingBottom: 14 },
+    stepName: { fontSize: 12.5, fontWeight: "600", color: c.ink },
+    stepRole: {
+      fontSize: 10.5,
+      fontWeight: "500",
+      color: c.muted,
+      marginTop: 3,
+    },
 
-  doneCard: {
-    borderRadius: 22,
-    paddingHorizontal: 20,
-    paddingVertical: 26,
-    alignItems: "center",
-  },
-  doneCheck: {
-    width: 62,
-    height: 62,
-    borderRadius: 31,
-    backgroundColor: "rgba(255,255,255,0.22)",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  doneTitle: { fontSize: 19, fontWeight: "800", color: "#fff", marginTop: 14 },
-  doneSub: {
-    fontSize: 12.5,
-    fontWeight: "600",
-    color: "rgba(255,255,255,0.82)",
-    marginTop: 5,
-  },
+    doneCard: {
+      borderRadius: 22,
+      paddingHorizontal: 20,
+      paddingVertical: 26,
+      alignItems: "center",
+    },
+    doneCheck: {
+      width: 62,
+      height: 62,
+      borderRadius: 31,
+      backgroundColor: "rgba(255,255,255,0.22)",
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    doneTitle: {
+      fontSize: 19,
+      fontWeight: "800",
+      color: "#fff",
+      marginTop: 14,
+    },
+    doneSub: {
+      fontSize: 12.5,
+      fontWeight: "600",
+      color: "rgba(255,255,255,0.82)",
+      marginTop: 5,
+    },
 
-  detailRow: { flexDirection: "row", justifyContent: "space-between", gap: 12 },
-  detailKey: { fontSize: 12.5, fontWeight: "500", color: colors.muted },
-  detailValue: {
-    flex: 1,
-    fontSize: 12.5,
-    fontWeight: "600",
-    color: colors.ink,
-    textAlign: "right",
-  },
-  divider: { height: 1, backgroundColor: colors.hair, marginVertical: 13 },
-  syncLabel: { fontSize: 11, fontWeight: "600", color: colors.muted },
-  syncValue: {
-    fontSize: 11,
-    fontWeight: "600",
-    color: colors.info.ink,
-    marginTop: 5,
-  },
+    detailRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      gap: 12,
+    },
+    detailKey: { fontSize: 12.5, fontWeight: "500", color: c.muted },
+    detailValue: {
+      flex: 1,
+      fontSize: 12.5,
+      fontWeight: "600",
+      color: c.ink,
+      textAlign: "right",
+    },
+    divider: { height: 1, backgroundColor: c.hair, marginVertical: 13 },
+    syncLabel: { fontSize: 11, fontWeight: "600", color: c.muted },
+    syncValue: {
+      fontSize: 11,
+      fontWeight: "600",
+      color: c.info.ink,
+      marginTop: 5,
+    },
 
-  doneActions: { flexDirection: "row", gap: 9, marginTop: 12 },
-  secondaryBtn: {
-    flex: 1,
-    paddingVertical: 14,
-    borderRadius: 22,
-    backgroundColor: colors.chip,
-    alignItems: "center",
-  },
-  secondaryText: { fontSize: 12.5, fontWeight: "700", color: colors.ink },
-  primaryBtn: {
-    flex: 1,
-    paddingVertical: 14,
-    borderRadius: 22,
-    backgroundColor: colors.accent,
-    alignItems: "center",
-  },
-  primaryText: { fontSize: 12.5, fontWeight: "700", color: "#fff" },
-});
+    doneActions: { flexDirection: "row", gap: 9, marginTop: 12 },
+    secondaryBtn: {
+      flex: 1,
+      paddingVertical: 14,
+      borderRadius: 22,
+      backgroundColor: c.chip,
+      alignItems: "center",
+    },
+    secondaryText: { fontSize: 12.5, fontWeight: "700", color: c.ink },
+    primaryBtn: {
+      flex: 1,
+      paddingVertical: 14,
+      borderRadius: 22,
+      backgroundColor: c.accent,
+      alignItems: "center",
+    },
+    primaryText: { fontSize: 12.5, fontWeight: "700", color: "#fff" },
+  });

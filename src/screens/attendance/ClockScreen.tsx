@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import { colors } from "@/theme/colors";
+import { Palette } from "@/theme/colors";
+import { useTheme } from "@/theme/ThemeContext";
 import { LineIcon } from "@/components/LineIcon";
 import { ICON } from "@/constants/icons";
 import { MapPreview } from "./MapPreview";
@@ -19,6 +20,8 @@ export function ClockScreen({ navigation }: any) {
   const [state, setState] = useState<ClockState | null>(null);
   const [step, setStep] = useState(0); // 0 = GPS, 1 = wajah, 2 = selesai
   const [loading, setLoading] = useState(false);
+  const c = useTheme();
+  const styles = useMemo(() => makeStyles(c), [c]);
 
   useEffect(() => {
     if (!employee) return;
@@ -66,7 +69,7 @@ export function ClockScreen({ navigation }: any) {
           style={styles.backBtn}
           onPress={() => navigation.getParent()?.navigate("Beranda")}
         >
-          <Ionicons name="chevron-back" size={18} color={colors.ink} />
+          <Ionicons name="chevron-back" size={18} color={c.ink} />
         </Pressable>
         <Text style={styles.headerTitle}>Presensi</Text>
         <View style={{ flex: 1 }} />
@@ -77,17 +80,17 @@ export function ClockScreen({ navigation }: any) {
 
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.steps}>
-          <View style={[styles.stepBar, { backgroundColor: colors.accent }]} />
+          <View style={[styles.stepBar, { backgroundColor: c.accent }]} />
           <View
             style={[
               styles.stepBar,
-              { backgroundColor: step >= 1 ? colors.accent : colors.track },
+              { backgroundColor: step >= 1 ? c.accent : c.track },
             ]}
           />
           <View
             style={[
               styles.stepBar,
-              { backgroundColor: done ? colors.accent : colors.track },
+              { backgroundColor: done ? c.accent : c.track },
             ]}
           />
         </View>
@@ -97,7 +100,7 @@ export function ClockScreen({ navigation }: any) {
             <MapPreview />
             <View style={styles.locationRow}>
               <View style={styles.locationIcon}>
-                <LineIcon d={ICON.location} color={colors.info.ink} size={16} />
+                <LineIcon d={ICON.location} color={c.info.ink} size={16} />
               </View>
               <View style={{ flex: 1, minWidth: 0 }}>
                 <Text style={styles.locationName}>
@@ -119,17 +122,13 @@ export function ClockScreen({ navigation }: any) {
             </Text>
             <FaceViewfinder />
             <View style={styles.faceChips}>
-              <View
-                style={[styles.faceChip, { backgroundColor: colors.ok.bg }]}
-              >
-                <Text style={[styles.faceChipText, { color: colors.ok.ink }]}>
+              <View style={[styles.faceChip, { backgroundColor: c.ok.bg }]}>
+                <Text style={[styles.faceChipText, { color: c.ok.ink }]}>
                   Liveness ✓
                 </Text>
               </View>
-              <View
-                style={[styles.faceChip, { backgroundColor: colors.info.bg }]}
-              >
-                <Text style={[styles.faceChipText, { color: colors.info.ink }]}>
+              <View style={[styles.faceChip, { backgroundColor: c.info.bg }]}>
+                <Text style={[styles.faceChipText, { color: c.info.ink }]}>
                   Match 98,4%
                 </Text>
               </View>
@@ -140,7 +139,7 @@ export function ClockScreen({ navigation }: any) {
         {done && (
           <>
             <LinearGradient
-              colors={[colors.accent, colors.accent2]}
+              colors={[c.accent, c.accent2]}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
               style={styles.doneCard}
@@ -173,7 +172,7 @@ export function ClockScreen({ navigation }: any) {
           <Pressable
             style={[
               styles.cta,
-              { backgroundColor: done ? colors.ok.ink : colors.accent },
+              { backgroundColor: done ? c.ok.ink : c.accent },
             ]}
             onPress={handleNext}
             disabled={loading}
@@ -210,6 +209,8 @@ export function ClockScreen({ navigation }: any) {
 }
 
 function DoneMeta({ label, value }: { label: string; value: string }) {
+  const c = useTheme();
+  const styles = useMemo(() => makeStyles(c), [c]);
   return (
     <View>
       <Text style={styles.doneMetaLabel}>{label}</Text>
@@ -218,159 +219,165 @@ function DoneMeta({ label, value }: { label: string; value: string }) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.bg },
+const makeStyles = (c: Palette) =>
+  StyleSheet.create({
+    container: { flex: 1, backgroundColor: c.bg },
 
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    paddingHorizontal: 20,
-    paddingBottom: 14,
-  },
-  backBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 12,
-    backgroundColor: colors.chip,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  headerTitle: { fontSize: 15, fontWeight: "700", color: colors.ink },
-  onlinePill: {
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 999,
-    backgroundColor: colors.ok.bg,
-  },
-  onlineText: { fontSize: 10.5, fontWeight: "600", color: colors.ok.ink },
+    header: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 12,
+      paddingHorizontal: 20,
+      paddingBottom: 14,
+    },
+    backBtn: {
+      width: 36,
+      height: 36,
+      borderRadius: 12,
+      backgroundColor: c.chip,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    headerTitle: { fontSize: 15, fontWeight: "700", color: c.ink },
+    onlinePill: {
+      paddingHorizontal: 10,
+      paddingVertical: 5,
+      borderRadius: 999,
+      backgroundColor: c.ok.bg,
+    },
+    onlineText: { fontSize: 10.5, fontWeight: "600", color: c.ok.ink },
 
-  content: { paddingHorizontal: 18, paddingTop: 6, paddingBottom: 120 },
-  steps: { flexDirection: "row", gap: 7, marginBottom: 14 },
-  stepBar: { flex: 1, height: 3, borderRadius: 2 },
+    content: { paddingHorizontal: 18, paddingTop: 6, paddingBottom: 120 },
+    steps: { flexDirection: "row", gap: 7, marginBottom: 14 },
+    stepBar: { flex: 1, height: 3, borderRadius: 2 },
 
-  panel: {
-    borderRadius: 22,
-    overflow: "hidden",
-    backgroundColor: colors.card,
-    borderWidth: 1,
-    borderColor: colors.panelBorder,
-  },
-  locationRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 11,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-  },
-  locationIcon: {
-    width: 34,
-    height: 34,
-    borderRadius: 11,
-    backgroundColor: colors.info.bg,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  locationName: { fontSize: 12.5, fontWeight: "600", color: colors.ink },
-  locationCoord: {
-    fontSize: 10.5,
-    fontWeight: "500",
-    color: colors.muted,
-    marginTop: 3,
-  },
+    panel: {
+      borderRadius: 22,
+      overflow: "hidden",
+      backgroundColor: c.card,
+      borderWidth: 1,
+      borderColor: c.panelBorder,
+    },
+    locationRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 11,
+      paddingHorizontal: 16,
+      paddingVertical: 14,
+    },
+    locationIcon: {
+      width: 34,
+      height: 34,
+      borderRadius: 11,
+      backgroundColor: c.info.bg,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    locationName: { fontSize: 12.5, fontWeight: "600", color: c.ink },
+    locationCoord: {
+      fontSize: 10.5,
+      fontWeight: "500",
+      color: c.muted,
+      marginTop: 3,
+    },
 
-  facePanel: { padding: 18, alignItems: "center" },
-  faceTitle: { fontSize: 14, fontWeight: "700", color: colors.ink },
-  faceSub: {
-    fontSize: 11.5,
-    lineHeight: 17,
-    fontWeight: "500",
-    color: colors.muted,
-    marginTop: 5,
-    textAlign: "center",
-    maxWidth: 250,
-  },
-  faceChips: { flexDirection: "row", gap: 8, marginTop: 14 },
-  faceChip: { paddingHorizontal: 11, paddingVertical: 6, borderRadius: 999 },
-  faceChipText: { fontSize: 10.5, fontWeight: "600" },
+    facePanel: { padding: 18, alignItems: "center" },
+    faceTitle: { fontSize: 14, fontWeight: "700", color: c.ink },
+    faceSub: {
+      fontSize: 11.5,
+      lineHeight: 17,
+      fontWeight: "500",
+      color: c.muted,
+      marginTop: 5,
+      textAlign: "center",
+      maxWidth: 250,
+    },
+    faceChips: { flexDirection: "row", gap: 8, marginTop: 14 },
+    faceChip: { paddingHorizontal: 11, paddingVertical: 6, borderRadius: 999 },
+    faceChipText: { fontSize: 10.5, fontWeight: "600" },
 
-  doneCard: {
-    borderRadius: 22,
-    paddingHorizontal: 20,
-    paddingVertical: 26,
-    alignItems: "center",
-  },
-  doneCheck: {
-    width: 62,
-    height: 62,
-    borderRadius: 31,
-    backgroundColor: "rgba(255,255,255,0.22)",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  doneTitle: { fontSize: 20, fontWeight: "800", color: "#fff", marginTop: 14 },
-  doneSub: {
-    fontSize: 13,
-    fontWeight: "600",
-    color: "rgba(255,255,255,0.8)",
-    marginTop: 5,
-  },
-  doneMeta: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignSelf: "stretch",
-    marginTop: 16,
-    backgroundColor: "rgba(255,255,255,0.14)",
-    borderRadius: 14,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-  },
-  doneMetaLabel: {
-    fontSize: 10.5,
-    fontWeight: "500",
-    color: "rgba(255,255,255,0.75)",
-  },
-  doneMetaValue: {
-    fontSize: 12.5,
-    fontWeight: "700",
-    color: "#fff",
-    marginTop: 3,
-  },
+    doneCard: {
+      borderRadius: 22,
+      paddingHorizontal: 20,
+      paddingVertical: 26,
+      alignItems: "center",
+    },
+    doneCheck: {
+      width: 62,
+      height: 62,
+      borderRadius: 31,
+      backgroundColor: "rgba(255,255,255,0.22)",
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    doneTitle: {
+      fontSize: 20,
+      fontWeight: "800",
+      color: "#fff",
+      marginTop: 14,
+    },
+    doneSub: {
+      fontSize: 13,
+      fontWeight: "600",
+      color: "rgba(255,255,255,0.8)",
+      marginTop: 5,
+    },
+    doneMeta: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignSelf: "stretch",
+      marginTop: 16,
+      backgroundColor: "rgba(255,255,255,0.14)",
+      borderRadius: 14,
+      paddingHorizontal: 14,
+      paddingVertical: 12,
+    },
+    doneMetaLabel: {
+      fontSize: 10.5,
+      fontWeight: "500",
+      color: "rgba(255,255,255,0.75)",
+    },
+    doneMetaValue: {
+      fontSize: 12.5,
+      fontWeight: "700",
+      color: "#fff",
+      marginTop: 3,
+    },
 
-  syncCard: {
-    marginTop: 12,
-    borderRadius: 18,
-    backgroundColor: colors.card,
-    borderWidth: 1,
-    borderColor: colors.panelBorder,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-  },
-  syncLabel: { fontSize: 11.5, fontWeight: "600", color: colors.muted },
-  syncValue: {
-    fontSize: 11,
-    fontWeight: "600",
-    color: colors.info.ink,
-    marginTop: 6,
-  },
+    syncCard: {
+      marginTop: 12,
+      borderRadius: 18,
+      backgroundColor: c.card,
+      borderWidth: 1,
+      borderColor: c.panelBorder,
+      paddingHorizontal: 16,
+      paddingVertical: 14,
+    },
+    syncLabel: { fontSize: 11.5, fontWeight: "600", color: c.muted },
+    syncValue: {
+      fontSize: 11,
+      fontWeight: "600",
+      color: c.info.ink,
+      marginTop: 6,
+    },
 
-  actions: { marginTop: 14, gap: 9 },
-  cta: {
-    paddingVertical: 15,
-    borderRadius: 16,
-    alignItems: "center",
-    shadowColor: colors.accent,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
-    shadowRadius: 22,
-    elevation: 5,
-  },
-  ctaText: { fontSize: 14.5, fontWeight: "700", color: "#fff" },
-  secondary: {
-    paddingVertical: 13,
-    borderRadius: 16,
-    backgroundColor: colors.chip,
-    alignItems: "center",
-  },
-  secondaryText: { fontSize: 13, fontWeight: "600", color: colors.ink },
-});
+    actions: { marginTop: 14, gap: 9 },
+    cta: {
+      paddingVertical: 15,
+      borderRadius: 16,
+      alignItems: "center",
+      shadowColor: c.accent,
+      shadowOffset: { width: 0, height: 8 },
+      shadowOpacity: 0.3,
+      shadowRadius: 22,
+      elevation: 5,
+    },
+    ctaText: { fontSize: 14.5, fontWeight: "700", color: "#fff" },
+    secondary: {
+      paddingVertical: 13,
+      borderRadius: 16,
+      backgroundColor: c.chip,
+      alignItems: "center",
+    },
+    secondaryText: { fontSize: 13, fontWeight: "600", color: c.ink },
+  });

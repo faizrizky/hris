@@ -1,8 +1,9 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useMemo } from "react";
 import { Animated, Easing, StyleSheet, Text, View } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import Svg, { G, Rect } from "react-native-svg";
-import { colors } from "@/theme/colors";
+import { Palette } from "@/theme/colors";
+import { useTheme } from "@/theme/ThemeContext";
 
 const W = 186;
 const H = 232;
@@ -16,6 +17,8 @@ const BANDS = Array.from({ length: 32 }, (_, i) => -200 + i * 16);
 
 export function FaceViewfinder() {
   const scan = useRef(new Animated.Value(0)).current;
+  const c = useTheme();
+  const styles = useMemo(() => makeStyles(c), [c]);
 
   useEffect(() => {
     const loop = Animated.loop(
@@ -56,7 +59,7 @@ export function FaceViewfinder() {
 
       <Animated.View style={[styles.scanLine, { transform: [{ translateY }] }]}>
         <LinearGradient
-          colors={["transparent", colors.accent, "transparent"]}
+          colors={["transparent", c.accent, "transparent"]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 0 }}
           style={StyleSheet.absoluteFill}
@@ -72,47 +75,48 @@ export function FaceViewfinder() {
   );
 }
 
-const styles = StyleSheet.create({
-  frame: {
-    marginTop: 16,
-    width: W,
-    height: H,
-    borderRadius: R,
-    overflow: "hidden",
-  },
-  scanLine: {
-    position: "absolute",
-    left: 0,
-    right: 0,
-    top: "50%",
-    marginTop: -1,
-    height: 2,
-  },
-  center: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: 22,
-  },
-  label: {
-    fontSize: 10,
-    fontWeight: "600",
-    color: colors.muted,
-    textAlign: "center",
-  },
-  dashedBorder: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    borderRadius: R,
-    borderWidth: 2,
-    borderStyle: "dashed",
-    borderColor: "rgba(36,144,239,0.5)",
-  },
-});
+const makeStyles = (c: Palette) =>
+  StyleSheet.create({
+    frame: {
+      marginTop: 16,
+      width: W,
+      height: H,
+      borderRadius: R,
+      overflow: "hidden",
+    },
+    scanLine: {
+      position: "absolute",
+      left: 0,
+      right: 0,
+      top: "50%",
+      marginTop: -1,
+      height: 2,
+    },
+    center: {
+      position: "absolute",
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      alignItems: "center",
+      justifyContent: "center",
+      paddingHorizontal: 22,
+    },
+    label: {
+      fontSize: 10,
+      fontWeight: "600",
+      color: c.muted,
+      textAlign: "center",
+    },
+    dashedBorder: {
+      position: "absolute",
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      borderRadius: R,
+      borderWidth: 2,
+      borderStyle: "dashed",
+      borderColor: "rgba(36,144,239,0.5)",
+    },
+  });
