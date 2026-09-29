@@ -12,14 +12,13 @@ import { CreateSheet } from "@/components/CreateSheet";
 const ACTIVE = colors.accent;
 const INACTIVE = "rgba(255,255,255,0.45)";
 
-// Harus sama persis dengan `name` di Tab.Screen.
-const LEFT = ["Beranda", "Absensi"];
 const RIGHT = ["Slip Gaji", "Profil"];
 
 // Label di mockup beda dari nama route-nya.
 const LABEL: Record<string, string> = {
   Beranda: "Home",
   Absensi: "Absensi",
+  AbsensiTim: "Absensi Kry",
   Approval: "Approval",
   "Slip Gaji": "Payroll",
   Profil: "Profil",
@@ -38,6 +37,9 @@ function TabIcon({ route, color }: { route: string; color: string }) {
   if (route === "Absensi") {
     return <View style={[styles.squareIcon, { borderColor: color }]} />;
   }
+  if (route === "AbsensiTim") {
+    return <LineIcon d={ICON.user} color={color} size={15} />;
+  }
   if (route === "Slip Gaji") {
     return <Text style={[styles.rpIcon, { color }]}>Rp</Text>;
   }
@@ -55,8 +57,14 @@ export function FloatingTabBar({ state, navigation }: BottomTabBarProps) {
   const active = state.routes[state.index] as any;
   const nested = active.state;
   const nestedRoute = nested?.routes?.[nested.index ?? 0]?.name;
-  const left = ["Beranda", employee?.role === "mss" ? "Approval" : "Absensi"];
-
+  const left = [
+    "Beranda",
+    employee?.role === "mss"
+      ? "Approval"
+      : employee?.role === "hr"
+        ? "AbsensiTim"
+        : "Absensi",
+  ];
   const HIDE_ON = ["LeaveRequest", "AttendanceCorrection"];
   if (nestedRoute && HIDE_ON.includes(nestedRoute)) return null;
 
