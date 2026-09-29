@@ -1,4 +1,5 @@
 import {
+  AppNotification,
   AttendanceCorrectionRequest,
   AttendanceRecord,
   Employee,
@@ -345,5 +346,48 @@ export const MOCK_NOTIFICATIONS: NotificationItem[] = [
     badge: "Pending",
     tone: "warn",
     createdAt: "2026-09-12",
+  },
+];
+
+export const MOCK_INBOX: AppNotification[] = [
+  {
+    id: "i1",
+    title: "Pengajuan cuti Anda disetujui",
+    body: "Bayu Pratama menyetujui cuti tahunan 18–20 September. Menunggu verifikasi HR.",
+    category: "Approval",
+    timeLabel: "08:41",
+    group: "Hari ini",
+    tone: "ok",
+    read: false,
+  },
+  {
+    id: "i2",
+    title: "Slip gaji Agustus 2026",
+    body: "Slip gaji elektronik sudah dapat diunduh dari menu Payroll.",
+    category: "Payroll",
+    timeLabel: "07:05",
+    group: "Hari ini",
+    tone: "info",
+    read: false,
+  },
+  {
+    id: "i3",
+    title: "Pengingat clock out",
+    body: "Anda belum melakukan clock out kemarin. Ajukan koreksi absensi bila perlu.",
+    category: "Presensi",
+    timeLabel: "Kemarin 21:30",
+    group: "Kemarin",
+    tone: "warn",
+    read: true,
+  },
+  {
+    id: "i4",
+    title: "Self-assessment H1 2026",
+    body: "Batas pengisian 30 September. Isi sekarang agar penilaian 360° dapat diproses.",
+    category: "Appraisal",
+    timeLabel: "Kemarin 09:12",
+    group: "Kemarin",
+    tone: "warn",
+    read: true,
   },
 ];

@@ -14,6 +14,7 @@ import {
   NotificationItem,
   Payslip,
   OvertimeRecord,
+  AppNotification,
 } from "../types";
 import {
   MOCK_ATTENDANCE,
@@ -25,6 +26,7 @@ import {
   MOCK_PENDING_APPROVALS,
   MOCK_CORRECTIONS,
   MOCK_OVERTIMES,
+  MOCK_INBOX,
 } from "./mockData";
 
 const delay = (ms = 300) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -40,6 +42,7 @@ let leaveRequests: LeaveRequest[] = [...MOCK_LEAVE_REQUESTS];
 let attendanceCorrections: AttendanceCorrectionRequest[] = [
   ...MOCK_CORRECTIONS,
 ];
+let inbox: AppNotification[] = [...MOCK_INBOX];
 let pendingApprovals: LeaveRequest[] = [...MOCK_PENDING_APPROVALS];
 let currentEmployee: Employee = MOCK_EMPLOYEES.ess;
 
@@ -178,5 +181,23 @@ export const mockApi: HrisApi = {
   async getNotifications(_employeeId: string): Promise<NotificationItem[]> {
     await delay(150);
     return MOCK_NOTIFICATIONS;
+  },
+
+  async getNotificationInbox(_employeeId: string): Promise<AppNotification[]> {
+    await delay();
+    return inbox;
+  },
+
+  async markNotificationsRead(
+    _employeeId: string,
+    ids?: string[],
+  ): Promise<AppNotification[]> {
+    await delay(120);
+    // Status baca disimpan di service, bukan di layar — supaya tidak hilang
+    // saat layarnya ditinggal lalu dibuka lagi.
+    inbox = inbox.map((n) =>
+      !ids || ids.includes(n.id) ? { ...n, read: true } : n,
+    );
+    return inbox;
   },
 };

@@ -115,6 +115,24 @@ export interface NotificationItem {
   createdAt: string;
 }
 
+export type NotifCategory =
+  | "Approval"
+  | "Payroll"
+  | "Presensi"
+  | "Appraisal"
+  | "Pengumuman";
+
+export interface AppNotification {
+  id: string;
+  title: string;
+  body: string;
+  category: NotifCategory;
+  timeLabel: string; // "08:41" / "Kemarin 21:30"
+  group: string; // "Hari ini" / "Kemarin" — jadi judul seksi
+  tone: "ok" | "warn" | "info" | "bad";
+  read: boolean;
+}
+
 // Kontrak yang dipakai UI — mock & real ERPNext service sama-sama implement ini.
 export interface HrisApi {
   login(email: string, password: string): Promise<Employee>;
@@ -154,4 +172,10 @@ export interface HrisApi {
   getPayslips(employeeId: string): Promise<Payslip[]>;
 
   getNotifications(employeeId: string): Promise<NotificationItem[]>;
+
+  getNotificationInbox(employeeId: string): Promise<AppNotification[]>;
+  markNotificationsRead(
+    employeeId: string,
+    ids?: string[], // tanpa ids = tandai semua
+  ): Promise<AppNotification[]>;
 }

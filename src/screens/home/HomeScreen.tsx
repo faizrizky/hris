@@ -157,7 +157,10 @@ export function HomeScreen() {
               {employee.jobTitle} · {employee.department}
             </Text>
           </View>
-          <Pressable style={styles.notifButton}>
+          <Pressable
+            style={styles.notifButton}
+            onPress={() => navigation.navigate("Notifications")}
+          >
             <Ionicons
               name="notifications-outline"
               size={18}
