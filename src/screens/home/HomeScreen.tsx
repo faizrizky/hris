@@ -127,6 +127,7 @@ export function HomeScreen() {
       icon: ICON.appraisal,
       bg: colors.purple.bg,
       ink: colors.purple.ink,
+      onPress: () => navigation.navigate("Appraisal"),
     },
     {
       label: "PPh21 & BPJS",

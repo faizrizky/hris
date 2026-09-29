@@ -1,5 +1,6 @@
 import {
   AppNotification,
+  Appraisal,
   AttendanceCorrectionRequest,
   AttendanceRecord,
   Employee,
@@ -344,6 +345,38 @@ export const MOCK_TAX: TaxSummary = {
     { label: "BPJS Kesehatan", employeePct: 1, companyPct: 4 },
     { label: "JHT", employeePct: 2, companyPct: 3.7 },
     { label: "Jaminan Pensiun", employeePct: 1, companyPct: 2 },
+  ],
+};
+
+export const MOCK_APPRAISAL: Appraisal = {
+  cycle: "Siklus H1 2026",
+  method: "Penilaian 360° berbobot, final 30 Sep",
+  score: 4.2,
+  maxScore: 5,
+  rating: "Exceeds",
+  ratingTone: "ok",
+  raters: [
+    { name: "Self-assessment", score: 4.0, weight: 20 },
+    { name: "Atasan langsung — Bayu P.", score: 4.3, weight: 50 },
+    { name: "Rekan kerja (3 orang)", score: 4.1, weight: 20 },
+    { name: "Bawahan (2 orang)", score: 4.2, weight: 10 },
+  ],
+  goals: [
+    {
+      name: "Akurasi rekonsiliasi bank bulanan",
+      progress: 96,
+      note: "Target 95% · tercapai 8 dari 8 bulan",
+    },
+    {
+      name: "Closing laporan ≤ 5 hari kerja",
+      progress: 88,
+      note: "Rata-rata 5,4 hari · perlu perbaikan",
+    },
+    {
+      name: "Digitalisasi arsip voucher",
+      progress: 72,
+      note: "1.440 dari 2.000 dokumen",
+    },
   ],
 };
 
