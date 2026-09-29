@@ -1,33 +1,38 @@
-// Diambil dari source asli mockup Design Canvas (bukan cuma preview visual —
-// nilai di bawah ini persis sama dengan CSS variable di mockup, tema "Lembut").
+export const lightColors = {
+  accent: "#2490EF",
+  accent2: "#1B6FC9",
+  accentLight: "#7FBCF7",
 
-export const colors = {
-  accent: "#2490EF", // --pri
-  accent2: "#1B6FC9", // titik kedua gradient (dipakai bareng accent, contoh: linear-gradient(135deg, accent, accent2))
-  accentLight: "#7FBCF7", // aksen terang, dipakai di teks highlight atas dasar gelap
-  bg: "#F4F7FB", // --page-bg
-  card: "#FFFFFF", // --card-bg
-  cardBorder: "rgba(15,23,32,0.05)", // --card-bd
-  fieldBorder: "rgba(15,23,32,0.12)", // --field-bd, border TextInput/kotak form
-  ink: "#0F1720", // --ink, juga dipakai sebagai warna background gelap (hero login, header Beranda)
-  muted: "#64748B", // --muted
-  mutedLabel: "#94A3B8", // abu-abu lebih terang, buat label uppercase kecil (mis. "EMAIL", "PASSWORD")
+  bg: "#F4F7FB",
+  card: "#FFFFFF",
+  cardBorder: "rgba(15,23,32,0.05)",
+  fieldBorder: "rgba(15,23,32,0.12)",
+  panelBorder: "rgba(15,23,32,0.07)",
   hair: "rgba(15,23,32,0.06)",
 
-  glowTop: "rgba(36,144,239,0.55)", // radial glow kanan-atas di layar gelap (login, dst)
-  glowBottom: "rgba(27,111,201,0.45)", // radial glow kiri-bawah
-  glowHeader: "rgba(36,144,239,0.4)", // radial glow di header Beranda (lebih redup dari login)
+  ink: "#0F1720",
+  muted: "#64748B",
+  mutedLabel: "#94A3B8",
 
-  purple: { bg: "#EDE9FE", ink: "#7C3AED" }, // dipakai ikon Appraisal di Aksi cepat
+  chip: "#F1F5F9",
+  track: "#E2E8F0",
+  unread: "#F2F8FF",
 
-  chip: "#F1F5F9", // --list-chip / --list-btn: tombol sekunder & tombol back
-  track: "#E2E8F0", // --track: segmen progress yang belum aktif
-  panelBorder: "rgba(15,23,32,0.07)", // --list-bd, sedikit lebih tegas dari cardBorder
+  // Permukaan gelap yang dipakai DI DALAM mode terang: header Beranda/Profil
+  // dan kartu statistik PPh 21. Di mode gelap nilainya bergeser sedikit
+  // supaya tidak menyatu rata dengan latar halaman.
+  headerBg: "#0F1720",
+  statBg: "#0F1720",
 
-  ok: { bg: "#DCFCE7", ink: "#16A34A" }, // hadir / disetujui
-  warn: { bg: "#FEF3C7", ink: "#B45309" }, // telat / pending
-  info: { bg: "#DCEBFC", ink: "#1B6FC9" }, // izin
-  bad: { bg: "#FEE2E2", ink: "#DC2626" }, // ditolak
+  glowTop: "rgba(36,144,239,0.55)",
+  glowBottom: "rgba(27,111,201,0.45)",
+  glowHeader: "rgba(36,144,239,0.4)",
+
+  purple: { bg: "#EDE9FE", ink: "#7C3AED" },
+  ok: { bg: "#DCFCE7", ink: "#16A34A" },
+  warn: { bg: "#FEF3C7", ink: "#B45309" },
+  info: { bg: "#DCEBFC", ink: "#1B6FC9" },
+  bad: { bg: "#FEE2E2", ink: "#DC2626" },
 
   dark: {
     bg: "#0F1720",
@@ -38,8 +43,57 @@ export const colors = {
     ink: "#FFFFFF",
     muted: "rgba(255,255,255,0.5)",
   },
-
-  unread: "#F2F8FF", // latar kartu notifikasi yang belum dibaca
 };
+
+// Nilai diambil dari DARK_SURFACE + DARK_LIST di mockup.
+export const darkColors: Palette = {
+  accent: "#2490EF",
+  accent2: "#1B6FC9",
+  accentLight: "#7FBCF7",
+
+  bg: "#0B1118",
+  card: "#16202B",
+  cardBorder: "rgba(255,255,255,0.09)",
+  fieldBorder: "rgba(255,255,255,0.17)",
+  panelBorder: "rgba(255,255,255,0.08)",
+  hair: "rgba(255,255,255,0.08)",
+
+  ink: "#F8FAFC",
+  muted: "rgba(255,255,255,0.55)",
+  mutedLabel: "rgba(255,255,255,0.4)",
+
+  chip: "rgba(255,255,255,0.07)",
+  track: "rgba(255,255,255,0.14)",
+  unread: "#1B2B3D",
+
+  headerBg: "#131D27",
+  statBg: "#1D2936",
+
+  glowTop: "rgba(36,144,239,0.55)",
+  glowBottom: "rgba(27,111,201,0.45)",
+  glowHeader: "rgba(36,144,239,0.4)",
+
+  purple: { bg: "rgba(124,58,237,0.18)", ink: "#C4B5FD" },
+  ok: { bg: "rgba(74,222,128,0.14)", ink: "#4ADE80" },
+  warn: { bg: "rgba(251,191,36,0.14)", ink: "#FBBF24" },
+  info: { bg: "rgba(36,144,239,0.16)", ink: "#7FBCF7" },
+  bad: { bg: "rgba(248,113,113,0.14)", ink: "#F87171" },
+
+  dark: {
+    bg: "#131D27",
+    card: "rgba(255,255,255,0.05)",
+    border: "rgba(255,255,255,0.08)",
+    chip: "rgba(255,255,255,0.07)",
+    btn: "rgba(255,255,255,0.1)",
+    ink: "#FFFFFF",
+    muted: "rgba(255,255,255,0.5)",
+  },
+};
+
+export type Palette = typeof lightColors;
+
+// Alias supaya 38 file yang belum dimigrasi tetap jalan tanpa diubah.
+// Dihapus setelah file terakhir selesai disapu.
+export const colors = lightColors;
 
 export type SemanticTone = "ok" | "warn" | "info" | "bad";

@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { StyleSheet, Text, View } from "react-native";
-import { colors, SemanticTone } from "@/theme/colors";
+import { Palette, SemanticTone } from "@/theme/colors";
+import { useTheme } from "@/theme/ThemeContext";
 
 interface Props {
   label: string;
@@ -9,7 +10,10 @@ interface Props {
 }
 
 export function StatusBadge({ label, tone, variant = "pill" }: Props) {
-  const { bg, ink } = colors[tone];
+  const c = useTheme();
+  const styles = useMemo(() => makeStyles(c), [c]);
+  const { bg, ink } = c[tone];
+
   return (
     <View
       style={[
@@ -31,17 +35,15 @@ export function StatusBadge({ label, tone, variant = "pill" }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
-  badge: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 999,
-    alignSelf: "flex-start",
-  },
-  label: {
-    fontSize: 12,
-    fontWeight: "600",
-  },
-  compact: { paddingHorizontal: 9, paddingVertical: 5, borderRadius: 8 },
-  compactLabel: { fontSize: 10.5, fontWeight: "700" },
-});
+const makeStyles = (_c: Palette) =>
+  StyleSheet.create({
+    badge: {
+      paddingHorizontal: 10,
+      paddingVertical: 4,
+      borderRadius: 999,
+      alignSelf: "flex-start",
+    },
+    compact: { paddingHorizontal: 9, paddingVertical: 4, borderRadius: 8 },
+    label: { fontSize: 11, fontWeight: "700" },
+    compactLabel: { fontSize: 10 },
+  });

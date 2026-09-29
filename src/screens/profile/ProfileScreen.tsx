@@ -18,12 +18,14 @@ import { tahunSejak } from "@/utils/date";
 import { hrisApi } from "@/services/api";
 import { useSession } from "@/services/session";
 import { LeaveBalance } from "@/services/types";
+import { useThemeMode } from "@/theme/ThemeContext";
 
 export function ProfileScreen() {
   const { employee, setEmployee } = useSession();
   const insets = useSafeAreaInsets();
   const [balances, setBalances] = useState<LeaveBalance[]>([]);
   const [pushOn, setPushOn] = useState(true);
+  const { mode, toggle } = useThemeMode();
 
   useEffect(() => {
     if (!employee) return;
@@ -99,6 +101,21 @@ export function ProfileScreen() {
               <Switch
                 value={pushOn}
                 onValueChange={setPushOn}
+                trackColor={{ false: colors.track, true: colors.accent }}
+                thumbColor="#fff"
+              />
+            }
+          />
+          <MenuRow
+            iconBg={colors.info.bg}
+            ink={colors.info.ink}
+            icon={ICON.shield}
+            title="Mode gelap"
+            subtitle={mode === "dark" ? "Aktif" : "Mengikuti pilihanmu"}
+            trailing={
+              <Switch
+                value={mode === "dark"}
+                onValueChange={toggle}
                 trackColor={{ false: colors.track, true: colors.accent }}
                 thumbColor="#fff"
               />
