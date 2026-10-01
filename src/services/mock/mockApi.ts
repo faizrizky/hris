@@ -11,7 +11,6 @@ import {
   HrisApi,
   LeaveBalance,
   LeaveRequest,
-  FeedItem,
   Payslip,
   OvertimeRecord,
   AppNotification,
@@ -19,6 +18,9 @@ import {
   Appraisal,
   Staff,
   StaffDirectory,
+  FeedItem,
+  PersonalProfile,
+  EditableProfile,
 } from "../types";
 import {
   MOCK_ATTENDANCE,
@@ -35,6 +37,7 @@ import {
   MOCK_APPRAISAL,
   MOCK_STAFF,
   TOTAL_KARYAWAN_AKTIF,
+  MOCK_PROFILE,
 } from "./mockData";
 
 const delay = (ms = 300) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -53,6 +56,7 @@ let attendanceCorrections: AttendanceCorrectionRequest[] = [
 let inbox: AppNotification[] = [...MOCK_INBOX];
 let pendingApprovals: LeaveRequest[] = [...MOCK_PENDING_APPROVALS];
 let currentEmployee: Employee = MOCK_EMPLOYEES.ess;
+let personalProfile: PersonalProfile = MOCK_PROFILE;
 
 export const mockApi: HrisApi = {
   async login(email: string, _password: string): Promise<Employee> {
@@ -233,5 +237,19 @@ export const mockApi: HrisApi = {
       !ids || ids.includes(n.id) ? { ...n, read: true } : n,
     );
     return inbox;
+  },
+
+  async getPersonalProfile(_employeeId: string): Promise<PersonalProfile> {
+    await delay();
+    return personalProfile;
+  },
+
+  async savePersonalProfile(
+    _employeeId: string,
+    data: EditableProfile,
+  ): Promise<PersonalProfile> {
+    await delay(200);
+    personalProfile = { ...personalProfile, editable: data };
+    return personalProfile;
   },
 };

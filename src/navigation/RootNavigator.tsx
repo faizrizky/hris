@@ -24,6 +24,8 @@ import { StaffListScreen } from "@/screens/staff/StaffListScreen";
 import { StaffDetailScreen } from "@/screens/staff/StaffDetailScreen";
 import { StaffAttendanceScreen } from "@/screens/staff/StaffAttendanceScreen";
 import { StaffHistoryScreen } from "@/screens/staff/StaffHistoryScreen";
+import { ProfileDataScreen } from "@/screens/profile/ProfileDataScreen";
+import { ProfileEditScreen } from "@/screens/profile/ProfileEditScreen";
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -144,6 +146,16 @@ function HomeStack() {
   );
 }
 
+function ProfileStack() {
+  return (
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="ProfileMain" component={ProfileScreen} />
+      <Stack.Screen name="ProfileData" component={ProfileDataScreen} />
+      <Stack.Screen name="ProfileEdit" component={ProfileEditScreen} />
+    </Stack.Navigator>
+  );
+}
+
 function MainTabs() {
   const { employee } = useSession();
   const canApprove = employee?.role === "mss" || employee?.role === "hr";
@@ -186,10 +198,8 @@ function MainTabs() {
       />
       <Tab.Screen
         name="Profil"
-        component={ProfileScreen}
-        options={{
-          headerShown: false,
-        }}
+        component={ProfileStack}
+        options={{ headerShown: false }}
       />
     </Tab.Navigator>
   );

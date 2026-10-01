@@ -71,7 +71,7 @@ export function FloatingTabBar({ state, navigation }: BottomTabBarProps) {
         ? "AbsensiTim"
         : "Absensi",
   ];
-  const HIDE_ON = ["LeaveRequest", "AttendanceCorrection"];
+  const HIDE_ON = ["LeaveRequest", "AttendanceCorrection", "ProfileEdit"];
   if (nestedRoute && HIDE_ON.includes(nestedRoute)) return null;
 
   const go = (routeName: string) => {

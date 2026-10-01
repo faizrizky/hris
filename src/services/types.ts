@@ -216,6 +216,48 @@ export interface AppNotification {
   read: boolean;
 }
 
+export interface FamilyMember {
+  initials: string;
+  name: string;
+  relation: string;
+  age: string; // "58 th"
+  dependent: boolean;
+}
+
+export interface EmergencyContact {
+  name: string;
+  relation: string;
+  phone: string;
+}
+
+/** Bagian yang boleh diubah karyawan sendiri. */
+export interface EditableProfile {
+  phone: string;
+  personalEmail: string;
+  address: string;
+  em2Name: string;
+  em2Relation: string;
+  em2Phone: string;
+}
+
+/** Sisanya hanya bisa diubah HR lewat pengajuan dokumen. */
+export interface PersonalProfile {
+  fullName: string;
+  nikMasked: string;
+  birthPlace: string;
+  birthDate: string; // ISO
+  gender: string;
+  maritalStatus: string;
+  religion: string;
+  npwpMasked: string;
+  workEmail: string;
+  ktpAddress: string;
+  ptkpStatus: string;
+  family: FamilyMember[];
+  primaryEmergency: EmergencyContact;
+  editable: EditableProfile;
+}
+
 // Kontrak yang dipakai UI — mock & real ERPNext service sama-sama implement ini.
 export interface HrisApi {
   login(email: string, password: string): Promise<Employee>;
@@ -266,4 +308,10 @@ export interface HrisApi {
     employeeId: string,
     ids?: string[], // tanpa ids = tandai semua
   ): Promise<AppNotification[]>;
+
+  getPersonalProfile(employeeId: string): Promise<PersonalProfile>;
+  savePersonalProfile(
+    employeeId: string,
+    data: EditableProfile,
+  ): Promise<PersonalProfile>;
 }
