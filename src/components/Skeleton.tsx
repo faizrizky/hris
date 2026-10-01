@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useState } from "react";
 import { Animated, Easing, ViewStyle } from "react-native";
 import { useTheme } from "@/theme/ThemeContext";
 
@@ -15,7 +15,7 @@ export function Skeleton({
   color?: string;
   style?: ViewStyle;
 }) {
-  const anim = useRef(new Animated.Value(0)).current;
+  const [anim] = useState(() => new Animated.Value(0));
   const c = useTheme();
   const isi = color ?? c.track;
 

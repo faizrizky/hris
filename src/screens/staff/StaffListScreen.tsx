@@ -33,7 +33,7 @@ export function StaffListScreen({ navigation }: any) {
     hrisApi.getStaffDirectory(employee.id).then(setDir);
   }, [employee]);
 
-  const items = dir?.items ?? [];
+  const items = useMemo(() => dir?.items ?? [], [dir]);
 
   const loading = dir === null;
 

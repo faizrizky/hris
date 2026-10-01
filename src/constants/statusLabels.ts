@@ -1,6 +1,11 @@
-import { AttendanceStatus, AttendanceRequestedStatus } from "@/services/types";
+import {
+  AttendanceStatus,
+  AttendanceRequestedStatus,
+  LeaveType,
+  LeaveDecision,
+  OvertimeStatus,
+} from "@/services/types";
 import { SemanticTone } from "@/theme/colors";
-import { LeaveType, LeaveDecision, OvertimeStatus } from "@/services/types";
 
 export function leaveDecisionBadge(decision: LeaveDecision): {
   label: string;

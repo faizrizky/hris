@@ -168,30 +168,31 @@ function Donut({
   const total = segments.reduce((sum, s) => sum + s.value, 0) || 1;
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
-  let walked = 0;
+  const arcs = segments.map((seg, i) => {
+    const len = (seg.value / total) * CIRC;
+    const jalan = segments
+      .slice(0, i)
+      .reduce((sum, s) => sum + (s.value / total) * CIRC, 0);
+    return { color: seg.color, len, offset: -jalan };
+  });
 
   return (
     <View style={styles.donut}>
       <Svg width={SIZE} height={SIZE} style={StyleSheet.absoluteFill}>
         <G rotation={-90} origin={`${SIZE / 2}, ${SIZE / 2}`}>
-          {segments.map((seg, i) => {
-            const len = (seg.value / total) * CIRC;
-            const offset = -walked;
-            walked += len;
-            return (
-              <Circle
-                key={i}
-                cx={SIZE / 2}
-                cy={SIZE / 2}
-                r={RADIUS}
-                fill="none"
-                stroke={seg.color}
-                strokeWidth={STROKE}
-                strokeDasharray={`${len} ${CIRC - len}`}
-                strokeDashoffset={offset}
-              />
-            );
-          })}
+          {arcs.map((a, i) => (
+            <Circle
+              key={i}
+              cx={SIZE / 2}
+              cy={SIZE / 2}
+              r={RADIUS}
+              fill="none"
+              stroke={a.color}
+              strokeWidth={STROKE}
+              strokeDasharray={`${a.len} ${CIRC - a.len}`}
+              strokeDashoffset={a.offset}
+            />
+          ))}
         </G>
       </Svg>
 
@@ -243,7 +244,7 @@ const makeStyles = (c: Palette) =>
       backgroundColor: c.chip,
     },
     chipOn: { backgroundColor: c.accent },
-    chipText: { fontSize: 12, fontWeight: "600", color: "#475569" },
+    chipText: { fontSize: 12, fontWeight: "600", color: c.muted },
     chipTextOn: { color: "#fff" },
 
     list: { paddingHorizontal: 18, paddingBottom: 130 },

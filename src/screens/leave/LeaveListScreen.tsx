@@ -17,6 +17,8 @@ import { LeaveBalance, LeaveRequest } from "@/services/types";
 export function LeaveListScreen({ navigation }: any) {
   const { employee } = useSession();
   const insets = useSafeAreaInsets();
+  const c = useTheme();
+  const styles = useMemo(() => makeStyles(c), [c]);
   const [balances, setBalances] = useState<LeaveBalance[]>([]);
   const [requests, setRequests] = useState<LeaveRequest[]>([]);
 
@@ -36,8 +38,6 @@ export function LeaveListScreen({ navigation }: any) {
   const terpakai = cuti ? cuti.total - cuti.remaining : 0;
   const sisaPersen =
     cuti && cuti.total ? (cuti.remaining / cuti.total) * 100 : 0;
-  const c = useTheme();
-  const styles = useMemo(() => makeStyles(c), [c]);
 
   return (
     <View style={styles.container}>

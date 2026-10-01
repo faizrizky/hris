@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import {
   Animated,
   Easing,
@@ -37,7 +37,7 @@ export function CreateSheet({
   const styles = useMemo(() => makeStyles(c), [c]);
 
   const insets = useSafeAreaInsets();
-  const anim = useRef(new Animated.Value(0)).current;
+  const [anim] = useState(() => new Animated.Value(0));
   const [tinggi, setTinggi] = useState(460);
 
   useEffect(() => {
