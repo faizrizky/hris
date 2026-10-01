@@ -74,6 +74,8 @@ export function AttendanceCorrectionScreen({ navigation }: any) {
   useEffect(() => {
     if (!tanggal) return;
     const r = history.find((x) => x.date === tanggal);
+
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- sengaja: isi ulang jam saat tanggal berganti
     setMasukRaw(r?.checkIn ? menitDari(r.checkIn) : 8 * 60);
     setKeluarRaw(r?.checkOut ? menitDari(r.checkOut) : 17 * 60);
   }, [tanggal, history]);
