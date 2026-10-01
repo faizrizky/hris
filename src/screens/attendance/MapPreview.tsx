@@ -1,19 +1,18 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { Animated, Easing, StyleSheet, Text, View } from "react-native";
 import Svg, { Line, Rect } from "react-native-svg";
-
-// Warna khusus peta — sengaja nggak ditaruh di colors.ts karena cuma dipakai di sini.
-const GRID_LINE = "#E4EBF4";
-const GRID_BG = "#F5F8FC";
-const BLOCK = "#E9EFF7";
-const BLOCK_BD = "#DCE5F0";
+import { Palette } from "@/theme/colors";
+import { useTheme } from "@/theme/ThemeContext";
 
 const MAP_H = 216;
 const CELL = 26;
 
 export function MapPreview() {
   const [width, setWidth] = useState(0);
-  const pulse = useRef(new Animated.Value(0)).current;
+  const [pulse] = useState(() => new Animated.Value(0));
+
+  const c = useTheme();
+  const styles = useMemo(() => makeStyles(c), [c]);
 
   useEffect(() => {
     const loop = Animated.loop(
@@ -55,7 +54,7 @@ export function MapPreview() {
     >
       {width > 0 && (
         <Svg width={width} height={MAP_H} style={StyleSheet.absoluteFill}>
-          <Rect width={width} height={MAP_H} fill={GRID_BG} />
+          <Rect width={width} height={MAP_H} fill={c.map.bg} />
           {Array.from({ length: cols + 1 }).map((_, i) => (
             <Line
               key={`v${i}`}
@@ -63,7 +62,7 @@ export function MapPreview() {
               y1={0}
               x2={i * CELL}
               y2={MAP_H}
-              stroke={GRID_LINE}
+              stroke={c.map.line}
               strokeWidth={1}
             />
           ))}
@@ -74,7 +73,7 @@ export function MapPreview() {
               y1={i * CELL}
               x2={width}
               y2={i * CELL}
-              stroke={GRID_LINE}
+              stroke={c.map.line}
               strokeWidth={1}
             />
           ))}
@@ -102,68 +101,69 @@ export function MapPreview() {
   );
 }
 
-const styles = StyleSheet.create({
-  map: { height: MAP_H, position: "relative", overflow: "hidden" },
-  block: {
-    position: "absolute",
-    borderRadius: 8,
-    backgroundColor: BLOCK,
-    borderWidth: 1,
-    borderColor: BLOCK_BD,
-  },
-  road: {
-    position: "absolute",
-    left: 0,
-    right: 0,
-    top: 128,
-    height: 16,
-    backgroundColor: BLOCK,
-  },
-  geofence: {
-    position: "absolute",
-    left: "50%",
-    top: "50%",
-    marginLeft: -75,
-    marginTop: -75,
-    width: 150,
-    height: 150,
-    borderRadius: 75,
-    backgroundColor: "rgba(36,144,239,0.14)",
-    borderWidth: 1,
-    borderColor: "rgba(36,144,239,0.4)",
-  },
-  pulse: {
-    position: "absolute",
-    left: "50%",
-    top: "50%",
-    marginLeft: -75,
-    marginTop: -75,
-    width: 150,
-    height: 150,
-    borderRadius: 75,
-    backgroundColor: "rgba(36,144,239,0.35)",
-  },
-  pin: {
-    position: "absolute",
-    left: "50%",
-    top: "50%",
-    marginLeft: -9,
-    marginTop: -9,
-    width: 18,
-    height: 18,
-    borderRadius: 9,
-    backgroundColor: "#2490EF",
-    borderWidth: 3,
-    borderColor: "#fff",
-  },
-  mapBadge: {
-    position: "absolute",
-    left: 12,
-    bottom: 12,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 9,
-    backgroundColor: "rgba(15,23,32,0.85)",
-  },
-  mapBadgeText: { fontSize: 10, fontWeight: "600", color: "#7FBCF7" },
-});
+const makeStyles = (c: Palette) =>
+  StyleSheet.create({
+    map: { height: MAP_H, position: "relative", overflow: "hidden" },
+    block: {
+      position: "absolute",
+      borderRadius: 8,
+      backgroundColor: c.map.block,
+      borderWidth: 1,
+      borderColor: c.map.blockBorder,
+    },
+    road: {
+      position: "absolute",
+      left: 0,
+      right: 0,
+      top: 128,
+      height: 16,
+      backgroundColor: c.map.block,
+    },
+    geofence: {
+      position: "absolute",
+      left: "50%",
+      top: "50%",
+      marginLeft: -75,
+      marginTop: -75,
+      width: 150,
+      height: 150,
+      borderRadius: 75,
+      backgroundColor: "rgba(36,144,239,0.14)",
+      borderWidth: 1,
+      borderColor: "rgba(36,144,239,0.4)",
+    },
+    pulse: {
+      position: "absolute",
+      left: "50%",
+      top: "50%",
+      marginLeft: -75,
+      marginTop: -75,
+      width: 150,
+      height: 150,
+      borderRadius: 75,
+      backgroundColor: "rgba(36,144,239,0.35)",
+    },
+    pin: {
+      position: "absolute",
+      left: "50%",
+      top: "50%",
+      marginLeft: -9,
+      marginTop: -9,
+      width: 18,
+      height: 18,
+      borderRadius: 9,
+      backgroundColor: "#2490EF",
+      borderWidth: 3,
+      borderColor: "#fff",
+    },
+    mapBadge: {
+      position: "absolute",
+      left: 12,
+      bottom: 12,
+      paddingHorizontal: 10,
+      paddingVertical: 6,
+      borderRadius: 9,
+      backgroundColor: "rgba(15,23,32,0.85)",
+    },
+    mapBadgeText: { fontSize: 10, fontWeight: "600", color: c.accentLight },
+  });

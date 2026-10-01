@@ -287,7 +287,7 @@ const makeStyles = (c: Palette) =>
       backgroundColor: c.chip,
     },
     chipOn: { backgroundColor: c.accent },
-    chipText: { fontSize: 12, fontWeight: "600", color: "#475569" },
+    chipText: { fontSize: 12, fontWeight: "600", color: c.muted },
     chipTextOn: { color: c.card },
 
     list: { paddingHorizontal: 18, paddingBottom: 130 },

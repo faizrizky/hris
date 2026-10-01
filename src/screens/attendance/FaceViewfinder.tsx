@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useMemo } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { Animated, Easing, StyleSheet, Text, View } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import Svg, { G, Rect } from "react-native-svg";
@@ -9,14 +9,11 @@ const W = 186;
 const H = 232;
 const R = 94;
 
-const VF_A = "#E8EEF6"; // dasar
-const VF_B = "#DEE8F3"; // garis diagonal
-
 // Cukup panjang & banyak untuk menutupi area setelah dirotasi 45°.
 const BANDS = Array.from({ length: 32 }, (_, i) => -200 + i * 16);
 
 export function FaceViewfinder() {
-  const scan = useRef(new Animated.Value(0)).current;
+  const [scan] = useState(() => new Animated.Value(0));
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
 
@@ -49,10 +46,17 @@ export function FaceViewfinder() {
   return (
     <View style={styles.frame}>
       <Svg width={W} height={H} style={StyleSheet.absoluteFill}>
-        <Rect width={W} height={H} fill={VF_A} />
+        <Rect width={W} height={H} fill={c.viewfinder.base} />
         <G rotation={45} origin={`${W / 2}, ${H / 2}`}>
           {BANDS.map((y) => (
-            <Rect key={y} x={-160} y={y} width={520} height={8} fill={VF_B} />
+            <Rect
+              key={y}
+              x={-160}
+              y={y}
+              width={520}
+              height={8}
+              fill={c.viewfinder.stripe}
+            />
           ))}
         </G>
       </Svg>
@@ -117,6 +121,6 @@ const makeStyles = (c: Palette) =>
       borderRadius: R,
       borderWidth: 2,
       borderStyle: "dashed",
-      borderColor: "rgba(36,144,239,0.5)",
+      borderColor: c.viewfinder.border,
     },
   });
