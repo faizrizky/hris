@@ -93,6 +93,7 @@ export function ProfileScreen({ navigation }: any) {
             icon={ICON.document}
             title="Dokumen digital"
             subtitle="Kontrak, sertifikat, SK"
+            onPress={() => navigation.navigate("ProfileDocs")}
           />
           <MenuRow
             iconBg={c.warn.bg}
@@ -131,6 +132,7 @@ export function ProfileScreen({ navigation }: any) {
             title="Keamanan & Face ID"
             subtitle="Biometrik, ubah password"
             isLast
+            onPress={() => navigation.navigate("ProfileSecurity")}
           />
         </View>
 
