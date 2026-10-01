@@ -24,6 +24,7 @@ interface Props {
   onChange: (start: string | null, end: string | null) => void;
   footer: FooterItem[];
   allow?: "future" | "past";
+  flat?: boolean;
 }
 
 export function DatePickerCard({
@@ -35,6 +36,7 @@ export function DatePickerCard({
   onChange,
   footer,
   allow = "future",
+  flat = false,
 }: Props) {
   const [cursor, setCursor] = useState(() =>
     start ? fromISODate(start) : new Date(),
@@ -77,7 +79,7 @@ export function DatePickerCard({
     setCursor(new Date(cursor.getFullYear(), cursor.getMonth() + delta, 1));
 
   return (
-    <View style={styles.card}>
+    <View style={[styles.card, flat && styles.cardFlat]}>
       <View style={styles.head}>
         <View style={{ flex: 1, minWidth: 0 }}>
           <Text style={styles.title}>{title}</Text>
@@ -145,16 +147,20 @@ export function DatePickerCard({
         </View>
       ))}
 
-      <View style={styles.footer}>
-        {footer.map((f) => (
-          <View key={f.label} style={{ flex: 1 }}>
-            <Text style={styles.footerLabel}>{f.label}</Text>
-            <Text style={[styles.footerValue, f.accent && styles.footerAccent]}>
-              {f.value}
-            </Text>
-          </View>
-        ))}
-      </View>
+      {footer.length > 0 && (
+        <View style={styles.footer}>
+          {footer.map((f) => (
+            <View key={f.label} style={{ flex: 1 }}>
+              <Text style={styles.footerLabel}>{f.label}</Text>
+              <Text
+                style={[styles.footerValue, f.accent && styles.footerAccent]}
+              >
+                {f.value}
+              </Text>
+            </View>
+          ))}
+        </View>
+      )}
     </View>
   );
 }
@@ -173,6 +179,15 @@ const makeStyles = (c: Palette) =>
       shadowOpacity: 0.06,
       shadowRadius: 16,
       elevation: 3,
+    },
+    cardFlat: {
+      backgroundColor: "transparent",
+      borderWidth: 0,
+      borderRadius: 0,
+      padding: 0,
+      marginTop: 0,
+      shadowOpacity: 0,
+      elevation: 0,
     },
     head: { flexDirection: "row", alignItems: "center" },
     title: { fontSize: 13.5, fontWeight: "700", color: c.ink },
