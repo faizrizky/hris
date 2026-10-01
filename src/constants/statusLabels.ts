@@ -4,6 +4,8 @@ import {
   LeaveType,
   LeaveDecision,
   OvertimeStatus,
+  DocCategory,
+  DocStatus,
 } from "@/services/types";
 import { SemanticTone } from "@/theme/colors";
 
@@ -72,4 +74,23 @@ export const OVERTIME_STATUS_TONE: Record<OvertimeStatus, SemanticTone> = {
   approved: "ok",
   paid: "info",
   rejected: "bad",
+};
+
+export const DOC_STATUS_LABEL: Record<DocStatus, string> = {
+  verified: "Terverifikasi",
+  pending: "Menunggu verifikasi",
+  expiring: "Segera berakhir",
+};
+
+export const DOC_STATUS_TONE: Record<DocStatus, SemanticTone> = {
+  verified: "ok",
+  pending: "warn",
+  expiring: "warn",
+};
+
+export const DOC_CATEGORY_LABEL: Record<DocCategory, string> = {
+  kontrak: "Kontrak",
+  sk: "SK",
+  sertifikat: "Sertifikat",
+  identitas: "Identitas",
 };

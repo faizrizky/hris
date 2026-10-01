@@ -258,6 +258,46 @@ export interface PersonalProfile {
   editable: EditableProfile;
 }
 
+export type DocCategory = "kontrak" | "sk" | "sertifikat" | "identitas";
+export type DocStatus = "verified" | "pending" | "expiring";
+
+export interface EmployeeDocument {
+  id: string;
+  category: DocCategory;
+  ext: string; // "PDF" | "JPG" | "PNG"
+  name: string;
+  sizeLabel: string; // "1,2 MB"
+  dateLabel: string; // "14 Sep 2023" / "berakhir 30 hari lagi"
+  status: DocStatus;
+}
+
+export type SecurityToggleKey = "face" | "presence" | "lock" | "twofa";
+
+export interface SecurityToggle {
+  key: SecurityToggleKey;
+  title: string;
+  subtitle: string;
+  enabled: boolean;
+}
+
+export interface ActiveDevice {
+  id: string;
+  name: string;
+  meta: string;
+  kind: "mobile" | "web";
+  current: boolean;
+}
+
+export interface SecurityInfo {
+  faceEnrolledAt: string; // ISO
+  faceUpdatedAt: string; // ISO
+  livenessOk: boolean;
+  matchScore: number; // 98.4
+  passwordChangedDaysAgo: number;
+  toggles: SecurityToggle[];
+  devices: ActiveDevice[];
+}
+
 // Kontrak yang dipakai UI — mock & real ERPNext service sama-sama implement ini.
 export interface HrisApi {
   login(email: string, password: string): Promise<Employee>;
@@ -314,4 +354,29 @@ export interface HrisApi {
     employeeId: string,
     data: EditableProfile,
   ): Promise<PersonalProfile>;
+
+  getDocuments(employeeId: string): Promise<EmployeeDocument[]>;
+  uploadDocument(
+    employeeId: string,
+    input: {
+      category: DocCategory;
+      ext: string;
+      name: string;
+      sizeLabel: string;
+      expiresLabel?: string;
+    },
+  ): Promise<EmployeeDocument[]>;
+
+  getSecurityInfo(employeeId: string): Promise<SecurityInfo>;
+  setSecurityToggle(
+    employeeId: string,
+    key: SecurityToggleKey,
+    enabled: boolean,
+  ): Promise<SecurityInfo>;
+  logoutOtherDevices(employeeId: string): Promise<SecurityInfo>;
+  changePassword(
+    employeeId: string,
+    current: string,
+    next: string,
+  ): Promise<void>;
 }

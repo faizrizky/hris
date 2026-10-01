@@ -21,6 +21,10 @@ import {
   FeedItem,
   PersonalProfile,
   EditableProfile,
+  EmployeeDocument,
+  DocCategory,
+  SecurityInfo,
+  SecurityToggleKey,
 } from "../types";
 import {
   MOCK_ATTENDANCE,
@@ -38,6 +42,8 @@ import {
   MOCK_STAFF,
   TOTAL_KARYAWAN_AKTIF,
   MOCK_PROFILE,
+  MOCK_DOCUMENTS,
+  MOCK_SECURITY,
 } from "./mockData";
 
 const delay = (ms = 300) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -57,6 +63,8 @@ let inbox: AppNotification[] = [...MOCK_INBOX];
 let pendingApprovals: LeaveRequest[] = [...MOCK_PENDING_APPROVALS];
 let currentEmployee: Employee = MOCK_EMPLOYEES.ess;
 let personalProfile: PersonalProfile = MOCK_PROFILE;
+let documents: EmployeeDocument[] = [...MOCK_DOCUMENTS];
+let security: SecurityInfo = MOCK_SECURITY;
 
 export const mockApi: HrisApi = {
   async login(email: string, _password: string): Promise<Employee> {
@@ -251,5 +259,74 @@ export const mockApi: HrisApi = {
     await delay(200);
     personalProfile = { ...personalProfile, editable: data };
     return personalProfile;
+  },
+
+  async getDocuments(_employeeId: string): Promise<EmployeeDocument[]> {
+    await delay();
+    return documents;
+  },
+
+  async uploadDocument(
+    _employeeId: string,
+    input: {
+      category: DocCategory;
+      ext: string;
+      name: string;
+      sizeLabel: string;
+      expiresLabel?: string;
+    },
+  ): Promise<EmployeeDocument[]> {
+    await delay(400);
+    const baru: EmployeeDocument = {
+      id: `d${Date.now()}`,
+      category: input.category,
+      ext: input.ext,
+      name: input.name,
+      sizeLabel: input.sizeLabel,
+      dateLabel: input.expiresLabel
+        ? `berlaku s.d. ${input.expiresLabel}`
+        : "baru diunggah",
+      status: "pending",
+    };
+    documents = [baru, ...documents];
+    return documents;
+  },
+
+  async getSecurityInfo(_employeeId: string): Promise<SecurityInfo> {
+    await delay();
+    return security;
+  },
+
+  async setSecurityToggle(
+    _employeeId: string,
+    key: SecurityToggleKey,
+    enabled: boolean,
+  ): Promise<SecurityInfo> {
+    await delay(120);
+    security = {
+      ...security,
+      toggles: security.toggles.map((t) =>
+        t.key === key ? { ...t, enabled } : t,
+      ),
+    };
+    return security;
+  },
+
+  async logoutOtherDevices(_employeeId: string): Promise<SecurityInfo> {
+    await delay(300);
+    security = {
+      ...security,
+      devices: security.devices.filter((d) => d.current),
+    };
+    return security;
+  },
+
+  async changePassword(
+    _employeeId: string,
+    _current: string,
+    _next: string,
+  ): Promise<void> {
+    await delay(400);
+    security = { ...security, passwordChangedDaysAgo: 0 };
   },
 };

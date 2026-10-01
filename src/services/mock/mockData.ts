@@ -13,6 +13,8 @@ import {
   Staff,
   TaxSummary,
   PersonalProfile,
+  EmployeeDocument,
+  SecurityInfo,
 } from "../types";
 
 export const MOCK_EMPLOYEES: Record<string, Employee> = {
@@ -685,4 +687,129 @@ export const MOCK_PROFILE: PersonalProfile = {
     em2Relation: "Ibu",
     em2Phone: "",
   },
+};
+
+export const MOCK_DOCUMENTS: EmployeeDocument[] = [
+  {
+    id: "d1",
+    category: "kontrak",
+    ext: "PDF",
+    name: "Kontrak Kerja PKWTT",
+    sizeLabel: "1,2 MB",
+    dateLabel: "14 Sep 2023",
+    status: "verified",
+  },
+  {
+    id: "d2",
+    category: "kontrak",
+    ext: "PDF",
+    name: "Addendum Gaji 2025",
+    sizeLabel: "640 KB",
+    dateLabel: "02 Jan 2025",
+    status: "verified",
+  },
+  {
+    id: "d3",
+    category: "sk",
+    ext: "PDF",
+    name: "SK Pengangkatan Karyawan Tetap",
+    sizeLabel: "380 KB",
+    dateLabel: "14 Des 2023",
+    status: "verified",
+  },
+  {
+    id: "d4",
+    category: "sk",
+    ext: "PDF",
+    name: "SK Kenaikan Jabatan",
+    sizeLabel: "420 KB",
+    dateLabel: "01 Apr 2025",
+    status: "verified",
+  },
+  {
+    id: "d5",
+    category: "sertifikat",
+    ext: "PDF",
+    name: "Sertifikat Brevet Pajak A & B",
+    sizeLabel: "2,1 MB",
+    dateLabel: "20 Mar 2024",
+    status: "verified",
+  },
+  {
+    id: "d6",
+    category: "sertifikat",
+    ext: "JPG",
+    name: "Sertifikat K3 Umum",
+    sizeLabel: "1,8 MB",
+    dateLabel: "berakhir 30 hari lagi",
+    status: "expiring",
+  },
+  {
+    id: "d7",
+    category: "identitas",
+    ext: "JPG",
+    name: "KTP",
+    sizeLabel: "900 KB",
+    dateLabel: "14 Sep 2023",
+    status: "verified",
+  },
+  {
+    id: "d8",
+    category: "identitas",
+    ext: "JPG",
+    name: "NPWP",
+    sizeLabel: "710 KB",
+    dateLabel: "diunggah 12 Sep",
+    status: "pending",
+  },
+];
+
+export const MOCK_SECURITY: SecurityInfo = {
+  faceEnrolledAt: "2023-09-14",
+  faceUpdatedAt: "2026-03-12",
+  livenessOk: true,
+  matchScore: 98.4,
+  passwordChangedDaysAgo: 92,
+  toggles: [
+    {
+      key: "face",
+      title: "Login dengan Face ID",
+      subtitle: "Masuk ke aplikasi tanpa mengetik password",
+      enabled: true,
+    },
+    {
+      key: "presence",
+      title: "Face ID untuk presensi",
+      subtitle: "Wajib verifikasi wajah saat clock in dan clock out",
+      enabled: true,
+    },
+    {
+      key: "lock",
+      title: "Kunci otomatis",
+      subtitle: "Kunci aplikasi setelah 1 menit tidak aktif",
+      enabled: false,
+    },
+    {
+      key: "twofa",
+      title: "Verifikasi 2 langkah",
+      subtitle: "Kode OTP dikirim ke email saat login di perangkat baru",
+      enabled: false,
+    },
+  ],
+  devices: [
+    {
+      id: "dev1",
+      name: "iPhone 15 Pro",
+      meta: "Jakarta · aktif sekarang",
+      kind: "mobile",
+      current: true,
+    },
+    {
+      id: "dev2",
+      name: "Chrome · Windows 11",
+      meta: "Jakarta · 2 jam lalu",
+      kind: "web",
+      current: false,
+    },
+  ],
 };
