@@ -26,6 +26,10 @@ import { StaffAttendanceScreen } from "@/screens/staff/StaffAttendanceScreen";
 import { StaffHistoryScreen } from "@/screens/staff/StaffHistoryScreen";
 import { ProfileDataScreen } from "@/screens/profile/ProfileDataScreen";
 import { ProfileEditScreen } from "@/screens/profile/ProfileEditScreen";
+import { ProfileDocsScreen } from "@/screens/profile/ProfileDocsScreen";
+import { ProfileUploadScreen } from "@/screens/profile/ProfileUploadScreen";
+import { ProfileSecurityScreen } from "@/screens/profile/ProfileSecurityScreen";
+import { ProfilePasswordScreen } from "@/screens/profile/ProfilePasswordScreen";
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -152,6 +156,10 @@ function ProfileStack() {
       <Stack.Screen name="ProfileMain" component={ProfileScreen} />
       <Stack.Screen name="ProfileData" component={ProfileDataScreen} />
       <Stack.Screen name="ProfileEdit" component={ProfileEditScreen} />
+      <Stack.Screen name="ProfileDocs" component={ProfileDocsScreen} />
+      <Stack.Screen name="ProfileUpload" component={ProfileUploadScreen} />
+      <Stack.Screen name="ProfileSecurity" component={ProfileSecurityScreen} />
+      <Stack.Screen name="ProfilePassword" component={ProfilePasswordScreen} />
     </Stack.Navigator>
   );
 }
