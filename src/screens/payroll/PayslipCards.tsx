@@ -381,7 +381,7 @@ const makeStyles = (c: Palette) =>
       alignItems: "center",
       justifyContent: "center",
     },
-    monthText: { fontSize: 10, fontWeight: "700", color: "#475569" },
+    monthText: { fontSize: 10, fontWeight: "700", color: c.muted },
     historyPeriod: { fontSize: 12.5, fontWeight: "600", color: c.ink },
     historyNote: {
       fontSize: 10.5,

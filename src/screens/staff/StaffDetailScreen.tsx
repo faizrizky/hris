@@ -252,7 +252,7 @@ const makeStyles = (c: Palette) =>
     container: { flex: 1, backgroundColor: c.bg },
 
     header: {
-      backgroundColor: c.dark.bg,
+      backgroundColor: c.headerBg,
       paddingHorizontal: 20,
       paddingBottom: 46,
       borderBottomLeftRadius: 28,

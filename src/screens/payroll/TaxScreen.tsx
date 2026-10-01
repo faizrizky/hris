@@ -225,7 +225,7 @@ const makeStyles = (c: Palette) =>
     },
 
     darkCard: {
-      backgroundColor: c.dark.bg,
+      backgroundColor: c.statBg,
       borderRadius: 22,
       padding: 18,
     },

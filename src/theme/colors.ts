@@ -34,14 +34,17 @@ export const lightColors = {
   info: { bg: "#DCEBFC", ink: "#1B6FC9" },
   bad: { bg: "#FEE2E2", ink: "#DC2626" },
 
-  dark: {
-    bg: "#0F1720",
-    card: "rgba(255,255,255,0.05)",
-    border: "rgba(255,255,255,0.08)",
-    chip: "rgba(255,255,255,0.07)",
-    btn: "rgba(255,255,255,0.1)",
-    ink: "#FFFFFF",
-    muted: "rgba(255,255,255,0.5)",
+  map: {
+    line: "#E4EBF4",
+    bg: "#F5F8FC",
+    block: "#E9EFF7",
+    blockBorder: "#DCE5F0",
+  },
+
+  viewfinder: {
+    base: "#E8EEF6",
+    stripe: "#DEE8F3",
+    border: "rgba(36,144,239,0.5)",
   },
 };
 
@@ -79,14 +82,16 @@ export const darkColors: Palette = {
   info: { bg: "rgba(36,144,239,0.16)", ink: "#7FBCF7" },
   bad: { bg: "rgba(248,113,113,0.14)", ink: "#F87171" },
 
-  dark: {
-    bg: "#131D27",
-    card: "rgba(255,255,255,0.05)",
-    border: "rgba(255,255,255,0.08)",
-    chip: "rgba(255,255,255,0.07)",
-    btn: "rgba(255,255,255,0.1)",
-    ink: "#FFFFFF",
-    muted: "rgba(255,255,255,0.5)",
+  map: {
+    line: "#1B2733",
+    bg: "#16202B",
+    block: "rgba(255,255,255,0.04)",
+    blockBorder: "rgba(255,255,255,0.07)",
+  },
+  viewfinder: {
+    base: "#1E2A36",
+    stripe: "#222F3C",
+    border: "rgba(127,188,247,0.45)",
   },
 };
 

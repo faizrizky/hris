@@ -278,7 +278,7 @@ const makeStyles = (c: Palette) =>
       marginTop: 16,
       marginBottom: 14,
     },
-    dividerLine: { flex: 1, height: 1, backgroundColor: "rgba(15,23,32,0.09)" },
+    dividerLine: { flex: 1, height: 1, backgroundColor: c.hair },
     dividerLabel: { fontSize: 11, color: c.mutedLabel, fontWeight: "500" },
 
     faceIdButton: {
