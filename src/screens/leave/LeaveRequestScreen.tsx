@@ -28,7 +28,6 @@ import {
 } from "./DinasFormCards";
 
 import { DinasBiayaCard, Biaya, totalBiaya } from "./DinasBiayaCard";
-import { jamMenit, durasiJam } from "@/utils/date";
 import { hrisApi } from "@/services/api";
 import { useSession } from "@/services/session";
 import { LeaveBalance } from "@/services/types";
@@ -42,6 +41,8 @@ import {
   hitungHari,
   hitungHariKerja,
   fromISODate,
+  jamMenit,
+  durasiJam,
 } from "@/utils/date";
 import { rupiah } from "@/utils/currency";
 import { LinearGradient } from "expo-linear-gradient";
@@ -376,6 +377,15 @@ export function LeaveRequestScreen({ navigation, route }: any) {
               )}
 
               {kind === "dinas" && (
+                <DinasDetailCard
+                  transport={transport}
+                  onPickTransport={setTransport}
+                  keperluan={keperluan}
+                  onChangeKeperluan={setKeperluan}
+                />
+              )}
+
+              {kind === "dinas" && (
                 <DinasBiayaCard
                   items={biaya}
                   hari={hariPerjalanan}
@@ -401,6 +411,7 @@ export function LeaveRequestScreen({ navigation, route }: any) {
                   }
                 />
               )}
+              <ApprovalFlowCard steps={APPROVERS[kind]} />
             </>
           )}
         </ScrollView>
