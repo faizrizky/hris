@@ -6,7 +6,7 @@ import {
   Employee,
   LeaveBalance,
   LeaveRequest,
-  NotificationItem,
+  FeedItem,
   OvertimeRecord,
   Payslip,
   PayslipLine,
@@ -563,7 +563,7 @@ export const MOCK_STAFF: Staff[] = [
 
 export const TOTAL_KARYAWAN_AKTIF = 128;
 
-export const MOCK_NOTIFICATIONS: NotificationItem[] = [
+export const MOCK_FEED: FeedItem[] = [
   {
     id: "n1",
     initials: "BP",

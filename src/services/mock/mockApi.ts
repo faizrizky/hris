@@ -11,7 +11,7 @@ import {
   HrisApi,
   LeaveBalance,
   LeaveRequest,
-  NotificationItem,
+  FeedItem,
   Payslip,
   OvertimeRecord,
   AppNotification,
@@ -25,7 +25,7 @@ import {
   MOCK_EMPLOYEES,
   MOCK_LEAVE_BALANCES,
   MOCK_LEAVE_REQUESTS,
-  MOCK_NOTIFICATIONS,
+  MOCK_FEED,
   MOCK_PAYSLIPS,
   MOCK_PENDING_APPROVALS,
   MOCK_CORRECTIONS,
@@ -212,9 +212,9 @@ export const mockApi: HrisApi = {
     return { totalActive: TOTAL_KARYAWAN_AKTIF, items };
   },
 
-  async getNotifications(_employeeId: string): Promise<NotificationItem[]> {
+  async getFeed(_employeeId: string): Promise<FeedItem[]> {
     await delay(150);
-    return MOCK_NOTIFICATIONS;
+    return MOCK_FEED;
   },
 
   async getNotificationInbox(_employeeId: string): Promise<AppNotification[]> {

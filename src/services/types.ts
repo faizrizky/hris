@@ -188,7 +188,7 @@ export interface StaffDirectory {
   items: Staff[]; // yang boleh dilihat oleh pemanggil
 }
 
-export interface NotificationItem {
+export interface FeedItem {
   id: string;
   initials: string;
   title: string;
@@ -259,7 +259,7 @@ export interface HrisApi {
 
   getStaffDirectory(employeeId: string): Promise<StaffDirectory>;
 
-  getNotifications(employeeId: string): Promise<NotificationItem[]>;
+  getFeed(employeeId: string): Promise<FeedItem[]>;
 
   getNotificationInbox(employeeId: string): Promise<AppNotification[]>;
   markNotificationsRead(

@@ -1,4 +1,4 @@
-import React, { ReactNode, useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -13,7 +13,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useNavigation } from "@react-navigation/native";
 import { formatTanggalPanjang, formatJam } from "@/utils/date";
 import {
-  NotificationItem,
+  FeedItem,
   ClockState,
   LeaveBalance,
   AttendanceRecord,
@@ -24,7 +24,7 @@ import { ICON } from "@/constants/icons";
 export function HomeScreen() {
   const { employee } = useSession();
   const navigation = useNavigation<any>();
-  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
+  const [notifications, setNotifications] = useState<FeedItem[]>([]);
   const [clock, setClock] = useState<ClockState | null>(null);
   const [balances, setBalances] = useState<LeaveBalance[]>([]);
   const [history, setHistory] = useState<AttendanceRecord[]>([]);
@@ -35,7 +35,7 @@ export function HomeScreen() {
   useEffect(() => {
     if (!employee) return;
     Promise.all([
-      hrisApi.getNotifications(employee.id),
+      hrisApi.getFeed(employee.id),
       hrisApi.getClockState(employee.id),
       hrisApi.getLeaveBalances(employee.id),
       hrisApi.getAttendanceHistory(employee.id),
