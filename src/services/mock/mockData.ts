@@ -12,6 +12,7 @@ import {
   PayslipLine,
   Staff,
   TaxSummary,
+  PersonalProfile,
 } from "../types";
 
 export const MOCK_EMPLOYEES: Record<string, Employee> = {
@@ -635,3 +636,53 @@ export const MOCK_INBOX: AppNotification[] = [
     read: true,
   },
 ];
+
+export const MOCK_PROFILE: PersonalProfile = {
+  fullName: "Rani Wijaya",
+  nikMasked: "3174 •••• •••• 0192",
+  birthPlace: "Bandung",
+  birthDate: "1996-05-21",
+  gender: "Perempuan",
+  maritalStatus: "Belum menikah",
+  religion: "Islam",
+  npwpMasked: "•••• •••• 8823",
+  workEmail: "rani.wijaya@nkm.co.id",
+  ktpAddress: "Jl. Cipaganti No. 18, Coblong, Bandung 40131",
+  ptkpStatus: "TK/0",
+  family: [
+    {
+      initials: "HW",
+      name: "Hendra Wijaya",
+      relation: "Ayah",
+      age: "58 th",
+      dependent: false,
+    },
+    {
+      initials: "SW",
+      name: "Sri Wahyuni",
+      relation: "Ibu",
+      age: "55 th",
+      dependent: false,
+    },
+    {
+      initials: "DW",
+      name: "Dito Wijaya",
+      relation: "Saudara",
+      age: "22 th",
+      dependent: false,
+    },
+  ],
+  primaryEmergency: {
+    name: "Hendra Wijaya",
+    relation: "Ayah",
+    phone: "0812 5567 3300",
+  },
+  editable: {
+    phone: "0811 3390 7721",
+    personalEmail: "",
+    address: "Jl. Cipaganti No. 18, Coblong, Bandung 40131",
+    em2Name: "",
+    em2Relation: "Ibu",
+    em2Phone: "",
+  },
+};

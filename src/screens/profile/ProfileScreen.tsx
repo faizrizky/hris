@@ -14,14 +14,13 @@ import { RadialGlow } from "@/components/RadialGlow";
 import { LineIcon } from "@/components/LineIcon";
 import { ICON } from "@/constants/icons";
 import { Palette } from "@/theme/colors";
-import { useTheme } from "@/theme/ThemeContext";
+import { useTheme, useThemeMode } from "@/theme/ThemeContext";
 import { tahunSejak } from "@/utils/date";
 import { hrisApi } from "@/services/api";
 import { useSession } from "@/services/session";
 import { LeaveBalance } from "@/services/types";
-import { useThemeMode } from "@/theme/ThemeContext";
 
-export function ProfileScreen() {
+export function ProfileScreen({ navigation }: any) {
   const { employee, setEmployee } = useSession();
   const insets = useSafeAreaInsets();
   const [balances, setBalances] = useState<LeaveBalance[]>([]);
@@ -86,6 +85,7 @@ export function ProfileScreen() {
             icon={ICON.user}
             title="Data pribadi & keluarga"
             subtitle="NIK, alamat, kontak darurat"
+            onPress={() => navigation.navigate("ProfileData")}
           />
           <MenuRow
             iconBg={c.ok.bg}
@@ -144,7 +144,7 @@ export function ProfileScreen() {
           </View>
 
           <View style={[styles.syncRow, { marginTop: 9 }]}>
-            <View style={[styles.dot, { backgroundColor: "#D97706" }]} />
+            <View style={[styles.dot, { backgroundColor: c.warn.ink }]} />
             <Text style={styles.syncText}>2 data offline menunggu kirim</Text>
             <Text style={styles.syncAction}>Kirim</Text>
           </View>
@@ -177,6 +177,7 @@ function MenuRow({
   subtitle,
   trailing,
   isLast,
+  onPress,
 }: {
   iconBg: string;
   ink: string;
@@ -185,12 +186,16 @@ function MenuRow({
   subtitle: string;
   trailing?: React.ReactNode;
   isLast?: boolean;
+  onPress?: () => void;
 }) {
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
 
   return (
-    <Pressable style={[styles.menuRow, !isLast && styles.menuDivider]}>
+    <Pressable
+      style={[styles.menuRow, !isLast && styles.menuDivider]}
+      onPress={onPress}
+    >
       <View style={[styles.menuIcon, { backgroundColor: iconBg }]}>
         <LineIcon d={icon} color={ink} size={16} />
       </View>
