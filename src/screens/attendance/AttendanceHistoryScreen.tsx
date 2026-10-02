@@ -2,7 +2,7 @@ import React, { useEffect, useState, useMemo } from "react";
 import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import Svg, { Circle, G } from "react-native-svg";
+import { DonutChart } from "@/components/DonutChart";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Palette } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
@@ -14,11 +14,6 @@ import {
   ATTENDANCE_STATUS_TONE as STATUS_TONE,
 } from "@/constants/statusLabels";
 import { namaHari, tanggalAngka, bulanSingkat } from "@/utils/date";
-
-const SIZE = 70;
-const STROKE = 11;
-const RADIUS = (SIZE - STROKE) / 2;
-const CIRC = 2 * Math.PI * RADIUS;
 
 type Filter = "semua" | "telat" | "izin";
 
@@ -102,14 +97,17 @@ export function AttendanceHistoryScreen({ navigation }: any) {
               </View>
             </View>
 
-            <Donut
-              label={persen}
+            <DonutChart
+              size={70}
+              stroke={11}
               segments={[
                 { value: hadir, color: c.accent },
                 { value: telat, color: c.warn.ink },
                 { value: izin, color: c.accentLight },
               ]}
-            />
+            >
+              <Text style={styles.donutText}>{persen}</Text>
+            </DonutChart>
           </View>
         }
         renderItem={({ item }) => (
@@ -154,51 +152,6 @@ function Recap({
     <View>
       <Text style={[styles.recapValue, { color }]}>{value}</Text>
       <Text style={styles.recapCaption}>{label}</Text>
-    </View>
-  );
-}
-
-function Donut({
-  segments,
-  label,
-}: {
-  segments: { value: number; color: string }[];
-  label: string;
-}) {
-  const total = segments.reduce((sum, s) => sum + s.value, 0) || 1;
-  const c = useTheme();
-  const styles = useMemo(() => makeStyles(c), [c]);
-  const arcs = segments.map((seg, i) => {
-    const len = (seg.value / total) * CIRC;
-    const jalan = segments
-      .slice(0, i)
-      .reduce((sum, s) => sum + (s.value / total) * CIRC, 0);
-    return { color: seg.color, len, offset: -jalan };
-  });
-
-  return (
-    <View style={styles.donut}>
-      <Svg width={SIZE} height={SIZE} style={StyleSheet.absoluteFill}>
-        <G rotation={-90} origin={`${SIZE / 2}, ${SIZE / 2}`}>
-          {arcs.map((a, i) => (
-            <Circle
-              key={i}
-              cx={SIZE / 2}
-              cy={SIZE / 2}
-              r={RADIUS}
-              fill="none"
-              stroke={a.color}
-              strokeWidth={STROKE}
-              strokeDasharray={`${a.len} ${CIRC - a.len}`}
-              strokeDashoffset={a.offset}
-            />
-          ))}
-        </G>
-      </Svg>
-
-      <View style={styles.donutHole}>
-        <Text style={styles.donutText}>{label}</Text>
-      </View>
     </View>
   );
 }
@@ -270,20 +223,6 @@ const makeStyles = (c: Palette) =>
       marginTop: 4,
     },
 
-    donut: {
-      width: SIZE,
-      height: SIZE,
-      alignItems: "center",
-      justifyContent: "center",
-    },
-    donutHole: {
-      width: 48,
-      height: 48,
-      borderRadius: 24,
-      backgroundColor: c.card,
-      alignItems: "center",
-      justifyContent: "center",
-    },
     donutText: { fontSize: 12, fontWeight: "800", color: c.ink },
 
     row: {
