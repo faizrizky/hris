@@ -17,9 +17,11 @@ import {
   ClockState,
   LeaveBalance,
   AttendanceRecord,
+  EmploymentSlice,
 } from "@/services/types";
 import { LineIcon } from "@/components/LineIcon";
 import { ICON } from "@/constants/icons";
+import { DonutChart } from "@/components/DonutChart";
 
 export function HomeScreen() {
   const { employee } = useSession();
@@ -28,6 +30,7 @@ export function HomeScreen() {
   const [clock, setClock] = useState<ClockState | null>(null);
   const [balances, setBalances] = useState<LeaveBalance[]>([]);
   const [history, setHistory] = useState<AttendanceRecord[]>([]);
+  const [employment, setEmployment] = useState<EmploymentSlice[] | null>(null);
   const insets = useSafeAreaInsets();
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
@@ -39,11 +42,13 @@ export function HomeScreen() {
       hrisApi.getClockState(employee.id),
       hrisApi.getLeaveBalances(employee.id),
       hrisApi.getAttendanceHistory(employee.id),
-    ]).then(([notif, clockState, leaveBalances, attendance]) => {
+      hrisApi.getEmploymentSummary(employee.id),
+    ]).then(([notif, clockState, leaveBalances, attendance, komposisi]) => {
       setNotifications(notif);
       setClock(clockState);
       setBalances(leaveBalances);
       setHistory(attendance);
+      setEmployment(komposisi);
     });
   }, [employee]);
 
@@ -85,7 +90,7 @@ export function HomeScreen() {
 
   const canApprove = employee.role === "mss" || employee.role === "hr";
 
-  const quikcActions = [
+  const quickActions = [
     ...(canApprove
       ? [
           {
@@ -258,13 +263,13 @@ export function HomeScreen() {
             value={`${telat} kali`}
           />
         </View>
-
+        {employment && <EmploymentCard slices={employment} />}
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Aksi Cepat</Text>
         </View>
 
         <View style={styles.quickGrid}>
-          {quikcActions.map((q) => (
+          {quickActions.map((q) => (
             <QuickAction
               key={q.label}
               iconBg={q.bg}
@@ -361,6 +366,53 @@ function QuickAction({
   );
 }
 
+const SLICE_WARNA = ["accent2", "accent", "accentLight", "track"] as const;
+
+function EmploymentCard({ slices }: { slices: EmploymentSlice[] }) {
+  const c = useTheme();
+  const styles = useMemo(() => makeStyles(c), [c]);
+
+  const total = slices.reduce((sum, s) => sum + s.count, 0);
+  if (total === 0) return null;
+
+  const warna = (i: number) => c[SLICE_WARNA[i % SLICE_WARNA.length]];
+
+  return (
+    <Card style={styles.empCard}>
+      <View style={styles.empHead}>
+        <Text style={styles.empTitle}>Employment Status</Text>
+        <Text style={styles.empTotal}>{total} karyawan</Text>
+      </View>
+
+      <View style={styles.empBody}>
+        <DonutChart
+          size={112}
+          stroke={19}
+          segments={slices.map((s, i) => ({
+            value: s.count,
+            color: warna(i),
+          }))}
+        >
+          <Text style={styles.empHoleValue}>{total}</Text>
+          <Text style={styles.empHoleLabel}>Total</Text>
+        </DonutChart>
+
+        <View style={styles.empLegend}>
+          {slices.map((s, i) => (
+            <View key={s.label} style={styles.empRow}>
+              <View style={[styles.empDot, { backgroundColor: warna(i) }]} />
+              <Text style={styles.empLabel}>
+                {s.label} ({Math.round((s.count / total) * 100)}%)
+              </Text>
+              <Text style={styles.empCount}>{s.count}</Text>
+            </View>
+          ))}
+        </View>
+      </View>
+    </Card>
+  );
+}
+
 const makeStyles = (c: Palette) =>
   StyleSheet.create({
     container: { flex: 1, backgroundColor: c.bg },
@@ -426,6 +478,35 @@ const makeStyles = (c: Palette) =>
     },
 
     content: { padding: 18, paddingTop: 16, paddingBottom: 120 },
+    empCard: { marginTop: 12 },
+    empHead: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+    },
+    empTitle: { fontSize: 14, fontWeight: "700", color: c.ink },
+    empTotal: { fontSize: 11, fontWeight: "500", color: c.muted },
+
+    empBody: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 18,
+      marginTop: 16,
+    },
+    empHoleValue: { fontSize: 21, fontWeight: "800", color: c.ink },
+    empHoleLabel: {
+      fontSize: 9.5,
+      fontWeight: "500",
+      color: c.muted,
+      marginTop: 3,
+    },
+
+    empLegend: { flex: 1, gap: 9 },
+    empRow: { flexDirection: "row", alignItems: "center", gap: 8 },
+    empDot: { width: 9, height: 9, borderRadius: 3 },
+    empLabel: { flex: 1, fontSize: 12, fontWeight: "500", color: c.ink },
+    empCount: { fontSize: 12, fontWeight: "700", color: c.muted },
+
     sectionHeader: {
       flexDirection: "row",
       justifyContent: "space-between",
