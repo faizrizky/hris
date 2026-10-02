@@ -15,6 +15,7 @@ import {
   PersonalProfile,
   EmployeeDocument,
   SecurityInfo,
+  EmploymentSlice,
 } from "../types";
 
 export const MOCK_EMPLOYEES: Record<string, Employee> = {
@@ -565,6 +566,13 @@ export const MOCK_STAFF: Staff[] = [
 ];
 
 export const TOTAL_KARYAWAN_AKTIF = 128;
+
+export const MOCK_EMPLOYMENT: EmploymentSlice[] = [
+  { label: "Permanent", count: 78 },
+  { label: "Kontrak", count: 31 },
+  { label: "Intern", count: 11 },
+  { label: "Part-time", count: 8 },
+];
 
 export const MOCK_FEED: FeedItem[] = [
   {

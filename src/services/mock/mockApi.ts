@@ -25,6 +25,7 @@ import {
   DocCategory,
   SecurityInfo,
   SecurityToggleKey,
+  EmploymentSlice,
 } from "../types";
 import {
   MOCK_ATTENDANCE,
@@ -44,6 +45,7 @@ import {
   MOCK_PROFILE,
   MOCK_DOCUMENTS,
   MOCK_SECURITY,
+  MOCK_EMPLOYMENT,
 } from "./mockData";
 
 const delay = (ms = 300) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -222,6 +224,17 @@ export const mockApi: HrisApi = {
         : MOCK_STAFF.filter((s) => s.manager === pemanggil?.fullName);
 
     return { totalActive: TOTAL_KARYAWAN_AKTIF, items };
+  },
+
+  async getEmploymentSummary(
+    employeeId: string,
+  ): Promise<EmploymentSlice[] | null> {
+    await delay();
+    const pemanggil = Object.values(MOCK_EMPLOYEES).find(
+      (e) => e.id === employeeId,
+    );
+    if (pemanggil?.role !== "hr") return null;
+    return MOCK_EMPLOYMENT;
   },
 
   async getFeed(_employeeId: string): Promise<FeedItem[]> {

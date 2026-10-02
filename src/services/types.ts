@@ -188,6 +188,11 @@ export interface StaffDirectory {
   items: Staff[]; // yang boleh dilihat oleh pemanggil
 }
 
+export interface EmploymentSlice {
+  label: string; // "Permanent"
+  count: number; // 78
+}
+
 export interface FeedItem {
   id: string;
   initials: string;
@@ -340,6 +345,8 @@ export interface HrisApi {
   getAppraisal(employeeId: string): Promise<Appraisal>;
 
   getStaffDirectory(employeeId: string): Promise<StaffDirectory>;
+
+  getEmploymentSummary(employeeId: string): Promise<EmploymentSlice[] | null>;
 
   getFeed(employeeId: string): Promise<FeedItem[]>;
 
