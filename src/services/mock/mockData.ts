@@ -212,6 +212,7 @@ export const MOCK_LEAVE_REQUESTS: LeaveRequest[] = [
     approverName: "Bayu P. → HR",
     approverInitials: "BP",
     decision: null,
+    delegateName: "Fajar Nugroho",
     createdAt: "2026-09-10",
   },
 ];
@@ -232,6 +233,7 @@ export const MOCK_PENDING_APPROVALS: LeaveRequest[] = [
     approverName: "Bayu P. → HR",
     approverInitials: "BP",
     decision: null,
+    delegateName: "Sari Anggraini",
     createdAt: "2026-09-10",
   },
   {
@@ -248,6 +250,7 @@ export const MOCK_PENDING_APPROVALS: LeaveRequest[] = [
     approverName: "Bayu P.",
     approverInitials: "BP",
     decision: null,
+    delegateName: null,
     createdAt: "2026-09-12",
   },
   {
@@ -264,6 +267,7 @@ export const MOCK_PENDING_APPROVALS: LeaveRequest[] = [
     approverName: "Bayu P. → HR",
     approverInitials: "BP",
     decision: null,
+    delegateName: null,
     createdAt: "2026-09-11",
   },
 ];
