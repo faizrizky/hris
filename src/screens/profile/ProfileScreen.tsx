@@ -157,7 +157,13 @@ export function ProfileScreen({ navigation }: any) {
           </View>
         </View>
 
-        <Pressable style={styles.logout} onPress={() => setEmployee(null)}>
+        <Pressable
+          style={styles.logout}
+          onPress={async () => {
+            await hrisApi.logout().catch(() => {});
+            setEmployee(null);
+          }}
+        >
           <Text style={styles.logoutText}>Keluar</Text>
         </Pressable>
       </ScrollView>
