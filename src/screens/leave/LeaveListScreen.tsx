@@ -5,6 +5,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { StatusBadge } from "@/components/StatusBadge";
+import { Skeleton } from "@/components/Skeleton";
 import { LineIcon } from "@/components/LineIcon";
 import { ICON } from "@/constants/icons";
 import { leaveDecisionBadge } from "@/constants/statusLabels";
@@ -19,8 +20,8 @@ export function LeaveListScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
-  const [balances, setBalances] = useState<LeaveBalance[]>([]);
-  const [requests, setRequests] = useState<LeaveRequest[]>([]);
+  const [balances, setBalances] = useState<LeaveBalance[] | null>(null);
+  const [requests, setRequests] = useState<LeaveRequest[] | null>(null);
 
   const load = useCallback(() => {
     if (!employee) return;
@@ -33,8 +34,10 @@ export function LeaveListScreen({ navigation }: any) {
 
   if (!employee) return null;
 
-  const cuti = balances.find((b) => b.type === "cuti");
-  const sakit = balances.find((b) => b.type === "sakit");
+  const memuat = balances === null || requests === null;
+
+  const cuti = (balances ?? []).find((b) => b.type === "cuti");
+  const sakit = (balances ?? []).find((b) => b.type === "sakit");
   const terpakai = cuti ? cuti.total - cuti.remaining : 0;
   const sisaPersen =
     cuti && cuti.total ? (cuti.remaining / cuti.total) * 100 : 0;
@@ -52,7 +55,7 @@ export function LeaveListScreen({ navigation }: any) {
       </View>
 
       <FlatList
-        data={requests}
+        data={requests ?? []}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.content}
         ListHeaderComponent={
@@ -68,14 +71,24 @@ export function LeaveListScreen({ navigation }: any) {
 
                 <Text style={styles.heroLabel}>Saldo cuti tahunan 2026</Text>
 
-                <View style={styles.balanceRow}>
-                  <Text style={styles.balanceBig}>
-                    {cuti?.remaining ?? "–"}
-                  </Text>
-                  <Text style={styles.balanceTotal}>
-                    / {cuti?.total ?? "–"} {cuti?.unit ?? "hari"}
-                  </Text>
-                </View>
+                {memuat ? (
+                  <Skeleton
+                    width={132}
+                    height={30}
+                    radius={8}
+                    color={c.onDark.pill}
+                    style={{ marginTop: 10 }}
+                  />
+                ) : (
+                  <View style={styles.balanceRow}>
+                    <Text style={styles.balanceBig}>
+                      {cuti?.remaining ?? "–"}
+                    </Text>
+                    <Text style={styles.balanceTotal}>
+                      / {cuti?.total ?? "–"} {cuti?.unit ?? "hari"}
+                    </Text>
+                  </View>
+                )}
 
                 <View style={styles.bar}>
                   <View style={[styles.barFill, { width: `${sisaPersen}%` }]} />
@@ -84,15 +97,35 @@ export function LeaveListScreen({ navigation }: any) {
                 <View style={styles.heroBoxes}>
                   <View style={styles.heroBox}>
                     <Text style={styles.heroBoxLabel}>Terpakai</Text>
-                    <Text style={styles.heroBoxValue}>
-                      {terpakai} {cuti?.unit ?? "hari"}
-                    </Text>
+                    {memuat ? (
+                      <Skeleton
+                        width={62}
+                        height={14}
+                        radius={5}
+                        color={c.onDark.pill}
+                        style={{ marginTop: 6 }}
+                      />
+                    ) : (
+                      <Text style={styles.heroBoxValue}>
+                        {terpakai} {cuti?.unit ?? "hari"}
+                      </Text>
+                    )}
                   </View>
                   <View style={styles.heroBox}>
                     <Text style={styles.heroBoxLabel}>Sisa cuti sakit</Text>
-                    <Text style={styles.heroBoxValue}>
-                      {sakit ? `${sakit.remaining} ${sakit.unit}` : "–"}
-                    </Text>
+                    {memuat ? (
+                      <Skeleton
+                        width={62}
+                        height={14}
+                        radius={5}
+                        color={c.onDark.pill}
+                        style={{ marginTop: 6 }}
+                      />
+                    ) : (
+                      <Text style={styles.heroBoxValue}>
+                        {sakit ? `${sakit.remaining} ${sakit.unit}` : "–"}
+                      </Text>
+                    )}
                   </View>
                 </View>
               </LinearGradient>
@@ -102,7 +135,7 @@ export function LeaveListScreen({ navigation }: any) {
               <Pressable
                 style={styles.actionCard}
                 onPress={() =>
-                  navigation.navigate("LeaveRequest", { kind: "dinas" })
+                  navigation.navigate("LeaveRequest", { kind: "cuti" })
                 }
               >
                 <View
@@ -117,7 +150,7 @@ export function LeaveListScreen({ navigation }: any) {
               <Pressable
                 style={styles.actionCard}
                 onPress={() =>
-                  navigation.navigate("LeaveRequest", { kind: "cuti" })
+                  navigation.navigate("LeaveRequest", { kind: "dinas" })
                 }
               >
                 <View
@@ -136,7 +169,11 @@ export function LeaveListScreen({ navigation }: any) {
           </>
         }
         ListEmptyComponent={
-          <Text style={styles.empty}>Belum ada pengajuan.</Text>
+          memuat ? (
+            <RequestCardSkeleton />
+          ) : (
+            <Text style={styles.empty}>Belum ada pengajuan.</Text>
+          )
         }
         renderItem={({ item }) => {
           const badge = leaveDecisionBadge(item.decision);
@@ -174,6 +211,34 @@ export function LeaveListScreen({ navigation }: any) {
     </View>
   );
 }
+function RequestCardSkeleton() {
+  const c = useTheme();
+  const styles = useMemo(() => makeStyles(c), [c]);
+
+  return (
+    <>
+      {[0, 1].map((i) => (
+        <View key={i} style={styles.reqCard}>
+          <View style={styles.reqTop}>
+            <View style={{ flex: 1, minWidth: 0, gap: 7 }}>
+              <Skeleton width="64%" height={12} radius={4} />
+              <Skeleton width="88%" height={10} radius={4} />
+            </View>
+            <Skeleton width={62} height={20} radius={8} />
+          </View>
+
+          <View style={styles.divider} />
+
+          <View style={styles.approverRow}>
+            <Skeleton width={26} height={26} radius={9} />
+            <Skeleton width="46%" height={10} radius={4} />
+          </View>
+        </View>
+      ))}
+    </>
+  );
+}
+
 const makeStyles = (c: Palette) =>
   StyleSheet.create({
     container: { flex: 1, backgroundColor: c.bg },
