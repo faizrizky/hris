@@ -110,7 +110,7 @@ export function StaffDetailScreen({ navigation, route }: any) {
       <View style={styles.container}>
         {header}
         {loading && (
-          <View style={styles.content}>
+          <View style={[styles.body, styles.content]}>
             <View style={styles.sheet}>
               <Skeleton width="100%" height={44} radius={10} />
             </View>
@@ -141,7 +141,7 @@ export function StaffDetailScreen({ navigation, route }: any) {
     <View style={styles.container}>
       {header}
 
-      <ScrollView contentContainerStyle={styles.content}>
+      <ScrollView style={styles.body} contentContainerStyle={styles.content}>
         <View style={styles.statCard}>
           <Stat value={`${desimal(staff.attendanceRate)}%`} label="Kehadiran" />
           <View style={styles.statDivider} />
@@ -302,10 +302,10 @@ const makeStyles = (c: Palette) =>
       marginTop: 7,
     },
 
+    body: { flex: 1, marginTop: -28 },
     content: {
       paddingHorizontal: 18,
       paddingBottom: 130,
-      marginTop: -28,
     },
 
     statCard: {
