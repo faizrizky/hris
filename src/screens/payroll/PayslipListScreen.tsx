@@ -113,12 +113,7 @@ export function PayslipListScreen({ navigation }: any) {
         {previous.length > 0 && (
           <>
             <Text style={styles.sectionTitle}>Slip sebelumnya</Text>
-            <PayslipHistoryCard
-              items={previous}
-              onPick={(p) =>
-                navigation.navigate("PayslipDetail", { payslipId: p.id })
-              }
-            />
+            <PayslipHistoryCard items={previous} />
           </>
         )}
       </ScrollView>

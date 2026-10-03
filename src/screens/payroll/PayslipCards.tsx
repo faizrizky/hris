@@ -200,22 +200,17 @@ export function PayslipCompareCard({
 
 /* ---------- Daftar slip sebelumnya ---------- */
 
-export function PayslipHistoryCard({
-  items,
-  onPick,
-}: {
-  items: Payslip[];
-  onPick: (p: Payslip) => void;
-}) {
+// Barisnya sengaja tidak bisa ditekan: layar Detail Slip dihapus karena tidak
+// ada di mockup, dan di mockup pun baris riwayat ini memang tidak punya tujuan.
+export function PayslipHistoryCard({ items }: { items: Payslip[] }) {
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
 
   return (
     <View style={styles.historyCard}>
       {items.map((p, i) => (
-        <Pressable
+        <View
           key={p.id}
-          onPress={() => onPick(p)}
           style={[
             styles.historyRow,
             i < items.length - 1 && styles.historyDivider,
@@ -229,7 +224,7 @@ export function PayslipHistoryCard({
             <Text style={styles.historyNote}>{p.note}</Text>
           </View>
           <Text style={styles.historyAmount}>{angka(p.netPay)}</Text>
-        </Pressable>
+        </View>
       ))}
     </View>
   );
@@ -253,7 +248,7 @@ const makeStyles = (c: Palette) =>
       width: 190,
       height: 190,
       borderRadius: 95,
-      backgroundColor: "rgba(255,255,255,0.08)",
+      backgroundColor: c.onDark.surface,
     },
     heroTop: {
       flexDirection: "row",
@@ -264,13 +259,13 @@ const makeStyles = (c: Palette) =>
       flex: 1,
       fontSize: 12,
       fontWeight: "600",
-      color: "rgba(255,255,255,0.85)",
+      color: c.onDark.ink,
     },
     statusPill: {
       paddingHorizontal: 9,
       paddingVertical: 4,
       borderRadius: 999,
-      backgroundColor: "rgba(255,255,255,0.2)",
+      backgroundColor: c.onDark.pill,
     },
     statusText: { fontSize: 10, fontWeight: "700", color: "#fff" },
     heroAmount: {
@@ -284,7 +279,7 @@ const makeStyles = (c: Palette) =>
     heroSub: {
       fontSize: 11.5,
       fontWeight: "500",
-      color: "rgba(255,255,255,0.7)",
+      color: c.onDark.soft,
       marginTop: 10,
     },
 
