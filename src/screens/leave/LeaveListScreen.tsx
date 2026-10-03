@@ -281,12 +281,12 @@ const makeStyles = (c: Palette) =>
       width: 140,
       height: 140,
       borderRadius: 70,
-      backgroundColor: "rgba(255,255,255,0.09)",
+      backgroundColor: c.onDark.surface,
     },
     heroLabel: {
       fontSize: 12,
       fontWeight: "600",
-      color: "rgba(255,255,255,0.85)",
+      color: c.onDark.ink,
     },
     balanceRow: {
       flexDirection: "row",
@@ -304,13 +304,13 @@ const makeStyles = (c: Palette) =>
     balanceTotal: {
       fontSize: 14,
       fontWeight: "600",
-      color: "rgba(255,255,255,0.8)",
+      color: c.onDark.ink,
       paddingBottom: 5,
     },
     bar: {
       height: 7,
       borderRadius: 4,
-      backgroundColor: "rgba(255,255,255,0.22)",
+      backgroundColor: c.onDark.pill,
       marginTop: 14,
       overflow: "hidden",
     },
@@ -318,7 +318,7 @@ const makeStyles = (c: Palette) =>
     heroBoxes: { flexDirection: "row", gap: 10, marginTop: 14 },
     heroBox: {
       flex: 1,
-      backgroundColor: "rgba(255,255,255,0.15)",
+      backgroundColor: c.onDark.track,
       borderRadius: 13,
       paddingHorizontal: 12,
       paddingVertical: 10,
@@ -326,7 +326,7 @@ const makeStyles = (c: Palette) =>
     heroBoxLabel: {
       fontSize: 10.5,
       fontWeight: "500",
-      color: "rgba(255,255,255,0.8)",
+      color: c.onDark.ink,
     },
     heroBoxValue: {
       fontSize: 15,

@@ -255,7 +255,7 @@ const makeStyles = (c: Palette) =>
     role: {
       fontSize: 12,
       fontWeight: "500",
-      color: "rgba(255,255,255,0.6)",
+      color: c.onDark.muted,
       marginTop: 4,
     },
     empId: {

@@ -1,7 +1,7 @@
 import React from "react";
 import { StyleSheet, View } from "react-native";
 import { BlurView } from "expo-blur";
-import { useThemeMode } from "@/theme/ThemeContext";
+import { useTheme, useThemeMode } from "@/theme/ThemeContext";
 
 interface Props {
   children: React.ReactNode;
@@ -9,6 +9,7 @@ interface Props {
 }
 
 export function GlassPill({ children, dark }: Props) {
+  const c = useTheme();
   const { mode } = useThemeMode();
   const gelap = dark ?? mode === "dark";
   return (
@@ -25,7 +26,7 @@ export function GlassPill({ children, dark }: Props) {
           StyleSheet.absoluteFill,
           styles.pill,
           {
-            borderColor: gelap ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.06)",
+            borderColor: gelap ? c.onDark.track : "rgba(0,0,0,0.06)",
           },
         ]}
       />

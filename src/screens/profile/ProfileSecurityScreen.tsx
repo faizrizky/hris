@@ -269,7 +269,7 @@ const makeStyles = (c: Palette) =>
       fontSize: 11,
       lineHeight: 17,
       fontWeight: "500",
-      color: "rgba(255,255,255,0.6)",
+      color: c.onDark.muted,
       marginTop: 3,
     },
     facePills: { flexDirection: "row", gap: 8, marginTop: 14 },

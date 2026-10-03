@@ -197,7 +197,7 @@ const makeStyles = (c: Palette) =>
     subtext: {
       fontSize: 13.5,
       lineHeight: 22,
-      color: "rgba(255,255,255,0.6)",
+      color: c.onDark.muted,
       marginTop: 12,
       maxWidth: 290,
     },

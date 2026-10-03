@@ -23,8 +23,6 @@ import {
 import { desimal } from "@/utils/currency";
 import { bulanSingkat, tanggalAngka, tanggalPendekTahun } from "@/utils/date";
 
-const GELAP = "rgba(255,255,255,0.12)";
-
 export function StaffDetailScreen({ navigation, route }: any) {
   const { employee } = useSession();
   const insets = useSafeAreaInsets();
@@ -71,19 +69,24 @@ export function StaffDetailScreen({ navigation, route }: any) {
       <View style={styles.identity}>
         {loading ? (
           <>
-            <Skeleton width={96} height={96} radius={48} color={GELAP} />
+            <Skeleton
+              width={96}
+              height={96}
+              radius={48}
+              color={c.onDark.track}
+            />
             <Skeleton
               width={150}
               height={19}
               radius={6}
-              color={GELAP}
+              color={c.onDark.track}
               style={{ marginTop: 15 }}
             />
             <Skeleton
               width={190}
               height={12}
               radius={4}
-              color={GELAP}
+              color={c.onDark.track}
               style={{ marginTop: 9 }}
             />
           </>
@@ -264,7 +267,7 @@ const makeStyles = (c: Palette) =>
       width: 36,
       height: 36,
       borderRadius: 12,
-      backgroundColor: "rgba(255,255,255,0.1)",
+      backgroundColor: c.onDark.surface,
       alignItems: "center",
       justifyContent: "center",
     },
@@ -277,7 +280,7 @@ const makeStyles = (c: Palette) =>
       borderRadius: 48,
       backgroundColor: c.info.bg,
       borderWidth: 4,
-      borderColor: "rgba(255,255,255,0.14)",
+      borderColor: c.onDark.track,
       alignItems: "center",
       justifyContent: "center",
     },
@@ -292,7 +295,7 @@ const makeStyles = (c: Palette) =>
     role: {
       fontSize: 12.5,
       fontWeight: "500",
-      color: "rgba(255,255,255,0.62)",
+      color: c.onDark.muted,
       marginTop: 5,
     },
     code: {
