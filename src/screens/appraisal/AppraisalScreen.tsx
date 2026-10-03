@@ -9,6 +9,7 @@ import { hrisApi } from "@/services/api";
 import { useSession } from "@/services/session";
 import { Appraisal, AppraisalGoal, AppraisalRater } from "@/services/types";
 import { desimal } from "@/utils/currency";
+import { Skeleton } from "@/components/Skeleton";
 
 const RING = 104;
 const STROKE = 13;
@@ -40,7 +41,46 @@ export function AppraisalScreen({ navigation }: any) {
     return (
       <View style={styles.container}>
         {head}
-        <Text style={styles.state}>Memuat penilaian…</Text>
+        <ScrollView contentContainerStyle={styles.content}>
+          <View style={styles.heroCard}>
+            <Skeleton width={RING} height={RING} radius={RING / 2} />
+            <View style={{ flex: 1, minWidth: 0, gap: 9 }}>
+              <Skeleton width="76%" height={13} radius={4} />
+              <Skeleton width="58%" height={11} radius={4} />
+              <Skeleton width={92} height={22} radius={999} />
+            </View>
+          </View>
+
+          <View style={styles.sheet}>
+            <Skeleton width="52%" height={12} radius={4} />
+            <View style={{ gap: 15, marginTop: 16 }}>
+              {[0, 1, 2].map((i) => (
+                <View key={i}>
+                  <View style={styles.raterHead}>
+                    <Skeleton width="46%" height={11} radius={4} />
+                    <Skeleton width={34} height={11} radius={4} />
+                  </View>
+                  <View style={styles.track} />
+                </View>
+              ))}
+            </View>
+          </View>
+
+          <View style={{ gap: 10, marginTop: 12 }}>
+            {[0, 1].map((i) => (
+              <View key={i} style={styles.goalCard}>
+                <Skeleton width="68%" height={12} radius={4} />
+                <Skeleton
+                  width="40%"
+                  height={10}
+                  radius={4}
+                  style={{ marginTop: 8 }}
+                />
+                <View style={styles.track} />
+              </View>
+            ))}
+          </View>
+        </ScrollView>
       </View>
     );
   }
@@ -198,14 +238,6 @@ const makeStyles = (c: Palette) =>
     headerTitle: { fontSize: 15, fontWeight: "700", color: c.ink },
 
     content: { paddingHorizontal: 18, paddingTop: 16, paddingBottom: 130 },
-
-    state: {
-      fontSize: 12.5,
-      fontWeight: "500",
-      color: c.muted,
-      textAlign: "center",
-      marginTop: 40,
-    },
 
     heroCard: {
       flexDirection: "row",
