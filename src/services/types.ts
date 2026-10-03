@@ -315,6 +315,7 @@ export interface Colleague {
 export interface HrisApi {
   login(email: string, password: string): Promise<Employee>;
   getCurrentEmployee(): Promise<Employee>;
+  logout(): Promise<void>;
   getClockState(employeeId: string): Promise<ClockState>;
   clockIn(employeeId: string): Promise<ClockState>;
   clockOut(employeeId: string): Promise<ClockState>;
