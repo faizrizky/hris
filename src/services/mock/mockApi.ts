@@ -26,6 +26,7 @@ import {
   SecurityInfo,
   SecurityToggleKey,
   EmploymentSlice,
+  Colleague,
 } from "../types";
 import {
   MOCK_ATTENDANCE,
@@ -149,6 +150,7 @@ export const mockApi: HrisApi = {
       type: input.type,
       label: input.label,
       reason: input.reason,
+      delegateName: input.delegateName ?? null,
       stage: "Tahap 1 dari 2",
       quota: "—",
       approverName: "Bayu P. → HR",
@@ -235,6 +237,21 @@ export const mockApi: HrisApi = {
     );
     if (pemanggil?.role !== "hr") return null;
     return MOCK_EMPLOYMENT;
+  },
+
+  async getColleagues(employeeId: string): Promise<Colleague[]> {
+    await delay();
+    const pemanggil = MOCK_EMPLOYEES[employeeId];
+    if (!pemanggil) return [];
+
+    return MOCK_STAFF.filter(
+      (s) => s.department === pemanggil.department && s.id !== employeeId,
+    ).map((s) => ({
+      id: s.id,
+      initials: s.initials,
+      fullName: s.fullName,
+      jobTitle: s.jobTitle,
+    }));
   },
 
   async getFeed(_employeeId: string): Promise<FeedItem[]> {

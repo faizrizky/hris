@@ -1,4 +1,6 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
+import { ColleagueSheet } from "@/components/ColleagueSheet";
+import { Colleague } from "@/services/types";
 import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { LineIcon } from "@/components/LineIcon";
 import { ICON } from "@/constants/icons";
@@ -104,13 +106,20 @@ export function CutiDetailCard({
   jenis,
   alasan,
   onChangeAlasan,
+  rekan,
+  delegasi,
+  onPickDelegasi,
 }: {
   jenis: JenisCuti;
   alasan: string;
   onChangeAlasan: (v: string) => void;
+  rekan: Colleague[];
+  delegasi: Colleague | null;
+  onPickDelegasi: (v: Colleague) => void;
 }) {
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
+  const [buka, setBuka] = useState(false);
 
   return (
     <View style={[styles.card, { marginTop: 12 }]}>
@@ -138,16 +147,41 @@ export function CutiDetailCard({
       </Pressable>
 
       <Text style={styles.label}>Delegasi tugas</Text>
-      <Pressable style={styles.delegateBox}>
-        <View style={styles.avatar}>
-          <Text style={styles.avatarText}>FN</Text>
-        </View>
-        <View style={{ flex: 1, minWidth: 0 }}>
-          <Text style={styles.rowTitle}>Fajar Nugroho</Text>
-          <Text style={styles.rowSub}>Accounting Officer</Text>
-        </View>
-        <Text style={styles.changeText}>Ganti</Text>
+      <Pressable style={styles.delegateBox} onPress={() => setBuka(true)}>
+        {delegasi ? (
+          <>
+            <View style={styles.avatar}>
+              <Text style={styles.avatarText}>{delegasi.initials}</Text>
+            </View>
+            <View style={{ flex: 1, minWidth: 0 }}>
+              <Text style={styles.rowTitle}>{delegasi.fullName}</Text>
+              <Text style={styles.rowSub}>{delegasi.jobTitle}</Text>
+            </View>
+            <Text style={styles.changeText}>Ganti</Text>
+          </>
+        ) : (
+          <>
+            <View style={[styles.avatar, { backgroundColor: c.chip }]}>
+              <LineIcon d={ICON.user} color={c.muted} size={18} />
+            </View>
+            <View style={{ flex: 1, minWidth: 0 }}>
+              <Text style={styles.rowTitle}>Belum dipilih</Text>
+              <Text style={styles.rowSub}>
+                {rekan.length} rekan sedepartemen
+              </Text>
+            </View>
+            <Text style={styles.changeText}>Pilih</Text>
+          </>
+        )}
       </Pressable>
+
+      <ColleagueSheet
+        visible={buka}
+        options={rekan}
+        value={delegasi}
+        onSelect={onPickDelegasi}
+        onClose={() => setBuka(false)}
+      />
     </View>
   );
 }
