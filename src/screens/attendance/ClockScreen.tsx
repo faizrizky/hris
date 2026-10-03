@@ -13,6 +13,7 @@ import { hrisApi } from "@/services/api";
 import { useSession } from "@/services/session";
 import { ClockState } from "@/services/types";
 import { FaceViewfinder } from "./FaceViewfinder";
+import { Skeleton } from "@/components/Skeleton";
 
 export function ClockScreen({ navigation }: any) {
   const { employee } = useSession();
@@ -28,7 +29,50 @@ export function ClockScreen({ navigation }: any) {
     hrisApi.getClockState(employee.id).then(setState);
   }, [employee]);
 
-  if (!employee || !state) return null;
+  if (!employee) return null;
+
+  // Layar ini sebelumnya return null selama memuat, jadi penggunanya melihat
+  // halaman kosong tanpa penjelasan — padahal Presensi termasuk layar yang
+  // paling sering dibuka.
+  if (!state) {
+    return (
+      <View style={styles.container}>
+        <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
+          <Pressable
+            style={styles.backBtn}
+            onPress={() => navigation.getParent()?.navigate("Beranda")}
+          >
+            <Ionicons name="chevron-back" size={18} color={c.ink} />
+          </Pressable>
+          <Text style={styles.headerTitle}>Presensi</Text>
+        </View>
+
+        <View style={styles.content}>
+          <View style={styles.steps}>
+            {[0, 1, 2].map((i) => (
+              <View
+                key={i}
+                style={[styles.stepBar, { backgroundColor: c.track }]}
+              />
+            ))}
+          </View>
+
+          <View style={styles.panel}>
+            <Skeleton width="100%" height={216} radius={0} />
+            <View style={styles.locationRow}>
+              <Skeleton width={34} height={34} radius={11} />
+              <View style={{ flex: 1, minWidth: 0, gap: 7 }}>
+                <Skeleton width="72%" height={12} radius={4} />
+                <Skeleton width="54%" height={10} radius={4} />
+              </View>
+            </View>
+          </View>
+
+          <Skeleton height={48} radius={16} style={{ marginTop: 12 }} />
+        </View>
+      </View>
+    );
+  }
 
   const aksi = state.clockedIn ? "Clock Out" : "Clock In";
   const done = step === 2;

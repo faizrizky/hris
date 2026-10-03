@@ -19,6 +19,7 @@ import { hrisApi } from "@/services/api";
 import { useSession } from "@/services/session";
 import { EditableProfile, PersonalProfile } from "@/services/types";
 import { LineIcon } from "@/components/LineIcon";
+import { Skeleton } from "@/components/Skeleton";
 import { ICON } from "@/constants/icons";
 import {
   emailValid,
@@ -65,14 +66,57 @@ export function ProfileEditScreen({ navigation }: any) {
     }
   };
 
+  const head = (
+    <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
+      <Pressable style={styles.backBtn} onPress={() => navigation.goBack()}>
+        <Ionicons name="chevron-back" size={18} color={c.ink} />
+      </Pressable>
+      <Text style={styles.headerTitle}>Ubah Data</Text>
+    </View>
+  );
+
+  // Formnya sengaja tidak dirender kosong selama memuat: kalau dirender,
+  // pengguna bisa mulai mengetik lalu ketikannya tertimpa begitu data datang.
+  if (!draft) {
+    return (
+      <View style={styles.container}>
+        {head}
+        <View style={styles.content}>
+          <View style={styles.card}>
+            <View style={styles.cardHead}>
+              <Skeleton width="46%" height={12} radius={4} />
+              <Skeleton width={34} height={12} radius={4} />
+            </View>
+            <View style={[styles.track, { marginTop: 12 }]} />
+            <Skeleton
+              width="76%"
+              height={10}
+              radius={4}
+              style={{ marginTop: 12 }}
+            />
+          </View>
+
+          {[0, 1].map((i) => (
+            <View key={i} style={[styles.card, { marginTop: 12 }]}>
+              <Skeleton width="42%" height={12} radius={4} />
+              <View style={{ gap: 14, marginTop: 16 }}>
+                {[0, 1, 2].map((j) => (
+                  <View key={j} style={{ gap: 8 }}>
+                    <Skeleton width="30%" height={10} radius={4} />
+                    <Skeleton height={42} radius={14} />
+                  </View>
+                ))}
+              </View>
+            </View>
+          ))}
+        </View>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
-      <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
-        <Pressable style={styles.backBtn} onPress={() => navigation.goBack()}>
-          <Ionicons name="chevron-back" size={18} color={c.ink} />
-        </Pressable>
-        <Text style={styles.headerTitle}>Ubah Data</Text>
-      </View>
+      {head}
 
       <KeyboardAvoidingView
         style={{ flex: 1 }}

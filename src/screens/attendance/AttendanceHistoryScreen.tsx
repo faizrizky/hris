@@ -4,6 +4,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { DonutChart } from "@/components/DonutChart";
 import { StatusBadge } from "@/components/StatusBadge";
+import { Skeleton } from "@/components/Skeleton";
 import { Palette } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
 import { hrisApi } from "@/services/api";
@@ -20,7 +21,7 @@ type Filter = "semua" | "telat" | "izin";
 export function AttendanceHistoryScreen({ navigation }: any) {
   const { employee } = useSession();
   const insets = useSafeAreaInsets();
-  const [records, setRecords] = useState<AttendanceRecord[]>([]);
+  const [records, setRecords] = useState<AttendanceRecord[] | null>(null);
   const [filter, setFilter] = useState<Filter>("semua");
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
@@ -30,18 +31,21 @@ export function AttendanceHistoryScreen({ navigation }: any) {
     hrisApi.getAttendanceHistory(employee.id).then(setRecords);
   }, [employee]);
 
+  const memuat = records === null;
+  const semua = records ?? [];
+
   const count = (s: AttendanceStatus) =>
-    records.filter((r) => r.status === s).length;
+    semua.filter((r) => r.status === s).length;
 
   const hadir = count("hadir");
   const telat = count("telat");
   const izin = count("izin");
 
-  const persen = records.length
-    ? `${(((hadir + telat) / records.length) * 100).toFixed(1).replace(".", ",")}%`
+  const persen = semua.length
+    ? `${(((hadir + telat) / semua.length) * 100).toFixed(1).replace(".", ",")}%`
     : "–";
 
-  const filtered = records.filter(
+  const filtered = semua.filter(
     (r) => filter === "semua" || r.status === filter,
   );
 
@@ -90,25 +94,56 @@ export function AttendanceHistoryScreen({ navigation }: any) {
             <View style={{ flex: 1 }}>
               <Text style={styles.recapLabel}>Rekap bulan ini</Text>
               <View style={styles.recapRow}>
-                <Recap value={hadir} label="Hadir" color={c.ink} />
-                <Recap value={telat} label="Telat" color={c.warn.ink} />
-                <Recap value={izin} label="Izin" color={c.info.ink} />
-                <Recap value={0} label="Alpha" color={c.bad.ink} />
+                {memuat ? (
+                  ["Hadir", "Telat", "Izin", "Alpha"].map((l) => (
+                    <View key={l} style={{ gap: 6 }}>
+                      <Skeleton width={26} height={20} radius={6} />
+                      <Skeleton width={30} height={9} radius={4} />
+                    </View>
+                  ))
+                ) : (
+                  <>
+                    <Recap value={hadir} label="Hadir" color={c.ink} />
+                    <Recap value={telat} label="Telat" color={c.warn.ink} />
+                    <Recap value={izin} label="Izin" color={c.info.ink} />
+                    <Recap value={0} label="Alpha" color={c.bad.ink} />
+                  </>
+                )}
               </View>
             </View>
 
-            <DonutChart
-              size={70}
-              stroke={11}
-              segments={[
-                { value: hadir, color: c.accent },
-                { value: telat, color: c.warn.ink },
-                { value: izin, color: c.accentLight },
-              ]}
-            >
-              <Text style={styles.donutText}>{persen}</Text>
-            </DonutChart>
+            {memuat ? (
+              <Skeleton width={70} height={70} radius={35} />
+            ) : (
+              <DonutChart
+                size={70}
+                stroke={11}
+                segments={[
+                  { value: hadir, color: c.accent },
+                  { value: telat, color: c.warn.ink },
+                  { value: izin, color: c.accentLight },
+                ]}
+              >
+                <Text style={styles.donutText}>{persen}</Text>
+              </DonutChart>
+            )}
           </View>
+        }
+        ListEmptyComponent={
+          memuat ? (
+            <>
+              {[0, 1, 2, 3].map((i) => (
+                <View key={i} style={styles.row}>
+                  <Skeleton width={40} height={40} radius={13} />
+                  <View style={{ flex: 1, minWidth: 0, gap: 7 }}>
+                    <Skeleton width="42%" height={12} radius={4} />
+                    <Skeleton width="76%" height={10} radius={4} />
+                  </View>
+                  <Skeleton width={54} height={20} radius={8} />
+                </View>
+              ))}
+            </>
+          ) : null
         }
         renderItem={({ item }) => (
           <View style={styles.row}>
