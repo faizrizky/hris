@@ -10,6 +10,7 @@ import { useSession } from "@/services/session";
 import { AppNotification, NotifCategory } from "@/services/types";
 import { LineIcon } from "@/components/LineIcon";
 import { ICON } from "@/constants/icons";
+import { Skeleton } from "@/components/Skeleton";
 
 const ICON_KATEGORI: Record<NotifCategory, string> = {
   Approval: ICON.approval,
@@ -22,7 +23,7 @@ const ICON_KATEGORI: Record<NotifCategory, string> = {
 export function NotificationScreen({ navigation }: any) {
   const { employee } = useSession();
   const insets = useSafeAreaInsets();
-  const [items, setItems] = useState<AppNotification[]>([]);
+  const [items, setItems] = useState<AppNotification[] | null>(null);
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
 
@@ -33,7 +34,7 @@ export function NotificationScreen({ navigation }: any) {
 
   useFocusEffect(muat);
 
-  const belumDibaca = items.filter((n) => !n.read).length;
+  const belumDibaca = items === null ? 0 : items.filter((n) => !n.read).length;
 
   const tandai = (ids?: string[]) => {
     if (!employee) return;
@@ -43,7 +44,7 @@ export function NotificationScreen({ navigation }: any) {
   // Judul seksi diturunkan dari datanya, bukan daftar tetap: urutan grup
   // mengikuti urutan kemunculan pertamanya di list.
   const grup: string[] = [];
-  for (const n of items) if (!grup.includes(n.group)) grup.push(n.group);
+  for (const n of items ?? []) if (!grup.includes(n.group)) grup.push(n.group);
 
   return (
     <View style={styles.container}>
@@ -69,7 +70,13 @@ export function NotificationScreen({ navigation }: any) {
       </View>
 
       <ScrollView contentContainerStyle={styles.content}>
-        {items.length === 0 && (
+        {items === null ? (
+          <View style={{ gap: 9 }}>
+            {[0, 1, 2, 3].map((i) => (
+              <NotifCardSkeleton key={i} />
+            ))}
+          </View>
+        ) : items.length === 0 ? (
           <View style={styles.emptyCard}>
             <View style={styles.emptyIcon}>
               <LineIcon d={ICON.bell} color={c.muted} size={22} />
@@ -80,49 +87,67 @@ export function NotificationScreen({ navigation }: any) {
               sini.
             </Text>
           </View>
-        )}
+        ) : (
+          grup.map((g) => (
+            <View key={g}>
+              <Text style={styles.groupLabel}>{g}</Text>
+              <View style={{ gap: 9 }}>
+                {items
+                  .filter((n) => n.group === g)
+                  .map((n) => {
+                    const tone = c[n.tone];
+                    return (
+                      <Pressable
+                        key={n.id}
+                        onPress={() => !n.read && tandai([n.id])}
+                        style={[
+                          styles.card,
+                          !n.read && { backgroundColor: c.unread },
+                        ]}
+                      >
+                        <View
+                          style={[styles.icon, { backgroundColor: tone.bg }]}
+                        >
+                          <LineIcon
+                            d={ICON_KATEGORI[n.category]}
+                            color={tone.ink}
+                            size={17}
+                          />
+                        </View>
 
-        {grup.map((g) => (
-          <View key={g}>
-            <Text style={styles.groupLabel}>{g}</Text>
-            <View style={{ gap: 9 }}>
-              {items
-                .filter((n) => n.group === g)
-                .map((n) => {
-                  const tone = c[n.tone];
-                  return (
-                    <Pressable
-                      key={n.id}
-                      onPress={() => !n.read && tandai([n.id])}
-                      style={[
-                        styles.card,
-                        !n.read && { backgroundColor: c.unread },
-                      ]}
-                    >
-                      <View style={[styles.icon, { backgroundColor: tone.bg }]}>
-                        <LineIcon
-                          d={ICON_KATEGORI[n.category]}
-                          color={tone.ink}
-                          size={17}
-                        />
-                      </View>
+                        <View style={{ flex: 1, minWidth: 0 }}>
+                          <Text style={styles.title}>{n.title}</Text>
+                          <Text style={styles.body}>{n.body}</Text>
+                          <Text style={styles.time}>
+                            {n.timeLabel} · {n.category}
+                          </Text>
+                        </View>
 
-                      <View style={{ flex: 1, minWidth: 0 }}>
-                        <Text style={styles.title}>{n.title}</Text>
-                        <Text style={styles.body}>{n.body}</Text>
-                        <Text style={styles.time}>
-                          {n.timeLabel} · {n.category}
-                        </Text>
-                      </View>
-
-                      {!n.read && <View style={styles.dot} />}
-                    </Pressable>
-                  );
-                })}
+                        {!n.read && <View style={styles.dot} />}
+                      </Pressable>
+                    );
+                  })}
+              </View>
             </View>
-          </View>
-        ))}
+          ))
+        )}
       </ScrollView>
+    </View>
+  );
+}
+
+function NotifCardSkeleton() {
+  const c = useTheme();
+  const styles = useMemo(() => makeStyles(c), [c]);
+
+  return (
+    <View style={styles.card}>
+      <Skeleton width={36} height={36} radius={12} />
+      <View style={{ flex: 1, minWidth: 0, gap: 7 }}>
+        <Skeleton width="72%" height={12} radius={4} />
+        <Skeleton width="94%" height={10} radius={4} />
+        <Skeleton width="42%" height={9} radius={4} />
+      </View>
     </View>
   );
 }
