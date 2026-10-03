@@ -26,11 +26,12 @@ import {
   tanggalPendekTahun,
   toISODate,
 } from "@/utils/date";
+import { Skeleton } from "@/components/Skeleton";
 
 export function OvertimeScreen({ navigation }: any) {
   const { employee } = useSession();
   const insets = useSafeAreaInsets();
-  const [records, setRecords] = useState<OvertimeRecord[]>([]);
+  const [records, setRecords] = useState<OvertimeRecord[] | null>(null);
 
   const muat = useCallback(() => {
     if (!employee) return;
@@ -42,7 +43,10 @@ export function OvertimeScreen({ navigation }: any) {
   // Ringkasan hanya bulan ini. String ISO "2026-09-12" cukup dipotong 7
   // karakter jadi "2026-09" untuk dibandingkan — tidak perlu parse tanggal.
   const bulanIni = toISODate(new Date()).slice(0, 7);
-  const bulanan = records.filter((r) => r.date.slice(0, 7) === bulanIni);
+  const bulanan =
+    records === null
+      ? []
+      : records.filter((r) => r.date.slice(0, 7) === bulanIni);
 
   const totalJam = bulanan.reduce((a, r) => a + r.hours, 0);
   const jam = Math.floor(totalJam);
@@ -81,10 +85,16 @@ export function OvertimeScreen({ navigation }: any) {
           </View>
 
           <View style={styles.bigRow}>
-            <Text style={styles.bigValue}>{jam}</Text>
-            <Text style={styles.bigUnit}>
-              jam{menit > 0 ? ` ${menit} mnt` : ""}
-            </Text>
+            {records === null ? (
+              <Skeleton width={104} height={32} radius={9} />
+            ) : (
+              <>
+                <Text style={styles.bigValue}>{jam}</Text>
+                <Text style={styles.bigUnit}>
+                  jam{menit > 0 ? ` ${menit} mnt` : ""}
+                </Text>
+              </>
+            )}
           </View>
 
           <View style={styles.track}>
@@ -101,7 +111,11 @@ export function OvertimeScreen({ navigation }: any) {
 
           <View style={styles.payRow}>
             <Text style={styles.payLabel}>Estimasi upah lembur</Text>
-            <Text style={styles.payValue}>{rupiah(estimasi)}</Text>
+            {records === null ? (
+              <Skeleton width={96} height={14} radius={5} />
+            ) : (
+              <Text style={styles.payValue}>{rupiah(estimasi)}</Text>
+            )}
           </View>
         </View>
 
@@ -122,7 +136,13 @@ export function OvertimeScreen({ navigation }: any) {
 
         <Text style={styles.sectionTitle}>Riwayat pengajuan</Text>
 
-        {records.length === 0 ? (
+        {records === null ? (
+          <View style={{ gap: 10 }}>
+            {[0, 1, 2].map((i) => (
+              <OvertimeRowSkeleton key={i} />
+            ))}
+          </View>
+        ) : records.length === 0 ? (
           <View style={styles.emptyCard}>
             <View style={styles.emptyIcon}>
               <LineIcon d={ICON.overtime} color={c.muted} size={22} />
@@ -160,6 +180,22 @@ export function OvertimeScreen({ navigation }: any) {
           </View>
         )}
       </ScrollView>
+    </View>
+  );
+}
+
+function OvertimeRowSkeleton() {
+  const c = useTheme();
+  const styles = useMemo(() => makeStyles(c), [c]);
+
+  return (
+    <View style={styles.row}>
+      <Skeleton width={40} height={40} radius={13} />
+      <View style={{ flex: 1, minWidth: 0, gap: 7 }}>
+        <Skeleton width="58%" height={12} radius={4} />
+        <Skeleton width="86%" height={10} radius={4} />
+      </View>
+      <Skeleton width={58} height={20} radius={8} />
     </View>
   );
 }
