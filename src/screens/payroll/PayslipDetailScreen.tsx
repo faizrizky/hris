@@ -13,6 +13,8 @@ import {
   PayslipInfoCard,
   PayslipLinesCard,
 } from "./PayslipCards";
+import { Skeleton } from "@/components/Skeleton";
+import { PdfButton } from "@/components/PdfButton";
 
 export function PayslipDetailScreen({ navigation, route }: any) {
   const { employee } = useSession();
@@ -46,21 +48,48 @@ export function PayslipDetailScreen({ navigation, route }: any) {
         <Text style={styles.headerTitle}>{title}</Text>
         {sub && <Text style={styles.headerSub}>{sub}</Text>}
       </View>
-      {payslip && (
-        <Pressable style={styles.pdfBtn}>
-          <Text style={styles.pdfText}>Unduh PDF</Text>
-        </Pressable>
-      )}
+      {payslip && <PdfButton />}
     </View>
   );
 
   if (!payslip) {
+    if (payslips === null) {
+      return (
+        <View style={styles.container}>
+          {header("Detail Slip Gaji")}
+          <ScrollView contentContainerStyle={styles.content}>
+            <View style={styles.skelCard}>
+              <Skeleton width="42%" height={11} radius={4} />
+              <Skeleton
+                width="64%"
+                height={26}
+                radius={8}
+                style={{ marginTop: 12 }}
+              />
+            </View>
+
+            {[0, 1].map((i) => (
+              <View key={i} style={[styles.skelCard, { marginTop: 12 }]}>
+                <Skeleton width="46%" height={12} radius={4} />
+                <View style={{ gap: 13, marginTop: 16 }}>
+                  {[0, 1, 2, 3].map((j) => (
+                    <View key={j} style={styles.skelRow}>
+                      <Skeleton width="40%" height={11} radius={4} />
+                      <Skeleton width="24%" height={11} radius={4} />
+                    </View>
+                  ))}
+                </View>
+              </View>
+            ))}
+          </ScrollView>
+        </View>
+      );
+    }
+
     return (
       <View style={styles.container}>
         {header("Detail Slip Gaji")}
-        <Text style={styles.state}>
-          {payslips === null ? "Memuat slip…" : "Slip gaji tidak ditemukan."}
-        </Text>
+        <Text style={styles.state}>Slip gaji tidak ditemukan.</Text>
       </View>
     );
   }
@@ -127,13 +156,6 @@ const makeStyles = (c: Palette) =>
       color: c.muted,
       marginTop: 3,
     },
-    pdfBtn: {
-      paddingHorizontal: 13,
-      paddingVertical: 8,
-      borderRadius: 999,
-      backgroundColor: c.info.bg,
-    },
-    pdfText: { fontSize: 11.5, fontWeight: "600", color: c.info.ink },
 
     content: { paddingHorizontal: 18, paddingTop: 16, paddingBottom: 130 },
 
@@ -143,5 +165,19 @@ const makeStyles = (c: Palette) =>
       color: c.muted,
       textAlign: "center",
       marginTop: 40,
+    },
+
+    skelCard: {
+      backgroundColor: c.card,
+      borderWidth: 1,
+      borderColor: c.cardBorder,
+      borderRadius: 22,
+      padding: 16,
+    },
+    skelRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      gap: 10,
     },
   });

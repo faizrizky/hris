@@ -12,6 +12,7 @@ import {
   PayslipHistoryCard,
   PayslipLinesCard,
 } from "./PayslipCards";
+import { PdfButton } from "@/components/PdfButton";
 
 export function PayslipListScreen({ navigation }: any) {
   const { employee } = useSession();
@@ -38,9 +39,7 @@ export function PayslipListScreen({ navigation }: any) {
           <Ionicons name="chevron-back" size={18} color={c.ink} />
         </Pressable>
         <Text style={styles.headerTitle}>Slip Gaji</Text>
-        <Pressable style={styles.pdfBtn}>
-          <Text style={styles.pdfText}>Unduh PDF</Text>
-        </Pressable>
+        <PdfButton />
       </View>
 
       <ScrollView contentContainerStyle={styles.content}>
@@ -112,13 +111,6 @@ const makeStyles = (c: Palette) =>
       fontWeight: "700",
       color: c.ink,
     },
-    pdfBtn: {
-      paddingHorizontal: 13,
-      paddingVertical: 8,
-      borderRadius: 999,
-      backgroundColor: c.info.bg,
-    },
-    pdfText: { fontSize: 11.5, fontWeight: "600", color: c.info.ink },
 
     content: { paddingHorizontal: 18, paddingTop: 16, paddingBottom: 130 },
 
