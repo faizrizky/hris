@@ -30,7 +30,7 @@ import {
 import { DinasBiayaCard, Biaya, totalBiaya } from "./DinasBiayaCard";
 import { hrisApi } from "@/services/api";
 import { useSession } from "@/services/session";
-import { LeaveBalance } from "@/services/types";
+import { LeaveBalance, Colleague } from "@/services/types";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { Palette } from "@/theme/colors";
@@ -85,6 +85,8 @@ export function LeaveRequestScreen({ navigation, route }: any) {
   const [balances, setBalances] = useState<LeaveBalance[]>([]);
   const [jenisCuti, setJenisCuti] = useState<JenisCuti>("Tahunan");
   const [alasan, setAlasan] = useState("");
+  const [rekan, setRekan] = useState<Colleague[]>([]);
+  const [delegasi, setDelegasi] = useState<Colleague | null>(null);
   const insets = useSafeAreaInsets();
   const [kind, setKind] = useState<FormKind>(route?.params?.kind ?? "cuti");
   const [otEndRaw, setOtEndRaw] = useState(0);
@@ -124,6 +126,7 @@ export function LeaveRequestScreen({ navigation, route }: any) {
   useEffect(() => {
     if (!employee) return;
     hrisApi.getLeaveBalances(employee.id).then(setBalances);
+    hrisApi.getColleagues(employee.id).then(setRekan);
   }, [employee]);
 
   const saldo = balances.find((b) => b.type === "cuti")?.remaining ?? 0;
@@ -177,6 +180,8 @@ export function LeaveRequestScreen({ navigation, route }: any) {
             : kind === "lembur"
               ? uraian.trim()
               : `${dest.trim()} · ${keperluan.trim()}`,
+        delegateName:
+          kind === "cuti" && delegasi ? delegasi.fullName : undefined,
       });
       setDone(created.id);
     } finally {
@@ -192,6 +197,8 @@ export function LeaveRequestScreen({ navigation, route }: any) {
         { k: "Jenis", v: NAMA_CUTI[jenisCuti] },
         { k: "Tanggal", v: `${tanggalPendek(start)} – ${tanggalPendek(end)}` },
         { k: "Durasi", v: `${hariKerja} hari kerja` },
+        { k: "Durasi", v: `${hariKerja} hari kerja` },
+        { k: "Delegasi", v: delegasi?.fullName ?? "—" },
       ];
     }
 
@@ -340,6 +347,9 @@ export function LeaveRequestScreen({ navigation, route }: any) {
                   jenis={jenisCuti}
                   alasan={alasan}
                   onChangeAlasan={setAlasan}
+                  rekan={rekan}
+                  delegasi={delegasi}
+                  onPickDelegasi={setDelegasi}
                 />
               )}
 

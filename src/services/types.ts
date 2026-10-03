@@ -69,6 +69,7 @@ export interface LeaveRequest {
   type: LeaveType;
   label: string;
   reason: string;
+  delegateName: string | null;
   stage: string;
   quota: string;
   approverName: string;
@@ -303,6 +304,13 @@ export interface SecurityInfo {
   devices: ActiveDevice[];
 }
 
+export interface Colleague {
+  id: string;
+  initials: string;
+  fullName: string;
+  jobTitle: string;
+}
+
 // Kontrak yang dipakai UI — mock & real ERPNext service sama-sama implement ini.
 export interface HrisApi {
   login(email: string, password: string): Promise<Employee>;
@@ -322,6 +330,7 @@ export interface HrisApi {
     type: LeaveType;
     label: string;
     reason: string;
+    delegateName?: string;
   }): Promise<LeaveRequest>;
 
   submitAttendanceCorrection(input: {
@@ -347,6 +356,8 @@ export interface HrisApi {
   getStaffDirectory(employeeId: string): Promise<StaffDirectory>;
 
   getEmploymentSummary(employeeId: string): Promise<EmploymentSlice[] | null>;
+
+  getColleagues(employeeId: string): Promise<Colleague[]>;
 
   getFeed(employeeId: string): Promise<FeedItem[]>;
 
