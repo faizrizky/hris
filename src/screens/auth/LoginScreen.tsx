@@ -16,6 +16,7 @@ import { RadialGlow } from "@/components/RadialGlow";
 import { hrisApi } from "@/services/api";
 import { useSession } from "@/services/session";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { describeError } from "../../services/api/http";
 
 export function LoginScreen() {
   const { setEmployee } = useSession();
@@ -27,12 +28,16 @@ export function LoginScreen() {
   const insets = useSafeAreaInsets();
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
+  const [error, setError] = useState<string | null>(null);
 
   const handleLogin = async () => {
     setLoading(true);
+    setError(null);
     try {
-      const employee = await hrisApi.login(email, password);
+      const employee = await hrisApi.login(email.trim(), password);
       setEmployee(employee);
+    } catch (e) {
+      setError(describeError(e));
     } finally {
       setLoading(false);
     }
@@ -124,8 +129,7 @@ export function LoginScreen() {
           </View>
 
           <Text style={styles.hint}>
-            Tip: ganti prefix email (ess / mss / hr) buat coba tampilan tiap
-            role.
+            {error && <Text style={styles.errorText}>{error}</Text>}
           </Text>
 
           <Pressable onPress={handleLogin} disabled={loading}>
@@ -316,4 +320,5 @@ const makeStyles = (c: Palette) =>
       alignItems: "flex-end",
     },
     showToggle: { fontSize: 11.5, fontWeight: "600", color: c.accent2 },
+    errorText: { color: c.bad.ink, fontSize: 13, marginBottom: 10 },
   });
