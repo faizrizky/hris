@@ -9,6 +9,7 @@ import { hrisApi } from "@/services/api";
 import { useSession } from "@/services/session";
 import { StatusBadge } from "@/components/StatusBadge";
 import { LineIcon } from "@/components/LineIcon";
+import { Skeleton } from "@/components/Skeleton";
 import { ICON } from "@/constants/icons";
 import {
   AttendanceCorrectionRequest,
@@ -33,7 +34,9 @@ const CHIPS: { key: Filter; label: string }[] = [
 export function AttendanceCorrectionHistoryScreen({ navigation }: any) {
   const { employee } = useSession();
   const insets = useSafeAreaInsets();
-  const [records, setRecords] = useState<AttendanceCorrectionRequest[]>([]);
+  const [records, setRecords] = useState<AttendanceCorrectionRequest[] | null>(
+    null,
+  );
   const [filter, setFilter] = useState<Filter>("semua");
   const [buka, setBuka] = useState<string | null>(null);
   const c = useTheme();
@@ -49,15 +52,18 @@ export function AttendanceCorrectionHistoryScreen({ navigation }: any) {
 
   useFocusEffect(muat);
 
+  const memuat = records === null;
+  const semua = records ?? [];
+
   const hitung = (s: AttendanceRequestedStatus) =>
-    records.filter((r) => r.status === s).length;
+    semua.filter((r) => r.status === s).length;
 
   const pending = hitung("pending");
   const approved = hitung("approved");
   const rejected = hitung("rejected");
-  const total = records.length;
+  const total = semua.length;
 
-  const filtered = records.filter(
+  const filtered = semua.filter(
     (r) => filter === "semua" || r.status === filter,
   );
 
@@ -140,29 +146,44 @@ export function AttendanceCorrectionHistoryScreen({ navigation }: any) {
           ) : null
         }
         ListEmptyComponent={
-          <View style={styles.emptyCard}>
-            <View style={styles.emptyIcon}>
-              <LineIcon d={ICON.fileCheck} color={c.muted} size={22} />
+          memuat ? (
+            <>
+              {[0, 1, 2].map((i) => (
+                <View key={i} style={styles.skelRow}>
+                  <Skeleton width={40} height={40} radius={13} />
+                  <View style={{ flex: 1, minWidth: 0, gap: 7 }}>
+                    <Skeleton width="48%" height={12} radius={4} />
+                    <Skeleton width="80%" height={10} radius={4} />
+                  </View>
+                  <Skeleton width={58} height={20} radius={8} />
+                </View>
+              ))}
+            </>
+          ) : (
+            <View style={styles.emptyCard}>
+              <View style={styles.emptyIcon}>
+                <LineIcon d={ICON.fileCheck} color={c.muted} size={22} />
+              </View>
+              <Text style={styles.emptyTitle}>
+                {total === 0
+                  ? "Belum ada pengajuan koreksi"
+                  : "Tidak ada yang cocok"}
+              </Text>
+              <Text style={styles.emptyText}>
+                {total === 0
+                  ? "Koreksi dipakai saat log absensi tidak sesuai, misalnya lupa absen keluar atau aplikasi error."
+                  : "Ganti filter di atas untuk melihat pengajuan lainnya."}
+              </Text>
+              {total === 0 && (
+                <Pressable
+                  style={styles.emptyBtn}
+                  onPress={() => navigation.navigate("AttendanceCorrection")}
+                >
+                  <Text style={styles.emptyBtnText}>Ajukan koreksi</Text>
+                </Pressable>
+              )}
             </View>
-            <Text style={styles.emptyTitle}>
-              {total === 0
-                ? "Belum ada pengajuan koreksi"
-                : "Tidak ada yang cocok"}
-            </Text>
-            <Text style={styles.emptyText}>
-              {total === 0
-                ? "Koreksi dipakai saat log absensi tidak sesuai, misalnya lupa absen keluar atau aplikasi error."
-                : "Ganti filter di atas untuk melihat pengajuan lainnya."}
-            </Text>
-            {total === 0 && (
-              <Pressable
-                style={styles.emptyBtn}
-                onPress={() => navigation.navigate("AttendanceCorrection")}
-              >
-                <Text style={styles.emptyBtnText}>Ajukan koreksi</Text>
-              </Pressable>
-            )}
-          </View>
+          )
         }
         renderItem={({ item }) => {
           const { jenis, catatan } = pisahAlasan(item.reason);
@@ -245,6 +266,17 @@ function Recap({
 
 const makeStyles = (c: Palette) =>
   StyleSheet.create({
+    skelRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 12,
+      backgroundColor: c.card,
+      borderWidth: 1,
+      borderColor: c.cardBorder,
+      borderRadius: 20,
+      padding: 14,
+      marginBottom: 10,
+    },
     container: { flex: 1, backgroundColor: c.bg },
 
     header: {
