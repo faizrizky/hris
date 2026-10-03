@@ -27,9 +27,7 @@ import { Skeleton } from "@/components/Skeleton";
 export function HomeScreen() {
   const { employee } = useSession();
   const navigation = useNavigation<any>();
-  const [notifications, setNotifications] = useState<FeedItem[] | null>(
-    null,
-  );
+  const [notifications, setNotifications] = useState<FeedItem[] | null>(null);
   const [clock, setClock] = useState<ClockState | null>(null);
   const [balances, setBalances] = useState<LeaveBalance[] | null>(null);
   const [history, setHistory] = useState<AttendanceRecord[] | null>(null);
@@ -274,32 +272,32 @@ export function HomeScreen() {
             icon={ICON.attendanceRate}
             label="Kehadiran bulan ini"
             value={kehadiran}
-          memuat={memuat}
-            />
+            memuat={memuat}
+          />
           <StatCard
             iconBg={c.ok.bg}
             ink={c.ok.ink}
             icon={ICON.leave}
             label="Sisa cuti tahunan"
             value={cuti ? `${cuti.remaining} ${cuti.unit}` : "–"}
-          memuat={memuat}
-            />
+            memuat={memuat}
+          />
           <StatCard
             iconBg={c.warn.bg}
             ink={c.warn.ink}
             icon={ICON.overtime}
             label="Jam lembur"
             value={lembur ? `${lembur.remaining} ${lembur.unit}` : "–"}
-          memuat={memuat}
-            />
+            memuat={memuat}
+          />
           <StatCard
             iconBg={c.bad.bg}
             ink={c.bad.ink}
             icon={ICON.late}
             label="Terlambat"
             value={`${telat} kali`}
-          memuat={memuat}
-            />
+            memuat={memuat}
+          />
         </View>
         {employment && <EmploymentCard slices={employment} />}
         <View style={styles.sectionHeader}>

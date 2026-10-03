@@ -32,9 +32,7 @@ export function LeaveApprovalScreen({ navigation }: any) {
   // di kartunya, bukan kartunya hilang begitu saja.
   const decide = async (id: string, decision: "approve" | "reject") => {
     const updated = await hrisApi.decideLeaveRequest(id, decision);
-    setItems((prev) =>
-      (prev ?? []).map((r) => (r.id === id ? updated : r)),
-    );
+    setItems((prev) => (prev ?? []).map((r) => (r.id === id ? updated : r)));
   };
 
   const approveAll = async () => {
