@@ -84,6 +84,10 @@ export const mockApi: HrisApi = {
     return currentEmployee;
   },
 
+  async logout(): Promise<void> {
+    await delay(50);
+  },
+
   async getClockState(_employeeId: string): Promise<ClockState> {
     await delay(150);
     return clockState;
