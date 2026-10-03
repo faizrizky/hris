@@ -47,14 +47,20 @@ export const lightColors = {
     border: "rgba(36,144,239,0.5)",
   },
 
+  // Warna di ATAS permukaan gelap: statBg, headerBg, dan hero bergradien.
+  // Nilainya sama di kedua palet — permukaannya gelap di mode terang juga,
+  // jadi isinya tidak boleh ikut tema. Bandingkan dengan glowTop di atas.
+  //
+  // Empat tingkat teks, bukan tiga: permukaan gelap di app ini biasanya
+  // memuat judul, nilai besar, label, dan keterangan sekaligus.
   onDark: {
-    ink: "rgba(255,255,255,0.85)",
-    muted: "rgba(255,255,255,0.6)",
-    faint: "rgba(255,255,255,0.4)",
-    surface: "rgba(255,255,255,0.1)",
-    track: "rgba(255,255,255,0.14)",
-    pill: "rgba(255,255,255,0.22)",
-    hair: "rgba(255,255,255,0.07)",
+    ink: "rgba(255,255,255,0.85)", // teks utama
+    soft: "rgba(255,255,255,0.72)", // nilai yang sengaja diredupkan
+    muted: "rgba(255,255,255,0.6)", // teks sekunder
+    faint: "rgba(255,255,255,0.45)", // keterangan paling redup
+    surface: "rgba(255,255,255,0.1)", // permukaan di dalam kartu gelap
+    track: "rgba(255,255,255,0.15)", // track, garis tepi, skeleton
+    pill: "rgba(255,255,255,0.22)", // pil dan badge
   },
 };
 
@@ -106,12 +112,12 @@ export const darkColors: Palette = {
 
   onDark: {
     ink: "rgba(255,255,255,0.85)",
+    soft: "rgba(255,255,255,0.72)",
     muted: "rgba(255,255,255,0.6)",
-    faint: "rgba(255,255,255,0.4)",
+    faint: "rgba(255,255,255,0.45)",
     surface: "rgba(255,255,255,0.1)",
-    track: "rgba(255,255,255,0.14)",
+    track: "rgba(255,255,255,0.15)",
     pill: "rgba(255,255,255,0.22)",
-    hair: "rgba(255,255,255,0.07)",
   },
 };
 
