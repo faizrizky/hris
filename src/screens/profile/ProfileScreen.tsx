@@ -11,6 +11,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { RadialGlow } from "@/components/RadialGlow";
+import { Skeleton } from "@/components/Skeleton";
 import { LineIcon } from "@/components/LineIcon";
 import { ICON } from "@/constants/icons";
 import { Palette } from "@/theme/colors";
@@ -23,7 +24,7 @@ import { LeaveBalance } from "@/services/types";
 export function ProfileScreen({ navigation }: any) {
   const { employee, setEmployee } = useSession();
   const insets = useSafeAreaInsets();
-  const [balances, setBalances] = useState<LeaveBalance[]>([]);
+  const [balances, setBalances] = useState<LeaveBalance[] | null>(null);
   const [pushOn, setPushOn] = useState(true);
   const { mode, toggle } = useThemeMode();
   const c = useTheme();
@@ -36,7 +37,7 @@ export function ProfileScreen({ navigation }: any) {
 
   if (!employee) return null;
 
-  const cuti = balances.find((b) => b.type === "cuti");
+  const cuti = (balances ?? []).find((b) => b.type === "cuti");
 
   return (
     <View style={styles.container}>
@@ -70,7 +71,11 @@ export function ProfileScreen({ navigation }: any) {
             label="Masa kerja"
           />
           <View style={styles.statDivider} />
-          <Stat value={`${cuti?.remaining ?? "–"}`} label="Sisa cuti" />
+          <Stat
+            value={`${cuti?.remaining ?? "–"}`}
+            label="Sisa cuti"
+            memuat={balances === null}
+          />
           <View style={styles.statDivider} />
           <Stat
             value={employee.kpiScore.toFixed(1).replace(".", ",")}
@@ -160,12 +165,24 @@ export function ProfileScreen({ navigation }: any) {
   );
 }
 
-function Stat({ value, label }: { value: string; label: string }) {
+function Stat({
+  value,
+  label,
+  memuat,
+}: {
+  value: string;
+  label: string;
+  memuat?: boolean;
+}) {
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
   return (
     <View style={styles.stat}>
-      <Text style={styles.statValue}>{value}</Text>
+      {memuat ? (
+        <Skeleton width={34} height={17} radius={5} />
+      ) : (
+        <Text style={styles.statValue}>{value}</Text>
+      )}
       <Text style={styles.statLabel}>{label}</Text>
     </View>
   );

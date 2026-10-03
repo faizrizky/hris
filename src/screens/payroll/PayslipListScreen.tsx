@@ -13,11 +13,12 @@ import {
   PayslipLinesCard,
 } from "./PayslipCards";
 import { PdfButton } from "@/components/PdfButton";
+import { Skeleton } from "@/components/Skeleton";
 
 export function PayslipListScreen({ navigation }: any) {
   const { employee } = useSession();
   const insets = useSafeAreaInsets();
-  const [payslips, setPayslips] = useState<Payslip[]>([]);
+  const [payslips, setPayslips] = useState<Payslip[] | null>(null);
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
 
@@ -26,8 +27,9 @@ export function PayslipListScreen({ navigation }: any) {
     hrisApi.getPayslips(employee.id).then(setPayslips);
   }, [employee]);
 
-  const latest = payslips[0];
-  const previous = payslips.slice(1);
+  const memuat = payslips === null;
+  const latest = payslips?.[0];
+  const previous = payslips?.slice(1) ?? [];
 
   return (
     <View style={styles.container}>
@@ -43,6 +45,47 @@ export function PayslipListScreen({ navigation }: any) {
       </View>
 
       <ScrollView contentContainerStyle={styles.content}>
+        {memuat && (
+          <>
+            <View style={styles.skelHero}>
+              <Skeleton
+                width="46%"
+                height={11}
+                radius={4}
+                color={c.onDark.track}
+              />
+              <Skeleton
+                width="68%"
+                height={28}
+                radius={8}
+                color={c.onDark.track}
+                style={{ marginTop: 14 }}
+              />
+              <Skeleton
+                width="34%"
+                height={10}
+                radius={4}
+                color={c.onDark.track}
+                style={{ marginTop: 14 }}
+              />
+            </View>
+
+            {[0, 1].map((i) => (
+              <View key={i} style={styles.skelCard}>
+                <Skeleton width="48%" height={12} radius={4} />
+                <View style={{ gap: 13, marginTop: 16 }}>
+                  {[0, 1, 2, 3].map((j) => (
+                    <View key={j} style={styles.skelRow}>
+                      <Skeleton width="42%" height={11} radius={4} />
+                      <Skeleton width="26%" height={11} radius={4} />
+                    </View>
+                  ))}
+                </View>
+              </View>
+            ))}
+          </>
+        )}
+
         {latest && (
           <>
             <PayslipHero payslip={latest} />
@@ -113,6 +156,22 @@ const makeStyles = (c: Palette) =>
     },
 
     content: { paddingHorizontal: 18, paddingTop: 16, paddingBottom: 130 },
+
+    skelHero: { backgroundColor: c.statBg, borderRadius: 22, padding: 18 },
+    skelCard: {
+      backgroundColor: c.card,
+      borderWidth: 1,
+      borderColor: c.cardBorder,
+      borderRadius: 22,
+      padding: 16,
+      marginTop: 12,
+    },
+    skelRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      gap: 10,
+    },
 
     sectionTitle: {
       fontSize: 14,
