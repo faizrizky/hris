@@ -8,11 +8,13 @@ import { hrisApi } from "@/services/api";
 import { useSession } from "@/services/session";
 import { BpjsItem, TaxSummary } from "@/services/types";
 import { angka, rupiah } from "@/utils/currency";
+import { Skeleton } from "@/components/Skeleton";
 
 /** 3.7 -> "3,7" · 2 -> "2" */
 function persen(n: number) {
   return String(n).replace(".", ",");
 }
+const TINGGI_BAR = [44, 60, 38, 96, 50, 64, 42, 72, 55, 48, 68];
 
 export function TaxScreen({ navigation }: any) {
   const { employee } = useSession();
@@ -39,7 +41,58 @@ export function TaxScreen({ navigation }: any) {
     return (
       <View style={styles.container}>
         {head}
-        <Text style={styles.state}>Memuat data pajak…</Text>
+        <ScrollView contentContainerStyle={styles.content}>
+          <View style={styles.darkCard}>
+            <Skeleton
+              width="54%"
+              height={12}
+              radius={4}
+              color={c.onDark.track}
+            />
+            <Skeleton
+              width="62%"
+              height={26}
+              radius={8}
+              color={c.onDark.track}
+              style={{ marginTop: 14 }}
+            />
+            <View style={styles.chart}>
+              {TINGGI_BAR.map((t, i) => (
+                <View
+                  key={i}
+                  style={[
+                    styles.bar,
+                    { height: `${t}%`, backgroundColor: c.onDark.track },
+                  ]}
+                />
+              ))}
+            </View>
+          </View>
+
+          <View style={styles.sheet}>
+            <Skeleton width="48%" height={12} radius={4} />
+            <View style={{ gap: 13, marginTop: 16 }}>
+              {[0, 1, 2, 3].map((i) => (
+                <View key={i} style={styles.lineRow}>
+                  <Skeleton width="38%" height={11} radius={4} />
+                  <Skeleton width="26%" height={11} radius={4} />
+                </View>
+              ))}
+            </View>
+          </View>
+
+          <View style={[styles.sheet, { marginTop: 10 }]}>
+            <Skeleton width="34%" height={12} radius={4} />
+            <View style={{ gap: 16, marginTop: 16 }}>
+              {[0, 1, 2].map((i) => (
+                <View key={i} style={{ gap: 8 }}>
+                  <Skeleton width="56%" height={11} radius={4} />
+                  <Skeleton height={8} radius={999} />
+                </View>
+              ))}
+            </View>
+          </View>
+        </ScrollView>
       </View>
     );
   }
@@ -215,14 +268,6 @@ const makeStyles = (c: Palette) =>
     headerTitle: { fontSize: 15, fontWeight: "700", color: c.ink },
 
     content: { paddingHorizontal: 18, paddingTop: 16, paddingBottom: 130 },
-
-    state: {
-      fontSize: 12.5,
-      fontWeight: "500",
-      color: c.muted,
-      textAlign: "center",
-      marginTop: 40,
-    },
 
     darkCard: {
       backgroundColor: c.statBg,

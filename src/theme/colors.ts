@@ -46,6 +46,16 @@ export const lightColors = {
     stripe: "#DEE8F3",
     border: "rgba(36,144,239,0.5)",
   },
+
+  onDark: {
+    ink: "rgba(255,255,255,0.85)",
+    muted: "rgba(255,255,255,0.6)",
+    faint: "rgba(255,255,255,0.4)",
+    surface: "rgba(255,255,255,0.1)",
+    track: "rgba(255,255,255,0.14)",
+    pill: "rgba(255,255,255,0.22)",
+    hair: "rgba(255,255,255,0.07)",
+  },
 };
 
 // Nilai diambil dari DARK_SURFACE + DARK_LIST di mockup.
@@ -92,6 +102,16 @@ export const darkColors: Palette = {
     base: "#1E2A36",
     stripe: "#222F3C",
     border: "rgba(127,188,247,0.45)",
+  },
+
+  onDark: {
+    ink: "rgba(255,255,255,0.85)",
+    muted: "rgba(255,255,255,0.6)",
+    faint: "rgba(255,255,255,0.4)",
+    surface: "rgba(255,255,255,0.1)",
+    track: "rgba(255,255,255,0.14)",
+    pill: "rgba(255,255,255,0.22)",
+    hair: "rgba(255,255,255,0.07)",
   },
 };
 
