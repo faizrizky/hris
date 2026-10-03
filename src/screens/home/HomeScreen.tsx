@@ -22,14 +22,17 @@ import {
 import { LineIcon } from "@/components/LineIcon";
 import { ICON } from "@/constants/icons";
 import { DonutChart } from "@/components/DonutChart";
+import { Skeleton } from "@/components/Skeleton";
 
 export function HomeScreen() {
   const { employee } = useSession();
   const navigation = useNavigation<any>();
-  const [notifications, setNotifications] = useState<FeedItem[]>([]);
+  const [notifications, setNotifications] = useState<FeedItem[] | null>(
+    null,
+  );
   const [clock, setClock] = useState<ClockState | null>(null);
-  const [balances, setBalances] = useState<LeaveBalance[]>([]);
-  const [history, setHistory] = useState<AttendanceRecord[]>([]);
+  const [balances, setBalances] = useState<LeaveBalance[] | null>(null);
+  const [history, setHistory] = useState<AttendanceRecord[] | null>(null);
   const [employment, setEmployment] = useState<EmploymentSlice[] | null>(null);
   const insets = useSafeAreaInsets();
   const c = useTheme();
@@ -75,18 +78,29 @@ export function HomeScreen() {
         ? "Perhatian HR"
         : "Aktivitas terbaru";
 
+  // Kelimanya datang dari satu Promise.all, tapi flag ini sengaja menyebut
+  // semuanya: kalau suatu saat ada yang dipisah, cek ini tidak ikut bohong.
+  const memuat =
+    clock === null ||
+    notifications === null ||
+    balances === null ||
+    history === null;
+
+  const riwayat = history ?? [];
+  const saldo = balances ?? [];
+
   const clockInTime = clock?.lastCheckIn ?? "--:--";
   const clockOutTime = clock?.lastCheckOut ?? "--:--";
   const clockCta = clock?.clockedIn ? "Clock Out" : "Clock In Sekarang";
 
-  const hadir = history.filter((r) => r.status !== "izin").length;
-  const kehadiran = history.length
-    ? `${((hadir / history.length) * 100).toFixed(1).replace(".", ",")}%`
+  const hadir = riwayat.filter((r) => r.status !== "izin").length;
+  const kehadiran = riwayat.length
+    ? `${((hadir / riwayat.length) * 100).toFixed(1).replace(".", ",")}%`
     : "-";
 
-  const cuti = balances.find((b) => b.type === "cuti");
-  const lembur = balances.find((b) => b.type === "lembur");
-  const telat = history.filter((r) => r.status === "telat").length;
+  const cuti = saldo.find((b) => b.type === "cuti");
+  const lembur = saldo.find((b) => b.type === "lembur");
+  const telat = riwayat.filter((r) => r.status === "telat").length;
 
   const canApprove = employee.role === "mss" || employee.role === "hr";
 
@@ -214,13 +228,33 @@ export function HomeScreen() {
             <View style={styles.clockRow}>
               <View style={styles.clockBox}>
                 <Text style={styles.clockLabel}>Clock In</Text>
-                <Text style={styles.clockValue}>{clockInTime}</Text>
+                {memuat ? (
+                  <Skeleton
+                    width={72}
+                    height={19}
+                    radius={6}
+                    color={c.onDark.pill}
+                    style={{ marginTop: 6 }}
+                  />
+                ) : (
+                  <Text style={styles.clockValue}>{clockInTime}</Text>
+                )}
               </View>
               <View style={styles.clockBox}>
                 <Text style={styles.clockLabel}>Clock Out</Text>
-                <Text style={[styles.clockValue, styles.clockValueMuted]}>
-                  {clockOutTime}
-                </Text>
+                {memuat ? (
+                  <Skeleton
+                    width={72}
+                    height={19}
+                    radius={6}
+                    color={c.onDark.pill}
+                    style={{ marginTop: 6 }}
+                  />
+                ) : (
+                  <Text style={[styles.clockValue, styles.clockValueMuted]}>
+                    {clockOutTime}
+                  </Text>
+                )}
               </View>
             </View>
 
@@ -240,28 +274,32 @@ export function HomeScreen() {
             icon={ICON.attendanceRate}
             label="Kehadiran bulan ini"
             value={kehadiran}
-          />
+          memuat={memuat}
+            />
           <StatCard
             iconBg={c.ok.bg}
             ink={c.ok.ink}
             icon={ICON.leave}
             label="Sisa cuti tahunan"
             value={cuti ? `${cuti.remaining} ${cuti.unit}` : "–"}
-          />
+          memuat={memuat}
+            />
           <StatCard
             iconBg={c.warn.bg}
             ink={c.warn.ink}
             icon={ICON.overtime}
             label="Jam lembur"
             value={lembur ? `${lembur.remaining} ${lembur.unit}` : "–"}
-          />
+          memuat={memuat}
+            />
           <StatCard
             iconBg={c.bad.bg}
             ink={c.bad.ink}
             icon={ICON.late}
             label="Terlambat"
             value={`${telat} kali`}
-          />
+          memuat={memuat}
+            />
         </View>
         {employment && <EmploymentCard slices={employment} />}
         <View style={styles.sectionHeader}>
@@ -288,12 +326,27 @@ export function HomeScreen() {
         </View>
 
         <Card style={styles.feedCard}>
-          {notifications.map((n, i) => (
+          {memuat
+            ? [0, 1, 2].map((i) => (
+                <View
+                  key={i}
+                  style={[styles.feedRow, i < 2 && styles.feedRowDivider]}
+                >
+                  <Skeleton width={36} height={36} radius={12} />
+                  <View style={{ flex: 1, minWidth: 0, gap: 7 }}>
+                    <Skeleton width="68%" height={12} radius={4} />
+                    <Skeleton width="88%" height={10} radius={4} />
+                  </View>
+                  <Skeleton width={56} height={20} radius={8} />
+                </View>
+              ))
+            : null}
+          {(notifications ?? []).map((n, i) => (
             <View
               key={n.id}
               style={[
                 styles.feedRow,
-                i < notifications.length - 1 && styles.feedRowDivider,
+                i < (notifications?.length ?? 0) - 1 && styles.feedRowDivider,
               ]}
             >
               <View style={styles.feedAvatar}>
@@ -319,12 +372,14 @@ function StatCard({
   icon,
   label,
   value,
+  memuat,
 }: {
   iconBg: string;
   ink: string;
   icon: string;
   label: string;
   value: string;
+  memuat?: boolean;
 }) {
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
@@ -335,7 +390,11 @@ function StatCard({
         <LineIcon d={icon} color={ink} size={16} />
       </View>
       <Text style={styles.statLabel}>{label}</Text>
-      <Text style={styles.statValue}>{value}</Text>
+      {memuat ? (
+        <Skeleton width={76} height={17} radius={5} style={{ marginTop: 7 }} />
+      ) : (
+        <Text style={styles.statValue}>{value}</Text>
+      )}
     </View>
   );
 }

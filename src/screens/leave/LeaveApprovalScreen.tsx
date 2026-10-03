@@ -4,6 +4,7 @@ import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { StatusBadge } from "@/components/StatusBadge";
+import { Skeleton } from "@/components/Skeleton";
 import { Palette } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
 import { LEAVE_TYPE_LABEL, LEAVE_TYPE_TONE } from "@/constants/statusLabels";
@@ -15,7 +16,7 @@ import { LeaveRequest } from "@/services/types";
 export function LeaveApprovalScreen({ navigation }: any) {
   const { employee } = useSession();
   const insets = useSafeAreaInsets();
-  const [items, setItems] = useState<LeaveRequest[]>([]);
+  const [items, setItems] = useState<LeaveRequest[] | null>(null);
   const [busy, setBusy] = useState(false);
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
@@ -31,13 +32,15 @@ export function LeaveApprovalScreen({ navigation }: any) {
   // di kartunya, bukan kartunya hilang begitu saja.
   const decide = async (id: string, decision: "approve" | "reject") => {
     const updated = await hrisApi.decideLeaveRequest(id, decision);
-    setItems((prev) => prev.map((r) => (r.id === id ? updated : r)));
+    setItems((prev) =>
+      (prev ?? []).map((r) => (r.id === id ? updated : r)),
+    );
   };
 
   const approveAll = async () => {
     setBusy(true);
     try {
-      for (const item of items.filter((r) => r.decision === null)) {
+      for (const item of (items ?? []).filter((r) => r.decision === null)) {
         await decide(item.id, "approve");
       }
     } finally {
@@ -47,7 +50,8 @@ export function LeaveApprovalScreen({ navigation }: any) {
 
   if (!employee) return null;
 
-  const pending = items.filter((r) => r.decision === null).length;
+  const memuat = items === null;
+  const pending = (items ?? []).filter((r) => r.decision === null).length;
 
   return (
     <View style={styles.container}>
@@ -62,9 +66,11 @@ export function LeaveApprovalScreen({ navigation }: any) {
         <View style={{ flex: 1, minWidth: 0 }}>
           <Text style={styles.headerTitle}>Inbox Approval</Text>
           <Text style={styles.headerSub}>
-            {pending > 0
-              ? `${pending} menunggu persetujuan`
-              : "Semua sudah diproses"}
+            {memuat
+              ? "Memuat…"
+              : pending > 0
+                ? `${pending} menunggu persetujuan`
+                : "Semua sudah diproses"}
           </Text>
         </View>
 
@@ -82,11 +88,15 @@ export function LeaveApprovalScreen({ navigation }: any) {
       </View>
 
       <FlatList
-        data={items}
+        data={items ?? []}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.content}
         ListEmptyComponent={
-          <Text style={styles.empty}>Tidak ada approval yang menunggu.</Text>
+          memuat ? (
+            <ApprovalCardSkeleton />
+          ) : (
+            <Text style={styles.empty}>Tidak ada approval yang menunggu.</Text>
+          )
         }
         renderItem={({ item }) => {
           const tone = LEAVE_TYPE_TONE[item.type];
@@ -167,6 +177,39 @@ export function LeaveApprovalScreen({ navigation }: any) {
     </View>
   );
 }
+function ApprovalCardSkeleton() {
+  const c = useTheme();
+  const styles = useMemo(() => makeStyles(c), [c]);
+
+  return (
+    <>
+      {[0, 1].map((i) => (
+        <View key={i} style={styles.card}>
+          <View style={styles.topRow}>
+            <Skeleton width={40} height={40} radius={14} />
+            <View style={{ flex: 1, minWidth: 0, gap: 7 }}>
+              <Skeleton width="54%" height={12} radius={4} />
+              <Skeleton width="38%" height={10} radius={4} />
+            </View>
+            <Skeleton width={58} height={20} radius={8} />
+          </View>
+
+          <View style={[styles.detailBox, { gap: 8 }]}>
+            <Skeleton width="62%" height={11} radius={4} />
+            <Skeleton width="90%" height={10} radius={4} />
+            <Skeleton width="44%" height={9} radius={4} />
+          </View>
+
+          <View style={styles.actions}>
+            <Skeleton style={{ flex: 1 }} height={41} radius={13} />
+            <Skeleton style={{ flex: 2 }} height={41} radius={13} />
+          </View>
+        </View>
+      ))}
+    </>
+  );
+}
+
 const makeStyles = (c: Palette) =>
   StyleSheet.create({
     container: { flex: 1, backgroundColor: c.bg },
