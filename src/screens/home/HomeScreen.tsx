@@ -198,7 +198,7 @@ export function HomeScreen() {
             <Ionicons
               name="notifications-outline"
               size={18}
-              color="rgba(255,255,255,0.8)"
+              color={c.onDark.ink}
             />
             <View style={styles.notifDot} />
           </Pressable>
@@ -497,14 +497,14 @@ const makeStyles = (c: Palette) =>
     role: {
       fontSize: 11.5,
       fontWeight: "500",
-      color: "rgba(255,255,255,0.55)",
+      color: c.onDark.muted,
       marginTop: 2,
     },
     notifButton: {
       width: 38,
       height: 38,
       borderRadius: 12,
-      backgroundColor: "rgba(255,255,255,0.1)",
+      backgroundColor: c.onDark.surface,
       alignItems: "center",
       justifyContent: "center",
     },
@@ -530,7 +530,7 @@ const makeStyles = (c: Palette) =>
       fontSize: 12,
       lineHeight: 18,
       fontWeight: "500",
-      color: "rgba(255,255,255,0.5)",
+      color: c.onDark.faint,
       marginTop: 4,
     },
 
@@ -617,7 +617,7 @@ const makeStyles = (c: Palette) =>
       width: 150,
       height: 150,
       borderRadius: 75,
-      backgroundColor: "rgba(255,255,255,0.09)",
+      backgroundColor: c.onDark.surface,
     },
     heroTopRow: {
       flexDirection: "row",
@@ -627,10 +627,10 @@ const makeStyles = (c: Palette) =>
     heroDate: {
       fontSize: 12.5,
       fontWeight: "600",
-      color: "rgba(255,255,255,0.85)",
+      color: c.onDark.ink,
     },
     heroTimePill: {
-      backgroundColor: "rgba(255,255,255,0.2)",
+      backgroundColor: c.onDark.pill,
       borderRadius: 999,
       paddingHorizontal: 10,
       paddingVertical: 4,
@@ -639,7 +639,7 @@ const makeStyles = (c: Palette) =>
     clockRow: { flexDirection: "row", gap: 10, marginTop: 16 },
     clockBox: {
       flex: 1,
-      backgroundColor: "rgba(255,255,255,0.16)",
+      backgroundColor: c.onDark.track,
       borderRadius: 16,
       paddingHorizontal: 14,
       paddingVertical: 12,
@@ -647,7 +647,7 @@ const makeStyles = (c: Palette) =>
     clockLabel: {
       fontSize: 11,
       fontWeight: "500",
-      color: "rgba(255,255,255,0.8)",
+      color: c.onDark.ink,
     },
     clockValue: {
       fontSize: 19,
@@ -656,7 +656,7 @@ const makeStyles = (c: Palette) =>
       color: "#fff",
       marginTop: 5,
     },
-    clockValueMuted: { color: "rgba(255,255,255,0.75)" },
+    clockValueMuted: { color: c.onDark.soft },
     heroCta: {
       marginTop: 12,
       paddingVertical: 13,

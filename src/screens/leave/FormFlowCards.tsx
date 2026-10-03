@@ -154,7 +154,7 @@ const makeStyles = (c: Palette) =>
       width: 62,
       height: 62,
       borderRadius: 31,
-      backgroundColor: "rgba(255,255,255,0.22)",
+      backgroundColor: c.onDark.pill,
       alignItems: "center",
       justifyContent: "center",
     },
@@ -167,7 +167,7 @@ const makeStyles = (c: Palette) =>
     doneSub: {
       fontSize: 12.5,
       fontWeight: "600",
-      color: "rgba(255,255,255,0.82)",
+      color: c.onDark.ink,
       marginTop: 5,
     },
 

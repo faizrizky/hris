@@ -350,7 +350,7 @@ const makeStyles = (c: Palette) =>
       width: 62,
       height: 62,
       borderRadius: 31,
-      backgroundColor: "rgba(255,255,255,0.22)",
+      backgroundColor: c.onDark.pill,
       alignItems: "center",
       justifyContent: "center",
     },
@@ -363,7 +363,7 @@ const makeStyles = (c: Palette) =>
     doneSub: {
       fontSize: 13,
       fontWeight: "600",
-      color: "rgba(255,255,255,0.8)",
+      color: c.onDark.ink,
       marginTop: 5,
     },
     doneMeta: {
@@ -371,7 +371,7 @@ const makeStyles = (c: Palette) =>
       justifyContent: "space-between",
       alignSelf: "stretch",
       marginTop: 16,
-      backgroundColor: "rgba(255,255,255,0.14)",
+      backgroundColor: c.onDark.track,
       borderRadius: 14,
       paddingHorizontal: 14,
       paddingVertical: 12,
@@ -379,7 +379,7 @@ const makeStyles = (c: Palette) =>
     doneMetaLabel: {
       fontSize: 10.5,
       fontWeight: "500",
-      color: "rgba(255,255,255,0.75)",
+      color: c.onDark.soft,
     },
     doneMetaValue: {
       fontSize: 12.5,

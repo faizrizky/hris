@@ -10,8 +10,6 @@ import { LineIcon } from "@/components/LineIcon";
 import { ICON } from "@/constants/icons";
 import { CreateSheet } from "@/components/CreateSheet";
 
-const INACTIVE = "rgba(255,255,255,0.45)";
-
 const RIGHT = ["Slip Gaji", "Profil"];
 
 // Label di mockup beda dari nama route-nya.
@@ -97,7 +95,7 @@ export function FloatingTabBar({ state, navigation }: BottomTabBarProps) {
   };
 
   const renderTab = (routeName: string) => {
-    const color = currentRoute === routeName ? c.accent : INACTIVE;
+    const color = currentRoute === routeName ? c.accent : c.onDark.faint;
     return (
       <Pressable
         key={routeName}

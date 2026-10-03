@@ -329,7 +329,7 @@ const makeStyles = (c: Palette) =>
       width: 150,
       height: 150,
       borderRadius: 75,
-      backgroundColor: "rgba(255,255,255,0.09)",
+      backgroundColor: c.onDark.surface,
     },
     heroTop: {
       flexDirection: "row",
@@ -340,13 +340,13 @@ const makeStyles = (c: Palette) =>
     heroLabel: {
       fontSize: 12,
       fontWeight: "600",
-      color: "rgba(255,255,255,0.85)",
+      color: c.onDark.ink,
     },
     heroBadge: {
       paddingHorizontal: 9,
       paddingVertical: 4,
       borderRadius: 999,
-      backgroundColor: "rgba(255,255,255,0.2)",
+      backgroundColor: c.onDark.pill,
     },
     heroBadgeText: { fontSize: 10, fontWeight: "700", color: "#fff" },
     heroPct: {
@@ -360,7 +360,7 @@ const makeStyles = (c: Palette) =>
     heroTrack: {
       height: 7,
       borderRadius: 4,
-      backgroundColor: "rgba(255,255,255,0.22)",
+      backgroundColor: c.onDark.pill,
       marginTop: 13,
       overflow: "hidden",
     },
@@ -368,7 +368,7 @@ const makeStyles = (c: Palette) =>
     heroNote: {
       fontSize: 11,
       fontWeight: "500",
-      color: "rgba(255,255,255,0.85)",
+      color: c.onDark.ink,
       marginTop: 9,
     },
 

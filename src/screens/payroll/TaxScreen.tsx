@@ -283,7 +283,7 @@ const makeStyles = (c: Palette) =>
     darkLabel: {
       fontSize: 11.5,
       fontWeight: "500",
-      color: "rgba(255,255,255,0.55)",
+      color: c.onDark.muted,
     },
     schemePill: {
       paddingHorizontal: 9,
@@ -312,7 +312,7 @@ const makeStyles = (c: Palette) =>
     chartNote: {
       fontSize: 10,
       fontWeight: "500",
-      color: "rgba(255,255,255,0.4)",
+      color: c.onDark.faint,
       marginTop: 8,
     },
 

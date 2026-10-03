@@ -227,12 +227,12 @@ const makeStyles = (c: Palette) =>
       width: 150,
       height: 150,
       borderRadius: 75,
-      backgroundColor: "rgba(255,255,255,0.09)",
+      backgroundColor: c.onDark.surface,
     },
     heroLabel: {
       fontSize: 11.5,
       fontWeight: "600",
-      color: "rgba(255,255,255,0.85)",
+      color: c.onDark.ink,
     },
     heroTotal: {
       fontSize: 34,
@@ -244,7 +244,7 @@ const makeStyles = (c: Palette) =>
     },
     heroPills: { flex: 1, gap: 6 },
     heroPill: {
-      backgroundColor: "rgba(255,255,255,0.16)",
+      backgroundColor: c.onDark.track,
       borderRadius: 11,
       paddingHorizontal: 10,
       paddingVertical: 6,
