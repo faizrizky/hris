@@ -4,6 +4,11 @@
 const BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL;
 const TIMEOUT_MS = 15_000;
 
+let onSessionExpired: (() => void) | null = null;
+export function setSessionExpiredHandler(handler: (() => void) | null) {
+  onSessionExpired = handler;
+}
+
 export class ApiError extends Error {
   constructor(
     message: string,
@@ -78,6 +83,14 @@ async function request<T>(
   const obj = (body ?? {}) as Record<string, unknown>;
 
   if (!res.ok) {
+    if (res.status === 403 && obj.session_expired === 1) {
+      onSessionExpired?.();
+      throw new ApiError(
+        "Sesi berakhir, silakan masuk lagi",
+        403,
+        "SessionExpired",
+      );
+    }
     const excType = typeof obj.exc_type === "string" ? obj.exc_type : null;
     const message =
       typeof obj.message === "string" ? obj.message : `HTTP ${res.status}`;
@@ -99,9 +112,12 @@ export function describeError(e: unknown): string {
     if (e.excType === "NoEmployeeLinked") {
       return "Akun ini belum terhubung ke data karyawan. Hubungi HR.";
     }
+    if (e.excType === "SessionExpired") return e.message;
+    if (e.excType === "RoleFetchFailed") return `${e.message}. Coba lagi.`;
     if (e.status === 401) return "Email atau password salah";
     if (e.status === 0) return e.message;
-    return "Terjadi masalah di server. Coba lagi sebentar.";
+    const kode = __DEV__ ? ` [${e.status} ${e.excType ?? ""}]` : "";
+    return `Terjadi masalah di server.${kode} Coba lagi sebentar.`;
   }
   return "Terjadi kesalahan tak terduga";
 }
