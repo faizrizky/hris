@@ -13,7 +13,6 @@ import { LeaveRequestScreen } from "@/screens/leave/LeaveRequestScreen";
 import { LeaveApprovalScreen } from "@/screens/leave/LeaveApprovalScreen";
 import { OvertimeScreen } from "@/screens/leave/OvertimeScreen";
 import { PayslipListScreen } from "@/screens/payroll/PayslipListScreen";
-import { PayslipDetailScreen } from "@/screens/payroll/PayslipDetailScreen";
 import { ProfileScreen } from "@/screens/profile/ProfileScreen";
 import { AttendanceCorrectionScreen } from "@/screens/attendance/AttendanceCorrectionScreen";
 import { NavBar } from "@/components/NavBar";
@@ -121,11 +120,6 @@ function PayrollStack() {
         name="PayslipList"
         component={PayslipListScreen}
         options={{ title: "Slip Gaji", headerShown: false }}
-      />
-      <Stack.Screen
-        name="PayslipDetail"
-        component={PayslipDetailScreen}
-        options={{ title: "Detail Slip Gaji" }}
       />
       <Stack.Screen
         name="TaxDetail"
