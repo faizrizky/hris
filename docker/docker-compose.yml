@@ -1,0 +1,258 @@
+# ===========================================================================
+# ERPNext + Frappe HR (hrms) untuk PENGEMBANGAN LOKAL di Mac Apple Silicon.
+#
+# BUKAN untuk produksi. Tidak ada HTTPS, password-nya "admin", dan semuanya
+# memang dibuat supaya gampang dihapus lalu dibangun ulang.
+#
+# Image yang dipakai di sini TIDAK diambil dari Docker Hub. Image resmi
+# frappe/erpnext hanya berisi app `frappe` + `erpnext`, sementara kita juga
+# butuh `hrms`. Di Frappe, app harus sudah ikut masuk ke dalam image pada
+# tahap build (lihat README bagian "Kenapa harus build image sendiri"), jadi
+# image lokal hris-erpnext:16 dibuat lebih dulu lewat ./build-image.sh.
+#
+# Catatan arsitektur: di berkas ini sengaja TIDAK ada baris `platform:`.
+# Image resmi Frappe v16 sudah diterbitkan untuk linux/arm64, jadi dengan
+# dibiarkan kosong Docker akan memilih varian arm64 secara native di Apple
+# Silicon, tanpa emulasi amd64 yang jauh lebih lambat.
+# ===========================================================================
+
+x-app-image: &app_image
+  image: ${CUSTOM_IMAGE:-hris-erpnext}:${CUSTOM_TAG:-16}
+  pull_policy: ${PULL_POLICY:-never}
+
+x-app-volumes: &app_volumes
+  volumes:
+    - sites:/home/frappe/frappe-bench/sites
+    - logs:/home/frappe/frappe-bench/logs
+
+x-after-configurator: &after_configurator
+  depends_on:
+    configurator:
+      condition: service_completed_successfully
+
+services:
+  # -------------------------------------------------------------------------
+  # configurator: menulis alamat database dan redis ke
+  # sites/common_site_config.json. Jalan sebentar setiap `docker compose up`
+  # lalu keluar dengan status 0. Semua service lain menunggu ini selesai.
+  # -------------------------------------------------------------------------
+  configurator:
+    <<: [*app_image, *app_volumes]
+    restart: "no"
+    entrypoint: ["bash", "-c"]
+    command:
+      - |
+        set -e
+        ls -1 apps > sites/apps.txt
+        bench set-config -g db_host "$$DB_HOST"
+        bench set-config -gp db_port "$$DB_PORT"
+        bench set-config -g redis_cache "redis://$$REDIS_CACHE"
+        bench set-config -g redis_queue "redis://$$REDIS_QUEUE"
+        bench set-config -g redis_socketio "redis://$$REDIS_QUEUE"
+        bench set-config -gp socketio_port "$$SOCKETIO_PORT"
+        # Dibutuhkan Frappe v16 untuk cetak PDF (payslip, dsb). Kalau nanti
+        # cetak PDF error, cek dulu keberadaan binary ini di dalam image:
+        #   docker compose exec backend ls -l /usr/bin/chromium-headless-shell
+        bench set-config -g chromium_path /usr/bin/chromium-headless-shell
+        echo "configurator selesai"
+    environment:
+      DB_HOST: db
+      DB_PORT: "3306"
+      REDIS_CACHE: redis-cache:6379
+      REDIS_QUEUE: redis-queue:6379
+      SOCKETIO_PORT: "9000"
+
+  # -------------------------------------------------------------------------
+  # create-site: membuat site pertama dan memasang erpnext + hrms.
+  # Aman dijalankan berulang kali; kalau site sudah ada, langkah ini dilewati.
+  # Pantau prosesnya dengan:  docker compose logs -f create-site
+  # -------------------------------------------------------------------------
+  create-site:
+    <<: [*app_image, *app_volumes, *after_configurator]
+    restart: "no"
+    entrypoint: ["bash", "-c"]
+    environment:
+      SITE_NAME: ${SITE_NAME:-hris.localhost}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-admin}
+      DB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-admin}
+    command:
+      - |
+        set -e
+        wait-for-it -t 180 db:3306
+        wait-for-it -t 180 redis-cache:6379
+        wait-for-it -t 180 redis-queue:6379
+
+        # Tunggu sampai configurator benar-benar menulis konfigurasinya.
+        start=$$(date +%s)
+        while true; do
+          db_ok=$$(grep -hs ^ sites/common_site_config.json | jq -r '.db_host // empty')
+          rc_ok=$$(grep -hs ^ sites/common_site_config.json | jq -r '.redis_cache // empty')
+          rq_ok=$$(grep -hs ^ sites/common_site_config.json | jq -r '.redis_queue // empty')
+          if [ -n "$$db_ok" ] && [ -n "$$rc_ok" ] && [ -n "$$rq_ok" ]; then
+            break
+          fi
+          echo "Menunggu sites/common_site_config.json dilengkapi configurator..."
+          sleep 5
+          if [ $$(( $$(date +%s) - start )) -gt 180 ]; then
+            echo "GAGAL: konfigurasi bersama tidak pernah lengkap."
+            echo "Cek log configurator:  docker compose logs configurator"
+            exit 1
+          fi
+        done
+
+        if [ -d "sites/$$SITE_NAME" ]; then
+          echo "Site $$SITE_NAME sudah ada. Pembuatan site dilewati."
+          echo "Untuk mulai dari nol:  docker compose down -v"
+          exit 0
+        fi
+
+        echo "Membuat site $$SITE_NAME dan memasang erpnext + hrms..."
+        bench new-site "$$SITE_NAME" \
+          --mariadb-user-host-login-scope='%' \
+          --db-root-username=root \
+          --db-root-password="$$DB_ROOT_PASSWORD" \
+          --admin-password="$$ADMIN_PASSWORD" \
+          --install-app erpnext \
+          --install-app hrms \
+          --set-default
+
+        echo "-----------------------------------------------------------"
+        echo "Site $$SITE_NAME siap."
+        echo "Login: Administrator / $$ADMIN_PASSWORD"
+        echo "-----------------------------------------------------------"
+
+  # -------------------------------------------------------------------------
+  # backend: server aplikasi Python (gunicorn). Semua perintah `bench`
+  # manual dijalankan di container ini.
+  # -------------------------------------------------------------------------
+  backend:
+    <<: [*app_image, *app_volumes, *after_configurator]
+    restart: unless-stopped
+    environment:
+      DB_HOST: db
+      DB_PORT: "3306"
+      # Dipasang supaya `bench new-site` / `bench drop-site` yang dijalankan
+      # manual lewat `docker compose exec backend ...` tidak perlu
+      # menuliskan password root database setiap kali.
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-admin}
+      MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-admin}
+      GUNICORN_WORKERS: "2"
+      GUNICORN_THREADS: "4"
+      GUNICORN_TIMEOUT: "120"
+
+  # -------------------------------------------------------------------------
+  # frontend: nginx. Melayani aset JS/CSS dan meneruskan request ke backend.
+  # Ini satu-satunya service yang portnya dibuka ke Mac.
+  # -------------------------------------------------------------------------
+  frontend:
+    <<: [*app_image, *app_volumes]
+    restart: unless-stopped
+    command: ["nginx-entrypoint.sh"]
+    environment:
+      BACKEND: backend:8000
+      SOCKETIO: websocket:9000
+      NGINX_LISTEN_PORT: "8080"
+      # ===== BARIS PALING PENTING UNTUK AKSES DARI HP =====
+      # Secara default Frappe memilih site berdasarkan Host header, sehingga
+      # membuka http://192.168.x.x:8080 akan dicari sebagai site bernama
+      # "192.168.x.x" dan berakhir 404. Dengan dipaksa ke nama site kita,
+      # nginx selalu melayani site yang sama, apa pun Host yang masuk:
+      # localhost, 127.0.0.1, maupun IP LAN Mac dari HP.
+      FRAPPE_SITE_NAME_HEADER: ${SITE_NAME:-hris.localhost}
+      UPSTREAM_REAL_IP_ADDRESS: 127.0.0.1
+      UPSTREAM_REAL_IP_HEADER: X-Forwarded-For
+      UPSTREAM_REAL_IP_RECURSIVE: "off"
+      PROXY_READ_TIMEOUT: "120"
+      CLIENT_MAX_BODY_SIZE: 50m
+    ports:
+      # 0.0.0.0 supaya bisa dihubungi dari HP di jaringan yang sama,
+      # bukan hanya dari Mac itu sendiri.
+      - "${HTTP_PUBLISH_PORT:-8080}:8080"
+    depends_on:
+      - backend
+      - websocket
+
+  # -------------------------------------------------------------------------
+  # websocket: server Socket.IO untuk notifikasi realtime di UI web.
+  # Aplikasi mobile tidak memakainya, tapi UI web ERPNext akan ramai
+  # menampilkan error koneksi kalau service ini mati.
+  # -------------------------------------------------------------------------
+  websocket:
+    <<: [*app_image, *app_volumes, *after_configurator]
+    restart: unless-stopped
+    command: ["node", "/home/frappe/frappe-bench/apps/frappe/socketio.js"]
+    environment:
+      FRAPPE_REDIS_CACHE: redis://redis-cache:6379
+      FRAPPE_REDIS_QUEUE: redis://redis-queue:6379
+
+  # -------------------------------------------------------------------------
+  # queue-short / queue-long: worker background job (email, notifikasi,
+  # pembuatan dokumen massal, proses payroll).
+  # -------------------------------------------------------------------------
+  queue-short:
+    <<: [*app_image, *app_volumes, *after_configurator]
+    restart: unless-stopped
+    command: ["bench", "worker", "--queue", "short,default"]
+    environment:
+      FRAPPE_REDIS_CACHE: redis://redis-cache:6379
+      FRAPPE_REDIS_QUEUE: redis://redis-queue:6379
+
+  queue-long:
+    <<: [*app_image, *app_volumes, *after_configurator]
+    restart: unless-stopped
+    command: ["bench", "worker", "--queue", "long,default,short"]
+    environment:
+      FRAPPE_REDIS_CACHE: redis://redis-cache:6379
+      FRAPPE_REDIS_QUEUE: redis://redis-queue:6379
+
+  # -------------------------------------------------------------------------
+  # scheduler: menjalankan tugas terjadwal (auto attendance, dsb).
+  # -------------------------------------------------------------------------
+  scheduler:
+    <<: [*app_image, *app_volumes, *after_configurator]
+    restart: unless-stopped
+    command: ["bench", "schedule"]
+
+  # -------------------------------------------------------------------------
+  # db: MariaDB. Versi 11.8 mengikuti pwd.yml resmi frappe_docker.
+  # -------------------------------------------------------------------------
+  db:
+    image: mariadb:11.8
+    restart: unless-stopped
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --skip-character-set-client-handshake
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-admin}
+      MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-admin}
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      start_period: 15s
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    volumes:
+      - db-data:/var/lib/mysql
+
+  # -------------------------------------------------------------------------
+  # redis-cache: cache, boleh hilang. Tanpa volume, memang disengaja.
+  # redis-queue: antrean job, pakai volume supaya job tidak hilang saat restart.
+  # -------------------------------------------------------------------------
+  redis-cache:
+    image: redis:6.2-alpine
+    restart: unless-stopped
+
+  redis-queue:
+    image: redis:6.2-alpine
+    restart: unless-stopped
+    volumes:
+      - redis-queue-data:/data
+
+volumes:
+  # sites menyimpan site_config.json, berkas unggahan, dan hasil backup.
+  # db-data menyimpan isi database. Dua ini yang benar-benar berisi data kamu.
+  sites:
+  logs:
+  db-data:
+  redis-queue-data:
