@@ -378,7 +378,7 @@ const makeStyles = (c: Palette) =>
       paddingHorizontal: 32,
     },
     ikon: { width: 44, height: 44, margin: -4 },
-    ikonGlyph: { position: "absolute", top: -4, left: -4 },
+
     tutup: {
       position: "absolute",
       top: 28,
