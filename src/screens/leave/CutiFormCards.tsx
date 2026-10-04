@@ -7,18 +7,11 @@ import { ICON } from "@/constants/icons";
 import { Palette } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
 
-export const JENIS_CUTI = [
-  "Tahunan",
-  "Sakit",
-  "Melahirkan",
-  "Izin penting",
-] as const;
+export const JENIS_CUTI = ["Tahunan", "Sakit"] as const;
 
 export const NAMA_CUTI: Record<JenisCuti, string> = {
   Tahunan: "Cuti tahunan",
   Sakit: "Cuti sakit",
-  Melahirkan: "Cuti melahirkan",
-  "Izin penting": "Izin penting",
 };
 
 export type JenisCuti = (typeof JENIS_CUTI)[number];
@@ -29,17 +22,11 @@ function infoCuti(jenis: JenisCuti, saldo: number, hariKerja: number) {
       ? `Durasi melebihi saldo cuti (${saldo} hari). Kurangi tanggal atau ajukan cuti di luar tanggungan.`
       : `Saldo ${saldo} hari · setelah pengajuan ini sisa ${saldo - hariKerja} hari`;
   }
-  if (jenis === "Sakit")
-    return "Lampirkan surat dokter untuk cuti sakit lebih dari 1 hari. Tidak memotong saldo cuti tahunan.";
-  if (jenis === "Melahirkan")
-    return "Hak cuti 3 bulan sesuai UU Ketenagakerjaan. Lampirkan surat keterangan dokter atau bidan.";
-  return "Untuk pernikahan, duka, atau keperluan keluarga. Tidak memotong saldo cuti tahunan.";
+  return "Lampirkan surat dokter untuk cuti sakit lebih dari 1 hari. Tidak memotong saldo cuti tahunan.";
 }
 
 export function labelLampiran(jenis: JenisCuti) {
-  return jenis === "Sakit" || jenis === "Melahirkan"
-    ? "Surat dokter (wajib)"
-    : "Lampiran (opsional)";
+  return jenis === "Sakit" ? "Surat dokter (wajib)" : "Lampiran (opsional)";
 }
 
 export function CutiTypeCard({

@@ -13,6 +13,7 @@ import {
   LeaveRequest,
   LeaveType,
   Role,
+  LeaveApprover,
 } from "../types";
 import { tanggalPendek, tanggalPendekTahun, toISODate } from "../../utils/date";
 import { ApiError, get, post } from "./http";
@@ -124,6 +125,11 @@ interface LeaveDetailsRes {
 const JENIS_SALDO: Record<string, { type: LeaveType; label: string }> = {
   "Cuti Tahunan": { type: "cuti", label: "Cuti tahunan" },
   "Cuti Sakit": { type: "sakit", label: "Cuti sakit" },
+};
+
+const NAMA_JENIS: Partial<Record<LeaveType, string>> = {
+  cuti: "Cuti Tahunan",
+  sakit: "Cuti Sakit",
 };
 
 async function ambilSaldo(employeeId: string): Promise<LeaveBalance[]> {
@@ -274,5 +280,42 @@ export const erpnextApi: HrisApi = {
       fullName: r.employee_name,
       jobTitle: r.designation ?? "—",
     }));
+  },
+
+  async getLeaveApprover(): Promise<LeaveApprover | null> {
+    const res = await get<{ message: { email: string; name: string } | null }>(
+      "/api/method/hris_get_my_approver",
+    );
+    if (!res.message) return null;
+    return {
+      id: res.message.email,
+      fullName: res.message.name,
+      initials: inisial(res.message.name),
+    };
+  },
+
+  async submitLeaveRequest(input) {
+    // Lembur dan dinas luar belum punya endpoint asli.
+    const jenis = NAMA_JENIS[input.type];
+    if (!jenis) return mockApi.submitLeaveRequest(input);
+
+    const approver = await this.getLeaveApprover(input.employeeId);
+    if (!approver) {
+      throw new ApiError("Belum ada approver", 0, "NoApprover");
+    }
+
+    const res = await post<{ data: LeaveRow }>(
+      `/api/resource/${encodeURIComponent("Leave Application")}`,
+      {
+        employee: input.employeeId,
+        leave_type: jenis,
+        from_date: input.fromDate,
+        to_date: input.toDate,
+        description: input.reason,
+        leave_approver: approver.id,
+        custom_delegate: input.delegateId ?? "",
+      },
+    );
+    return bentukPengajuan(res.data);
   },
 };
