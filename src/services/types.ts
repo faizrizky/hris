@@ -311,6 +311,12 @@ export interface Colleague {
   jobTitle: string;
 }
 
+export interface LeaveApprover {
+  id: string; // email user approver
+  fullName: string;
+  initials: string;
+}
+
 // Kontrak yang dipakai UI — mock & real ERPNext service sama-sama implement ini.
 export interface HrisApi {
   login(email: string, password: string): Promise<Employee>;
@@ -331,8 +337,13 @@ export interface HrisApi {
     type: LeaveType;
     label: string;
     reason: string;
+    fromDate: string; // ISO
+    toDate: string; // ISO
+    delegateId?: string;
     delegateName?: string;
   }): Promise<LeaveRequest>;
+
+  getLeaveApprover(employeeId: string): Promise<LeaveApprover | null>;
 
   submitAttendanceCorrection(input: {
     employeeId: string;

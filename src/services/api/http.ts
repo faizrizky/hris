@@ -114,6 +114,12 @@ export function describeError(e: unknown): string {
     }
     if (e.excType === "SessionExpired") return e.message;
     if (e.excType === "RoleFetchFailed") return `${e.message}. Coba lagi.`;
+    if (e.excType === "NoApprover") {
+      return "Belum ada approver. Hubungi HR.";
+    }
+    if (e.excType === "OverlapError") {
+      return "Tanggal bertabrakan dengan pengajuan cuti lain";
+    }
     if (e.status === 401) return "Email atau password salah";
     if (e.status === 0) return e.message;
     const kode = __DEV__ ? ` [${e.status} ${e.excType ?? ""}]` : "";

@@ -3,11 +3,11 @@ import {
   KeyboardAvoidingView,
   Platform,
   Pressable,
-  ScrollView,
   StyleSheet,
   Text,
   View,
 } from "react-native";
+import { RevealScrollView as ScrollView } from "@/components/Reveal";
 import {
   CutiTypeCard,
   CutiDetailCard,
@@ -30,7 +30,7 @@ import {
 import { DinasBiayaCard, Biaya, totalBiaya } from "./DinasBiayaCard";
 import { hrisApi } from "@/services/api";
 import { useSession } from "@/services/session";
-import { LeaveBalance, Colleague } from "@/services/types";
+import { LeaveBalance, Colleague, LeaveApprover } from "@/services/types";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { Palette } from "@/theme/colors";
@@ -46,6 +46,7 @@ import {
 } from "@/utils/date";
 import { rupiah } from "@/utils/currency";
 import { LinearGradient } from "expo-linear-gradient";
+import { describeError } from "@/services/api/http";
 
 const SEGMENTS = [
   { key: "cuti", label: "Cuti" },
@@ -98,6 +99,9 @@ export function LeaveRequestScreen({ navigation, route }: any) {
   const [biaya, setBiaya] = useState<Biaya[]>([]);
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
+  const [approver, setApprover] = useState<LeaveApprover | null | undefined>(
+    undefined,
+  );
 
   const meta = FORM_META[kind];
 
@@ -123,10 +127,13 @@ export function LeaveRequestScreen({ navigation, route }: any) {
   const [done, setDone] = useState<string | null>(null); // id pengajuan
   const [sending, setSending] = useState(false);
 
+  const [galat, setGalat] = useState<string | null>(null);
+
   useEffect(() => {
     if (!employee) return;
     hrisApi.getLeaveBalances(employee.id).then(setBalances);
     hrisApi.getColleagues(employee.id).then(setRekan);
+    hrisApi.getLeaveApprover(employee.id).then(setApprover);
   }, [employee]);
 
   const saldo = balances.find((b) => b.type === "cuti")?.remaining ?? 0;
@@ -140,25 +147,30 @@ export function LeaveRequestScreen({ navigation, route }: any) {
     ? "Tanggal belum dipilih"
     : kind === "cuti" && !alasan.trim()
       ? "Alasan belum diisi"
-      : kind === "lembur" && !uraian.trim()
-        ? "Uraian pekerjaan belum diisi"
-        : kind === "lembur" && otFiles.length === 0
-          ? "Bukti lembur belum diunggah"
-          : kind === "dinas" && !dest.trim()
-            ? "Kota tujuan belum diisi"
-            : kind === "dinas" && !transport
-              ? "Transportasi belum dipilih"
-              : kind === "dinas" && buktiBiayaKurang
-                ? `${buktiBiayaKurang} bukti biaya belum diunggah`
-                : "";
+      : kind === "cuti" && approver === null
+        ? "Belum ada approver, hubungi HR"
+        : kind === "lembur" && !uraian.trim()
+          ? "Uraian pekerjaan belum diisi"
+          : kind === "lembur" && otFiles.length === 0
+            ? "Bukti lembur belum diunggah"
+            : kind === "dinas" && !dest.trim()
+              ? "Kota tujuan belum diisi"
+              : kind === "dinas" && !transport
+                ? "Transportasi belum dipilih"
+                : kind === "dinas" && buktiBiayaKurang
+                  ? `${buktiBiayaKurang} bukti biaya belum diunggah`
+                  : "";
 
   const bisaKirim = !blockMsg && !sending;
 
   const handleSubmit = async () => {
     if (!bisaKirim || !employee) return;
     setSending(true);
+    setGalat(null);
     try {
       const created = await hrisApi.submitLeaveRequest({
+        fromDate: start!,
+        toDate: end!,
         employeeId: employee.id,
         type:
           kind === "lembur"
@@ -182,8 +194,11 @@ export function LeaveRequestScreen({ navigation, route }: any) {
               : `${dest.trim()} · ${keperluan.trim()}`,
         delegateName:
           kind === "cuti" && delegasi ? delegasi.fullName : undefined,
+        delegateId: kind === "cuti" && delegasi ? delegasi.id : undefined,
       });
       setDone(created.id);
+    } catch (e) {
+      setGalat(describeError(e));
     } finally {
       setSending(false);
     }
@@ -269,6 +284,19 @@ export function LeaveRequestScreen({ navigation, route }: any) {
         },
       ];
 
+  const langkahApproval: ApprovalStep[] =
+    kind === "cuti"
+      ? approver
+        ? [
+            {
+              ini: approver.initials,
+              name: approver.fullName,
+              role: "Atasan langsung",
+            },
+          ]
+        : [] // masih memuat, atau tidak ada approver
+      : APPROVERS[kind];
+
   return (
     <View style={styles.container}>
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
@@ -311,7 +339,7 @@ export function LeaveRequestScreen({ navigation, route }: any) {
           {done ? (
             <FormDoneView
               title={`Pengajuan ${kind === "dinas" ? "dinas luar" : kind} terkirim`}
-              waitingOn={APPROVERS[kind][0].name}
+              waitingOn={langkahApproval[0]?.name ?? "approver"}
               rows={buatDoneRows()}
               doc={`${DOC_PREFIX[kind]}-${done}`}
               onLihat={() => navigation.goBack()}
@@ -421,7 +449,7 @@ export function LeaveRequestScreen({ navigation, route }: any) {
                   }
                 />
               )}
-              <ApprovalFlowCard steps={APPROVERS[kind]} />
+              <ApprovalFlowCard steps={langkahApproval} />
             </>
           )}
         </ScrollView>
@@ -430,9 +458,12 @@ export function LeaveRequestScreen({ navigation, route }: any) {
         <View style={[styles.actionBar, { paddingBottom: insets.bottom + 14 }]}>
           <View style={{ flex: 1, minWidth: 0 }}>
             <Text
-              style={[styles.sumSub, blockMsg ? { color: c.bad.ink } : null]}
+              style={[
+                styles.sumSub,
+                blockMsg || galat ? { color: c.bad.ink } : null,
+              ]}
             >
-              {blockMsg || "Siap dikirim"}
+              {blockMsg || galat || "Siap dikirim"}
             </Text>
             <Text style={styles.sumTop}>
               {kind === "cuti" && hariKerja > 0

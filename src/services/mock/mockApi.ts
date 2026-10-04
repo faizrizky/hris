@@ -27,6 +27,7 @@ import {
   SecurityToggleKey,
   EmploymentSlice,
   Colleague,
+  LeaveApprover,
 } from "../types";
 import {
   MOCK_ATTENDANCE,
@@ -362,5 +363,9 @@ export const mockApi: HrisApi = {
   ): Promise<void> {
     await delay(400);
     security = { ...security, passwordChangedDaysAgo: 0 };
+  },
+
+  async getLeaveApprover(): Promise<LeaveApprover | null> {
+    return { id: "mock", fullName: "Bayu Pratama", initials: "BP" };
   },
 };
