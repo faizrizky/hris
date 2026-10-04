@@ -212,7 +212,6 @@ export function LeaveRequestScreen({ navigation, route }: any) {
         { k: "Jenis", v: NAMA_CUTI[jenisCuti] },
         { k: "Tanggal", v: `${tanggalPendek(start)} – ${tanggalPendek(end)}` },
         { k: "Durasi", v: `${hariKerja} hari kerja` },
-        { k: "Durasi", v: `${hariKerja} hari kerja` },
         { k: "Delegasi", v: delegasi?.fullName ?? "—" },
       ];
     }
@@ -341,7 +340,11 @@ export function LeaveRequestScreen({ navigation, route }: any) {
               title={`Pengajuan ${kind === "dinas" ? "dinas luar" : kind} terkirim`}
               waitingOn={langkahApproval[0]?.name ?? "approver"}
               rows={buatDoneRows()}
-              doc={`${DOC_PREFIX[kind]}-${done}`}
+              doc={
+                kind === "cuti"
+                  ? `Leave Application · ${done}`
+                  : `${DOC_PREFIX[kind]}-${done}`
+              }
               onLihat={() => navigation.goBack()}
               onHome={() => navigation.getParent()?.navigate("Beranda")}
             />

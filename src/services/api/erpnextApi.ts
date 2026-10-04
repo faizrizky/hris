@@ -289,8 +289,8 @@ export const erpnextApi: HrisApi = {
     if (!res.message) return null;
     return {
       id: res.message.email,
-      fullName: res.message.name,
-      initials: inisial(res.message.name),
+      fullName: res.message.name ?? res.message.email,
+      initials: inisial(res.message.name ?? res.message.email),
     };
   },
 
