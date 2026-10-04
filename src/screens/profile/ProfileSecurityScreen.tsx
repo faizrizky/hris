@@ -1,18 +1,17 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import {
-  Alert,
   Pressable,
-  ScrollView,
   StyleSheet,
   Switch,
   Text,
   View,
 } from "react-native";
+import { RevealScrollView as ScrollView } from "@/components/Reveal";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-
+import { useConfirm } from "@/components/ConfirmDialog";
 import { Palette } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
 import { hrisApi } from "@/services/api";
@@ -30,6 +29,8 @@ export function ProfileSecurityScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
+  const confirm = useConfirm();
+  const keluarLainRef = useRef<View>(null);
 
   const [info, setInfo] = useState<SecurityInfo | null>(null);
 
@@ -45,21 +46,22 @@ export function ProfileSecurityScreen({ navigation }: any) {
     hrisApi.setSecurityToggle(employee.id, key, enabled).then(setInfo);
   };
 
-  const keluarkanLain = () => {
+  const keluarkanLain = async () => {
     if (!employee || !info) return;
     const lain = info.devices.filter((d) => !d.current);
-    Alert.alert(
-      "Keluar dari perangkat lain?",
-      `${lain.map((d) => d.name).join(", ")} akan diminta login ulang. Perangkat ini tetap masuk.`,
-      [
-        { text: "Batal", style: "cancel" },
-        {
-          text: "Ya, keluarkan",
-          style: "destructive",
-          onPress: () => hrisApi.logoutOtherDevices(employee.id).then(setInfo),
-        },
-      ],
-    );
+    const ya = await confirm({
+      title: "Keluar dari perangkat lain?",
+      message: `${lain.map((d) => d.name).join(", ")} akan diminta login ulang. Perangkat ini tetap masuk.`,
+      tone: "bad",
+      confirmText: "Ya, keluarkan",
+      cancelText: "Batal",
+      from: keluarLainRef,
+      fromColor: c.bad.bg,
+      fromTextColor: c.bad.ink,
+      fromLabel: "Keluar dari perangkat lain",
+      fromRadius: 22,
+    });
+    if (ya) hrisApi.logoutOtherDevices(employee.id).then(setInfo);
   };
 
   const header = (
@@ -210,7 +212,11 @@ export function ProfileSecurityScreen({ navigation }: any) {
         </View>
 
         {adaLain ? (
-          <Pressable style={styles.dangerBtn} onPress={keluarkanLain}>
+          <Pressable
+            ref={keluarLainRef}
+            style={styles.dangerBtn}
+            onPress={keluarkanLain}
+          >
             <Text style={styles.dangerText}>Keluar dari perangkat lain</Text>
           </Pressable>
         ) : (
