@@ -1,16 +1,15 @@
 import { useMemo, useState } from "react";
 import {
-  Alert,
   Keyboard,
   KeyboardAvoidingView,
   Platform,
   Pressable,
-  ScrollView,
   StyleSheet,
   Text,
   TextInput,
   View,
 } from "react-native";
+import { RevealScrollView as ScrollView } from "@/components/Reveal";
 import * as DocumentPicker from "expo-document-picker";
 import * as ImagePicker from "expo-image-picker";
 import { Ionicons } from "@expo/vector-icons";
@@ -32,6 +31,7 @@ import {
   tanpaEkstensi,
   ukuranFile,
 } from "@/utils/file";
+import { useConfirm } from "@/components/ConfirmDialog";
 
 const KATEGORI: DocCategory[] = ["kontrak", "sk", "sertifikat", "identitas"];
 
@@ -60,15 +60,19 @@ export function ProfileUploadScreen({ navigation }: any) {
   const [berlaku, setBerlaku] = useState<string | null>(null);
   const [pickTanggal, setPickTanggal] = useState(false);
   const [sending, setSending] = useState(false);
+  const confirm = useConfirm();
 
   // Satu pintu untuk kedua sumber file, supaya aturan ukuran dan penamaan
   // otomatis tidak ditulis dua kali.
   const terima = (f: Berkas) => {
     if (f.size > MAKS_BYTE) {
-      Alert.alert(
-        "File terlalu besar",
-        `Ukuran ${ukuranFile(f.size)} melebihi batas 5 MB.`,
-      );
+      void confirm({
+        title: "File terlalu besar",
+        message: `Ukuran ${ukuranFile(f.size)} melebihi batas 5 MB.`,
+        tone: "warn",
+        confirmText: "Mengerti",
+        cancelText: null,
+      });
       return;
     }
     setBerkas(f);
@@ -92,10 +96,14 @@ export function ProfileUploadScreen({ navigation }: any) {
   const ambilFoto = async () => {
     const izin = await ImagePicker.requestCameraPermissionsAsync();
     if (!izin.granted) {
-      Alert.alert(
-        "Izin kamera ditolak",
-        "Aktifkan izin kamera di pengaturan untuk mengambil foto dokumen.",
-      );
+      void confirm({
+        title: "Izin kamera ditolak",
+        message:
+          "Aktifkan izin kamera di pengaturan untuk mengambil foto dokumen.",
+        tone: "warn",
+        confirmText: "Mengerti",
+        cancelText: null,
+      });
       return;
     }
     const r = await ImagePicker.launchCameraAsync({ quality: 0.7 });

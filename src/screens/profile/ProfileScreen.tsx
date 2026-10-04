@@ -1,12 +1,12 @@
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo, useRef } from "react";
 import {
   Pressable,
-  ScrollView,
   StyleSheet,
   Switch,
   Text,
   View,
 } from "react-native";
+import { RevealScrollView as ScrollView } from "@/components/Reveal";
 import { LinearGradient } from "expo-linear-gradient";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -20,6 +20,7 @@ import { tahunSejak } from "@/utils/date";
 import { hrisApi } from "@/services/api";
 import { useSession } from "@/services/session";
 import { LeaveBalance } from "@/services/types";
+import { useConfirm } from "@/components/ConfirmDialog";
 
 export function ProfileScreen({ navigation }: any) {
   const { employee, setEmployee } = useSession();
@@ -29,6 +30,8 @@ export function ProfileScreen({ navigation }: any) {
   const { mode, toggle } = useThemeMode();
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
+  const confirm = useConfirm();
+  const keluarRef = useRef<View>(null);
 
   useEffect(() => {
     if (!employee) return;
@@ -158,8 +161,22 @@ export function ProfileScreen({ navigation }: any) {
         </View>
 
         <Pressable
+          ref={keluarRef}
           style={styles.logout}
           onPress={async () => {
+            const ya = await confirm({
+              title: "Keluar dari akun?",
+              message: "Kamu perlu login lagi untuk memakai aplikasi.",
+              tone: "bad",
+              confirmText: "Keluar",
+              cancelText: "Batal",
+              from: keluarRef,
+              fromColor: c.bad.bg,
+              fromTextColor: c.bad.ink,
+              fromLabel: "Keluar",
+              fromRadius: 22,
+            });
+            if (!ya) return;
             await hrisApi.logout().catch(() => {});
             setEmployee(null);
           }}
