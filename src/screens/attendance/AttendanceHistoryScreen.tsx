@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useMemo } from "react";
-import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
+import { RevealFlatList as FlatList } from "@/components/Reveal";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { DonutChart } from "@/components/DonutChart";
