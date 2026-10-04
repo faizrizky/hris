@@ -1,0 +1,8 @@
+# Clone frappe_docker yang hanya dipakai sebagai konteks build image.
+# Isinya bisa dibuat ulang kapan saja oleh ./build-image.sh.
+.frappe_docker/
+
+# Konfigurasi lokal (berisi password dev). .gitignore di root repo juga
+# sudah mengabaikan pola .env, baris ini hanya untuk memperjelas maksud.
+.env
+.credentials.local
