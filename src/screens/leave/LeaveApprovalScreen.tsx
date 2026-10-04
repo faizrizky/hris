@@ -1,6 +1,7 @@
 import React, { useCallback, useState, useMemo } from "react";
 import { useFocusEffect } from "@react-navigation/native";
-import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
+import { RevealFlatList as FlatList } from "@/components/Reveal";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { StatusBadge } from "@/components/StatusBadge";

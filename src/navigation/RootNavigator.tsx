@@ -1,3 +1,4 @@
+import React from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
@@ -29,16 +30,25 @@ import { ProfileDocsScreen } from "@/screens/profile/ProfileDocsScreen";
 import { ProfileUploadScreen } from "@/screens/profile/ProfileUploadScreen";
 import { ProfileSecurityScreen } from "@/screens/profile/ProfileSecurityScreen";
 import { ProfilePasswordScreen } from "@/screens/profile/ProfilePasswordScreen";
+import { RevealScope } from "@/components/Reveal";
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
+
+// Pindah halaman seperti video referensi: tanpa geser, halaman lama langsung
+// hilang, lalu isi halaman baru memudar masuk bergiliran (lihat Reveal.tsx).
+const revealLayout = ({ children }: { children: React.ReactElement }) => (
+  <RevealScope>{children}</RevealScope>
+);
 
 // Stack kecil di dalam tab Absensi (Clock -> History) dan tab Cuti
 // (List -> Request) supaya tetap 1 tab tapi bisa navigasi berjenjang.
 function AttendanceStack() {
   return (
     <Stack.Navigator
+      screenLayout={revealLayout}
       screenOptions={{
+        animation: "none",
         header: (props) => (
           <NavBar
             title={props.options.title ?? props.route.name}
@@ -74,7 +84,9 @@ function AttendanceStack() {
 function LeaveStack() {
   return (
     <Stack.Navigator
+      screenLayout={revealLayout}
       screenOptions={{
+        animation: "none",
         header: (props) => (
           <NavBar
             title={props.options.title ?? props.route.name}
@@ -107,7 +119,9 @@ function LeaveStack() {
 function PayrollStack() {
   return (
     <Stack.Navigator
+      screenLayout={revealLayout}
       screenOptions={{
+        animation: "none",
         header: (props) => (
           <NavBar
             title={props.options.title ?? props.route.name}
@@ -132,7 +146,10 @@ function PayrollStack() {
 
 function HomeStack() {
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Navigator
+      screenLayout={revealLayout}
+      screenOptions={{ headerShown: false, animation: "none" }}
+    >
       <Stack.Screen name="HomeMain" component={HomeScreen} />
       <Stack.Screen name="Notifications" component={NotificationScreen} />
       <Stack.Screen name="Appraisal" component={AppraisalScreen} />
@@ -146,7 +163,10 @@ function HomeStack() {
 
 function ProfileStack() {
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Navigator
+      screenLayout={revealLayout}
+      screenOptions={{ headerShown: false, animation: "none" }}
+    >
       <Stack.Screen name="ProfileMain" component={ProfileScreen} />
       <Stack.Screen name="ProfileData" component={ProfileDataScreen} />
       <Stack.Screen name="ProfileEdit" component={ProfileEditScreen} />
@@ -177,6 +197,7 @@ function MainTabs() {
       {employee?.role === "hr" && (
         <Tab.Screen
           name="AbsensiTim"
+          layout={revealLayout}
           component={StaffAttendanceScreen}
           options={{ headerShown: false }}
         />
@@ -189,6 +210,7 @@ function MainTabs() {
       {canApprove && (
         <Tab.Screen
           name="Approval"
+          layout={revealLayout}
           component={LeaveApprovalScreen}
           options={{ headerShown: false }}
         />
@@ -212,7 +234,13 @@ export function RootNavigator() {
 
   return (
     <NavigationContainer>
-      {employee ? <MainTabs /> : <LoginScreen />}
+      {employee ? (
+        <MainTabs />
+      ) : (
+        <RevealScope>
+          <LoginScreen />
+        </RevealScope>
+      )}
     </NavigationContainer>
   );
 }

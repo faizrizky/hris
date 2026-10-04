@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useMemo } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Reveal, RevealScrollView as ScrollView } from "@/components/Reveal";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Card } from "@/components/Card";
@@ -383,17 +384,21 @@ function StatCard({
   const styles = useMemo(() => makeStyles(c), [c]);
 
   return (
-    <View style={styles.statCard}>
-      <View style={[styles.statIcon, { backgroundColor: iconBg }]}>
-        <LineIcon d={icon} color={ink} size={16} />
+    // Tiap kartu di grid naik satu per satu (lihat Reveal.tsx), jadi
+    // ukurannya dipegang pembungkus Reveal.
+    <Reveal style={styles.statCell}>
+      <View style={styles.statCard}>
+        <View style={[styles.statIcon, { backgroundColor: iconBg }]}>
+          <LineIcon d={icon} color={ink} size={16} />
+        </View>
+        <Text style={styles.statLabel}>{label}</Text>
+        {memuat ? (
+          <Skeleton width={76} height={17} radius={5} style={{ marginTop: 7 }} />
+        ) : (
+          <Text style={styles.statValue}>{value}</Text>
+        )}
       </View>
-      <Text style={styles.statLabel}>{label}</Text>
-      {memuat ? (
-        <Skeleton width={76} height={17} radius={5} style={{ marginTop: 7 }} />
-      ) : (
-        <Text style={styles.statValue}>{value}</Text>
-      )}
-    </View>
+    </Reveal>
   );
 }
 
@@ -414,12 +419,14 @@ function QuickAction({
   const styles = useMemo(() => makeStyles(c), [c]);
 
   return (
-    <Pressable style={styles.quickCard} onPress={onPress}>
-      <View style={[styles.quickIcon, { backgroundColor: iconBg }]}>
-        <LineIcon d={icon} color={ink} size={17} />
-      </View>
-      <Text style={styles.quickLabel}>{label}</Text>
-    </Pressable>
+    <Reveal style={styles.quickCell}>
+      <Pressable style={styles.quickCard} onPress={onPress}>
+        <View style={[styles.quickIcon, { backgroundColor: iconBg }]}>
+          <LineIcon d={icon} color={ink} size={17} />
+        </View>
+        <Text style={styles.quickLabel}>{label}</Text>
+      </Pressable>
+    </Reveal>
   );
 }
 
@@ -672,8 +679,8 @@ const makeStyles = (c: Palette) =>
       gap: 10,
       marginTop: 12,
     },
+    statCell: { flexBasis: "48%", flexGrow: 1 },
     statCard: {
-      flexBasis: "48%",
       flexGrow: 1,
       backgroundColor: c.card,
       borderWidth: 1,
@@ -716,8 +723,8 @@ const makeStyles = (c: Palette) =>
       alignItems: "center",
       justifyContent: "center",
     },
+    quickCell: { width: "22.5%" },
     quickCard: {
-      width: "22.5%",
       backgroundColor: c.card,
       borderWidth: 1,
       borderColor: c.cardBorder,

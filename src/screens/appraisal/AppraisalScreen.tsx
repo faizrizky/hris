@@ -1,5 +1,6 @@
 import { useEffect, useState, useMemo } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
+import { RevealScrollView as ScrollView } from "@/components/Reveal";
 import Svg, { Circle, G } from "react-native-svg";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
