@@ -16,7 +16,7 @@ import {
   LeaveApprover,
 } from "../types";
 import { tanggalPendek, tanggalPendekTahun, toISODate } from "../../utils/date";
-import { ApiError, get, post } from "./http";
+import { ApiError, get, post, put } from "./http";
 
 interface EmployeeRow {
   name: string;
@@ -167,6 +167,8 @@ interface LeaveRow {
   leave_approver_name: string | null;
   description: string | null;
   posting_date: string;
+  custom_designation: string | null;
+  custom_delegate_name: string | null;
 }
 
 const LEAVE_FIELDS = [
@@ -182,6 +184,8 @@ const LEAVE_FIELDS = [
   "leave_approver_name",
   "description",
   "posting_date",
+  "custom_designation",
+  "custom_delegate_name",
 ];
 
 // ERPNext hanya punya satu tahap persetujuan; "Tahap 1 dari 2" di mock
@@ -208,11 +212,11 @@ function bentukPengajuan(row: LeaveRow): LeaveRequest {
     employeeId: row.employee,
     employeeName: row.employee_name,
     employeeInitials: inisial(row.employee_name),
-    employeeJobTitle: "", // Leave Application tidak punya designation
+    employeeJobTitle: row.custom_designation ?? "",
     type: row.leave_type === "Cuti Sakit" ? "sakit" : "cuti",
     label: `${row.leave_type} · ${row.total_leave_days} hari`,
     reason: row.description ? `${periode} · ${row.description}` : periode,
-    delegateName: null, // belum ada field-nya di ERPNext
+    delegateName: row.custom_delegate_name,
     stage: status.stage,
     quota: "—",
     approverName: pemberiSetuju,
@@ -314,6 +318,40 @@ export const erpnextApi: HrisApi = {
         description: input.reason,
         leave_approver: approver.id,
         custom_delegate: input.delegateId ?? "",
+      },
+    );
+    return bentukPengajuan(res.data);
+  },
+
+  // Approver dikenali dari email sesi, bukan dari id Employee.
+  async getPendingApprovals(): Promise<LeaveRequest[]> {
+    const { message: email } = await get<{ message: string }>(
+      "/api/method/frappe.auth.get_logged_user",
+    );
+    const res = await get<{ data: LeaveRow[] }>(
+      `/api/resource/${encodeURIComponent("Leave Application")}`,
+      {
+        filters: [
+          ["leave_approver", "=", email],
+          ["status", "=", "Open"],
+          ["docstatus", "=", 0],
+        ],
+        fields: LEAVE_FIELDS,
+        order_by: "creation desc",
+        limit_page_length: 50,
+      },
+    );
+    return res.data.map(bentukPengajuan);
+  },
+
+  // Satu PUT: status saja hanya mengubah draft dan tidak memotong saldo,
+  // docstatus 1 yang membuat keputusannya final.
+  async decideLeaveRequest(requestId, decision): Promise<LeaveRequest> {
+    const res = await put<{ data: LeaveRow }>(
+      `/api/resource/${encodeURIComponent("Leave Application")}/${encodeURIComponent(requestId)}`,
+      {
+        status: decision === "approve" ? "Approved" : "Rejected",
+        docstatus: 1,
       },
     );
     return bentukPengajuan(res.data);

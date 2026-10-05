@@ -34,7 +34,7 @@ function encode(params: Params): string {
 }
 
 async function request<T>(
-  method: "GET" | "POST",
+  method: "GET" | "POST" | "PUT",
   path: string,
   params?: Params,
 ): Promise<T> {
@@ -43,7 +43,7 @@ async function request<T>(
   }
 
   const query = method === "GET" && params ? `?${encode(params)}` : "";
-  const isForm = method === "POST" && params !== undefined;
+  const isForm = method !== "GET" && params !== undefined;
 
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
@@ -105,6 +105,9 @@ export const get = <T>(path: string, params?: Params) =>
 
 export const post = <T>(path: string, params?: Params) =>
   request<T>("POST", path, params);
+
+export const put = <T>(path: string, params?: Params) =>
+  request<T>("PUT", path, params);
 
 // Pesan untuk pengguna akhir (Bahasa Indonesia), dipakai di layar.
 export function describeError(e: unknown): string {

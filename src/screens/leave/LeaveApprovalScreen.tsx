@@ -12,6 +12,8 @@ import { LEAVE_TYPE_LABEL, LEAVE_TYPE_TONE } from "@/constants/statusLabels";
 import { hrisApi } from "@/services/api";
 import { useSession } from "@/services/session";
 import { LeaveRequest } from "@/services/types";
+import { useConfirm } from "@/components/ConfirmDialog";
+import { describeError } from "@/services/api/http";
 
 // Layar ini cuma di-mount untuk role mss/hr (lihat RootNavigator).
 export function LeaveApprovalScreen({ navigation }: any) {
@@ -21,6 +23,7 @@ export function LeaveApprovalScreen({ navigation }: any) {
   const [busy, setBusy] = useState(false);
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
+  const confirm = useConfirm();
 
   const load = useCallback(() => {
     if (!employee) return;
@@ -29,18 +32,38 @@ export function LeaveApprovalScreen({ navigation }: any) {
 
   useFocusEffect(load);
 
-  // Simpan hasilnya ke state supaya banner "Disetujui/Ditolak" langsung muncul
-  // di kartunya, bukan kartunya hilang begitu saja.
   const decide = async (id: string, decision: "approve" | "reject") => {
-    const updated = await hrisApi.decideLeaveRequest(id, decision);
-    setItems((prev) => (prev ?? []).map((r) => (r.id === id ? updated : r)));
+    try {
+      const updated = await hrisApi.decideLeaveRequest(id, decision);
+      setItems((prev) => (prev ?? []).map((r) => (r.id === id ? updated : r)));
+      return true;
+    } catch (e) {
+      void confirm({
+        title: "Gagal memproses",
+        message: describeError(e),
+        tone: "bad",
+        confirmText: "Mengerti",
+        cancelText: null,
+      });
+      return false;
+    }
   };
 
   const approveAll = async () => {
+    const antre = (items ?? []).filter((r) => r.decision === null);
+    const ya = await confirm({
+      title: `Setujui ${antre.length} pengajuan?`,
+      message:
+        "Semua pengajuan yang menunggu akan disetujui dan tidak bisa dibatalkan.",
+      tone: "warn",
+      confirmText: "Setujui semua",
+      cancelText: "Batal",
+    });
+    if (!ya) return;
     setBusy(true);
     try {
-      for (const item of (items ?? []).filter((r) => r.decision === null)) {
-        await decide(item.id, "approve");
+      for (const item of antre) {
+        if (!(await decide(item.id, "approve"))) break; // berhenti di galat pertama
       }
     } finally {
       setBusy(false);
