@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useCallback, useState, useMemo } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { Reveal, RevealScrollView as ScrollView } from "@/components/Reveal";
 import { Ionicons } from "@expo/vector-icons";
@@ -11,7 +11,7 @@ import { useTheme } from "@/theme/ThemeContext";
 import { hrisApi } from "@/services/api";
 import { useSession } from "@/services/session";
 import { LinearGradient } from "expo-linear-gradient";
-import { useNavigation } from "@react-navigation/native";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { formatTanggalPanjang, formatJam } from "@/utils/date";
 import {
   FeedItem,
@@ -37,10 +37,12 @@ export function HomeScreen() {
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
 
-  useEffect(() => {
+  // Dimuat ulang setiap Beranda mendapat fokus, supaya hasil persetujuan atau
+  // pengajuan di tab lain langsung tampil saat kembali ke sini.
+  const muat = useCallback(() => {
     if (!employee) return;
     Promise.all([
-      hrisApi.getFeed(employee.id),
+      hrisApi.getFeed(employee.id, employee.role),
       hrisApi.getClockState(employee.id),
       hrisApi.getLeaveBalances(employee.id),
       hrisApi.getAttendanceHistory(employee.id),
@@ -53,6 +55,8 @@ export function HomeScreen() {
       setEmployment(komposisi);
     });
   }, [employee]);
+
+  useFocusEffect(muat);
 
   if (!employee) return null;
 
@@ -319,7 +323,11 @@ export function HomeScreen() {
         </View>
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>{feedTitle}</Text>
-          <Pressable>
+          <Pressable
+            onPress={() =>
+              navigation.navigate(employee.role === "ess" ? "Cuti" : "Approval")
+            }
+          >
             <Text style={styles.sectionLink}>Lihat semua</Text>
           </Pressable>
         </View>
@@ -340,6 +348,15 @@ export function HomeScreen() {
                 </View>
               ))
             : null}
+          {!memuat && (notifications ?? []).length === 0 ? (
+            <View style={styles.feedRow}>
+              <Text style={styles.feedSub}>
+                {employee.role === "ess"
+                  ? "Belum ada pengajuan."
+                  : "Tidak ada yang menunggu persetujuan."}
+              </Text>
+            </View>
+          ) : null}
           {(notifications ?? []).map((n, i) => (
             <View
               key={n.id}
@@ -393,7 +410,12 @@ function StatCard({
         </View>
         <Text style={styles.statLabel}>{label}</Text>
         {memuat ? (
-          <Skeleton width={76} height={17} radius={5} style={{ marginTop: 7 }} />
+          <Skeleton
+            width={76}
+            height={17}
+            radius={5}
+            style={{ marginTop: 7 }}
+          />
         ) : (
           <Text style={styles.statValue}>{value}</Text>
         )}

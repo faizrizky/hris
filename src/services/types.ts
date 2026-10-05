@@ -371,7 +371,7 @@ export interface HrisApi {
 
   getColleagues(employeeId: string): Promise<Colleague[]>;
 
-  getFeed(employeeId: string): Promise<FeedItem[]>;
+  getFeed(employeeId: string, role: Role): Promise<FeedItem[]>;
 
   getNotificationInbox(employeeId: string): Promise<AppNotification[]>;
   markNotificationsRead(

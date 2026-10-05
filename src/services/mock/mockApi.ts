@@ -28,6 +28,7 @@ import {
   EmploymentSlice,
   Colleague,
   LeaveApprover,
+  Role,
 } from "../types";
 import {
   MOCK_ATTENDANCE,
@@ -259,7 +260,7 @@ export const mockApi: HrisApi = {
     }));
   },
 
-  async getFeed(_employeeId: string): Promise<FeedItem[]> {
+  async getFeed(_employeeId: string, _role: Role): Promise<FeedItem[]> {
     await delay(150);
     return MOCK_FEED;
   },

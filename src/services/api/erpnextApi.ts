@@ -14,6 +14,7 @@ import {
   LeaveType,
   Role,
   LeaveApprover,
+  FeedItem,
 } from "../types";
 import { tanggalPendek, tanggalPendekTahun, toISODate } from "../../utils/date";
 import { ApiError, get, post, put } from "./http";
@@ -226,6 +227,65 @@ function bentukPengajuan(row: LeaveRow): LeaveRequest {
   };
 }
 
+async function ambilMenunggu(): Promise<LeaveRequest[]> {
+  const { message: email } = await get<{ message: string }>(
+    "/api/method/frappe.auth.get_logged_user",
+  );
+  const res = await get<{ data: LeaveRow[] }>(
+    `/api/resource/${encodeURIComponent("Leave Application")}`,
+    {
+      filters: [
+        ["leave_approver", "=", email],
+        ["status", "=", "Open"],
+        ["docstatus", "=", 0],
+      ],
+      fields: LEAVE_FIELDS,
+      order_by: "creation desc",
+      limit_page_length: 50,
+    },
+  );
+  return res.data.map(bentukPengajuan);
+}
+
+async function ambilMilikSendiri(employeeId: string): Promise<LeaveRequest[]> {
+  const res = await get<{ data: LeaveRow[] }>(
+    `/api/resource/${encodeURIComponent("Leave Application")}`,
+    {
+      filters: [
+        ["employee", "=", employeeId],
+        ["status", "!=", "Cancelled"],
+      ],
+      fields: LEAVE_FIELDS,
+      order_by: "creation desc",
+      limit_page_length: 3,
+    },
+  );
+  return res.data.map(bentukPengajuan);
+}
+
+const BADGE_KEPUTUSAN: Record<
+  string,
+  { label: string; tone: FeedItem["tone"] }
+> = {
+  approve: { label: "Disetujui", tone: "ok" },
+  reject: { label: "Ditolak", tone: "bad" },
+  menunggu: { label: "Menunggu", tone: "warn" },
+};
+
+function keFeed(r: LeaveRequest, untukApprover: boolean): FeedItem {
+  const badge = BADGE_KEPUTUSAN[r.decision ?? "menunggu"]!;
+  return {
+    id: r.id,
+    // Approver melihat siapa pemohonnya; pemohon melihat inisialnya sendiri.
+    initials: untukApprover ? r.employeeInitials : r.approverInitials,
+    title: untukApprover ? `${r.employeeName} · ${r.label}` : r.label,
+    subtitle: r.reason,
+    badge: badge.label,
+    tone: badge.tone,
+    createdAt: r.createdAt,
+  };
+}
+
 export const erpnextApi: HrisApi = {
   ...mockApi,
 
@@ -323,25 +383,15 @@ export const erpnextApi: HrisApi = {
     return bentukPengajuan(res.data);
   },
 
-  // Approver dikenali dari email sesi, bukan dari id Employee.
   async getPendingApprovals(): Promise<LeaveRequest[]> {
-    const { message: email } = await get<{ message: string }>(
-      "/api/method/frappe.auth.get_logged_user",
-    );
-    const res = await get<{ data: LeaveRow[] }>(
-      `/api/resource/${encodeURIComponent("Leave Application")}`,
-      {
-        filters: [
-          ["leave_approver", "=", email],
-          ["status", "=", "Open"],
-          ["docstatus", "=", 0],
-        ],
-        fields: LEAVE_FIELDS,
-        order_by: "creation desc",
-        limit_page_length: 50,
-      },
-    );
-    return res.data.map(bentukPengajuan);
+    return ambilMenunggu();
+  },
+
+  async getFeed(employeeId: string, role: Role): Promise<FeedItem[]> {
+    if (role === "ess") {
+      return (await ambilMilikSendiri(employeeId)).map((r) => keFeed(r, false));
+    }
+    return (await ambilMenunggu()).slice(0, 3).map((r) => keFeed(r, true));
   },
 
   // Satu PUT: status saja hanya mengubah draft dan tidak memotong saldo,
