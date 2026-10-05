@@ -14,6 +14,8 @@ import { useSession } from "@/services/session";
 import { LeaveRequest } from "@/services/types";
 import { useConfirm } from "@/components/ConfirmDialog";
 import { describeError } from "@/services/api/http";
+import { useLoad } from "@/hooks/useLoad";
+import { ErrorState } from "@/components/ErrorState";
 
 // Layar ini cuma di-mount untuk role mss/hr (lihat RootNavigator).
 export function LeaveApprovalScreen({ navigation }: any) {
@@ -24,13 +26,23 @@ export function LeaveApprovalScreen({ navigation }: any) {
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
   const confirm = useConfirm();
-
-  const load = useCallback(() => {
-    if (!employee) return;
-    hrisApi.getPendingApprovals(employee.id).then(setItems);
-  }, [employee]);
-
-  useFocusEffect(load);
+  const saldo = useLoad(
+    () =>
+      employee ? hrisApi.getLeaveBalances(employee.id) : Promise.resolve([]),
+    [employee],
+  );
+  const pengajuan = useLoad(
+    () =>
+      employee ? hrisApi.getLeaveRequests(employee.id) : Promise.resolve([]),
+    [employee],
+  );
+  const balances = saldo.data;
+  const requests = pengajuan.data;
+  const galat = saldo.error ?? pengajuan.error;
+  const ulangi = () => {
+    saldo.ulangi();
+    pengajuan.ulangi();
+  };
 
   const decide = async (id: string, decision: "approve" | "reject") => {
     try {
@@ -114,10 +126,12 @@ export function LeaveApprovalScreen({ navigation }: any) {
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.content}
         ListEmptyComponent={
-          memuat ? (
+          galat && !requests ? (
+            <ErrorState pesan={galat} onUlangi={ulangi} />
+          ) : memuat ? (
             <ApprovalCardSkeleton />
           ) : (
-            <Text style={styles.empty}>Tidak ada approval yang menunggu.</Text>
+            <Text style={styles.empty}>Belum ada pengajuan.</Text>
           )
         }
         renderItem={({ item }) => {

@@ -15,24 +15,31 @@ import { useTheme } from "@/theme/ThemeContext";
 import { hrisApi } from "@/services/api";
 import { useSession } from "@/services/session";
 import { LeaveBalance, LeaveRequest } from "@/services/types";
+import { useLoad } from "@/hooks/useLoad";
+import { ErrorState } from "@/components/ErrorState";
 
 export function LeaveListScreen({ navigation }: any) {
   const { employee } = useSession();
   const insets = useSafeAreaInsets();
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
-  const [balances, setBalances] = useState<LeaveBalance[] | null>(null);
-  const [requests, setRequests] = useState<LeaveRequest[] | null>(null);
-
-  const load = useCallback(() => {
-    if (!employee) return;
-    hrisApi.getLeaveBalances(employee.id).then(setBalances);
-    hrisApi.getLeaveRequests(employee.id).then(setRequests);
-  }, [employee]);
-
-  useEffect(load, [load]);
-  useFocusEffect(load);
-
+  const saldo = useLoad(
+    () =>
+      employee ? hrisApi.getLeaveBalances(employee.id) : Promise.resolve([]),
+    [employee],
+  );
+  const pengajuan = useLoad(
+    () =>
+      employee ? hrisApi.getLeaveRequests(employee.id) : Promise.resolve([]),
+    [employee],
+  );
+  const balances = saldo.data;
+  const requests = pengajuan.data;
+  const galat = saldo.error ?? pengajuan.error;
+  const ulangi = () => {
+    saldo.ulangi();
+    pengajuan.ulangi();
+  };
   if (!employee) return null;
 
   const memuat = balances === null || requests === null;
@@ -170,7 +177,9 @@ export function LeaveListScreen({ navigation }: any) {
           </>
         }
         ListEmptyComponent={
-          memuat ? (
+          galat && !requests ? (
+            <ErrorState pesan={galat} onUlangi={ulangi} />
+          ) : memuat ? (
             <RequestCardSkeleton />
           ) : (
             <Text style={styles.empty}>Belum ada pengajuan.</Text>
