@@ -15,6 +15,9 @@ import {
   Role,
   LeaveApprover,
   FeedItem,
+  Staff,
+  StaffDirectory,
+  EmploymentSlice,
 } from "../types";
 import { tanggalPendek, tanggalPendekTahun, toISODate } from "../../utils/date";
 import { ApiError, get, post, put } from "./http";
@@ -286,6 +289,73 @@ function keFeed(r: LeaveRequest, untukApprover: boolean): FeedItem {
   };
 }
 
+interface StaffRow {
+  name: string;
+  employee_name: string;
+  designation: string | null;
+  department: string | null;
+  employee_number: string | null;
+  employment_type: string | null;
+  contract_end_date: string | null;
+  date_of_joining: string | null;
+  reports_to_name: string | null;
+  shift: string | null;
+  company_email: string | null;
+  cell_number: string | null;
+  leave_left: number | null;
+}
+
+const BULAN = [
+  "Januari",
+  "Februari",
+  "Maret",
+  "April",
+  "Mei",
+  "Juni",
+  "Juli",
+  "Agustus",
+  "September",
+  "Oktober",
+  "November",
+  "Desember",
+];
+
+function teksKepegawaian(r: StaffRow): string {
+  if (r.employment_type !== "Contract") return "Permanent";
+  if (!r.contract_end_date) return "Kontrak";
+  const [tahun, bulan] = r.contract_end_date.split("-").map(Number);
+  return `Kontrak · s.d. ${BULAN[bulan! - 1]} ${tahun}`;
+}
+
+function bentukStaff(r: StaffRow): Staff {
+  return {
+    id: r.name,
+    initials: inisial(r.employee_name),
+    fullName: r.employee_name,
+    jobTitle: r.designation ?? "—",
+    department: tanpaSufiks(r.department),
+    code: r.employee_number ?? r.name,
+    status: r.employment_type === "Contract" ? "Kontrak" : "Tetap",
+    employment: teksKepegawaian(r),
+    joinDate: r.date_of_joining ?? "",
+    manager: r.reports_to_name ?? "—",
+    shift: r.shift ?? "—",
+    email: r.company_email ?? "—",
+    phone: r.cell_number ?? "—",
+    leaveLeft: r.leave_left ?? 0,
+    // Belum ada sumbernya di ERPNext: kehadiran menunggu slice Absensi,
+    // KPI menunggu slice Appraisal.
+    attendanceRate: 0,
+    kpiScore: 0,
+    today: { state: "attend", checkIn: null, checkOut: null, label: "—" },
+  };
+}
+
+const NAMA_KEPEGAWAIAN: Record<string, string> = {
+  "Full-time": "Permanent",
+  Contract: "Kontrak",
+};
+
 export const erpnextApi: HrisApi = {
   ...mockApi,
 
@@ -405,5 +475,27 @@ export const erpnextApi: HrisApi = {
       },
     );
     return bentukPengajuan(res.data);
+  },
+
+  // Penyaringan hak akses (HR semua, atasan hanya bawahan) dilakukan Server Script.
+  async getStaffDirectory(): Promise<StaffDirectory> {
+    const res = await get<{
+      message: { total_active: number; items: StaffRow[] };
+    }>("/api/method/hris_get_staff_directory");
+    return {
+      totalActive: res.message.total_active,
+      items: res.message.items.map(bentukStaff),
+    };
+  },
+
+  async getEmploymentSummary(): Promise<EmploymentSlice[] | null> {
+    const res = await get<{
+      message: { label: string; count: number }[] | null;
+    }>("/api/method/hris_get_employment_summary");
+    if (!res.message) return null;
+    return res.message.map((s) => ({
+      label: NAMA_KEPEGAWAIAN[s.label] ?? s.label,
+      count: s.count,
+    }));
   },
 };

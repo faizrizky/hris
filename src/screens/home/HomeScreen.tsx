@@ -24,6 +24,8 @@ import { LineIcon } from "@/components/LineIcon";
 import { ICON } from "@/constants/icons";
 import { DonutChart } from "@/components/DonutChart";
 import { Skeleton } from "@/components/Skeleton";
+import { describeError } from "@/services/api/http";
+import { ErrorState } from "@/components/ErrorState";
 
 export function HomeScreen() {
   const { employee } = useSession();
@@ -36,24 +38,28 @@ export function HomeScreen() {
   const insets = useSafeAreaInsets();
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
+  const [galat, setGalat] = useState<string | null>(null);
 
   // Dimuat ulang setiap Beranda mendapat fokus, supaya hasil persetujuan atau
   // pengajuan di tab lain langsung tampil saat kembali ke sini.
   const muat = useCallback(() => {
     if (!employee) return;
+    setGalat(null);
     Promise.all([
       hrisApi.getFeed(employee.id, employee.role),
       hrisApi.getClockState(employee.id),
       hrisApi.getLeaveBalances(employee.id),
       hrisApi.getAttendanceHistory(employee.id),
       hrisApi.getEmploymentSummary(employee.id),
-    ]).then(([notif, clockState, leaveBalances, attendance, komposisi]) => {
-      setNotifications(notif);
-      setClock(clockState);
-      setBalances(leaveBalances);
-      setHistory(attendance);
-      setEmployment(komposisi);
-    });
+    ])
+      .then(([notif, clockState, leaveBalances, attendance, komposisi]) => {
+        setNotifications(notif);
+        setClock(clockState);
+        setBalances(leaveBalances);
+        setHistory(attendance);
+        setEmployment(komposisi);
+      })
+      .catch((e) => setGalat(describeError(e)));
   }, [employee]);
 
   useFocusEffect(muat);
@@ -71,7 +77,9 @@ export function HomeScreen() {
     employee.role === "mss"
       ? `${employee.department} · tim kamu`
       : employee.role === "hr"
-        ? "128 karyawan aktif · 7 belum absen hari ini"
+        ? employment
+          ? `${employment.reduce((n, s) => n + s.count, 0)} karyawan aktif`
+          : "Memuat…"
         : "Shift reguler 08.00 – 17.00 · Kantor Pusat";
 
   const feedTitle =
@@ -227,7 +235,9 @@ export function HomeScreen() {
                 <Text style={styles.heroTimeText}>{formatJam()}</Text>
               </View>
             </View>
-
+            {galat && memuat ? (
+              <ErrorState pesan={galat} onUlangi={muat} />
+            ) : null}
             <View style={styles.clockRow}>
               <View style={styles.clockBox}>
                 <Text style={styles.clockLabel}>Clock In</Text>

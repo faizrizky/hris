@@ -1,5 +1,4 @@
 import React, { useCallback, useState, useMemo } from "react";
-import { useFocusEffect } from "@react-navigation/native";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { RevealFlatList as FlatList } from "@/components/Reveal";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -14,7 +13,6 @@ import { useSession } from "@/services/session";
 import { LeaveRequest } from "@/services/types";
 import { useConfirm } from "@/components/ConfirmDialog";
 import { describeError } from "@/services/api/http";
-import { useLoad } from "@/hooks/useLoad";
 import { ErrorState } from "@/components/ErrorState";
 
 // Layar ini cuma di-mount untuk role mss/hr (lihat RootNavigator).
@@ -26,23 +24,16 @@ export function LeaveApprovalScreen({ navigation }: any) {
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
   const confirm = useConfirm();
-  const saldo = useLoad(
-    () =>
-      employee ? hrisApi.getLeaveBalances(employee.id) : Promise.resolve([]),
-    [employee],
-  );
-  const pengajuan = useLoad(
-    () =>
-      employee ? hrisApi.getLeaveRequests(employee.id) : Promise.resolve([]),
-    [employee],
-  );
-  const balances = saldo.data;
-  const requests = pengajuan.data;
-  const galat = saldo.error ?? pengajuan.error;
-  const ulangi = () => {
-    saldo.ulangi();
-    pengajuan.ulangi();
-  };
+  const [galat, setGalat] = useState<string | null>(null);
+
+  const load = useCallback(() => {
+    if (!employee) return;
+    setGalat(null);
+    hrisApi
+      .getPendingApprovals(employee.id)
+      .then(setItems)
+      .catch((e) => setGalat(describeError(e)));
+  }, [employee]);
 
   const decide = async (id: string, decision: "approve" | "reject") => {
     try {
@@ -126,12 +117,12 @@ export function LeaveApprovalScreen({ navigation }: any) {
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.content}
         ListEmptyComponent={
-          galat && !requests ? (
-            <ErrorState pesan={galat} onUlangi={ulangi} />
+          galat && items === null ? (
+            <ErrorState pesan={galat} onUlangi={load} />
           ) : memuat ? (
             <ApprovalCardSkeleton />
           ) : (
-            <Text style={styles.empty}>Belum ada pengajuan.</Text>
+            <Text style={styles.empty}>Tidak ada approval yang menunggu.</Text>
           )
         }
         renderItem={({ item }) => {
