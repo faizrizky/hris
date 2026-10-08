@@ -79,6 +79,8 @@ EMPLOYEES = [  # (key, first, last, gender, dept, designation)
     ("budi", "Budi", "Santoso", "Male", "Keuangan", "Staf Keuangan"),
     ("dewi", "Dewi", "Kusuma", "Female", "Keuangan", "Manajer Keuangan"),
     ("sari", "Sari", "Wulandari", "Female", "People Ops", "Staf HR"),
+    ("agus", "Agus", "Pratama", "Male", "Keuangan", "Staf Keuangan"),   # tanpa user login
+    ("maya", "Maya", "Lestari", "Female", "People Ops", "Staf HR"),     # tanpa user login
 ]
 emp = {}
 for key, fn, ln, g, dep, des in EMPLOYEES:
@@ -134,6 +136,26 @@ frappe.db.set_value("Employee", emp["rani"], "leave_approver", mail["dewi"])
 frappe.db.set_value("Employee", emp["budi"], "leave_approver", mail["sari"])
 frappe.db.set_value("Employee", emp["dewi"], "leave_approver", mail["sari"])
 frappe.db.set_value("Employee", emp["sari"], "leave_approver", mail["dewi"])
+frappe.db.commit()
+
+# 5b. Data profil untuk direktori karyawan (menimpa nilai, jadi idempoten)
+PROFILE = {  # key: (nomor, reports_to key, employment_type, contract_end)
+    "rani": ("EMP-0001", "dewi", "Full-time", None),
+    "budi": ("EMP-0002", "dewi", "Contract", f"{Y+1}-05-31"),
+    "dewi": ("EMP-0003", "sari", "Full-time", None),
+    "sari": ("EMP-0004", None, "Full-time", None),
+    "agus": ("EMP-0005", "dewi", "Full-time", None),
+    "maya": ("EMP-0006", "sari", "Full-time", None),
+}
+for i, (key, (no, boss, et, ce)) in enumerate(PROFILE.items(), start=1):
+    frappe.db.set_value("Employee", emp[key], {
+        "employee_number": no,
+        "reports_to": emp[boss] if boss else None,
+        "employment_type": et,
+        "contract_end_date": ce,
+        "company_email": f"{key}@falahtest.example",
+        "cell_number": f"0812-0000-{i:04d}",
+    })
 frappe.db.commit()
 
 # 6. User Permission: ESS/MSS hanya melihat Employee dirinya sendiri --------
