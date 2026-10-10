@@ -16,6 +16,8 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Palette } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
 import { hrisApi } from "@/services/api";
+import { describeError } from "@/services/api/http";
+import { ErrorState } from "@/components/ErrorState";
 import { useSession } from "@/services/session";
 import { EditableProfile, PersonalProfile } from "@/services/types";
 import { LineIcon } from "@/components/LineIcon";
@@ -38,15 +40,21 @@ export function ProfileEditScreen({ navigation }: any) {
   const [profil, setProfil] = useState<PersonalProfile | null>(null);
   const [draft, setDraft] = useState<EditableProfile | null>(null);
   const [sending, setSending] = useState(false);
+  const [galatMuat, setGalatMuat] = useState<string | null>(null);
+  const [galatSimpan, setGalatSimpan] = useState<string | null>(null);
+  const [coba, setCoba] = useState(0); // naik saat Coba lagi ditekan
 
   useEffect(() => {
     if (!employee) return;
-    hrisApi.getPersonalProfile(employee.id).then((p) => {
-      setProfil(p);
-      // Draft terpisah dari data tersimpan: perubahan baru berlaku saat disimpan.
-      setDraft(p.editable);
-    });
-  }, [employee]);
+    hrisApi
+      .getPersonalProfile(employee.id)
+      .then((p) => {
+        setProfil(p);
+        // Draft terpisah dari data tersimpan: perubahan baru berlaku saat disimpan.
+        setDraft(p.editable);
+      })
+      .catch((e) => setGalatMuat(describeError(e)));
+  }, [employee, coba]);
 
   const ubah = (patch: Partial<EditableProfile>) =>
     setDraft((prev) => (prev ? { ...prev, ...patch } : prev));
@@ -58,9 +66,12 @@ export function ProfileEditScreen({ navigation }: any) {
   const simpan = async () => {
     if (!employee || !draft || emailSalah) return;
     setSending(true);
+    setGalatSimpan(null);
     try {
       await hrisApi.savePersonalProfile(employee.id, draft);
       navigation.goBack();
+    } catch (e) {
+      setGalatSimpan(describeError(e));
     } finally {
       setSending(false);
     }
@@ -77,6 +88,23 @@ export function ProfileEditScreen({ navigation }: any) {
 
   // Formnya sengaja tidak dirender kosong selama memuat: kalau dirender,
   // pengguna bisa mulai mengetik lalu ketikannya tertimpa begitu data datang.
+  if (!draft && galatMuat) {
+    return (
+      <View style={styles.container}>
+        {head}
+        <View style={styles.content}>
+          <ErrorState
+            pesan={galatMuat}
+            onUlangi={() => {
+              setGalatMuat(null);
+              setCoba((n) => n + 1);
+            }}
+          />
+        </View>
+      </View>
+    );
+  }
+
   if (!draft) {
     return (
       <View style={styles.container}>
@@ -236,7 +264,11 @@ export function ProfileEditScreen({ navigation }: any) {
 
       <View style={[styles.actionBar, { paddingBottom: insets.bottom + 14 }]}>
         <View style={{ flex: 1, minWidth: 0 }}>
-          <Text style={styles.barLabel}>Kelengkapan setelah disimpan</Text>
+          <Text
+            style={[styles.barLabel, galatSimpan ? { color: c.bad.ink } : null]}
+          >
+            {galatSimpan ?? "Kelengkapan setelah disimpan"}
+          </Text>
           <Text style={styles.barValue}>{persen}%</Text>
         </View>
         <Pressable onPress={simpan} disabled={emailSalah || sending}>

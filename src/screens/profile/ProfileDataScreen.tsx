@@ -100,7 +100,12 @@ export function ProfileDataScreen({ navigation }: any) {
         ["NIK", profil.nikMasked],
         [
           "Tempat, tgl lahir",
-          `${profil.birthPlace}, ${tanggalPendekTahun(profil.birthDate)}`,
+          [
+            profil.birthPlace !== "—" ? profil.birthPlace : null,
+            profil.birthDate ? tanggalPendekTahun(profil.birthDate) : null,
+          ]
+            .filter(Boolean)
+            .join(", ") || "—",
         ],
         ["Jenis kelamin", profil.gender],
         ["Status pernikahan", profil.maritalStatus],

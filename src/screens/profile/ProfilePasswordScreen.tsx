@@ -16,6 +16,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Palette } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
 import { hrisApi } from "@/services/api";
+import { describeError } from "@/services/api/http";
 import { useSession } from "@/services/session";
 import {
   TOTAL_SYARAT,
@@ -26,7 +27,7 @@ import {
 } from "@/utils/password";
 
 export function ProfilePasswordScreen({ navigation }: any) {
-  const { employee } = useSession();
+  const { employee, setEmployee } = useSession();
   const insets = useSafeAreaInsets();
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
@@ -37,6 +38,7 @@ export function ProfilePasswordScreen({ navigation }: any) {
   const [tampil, setTampil] = useState(false);
   const [sending, setSending] = useState(false);
   const [selesai, setSelesai] = useState(false);
+  const [galat, setGalat] = useState<string | null>(null);
 
   const syarat = syaratPassword(baru);
   const skor = skorPassword(baru);
@@ -57,9 +59,12 @@ export function ProfilePasswordScreen({ navigation }: any) {
   const simpan = async () => {
     if (!employee || !bisaSimpan) return;
     setSending(true);
+    setGalat(null);
     try {
       await hrisApi.changePassword(employee.id, lama, baru);
       setSelesai(true);
+    } catch (e) {
+      setGalat(describeError(e));
     } finally {
       setSending(false);
     }
@@ -90,15 +95,15 @@ export function ProfilePasswordScreen({ navigation }: any) {
             </View>
             <Text style={styles.doneTitle}>Password berhasil diubah</Text>
             <Text style={styles.doneSub}>
-              Gunakan password baru saat login berikutnya
+              Sesi ini berakhir demi keamanan. Masuk lagi dengan password baru.
             </Text>
           </LinearGradient>
 
           <Pressable
             style={styles.primaryBtn}
-            onPress={() => navigation.goBack()}
+            onPress={() => setEmployee(null)}
           >
-            <Text style={styles.primaryText}>Kembali ke Keamanan</Text>
+            <Text style={styles.primaryText}>Masuk lagi</Text>
           </Pressable>
         </ScrollView>
       </View>
@@ -226,9 +231,12 @@ export function ProfilePasswordScreen({ navigation }: any) {
       <View style={[styles.actionBar, { paddingBottom: insets.bottom + 14 }]}>
         <View style={{ flex: 1, minWidth: 0 }}>
           <Text
-            style={[styles.barLabel, blockMsg ? { color: c.bad.ink } : null]}
+            style={[
+              styles.barLabel,
+              blockMsg || galat ? { color: c.bad.ink } : null,
+            ]}
           >
-            {blockMsg || "Siap disimpan"}
+            {blockMsg || galat || "Siap disimpan"}
           </Text>
         </View>
         <Pressable onPress={simpan} disabled={!bisaSimpan}>

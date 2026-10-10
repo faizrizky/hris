@@ -18,6 +18,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Palette } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
 import { hrisApi } from "@/services/api";
+import { describeError } from "@/services/api/http";
 import { useSession } from "@/services/session";
 import { DocCategory } from "@/services/types";
 import { LineIcon } from "@/components/LineIcon";
@@ -60,6 +61,7 @@ export function ProfileUploadScreen({ navigation }: any) {
   const [berlaku, setBerlaku] = useState<string | null>(null);
   const [pickTanggal, setPickTanggal] = useState(false);
   const [sending, setSending] = useState(false);
+  const [galat, setGalat] = useState<string | null>(null);
   const confirm = useConfirm();
 
   // Satu pintu untuk kedua sumber file, supaya aturan ukuran dan penamaan
@@ -126,6 +128,7 @@ export function ProfileUploadScreen({ navigation }: any) {
   const unggah = async () => {
     if (!employee || !berkas || !bisaUnggah) return;
     setSending(true);
+    setGalat(null);
     try {
       await hrisApi.uploadDocument(employee.id, {
         category: kategori,
@@ -135,6 +138,8 @@ export function ProfileUploadScreen({ navigation }: any) {
         expiresLabel: berlaku ? tanggalPendekTahun(berlaku) : undefined,
       });
       navigation.goBack();
+    } catch (e) {
+      setGalat(describeError(e));
     } finally {
       setSending(false);
     }
@@ -286,9 +291,12 @@ export function ProfileUploadScreen({ navigation }: any) {
       <View style={[styles.actionBar, { paddingBottom: insets.bottom + 14 }]}>
         <View style={{ flex: 1, minWidth: 0 }}>
           <Text
-            style={[styles.barLabel, blockMsg ? { color: c.bad.ink } : null]}
+            style={[
+              styles.barLabel,
+              blockMsg || galat ? { color: c.bad.ink } : null,
+            ]}
           >
-            {blockMsg || DOC_CATEGORY_LABEL[kategori]}
+            {blockMsg || galat || DOC_CATEGORY_LABEL[kategori]}
           </Text>
           <Text style={styles.barValue} numberOfLines={1}>
             {berkas ? nama.trim() || berkas.name : "Belum ada file"}

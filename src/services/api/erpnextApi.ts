@@ -24,7 +24,11 @@ import {
   AttendanceCorrectionRequest,
   Payslip,
   TaxSummary,
-  BpjsItem,
+  PersonalProfile,
+  EditableProfile,
+  SecurityInfo,
+  SecurityToggleKey,
+  ActiveDevice,
 } from "../types";
 import { tanggalPendek, tanggalPendekTahun, toISODate } from "../../utils/date";
 import { ApiError, get, post, put } from "./http";
@@ -366,6 +370,114 @@ function bentukStaff(r: StaffRow): Staff {
       label: r.today.label,
     },
   };
+}
+
+// ---------------------------------------------------------------------------
+// Profil dan keamanan
+// ---------------------------------------------------------------------------
+
+interface KontakRow {
+  name: string | null;
+  relation: string | null;
+  phone: string | null;
+}
+
+interface ProfileRow {
+  employee_name: string;
+  date_of_birth: string | null;
+  place_of_birth: string | null;
+  gender: string | null;
+  marital_status: string | null;
+  religion: string | null;
+  company_email: string | null;
+  personal_email: string | null;
+  cell_number: string | null;
+  current_address: string | null;
+  permanent_address: string | null;
+  emergency: KontakRow;
+  em2: KontakRow;
+}
+
+const JENIS_KELAMIN: Record<string, string> = {
+  Male: "Laki-laki",
+  Female: "Perempuan",
+};
+
+const STATUS_NIKAH: Record<string, string> = {
+  Single: "Belum menikah",
+  Married: "Menikah",
+  Divorced: "Cerai hidup",
+  Widowed: "Cerai mati",
+};
+
+function bentukProfil(r: ProfileRow): PersonalProfile {
+  return {
+    fullName: r.employee_name,
+    // NIK, NPWP, dan PTKP tidak punya sumber di ERPNext, jadi tidak dikarang.
+    nikMasked: "—",
+    birthPlace: r.place_of_birth ?? "—",
+    birthDate: r.date_of_birth ?? "",
+    gender: JENIS_KELAMIN[r.gender ?? ""] ?? r.gender ?? "—",
+    maritalStatus:
+      STATUS_NIKAH[r.marital_status ?? ""] ?? r.marital_status ?? "—",
+    religion: r.religion ?? "—",
+    npwpMasked: "—",
+    workEmail: r.company_email ?? "—",
+    ktpAddress: r.permanent_address ?? "—",
+    ptkpStatus: "—",
+    family: [], // belum ada sumbernya
+    primaryEmergency: {
+      name: r.emergency.name ?? "—",
+      relation: r.emergency.relation ?? "—",
+      phone: r.emergency.phone ?? "—",
+    },
+    editable: {
+      phone: r.cell_number ?? "",
+      personalEmail: r.personal_email ?? "",
+      address: r.current_address ?? "",
+      em2Name: r.em2.name ?? "",
+      em2Relation: r.em2.relation ?? "",
+      em2Phone: r.em2.phone ?? "",
+    },
+  };
+}
+
+interface SesiRow {
+  id: string;
+  ip: string | null;
+  last_updated: string | null;
+  user_agent: string | null;
+  current: boolean;
+}
+
+function bentukPerangkat(s: SesiRow): ActiveDevice {
+  const ua = s.user_agent ?? "";
+  const mobile = /expo|cfnetwork|okhttp|android|iphone|dalvik/i.test(ua);
+  const waktu = s.last_updated ? s.last_updated.slice(0, 16) : "";
+  return {
+    id: s.id,
+    name: mobile ? "Aplikasi HRIS" : ua ? "Browser" : "Perangkat",
+    meta: [s.ip ?? "—", waktu].filter(Boolean).join(" · "),
+    kind: mobile ? "mobile" : "web",
+    current: s.current,
+  };
+}
+
+async function ambilPerangkat(): Promise<ActiveDevice[]> {
+  const res = await get<{ message: SesiRow[] }>(
+    "/api/method/hris_get_active_sessions",
+  );
+  return res.message.map(bentukPerangkat);
+}
+
+// Daftar perangkat asli; verifikasi wajah dan toggle masih dari mock sampai
+// fase ML Kit.
+async function ambilInfoKeamanan(employeeId: string): Promise<SecurityInfo> {
+  const [dasar, devices] = await Promise.all([
+    mockApi.getSecurityInfo(employeeId),
+    ambilPerangkat(),
+  ]);
+  return { ...dasar, devices };
 }
 
 const NAMA_KEPEGAWAIAN: Record<string, string> = {
@@ -755,5 +867,75 @@ export const erpnextApi: HrisApi = {
         companyPct: 0,
       })),
     };
+  },
+  async getPersonalProfile(): Promise<PersonalProfile> {
+    const res = await get<{ message: ProfileRow }>(
+      "/api/method/hris_get_my_profile",
+    );
+    return bentukProfil(res.message);
+  },
+
+  async savePersonalProfile(
+    _employeeId: string,
+    data: EditableProfile,
+  ): Promise<PersonalProfile> {
+    const res = await post<{ message: ProfileRow }>(
+      "/api/method/hris_update_my_profile",
+      {
+        phone: data.phone,
+        personal_email: data.personalEmail,
+        address: data.address,
+        em2_name: data.em2Name,
+        em2_relation: data.em2Relation,
+        em2_phone: data.em2Phone,
+      },
+    );
+    return bentukProfil(res.message);
+  },
+
+  async getSecurityInfo(employeeId: string): Promise<SecurityInfo> {
+    return ambilInfoKeamanan(employeeId);
+  },
+
+  async setSecurityToggle(
+    employeeId: string,
+    key: SecurityToggleKey,
+    enabled: boolean,
+  ): Promise<SecurityInfo> {
+    // Toggle masih mock; daftar perangkat tetap yang asli.
+    await mockApi.setSecurityToggle(employeeId, key, enabled);
+    return ambilInfoKeamanan(employeeId);
+  },
+
+  async logoutOtherDevices(employeeId: string): Promise<SecurityInfo> {
+    await post("/api/method/hris_logout_other_sessions");
+    return ambilInfoKeamanan(employeeId);
+  },
+
+  // Setelah berhasil, server mematikan sesi ini; permintaan berikutnya
+  // membuat aplikasi kembali ke layar login lewat penanganan sesi berakhir.
+  async changePassword(
+    _employeeId: string,
+    current: string,
+    next: string,
+  ): Promise<void> {
+    try {
+      await post("/api/method/frappe.core.doctype.user.user.update_password", {
+        old_password: current,
+        new_password: next,
+      });
+    } catch (e) {
+      if (e instanceof ApiError && e.status === 401) {
+        throw new ApiError("Password lama salah", 401, "WrongPassword");
+      }
+      if (e instanceof ApiError && e.status === 417) {
+        throw new ApiError(
+          "Password baru terlalu lemah. Gunakan kombinasi huruf besar, huruf kecil, angka, dan simbol.",
+          417,
+          "WeakPassword",
+        );
+      }
+      throw e;
+    }
   },
 };

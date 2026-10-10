@@ -123,6 +123,9 @@ export function describeError(e: unknown): string {
     if (e.excType === "OverlapError") {
       return "Tanggal bertabrakan dengan pengajuan cuti lain";
     }
+    if (e.excType === "WrongPassword" || e.excType === "WeakPassword") {
+      return e.message;
+    }
     if (e.status === 417) {
       return "Pengajuan tidak bisa dibuat. Periksa tanggal (hari libur, sudah cuti, atau tumpang tindih).";
     }
