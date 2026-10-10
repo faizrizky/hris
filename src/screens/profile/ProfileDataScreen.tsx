@@ -22,8 +22,10 @@ import {
   persenKelengkapan,
 } from "@/utils/ProfileCompleteness";
 import { tanggalPendekTahun } from "@/utils/date";
+import { useT } from "@/i18n";
 
 export function ProfileDataScreen({ navigation }: any) {
+  const t = useT();
   const { employee } = useSession();
   const insets = useSafeAreaInsets();
   const c = useTheme();
@@ -52,12 +54,12 @@ export function ProfileDataScreen({ navigation }: any) {
       <Pressable style={styles.backBtn} onPress={() => navigation.goBack()}>
         <Ionicons name="chevron-back" size={18} color={c.ink} />
       </Pressable>
-      <Text style={styles.headerTitle}>Data Pribadi & Keluarga</Text>
+      <Text style={styles.headerTitle}>{t("pd.judul")}</Text>
       <Pressable
         style={styles.editBtn}
         onPress={() => navigation.navigate("ProfileEdit")}
       >
-        <Text style={styles.editText}>Ubah</Text>
+        <Text style={styles.editText}>{t("pd.ubah")}</Text>
       </Pressable>
     </View>
   );
@@ -90,16 +92,16 @@ export function ProfileDataScreen({ navigation }: any) {
   }
 
   const e = profil.editable;
-  const belumDiisi = "Belum diisi";
+  const belumDiisi = t("pd.belumDiisi");
 
   const seksi = [
     {
-      title: "Data pribadi",
+      title: t("pd.dataPribadi"),
       rows: [
-        ["Nama lengkap", profil.fullName],
-        ["NIK", profil.nikMasked],
+        [t("pd.nama"), profil.fullName],
+        [t("pd.nik"), profil.nikMasked],
         [
-          "Tempat, tgl lahir",
+          t("pd.ttl"),
           [
             profil.birthPlace !== "—" ? profil.birthPlace : null,
             profil.birthDate ? tanggalPendekTahun(profil.birthDate) : null,
@@ -107,20 +109,20 @@ export function ProfileDataScreen({ navigation }: any) {
             .filter(Boolean)
             .join(", ") || "—",
         ],
-        ["Jenis kelamin", profil.gender],
-        ["Status pernikahan", profil.maritalStatus],
-        ["Agama", profil.religion],
-        ["NPWP", profil.npwpMasked],
+        [t("pd.gender"), profil.gender],
+        [t("pd.nikah"), profil.maritalStatus],
+        [t("pd.agama"), profil.religion],
+        [t("pd.npwp"), profil.npwpMasked],
       ],
     },
     {
-      title: "Kontak & alamat",
+      title: t("pd.kontakAlamat"),
       rows: [
-        ["Telepon", e.phone || belumDiisi],
-        ["Email kantor", profil.workEmail],
-        ["Email pribadi", e.personalEmail || belumDiisi],
-        ["Alamat KTP", profil.ktpAddress],
-        ["Domisili", e.address || belumDiisi],
+        [t("pd.telepon"), e.phone || belumDiisi],
+        [t("pd.emailKantor"), profil.workEmail],
+        [t("pd.emailPribadi"), e.personalEmail || belumDiisi],
+        [t("pd.alamatKtp"), profil.ktpAddress],
+        [t("pd.domisili"), e.address || belumDiisi],
       ],
     },
   ];
@@ -130,7 +132,7 @@ export function ProfileDataScreen({ navigation }: any) {
     ...(e.em2Phone
       ? [
           {
-            name: e.em2Name || "Kontak darurat",
+            name: e.em2Name || t("pd.kontakDarurat"),
             relation: e.em2Relation,
             phone: e.em2Phone,
           },
@@ -151,10 +153,12 @@ export function ProfileDataScreen({ navigation }: any) {
         >
           <View style={styles.heroBlob} />
           <View style={styles.heroTop}>
-            <Text style={styles.heroLabel}>Kelengkapan data</Text>
+            <Text style={styles.heroLabel}>{t("pd.kelengkapan")}</Text>
             <View style={styles.heroBadge}>
               <Text style={styles.heroBadgeText}>
-                {lengkap ? "Lengkap" : `Perlu ${kurang.length} data`}
+                {lengkap
+                  ? t("pd.lengkap")
+                  : t("pd.perluN", { n: kurang.length })}
               </Text>
             </View>
           </View>
@@ -167,8 +171,12 @@ export function ProfileDataScreen({ navigation }: any) {
 
           <Text style={styles.heroNote}>
             {lengkap
-              ? "Semua data sudah terisi dan terkirim ke HR"
-              : `Lengkapi ${kurang.map((k) => k.judul.toLowerCase()).join(" dan ")} agar diverifikasi HR`}
+              ? t("pd.noteLengkap")
+              : t("pd.noteKurang", {
+                  daftar: kurang
+                    .map((k) => k.judul.toLowerCase())
+                    .join(t("pe.dan")),
+                })}
           </Text>
         </LinearGradient>
 
@@ -176,13 +184,13 @@ export function ProfileDataScreen({ navigation }: any) {
           <View style={styles.okBanner}>
             <LineIcon d={ICON.attendanceRate} color={c.ok.ink} size={20} />
             <View style={{ flex: 1, minWidth: 0 }}>
-              <Text style={styles.okTitle}>Data profil lengkap</Text>
-              <Text style={styles.okSub}>Menunggu verifikasi HR</Text>
+              <Text style={styles.okTitle}>{t("pd.okTitle")}</Text>
+              <Text style={styles.okSub}>{t("pd.okSub")}</Text>
             </View>
           </View>
         ) : (
           <View style={styles.card}>
-            <Text style={styles.cardTitle}>Belum lengkap</Text>
+            <Text style={styles.cardTitle}>{t("pd.belumLengkap")}</Text>
             <View style={{ gap: 10, marginTop: 12 }}>
               {kurang.map((k) => (
                 <Pressable
@@ -195,7 +203,7 @@ export function ProfileDataScreen({ navigation }: any) {
                     <Text style={styles.todoTitle}>{k.judul}</Text>
                     <Text style={styles.todoSub}>{k.alasan}</Text>
                   </View>
-                  <Text style={styles.todoCta}>Isi</Text>
+                  <Text style={styles.todoCta}>{t("pd.isi")}</Text>
                 </Pressable>
               ))}
             </View>
@@ -225,7 +233,7 @@ export function ProfileDataScreen({ navigation }: any) {
 
         <View style={[styles.card, { marginTop: 12 }]}>
           <View style={styles.cardHead}>
-            <Text style={styles.cardTitle}>Keluarga</Text>
+            <Text style={styles.cardTitle}>{t("pd.keluarga")}</Text>
             <View style={styles.softBadge}>
               <Text style={styles.softBadgeText}>PTKP {profil.ptkpStatus}</Text>
             </View>
@@ -245,7 +253,7 @@ export function ProfileDataScreen({ navigation }: any) {
                 </View>
                 <View style={styles.chipBadge}>
                   <Text style={styles.chipBadgeText}>
-                    {m.dependent ? "Tanggungan" : "Non-tanggungan"}
+                    {m.dependent ? t("pd.tanggungan") : t("pd.nonTanggungan")}
                   </Text>
                 </View>
               </View>
@@ -255,9 +263,11 @@ export function ProfileDataScreen({ navigation }: any) {
 
         <View style={[styles.card, { marginTop: 12 }]}>
           <View style={styles.cardHead}>
-            <Text style={styles.cardTitle}>Kontak darurat</Text>
+            <Text style={styles.cardTitle}>{t("pd.kontakDarurat")}</Text>
             <View style={styles.softBadge}>
-              <Text style={styles.softBadgeText}>{darurat.length} kontak</Text>
+              <Text style={styles.softBadgeText}>
+                {t("pd.nKontak", { n: darurat.length })}
+              </Text>
             </View>
           </View>
 
@@ -293,9 +303,7 @@ export function ProfileDataScreen({ navigation }: any) {
             onPress={() => navigation.navigate("ProfileEdit")}
           >
             <Text style={styles.addBtnText}>
-              {e.em2Phone
-                ? "Ubah kontak darurat kedua"
-                : "Tambah kontak darurat"}
+              {e.em2Phone ? t("pd.ubahKontak2") : t("pd.tambahKontak")}
             </Text>
           </Pressable>
         </View>

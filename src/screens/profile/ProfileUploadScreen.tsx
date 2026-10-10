@@ -33,14 +33,16 @@ import {
   ukuranFile,
 } from "@/utils/file";
 import { useConfirm } from "@/components/ConfirmDialog";
+import { useT } from "@/i18n";
+import type { Kunci } from "@/i18n/id";
 
 const KATEGORI: DocCategory[] = ["kontrak", "sk", "sertifikat", "identitas"];
 
-const CONTOH: Record<DocCategory, string> = {
-  kontrak: "mis. Kontrak Kerja PKWTT",
-  sk: "mis. SK Kenaikan Jabatan",
-  sertifikat: "mis. Sertifikat Brevet Pajak",
-  identitas: "mis. KTP",
+const CONTOH: Record<DocCategory, Kunci> = {
+  kontrak: "up.cKontrak",
+  sk: "up.cSk",
+  sertifikat: "up.cSertifikat",
+  identitas: "up.cIdentitas",
 };
 
 interface Berkas {
@@ -50,6 +52,7 @@ interface Berkas {
 }
 
 export function ProfileUploadScreen({ navigation }: any) {
+  const t = useT();
   const { employee } = useSession();
   const insets = useSafeAreaInsets();
   const c = useTheme();
@@ -69,10 +72,10 @@ export function ProfileUploadScreen({ navigation }: any) {
   const terima = (f: Berkas) => {
     if (f.size > MAKS_BYTE) {
       void confirm({
-        title: "File terlalu besar",
-        message: `Ukuran ${ukuranFile(f.size)} melebihi batas 5 MB.`,
+        title: t("up.besarJudul"),
+        message: t("up.besarPesan", { ukuran: ukuranFile(f.size) }),
         tone: "warn",
-        confirmText: "Mengerti",
+        confirmText: t("umum.mengerti"),
         cancelText: null,
       });
       return;
@@ -99,11 +102,10 @@ export function ProfileUploadScreen({ navigation }: any) {
     const izin = await ImagePicker.requestCameraPermissionsAsync();
     if (!izin.granted) {
       void confirm({
-        title: "Izin kamera ditolak",
-        message:
-          "Aktifkan izin kamera di pengaturan untuk mengambil foto dokumen.",
+        title: t("up.izinJudul"),
+        message: t("up.izinPesan"),
         tone: "warn",
-        confirmText: "Mengerti",
+        confirmText: t("umum.mengerti"),
         cancelText: null,
       });
       return;
@@ -112,16 +114,16 @@ export function ProfileUploadScreen({ navigation }: any) {
     if (r.canceled) return;
     const a = r.assets[0];
     terima({
-      name: a.fileName ?? `foto-dokumen-${Date.now()}.jpg`,
+      name: a.fileName ?? t("up.fotoNama", { n: Date.now() }),
       ext: "JPG",
       size: a.fileSize ?? 0,
     });
   };
 
   const blockMsg = !berkas
-    ? "File belum dipilih"
+    ? t("up.blokFile")
     : !nama.trim()
-      ? "Nama dokumen belum diisi"
+      ? t("up.blokNama")
       : "";
   const bisaUnggah = !blockMsg && !sending;
 
@@ -153,7 +155,7 @@ export function ProfileUploadScreen({ navigation }: any) {
         <Pressable style={styles.backBtn} onPress={() => navigation.goBack()}>
           <Ionicons name="chevron-back" size={18} color={c.ink} />
         </Pressable>
-        <Text style={styles.headerTitle}>Unggah Dokumen</Text>
+        <Text style={styles.headerTitle}>{t("up.judul")}</Text>
       </View>
 
       <KeyboardAvoidingView
@@ -165,7 +167,7 @@ export function ProfileUploadScreen({ navigation }: any) {
           keyboardShouldPersistTaps="handled"
         >
           <View style={styles.card}>
-            <Text style={styles.cardTitle}>Jenis dokumen</Text>
+            <Text style={styles.cardTitle}>{t("up.jenis")}</Text>
             <View style={styles.chipRow}>
               {KATEGORI.map((k) => {
                 const on = kategori === k;
@@ -185,7 +187,7 @@ export function ProfileUploadScreen({ navigation }: any) {
           </View>
 
           <View style={[styles.card, { marginTop: 12 }]}>
-            <Text style={styles.cardTitle}>File</Text>
+            <Text style={styles.cardTitle}>{t("up.file")}</Text>
 
             {berkas ? (
               <View style={styles.fileBox}>
@@ -216,7 +218,7 @@ export function ProfileUploadScreen({ navigation }: any) {
                       size={13}
                     />
                     <Text style={styles.fileOkText}>
-                      {ukuranFile(berkas.size)} · siap diunggah
+                      {t("up.siap", { ukuran: ukuranFile(berkas.size) })}
                     </Text>
                   </View>
                 </View>
@@ -225,7 +227,7 @@ export function ProfileUploadScreen({ navigation }: any) {
                   style={styles.removeBtn}
                   onPress={() => setBerkas(null)}
                 >
-                  <Text style={styles.removeText}>Hapus</Text>
+                  <Text style={styles.removeText}>{t("up.hapus")}</Text>
                 </Pressable>
               </View>
             ) : (
@@ -233,16 +235,18 @@ export function ProfileUploadScreen({ navigation }: any) {
                 <View style={styles.dropIcon}>
                   <LineIcon d={ICON.upload} color={c.info.ink} size={22} />
                 </View>
-                <Text style={styles.dropTitle}>Pilih file untuk diunggah</Text>
-                <Text style={styles.dropSub}>
-                  PDF, JPG, atau PNG · maks. 5 MB
-                </Text>
+                <Text style={styles.dropTitle}>{t("up.pilihUntuk")}</Text>
+                <Text style={styles.dropSub}>{t("up.format")}</Text>
                 <View style={styles.dropActions}>
                   <Pressable style={styles.primarySmall} onPress={pilihFile}>
-                    <Text style={styles.primarySmallText}>Pilih file</Text>
+                    <Text style={styles.primarySmallText}>
+                      {t("up.pilihFile")}
+                    </Text>
                   </Pressable>
                   <Pressable style={styles.secondarySmall} onPress={ambilFoto}>
-                    <Text style={styles.secondarySmallText}>Ambil foto</Text>
+                    <Text style={styles.secondarySmallText}>
+                      {t("up.ambilFoto")}
+                    </Text>
                   </Pressable>
                 </View>
               </View>
@@ -250,18 +254,18 @@ export function ProfileUploadScreen({ navigation }: any) {
           </View>
 
           <View style={[styles.card, { marginTop: 12 }]}>
-            <Text style={styles.cardTitle}>Detail dokumen</Text>
+            <Text style={styles.cardTitle}>{t("up.detail")}</Text>
 
-            <Text style={styles.label}>Nama dokumen</Text>
+            <Text style={styles.label}>{t("up.namaDok")}</Text>
             <TextInput
               style={styles.input}
               value={nama}
               onChangeText={setNama}
-              placeholder={CONTOH[kategori]}
+              placeholder={t(CONTOH[kategori])}
               placeholderTextColor={c.mutedLabel}
             />
 
-            <Text style={styles.label}>Berlaku sampai (opsional)</Text>
+            <Text style={styles.label}>{t("up.berlaku")}</Text>
             <Pressable
               style={styles.dateField}
               onPress={() => {
@@ -272,17 +276,14 @@ export function ProfileUploadScreen({ navigation }: any) {
               <Text
                 style={[styles.dateText, !berlaku && styles.datePlaceholder]}
               >
-                {berlaku ? tanggalPendekTahun(berlaku) : "Pilih tanggal"}
+                {berlaku ? tanggalPendekTahun(berlaku) : t("up.pilihTgl")}
               </Text>
               <LineIcon d={ICON.calendar} color={c.muted} size={17} />
             </Pressable>
 
             <View style={styles.infoBox}>
               <LineIcon d={ICON.info} color={c.info.ink} size={16} />
-              <Text style={styles.infoText}>
-                Dokumen diverifikasi HR dalam 1–2 hari kerja. Kamu akan mendapat
-                notifikasi setelah selesai.
-              </Text>
+              <Text style={styles.infoText}>{t("up.info")}</Text>
             </View>
           </View>
         </ScrollView>
@@ -299,7 +300,7 @@ export function ProfileUploadScreen({ navigation }: any) {
             {blockMsg || galat || DOC_CATEGORY_LABEL[kategori]}
           </Text>
           <Text style={styles.barValue} numberOfLines={1}>
-            {berkas ? nama.trim() || berkas.name : "Belum ada file"}
+            {berkas ? nama.trim() || berkas.name : t("up.belumFile")}
           </Text>
         </View>
         <Pressable onPress={unggah} disabled={!bisaUnggah}>
@@ -312,15 +313,15 @@ export function ProfileUploadScreen({ navigation }: any) {
             <Text
               style={[styles.uploadText, bisaUnggah ? { color: "#fff" } : null]}
             >
-              {sending ? "Mengunggah..." : "Unggah"}
+              {sending ? t("up.mengunggah") : t("up.unggah")}
             </Text>
           </View>
         </Pressable>
       </View>
       <DateSheet
         visible={pickTanggal}
-        title="Berlaku sampai"
-        hint="Pilih tanggal kedaluwarsa dokumen"
+        title={t("up.berlakuJudul")}
+        hint={t("up.berlakuHint")}
         value={berlaku}
         allow="future"
         onPick={setBerlaku}

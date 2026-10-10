@@ -19,12 +19,14 @@ import {
   DOC_STATUS_LABEL,
   DOC_STATUS_TONE,
 } from "@/constants/statusLabels";
+import { useT } from "@/i18n";
 
 const SEMUA = "semua";
 const KATEGORI: DocCategory[] = ["kontrak", "sk", "sertifikat", "identitas"];
 const TAB: (DocCategory | typeof SEMUA)[] = [SEMUA, ...KATEGORI];
 
 export function ProfileDocsScreen({ navigation }: any) {
+  const t = useT();
   const { employee } = useSession();
   const insets = useSafeAreaInsets();
   const c = useTheme();
@@ -63,12 +65,12 @@ export function ProfileDocsScreen({ navigation }: any) {
         <Pressable style={styles.backBtn} onPress={() => navigation.goBack()}>
           <Ionicons name="chevron-back" size={18} color={c.ink} />
         </Pressable>
-        <Text style={styles.headerTitle}>Dokumen Digital</Text>
+        <Text style={styles.headerTitle}>{t("doc.judul")}</Text>
         <Pressable
           style={styles.uploadBtn}
           onPress={() => navigation.navigate("ProfileUpload")}
         >
-          <Text style={styles.uploadText}>Unggah</Text>
+          <Text style={styles.uploadText}>{t("doc.unggah")}</Text>
         </Pressable>
       </View>
 
@@ -81,18 +83,18 @@ export function ProfileDocsScreen({ navigation }: any) {
         >
           <View style={styles.heroBlob} />
           <View>
-            <Text style={styles.heroLabel}>Total dokumen</Text>
+            <Text style={styles.heroLabel}>{t("doc.total")}</Text>
             <Text style={styles.heroTotal}>{loading ? "–" : items.length}</Text>
           </View>
           <View style={styles.heroPills}>
             <View style={styles.heroPill}>
               <Text style={styles.heroPillText}>
-                {loading ? "–" : terverifikasi} terverifikasi
+                {t("doc.terverifikasi", { n: loading ? "–" : terverifikasi })}
               </Text>
             </View>
             <View style={styles.heroPill}>
               <Text style={styles.heroPillText}>
-                {loading ? "–" : perluTindakan} perlu tindakan
+                {t("doc.perluTindakan", { n: loading ? "–" : perluTindakan })}
               </Text>
             </View>
           </View>
@@ -107,7 +109,7 @@ export function ProfileDocsScreen({ navigation }: any) {
       >
         {TAB.map((k) => {
           const on = tab === k;
-          const label = k === SEMUA ? "Semua" : DOC_CATEGORY_LABEL[k];
+          const label = k === SEMUA ? t("doc.semua") : DOC_CATEGORY_LABEL[k];
           return (
             <Pressable
               key={k}
@@ -139,10 +141,8 @@ export function ProfileDocsScreen({ navigation }: any) {
           </View>
         ) : tersaring.length === 0 ? (
           <View style={styles.emptyCard}>
-            <Text style={styles.emptyTitle}>Belum ada dokumen</Text>
-            <Text style={styles.emptyText}>
-              Unggah dokumen pada kategori ini agar bisa diverifikasi HR.
-            </Text>
+            <Text style={styles.emptyTitle}>{t("doc.kosongJudul")}</Text>
+            <Text style={styles.emptyText}>{t("doc.kosongIsi")}</Text>
           </View>
         ) : (
           <View style={{ gap: 10 }}>
