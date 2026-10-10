@@ -21,6 +21,7 @@ import {
   ClockState,
   AttendanceRecord,
   AttendanceStatus,
+  AttendanceCorrectionRequest,
 } from "../types";
 import { tanggalPendek, tanggalPendekTahun, toISODate } from "../../utils/date";
 import { ApiError, get, post, put } from "./http";
@@ -306,6 +307,13 @@ interface StaffRow {
   company_email: string | null;
   cell_number: string | null;
   leave_left: number | null;
+  attendance_rate: number | null;
+  today: {
+    state: "attend" | "late" | "leave" | null;
+    check_in: string | null;
+    check_out: string | null;
+    label: string;
+  };
 }
 
 const BULAN = [
@@ -346,11 +354,14 @@ function bentukStaff(r: StaffRow): Staff {
     email: r.company_email ?? "—",
     phone: r.cell_number ?? "—",
     leaveLeft: r.leave_left ?? 0,
-    // Belum ada sumbernya di ERPNext: kehadiran menunggu slice Absensi,
-    // KPI menunggu slice Appraisal.
-    attendanceRate: 0,
-    kpiScore: 0,
-    today: { state: "attend", checkIn: null, checkOut: null, label: "—" },
+    attendanceRate: r.attendance_rate ?? 0,
+    kpiScore: 0, // tetap: menunggu slice Appraisal
+    today: {
+      state: r.today.state ?? "belum",
+      checkIn: r.today.check_in,
+      checkOut: r.today.check_out,
+      label: r.today.label,
+    },
   };
 }
 
@@ -421,6 +432,30 @@ function bentukAbsensi(r: AttendanceRow): AttendanceRecord {
     checkOut: r.check_out,
     durationLabel: jam,
     status,
+  };
+}
+
+interface CorrectionRow {
+  name: string;
+  date: string;
+  check_in: string;
+  check_out: string;
+  reason: string;
+  status: "pending" | "approved" | "rejected";
+}
+
+function bentukKoreksi(
+  r: CorrectionRow,
+  employeeId: string,
+): AttendanceCorrectionRequest {
+  return {
+    id: r.name,
+    employeeId,
+    date: r.date,
+    requestedCheckIn: r.check_in,
+    requestedCheckOut: r.check_out,
+    reason: r.reason,
+    status: r.status,
   };
 }
 
@@ -584,5 +619,27 @@ export const erpnextApi: HrisApi = {
       "/api/method/hris_get_attendance_history",
     );
     return res.message.map(bentukAbsensi);
+  },
+
+  async submitAttendanceCorrection(
+    input,
+  ): Promise<AttendanceCorrectionRequest> {
+    const res = await post<{ message: CorrectionRow }>(
+      "/api/method/hris_submit_attendance_correction",
+      {
+        date: input.date,
+        check_in: input.requestedCheckIn,
+        check_out: input.requestedCheckOut,
+        reason: input.reason,
+      },
+    );
+    return bentukKoreksi(res.message, input.employeeId);
+  },
+
+  async getAttendanceCorrections(employeeId: string) {
+    const res = await get<{ message: CorrectionRow[] }>(
+      "/api/method/hris_get_attendance_corrections",
+    );
+    return res.message.map((r) => bentukKoreksi(r, employeeId));
   },
 };

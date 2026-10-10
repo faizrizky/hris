@@ -39,6 +39,7 @@ import {
   namaHari,
   tanggalPendek,
 } from "@/utils/date";
+import { describeError } from "@/services/api/http";
 
 const APPROVERS: ApprovalStep[] = [
   { ini: "BP", name: "Bayu Pratama", role: "Atasan langsung" },
@@ -60,6 +61,7 @@ export function AttendanceCorrectionScreen({ navigation }: any) {
   const [done, setDone] = useState<string | null>(null);
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
+  const [galat, setGalat] = useState<string | null>(null);
 
   useEffect(() => {
     if (!employee) return;
@@ -130,6 +132,7 @@ export function AttendanceCorrectionScreen({ navigation }: any) {
   const handleSubmit = async () => {
     if (!employee || !tanggal || !bisaKirim) return;
     setSending(true);
+    setGalat(null);
     try {
       const res = await hrisApi.submitAttendanceCorrection({
         employeeId: employee.id,
@@ -139,6 +142,8 @@ export function AttendanceCorrectionScreen({ navigation }: any) {
         reason: gabungAlasan(jenis, alasan),
       });
       setDone(res.id);
+    } catch (e) {
+      setGalat(describeError(e));
     } finally {
       setSending(false);
     }
@@ -231,9 +236,12 @@ export function AttendanceCorrectionScreen({ navigation }: any) {
         <View style={[styles.actionBar, { paddingBottom: insets.bottom + 14 }]}>
           <View style={{ flex: 1, minWidth: 0 }}>
             <Text
-              style={[styles.sumSub, blockMsg ? { color: c.bad.ink } : null]}
+              style={[
+                styles.sumSub,
+                blockMsg || galat ? { color: c.bad.ink } : null,
+              ]}
             >
-              {blockMsg || "Siap dikirim"}
+              {blockMsg || galat || "Siap dikirim"}
             </Text>
             <Text style={styles.sumTop}>
               {tanggal && keluar > masuk

@@ -155,7 +155,7 @@ export interface Appraisal {
 }
 
 export type EmploymentStatus = "Tetap" | "Kontrak";
-export type StaffAttendanceState = "attend" | "late" | "leave";
+export type StaffAttendanceState = "attend" | "late" | "leave" | "belum";
 
 // Staff = karyawan lain yang dilihat atasan/HR. Dibedakan dari Employee,
 // yang khusus untuk user yang sedang login.

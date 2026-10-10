@@ -22,12 +22,14 @@ const TABS: { key: StaffAttendanceState; label: string }[] = [
   { key: "attend", label: "Hadir" },
   { key: "late", label: "Telat" },
   { key: "leave", label: "Cuti" },
+  { key: "belum", label: "Belum" },
 ];
 
 const TONE: Record<StaffAttendanceState, SemanticTone> = {
   attend: "ok",
   late: "warn",
   leave: "info",
+  belum: "bad",
 };
 
 export function StaffAttendanceScreen({ navigation }: any) {

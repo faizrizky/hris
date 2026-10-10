@@ -123,6 +123,9 @@ export function describeError(e: unknown): string {
     if (e.excType === "OverlapError") {
       return "Tanggal bertabrakan dengan pengajuan cuti lain";
     }
+    if (e.status === 417) {
+      return "Pengajuan tidak bisa dibuat. Periksa tanggal (hari libur, sudah cuti, atau tumpang tindih).";
+    }
     if (e.status === 401) return "Email atau password salah";
     if (e.status === 0) return e.message;
     const kode = __DEV__ ? ` [${e.status} ${e.excType ?? ""}]` : "";
