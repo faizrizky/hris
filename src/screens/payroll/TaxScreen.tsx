@@ -7,7 +7,7 @@ import { Palette } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
 import { hrisApi } from "@/services/api";
 import { useSession } from "@/services/session";
-import { BpjsItem, TaxSummary } from "@/services/types";
+import { BpjsItem } from "@/services/types";
 import { angka, rupiah } from "@/utils/currency";
 import { Skeleton } from "@/components/Skeleton";
 import { useLoad } from "@/hooks/useLoad";
