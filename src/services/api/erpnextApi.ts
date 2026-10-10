@@ -33,7 +33,13 @@ import {
   AppNotification,
   NotifCategory,
 } from "../types";
-import { tanggalPendek, tanggalPendekTahun, toISODate } from "../../utils/date";
+import {
+  fromISODate,
+  namaBulan,
+  tanggalPendek,
+  tanggalPendekTahun,
+  toISODate,
+} from "../../utils/date";
 import { ApiError, get, post, put } from "./http";
 import {
   kembalikan,
@@ -41,6 +47,7 @@ import {
   terjemahkanNotifikasi,
 } from "@/i18n/serverLabels";
 import { tt } from "@/i18n";
+import type { Kunci } from "@/i18n/id";
 
 interface EmployeeRow {
   name: string;
@@ -147,8 +154,8 @@ interface LeaveDetailsRes {
 
 // Hanya jenis cuti yang dikenal aplikasi. Jenis lain di ERPNext diabaikan dulu.
 const JENIS_SALDO: Record<string, { type: LeaveType; label: string }> = {
-  "Annual Leave": { type: "cuti", label: "Cuti tahunan" },
-  "Sick Leave": { type: "sakit", label: "Cuti sakit" },
+  "Annual Leave": { type: "cuti", label: "Annual Leave" },
+  "Sick Leave": { type: "sakit", label: "Sick Leave" },
 };
 
 const NAMA_JENIS: Partial<Record<LeaveType, string>> = {
@@ -170,6 +177,7 @@ async function ambilSaldo(employeeId: string): Promise<LeaveBalance[]> {
     if (!jenis) continue;
     hasil.push({
       ...jenis,
+      label: terjemahkan("leaveType", nama),
       remaining: v.remaining_leaves,
       total: v.total_leaves,
       unit: "hari",
@@ -214,12 +222,14 @@ const LEAVE_FIELDS = [
 
 // ERPNext hanya punya satu tahap persetujuan; "Tahap 1 dari 2" di mock
 // tidak punya padanan.
-const STATUS_CUTI: Record<string, { decision: LeaveDecision; stage: string }> =
-  {
-    Open: { decision: null, stage: "Menunggu persetujuan" },
-    Approved: { decision: "approve", stage: "Disetujui" },
-    Rejected: { decision: "reject", stage: "Ditolak" },
-  };
+const STATUS_CUTI: Record<
+  string,
+  { decision: LeaveDecision; stage: () => string }
+> = {
+  Open: { decision: null, stage: () => tt("api.menungguPersetujuan") },
+  Approved: { decision: "approve", stage: () => tt("st.disetujui") },
+  Rejected: { decision: "reject", stage: () => tt("st.ditolak") },
+};
 
 function periodeCuti(dari: string, sampai: string): string {
   return dari === sampai
@@ -240,10 +250,10 @@ function bentukPengajuan(row: LeaveRow): LeaveRequest {
       ? terjemahkan("designation", row.custom_designation)
       : "",
     type: row.leave_type === "Sick Leave" ? "sakit" : "cuti",
-    label: `${terjemahkan("leaveType", row.leave_type)} · ${row.total_leave_days} hari`,
+    label: `${terjemahkan("leaveType", row.leave_type)} · ${tt("lr.nHari", { n: row.total_leave_days })}`,
     reason: row.description ? `${periode} · ${row.description}` : periode,
     delegateName: row.custom_delegate_name,
-    stage: status.stage,
+    stage: status.stage(),
     quota: "—",
     approverName: pemberiSetuju,
     approverInitials: inisial(pemberiSetuju),
@@ -283,11 +293,11 @@ interface DinasRow {
 
 const STATUS_SERVER: Record<
   string,
-  { decision: LeaveRequest["decision"]; stage: string }
+  { decision: LeaveRequest["decision"]; stage: () => string }
 > = {
-  pending: { decision: null, stage: "Menunggu atasan" },
-  approved: { decision: "approve", stage: "Disetujui" },
-  rejected: { decision: "reject", stage: "Ditolak" },
+  pending: { decision: null, stage: () => tt("api.menungguAtasan") },
+  approved: { decision: "approve", stage: () => tt("st.disetujui") },
+  rejected: { decision: "reject", stage: () => tt("st.ditolak") },
 };
 
 const ID_LEMBUR = /^OT-/;
@@ -308,10 +318,10 @@ function bentukLembur(r: LemburRow, saya?: string): LeaveRequest {
       ? terjemahkan("designation", r.designation)
       : "",
     type: "lembur",
-    label: `Lembur ${r.hours} jam · ${tanggalPendek(r.date)}`,
+    label: tt("api.lemburLabel", { jam: r.hours, tgl: tanggalPendek(r.date) }),
     reason: `${jamMenitServer(r.start_minute)}–${jamMenitServer(r.end_minute)} · ${r.note}`,
     delegateName: null,
-    stage: st.stage,
+    stage: st.stage(),
     quota: "—",
     approverName: "",
     approverInitials: "",
@@ -332,10 +342,10 @@ function bentukDinas(r: DinasRow, saya?: string): LeaveRequest {
       ? terjemahkan("designation", r.designation)
       : "",
     type: "dinas_luar",
-    label: `Dinas luar · ${r.destination}`,
+    label: tt("api.dinasLabel", { kota: r.destination }),
     reason: `${periodeCuti(r.from_date, r.to_date)} · ${r.purpose}`,
     delegateName: null,
-    stage: st.stage,
+    stage: st.stage(),
     quota: "—",
     approverName: "",
     approverInitials: "",
@@ -419,11 +429,11 @@ async function ambilMilikSendiri(employeeId: string): Promise<LeaveRequest[]> {
 
 const BADGE_KEPUTUSAN: Record<
   string,
-  { label: string; tone: FeedItem["tone"] }
+  { label: Kunci; tone: FeedItem["tone"] }
 > = {
-  approve: { label: "Disetujui", tone: "ok" },
-  reject: { label: "Ditolak", tone: "bad" },
-  menunggu: { label: "Menunggu", tone: "warn" },
+  approve: { label: "st.disetujui", tone: "ok" },
+  reject: { label: "st.ditolak", tone: "bad" },
+  menunggu: { label: "st.menunggu", tone: "warn" },
 };
 
 function keFeed(r: LeaveRequest, untukApprover: boolean): FeedItem {
@@ -434,7 +444,7 @@ function keFeed(r: LeaveRequest, untukApprover: boolean): FeedItem {
     initials: untukApprover ? r.employeeInitials : r.approverInitials,
     title: untukApprover ? `${r.employeeName} · ${r.label}` : r.label,
     subtitle: r.reason,
-    badge: badge.label,
+    badge: tt(badge.label),
     tone: badge.tone,
     createdAt: r.createdAt,
   };
@@ -463,26 +473,14 @@ interface StaffRow {
   };
 }
 
-const BULAN = [
-  "Januari",
-  "Februari",
-  "Maret",
-  "April",
-  "Mei",
-  "Juni",
-  "Juli",
-  "Agustus",
-  "September",
-  "Oktober",
-  "November",
-  "Desember",
-];
-
 function teksKepegawaian(r: StaffRow): string {
-  if (r.employment_type !== "Contract") return "Permanent";
-  if (!r.contract_end_date) return "Kontrak";
-  const [tahun, bulan] = r.contract_end_date.split("-").map(Number);
-  return `Kontrak · s.d. ${BULAN[bulan! - 1]} ${tahun}`;
+  if (r.employment_type !== "Contract") return tt("api.permanen");
+  if (!r.contract_end_date) return tt("api.kontrak");
+  const [tahun] = r.contract_end_date.split("-").map(Number);
+  return tt("api.kontrakSd", {
+    bulan: namaBulan(fromISODate(r.contract_end_date)),
+    tahun: tahun!,
+  });
 }
 
 function bentukStaff(r: StaffRow): Staff {
@@ -538,16 +536,16 @@ interface ProfileRow {
   em2: KontakRow;
 }
 
-const JENIS_KELAMIN: Record<string, string> = {
-  Male: "Laki-laki",
-  Female: "Perempuan",
+const JENIS_KELAMIN: Record<string, Kunci> = {
+  Male: "api.lakiLaki",
+  Female: "api.perempuan",
 };
 
-const STATUS_NIKAH: Record<string, string> = {
-  Single: "Belum menikah",
-  Married: "Menikah",
-  Divorced: "Cerai hidup",
-  Widowed: "Cerai mati",
+const STATUS_NIKAH: Record<string, Kunci> = {
+  Single: "api.belumMenikah",
+  Married: "api.menikah",
+  Divorced: "api.ceraiHidup",
+  Widowed: "api.ceraiMati",
 };
 
 function bentukProfil(r: ProfileRow): PersonalProfile {
@@ -557,9 +555,12 @@ function bentukProfil(r: ProfileRow): PersonalProfile {
     nikMasked: "—",
     birthPlace: r.place_of_birth ?? "—",
     birthDate: r.date_of_birth ?? "",
-    gender: JENIS_KELAMIN[r.gender ?? ""] ?? r.gender ?? "—",
-    maritalStatus:
-      STATUS_NIKAH[r.marital_status ?? ""] ?? r.marital_status ?? "—",
+    gender: JENIS_KELAMIN[r.gender ?? ""]
+      ? tt(JENIS_KELAMIN[r.gender ?? ""]!)
+      : (r.gender ?? "—"),
+    maritalStatus: STATUS_NIKAH[r.marital_status ?? ""]
+      ? tt(STATUS_NIKAH[r.marital_status ?? ""]!)
+      : (r.marital_status ?? "—"),
     religion: r.religion ?? "—",
     npwpMasked: "—",
     workEmail: r.company_email ?? "—",
@@ -600,7 +601,11 @@ function bentukPerangkat(s: SesiRow): ActiveDevice {
   const waktu = s.last_updated ? s.last_updated.slice(0, 16) : "";
   return {
     id: s.id,
-    name: mobile ? "Aplikasi HRIS" : ua ? "Browser" : "Perangkat",
+    name: mobile
+      ? tt("api.appHris")
+      : ua
+        ? tt("api.browser")
+        : tt("api.perangkat"),
     meta: [s.ip ?? "—", waktu].filter(Boolean).join(" · "),
     kind: mobile ? "mobile" : "web",
     current: s.current,
@@ -658,9 +663,9 @@ function bentukNotifikasi(r: NotifRow): AppNotification {
   };
 }
 
-const NAMA_KEPEGAWAIAN: Record<string, string> = {
-  "Full-time": "Permanent",
-  Contract: "Kontrak",
+const NAMA_KEPEGAWAIAN: Record<string, Kunci> = {
+  "Full-time": "api.permanen",
+  Contract: "api.kontrak",
 };
 
 interface ClockRes {
@@ -704,9 +709,12 @@ function bentukAbsensi(r: AttendanceRow): AttendanceRecord {
         ? "telat"
         : "hadir";
   const jam = r.working_hours
-    ? `${Math.floor(r.working_hours)}j ${Math.round((r.working_hours % 1) * 60)}m`
+    ? tt("api.durasi", {
+        h: Math.floor(r.working_hours),
+        m: Math.round((r.working_hours % 1) * 60),
+      })
     : r.check_in && !r.check_out
-      ? "berjalan"
+      ? tt("api.berjalan")
       : null;
   return {
     id: r.date,
@@ -742,21 +750,6 @@ function bentukKoreksi(
   };
 }
 
-const BULAN_SINGKAT = [
-  "Jan",
-  "Feb",
-  "Mar",
-  "Apr",
-  "Mei",
-  "Jun",
-  "Jul",
-  "Agt",
-  "Sep",
-  "Okt",
-  "Nov",
-  "Des",
-];
-
 interface SlipRow {
   name: string;
   start_date: string;
@@ -776,14 +769,16 @@ function samarkanRekening(no: string | null): string {
 
 function bentukSlip(r: SlipRow): Payslip {
   const [tahun, bulan] = r.start_date.split("-").map(Number);
-  const nama = BULAN[bulan! - 1]!;
+  const nama = namaBulan(new Date(tahun!, bulan! - 1, 1));
   return {
     id: r.name,
     period: `${nama} ${tahun}`,
-    monthShort: BULAN_SINGKAT[bulan! - 1]!.toUpperCase(),
+    monthShort: namaBulan(new Date(tahun!, bulan! - 1, 1))
+      .slice(0, 3)
+      .toUpperCase(),
     // Belum ada sumber untuk "Termasuk THR"; slip dianggap reguler.
-    note: "Reguler",
-    status: "Diterbitkan",
+    note: tt("api.reguler"),
+    status: tt("api.diterbitkan"),
     bankAccount: samarkanRekening(r.bank_account_no),
     paidAt: tanggalPendekTahun(r.posting_date),
     earnings: r.earnings.map((e) => ({
@@ -1040,7 +1035,9 @@ export const erpnextApi: HrisApi = {
     }>("/api/method/hris_get_employment_summary");
     if (!res.message) return null;
     return res.message.map((s) => ({
-      label: NAMA_KEPEGAWAIAN[s.label] ?? s.label,
+      label: NAMA_KEPEGAWAIAN[s.label]
+        ? tt(NAMA_KEPEGAWAIAN[s.label]!)
+        : s.label,
       count: s.count,
     }));
   },
@@ -1110,12 +1107,14 @@ export const erpnextApi: HrisApi = {
       monthly: (data?.months ?? [])
         .filter((m) => m.gross > 0)
         .map((m) => ({
-          monthShort: BULAN_SINGKAT[m.month - 1]!,
+          monthShort: namaBulan(new Date(2000, m.month - 1, 1)).slice(0, 3),
           amount: m.pph21,
         })),
       peakReason: "",
       // Nama bulan dari nomor bulan, bukan dari teks server (berbahasa Inggris).
-      basePeriod: bulanTerakhir ? BULAN[bulanTerakhir.month - 1]! : "—",
+      basePeriod: bulanTerakhir
+        ? namaBulan(new Date(2000, bulanTerakhir.month - 1, 1))
+        : "—",
       grossPay: gross,
       terCategory: "—",
       ptkpStatus: "—",

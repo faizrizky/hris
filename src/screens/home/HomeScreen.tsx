@@ -301,7 +301,7 @@ export function HomeScreen() {
             ink={c.ok.ink}
             icon={ICON.leave}
             label={t("hm.sisaCuti")}
-            value={cuti ? `${cuti.remaining} ${cuti.unit}` : "–"}
+            value={cuti ? `${cuti.remaining} ${t(`unit.${cuti.unit}`)}` : "–"}
             memuat={memuat}
           />
           <StatCard
@@ -309,7 +309,9 @@ export function HomeScreen() {
             ink={c.warn.ink}
             icon={ICON.overtime}
             label={t("hm.jamLembur")}
-            value={lembur ? `${lembur.remaining} ${lembur.unit}` : "–"}
+            value={
+              lembur ? `${lembur.remaining} ${t(`unit.${lembur.unit}`)}` : "–"
+            }
             memuat={memuat}
           />
           <StatCard

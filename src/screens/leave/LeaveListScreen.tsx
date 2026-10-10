@@ -95,7 +95,7 @@ export function LeaveListScreen({ navigation }: any) {
                       {cuti?.remaining ?? "–"}
                     </Text>
                     <Text style={styles.balanceTotal}>
-                      / {cuti?.total ?? "–"} {cuti?.unit ?? t("cl.hari")}
+                      / {cuti?.total ?? "–"} {t(`unit.${cuti?.unit ?? "hari"}`)}
                     </Text>
                   </View>
                 )}
@@ -117,7 +117,7 @@ export function LeaveListScreen({ navigation }: any) {
                       />
                     ) : (
                       <Text style={styles.heroBoxValue}>
-                        {terpakai} {cuti?.unit ?? t("cl.hari")}
+                        {terpakai} {t(`unit.${cuti?.unit ?? "hari"}`)}
                       </Text>
                     )}
                   </View>
@@ -133,7 +133,9 @@ export function LeaveListScreen({ navigation }: any) {
                       />
                     ) : (
                       <Text style={styles.heroBoxValue}>
-                        {sakit ? `${sakit.remaining} ${sakit.unit}` : "–"}
+                        {sakit
+                          ? `${sakit.remaining} ${t(`unit.${sakit.unit}`)}`
+                          : "–"}
                       </Text>
                     )}
                   </View>
