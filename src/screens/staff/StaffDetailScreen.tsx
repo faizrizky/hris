@@ -18,8 +18,10 @@ import {
 } from "@/constants/statusLabels";
 import { desimal } from "@/utils/currency";
 import { bulanSingkat, tanggalAngka, tanggalPendekTahun } from "@/utils/date";
+import { useT } from "@/i18n";
 
 export function StaffDetailScreen({ navigation, route }: any) {
+  const t = useT();
   const { employee } = useSession();
   const insets = useSafeAreaInsets();
   const { staffId } = route.params;
@@ -67,7 +69,7 @@ export function StaffDetailScreen({ navigation, route }: any) {
         <Pressable style={styles.backBtn} onPress={() => navigation.goBack()}>
           <Ionicons name="chevron-back" size={18} color="#fff" />
         </Pressable>
-        <Text style={styles.headerTitle}>Detail Karyawan</Text>
+        <Text style={styles.headerTitle}>{t("stf.detail")}</Text>
       </View>
 
       <View style={styles.identity}>
@@ -106,7 +108,7 @@ export function StaffDetailScreen({ navigation, route }: any) {
             <Text style={styles.code}>{staff.code}</Text>
           </>
         ) : (
-          <Text style={styles.role}>Karyawan tidak ditemukan</Text>
+          <Text style={styles.role}>{t("stf.tidakDitemukan")}</Text>
         )}
       </View>
     </View>
@@ -151,15 +153,15 @@ export function StaffDetailScreen({ navigation, route }: any) {
   }
 
   const kepegawaian = [
-    { k: "Status", v: staff.employment },
-    { k: "Tanggal masuk", v: tanggalPendekTahun(staff.joinDate) },
-    { k: "Atasan langsung", v: staff.manager },
-    { k: "Shift", v: staff.shift },
+    { k: t("stf.status"), v: staff.employment },
+    { k: t("stf.tglMasuk"), v: tanggalPendekTahun(staff.joinDate) },
+    { k: t("stf.atasan"), v: staff.manager },
+    { k: t("stf.shift"), v: staff.shift },
   ];
 
   const kontak = [
-    { k: "Email kantor", v: staff.email },
-    { k: "Telepon", v: staff.phone },
+    { k: t("stf.emailKantor"), v: staff.email },
+    { k: t("stf.telepon"), v: staff.phone },
   ];
 
   return (
@@ -168,15 +170,21 @@ export function StaffDetailScreen({ navigation, route }: any) {
 
       <ScrollView style={styles.body} contentContainerStyle={styles.content}>
         <View style={styles.statCard}>
-          <Stat value={`${desimal(staff.attendanceRate)}%`} label="Kehadiran" />
+          <Stat
+            value={`${desimal(staff.attendanceRate)}%`}
+            label={t("stf.kehadiran")}
+          />
           <View style={styles.statDivider} />
-          <Stat value={`${staff.leaveLeft} hari`} label="Sisa cuti" />
+          <Stat
+            value={t("stf.hari", { n: staff.leaveLeft })}
+            label={t("stf.sisaCuti")}
+          />
           <View style={styles.statDivider} />
-          <Stat value={desimal(staff.kpiScore)} label="Skor KPI" />
+          <Stat value={desimal(staff.kpiScore)} label={t("stf.skorKpi")} />
         </View>
 
         <View style={[styles.sheet, { marginTop: 12 }]}>
-          <Text style={styles.sheetTitle}>Data kepegawaian</Text>
+          <Text style={styles.sheetTitle}>{t("stf.dataKepeg")}</Text>
           <View style={styles.lines}>
             {kepegawaian.map((r) => (
               <Row key={r.k} k={r.k} v={r.v} />
@@ -190,14 +198,14 @@ export function StaffDetailScreen({ navigation, route }: any) {
 
         <View style={[styles.sheet, { marginTop: 10 }]}>
           <View style={styles.sheetHead}>
-            <Text style={styles.sheetTitle}>Absensi 5 hari terakhir</Text>
+            <Text style={styles.sheetTitle}>{t("stf.absen5")}</Text>
             <Pressable
               onPress={() =>
                 navigation.navigate("StaffHistory", { staffId: staff.id })
               }
               hitSlop={8}
             >
-              <Text style={styles.sheetLink}>Semua</Text>
+              <Text style={styles.sheetLink}>{t("stf.semuaLink")}</Text>
             </Pressable>
           </View>
 
@@ -234,13 +242,15 @@ export function StaffDetailScreen({ navigation, route }: any) {
             style={styles.secondaryBtn}
             onPress={() => navigation.navigate("Approval")}
           >
-            <Text style={styles.secondaryText}>Riwayat pengajuan</Text>
+            <Text style={styles.secondaryText}>
+              {t("stf.riwayatPengajuan")}
+            </Text>
           </Pressable>
           <Pressable
             style={styles.primaryBtn}
             onPress={() => Linking.openURL(`mailto:${staff.email}`)}
           >
-            <Text style={styles.primaryText}>Kirim pesan</Text>
+            <Text style={styles.primaryText}>{t("stf.kirimPesan")}</Text>
           </Pressable>
         </View>
       </ScrollView>

@@ -17,8 +17,10 @@ import {
   ATTENDANCE_STATUS_TONE,
 } from "@/constants/statusLabels";
 import { bulanSingkat, namaHari, tanggalAngka } from "@/utils/date";
+import { useT } from "@/i18n";
 
 export function StaffHistoryScreen({ navigation, route }: any) {
+  const t = useT();
   const { employee } = useSession();
   const insets = useSafeAreaInsets();
   const { staffId } = route.params;
@@ -68,10 +70,10 @@ export function StaffHistoryScreen({ navigation, route }: any) {
             <Skeleton width={140} height={15} radius={5} />
           ) : (
             <Text style={styles.headerTitle} numberOfLines={1}>
-              {staff?.fullName ?? "Karyawan"}
+              {staff?.fullName ?? t("stf.karyawan")}
             </Text>
           )}
-          <Text style={styles.headerSub}>Riwayat absensi</Text>
+          <Text style={styles.headerSub}>{t("stf.riwayatAbsensi")}</Text>
         </View>
       </View>
 
@@ -88,19 +90,19 @@ export function StaffHistoryScreen({ navigation, route }: any) {
         <View style={styles.recapCard}>
           <Recap
             value={loading ? "–" : hitung("hadir")}
-            label="Hadir"
+            label={t("st.hadir")}
             tone={c.ok.ink}
           />
           <View style={styles.recapDivider} />
           <Recap
             value={loading ? "–" : hitung("telat")}
-            label="Telat"
+            label={t("st.telat")}
             tone={c.warn.ink}
           />
           <View style={styles.recapDivider} />
           <Recap
             value={loading ? "–" : hitung("izin")}
-            label="Izin"
+            label={t("st.izin")}
             tone={c.info.ink}
           />
         </View>

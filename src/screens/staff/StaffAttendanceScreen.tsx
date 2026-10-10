@@ -18,14 +18,16 @@ import {
   tanggalPendekTahun,
   toISODate,
 } from "@/utils/date";
+import { useT } from "@/i18n";
+import type { Kunci } from "@/i18n/id";
 
 const SEMUA = "Semua";
 
-const TABS: { key: StaffAttendanceState; label: string }[] = [
-  { key: "attend", label: "Hadir" },
-  { key: "late", label: "Telat" },
-  { key: "leave", label: "Cuti" },
-  { key: "belum", label: "Belum" },
+const TABS: { key: StaffAttendanceState; label: Kunci }[] = [
+  { key: "attend", label: "stf.tabHadir" },
+  { key: "late", label: "stf.tabTelat" },
+  { key: "leave", label: "stf.tabCuti" },
+  { key: "belum", label: "stf.tabBelum" },
 ];
 
 const TONE: Record<StaffAttendanceState, SemanticTone> = {
@@ -36,6 +38,7 @@ const TONE: Record<StaffAttendanceState, SemanticTone> = {
 };
 
 export function StaffAttendanceScreen({ navigation }: any) {
+  const t = useT();
   const { employee } = useSession();
   const insets = useSafeAreaInsets();
 
@@ -82,22 +85,22 @@ export function StaffAttendanceScreen({ navigation }: any) {
           <Ionicons name="chevron-back" size={18} color={c.ink} />
         </Pressable>
         <View style={{ flex: 1, minWidth: 0 }}>
-          <Text style={styles.headerTitle}>Absensi Karyawan</Text>
+          <Text style={styles.headerTitle}>{t("stf.absensiKry")}</Text>
           <Text style={styles.headerSub}>{formatTanggalPanjang()}</Text>
         </View>
       </View>
 
       <View style={styles.tabRow}>
-        {TABS.map((t) => {
-          const on = tab === t.key;
+        {TABS.map((tb) => {
+          const on = tab === tb.key;
           return (
             <Pressable
-              key={t.key}
-              onPress={() => setTab(t.key)}
+              key={tb.key}
+              onPress={() => setTab(tb.key)}
               style={[styles.tab, on && styles.tabOn]}
             >
               <Text style={[styles.tabText, on && styles.tabTextOn]}>
-                {t.label} · {loading ? "–" : hitungTab(t.key)}
+                {t(tb.label)} · {loading ? "–" : hitungTab(tb.key)}
               </Text>
             </Pressable>
           );
@@ -123,7 +126,7 @@ export function StaffAttendanceScreen({ navigation }: any) {
                   style={[styles.chip, on && styles.chipOn]}
                 >
                   <Text style={[styles.chipText, on && styles.chipTextOn]}>
-                    {c}
+                    {c === SEMUA ? t("stf.semua") : c}
                   </Text>
                 </Pressable>
               );
@@ -151,11 +154,14 @@ export function StaffAttendanceScreen({ navigation }: any) {
           </View>
         ) : tersaring.length === 0 ? (
           <View style={styles.emptyCard}>
-            <Text style={styles.emptyTitle}>Tidak ada di kategori ini</Text>
+            <Text style={styles.emptyTitle}>{t("stf.kosongKategori")}</Text>
             <Text style={styles.emptyText}>
-              Belum ada karyawan berstatus{" "}
-              {TABS.find((t) => t.key === tab)?.label.toLowerCase()} hari ini
-              {dept === SEMUA ? "" : ` di ${dept}`}.
+              {t("stf.kosongKategoriIsi", {
+                status: t(
+                  TABS.find((tb) => tb.key === tab)!.label,
+                ).toLowerCase(),
+                dept: dept === SEMUA ? "" : t("stf.diDept", { dept }),
+              })}
             </Text>
           </View>
         ) : (
@@ -186,6 +192,7 @@ function AttendanceCard({
   tanggal: string;
   onOpen: () => void;
 }) {
+  const t = useT();
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
 
@@ -218,15 +225,15 @@ function AttendanceCard({
       <View style={styles.cardDivider} />
 
       <View style={styles.grid}>
-        <Cell label="Tanggal" value={tanggal} />
+        <Cell label={t("stf.tanggal")} value={tanggal} />
         <Cell
-          label="Clock In"
+          label={t("hm.clockIn")}
           value={staff.today.checkIn ?? "—"}
           color={telat ? c.warn.ink : c.ink}
         />
         <Cell
-          label="Clock Out"
-          value={staff.today.checkOut ?? "Belum"}
+          label={t("hm.clockOut")}
+          value={staff.today.checkOut ?? t("stf.belum")}
           color={c.muted}
         />
       </View>

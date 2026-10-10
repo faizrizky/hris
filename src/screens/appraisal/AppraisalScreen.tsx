@@ -13,6 +13,7 @@ import { useLoad } from "@/hooks/useLoad";
 import { ErrorState } from "@/components/ErrorState";
 import { desimal } from "@/utils/currency";
 import { Skeleton } from "@/components/Skeleton";
+import { useT } from "@/i18n";
 
 const RING = 104;
 const STROKE = 13;
@@ -20,6 +21,7 @@ const R = (RING - STROKE) / 2;
 const CIRC = 2 * Math.PI * R;
 
 export function AppraisalScreen({ navigation }: any) {
+  const t = useT();
   const { employee } = useSession();
   const insets = useSafeAreaInsets();
   const penilaian = useLoad(
@@ -36,7 +38,7 @@ export function AppraisalScreen({ navigation }: any) {
       <Pressable style={styles.backBtn} onPress={() => navigation.goBack()}>
         <Ionicons name="chevron-back" size={18} color={c.ink} />
       </Pressable>
-      <Text style={styles.headerTitle}>Appraisal & KPI</Text>
+      <Text style={styles.headerTitle}>{t("ap2.judul")}</Text>
     </View>
   );
 
@@ -120,7 +122,7 @@ export function AppraisalScreen({ navigation }: any) {
         </View>
 
         <View style={styles.sheet}>
-          <Text style={styles.sheetTitle}>Penilai (multi-rater)</Text>
+          <Text style={styles.sheetTitle}>{t("ap2.penilai")}</Text>
           <View style={{ gap: 13, marginTop: 14 }}>
             {data.raters.map((r) => (
               <RaterRow key={r.name} rater={r} max={data.maxScore} />
@@ -128,7 +130,7 @@ export function AppraisalScreen({ navigation }: any) {
           </View>
         </View>
 
-        <Text style={styles.sectionTitle}>KRA & Goal</Text>
+        <Text style={styles.sectionTitle}>{t("ap2.goal")}</Text>
         <View style={{ gap: 10 }}>
           {data.goals.map((g) => (
             <GoalCard key={g.name} goal={g} />
@@ -140,6 +142,7 @@ export function AppraisalScreen({ navigation }: any) {
 }
 
 function ScoreRing({ score, max }: { score: number; max: number }) {
+  const t = useT();
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
 
@@ -174,13 +177,14 @@ function ScoreRing({ score, max }: { score: number; max: number }) {
 
       <View style={styles.ringHole}>
         <Text style={styles.ringScore}>{desimal(score)}</Text>
-        <Text style={styles.ringMax}>dari {desimal(max)}</Text>
+        <Text style={styles.ringMax}>{t("ap2.dari", { n: desimal(max) })}</Text>
       </View>
     </View>
   );
 }
 
 function RaterRow({ rater, max }: { rater: AppraisalRater; max: number }) {
+  const t = useT();
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
 
@@ -193,7 +197,7 @@ function RaterRow({ rater, max }: { rater: AppraisalRater; max: number }) {
           {rater.name}
         </Text>
         <Text style={styles.raterScore}>
-          {desimal(rater.score)} · bobot {rater.weight}%
+          {t("ap2.bobot", { skor: desimal(rater.score), w: rater.weight })}
         </Text>
       </View>
       <View style={styles.track}>

@@ -12,10 +12,12 @@ import { ErrorState } from "@/components/ErrorState";
 import { useSession } from "@/services/session";
 import { Staff, StaffDirectory } from "@/services/types";
 import { Skeleton } from "@/components/Skeleton";
+import { useT } from "@/i18n";
 
 const SEMUA = "Semua";
 
 export function StaffListScreen({ navigation }: any) {
+  const t = useT();
   const { employee } = useSession();
   const insets = useSafeAreaInsets();
 
@@ -67,8 +69,8 @@ export function StaffListScreen({ navigation }: any) {
 
   const scope =
     employee?.role === "hr"
-      ? `${items.length} dari ${dir?.totalActive ?? 0} karyawan aktif`
-      : `Bawahan langsung · ${items.length} orang`;
+      ? t("stf.dariAktif", { n: items.length, total: dir?.totalActive ?? 0 })
+      : t("stf.bawahan", { n: items.length });
 
   return (
     <View style={styles.container}>
@@ -78,7 +80,7 @@ export function StaffListScreen({ navigation }: any) {
         </Pressable>
         <View style={{ flex: 1, minWidth: 0 }}>
           <View style={{ flex: 1, minWidth: 0 }}>
-            <Text style={styles.headerTitle}>Karyawan</Text>
+            <Text style={styles.headerTitle}>{t("stf.judul")}</Text>
             {loading ? (
               <Skeleton
                 width={150}
@@ -105,7 +107,7 @@ export function StaffListScreen({ navigation }: any) {
           style={styles.searchInput}
           value={cari}
           onChangeText={setCari}
-          placeholder="Cari nama, jabatan, atau NIK"
+          placeholder={t("stf.cari")}
           placeholderTextColor={c.mutedLabel}
           autoCorrect={false}
         />
@@ -135,7 +137,7 @@ export function StaffListScreen({ navigation }: any) {
                   style={[styles.chip, on && styles.chipOn]}
                 >
                   <Text style={[styles.chipText, on && styles.chipTextOn]}>
-                    {c} ({hitungDept(c)})
+                    {c === SEMUA ? t("stf.semua") : c} ({hitungDept(c)})
                   </Text>
                 </Pressable>
               );
@@ -153,11 +155,11 @@ export function StaffListScreen({ navigation }: any) {
           </View>
         ) : tersaring.length === 0 ? (
           <View style={styles.emptyCard}>
-            <Text style={styles.emptyTitle}>Tidak ada yang cocok</Text>
+            <Text style={styles.emptyTitle}>{t("stf.tidakCocok")}</Text>
             <Text style={styles.emptyText}>
               {q
-                ? `Tidak ada karyawan dengan kata "${cari.trim()}".`
-                : "Belum ada karyawan di lingkup ini."}
+                ? t("stf.tanpaKata", { q: cari.trim() })
+                : t("stf.kosongLingkup")}
             </Text>
           </View>
         ) : (
@@ -179,6 +181,7 @@ export function StaffListScreen({ navigation }: any) {
 }
 
 function StaffRow({ staff, onPress }: { staff: Staff; onPress: () => void }) {
+  const t = useT();
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
 
@@ -202,7 +205,7 @@ function StaffRow({ staff, onPress }: { staff: Staff; onPress: () => void }) {
 
       <View style={[styles.statusBadge, { backgroundColor: tone.bg }]}>
         <Text style={[styles.statusText, { color: tone.ink }]}>
-          {staff.status}
+          {tetap ? t("stf.tetap") : t("stf.kontrak")}
         </Text>
       </View>
       <Ionicons name="chevron-forward" size={14} color={c.mutedLabel} />

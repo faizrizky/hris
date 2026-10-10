@@ -14,6 +14,7 @@ import { AppNotification, NotifCategory } from "@/services/types";
 import { LineIcon } from "@/components/LineIcon";
 import { ICON } from "@/constants/icons";
 import { Skeleton } from "@/components/Skeleton";
+import { useT } from "@/i18n";
 
 const ICON_KATEGORI: Record<NotifCategory, string> = {
   Approval: ICON.approval,
@@ -24,6 +25,7 @@ const ICON_KATEGORI: Record<NotifCategory, string> = {
 };
 
 export function NotificationScreen({ navigation }: any) {
+  const t = useT();
   const { employee } = useSession();
   const insets = useSafeAreaInsets();
   const [items, setItems] = useState<AppNotification[] | null>(null);
@@ -65,7 +67,7 @@ export function NotificationScreen({ navigation }: any) {
         <Pressable style={styles.backBtn} onPress={() => navigation.goBack()}>
           <Ionicons name="chevron-back" size={18} color={c.ink} />
         </Pressable>
-        <Text style={styles.headerTitle}>Notifikasi</Text>
+        <Text style={styles.headerTitle}>{t("nt.judul")}</Text>
         <Pressable
           onPress={() => tandai()}
           disabled={belumDibaca === 0}
@@ -77,7 +79,7 @@ export function NotificationScreen({ navigation }: any) {
               belumDibaca === 0 && { color: c.mutedLabel },
             ]}
           >
-            Tandai dibaca
+            {t("nt.tandai")}
           </Text>
         </Pressable>
       </View>
@@ -96,11 +98,8 @@ export function NotificationScreen({ navigation }: any) {
             <View style={styles.emptyIcon}>
               <LineIcon d={ICON.bell} color={c.muted} size={22} />
             </View>
-            <Text style={styles.emptyTitle}>Tidak ada notifikasi</Text>
-            <Text style={styles.emptyText}>
-              Kabar approval, payroll, dan pengingat presensi akan muncul di
-              sini.
-            </Text>
+            <Text style={styles.emptyTitle}>{t("nt.kosongJudul")}</Text>
+            <Text style={styles.emptyText}>{t("nt.kosongIsi")}</Text>
           </View>
         ) : (
           grup.map((g) => (
@@ -134,7 +133,7 @@ export function NotificationScreen({ navigation }: any) {
                           <Text style={styles.title}>{n.title}</Text>
                           <Text style={styles.body}>{n.body}</Text>
                           <Text style={styles.time}>
-                            {n.timeLabel} · {n.category}
+                            {n.timeLabel} · {t(`cat.${n.category}`)}
                           </Text>
                         </View>
 
