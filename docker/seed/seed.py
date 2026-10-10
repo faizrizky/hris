@@ -71,6 +71,23 @@ if not exists("Leave Policy", {"title": LP}):
 LP_NAME = frappe.db.get_value("Leave Policy", {"title": LP}, "name")
 if not exists("Shift Type", "Shift Pagi"):
     make(dict(doctype="Shift Type", name="Shift Pagi", start_time="08:00:00", end_time="17:00:00"))
+# Auto attendance: Employee Checkin diubah jadi Attendance oleh scheduler.
+# process_attendance_after / last_sync_of_checkin hanya diisi saat pertama kali diaktifkan,
+# supaya log lama (sebelum hari ini - 1) tidak ikut diproses dan seed ulang tidak me-reset.
+_st = frappe.get_doc("Shift Type", "Shift Pagi")
+_want = dict(enable_auto_attendance=1, auto_update_last_sync=1,
+             begin_check_in_before_shift_start_time=60, allow_check_out_after_shift_end_time=60,
+             enable_late_entry_marking=1, late_entry_grace_period=10,
+             enable_early_exit_marking=1, early_exit_grace_period=10,
+             working_hours_threshold_for_half_day=4, working_hours_threshold_for_absent=2)
+_first = not _st.enable_auto_attendance
+if _first:
+    _want["process_attendance_after"] = frappe.utils.add_days(nowdate(), -1)
+    _want["last_sync_of_checkin"] = frappe.utils.now_datetime()
+if any(_st.get(k) != v for k, v in _want.items()):
+    _st.update(_want)
+    _st.save(ignore_permissions=True)
+    log("Shift Pagi: auto attendance dikonfigurasi")
 frappe.db.commit()
 
 # 4. Employee --------------------------------------------------------------

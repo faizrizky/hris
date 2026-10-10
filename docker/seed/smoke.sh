@@ -43,6 +43,8 @@ except Exception: print("")' "$TMP/body")
   call "GET hris_get_my_approver" "$auth" "$BASE/api/method/hris_get_my_approver"
   call "GET hris_get_staff_directory" "$auth" "$BASE/api/method/hris_get_staff_directory"
   call "GET hris_get_employment_summary" "$auth" "$BASE/api/method/hris_get_employment_summary"
+  call "GET hris_get_clock_state" "$auth" "$BASE/api/method/hris_get_clock_state"
+  call "GET hris_get_attendance_history" "$auth" "$BASE/api/method/hris_get_attendance_history"
   call "GET hris_get_colleagues" "$auth" "$BASE/api/method/hris_get_colleagues"
   if [ -n "$emp" ]; then
     call "GET get_leave_details ($emp, $TODAY)" "$auth" \
