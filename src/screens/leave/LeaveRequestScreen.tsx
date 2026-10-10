@@ -131,9 +131,12 @@ export function LeaveRequestScreen({ navigation, route }: any) {
 
   useEffect(() => {
     if (!employee) return;
-    hrisApi.getLeaveBalances(employee.id).then(setBalances);
-    hrisApi.getColleagues(employee.id).then(setRekan);
-    hrisApi.getLeaveApprover(employee.id).then(setApprover);
+    // Kegagalan memuat ditampilkan di ringkasan bawah (galat), bukan dibiarkan
+    // sebagai penolakan promise yang tak tertangkap.
+    const tangkap = (e: unknown) => setGalat(describeError(e));
+    hrisApi.getLeaveBalances(employee.id).then(setBalances).catch(tangkap);
+    hrisApi.getColleagues(employee.id).then(setRekan).catch(tangkap);
+    hrisApi.getLeaveApprover(employee.id).then(setApprover).catch(tangkap);
   }, [employee]);
 
   const saldo = balances.find((b) => b.type === "cuti")?.remaining ?? 0;

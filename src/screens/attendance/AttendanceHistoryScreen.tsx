@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useState, useMemo } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { RevealFlatList as FlatList } from "@/components/Reveal";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -10,7 +10,9 @@ import { Palette } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
 import { hrisApi } from "@/services/api";
 import { useSession } from "@/services/session";
-import { AttendanceRecord, AttendanceStatus } from "@/services/types";
+import { AttendanceStatus } from "@/services/types";
+import { useLoad } from "@/hooks/useLoad";
+import { ErrorState } from "@/components/ErrorState";
 import {
   ATTENDANCE_STATUS_LABEL as STATUS_LABEL,
   ATTENDANCE_STATUS_TONE as STATUS_TONE,
@@ -22,17 +24,19 @@ type Filter = "semua" | "telat" | "izin";
 export function AttendanceHistoryScreen({ navigation }: any) {
   const { employee } = useSession();
   const insets = useSafeAreaInsets();
-  const [records, setRecords] = useState<AttendanceRecord[] | null>(null);
+  const riwayat = useLoad(
+    () =>
+      employee
+        ? hrisApi.getAttendanceHistory(employee.id)
+        : Promise.resolve([]),
+    [employee],
+  );
+  const records = riwayat.data;
   const [filter, setFilter] = useState<Filter>("semua");
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
 
-  useEffect(() => {
-    if (!employee) return;
-    hrisApi.getAttendanceHistory(employee.id).then(setRecords);
-  }, [employee]);
-
-  const memuat = records === null;
+  const memuat = riwayat.memuat;
   const semua = records ?? [];
 
   const count = (s: AttendanceStatus) =>
@@ -131,7 +135,9 @@ export function AttendanceHistoryScreen({ navigation }: any) {
           </View>
         }
         ListEmptyComponent={
-          memuat ? (
+          riwayat.error && !records ? (
+            <ErrorState pesan={riwayat.error} onUlangi={riwayat.ulangi} />
+          ) : memuat ? (
             <>
               {[0, 1, 2, 3].map((i) => (
                 <View key={i} style={styles.row}>

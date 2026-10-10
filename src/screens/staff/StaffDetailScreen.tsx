@@ -1,17 +1,13 @@
 import { useEffect, useState, useMemo } from "react";
-import {
-  Linking,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { Linking, Pressable, StyleSheet, Text, View } from "react-native";
 import { RevealScrollView as ScrollView } from "@/components/Reveal";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Palette } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
 import { hrisApi } from "@/services/api";
+import { describeError } from "@/services/api/http";
+import { ErrorState } from "@/components/ErrorState";
 import { useSession } from "@/services/session";
 import { AttendanceRecord, Staff } from "@/services/types";
 import { RadialGlow } from "@/components/RadialGlow";
@@ -31,6 +27,8 @@ export function StaffDetailScreen({ navigation, route }: any) {
   const [staff, setStaff] = useState<Staff | null>(null);
   const [absensi, setAbsensi] = useState<AttendanceRecord[]>([]);
   const [loading, setLoading] = useState(true);
+  const [galat, setGalat] = useState<string | null>(null);
+  const [coba, setCoba] = useState(0); // naik saat Coba lagi ditekan
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
 
@@ -41,19 +39,25 @@ export function StaffDetailScreen({ navigation, route }: any) {
     Promise.all([
       hrisApi.getStaffDirectory(employee.id),
       hrisApi.getAttendanceHistory(staffId),
-    ]).then(([dir, riwayat]) => {
-      if (batal) return;
-      setStaff(dir.items.find((s) => s.id === staffId) ?? null);
-      setAbsensi(riwayat.slice(0, 5));
-      setLoading(false);
-    });
+    ])
+      .then(([dir, riwayat]) => {
+        if (batal) return;
+        setStaff(dir.items.find((s) => s.id === staffId) ?? null);
+        setAbsensi(riwayat.slice(0, 5));
+        setLoading(false);
+      })
+      .catch((e) => {
+        if (batal) return;
+        setGalat(describeError(e));
+        setLoading(false);
+      });
 
     // Kalau layar ditutup sebelum data datang, setState pada komponen yang
     // sudah dilepas percuma — flag ini membatalkannya.
     return () => {
       batal = true;
     };
-  }, [employee, staffId]);
+  }, [employee, staffId, coba]);
 
   const header = (
     <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
@@ -107,6 +111,24 @@ export function StaffDetailScreen({ navigation, route }: any) {
       </View>
     </View>
   );
+
+  if (galat) {
+    return (
+      <View style={styles.container}>
+        {header}
+        <View style={[styles.body, styles.content]}>
+          <ErrorState
+            pesan={galat}
+            onUlangi={() => {
+              setGalat(null);
+              setLoading(true);
+              setCoba((n) => n + 1);
+            }}
+          />
+        </View>
+      </View>
+    );
+  }
 
   if (loading || !staff) {
     return (

@@ -1,11 +1,5 @@
 import { useCallback, useMemo, useState } from "react";
-import {
-  Linking,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { Linking, Pressable, StyleSheet, Text, View } from "react-native";
 import { RevealScrollView as ScrollView } from "@/components/Reveal";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
@@ -15,6 +9,8 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Palette } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
 import { hrisApi } from "@/services/api";
+import { describeError } from "@/services/api/http";
+import { ErrorState } from "@/components/ErrorState";
 import { useSession } from "@/services/session";
 import { PersonalProfile } from "@/services/types";
 import { LineIcon } from "@/components/LineIcon";
@@ -34,10 +30,15 @@ export function ProfileDataScreen({ navigation }: any) {
   const styles = useMemo(() => makeStyles(c), [c]);
 
   const [profil, setProfil] = useState<PersonalProfile | null>(null);
+  const [galat, setGalat] = useState<string | null>(null);
 
   const muat = useCallback(() => {
     if (!employee) return;
-    hrisApi.getPersonalProfile(employee.id).then(setProfil);
+    setGalat(null);
+    hrisApi
+      .getPersonalProfile(employee.id)
+      .then(setProfil)
+      .catch((e) => setGalat(describeError(e)));
   }, [employee]);
 
   useFocusEffect(muat);
@@ -62,6 +63,16 @@ export function ProfileDataScreen({ navigation }: any) {
   );
 
   if (!profil) {
+    if (galat) {
+      return (
+        <View style={styles.container}>
+          {header}
+          <View style={styles.content}>
+            <ErrorState pesan={galat} onUlangi={muat} />
+          </View>
+        </View>
+      );
+    }
     return (
       <View style={styles.container}>
         {header}

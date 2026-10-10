@@ -7,6 +7,8 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Palette } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
 import { hrisApi } from "@/services/api";
+import { describeError } from "@/services/api/http";
+import { ErrorState } from "@/components/ErrorState";
 import { useSession } from "@/services/session";
 import { AttendanceRecord, Staff } from "@/services/types";
 import { Skeleton } from "@/components/Skeleton";
@@ -23,6 +25,8 @@ export function StaffHistoryScreen({ navigation, route }: any) {
 
   const [staff, setStaff] = useState<Staff | null>(null);
   const [records, setRecords] = useState<AttendanceRecord[] | null>(null);
+  const [galat, setGalat] = useState<string | null>(null);
+  const [coba, setCoba] = useState(0); // naik saat Coba lagi ditekan
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
 
@@ -33,18 +37,22 @@ export function StaffHistoryScreen({ navigation, route }: any) {
     Promise.all([
       hrisApi.getStaffDirectory(employee.id),
       hrisApi.getAttendanceHistory(staffId),
-    ]).then(([dir, riwayat]) => {
-      if (batal) return;
-      setStaff(dir.items.find((s) => s.id === staffId) ?? null);
-      setRecords(riwayat);
-    });
+    ])
+      .then(([dir, riwayat]) => {
+        if (batal) return;
+        setStaff(dir.items.find((s) => s.id === staffId) ?? null);
+        setRecords(riwayat);
+      })
+      .catch((e) => {
+        if (!batal) setGalat(describeError(e));
+      });
 
     return () => {
       batal = true;
     };
-  }, [employee, staffId]);
+  }, [employee, staffId, coba]);
 
-  const loading = records === null;
+  const loading = records === null && !galat;
   const items = records ?? [];
   const hitung = (s: AttendanceRecord["status"]) =>
     items.filter((r) => r.status === s).length;
@@ -68,6 +76,15 @@ export function StaffHistoryScreen({ navigation, route }: any) {
       </View>
 
       <ScrollView contentContainerStyle={styles.content}>
+        {galat ? (
+          <ErrorState
+            pesan={galat}
+            onUlangi={() => {
+              setGalat(null);
+              setCoba((n) => n + 1);
+            }}
+          />
+        ) : null}
         <View style={styles.recapCard}>
           <Recap
             value={loading ? "–" : hitung("hadir")}

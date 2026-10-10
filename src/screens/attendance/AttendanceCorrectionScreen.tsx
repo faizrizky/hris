@@ -65,7 +65,12 @@ export function AttendanceCorrectionScreen({ navigation }: any) {
 
   useEffect(() => {
     if (!employee) return;
-    hrisApi.getAttendanceHistory(employee.id).then(setHistory);
+    hrisApi
+      .getAttendanceHistory(employee.id)
+      .then(setHistory)
+      // Riwayat hanya dipakai untuk mengisi jam awal; tanpa itu form tetap
+      // bisa diisi manual, jadi galatnya tidak perlu ditampilkan.
+      .catch(() => setHistory([]));
   }, [employee]);
 
   const record = tanggal

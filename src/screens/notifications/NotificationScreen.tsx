@@ -7,6 +7,8 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Palette } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
 import { hrisApi } from "@/services/api";
+import { describeError } from "@/services/api/http";
+import { ErrorState } from "@/components/ErrorState";
 import { useSession } from "@/services/session";
 import { AppNotification, NotifCategory } from "@/services/types";
 import { LineIcon } from "@/components/LineIcon";
@@ -28,9 +30,15 @@ export function NotificationScreen({ navigation }: any) {
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
 
+  const [galat, setGalat] = useState<string | null>(null);
+
   const muat = useCallback(() => {
     if (!employee) return;
-    hrisApi.getNotificationInbox(employee.id).then(setItems);
+    setGalat(null);
+    hrisApi
+      .getNotificationInbox(employee.id)
+      .then(setItems)
+      .catch((e) => setGalat(describeError(e)));
   }, [employee]);
 
   useFocusEffect(muat);
@@ -39,7 +47,11 @@ export function NotificationScreen({ navigation }: any) {
 
   const tandai = (ids?: string[]) => {
     if (!employee) return;
-    hrisApi.markNotificationsRead(employee.id, ids).then(setItems);
+    hrisApi
+      .markNotificationsRead(employee.id, ids)
+      .then(setItems)
+      // Gagal menandai dibaca tidak kritis; daftar tetap seperti semula.
+      .catch(() => {});
   };
 
   // Judul seksi diturunkan dari datanya, bukan daftar tetap: urutan grup
@@ -71,7 +83,9 @@ export function NotificationScreen({ navigation }: any) {
       </View>
 
       <ScrollView contentContainerStyle={styles.content}>
-        {items === null ? (
+        {galat && items === null ? (
+          <ErrorState pesan={galat} onUlangi={muat} />
+        ) : items === null ? (
           <View style={{ gap: 9 }}>
             {[0, 1, 2, 3].map((i) => (
               <NotifCardSkeleton key={i} />

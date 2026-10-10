@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useMemo } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { RevealScrollView as ScrollView } from "@/components/Reveal";
 import Svg, { Circle, G } from "react-native-svg";
@@ -8,7 +8,9 @@ import { Palette } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
 import { hrisApi } from "@/services/api";
 import { useSession } from "@/services/session";
-import { Appraisal, AppraisalGoal, AppraisalRater } from "@/services/types";
+import { AppraisalGoal, AppraisalRater } from "@/services/types";
+import { useLoad } from "@/hooks/useLoad";
+import { ErrorState } from "@/components/ErrorState";
 import { desimal } from "@/utils/currency";
 import { Skeleton } from "@/components/Skeleton";
 
@@ -20,14 +22,14 @@ const CIRC = 2 * Math.PI * R;
 export function AppraisalScreen({ navigation }: any) {
   const { employee } = useSession();
   const insets = useSafeAreaInsets();
-  const [data, setData] = useState<Appraisal | null>(null);
+  const penilaian = useLoad(
+    () =>
+      employee ? hrisApi.getAppraisal(employee.id) : Promise.resolve(null),
+    [employee],
+  );
+  const data = penilaian.data;
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
-
-  useEffect(() => {
-    if (!employee) return;
-    hrisApi.getAppraisal(employee.id).then(setData);
-  }, [employee]);
 
   const head = (
     <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
@@ -39,6 +41,16 @@ export function AppraisalScreen({ navigation }: any) {
   );
 
   if (!data) {
+    if (penilaian.error) {
+      return (
+        <View style={styles.container}>
+          {head}
+          <ScrollView contentContainerStyle={styles.content}>
+            <ErrorState pesan={penilaian.error} onUlangi={penilaian.ulangi} />
+          </ScrollView>
+        </View>
+      );
+    }
     return (
       <View style={styles.container}>
         {head}

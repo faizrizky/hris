@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
+import { useFocusEffect } from "@react-navigation/native";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { RevealScrollView as ScrollView } from "@/components/Reveal";
 import { Ionicons } from "@expo/vector-icons";
@@ -7,6 +8,8 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { SemanticTone, Palette } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
 import { hrisApi } from "@/services/api";
+import { describeError } from "@/services/api/http";
+import { ErrorState } from "@/components/ErrorState";
 import { useSession } from "@/services/session";
 import { Staff, StaffAttendanceState, StaffDirectory } from "@/services/types";
 import { Skeleton } from "@/components/Skeleton";
@@ -42,13 +45,21 @@ export function StaffAttendanceScreen({ navigation }: any) {
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
 
-  useEffect(() => {
+  const [galat, setGalat] = useState<string | null>(null);
+
+  const muat = useCallback(() => {
     if (!employee) return;
-    hrisApi.getStaffDirectory(employee.id).then(setDir);
+    setGalat(null);
+    hrisApi
+      .getStaffDirectory(employee.id)
+      .then(setDir)
+      .catch((e) => setGalat(describeError(e)));
   }, [employee]);
 
+  useFocusEffect(muat);
+
   const items = useMemo(() => dir?.items ?? [], [dir]);
-  const loading = dir === null;
+  const loading = dir === null && !galat;
   const hariIni = tanggalPendekTahun(toISODate(new Date()));
 
   const chips = useMemo(() => {
@@ -120,7 +131,9 @@ export function StaffAttendanceScreen({ navigation }: any) {
       </ScrollView>
 
       <ScrollView contentContainerStyle={styles.list}>
-        {loading ? (
+        {galat && dir === null ? (
+          <ErrorState pesan={galat} onUlangi={muat} />
+        ) : loading ? (
           <View style={{ gap: 10 }}>
             {[0, 1, 2].map((i) => (
               <View key={i} style={styles.card}>

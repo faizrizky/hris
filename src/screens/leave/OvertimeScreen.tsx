@@ -8,6 +8,8 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Palette } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
 import { hrisApi } from "@/services/api";
+import { describeError } from "@/services/api/http";
+import { ErrorState } from "@/components/ErrorState";
 import { useSession } from "@/services/session";
 import { OvertimeRecord } from "@/services/types";
 import { StatusBadge } from "@/components/StatusBadge";
@@ -34,9 +36,15 @@ export function OvertimeScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
   const [records, setRecords] = useState<OvertimeRecord[] | null>(null);
 
+  const [galat, setGalat] = useState<string | null>(null);
+
   const muat = useCallback(() => {
     if (!employee) return;
-    hrisApi.getOvertimes(employee.id).then(setRecords);
+    setGalat(null);
+    hrisApi
+      .getOvertimes(employee.id)
+      .then(setRecords)
+      .catch((e) => setGalat(describeError(e)));
   }, [employee]);
 
   useFocusEffect(muat);
@@ -137,7 +145,9 @@ export function OvertimeScreen({ navigation }: any) {
 
         <Text style={styles.sectionTitle}>Riwayat pengajuan</Text>
 
-        {records === null ? (
+        {galat && records === null ? (
+          <ErrorState pesan={galat} onUlangi={muat} />
+        ) : records === null ? (
           <View style={{ gap: 10 }}>
             {[0, 1, 2].map((i) => (
               <OvertimeRowSkeleton key={i} />

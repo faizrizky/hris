@@ -1,11 +1,5 @@
 import { useCallback, useMemo, useRef, useState } from "react";
-import {
-  Pressable,
-  StyleSheet,
-  Switch,
-  Text,
-  View,
-} from "react-native";
+import { Pressable, StyleSheet, Switch, Text, View } from "react-native";
 import { RevealScrollView as ScrollView } from "@/components/Reveal";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
@@ -15,6 +9,8 @@ import { useConfirm } from "@/components/ConfirmDialog";
 import { Palette } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
 import { hrisApi } from "@/services/api";
+import { describeError } from "@/services/api/http";
+import { ErrorState } from "@/components/ErrorState";
 import { useSession } from "@/services/session";
 import { SecurityInfo, SecurityToggleKey } from "@/services/types";
 import { RadialGlow } from "@/components/RadialGlow";
@@ -33,17 +29,35 @@ export function ProfileSecurityScreen({ navigation }: any) {
   const keluarLainRef = useRef<View>(null);
 
   const [info, setInfo] = useState<SecurityInfo | null>(null);
+  const [galat, setGalat] = useState<string | null>(null);
 
   const muat = useCallback(() => {
     if (!employee) return;
-    hrisApi.getSecurityInfo(employee.id).then(setInfo);
+    setGalat(null);
+    hrisApi
+      .getSecurityInfo(employee.id)
+      .then(setInfo)
+      .catch((e) => setGalat(describeError(e)));
   }, [employee]);
 
   useFocusEffect(muat);
 
+  const gagalAksi = (e: unknown) => {
+    void confirm({
+      title: "Gagal memproses",
+      message: describeError(e),
+      tone: "bad",
+      confirmText: "Mengerti",
+      cancelText: null,
+    });
+  };
+
   const ubahToggle = (key: SecurityToggleKey, enabled: boolean) => {
     if (!employee) return;
-    hrisApi.setSecurityToggle(employee.id, key, enabled).then(setInfo);
+    hrisApi
+      .setSecurityToggle(employee.id, key, enabled)
+      .then(setInfo)
+      .catch(gagalAksi);
   };
 
   const keluarkanLain = async () => {
@@ -61,7 +75,9 @@ export function ProfileSecurityScreen({ navigation }: any) {
       fromLabel: "Keluar dari perangkat lain",
       fromRadius: 22,
     });
-    if (ya) hrisApi.logoutOtherDevices(employee.id).then(setInfo);
+    if (ya) {
+      hrisApi.logoutOtherDevices(employee.id).then(setInfo).catch(gagalAksi);
+    }
   };
 
   const header = (
@@ -74,6 +90,16 @@ export function ProfileSecurityScreen({ navigation }: any) {
   );
 
   if (!info) {
+    if (galat) {
+      return (
+        <View style={styles.container}>
+          {header}
+          <View style={styles.content}>
+            <ErrorState pesan={galat} onUlangi={muat} />
+          </View>
+        </View>
+      );
+    }
     return (
       <View style={styles.container}>
         {header}

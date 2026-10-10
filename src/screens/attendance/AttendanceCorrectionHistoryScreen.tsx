@@ -1,8 +1,9 @@
-import { useCallback, useState, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { RevealFlatList as FlatList } from "@/components/Reveal";
 import { Ionicons } from "@expo/vector-icons";
-import { useFocusEffect } from "@react-navigation/native";
+import { useLoad } from "@/hooks/useLoad";
+import { ErrorState } from "@/components/ErrorState";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Palette } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
@@ -12,10 +13,7 @@ import { StatusBadge } from "@/components/StatusBadge";
 import { LineIcon } from "@/components/LineIcon";
 import { Skeleton } from "@/components/Skeleton";
 import { ICON } from "@/constants/icons";
-import {
-  AttendanceCorrectionRequest,
-  AttendanceRequestedStatus,
-} from "@/services/types";
+import { AttendanceRequestedStatus } from "@/services/types";
 import {
   CORRECTION_STATUS_LABEL as STATUS_LABEL,
   CORRECTION_STATUS_TONE as STATUS_TONE,
@@ -35,25 +33,22 @@ const CHIPS: { key: Filter; label: string }[] = [
 export function AttendanceCorrectionHistoryScreen({ navigation }: any) {
   const { employee } = useSession();
   const insets = useSafeAreaInsets();
-  const [records, setRecords] = useState<AttendanceCorrectionRequest[] | null>(
-    null,
+  const koreksi = useLoad(
+    () =>
+      employee
+        ? hrisApi.getAttendanceCorrections(employee.id)
+        : Promise.resolve([]),
+    [employee],
   );
+  const records = koreksi.data;
   const [filter, setFilter] = useState<Filter>("semua");
   const [buka, setBuka] = useState<string | null>(null);
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
 
-  // useFocusEffect, bukan useEffect: layar ini tetap ter-mount di dalam stack,
-  // jadi koreksi yang baru dikirim tidak akan muncul kalau cuma fetch sekali
-  // saat mount. Setiap kali layar kembali fokus, data ditarik ulang.
-  const muat = useCallback(() => {
-    if (!employee) return;
-    hrisApi.getAttendanceCorrections(employee.id).then(setRecords);
-  }, [employee]);
-
-  useFocusEffect(muat);
-
-  const memuat = records === null;
+  // useLoad memuat ulang tiap layar kembali fokus, jadi koreksi yang baru
+  // dikirim langsung muncul.
+  const memuat = koreksi.memuat;
   const semua = records ?? [];
 
   const hitung = (s: AttendanceRequestedStatus) =>
@@ -147,7 +142,9 @@ export function AttendanceCorrectionHistoryScreen({ navigation }: any) {
           ) : null
         }
         ListEmptyComponent={
-          memuat ? (
+          koreksi.error && !records ? (
+            <ErrorState pesan={koreksi.error} onUlangi={koreksi.ulangi} />
+          ) : memuat ? (
             <>
               {[0, 1, 2].map((i) => (
                 <View key={i} style={styles.skelRow}>

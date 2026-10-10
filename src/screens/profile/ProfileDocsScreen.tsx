@@ -9,6 +9,8 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Palette } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
 import { hrisApi } from "@/services/api";
+import { describeError } from "@/services/api/http";
+import { ErrorState } from "@/components/ErrorState";
 import { useSession } from "@/services/session";
 import { DocCategory, EmployeeDocument } from "@/services/types";
 import { Skeleton } from "@/components/Skeleton";
@@ -31,15 +33,21 @@ export function ProfileDocsScreen({ navigation }: any) {
   const [docs, setDocs] = useState<EmployeeDocument[] | null>(null);
   const [tab, setTab] = useState<DocCategory | typeof SEMUA>(SEMUA);
 
+  const [galat, setGalat] = useState<string | null>(null);
+
   const muat = useCallback(() => {
     if (!employee) return;
-    hrisApi.getDocuments(employee.id).then(setDocs);
+    setGalat(null);
+    hrisApi
+      .getDocuments(employee.id)
+      .then(setDocs)
+      .catch((e) => setGalat(describeError(e)));
   }, [employee]);
 
   useFocusEffect(muat);
 
   const items = docs ?? [];
-  const loading = docs === null;
+  const loading = docs === null && !galat;
 
   const terverifikasi = items.filter((d) => d.status === "verified").length;
   const perluTindakan = items.length - terverifikasi;
@@ -115,7 +123,9 @@ export function ProfileDocsScreen({ navigation }: any) {
       </ScrollView>
 
       <ScrollView contentContainerStyle={styles.list}>
-        {loading ? (
+        {galat && docs === null ? (
+          <ErrorState pesan={galat} onUlangi={muat} />
+        ) : loading ? (
           <View style={{ gap: 10 }}>
             {[0, 1, 2, 3].map((i) => (
               <View key={i} style={styles.row}>

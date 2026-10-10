@@ -1,4 +1,5 @@
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useCallback, useState, useMemo } from "react";
+import { useFocusEffect } from "@react-navigation/native";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { RevealScrollView as ScrollView } from "@/components/Reveal";
 import { LinearGradient } from "expo-linear-gradient";
@@ -16,6 +17,7 @@ import { ClockState } from "@/services/types";
 import { FaceViewfinder } from "./FaceViewfinder";
 import { Skeleton } from "@/components/Skeleton";
 import { describeError } from "@/services/api/http";
+import { ErrorState } from "@/components/ErrorState";
 
 export function ClockScreen({ navigation }: any) {
   const { employee } = useSession();
@@ -26,11 +28,18 @@ export function ClockScreen({ navigation }: any) {
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
   const [galat, setGalat] = useState<string | null>(null);
+  const [galatMuat, setGalatMuat] = useState<string | null>(null);
 
-  useEffect(() => {
+  const muat = useCallback(() => {
     if (!employee) return;
-    hrisApi.getClockState(employee.id).then(setState);
+    setGalatMuat(null);
+    hrisApi
+      .getClockState(employee.id)
+      .then(setState)
+      .catch((e) => setGalatMuat(describeError(e)));
   }, [employee]);
+
+  useFocusEffect(muat);
 
   if (!employee) return null;
 
@@ -51,27 +60,32 @@ export function ClockScreen({ navigation }: any) {
         </View>
 
         <View style={styles.content}>
-          <View style={styles.steps}>
-            {[0, 1, 2].map((i) => (
-              <View
-                key={i}
-                style={[styles.stepBar, { backgroundColor: c.track }]}
-              />
-            ))}
-          </View>
-
-          <View style={styles.panel}>
-            <Skeleton width="100%" height={216} radius={0} />
-            <View style={styles.locationRow}>
-              <Skeleton width={34} height={34} radius={11} />
-              <View style={{ flex: 1, minWidth: 0, gap: 7 }}>
-                <Skeleton width="72%" height={12} radius={4} />
-                <Skeleton width="54%" height={10} radius={4} />
+          {galatMuat ? <ErrorState pesan={galatMuat} onUlangi={muat} /> : null}
+          {!galatMuat ? (
+            <>
+              <View style={styles.steps}>
+                {[0, 1, 2].map((i) => (
+                  <View
+                    key={i}
+                    style={[styles.stepBar, { backgroundColor: c.track }]}
+                  />
+                ))}
               </View>
-            </View>
-          </View>
 
-          <Skeleton height={48} radius={16} style={{ marginTop: 12 }} />
+              <View style={styles.panel}>
+                <Skeleton width="100%" height={216} radius={0} />
+                <View style={styles.locationRow}>
+                  <Skeleton width={34} height={34} radius={11} />
+                  <View style={{ flex: 1, minWidth: 0, gap: 7 }}>
+                    <Skeleton width="72%" height={12} radius={4} />
+                    <Skeleton width="54%" height={10} radius={4} />
+                  </View>
+                </View>
+              </View>
+
+              <Skeleton height={48} radius={16} style={{ marginTop: 12 }} />
+            </>
+          ) : null}
         </View>
       </View>
     );

@@ -1,11 +1,5 @@
 import React, { useEffect, useState, useMemo, useRef } from "react";
-import {
-  Pressable,
-  StyleSheet,
-  Switch,
-  Text,
-  View,
-} from "react-native";
+import { Pressable, StyleSheet, Switch, Text, View } from "react-native";
 import { RevealScrollView as ScrollView } from "@/components/Reveal";
 import { LinearGradient } from "expo-linear-gradient";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -35,7 +29,12 @@ export function ProfileScreen({ navigation }: any) {
 
   useEffect(() => {
     if (!employee) return;
-    hrisApi.getLeaveBalances(employee.id).then(setBalances);
+    hrisApi
+      .getLeaveBalances(employee.id)
+      .then(setBalances)
+      // Saldo hanya satu statistik di kepala halaman; kalau gagal, layar tetap
+      // berguna (menu, keluar), jadi tampilkan kosong, bukan skeleton selamanya.
+      .catch(() => setBalances([]));
   }, [employee]);
 
   if (!employee) return null;
