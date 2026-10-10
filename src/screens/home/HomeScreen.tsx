@@ -13,6 +13,7 @@ import { useSession } from "@/services/session";
 import { LinearGradient } from "expo-linear-gradient";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { formatTanggalPanjang, formatJam } from "@/utils/date";
+import { useT, bahasaAktif } from "@/i18n";
 import {
   FeedItem,
   ClockState,
@@ -28,6 +29,7 @@ import { describeError } from "@/services/api/http";
 import { ErrorState } from "@/components/ErrorState";
 
 export function HomeScreen() {
+  const t = useT();
   const { employee } = useSession();
   const navigation = useNavigation<any>();
   const [notifications, setNotifications] = useState<FeedItem[] | null>(null);
@@ -68,26 +70,28 @@ export function HomeScreen() {
 
   const greeting =
     employee.role === "mss"
-      ? "Selamat pagi, ada approval menunggu"
+      ? t("hm.sapaMss")
       : employee.role === "hr"
-        ? "Payroll September menunggu review"
-        : "Selamat pagi, jangan lupa clock in";
+        ? t("hm.sapaHr")
+        : t("hm.sapaEss");
 
   const greetingSub =
     employee.role === "mss"
-      ? `${employee.department} · tim kamu`
+      ? t("hm.timKamu", { dept: employee.department })
       : employee.role === "hr"
         ? employment
-          ? `${employment.reduce((n, s) => n + s.count, 0)} karyawan aktif`
-          : "Memuat…"
-        : "Shift reguler 08.00 – 17.00 · Kantor Pusat";
+          ? t("hm.karyawanAktif", {
+              n: employment.reduce((n, s) => n + s.count, 0),
+            })
+          : t("umum.memuat")
+        : t("hm.shift");
 
   const feedTitle =
     employee.role === "mss"
-      ? "Perlu persetujuan"
+      ? t("hm.perluSetuju")
       : employee.role === "hr"
-        ? "Perhatian HR"
-        : "Aktivitas terbaru";
+        ? t("hm.perhatianHr")
+        : t("hm.aktivitas");
 
   // Kelimanya datang dari satu Promise.all, tapi flag ini sengaja menyebut
   // semuanya: kalau suatu saat ada yang dipisah, cek ini tidak ikut bohong.
@@ -102,11 +106,13 @@ export function HomeScreen() {
 
   const clockInTime = clock?.lastCheckIn ?? "--:--";
   const clockOutTime = clock?.lastCheckOut ?? "--:--";
-  const clockCta = clock?.clockedIn ? "Clock Out" : "Clock In Sekarang";
+  const clockCta = clock?.clockedIn
+    ? t("hm.clockOut")
+    : t("hm.clockInSekarang");
 
   const hadir = riwayat.filter((r) => r.status !== "izin").length;
   const kehadiran = riwayat.length
-    ? `${((hadir / riwayat.length) * 100).toFixed(1).replace(".", ",")}%`
+    ? `${((hadir / riwayat.length) * 100).toFixed(1).replace(".", bahasaAktif() === "en" ? "." : ",")}%`
     : "-";
 
   const cuti = saldo.find((b) => b.type === "cuti");
@@ -119,14 +125,14 @@ export function HomeScreen() {
     ...(canApprove
       ? [
           {
-            label: "Approval",
+            label: t("hm.aApproval"),
             icon: ICON.approval,
             bg: c.warn.bg,
             ink: c.warn.ink,
             onPress: () => navigation.navigate("Approval"),
           },
           {
-            label: "Karyawan",
+            label: t("hm.aKaryawan"),
             icon: ICON.user,
             bg: c.purple.bg,
             ink: c.purple.ink,
@@ -137,7 +143,7 @@ export function HomeScreen() {
     ...(employee?.role === "mss"
       ? [
           {
-            label: "Absensi Tim",
+            label: t("hm.aAbsensiTim"),
             icon: ICON.attendanceRate,
             bg: c.ok.bg,
             ink: c.ok.ink,
@@ -146,42 +152,42 @@ export function HomeScreen() {
         ]
       : []),
     {
-      label: "Absensi",
+      label: t("hm.aAbsensi"),
       icon: ICON.clock,
       bg: c.info.bg,
       ink: c.info.ink,
       onPress: () => navigation.navigate("Absensi"),
     },
     {
-      label: "Cuti",
+      label: t("hm.aCuti"),
       icon: ICON.leave,
       bg: c.info.bg,
       ink: c.info.ink,
       onPress: () => navigation.navigate("Cuti"),
     },
     {
-      label: "Lembur",
+      label: t("hm.aLembur"),
       icon: ICON.overtime,
       bg: c.warn.bg,
       ink: c.warn.ink,
       onPress: () => navigation.navigate("Cuti", { screen: "Overtime" }),
     },
     {
-      label: "Slip gaji",
+      label: t("hm.aSlip"),
       icon: ICON.payslip,
       bg: c.ok.bg,
       ink: c.ok.ink,
       onPress: () => navigation.navigate("Slip Gaji"),
     },
     {
-      label: "Appraisal",
+      label: t("hm.aAppraisal"),
       icon: ICON.appraisal,
       bg: c.purple.bg,
       ink: c.purple.ink,
       onPress: () => navigation.navigate("Appraisal"),
     },
     {
-      label: "PPh21 & BPJS",
+      label: t("hm.aPajak"),
       icon: ICON.tax,
       bg: c.info.bg,
       ink: c.info.ink,
@@ -241,7 +247,7 @@ export function HomeScreen() {
             ) : null}
             <View style={styles.clockRow}>
               <View style={styles.clockBox}>
-                <Text style={styles.clockLabel}>Clock In</Text>
+                <Text style={styles.clockLabel}>{t("hm.clockIn")}</Text>
                 {memuat ? (
                   <Skeleton
                     width={72}
@@ -255,7 +261,7 @@ export function HomeScreen() {
                 )}
               </View>
               <View style={styles.clockBox}>
-                <Text style={styles.clockLabel}>Clock Out</Text>
+                <Text style={styles.clockLabel}>{t("hm.clockOut")}</Text>
                 {memuat ? (
                   <Skeleton
                     width={72}
@@ -286,7 +292,7 @@ export function HomeScreen() {
             iconBg={c.info.bg}
             ink={c.info.ink}
             icon={ICON.attendanceRate}
-            label="Kehadiran bulan ini"
+            label={t("hm.kehadiran")}
             value={kehadiran}
             memuat={memuat}
           />
@@ -294,7 +300,7 @@ export function HomeScreen() {
             iconBg={c.ok.bg}
             ink={c.ok.ink}
             icon={ICON.leave}
-            label="Sisa cuti tahunan"
+            label={t("hm.sisaCuti")}
             value={cuti ? `${cuti.remaining} ${cuti.unit}` : "–"}
             memuat={memuat}
           />
@@ -302,7 +308,7 @@ export function HomeScreen() {
             iconBg={c.warn.bg}
             ink={c.warn.ink}
             icon={ICON.overtime}
-            label="Jam lembur"
+            label={t("hm.jamLembur")}
             value={lembur ? `${lembur.remaining} ${lembur.unit}` : "–"}
             memuat={memuat}
           />
@@ -310,14 +316,14 @@ export function HomeScreen() {
             iconBg={c.bad.bg}
             ink={c.bad.ink}
             icon={ICON.late}
-            label="Terlambat"
-            value={`${telat} kali`}
+            label={t("hm.terlambat")}
+            value={t("hm.kali", { n: telat })}
             memuat={memuat}
           />
         </View>
         {employment && <EmploymentCard slices={employment} />}
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Aksi Cepat</Text>
+          <Text style={styles.sectionTitle}>{t("hm.aksiCepat")}</Text>
         </View>
 
         <View style={styles.quickGrid}>
@@ -339,7 +345,7 @@ export function HomeScreen() {
               navigation.navigate(employee.role === "ess" ? "Cuti" : "Approval")
             }
           >
-            <Text style={styles.sectionLink}>Lihat semua</Text>
+            <Text style={styles.sectionLink}>{t("hm.lihatSemua")}</Text>
           </Pressable>
         </View>
 
@@ -363,8 +369,8 @@ export function HomeScreen() {
             <View style={styles.feedRow}>
               <Text style={styles.feedSub}>
                 {employee.role === "ess"
-                  ? "Belum ada pengajuan."
-                  : "Tidak ada yang menunggu persetujuan."}
+                  ? t("hm.kosongEss")
+                  : t("hm.kosongMgr")}
               </Text>
             </View>
           ) : null}
@@ -466,6 +472,7 @@ function QuickAction({
 const SLICE_WARNA = ["accent2", "accent", "accentLight", "track"] as const;
 
 function EmploymentCard({ slices }: { slices: EmploymentSlice[] }) {
+  const t = useT();
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
 
@@ -477,8 +484,8 @@ function EmploymentCard({ slices }: { slices: EmploymentSlice[] }) {
   return (
     <Card style={styles.empCard}>
       <View style={styles.empHead}>
-        <Text style={styles.empTitle}>Employment Status</Text>
-        <Text style={styles.empTotal}>{total} karyawan</Text>
+        <Text style={styles.empTitle}>{t("hm.empStatus")}</Text>
+        <Text style={styles.empTotal}>{t("hm.nKaryawan", { n: total })}</Text>
       </View>
 
       <View style={styles.empBody}>
@@ -491,7 +498,7 @@ function EmploymentCard({ slices }: { slices: EmploymentSlice[] }) {
           }))}
         >
           <Text style={styles.empHoleValue}>{total}</Text>
-          <Text style={styles.empHoleLabel}>Total</Text>
+          <Text style={styles.empHoleLabel}>{t("hm.total")}</Text>
         </DonutChart>
 
         <View style={styles.empLegend}>
