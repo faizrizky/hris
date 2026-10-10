@@ -82,7 +82,7 @@ for r in rows:
         "Leave Allocation",
         filters={
             "employee": r.name,
-            "leave_type": "Cuti Tahunan",
+            "leave_type": "Annual Leave",
             "docstatus": 1,
             "from_date": ["<=", today],
             "to_date": [">=", today],
@@ -98,7 +98,7 @@ for r in rows:
             "Leave Application",
             filters={
                 "employee": r.name,
-                "leave_type": "Cuti Tahunan",
+                "leave_type": "Annual Leave",
                 "docstatus": 1,
                 "status": "Approved",
                 "from_date": [">=", alloc[0].from_date],
@@ -112,7 +112,7 @@ for r in rows:
             taken = taken + u.total_leave_days
         leave_left = total - taken
     # --- status kehadiran hari ini ---
-    today_info = {"state": None, "check_in": None, "check_out": None, "label": "Belum absen"}
+    today_info = {"state": None, "check_in": None, "check_out": None, "label": "Not Checked In"}
     att = frappe.get_all(
         "Attendance",
         filters={"employee": r.name, "docstatus": 1, "attendance_date": today},
@@ -126,16 +126,16 @@ for r in rows:
         if a0.status == "Present" or a0.status == "Work From Home":
             if a0.late_entry:
                 today_info["state"] = "late"
-                today_info["label"] = "Telat"
+                today_info["label"] = "Late"
             else:
                 today_info["state"] = "attend"
-                today_info["label"] = "Hadir"
+                today_info["label"] = "Present"
         elif a0.status == "Absent":
             today_info["state"] = "leave"
-            today_info["label"] = "Absen"
+            today_info["label"] = "Absent"
         else:
             today_info["state"] = "leave"
-            today_info["label"] = "Cuti"
+            today_info["label"] = "On Leave"
     else:
         logs = frappe.get_all(
             "Employee Checkin",
@@ -156,10 +156,10 @@ for r in rows:
             today_info["check_out"] = str(last_out.time)[11:16] if last_out else None
             if first_in.shift_start and frappe.utils.time_diff_in_seconds(first_in.time, first_in.shift_start) > 600:
                 today_info["state"] = "late"
-                today_info["label"] = "Telat"
+                today_info["label"] = "Late"
             else:
                 today_info["state"] = "attend"
-                today_info["label"] = "Hadir"
+                today_info["label"] = "Present"
     summary[today_info["state"] or "belum"] = summary[today_info["state"] or "belum"] + 1
 
     # --- persentase kehadiran bulan berjalan ---

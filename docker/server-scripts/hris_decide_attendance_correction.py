@@ -9,12 +9,12 @@ fd = frappe.form_dict
 name = fd.get("name")
 decision = fd.get("decision")
 if decision != "approve" and decision != "reject":
-    frappe.throw("decision harus approve atau reject")
+    frappe.throw("decision must be approve or reject")
 if not name or not frappe.db.exists("Attendance Request", name):
-    frappe.throw("Koreksi tidak ditemukan")
+    frappe.throw("Correction request not found")
 req = frappe.get_doc("Attendance Request", name)
 if req.docstatus != 0 or req.custom_rejected:
-    frappe.throw("Koreksi ini sudah diputuskan")
+    frappe.throw("This correction has already been decided")
 
 is_hr = user == "Administrator" or len(
     frappe.get_all(
@@ -35,7 +35,7 @@ mine = frappe.get_all("Employee", filters={"user_id": user}, fields=["name"], li
 if mine and mine[0].name == req.employee and not (user == "Administrator"):
     allowed = False
 if not allowed:
-    frappe.throw("Anda bukan atasan langsung pemohon", frappe.PermissionError)
+    frappe.throw("You are not the direct supervisor of the requester", frappe.PermissionError)
 
 if decision == "reject":
     frappe.db.set_value("Attendance Request", name, "custom_rejected", 1)

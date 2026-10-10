@@ -11,7 +11,7 @@ frappe.connect()
 frappe.set_user("Administrator")
 Y = int(nowdate()[:4])
 C, ABBR = "Falah Test", "FT"
-HL = f"Libur {Y}"
+HL = f"Holiday {Y}"
 SS_DIR = os.environ.get("SERVER_SCRIPTS_DIR", "/tmp/hris-seed/server-scripts")
 
 
@@ -45,6 +45,48 @@ if not frappe.db.get_single_value("System Settings", "setup_complete"):
     log("setup wizard selesai")
 frappe.db.commit()
 
+# 1b. Migrasi nama master data Indonesia -> Inggris (rename_doc: semua tautan ikut berpindah).
+RENAMES = [
+    ("Leave Type", "Cuti Tahunan", "Annual Leave"), ("Leave Type", "Cuti Sakit", "Sick Leave"),
+    ("Department", f"Keuangan - {ABBR}", f"Finance - {ABBR}"),
+    ("Department", f"People Ops - {ABBR}", f"People Operations - {ABBR}"),
+    ("Designation", "Staf Keuangan", "Finance Staff"), ("Designation", "Manajer Keuangan", "Finance Manager"),
+    ("Designation", "Staf HR", "HR Staff"),
+    ("Shift Type", "Shift Pagi", "Morning Shift"), ("Holiday List", f"Libur {Y}", f"Holiday {Y}"),
+    ("Salary Component", "Gaji Pokok", "Basic Salary"), ("Salary Component", "Tunjangan Transport", "Transport Allowance"),
+    ("Salary Component", "Tunjangan Makan", "Meal Allowance"), ("Salary Component", "Tunjangan Jabatan", "Position Allowance"),
+    ("Salary Component", "BPJS Kesehatan", "BPJS Health"), ("Salary Component", "PPh 21", "Income Tax (PPh 21)"),
+    ("Salary Structure", "Struktur Gaji Standar", "Standard Salary Structure"),
+]
+frappe.flags.in_patch = True  # izinkan rename untuk doctype yang tidak allow_rename
+for _dt, _old, _new in RENAMES:
+    if frappe.db.exists(_dt, _old):
+        # bila nama baru sudah ada (mis. "Sick Leave" bawaan ERPNext), gabungkan: tautan ikut pindah
+        _merge = bool(frappe.db.exists(_dt, _new))
+        frappe.rename_doc(_dt, _old, _new, force=True, merge=_merge)
+        log(f"rename {_dt}: {_old} -> {_new}" + (" (merge)" if _merge else ""))
+frappe.flags.in_patch = False
+for _dt, _name, _field, _old, _new in [
+    ("Leave Type", "Annual Leave", "leave_type_name", "Cuti Tahunan", "Annual Leave"),
+    ("Leave Type", "Sick Leave", "leave_type_name", "Cuti Sakit", "Sick Leave"),
+    ("Department", f"Finance - {ABBR}", "department_name", "Keuangan", "Finance"),
+    ("Department", f"People Operations - {ABBR}", "department_name", "People Ops", "People Operations"),
+    ("Designation", "Finance Staff", "designation_name", "Staf Keuangan", "Finance Staff"),
+    ("Designation", "Finance Manager", "designation_name", "Manajer Keuangan", "Finance Manager"),
+    ("Designation", "HR Staff", "designation_name", "Staf HR", "HR Staff"),
+    ("Holiday List", f"Holiday {Y}", "holiday_list_name", f"Libur {Y}", f"Holiday {Y}"),
+]:
+    if frappe.db.exists(_dt, _name) and frappe.db.get_value(_dt, _name, _field) == _old:
+        frappe.db.set_value(_dt, _name, _field, _new)
+_lp = frappe.db.get_value("Leave Policy", {"title": "Kebijakan Cuti Standar"})
+if _lp:
+    frappe.db.set_value("Leave Policy", _lp, "title", "Standard Leave Policy")
+for _f in ("relation", "custom_em2_relation"):
+    if frappe.db.has_column("Employee", _f):
+        for _ind, _en in {"Ibu": "Mother", "Ayah": "Father", "Kakak": "Sibling", "Adik": "Sibling", "Suami": "Spouse"}.items():
+            frappe.db.sql(f"update `tabEmployee` set `{_f}`=%s where `{_f}`=%s", (_en, _ind))
+frappe.db.commit()
+
 # 2. Holiday list ----------------------------------------------------------
 if not exists("Holiday List", HL):
     make(dict(doctype="Holiday List", holiday_list_name=HL, from_date=f"{Y}-01-01",
@@ -54,27 +96,27 @@ if not exists("Holiday List", HL):
                   dict(holiday_date=f"{Y}-12-25", description="Hari Natal")]))
 
 # 3. Department, designation, leave type, policy ---------------------------
-for d in ["Keuangan", "People Ops"]:
+for d in ["Finance", "People Operations"]:
     if not exists("Department", f"{d} - {ABBR}"):
         make(dict(doctype="Department", department_name=d, company=C, parent_department="All Departments"))
-for dg in ["Manajer Keuangan", "Staf Keuangan", "Staf HR"]:
+for dg in ["Finance Manager", "Finance Staff", "HR Staff"]:
     if not exists("Designation", dg):
         make(dict(doctype="Designation", designation_name=dg))
-for lt in ["Cuti Tahunan", "Cuti Sakit"]:
+for lt in ["Annual Leave", "Sick Leave"]:
     if not exists("Leave Type", lt):
         make(dict(doctype="Leave Type", leave_type_name=lt, include_holiday=0, max_leaves_allowed=12))
-LP = "Kebijakan Cuti Standar"
+LP = "Standard Leave Policy"
 if not exists("Leave Policy", {"title": LP}):
     make(dict(doctype="Leave Policy", title=LP, leave_policy_details=[
-        dict(leave_type="Cuti Tahunan", annual_allocation=12),
-        dict(leave_type="Cuti Sakit", annual_allocation=12)]), submit=True)
+        dict(leave_type="Annual Leave", annual_allocation=12),
+        dict(leave_type="Sick Leave", annual_allocation=12)]), submit=True)
 LP_NAME = frappe.db.get_value("Leave Policy", {"title": LP}, "name")
-if not exists("Shift Type", "Shift Pagi"):
-    make(dict(doctype="Shift Type", name="Shift Pagi", start_time="08:00:00", end_time="17:00:00"))
+if not exists("Shift Type", "Morning Shift"):
+    make(dict(doctype="Shift Type", name="Morning Shift", start_time="08:00:00", end_time="17:00:00"))
 # Auto attendance: Employee Checkin diubah jadi Attendance oleh scheduler.
 # process_attendance_after / last_sync_of_checkin hanya diisi saat pertama kali diaktifkan,
 # supaya log lama (sebelum hari ini - 1) tidak ikut diproses dan seed ulang tidak me-reset.
-_st = frappe.get_doc("Shift Type", "Shift Pagi")
+_st = frappe.get_doc("Shift Type", "Morning Shift")
 _want = dict(enable_auto_attendance=1, auto_update_last_sync=1,
              begin_check_in_before_shift_start_time=60, allow_check_out_after_shift_end_time=60,
              enable_late_entry_marking=1, late_entry_grace_period=10,
@@ -92,12 +134,12 @@ frappe.db.commit()
 
 # 4. Employee --------------------------------------------------------------
 EMPLOYEES = [  # (key, first, last, gender, dept, designation)
-    ("rani", "Rani", "Test", "Female", "Keuangan", "Staf Keuangan"),
-    ("budi", "Budi", "Santoso", "Male", "Keuangan", "Staf Keuangan"),
-    ("dewi", "Dewi", "Kusuma", "Female", "Keuangan", "Manajer Keuangan"),
-    ("sari", "Sari", "Wulandari", "Female", "People Ops", "Staf HR"),
-    ("agus", "Agus", "Pratama", "Male", "Keuangan", "Staf Keuangan"),   # tanpa user login
-    ("maya", "Maya", "Lestari", "Female", "People Ops", "Staf HR"),     # tanpa user login
+    ("rani", "Rani", "Test", "Female", "Finance", "Finance Staff"),
+    ("budi", "Budi", "Santoso", "Male", "Finance", "Finance Staff"),
+    ("dewi", "Dewi", "Kusuma", "Female", "Finance", "Finance Manager"),
+    ("sari", "Sari", "Wulandari", "Female", "People Operations", "HR Staff"),
+    ("agus", "Agus", "Pratama", "Male", "Finance", "Finance Staff"),   # tanpa user login
+    ("maya", "Maya", "Lestari", "Female", "People Operations", "HR Staff"),     # tanpa user login
 ]
 emp = {}
 for key, fn, ln, g, dep, des in EMPLOYEES:
@@ -192,7 +234,7 @@ for e in emp.values():
         make(dict(doctype="Leave Policy Assignment", employee=e, leave_policy=LP_NAME,
                   effective_from=f"{Y}-01-01", effective_to=f"{Y}-12-31", assignment_based_on=""), submit=True)
     if not exists("Shift Assignment", {"employee": e, "docstatus": 1}):
-        make(dict(doctype="Shift Assignment", employee=e, shift_type="Shift Pagi", company=C,
+        make(dict(doctype="Shift Assignment", employee=e, shift_type="Morning Shift", company=C,
                   start_date=f"{Y}-01-01", end_date=f"{Y}-12-31", status="Active"), submit=True)
 frappe.db.commit()
 
@@ -200,17 +242,17 @@ frappe.db.commit()
 # permlevel 1: hanya HR User / HR Manager yang boleh melihat dan mengubah.
 _payroll_fields_created = False
 for cf in [
-    dict(fieldname="custom_pengaturan_gaji", label="Pengaturan Gaji", fieldtype="Section Break",
+    dict(fieldname="custom_pengaturan_gaji", label="Salary Settings", fieldtype="Section Break",
          permlevel=1, insert_after="ctc"),
-    dict(fieldname="custom_tunjangan_jabatan", label="Tunjangan Jabatan (Rp)", fieldtype="Currency",
+    dict(fieldname="custom_tunjangan_jabatan", label="Position Allowance (IDR)", fieldtype="Currency",
          default="0", permlevel=1, insert_after="custom_pengaturan_gaji"),
-    dict(fieldname="custom_tarif_bpjs_kesehatan", label="Tarif BPJS Kesehatan (%)", fieldtype="Float",
+    dict(fieldname="custom_tarif_bpjs_kesehatan", label="BPJS Health Rate (%)", fieldtype="Float",
          default="1", permlevel=1, insert_after="custom_tunjangan_jabatan"),
-    dict(fieldname="custom_tarif_bpjs_jht", label="Tarif BPJS JHT (%)", fieldtype="Float",
+    dict(fieldname="custom_tarif_bpjs_jht", label="BPJS JHT Rate (%)", fieldtype="Float",
          default="2", permlevel=1, insert_after="custom_tarif_bpjs_kesehatan"),
-    dict(fieldname="custom_tarif_bpjs_jp", label="Tarif BPJS JP (%)", fieldtype="Float",
+    dict(fieldname="custom_tarif_bpjs_jp", label="BPJS JP Rate (%)", fieldtype="Float",
          default="1", permlevel=1, insert_after="custom_tarif_bpjs_jht"),
-    dict(fieldname="custom_tarif_pph21", label="Tarif PPh 21 (%)", fieldtype="Float",
+    dict(fieldname="custom_tarif_pph21", label="Income Tax (PPh 21) Rate (%)", fieldtype="Float",
          default="2.5", permlevel=1, insert_after="custom_tarif_bpjs_jp"),
 ]:
     if not frappe.db.exists("Custom Field", {"dt": "Employee", "fieldname": cf["fieldname"]}):
@@ -240,16 +282,16 @@ BANK = {"rani": "1234567801", "budi": "1234567802", "dewi": "1234567803",
         "sari": "1234567804", "agus": "1234567805", "maya": "1234567806"}
 BASE = {"rani": 7500000, "budi": 6500000, "dewi": 12000000, "sari": 11000000,
         "agus": 6000000, "maya": 6500000}
-STRUCT = "Struktur Gaji Standar"
+STRUCT = "Standard Salary Structure"
 COMPONENTS = [  # (nama, abbr, tipe, formula, remove_if_zero)
-    ("Gaji Pokok", "GP", "Earning", "base", 0),
-    ("Tunjangan Transport", "TT", "Earning", "500000", 0),
-    ("Tunjangan Makan", "TM", "Earning", "750000", 0),
-    ("Tunjangan Jabatan", "TJ", "Earning", "custom_tunjangan_jabatan", 1),
-    ("BPJS Kesehatan", "BPK", "Deduction", "GP * custom_tarif_bpjs_kesehatan / 100", 0),
+    ("Basic Salary", "GP", "Earning", "base", 0),
+    ("Transport Allowance", "TT", "Earning", "500000", 0),
+    ("Meal Allowance", "TM", "Earning", "750000", 0),
+    ("Position Allowance", "TJ", "Earning", "custom_tunjangan_jabatan", 1),
+    ("BPJS Health", "BPK", "Deduction", "GP * custom_tarif_bpjs_kesehatan / 100", 0),
     ("BPJS JHT", "BJHT", "Deduction", "GP * custom_tarif_bpjs_jht / 100", 0),
     ("BPJS JP", "BJP", "Deduction", "GP * custom_tarif_bpjs_jp / 100", 0),
-    ("PPh 21", "PPH", "Deduction", "(GP + TT + TM + TJ) * custom_tarif_pph21 / 100", 0),
+    ("Income Tax (PPh 21)", "PPH", "Deduction", "(GP + TT + TM + TJ) * custom_tarif_pph21 / 100", 0),
 ]
 try:
     for key, num in BANK.items():
@@ -274,9 +316,9 @@ try:
         frappe.db.commit()
         log("struktur gaji lama dibongkar")
     OLD_FORMULAS = {  # migrasi satu kali: rumus lama (tarif tetap) -> rumus baru (field Employee)
-        "Tunjangan Jabatan": '1500000 if designation == "Manajer Keuangan" else 0',
-        "BPJS Kesehatan": "GP * 0.01", "BPJS JHT": "GP * 0.02", "BPJS JP": "GP * 0.01",
-        "PPh 21": "(GP + TT + TM + TJ) * 0.025",
+        "Position Allowance": '1500000 if designation == "Manajer Keuangan" else 0',
+        "BPJS Health": "GP * 0.01", "BPJS JHT": "GP * 0.02", "BPJS JP": "GP * 0.01",
+        "Income Tax (PPh 21)": "(GP + TT + TM + TJ) * 0.025",
     }
     for n, ab, t, fm, rz in COMPONENTS:
         if not exists("Salary Component", n):
@@ -330,9 +372,9 @@ if not frappe.db.exists("Custom DocPerm", {"parent": "Employee Checkin", "role":
 # Custom field untuk koreksi absensi (Attendance Request). custom_rejected di permlevel 1
 # agar role Employee tidak bisa mengubahnya.
 for cf in [
-    dict(dt="Attendance Request", fieldname="custom_requested_check_in", label="Requested Check In",
+    dict(dt="Attendance Request", fieldname="custom_requested_check_in", label="Requested Check-in",
          fieldtype="Time", insert_after="explanation"),
-    dict(dt="Attendance Request", fieldname="custom_requested_check_out", label="Requested Check Out",
+    dict(dt="Attendance Request", fieldname="custom_requested_check_out", label="Requested Check-out",
          fieldtype="Time", insert_after="custom_requested_check_in"),
     dict(dt="Attendance Request", fieldname="custom_rejected", label="Rejected",
          fieldtype="Check", permlevel=1, insert_after="custom_requested_check_out"),
@@ -342,11 +384,11 @@ for cf in [
         frappe.clear_cache(doctype=cf["dt"])
 
 for cf in [
-    dict(dt="Employee", fieldname="custom_em2_name", label="Emergency Contact 2 Name", fieldtype="Data",
+    dict(dt="Employee", fieldname="custom_em2_name", label="Second Emergency Contact: Name", fieldtype="Data",
          insert_after="emergency_phone_number"),
-    dict(dt="Employee", fieldname="custom_em2_relation", label="Emergency Contact 2 Relation", fieldtype="Data",
+    dict(dt="Employee", fieldname="custom_em2_relation", label="Second Emergency Contact: Relation", fieldtype="Data",
          insert_after="custom_em2_name"),
-    dict(dt="Employee", fieldname="custom_em2_phone", label="Emergency Contact 2 Phone", fieldtype="Data",
+    dict(dt="Employee", fieldname="custom_em2_phone", label="Second Emergency Contact: Phone", fieldtype="Data",
          insert_after="custom_em2_relation"),
 ]:
     if not frappe.db.exists("Custom Field", {"dt": cf["dt"], "fieldname": cf["fieldname"]}):
@@ -375,12 +417,12 @@ frappe.db.commit()
 
 # 5c. Data profil pribadi (hanya diisi bila masih kosong, supaya edit dari aplikasi tidak tertimpa)
 PERSONAL = {  # key: (alamat, kontak darurat 1 (nama, hubungan, telp), kontak darurat 2 atau None)
-    "rani": ("Jl. Melati No. 12, Jakarta Selatan", ("Siti Aminah", "Ibu", "0813-1111-0001"), ("Andi Test", "Kakak", "0813-2222-0001")),
-    "budi": ("Jl. Kenanga No. 5, Depok", ("Hartono", "Ayah", "0813-1111-0002"), None),
-    "dewi": ("Jl. Anggrek No. 8, Bekasi", ("Bagus Kusuma", "Suami", "0813-1111-0003"), ("Ratna Kusuma", "Ibu", "0813-2222-0003")),
-    "sari": ("Jl. Mawar No. 3, Tangerang", ("Wulan", "Adik", "0813-1111-0004"), None),
-    "agus": ("Jl. Cempaka No. 21, Bogor", ("Pratama Sr", "Ayah", "0813-1111-0005"), None),
-    "maya": ("Jl. Dahlia No. 9, Jakarta Timur", ("Lestari", "Ibu", "0813-1111-0006"), None),
+    "rani": ("Jl. Melati No. 12, Jakarta Selatan", ("Siti Aminah", "Mother", "0813-1111-0001"), ("Andi Test", "Sibling", "0813-2222-0001")),
+    "budi": ("Jl. Kenanga No. 5, Depok", ("Hartono", "Father", "0813-1111-0002"), None),
+    "dewi": ("Jl. Anggrek No. 8, Bekasi", ("Bagus Kusuma", "Spouse", "0813-1111-0003"), ("Ratna Kusuma", "Mother", "0813-2222-0003")),
+    "sari": ("Jl. Mawar No. 3, Tangerang", ("Wulan", "Sibling", "0813-1111-0004"), None),
+    "agus": ("Jl. Cempaka No. 21, Bogor", ("Pratama Sr", "Father", "0813-1111-0005"), None),
+    "maya": ("Jl. Dahlia No. 9, Jakarta Timur", ("Lestari", "Mother", "0813-1111-0006"), None),
 }
 for i, (key, (addr, em1, em2)) in enumerate(PERSONAL.items(), start=1):
     cur = frappe.db.get_value("Employee", emp[key], ["current_address", "person_to_be_contacted"], as_dict=True)
@@ -392,6 +434,26 @@ for i, (key, (addr, em1, em2)) in enumerate(PERSONAL.items(), start=1):
             vals.update(custom_em2_name=em2[0], custom_em2_relation=em2[1], custom_em2_phone=em2[2])
         frappe.db.set_value("Employee", emp[key], vals)
 frappe.db.commit()
+
+# Sinkronkan label Custom Field yang sudah ada ke bahasa Inggris (nama field tidak berubah).
+for (_dt, _fn), _label in {
+    ("Employee", "custom_pengaturan_gaji"): "Salary Settings",
+    ("Employee", "custom_tunjangan_jabatan"): "Position Allowance (IDR)",
+    ("Employee", "custom_tarif_bpjs_kesehatan"): "BPJS Health Rate (%)",
+    ("Employee", "custom_tarif_bpjs_jht"): "BPJS JHT Rate (%)",
+    ("Employee", "custom_tarif_bpjs_jp"): "BPJS JP Rate (%)",
+    ("Employee", "custom_tarif_pph21"): "Income Tax (PPh 21) Rate (%)",
+    ("Employee", "custom_em2_name"): "Second Emergency Contact: Name",
+    ("Employee", "custom_em2_relation"): "Second Emergency Contact: Relation",
+    ("Employee", "custom_em2_phone"): "Second Emergency Contact: Phone",
+    ("Attendance Request", "custom_requested_check_in"): "Requested Check-in",
+    ("Attendance Request", "custom_requested_check_out"): "Requested Check-out",
+}.items():
+    _cf = frappe.db.get_value("Custom Field", {"dt": _dt, "fieldname": _fn}, ["name", "label"], as_dict=True)
+    if _cf and _cf.label != _label:
+        frappe.db.set_value("Custom Field", _cf.name, "label", _label)
+frappe.db.commit()
+frappe.clear_cache()
 
 EVENT_SCRIPTS = {}  # isi {"nama_file": ("DocType", "Before Save")} untuk script berbasis event dokumen
 

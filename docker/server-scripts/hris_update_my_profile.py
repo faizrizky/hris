@@ -18,22 +18,22 @@ me = frappe.get_all(
     limit_page_length=1,
 )
 if not me:
-    frappe.throw("Akun ini tidak terhubung ke karyawan aktif")
+    frappe.throw("This account is not linked to an active employee")
 updates = {}
 for key in mapping:
     if key in fd:
         val = fd.get(key)
         val = "" if val is None else str(val).strip()
         if len(val) > mapping[key][1]:
-            frappe.throw(key + " terlalu panjang (maks " + str(mapping[key][1]) + " karakter)")
+            frappe.throw(key + " is too long (max " + str(mapping[key][1]) + " characters)")
         if key == "personal_email" and val:
             at = val.find("@")
             if at < 1 or "." not in val[at:] or " " in val or val.endswith(".") or val.count("@") != 1:
-                frappe.throw("Format email tidak valid")
+                frappe.throw("Invalid email format")
         if key in ("phone", "em2_phone") and val:
             for ch in val:
                 if ch not in "0123456789+-() ":
-                    frappe.throw("Format nomor telepon tidak valid")
+                    frappe.throw("Invalid phone number format")
         updates[mapping[key][0]] = val if val else None
 if updates:
     frappe.db.set_value("Employee", me[0].name, updates)

@@ -10,6 +10,11 @@ BASE="${BASE_URL:-http://localhost:8082}"
 TMP=$(mktemp -d); trap 'rm -rf "$TMP"' EXIT
 FAIL=0; TODAY=$(date +%F)
 
+# expect NEEDLE: periksa body panggilan terakhir memuat teks tertentu (nama master data Inggris)
+expect() {
+  if grep -q "$1" "$TMP/body"; then printf '  ok   memuat "%s"\n' "$1"; else printf '  GAGAL tidak memuat "%s"\n' "$1"; FAIL=1; fi
+}
+
 # call LABEL JAR_OR_TOKENHEADER METHOD URL [curl args...]  -> cetak status, simpan body di $TMP/body
 call() {
   local label="$1" auth="$2" url="$3"; shift 3
@@ -48,6 +53,7 @@ except Exception: print("")' "$TMP/body")
   call "GET hris_get_attendance_corrections" "$auth" "$BASE/api/method/hris_get_attendance_corrections"
   call "GET hris_get_attendance_corrections?scope=team" "$auth" "$BASE/api/method/hris_get_attendance_corrections?scope=team"
   call "GET hris_get_payslips" "$auth" "$BASE/api/method/hris_get_payslips"
+  expect "Basic Salary"
   call "GET hris_get_tax_summary" "$auth" "$BASE/api/method/hris_get_tax_summary"
   call "GET hris_get_my_profile" "$auth" "$BASE/api/method/hris_get_my_profile"
   call "GET hris_get_active_sessions" "$auth" "$BASE/api/method/hris_get_active_sessions"
@@ -56,6 +62,7 @@ except Exception: print("")' "$TMP/body")
     call "GET get_leave_details ($emp, $TODAY)" "$auth" \
       "$BASE/api/method/hrms.hr.doctype.leave_application.leave_application.get_leave_details" -G \
       --data-urlencode "employee=$emp" --data-urlencode "date=$TODAY"
+    expect "Annual Leave"
     call "GET Leave Application (milik $emp, status != Cancelled)" "$auth" "$BASE/api/resource/Leave%20Application" -G \
       --data-urlencode "filters=[[\"employee\",\"=\",\"$emp\"],[\"status\",\"!=\",\"Cancelled\"]]" \
       --data-urlencode 'fields=["name","employee","employee_name","leave_type","from_date","to_date","total_leave_days","status","leave_approver","leave_approver_name","description","posting_date"]' \

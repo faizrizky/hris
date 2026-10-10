@@ -1,6 +1,6 @@
 # Server Script (type: API, method: hris_get_tax_summary, allow_guest: 0)
 # Ringkasan pajak/BPJS tahun berjalan dari Salary Slip submitted milik pemanggil.
-# PPh 21 = komponen "PPh 21"; BPJS = jumlah komponen berawalan "BPJS". PTKP/NPWP/TER tidak tersedia.
+# PPh 21 = komponen "Income Tax (PPh 21)"; BPJS = jumlah komponen berawalan "BPJS". PTKP/NPWP/TER tidak tersedia.
 # Hasil: {"year", "months":[{"month","pph21","bpjs","gross"}x12], "latest":{...}} atau null bila tidak ada slip.
 names_id = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus",
             "September", "Oktober", "November", "Desember"]
@@ -40,7 +40,7 @@ if me:
                 parent_doctype="Salary Slip",
                 limit_page_length=100,
             ):
-                if d.salary_component == "PPh 21":
+                if d.salary_component == "Income Tax (PPh 21)":
                     pph = pph + d.amount
                 elif d.salary_component.startswith("BPJS"):
                     bpjs_items.append({"label": d.salary_component, "amount": d.amount})

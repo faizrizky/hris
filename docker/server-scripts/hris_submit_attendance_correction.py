@@ -26,18 +26,18 @@ me = frappe.get_all(
     limit_page_length=1,
 )
 if not me:
-    frappe.throw("Akun ini tidak terhubung ke karyawan aktif")
+    frappe.throw("This account is not linked to an active employee")
 if not date or not valid_hhmm(check_in) or not valid_hhmm(check_out):
-    frappe.throw("date (YYYY-MM-DD), check_in dan check_out (HH:MM) wajib diisi")
+    frappe.throw("date (YYYY-MM-DD), check_in and check_out (HH:MM) are required")
 if not reason:
-    frappe.throw("Alasan wajib diisi")
+    frappe.throw("Reason is required")
 today = frappe.utils.nowdate()
 if frappe.utils.getdate(date) > frappe.utils.getdate(today):
-    frappe.throw("Tanggal koreksi tidak boleh di masa depan")
+    frappe.throw("Correction date cannot be in the future")
 if frappe.utils.date_diff(today, date) > 30:
-    frappe.throw("Koreksi maksimal 30 hari ke belakang")
+    frappe.throw("Corrections can only be made up to 30 days back")
 if check_out <= check_in:
-    frappe.throw("Jam keluar harus setelah jam masuk")
+    frappe.throw("Check-out must be after check-in")
 
 doc = frappe.get_doc(
     {
