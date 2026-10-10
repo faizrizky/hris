@@ -24,12 +24,12 @@ export function LeaveListScreen({ navigation }: any) {
   const saldo = useLoad(
     () =>
       employee ? hrisApi.getLeaveBalances(employee.id) : Promise.resolve([]),
-    [employee],
+    employee?.id,
   );
   const pengajuan = useLoad(
     () =>
       employee ? hrisApi.getLeaveRequests(employee.id) : Promise.resolve([]),
-    [employee],
+    employee?.id,
   );
   const balances = saldo.data;
   const requests = pengajuan.data;

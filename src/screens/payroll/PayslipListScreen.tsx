@@ -22,7 +22,7 @@ export function PayslipListScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
   const slip = useLoad(
     () => (employee ? hrisApi.getPayslips(employee.id) : Promise.resolve([])),
-    [employee],
+    employee?.id,
   );
   const payslips = slip.data;
   const c = useTheme();

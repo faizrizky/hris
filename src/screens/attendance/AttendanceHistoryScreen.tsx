@@ -29,7 +29,7 @@ export function AttendanceHistoryScreen({ navigation }: any) {
       employee
         ? hrisApi.getAttendanceHistory(employee.id)
         : Promise.resolve([]),
-    [employee],
+    employee?.id,
   );
   const records = riwayat.data;
   const [filter, setFilter] = useState<Filter>("semua");

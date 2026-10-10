@@ -25,7 +25,7 @@ export function AppraisalScreen({ navigation }: any) {
   const penilaian = useLoad(
     () =>
       employee ? hrisApi.getAppraisal(employee.id) : Promise.resolve(null),
-    [employee],
+    employee?.id,
   );
   const data = penilaian.data;
   const c = useTheme();

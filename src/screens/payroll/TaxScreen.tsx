@@ -25,7 +25,7 @@ export function TaxScreen({ navigation }: any) {
   const ringkasan = useLoad(
     () =>
       employee ? hrisApi.getTaxSummary(employee.id) : Promise.resolve(null),
-    [employee],
+    employee?.id,
   );
   const tax = ringkasan.data;
   const c = useTheme();

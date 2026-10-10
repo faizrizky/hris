@@ -38,7 +38,7 @@ export function AttendanceCorrectionHistoryScreen({ navigation }: any) {
       employee
         ? hrisApi.getAttendanceCorrections(employee.id)
         : Promise.resolve([]),
-    [employee],
+    employee?.id,
   );
   const records = koreksi.data;
   const [filter, setFilter] = useState<Filter>("semua");
