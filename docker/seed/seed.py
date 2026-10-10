@@ -455,6 +455,48 @@ for (_dt, _fn), _label in {
 frappe.db.commit()
 frappe.clear_cache()
 
+# Bahasa Indonesia tersedia sebagai pilihan (My Settings -> Language). Default sistem dan bahasa
+# user TIDAK diubah; tiap user memilih sendiri. Terjemahan khusus kita lewat doctype Translation.
+if frappe.db.exists("Language", "id") and not frappe.db.get_value("Language", "id", "enabled"):
+    frappe.db.set_value("Language", "id", "enabled", 1)
+    log("bahasa id diaktifkan")
+TRANSLATIONS_ID = {
+    # label Custom Field
+    "Salary Settings": "Pengaturan Gaji",
+    "Position Allowance (IDR)": "Tunjangan Jabatan (Rp)",
+    "BPJS Health Rate (%)": "Tarif BPJS Kesehatan (%)",
+    "BPJS JHT Rate (%)": "Tarif BPJS JHT (%)",
+    "BPJS JP Rate (%)": "Tarif BPJS JP (%)",
+    "Income Tax (PPh 21) Rate (%)": "Tarif PPh 21 (%)",
+    "Second Emergency Contact: Name": "Kontak Darurat Kedua: Nama",
+    "Second Emergency Contact: Relation": "Kontak Darurat Kedua: Hubungan",
+    "Second Emergency Contact: Phone": "Kontak Darurat Kedua: Telepon",
+    "Requested Check-in": "Jam Masuk yang Diminta",
+    "Requested Check-out": "Jam Keluar yang Diminta",
+    "Rejected": "Ditolak",
+    "Delegate": "Delegasi",
+    "Delegate Name": "Nama Delegasi",
+    "Designation": "Jabatan",
+    # nama master data (efektif di tampilan Link bila doctype ditandai translated_doctype)
+    "Annual Leave": "Cuti Tahunan", "Sick Leave": "Cuti Sakit",
+    "Finance Staff": "Staf Keuangan", "Finance Manager": "Manajer Keuangan", "HR Staff": "Staf HR",
+    "Morning Shift": "Shift Pagi",
+    "Basic Salary": "Gaji Pokok", "Transport Allowance": "Tunjangan Transport",
+    "Meal Allowance": "Tunjangan Makan", "Position Allowance": "Tunjangan Jabatan",
+    "BPJS Health": "BPJS Kesehatan", "Income Tax (PPh 21)": "PPh 21",
+    f"Finance - {ABBR}": f"Keuangan - {ABBR}", f"People Operations - {ABBR}": f"People Ops - {ABBR}",
+}
+for _src, _tr in TRANSLATIONS_ID.items():
+    if not frappe.db.exists("Translation", {"language": "id", "source_text": _src}):
+        make(dict(doctype="Translation", language="id", source_text=_src, translated_text=_tr))
+for _dt in ("Leave Type", "Designation", "Salary Component", "Shift Type", "Department"):
+    if not frappe.db.exists("Property Setter", {"doc_type": _dt, "property": "translated_doctype"}):
+        frappe.make_property_setter({"doctype": _dt, "doctype_or_field": "DocType",
+                                     "property": "translated_doctype", "value": "1", "property_type": "Check"})
+        log(f"translated_doctype diaktifkan untuk {_dt}")
+frappe.db.commit()
+frappe.clear_cache()
+
 EVENT_SCRIPTS = {}  # isi {"nama_file": ("DocType", "Before Save")} untuk script berbasis event dokumen
 
 # 9. Server Script (satu file .py per script, nama file = nama method API) ----------
