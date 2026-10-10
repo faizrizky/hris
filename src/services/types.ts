@@ -205,11 +205,7 @@ export interface FeedItem {
 }
 
 export type NotifCategory =
-  | "Approval"
-  | "Payroll"
-  | "Presensi"
-  | "Appraisal"
-  | "Pengumuman";
+  "Approval" | "Payroll" | "Presensi" | "Appraisal" | "Pengumuman";
 
 export interface AppNotification {
   id: string;
@@ -330,6 +326,8 @@ export interface HrisApi {
     employeeId: string,
   ): Promise<AttendanceCorrectionRequest[]>;
   getOvertimes(employeeId: string): Promise<OvertimeRecord[]>;
+  getLanguage(): Promise<"id" | "en" | null>;
+  setLanguage(language: "id" | "en"): Promise<void>;
   getLeaveBalances(employeeId: string): Promise<LeaveBalance[]>;
   getLeaveRequests(employeeId: string): Promise<LeaveRequest[]>;
   submitLeaveRequest(input: {
@@ -341,6 +339,13 @@ export interface HrisApi {
     toDate: string; // ISO
     delegateId?: string;
     delegateName?: string;
+    overtimeEnd?: string; // lembur: "HH:MM"
+    travel?: {
+      destination: string;
+      transport: string; // nilai TRANSPORTASI di aplikasi
+      purpose: string;
+      costs: { category: string; description: string; amount: number }[];
+    };
   }): Promise<LeaveRequest>;
 
   getLeaveApprover(employeeId: string): Promise<LeaveApprover | null>;

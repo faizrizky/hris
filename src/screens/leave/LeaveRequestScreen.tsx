@@ -198,6 +198,20 @@ export function LeaveRequestScreen({ navigation, route }: any) {
         delegateName:
           kind === "cuti" && delegasi ? delegasi.fullName : undefined,
         delegateId: kind === "cuti" && delegasi ? delegasi.id : undefined,
+        overtimeEnd: kind === "lembur" ? jamMenit(otEnd) : undefined,
+        travel:
+          kind === "dinas" && transport
+            ? {
+                destination: dest.trim(),
+                transport,
+                purpose: keperluan.trim() || dest.trim(),
+                costs: biaya.map((x) => ({
+                  category: x.kategori,
+                  description: x.keterangan,
+                  amount: Number(x.nominal) || 0,
+                })),
+              }
+            : undefined,
       });
       setDone(created.id);
     } catch (e) {

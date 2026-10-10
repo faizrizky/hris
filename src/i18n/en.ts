@@ -45,6 +45,7 @@ export const en: Record<Kunci, string> = {
   "err.tanpaKaryawanUser":
     "This account is not linked to an employee record. Contact HR.",
   "err.tanpaApprover": "No approver assigned. Contact HR.",
+  "err.dataKurang": "The request data is incomplete",
   "err.bentrokCuti": "Dates overlap with another leave request",
   "err.passwordLama": "Current password is incorrect",
   "err.passwordLemah":

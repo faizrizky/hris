@@ -4,6 +4,8 @@
 import { setSessionExpiredHandler } from "./api/http";
 import React, { useEffect, createContext, useContext, useState } from "react";
 import { Employee } from "./types";
+import { hrisApi } from "./api";
+import { useBahasa } from "@/i18n";
 
 interface SessionContextValue {
   employee: Employee | null;
@@ -21,6 +23,18 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     setSessionExpiredHandler(() => setEmployee(null));
     return () => setSessionExpiredHandler(null);
   }, []);
+
+  const { setBahasa } = useBahasa();
+  const employeeId = employee?.id;
+
+  // Bahasa mengikuti akun ERPNext; gagal membaca = pakai pilihan lokal.
+  useEffect(() => {
+    if (!employeeId) return;
+    hrisApi
+      .getLanguage()
+      .then((b) => b && setBahasa(b))
+      .catch(() => {});
+  }, [employeeId, setBahasa]);
 
   return (
     <SessionContext.Provider value={{ employee, setEmployee }}>

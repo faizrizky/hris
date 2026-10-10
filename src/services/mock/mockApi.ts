@@ -134,6 +134,12 @@ export const mockApi: HrisApi = {
     return MOCK_OVERTIMES.filter((r) => r.employeeId === employeeId);
   },
 
+  async getLanguage() {
+    return null;
+  },
+
+  async setLanguage(_language: "id" | "en") {},
+
   async getLeaveBalances(_employeeId: string): Promise<LeaveBalance[]> {
     await delay(150);
     return MOCK_LEAVE_BALANCES;

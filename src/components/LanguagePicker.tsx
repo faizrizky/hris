@@ -2,6 +2,7 @@ import React from "react";
 import { Pressable, Text, View } from "react-native";
 import { useTheme } from "@/theme/ThemeContext";
 import { useBahasa } from "@/i18n";
+import { hrisApi } from "@/services/api";
 
 // Dua tombol kecil untuk memilih bahasa aplikasi (ID / EN).
 export function LanguagePicker() {
@@ -14,7 +15,11 @@ export function LanguagePicker() {
         return (
           <Pressable
             key={b}
-            onPress={() => setBahasa(b)}
+            onPress={() => {
+              setBahasa(b);
+              // Disimpan ke akun ERPNext; sebelum login atau gagal, cukup lokal.
+              hrisApi.setLanguage(b).catch(() => {});
+            }}
             style={{
               paddingHorizontal: 12,
               paddingVertical: 7,

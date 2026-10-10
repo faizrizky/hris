@@ -50,6 +50,7 @@ export const id = {
   "err.tanpaKaryawanUser":
     "Akun ini belum terhubung ke data karyawan. Hubungi HR.",
   "err.tanpaApprover": "Belum ada approver. Hubungi HR.",
+  "err.dataKurang": "Data pengajuan belum lengkap",
   "err.bentrokCuti": "Tanggal bertabrakan dengan pengajuan cuti lain",
   "err.passwordLama": "Password lama salah",
   "err.passwordLemah":

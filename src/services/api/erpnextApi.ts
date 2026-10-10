@@ -12,6 +12,7 @@ import {
   LeaveDecision,
   LeaveRequest,
   LeaveType,
+  OvertimeRecord,
   Role,
   LeaveApprover,
   FeedItem,
@@ -250,6 +251,135 @@ function bentukPengajuan(row: LeaveRow): LeaveRequest {
     createdAt: row.posting_date,
   };
 }
+
+// ---- Lembur dan Dinas Luar (endpoint Server Script) ----
+
+interface LemburRow {
+  name: string;
+  employee?: string;
+  employee_name?: string;
+  designation?: string | null;
+  date: string;
+  start_minute: number;
+  end_minute: number;
+  hours: number;
+  note: string;
+  status: "pending" | "approved" | "rejected";
+}
+
+interface DinasRow {
+  name: string;
+  employee?: string;
+  employee_name?: string;
+  designation?: string | null;
+  destination: string;
+  from_date: string;
+  to_date: string;
+  transport: string;
+  purpose: string;
+  total_cost?: number;
+  status: "pending" | "approved" | "rejected";
+}
+
+const STATUS_SERVER: Record<
+  string,
+  { decision: LeaveRequest["decision"]; stage: string }
+> = {
+  pending: { decision: null, stage: "Menunggu atasan" },
+  approved: { decision: "approve", stage: "Disetujui" },
+  rejected: { decision: "reject", stage: "Ditolak" },
+};
+
+const ID_LEMBUR = /^OT-/;
+const ID_DINAS = /^HR-TRQ-/;
+
+const jamMenitServer = (m: number) =>
+  `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`;
+
+function bentukLembur(r: LemburRow, saya?: string): LeaveRequest {
+  const st = STATUS_SERVER[r.status] ?? STATUS_SERVER.pending;
+  const nama = r.employee_name ?? saya ?? "—";
+  return {
+    id: r.name,
+    employeeId: r.employee ?? "",
+    employeeName: nama,
+    employeeInitials: inisial(nama),
+    employeeJobTitle: r.designation
+      ? terjemahkan("designation", r.designation)
+      : "",
+    type: "lembur",
+    label: `Lembur ${r.hours} jam · ${tanggalPendek(r.date)}`,
+    reason: `${jamMenitServer(r.start_minute)}–${jamMenitServer(r.end_minute)} · ${r.note}`,
+    delegateName: null,
+    stage: st.stage,
+    quota: "—",
+    approverName: "",
+    approverInitials: "",
+    decision: st.decision,
+    createdAt: r.date,
+  };
+}
+
+function bentukDinas(r: DinasRow, saya?: string): LeaveRequest {
+  const st = STATUS_SERVER[r.status] ?? STATUS_SERVER.pending;
+  const nama = r.employee_name ?? saya ?? "—";
+  return {
+    id: r.name,
+    employeeId: r.employee ?? "",
+    employeeName: nama,
+    employeeInitials: inisial(nama),
+    employeeJobTitle: r.designation
+      ? terjemahkan("designation", r.designation)
+      : "",
+    type: "dinas_luar",
+    label: `Dinas luar · ${r.destination}`,
+    reason: `${periodeCuti(r.from_date, r.to_date)} · ${r.purpose}`,
+    delegateName: null,
+    stage: st.stage,
+    quota: "—",
+    approverName: "",
+    approverInitials: "",
+    decision: st.decision,
+    createdAt: r.from_date,
+  };
+}
+
+const TRANSPORT_SERVER: Record<string, string> = {
+  Pesawat: "Flight",
+  Kereta: "Train",
+  "Mobil kantor": "Car",
+  Lainnya: "Bus",
+};
+
+const BIAYA_SERVER: Record<string, string> = {
+  Transportasi: "Travel",
+  Hotel: "Others",
+  Konsumsi: "Food",
+  "Parkir & Tol": "Travel",
+  Lainnya: "Others",
+};
+
+// Pemisah format "kategori|keterangan|nominal;..." tidak boleh ada di isi.
+const bersih = (t: string) => t.replace(/[|;]/g, " ").trim();
+
+async function ambilLembur(tim: boolean): Promise<LeaveRequest[]> {
+  const res = await get<{ message: LemburRow[] }>(
+    "/api/method/hris_get_overtimes",
+    tim ? { scope: "team" } : undefined,
+  );
+  return res.message.map((r) => bentukLembur(r));
+}
+
+async function ambilDinas(tim: boolean): Promise<LeaveRequest[]> {
+  const res = await get<{ message: DinasRow[] }>(
+    "/api/method/hris_get_travel_requests",
+    tim ? { scope: "team" } : undefined,
+  );
+  return res.message.map((r) => bentukDinas(r));
+}
+
+const urutBaru = (a: LeaveRequest, b: LeaveRequest) =>
+  b.createdAt.localeCompare(a.createdAt);
 
 async function ambilMenunggu(): Promise<LeaveRequest[]> {
   const { message: email } = await get<{ message: string }>(
@@ -550,13 +680,6 @@ interface AttendanceRow {
   late_entry: number;
 }
 
-// Waktu perangkat dikirim apa adanya dalam WIB (zona server). "YYYY-MM-DD HH:MM:SS".
-function sekarangWib(): string {
-  const d = new Date();
-  const dua = (n: number) => String(n).padStart(2, "0");
-  return `${toISODate(d)} ${dua(d.getHours())}:${dua(d.getMinutes())}:${dua(d.getSeconds())}`;
-}
-
 function ambilStatusJam(): Promise<ClockState> {
   return get<ClockRes>("/api/method/hris_get_clock_state").then((r) => ({
     clockedIn: r.message.clocked_in,
@@ -565,13 +688,10 @@ function ambilStatusJam(): Promise<ClockState> {
   }));
 }
 
-async function kirimCheckin(employeeId: string, logType: "IN" | "OUT") {
-  await post(`/api/resource/${encodeURIComponent("Employee Checkin")}`, {
-    employee: employeeId,
-    log_type: logType,
-    time: sekarangWib(),
-    device_id: "hris-mobile",
-  });
+async function kirimCheckin(_employeeId: string, logType: "IN" | "OUT") {
+  // Jam ditentukan server menurut zona waktu lokasi kerja (dinas luar ikut
+  // zona tujuan), jadi jam perangkat tidak dikirim.
+  await post("/api/method/hris_checkin", { log_type: logType });
   return ambilStatusJam();
 }
 
@@ -716,6 +836,33 @@ export const erpnextApi: HrisApi = {
     await post("/api/method/logout");
   },
 
+  async getOvertimes(employeeId: string): Promise<OvertimeRecord[]> {
+    const res = await get<{ message: LemburRow[] }>(
+      "/api/method/hris_get_overtimes",
+    );
+    return res.message.map((r) => ({
+      id: r.name,
+      employeeId,
+      date: r.date,
+      startMinute: r.start_minute,
+      endMinute: r.end_minute,
+      hours: r.hours,
+      note: r.note,
+      status: r.status,
+    }));
+  },
+
+  async getLanguage() {
+    const res = await get<{ message: { language: string } }>(
+      "/api/method/hris_get_my_language",
+    );
+    return res.message.language === "id" ? "id" : "en";
+  },
+
+  async setLanguage(language: "id" | "en") {
+    await post("/api/method/hris_set_my_language", { language });
+  },
+
   async getLeaveBalances(employeeId: string): Promise<LeaveBalance[]> {
     return ambilSaldo(employeeId);
   },
@@ -733,7 +880,13 @@ export const erpnextApi: HrisApi = {
         limit_page_length: 50,
       },
     );
-    return res.data.map(bentukPengajuan);
+    const [lembur, dinas] = await Promise.all([
+      ambilLembur(false),
+      ambilDinas(false),
+    ]);
+    return [...res.data.map(bentukPengajuan), ...lembur, ...dinas].sort(
+      urutBaru,
+    );
   },
 
   // Pemanggil dikenali server dari sesinya, jadi employeeId tidak dikirim.
@@ -766,7 +919,41 @@ export const erpnextApi: HrisApi = {
   },
 
   async submitLeaveRequest(input) {
-    // Lembur dan dinas luar belum punya endpoint asli.
+    if (input.type === "lembur") {
+      if (!input.overtimeEnd)
+        throw new ApiError(tt("err.dataKurang"), 0, "NoEnd");
+      const res = await post<{ message: LemburRow }>(
+        "/api/method/hris_submit_overtime",
+        {
+          date: input.fromDate,
+          end_time: input.overtimeEnd,
+          note: input.reason,
+        },
+      );
+      return bentukLembur(res.message, input.employeeId);
+    }
+    if (input.type === "dinas_luar") {
+      const t = input.travel;
+      if (!t) throw new ApiError(tt("err.dataKurang"), 0, "NoTravel");
+      const res = await post<{ message: DinasRow }>(
+        "/api/method/hris_submit_travel_request",
+        {
+          destination: t.destination,
+          from_date: input.fromDate,
+          to_date: input.toDate,
+          transport: TRANSPORT_SERVER[t.transport] ?? "Bus",
+          purpose: t.purpose,
+          costs: t.costs
+            .filter((x) => x.amount > 0)
+            .map(
+              (x) =>
+                `${BIAYA_SERVER[x.category] ?? "Others"}|${bersih(x.description)}|${x.amount}`,
+            )
+            .join(";"),
+        },
+      );
+      return bentukDinas(res.message, input.employeeId);
+    }
     const jenis = NAMA_JENIS[input.type];
     if (!jenis) return mockApi.submitLeaveRequest(input);
 
@@ -791,19 +978,41 @@ export const erpnextApi: HrisApi = {
   },
 
   async getPendingApprovals(): Promise<LeaveRequest[]> {
-    return ambilMenunggu();
+    const [cuti, lembur, dinas] = await Promise.all([
+      ambilMenunggu(),
+      ambilLembur(true),
+      ambilDinas(true),
+    ]);
+    const menunggu = (r: LeaveRequest) => r.decision === null;
+    return [
+      ...cuti,
+      ...lembur.filter(menunggu),
+      ...dinas.filter(menunggu),
+    ].sort(urutBaru);
   },
 
   async getFeed(employeeId: string, role: Role): Promise<FeedItem[]> {
     if (role === "ess") {
       return (await ambilMilikSendiri(employeeId)).map((r) => keFeed(r, false));
     }
-    return (await ambilMenunggu()).slice(0, 3).map((r) => keFeed(r, true));
+    return (await this.getPendingApprovals(employeeId))
+      .slice(0, 3)
+      .map((r) => keFeed(r, true));
   },
 
   // Satu PUT: status saja hanya mengubah draft dan tidak memotong saldo,
   // docstatus 1 yang membuat keputusannya final.
   async decideLeaveRequest(requestId, decision): Promise<LeaveRequest> {
+    const lembur = ID_LEMBUR.test(requestId);
+    if (lembur || ID_DINAS.test(requestId)) {
+      const res = await post<{ message: LemburRow & DinasRow }>(
+        lembur
+          ? "/api/method/hris_decide_overtime"
+          : "/api/method/hris_decide_travel_request",
+        { name: requestId, decision },
+      );
+      return lembur ? bentukLembur(res.message) : bentukDinas(res.message);
+    }
     const res = await put<{ data: LeaveRow }>(
       `/api/resource/${encodeURIComponent("Leave Application")}/${encodeURIComponent(requestId)}`,
       {
