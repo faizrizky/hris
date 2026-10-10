@@ -15,6 +15,7 @@ import { useSession } from "@/services/session";
 import { ClockState } from "@/services/types";
 import { FaceViewfinder } from "./FaceViewfinder";
 import { Skeleton } from "@/components/Skeleton";
+import { describeError } from "@/services/api/http";
 
 export function ClockScreen({ navigation }: any) {
   const { employee } = useSession();
@@ -24,6 +25,7 @@ export function ClockScreen({ navigation }: any) {
   const [loading, setLoading] = useState(false);
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
+  const [galat, setGalat] = useState<string | null>(null);
 
   useEffect(() => {
     if (!employee) return;
@@ -88,12 +90,15 @@ export function ClockScreen({ navigation }: any) {
       return;
     }
     setLoading(true);
+    setGalat(null);
     try {
       const next = state.clockedIn
         ? await hrisApi.clockOut(employee.id)
         : await hrisApi.clockIn(employee.id);
       setState(next);
       setStep(2);
+    } catch (e) {
+      setGalat(describeError(e));
     } finally {
       setLoading(false);
     }
@@ -212,7 +217,7 @@ export function ClockScreen({ navigation }: any) {
             </View>
           </>
         )}
-
+        {galat ? <Text style={styles.galat}>{galat}</Text> : null}
         <View style={styles.actions}>
           <Pressable
             style={[
@@ -425,4 +430,11 @@ const makeStyles = (c: Palette) =>
       alignItems: "center",
     },
     secondaryText: { fontSize: 13, fontWeight: "600", color: c.ink },
+    galat: {
+      fontSize: 12.5,
+      fontWeight: "600",
+      color: c.bad.ink,
+      textAlign: "center",
+      marginBottom: 10,
+    },
   });

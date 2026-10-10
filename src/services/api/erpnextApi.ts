@@ -18,6 +18,9 @@ import {
   Staff,
   StaffDirectory,
   EmploymentSlice,
+  ClockState,
+  AttendanceRecord,
+  AttendanceStatus,
 } from "../types";
 import { tanggalPendek, tanggalPendekTahun, toISODate } from "../../utils/date";
 import { ApiError, get, post, put } from "./http";
@@ -356,6 +359,71 @@ const NAMA_KEPEGAWAIAN: Record<string, string> = {
   Contract: "Kontrak",
 };
 
+interface ClockRes {
+  message: {
+    clocked_in: boolean;
+    last_check_in: string | null;
+    last_check_out: string | null;
+  };
+}
+
+interface AttendanceRow {
+  date: string;
+  status: string;
+  check_in: string | null;
+  check_out: string | null;
+  working_hours: number | null;
+  late_entry: number;
+}
+
+// Waktu perangkat dikirim apa adanya dalam WIB (zona server). "YYYY-MM-DD HH:MM:SS".
+function sekarangWib(): string {
+  const d = new Date();
+  const dua = (n: number) => String(n).padStart(2, "0");
+  return `${toISODate(d)} ${dua(d.getHours())}:${dua(d.getMinutes())}:${dua(d.getSeconds())}`;
+}
+
+function ambilStatusJam(): Promise<ClockState> {
+  return get<ClockRes>("/api/method/hris_get_clock_state").then((r) => ({
+    clockedIn: r.message.clocked_in,
+    lastCheckIn: r.message.last_check_in,
+    lastCheckOut: r.message.last_check_out,
+  }));
+}
+
+async function kirimCheckin(employeeId: string, logType: "IN" | "OUT") {
+  await post(`/api/resource/${encodeURIComponent("Employee Checkin")}`, {
+    employee: employeeId,
+    log_type: logType,
+    time: sekarangWib(),
+    device_id: "hris-mobile",
+  });
+  return ambilStatusJam();
+}
+
+// "Present"/"Absent"/"On Leave" dipetakan ke tiga status yang dikenal layar.
+function bentukAbsensi(r: AttendanceRow): AttendanceRecord {
+  const status: AttendanceStatus =
+    r.status === "On Leave" || r.status === "Absent" || r.status === "Half Day"
+      ? "izin"
+      : r.late_entry
+        ? "telat"
+        : "hadir";
+  const jam = r.working_hours
+    ? `${Math.floor(r.working_hours)}j ${Math.round((r.working_hours % 1) * 60)}m`
+    : r.check_in && !r.check_out
+      ? "berjalan"
+      : null;
+  return {
+    id: r.date,
+    date: r.date,
+    checkIn: r.check_in,
+    checkOut: r.check_out,
+    durationLabel: jam,
+    status,
+  };
+}
+
 export const erpnextApi: HrisApi = {
   ...mockApi,
 
@@ -497,5 +565,24 @@ export const erpnextApi: HrisApi = {
       label: NAMA_KEPEGAWAIAN[s.label] ?? s.label,
       count: s.count,
     }));
+  },
+
+  async getClockState(): Promise<ClockState> {
+    return ambilStatusJam();
+  },
+
+  async clockIn(employeeId: string): Promise<ClockState> {
+    return kirimCheckin(employeeId, "IN");
+  },
+
+  async clockOut(employeeId: string): Promise<ClockState> {
+    return kirimCheckin(employeeId, "OUT");
+  },
+
+  async getAttendanceHistory(): Promise<AttendanceRecord[]> {
+    const res = await get<{ message: AttendanceRow[] }>(
+      "/api/method/hris_get_attendance_history",
+    );
+    return res.message.map(bentukAbsensi);
   },
 };
