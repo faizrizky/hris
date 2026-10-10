@@ -17,6 +17,8 @@ import { hrisApi } from "@/services/api";
 import { useSession } from "@/services/session";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { describeError } from "../../services/api/http";
+import { useT } from "@/i18n";
+import { LanguagePicker } from "@/components/LanguagePicker";
 
 export function LoginScreen() {
   const { setEmployee } = useSession();
@@ -26,6 +28,7 @@ export function LoginScreen() {
   const [rememberMe, setRememberMe] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const insets = useSafeAreaInsets();
+  const t = useT();
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
   const [error, setError] = useState<string | null>(null);
@@ -48,6 +51,17 @@ export function LoginScreen() {
       <RadialGlow size={340} color={c.glowTop} top={-120} right={-90} />
       <RadialGlow size={320} color={c.glowBottom} bottom={-140} left={-110} />
 
+      <View
+        style={{
+          position: "absolute",
+          top: insets.top + 12,
+          left: 20,
+          zIndex: 2,
+        }}
+      >
+        <LanguagePicker />
+      </View>
+
       {/* Hero — logo, headline, subtext, nempel ke bawah area gelap */}
       <View style={styles.hero}>
         <LinearGradient
@@ -60,13 +74,11 @@ export function LoginScreen() {
         </LinearGradient>
 
         <Text style={styles.headline}>
-          Kelola HR Anda{"\n"}
-          <Text style={styles.headlineAccent}>dari satu aplikasi</Text>
+          {t("login.judul1")}
+          {"\n"}
+          <Text style={styles.headlineAccent}>{t("login.judul2")}</Text>
         </Text>
-        <Text style={styles.subtext}>
-          Presensi, cuti, payroll, dan approval — tersinkron langsung dengan
-          ERPNext.
-        </Text>
+        <Text style={styles.subtext}>{t("login.sub")}</Text>
       </View>
 
       {/* Sheet putih melengkung di bawah — form login beneran */}
@@ -74,12 +86,12 @@ export function LoginScreen() {
         behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
         <View style={[styles.sheet, { paddingBottom: 10 + insets.bottom }]}>
-          <Text style={styles.sheetTitle}>Masuk ke akun</Text>
-          <Text style={styles.sheetSubtitle}>Gunakan email kantor Anda</Text>
+          <Text style={styles.sheetTitle}>{t("login.masukAkun")}</Text>
+          <Text style={styles.sheetSubtitle}>{t("login.gunakanEmail")}</Text>
 
           <View style={styles.fieldsWrapper}>
             <View style={styles.fieldBox}>
-              <Text style={styles.fieldLabel}>Email</Text>
+              <Text style={styles.fieldLabel}>{t("login.email")}</Text>
               <TextInput
                 style={styles.fieldInput}
                 value={email}
@@ -94,19 +106,19 @@ export function LoginScreen() {
             <View style={styles.fieldBox}>
               <View style={styles.passwordRow}>
                 <View style={{ flex: 1 }}>
-                  <Text style={styles.fieldLabel}>Password</Text>
+                  <Text style={styles.fieldLabel}>{t("login.password")}</Text>
                   <TextInput
                     style={styles.fieldInput}
                     value={password}
                     onChangeText={setPassword}
                     secureTextEntry={!showPassword}
-                    placeholder="bebas — belum terhubung ke ERPNext"
+                    placeholder={t("login.passwordIsi")}
                     placeholderTextColor={c.mutedLabel}
                   />
                 </View>
                 <Pressable onPress={() => setShowPassword((v) => !v)}>
                   <Text style={styles.showToggle}>
-                    {showPassword ? "Sembunyikan" : "Lihat"}
+                    {showPassword ? t("login.sembunyikan") : t("login.lihat")}
                   </Text>
                 </Pressable>
               </View>
@@ -123,9 +135,9 @@ export function LoginScreen() {
                   <Ionicons name="checkmark" size={11} color="#fff" />
                 )}
               </View>
-              <Text style={styles.rememberLabel}>Ingat saya</Text>
+              <Text style={styles.rememberLabel}>{t("login.ingat")}</Text>
             </Pressable>
-            <Text style={styles.forgotLabel}>Lupa password?</Text>
+            <Text style={styles.forgotLabel}>{t("login.lupa")}</Text>
           </View>
 
           <Text style={styles.hint}>
@@ -140,14 +152,14 @@ export function LoginScreen() {
               style={styles.submitButton}
             >
               <Text style={styles.submitLabel}>
-                {loading ? "Memproses..." : "Masuk"}
+                {loading ? t("login.memproses") : t("login.masuk")}
               </Text>
             </LinearGradient>
           </Pressable>
 
           <View style={styles.dividerRow}>
             <View style={styles.dividerLine} />
-            <Text style={styles.dividerLabel}>atau</Text>
+            <Text style={styles.dividerLabel}>{t("login.atau")}</Text>
             <View style={styles.dividerLine} />
           </View>
 
@@ -159,7 +171,7 @@ export function LoginScreen() {
             <View style={styles.faceIdIcon}>
               <View style={styles.faceIdIconInner} />
             </View>
-            <Text style={styles.faceIdLabel}>Masuk dengan Face ID</Text>
+            <Text style={styles.faceIdLabel}>{t("login.faceId")}</Text>
           </Pressable>
         </View>
       </KeyboardAvoidingView>

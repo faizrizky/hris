@@ -3,6 +3,8 @@
 // file ini, jadi menambah bahasa lain cukup di satu tempat. Nilai yang tidak
 // dikenal (mis. nama departemen baru) ditampilkan apa adanya.
 
+import { bahasaAktif } from "./index";
+
 const ID = {
   leaveType: {
     "Annual Leave": "Cuti Tahunan",
@@ -50,6 +52,8 @@ const ID = {
 export type KategoriLabel = keyof typeof ID;
 
 export function terjemahkan(kategori: KategoriLabel, nilai: string): string {
+  // Server berbahasa Inggris, jadi mode English menampilkan nilainya apa adanya.
+  if (bahasaAktif() === "en") return nilai;
   const tabel = ID[kategori] as Record<string, string>;
   return tabel[nilai] ?? nilai;
 }

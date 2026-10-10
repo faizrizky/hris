@@ -2,6 +2,7 @@ import React, { useMemo } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { Palette } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
+import { useT } from "@/i18n";
 
 export function ErrorState({
   pesan,
@@ -12,12 +13,13 @@ export function ErrorState({
 }) {
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
+  const t = useT();
   return (
     <View style={styles.box}>
-      <Text style={styles.judul}>Gagal memuat</Text>
+      <Text style={styles.judul}>{t("err.gagalMemuat")}</Text>
       <Text style={styles.isi}>{pesan}</Text>
       <Pressable style={styles.btn} onPress={onUlangi}>
-        <Text style={styles.btnText}>Coba lagi</Text>
+        <Text style={styles.btnText}>{t("err.cobaLagi")}</Text>
       </Pressable>
     </View>
   );

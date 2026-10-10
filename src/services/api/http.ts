@@ -1,6 +1,8 @@
 // Lapisan HTTP tunggal untuk semua panggilan ke ERPNext.
 // Auth memakai cookie `sid` yang dikelola cookie jar native (credentials: "include").
 
+import { tt } from "@/i18n";
+
 const BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL;
 const TIMEOUT_MS = 15_000;
 
@@ -39,7 +41,7 @@ async function request<T>(
   params?: Params,
 ): Promise<T> {
   if (!BASE_URL) {
-    throw new ApiError("EXPO_PUBLIC_API_BASE_URL belum diisi", 0, null);
+    throw new ApiError(tt("err.noBase"), 0, null);
   }
 
   const query = method === "GET" && params ? `?${encode(params)}` : "";
@@ -65,7 +67,7 @@ async function request<T>(
   } catch (e) {
     const timeout = e instanceof Error && e.name === "AbortError";
     throw new ApiError(
-      timeout ? "Server tidak merespons" : "Tidak bisa terhubung ke server",
+      timeout ? tt("err.timeout") : tt("err.network"),
       0,
       timeout ? "Timeout" : "Network",
     );
@@ -85,11 +87,7 @@ async function request<T>(
   if (!res.ok) {
     if (res.status === 403 && obj.session_expired === 1) {
       onSessionExpired?.();
-      throw new ApiError(
-        "Sesi berakhir, silakan masuk lagi",
-        403,
-        "SessionExpired",
-      );
+      throw new ApiError(tt("err.sesiBerakhir"), 403, "SessionExpired");
     }
     const excType = typeof obj.exc_type === "string" ? obj.exc_type : null;
     const message =
@@ -113,26 +111,27 @@ export const put = <T>(path: string, params?: Params) =>
 export function describeError(e: unknown): string {
   if (e instanceof ApiError) {
     if (e.excType === "NoEmployeeLinked") {
-      return "Akun ini belum terhubung ke data karyawan. Hubungi HR.";
+      return tt("err.tanpaKaryawanUser");
     }
     if (e.excType === "SessionExpired") return e.message;
-    if (e.excType === "RoleFetchFailed") return `${e.message}. Coba lagi.`;
+    if (e.excType === "RoleFetchFailed")
+      return tt("err.peranCoba", { pesan: e.message });
     if (e.excType === "NoApprover") {
-      return "Belum ada approver. Hubungi HR.";
+      return tt("err.tanpaApprover");
     }
     if (e.excType === "OverlapError") {
-      return "Tanggal bertabrakan dengan pengajuan cuti lain";
+      return tt("err.bentrokCuti");
     }
     if (e.excType === "WrongPassword" || e.excType === "WeakPassword") {
       return e.message;
     }
     if (e.status === 417) {
-      return "Pengajuan tidak bisa dibuat. Periksa tanggal (hari libur, sudah cuti, atau tumpang tindih).";
+      return tt("err.ditolak");
     }
-    if (e.status === 401) return "Email atau password salah";
+    if (e.status === 401) return tt("err.loginSalah");
     if (e.status === 0) return e.message;
     const kode = __DEV__ ? ` [${e.status} ${e.excType ?? ""}]` : "";
-    return `Terjadi masalah di server.${kode} Coba lagi sebentar.`;
+    return tt("err.server", { kode });
   }
-  return "Terjadi kesalahan tak terduga";
+  return tt("err.takTerduga");
 }

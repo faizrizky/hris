@@ -15,6 +15,8 @@ import { hrisApi } from "@/services/api";
 import { useSession } from "@/services/session";
 import { LeaveBalance } from "@/services/types";
 import { useConfirm } from "@/components/ConfirmDialog";
+import { useT } from "@/i18n";
+import { LanguagePicker } from "@/components/LanguagePicker";
 
 export function ProfileScreen({ navigation }: any) {
   const { employee, setEmployee } = useSession();
@@ -22,6 +24,7 @@ export function ProfileScreen({ navigation }: any) {
   const [balances, setBalances] = useState<LeaveBalance[] | null>(null);
   const [pushOn, setPushOn] = useState(true);
   const { mode, toggle } = useThemeMode();
+  const t = useT();
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
   const confirm = useConfirm();
@@ -69,19 +72,19 @@ export function ProfileScreen({ navigation }: any) {
       <ScrollView style={styles.body} contentContainerStyle={styles.content}>
         <View style={styles.statCard}>
           <Stat
-            value={`${tahunSejak(employee.joinDate)} th`}
-            label="Masa kerja"
+            value={`${tahunSejak(employee.joinDate)} ${t("profil.th")}`}
+            label={t("profil.masaKerja")}
           />
           <View style={styles.statDivider} />
           <Stat
             value={`${cuti?.remaining ?? "–"}`}
-            label="Sisa cuti"
+            label={t("profil.sisaCuti")}
             memuat={balances === null}
           />
           <View style={styles.statDivider} />
           <Stat
             value={employee.kpiScore.toFixed(1).replace(".", ",")}
-            label="Skor KPI"
+            label={t("profil.skorKpi")}
           />
         </View>
 
@@ -90,24 +93,24 @@ export function ProfileScreen({ navigation }: any) {
             iconBg={c.info.bg}
             ink={c.info.ink}
             icon={ICON.user}
-            title="Data pribadi & keluarga"
-            subtitle="NIK, alamat, kontak darurat"
+            title={t("profil.dataPribadi")}
+            subtitle={t("profil.dataPribadiSub")}
             onPress={() => navigation.navigate("ProfileData")}
           />
           <MenuRow
             iconBg={c.ok.bg}
             ink={c.ok.ink}
             icon={ICON.document}
-            title="Dokumen digital"
-            subtitle="Kontrak, sertifikat, SK"
+            title={t("profil.dokumen")}
+            subtitle={t("profil.dokumenSub")}
             onPress={() => navigation.navigate("ProfileDocs")}
           />
           <MenuRow
             iconBg={c.warn.bg}
             ink={c.warn.ink}
             icon={ICON.bell}
-            title="Notifikasi push"
-            subtitle="Approval, payroll, pengumuman"
+            title={t("profil.push")}
+            subtitle={t("profil.pushSub")}
             trailing={
               <Switch
                 value={pushOn}
@@ -121,8 +124,12 @@ export function ProfileScreen({ navigation }: any) {
             iconBg={c.info.bg}
             ink={c.info.ink}
             icon={ICON.shield}
-            title="Mode gelap"
-            subtitle={mode === "dark" ? "Aktif" : "Mengikuti pilihanmu"}
+            title={t("profil.modeGelap")}
+            subtitle={
+              mode === "dark"
+                ? t("profil.modeGelapAktif")
+                : t("profil.modeGelapIkuti")
+            }
             trailing={
               <Switch
                 value={mode === "dark"}
@@ -133,29 +140,37 @@ export function ProfileScreen({ navigation }: any) {
             }
           />
           <MenuRow
+            iconBg={c.ok.bg}
+            ink={c.ok.ink}
+            icon={ICON.document}
+            title={t("profil.bahasa")}
+            subtitle={t("profil.bahasaSub")}
+            trailing={<LanguagePicker />}
+          />
+          <MenuRow
             iconBg={c.purple.bg}
             ink={c.purple.ink}
             icon={ICON.shield}
-            title="Keamanan & Face ID"
-            subtitle="Biometrik, ubah password"
+            title={t("profil.keamanan")}
+            subtitle={t("profil.keamananSub")}
             isLast
             onPress={() => navigation.navigate("ProfileSecurity")}
           />
         </View>
 
         <View style={styles.syncCard}>
-          <Text style={styles.syncTitle}>Status sinkronisasi</Text>
+          <Text style={styles.syncTitle}>{t("profil.sinkron")}</Text>
 
           <View style={styles.syncRow}>
             <View style={[styles.dot, { backgroundColor: c.ok.ink }]} />
-            <Text style={styles.syncText}>Tersinkron dengan ERPNext</Text>
+            <Text style={styles.syncText}>{t("profil.tersinkron")}</Text>
             <Text style={styles.syncTime}>14 Sep 08:41</Text>
           </View>
 
           <View style={[styles.syncRow, { marginTop: 9 }]}>
             <View style={[styles.dot, { backgroundColor: c.warn.ink }]} />
-            <Text style={styles.syncText}>2 data offline menunggu kirim</Text>
-            <Text style={styles.syncAction}>Kirim</Text>
+            <Text style={styles.syncText}>{t("profil.antrean")}</Text>
+            <Text style={styles.syncAction}>{t("umum.kirim")}</Text>
           </View>
         </View>
 
@@ -164,15 +179,15 @@ export function ProfileScreen({ navigation }: any) {
           style={styles.logout}
           onPress={async () => {
             const ya = await confirm({
-              title: "Keluar dari akun?",
-              message: "Kamu perlu login lagi untuk memakai aplikasi.",
+              title: t("profil.keluarJudul"),
+              message: t("profil.keluarPesan"),
               tone: "bad",
-              confirmText: "Keluar",
-              cancelText: "Batal",
+              confirmText: t("umum.keluar"),
+              cancelText: t("umum.batal"),
               from: keluarRef,
               fromColor: c.bad.bg,
               fromTextColor: c.bad.ink,
-              fromLabel: "Keluar",
+              fromLabel: t("umum.keluar"),
               fromRadius: 22,
             });
             if (!ya) return;
@@ -180,7 +195,7 @@ export function ProfileScreen({ navigation }: any) {
             setEmployee(null);
           }}
         >
-          <Text style={styles.logoutText}>Keluar</Text>
+          <Text style={styles.logoutText}>{t("umum.keluar")}</Text>
         </Pressable>
       </ScrollView>
     </View>

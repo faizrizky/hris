@@ -33,6 +33,7 @@ import {
 import { tanggalPendek, tanggalPendekTahun, toISODate } from "../../utils/date";
 import { ApiError, get, post, put } from "./http";
 import { kembalikan, terjemahkan } from "@/i18n/serverLabels";
+import { tt } from "@/i18n";
 
 interface EmployeeRow {
   name: string;
@@ -82,7 +83,7 @@ async function ambilRole(): Promise<Role> {
     // supaya tidak tampil sebagai "login gagal".
     if (e instanceof ApiError && e.excType === "SessionExpired") throw e;
     throw new ApiError(
-      "Gagal memuat peran akun",
+      tt("err.peran"),
       e instanceof ApiError ? e.status : 0,
       "RoleFetchFailed",
     );
@@ -106,11 +107,7 @@ async function ambilKaryawanSaatIni() {
   const row = res.data[0];
   if (!row) {
     // Contoh: Administrator tidak punya Employee.
-    throw new ApiError(
-      "Akun belum terhubung ke karyawan",
-      200,
-      "NoEmployeeLinked",
-    );
+    throw new ApiError(tt("err.tanpaKaryawan"), 200, "NoEmployeeLinked");
   }
 
   return {
@@ -735,7 +732,7 @@ export const erpnextApi: HrisApi = {
 
     const approver = await this.getLeaveApprover(input.employeeId);
     if (!approver) {
-      throw new ApiError("Belum ada approver", 0, "NoApprover");
+      throw new ApiError(tt("err.tanpaApprover"), 0, "NoApprover");
     }
 
     const res = await post<{ data: LeaveRow }>(
@@ -941,14 +938,10 @@ export const erpnextApi: HrisApi = {
       });
     } catch (e) {
       if (e instanceof ApiError && e.status === 401) {
-        throw new ApiError("Password lama salah", 401, "WrongPassword");
+        throw new ApiError(tt("err.passwordLama"), 401, "WrongPassword");
       }
       if (e instanceof ApiError && e.status === 417) {
-        throw new ApiError(
-          "Password baru terlalu lemah. Gunakan kombinasi huruf besar, huruf kecil, angka, dan simbol.",
-          417,
-          "WeakPassword",
-        );
+        throw new ApiError(tt("err.passwordLemah"), 417, "WeakPassword");
       }
       throw e;
     }

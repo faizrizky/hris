@@ -9,17 +9,19 @@ import { useSession } from "@/services/session";
 import { LineIcon } from "@/components/LineIcon";
 import { ICON } from "@/constants/icons";
 import { CreateSheet } from "@/components/CreateSheet";
+import { useT } from "@/i18n";
+import type { Kunci } from "@/i18n/id";
 
 const RIGHT = ["Slip Gaji", "Profil"];
 
 // Label di mockup beda dari nama route-nya.
-const LABEL: Record<string, string> = {
-  Beranda: "Home",
-  Absensi: "Absensi",
-  AbsensiTim: "Absensi Kry",
-  Approval: "Approval",
-  "Slip Gaji": "Payroll",
-  Profil: "Profil",
+const LABEL: Record<string, Kunci> = {
+  Beranda: "tab.home",
+  Absensi: "tab.absensi",
+  AbsensiTim: "tab.absensiKry",
+  Approval: "tab.approval",
+  "Slip Gaji": "tab.payroll",
+  Profil: "tab.profil",
 };
 
 function TabIcon({ route, color }: { route: string; color: string }) {
@@ -53,6 +55,7 @@ function TabIcon({ route, color }: { route: string; color: string }) {
 export function FloatingTabBar({ state, navigation }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
   const { employee } = useSession();
+  const t = useT();
   const [sheet, setSheet] = useState(false);
   const currentRoute = state.routes[state.index].name;
   const active = state.routes[state.index] as any;
@@ -105,7 +108,7 @@ export function FloatingTabBar({ state, navigation }: BottomTabBarProps) {
         <View style={styles.iconSlot}>
           <TabIcon route={routeName} color={color} />
         </View>
-        <Text style={[styles.tabLabel, { color }]}>{LABEL[routeName]}</Text>
+        <Text style={[styles.tabLabel, { color }]}>{t(LABEL[routeName]!)}</Text>
       </Pressable>
     );
   };
