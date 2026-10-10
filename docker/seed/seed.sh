@@ -25,7 +25,7 @@ docker compose exec -T -u root backend chmod -R a+rX /tmp/hris-seed
 out=$(docker compose exec -T -w /home/frappe/frappe-bench/sites \
   -e SITE_NAME="${SITE_NAME:-hris.localhost}" -e USER_EMAIL -e USER_PASSWORD -e MSS_USER_EMAIL -e MSS_USER_PASSWORD \
   -e HR_USER_EMAIL -e HR_USER_PASSWORD -e SEED_REGEN_KEYS="$regen" \
-  backend ../env/bin/python /tmp/hris-seed/seed.py 2>&1 | grep -v RuntimeWarning)
+  backend ../env/bin/python /tmp/hris-seed/seed.py 2>&1 | grep -v RuntimeWarning; exit ${PIPESTATUS[0]}) && rc=0 || rc=$?
 # Server Script baru baru terbaca setelah cache dibersihkan.
 docker compose exec -T backend bench --site "${SITE_NAME:-hris.localhost}" clear-cache >/dev/null 2>&1
 # Cetak log tanpa baris rahasia; simpan API key/secret ke .credentials.local.
@@ -38,3 +38,4 @@ for k in API_KEY API_SECRET; do
     echo "[seed] $k baru ditulis ke $CRED"
   fi
 done
+exit ${rc:-0}

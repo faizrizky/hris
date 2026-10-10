@@ -293,6 +293,18 @@ for cf in [
         frappe.clear_cache(doctype=cf["dt"])
 
 for cf in [
+    dict(dt="Employee", fieldname="custom_em2_name", label="Emergency Contact 2 Name", fieldtype="Data",
+         insert_after="emergency_phone_number"),
+    dict(dt="Employee", fieldname="custom_em2_relation", label="Emergency Contact 2 Relation", fieldtype="Data",
+         insert_after="custom_em2_name"),
+    dict(dt="Employee", fieldname="custom_em2_phone", label="Emergency Contact 2 Phone", fieldtype="Data",
+         insert_after="custom_em2_relation"),
+]:
+    if not frappe.db.exists("Custom Field", {"dt": cf["dt"], "fieldname": cf["fieldname"]}):
+        make(dict(doctype="Custom Field", **cf))
+        frappe.clear_cache(doctype=cf["dt"])
+
+for cf in [
     dict(fieldname="custom_delegate", label="Delegate", fieldtype="Link", options="Employee",
          insert_after="leave_approver_name", ignore_user_permissions=1),
     dict(fieldname="custom_delegate_name", label="Delegate Name", fieldtype="Data", read_only=1,
@@ -310,6 +322,26 @@ for _n, _e in frappe.get_all("Leave Application", filters={"custom_designation":
                              fields=["name", "employee"], as_list=True):
     frappe.db.set_value("Leave Application", _n, "custom_designation",
                         frappe.db.get_value("Employee", _e, "designation"), update_modified=False)
+frappe.db.commit()
+
+# 5c. Data profil pribadi (hanya diisi bila masih kosong, supaya edit dari aplikasi tidak tertimpa)
+PERSONAL = {  # key: (alamat, kontak darurat 1 (nama, hubungan, telp), kontak darurat 2 atau None)
+    "rani": ("Jl. Melati No. 12, Jakarta Selatan", ("Siti Aminah", "Ibu", "0813-1111-0001"), ("Andi Test", "Kakak", "0813-2222-0001")),
+    "budi": ("Jl. Kenanga No. 5, Depok", ("Hartono", "Ayah", "0813-1111-0002"), None),
+    "dewi": ("Jl. Anggrek No. 8, Bekasi", ("Bagus Kusuma", "Suami", "0813-1111-0003"), ("Ratna Kusuma", "Ibu", "0813-2222-0003")),
+    "sari": ("Jl. Mawar No. 3, Tangerang", ("Wulan", "Adik", "0813-1111-0004"), None),
+    "agus": ("Jl. Cempaka No. 21, Bogor", ("Pratama Sr", "Ayah", "0813-1111-0005"), None),
+    "maya": ("Jl. Dahlia No. 9, Jakarta Timur", ("Lestari", "Ibu", "0813-1111-0006"), None),
+}
+for i, (key, (addr, em1, em2)) in enumerate(PERSONAL.items(), start=1):
+    cur = frappe.db.get_value("Employee", emp[key], ["current_address", "person_to_be_contacted"], as_dict=True)
+    if not cur.current_address and not cur.person_to_be_contacted:
+        vals = {"current_address": addr, "permanent_address": addr, "personal_email": f"{key}.pribadi@example.com",
+                "date_of_birth": f"199{i}-0{i}-1{i}", "marital_status": "Single",
+                "person_to_be_contacted": em1[0], "relation": em1[1], "emergency_phone_number": em1[2]}
+        if em2:
+            vals.update(custom_em2_name=em2[0], custom_em2_relation=em2[1], custom_em2_phone=em2[2])
+        frappe.db.set_value("Employee", emp[key], vals)
 frappe.db.commit()
 
 EVENT_SCRIPTS = {}  # isi {"nama_file": ("DocType", "Before Save")} untuk script berbasis event dokumen
