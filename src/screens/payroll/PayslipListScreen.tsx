@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useMemo } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { RevealScrollView as ScrollView } from "@/components/Reveal";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -7,7 +7,6 @@ import { Palette } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
 import { hrisApi } from "@/services/api";
 import { useSession } from "@/services/session";
-import { Payslip } from "@/services/types";
 import {
   PayslipHero,
   PayslipHistoryCard,
@@ -15,20 +14,22 @@ import {
 } from "./PayslipCards";
 import { PdfButton } from "@/components/PdfButton";
 import { Skeleton } from "@/components/Skeleton";
+import { useLoad } from "@/hooks/useLoad";
+import { ErrorState } from "@/components/ErrorState";
 
 export function PayslipListScreen({ navigation }: any) {
   const { employee } = useSession();
   const insets = useSafeAreaInsets();
-  const [payslips, setPayslips] = useState<Payslip[] | null>(null);
+  const slip = useLoad(
+    () => (employee ? hrisApi.getPayslips(employee.id) : Promise.resolve([])),
+    [employee],
+  );
+  const payslips = slip.data;
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
 
-  useEffect(() => {
-    if (!employee) return;
-    hrisApi.getPayslips(employee.id).then(setPayslips);
-  }, [employee]);
+  const memuat = slip.memuat;
 
-  const memuat = payslips === null;
   const latest = payslips?.[0];
   const previous = payslips?.slice(1) ?? [];
 
@@ -44,6 +45,10 @@ export function PayslipListScreen({ navigation }: any) {
         <Text style={styles.headerTitle}>Slip Gaji</Text>
         <PdfButton />
       </View>
+
+      {slip.error && !payslips ? (
+        <ErrorState pesan={slip.error} onUlangi={slip.ulangi} />
+      ) : null}
 
       <ScrollView contentContainerStyle={styles.content}>
         {memuat && (

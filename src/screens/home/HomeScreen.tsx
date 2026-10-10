@@ -185,6 +185,7 @@ export function HomeScreen() {
       icon: ICON.tax,
       bg: c.info.bg,
       ink: c.info.ink,
+      onPress: () => navigation.navigate("Slip Gaji", { screen: "TaxDetail" }),
     },
   ];
 

@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useMemo } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { RevealScrollView as ScrollView } from "@/components/Reveal";
 import { Ionicons } from "@expo/vector-icons";
@@ -10,6 +10,8 @@ import { useSession } from "@/services/session";
 import { BpjsItem, TaxSummary } from "@/services/types";
 import { angka, rupiah } from "@/utils/currency";
 import { Skeleton } from "@/components/Skeleton";
+import { useLoad } from "@/hooks/useLoad";
+import { ErrorState } from "@/components/ErrorState";
 
 /** 3.7 -> "3,7" · 2 -> "2" */
 function persen(n: number) {
@@ -20,14 +22,14 @@ const TINGGI_BAR = [44, 60, 38, 96, 50, 64, 42, 72, 55, 48, 68];
 export function TaxScreen({ navigation }: any) {
   const { employee } = useSession();
   const insets = useSafeAreaInsets();
-  const [tax, setTax] = useState<TaxSummary | null>(null);
+  const ringkasan = useLoad(
+    () =>
+      employee ? hrisApi.getTaxSummary(employee.id) : Promise.resolve(null),
+    [employee],
+  );
+  const tax = ringkasan.data;
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
-
-  useEffect(() => {
-    if (!employee) return;
-    hrisApi.getTaxSummary(employee.id).then(setTax);
-  }, [employee]);
 
   const head = (
     <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
@@ -39,6 +41,16 @@ export function TaxScreen({ navigation }: any) {
   );
 
   if (!tax) {
+    if (ringkasan.error) {
+      return (
+        <View style={styles.container}>
+          {head}
+          <ScrollView contentContainerStyle={styles.content}>
+            <ErrorState pesan={ringkasan.error} onUlangi={ringkasan.ulangi} />
+          </ScrollView>
+        </View>
+      );
+    }
     return (
       <View style={styles.container}>
         {head}
