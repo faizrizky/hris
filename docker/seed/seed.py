@@ -230,6 +230,20 @@ if not frappe.db.exists("Custom DocPerm", {"parent": "Employee Checkin", "role":
 
 # Custom Field delegasi cuti. ignore_user_permissions=1 supaya ESS boleh memilih rekan
 # yang tidak termasuk User Permission-nya (Employee dirinya sendiri).
+# Custom field untuk koreksi absensi (Attendance Request). custom_rejected di permlevel 1
+# agar role Employee tidak bisa mengubahnya.
+for cf in [
+    dict(dt="Attendance Request", fieldname="custom_requested_check_in", label="Requested Check In",
+         fieldtype="Time", insert_after="explanation"),
+    dict(dt="Attendance Request", fieldname="custom_requested_check_out", label="Requested Check Out",
+         fieldtype="Time", insert_after="custom_requested_check_in"),
+    dict(dt="Attendance Request", fieldname="custom_rejected", label="Rejected",
+         fieldtype="Check", permlevel=1, insert_after="custom_requested_check_out"),
+]:
+    if not frappe.db.exists("Custom Field", {"dt": cf["dt"], "fieldname": cf["fieldname"]}):
+        make(dict(doctype="Custom Field", **cf))
+        frappe.clear_cache(doctype=cf["dt"])
+
 for cf in [
     dict(fieldname="custom_delegate", label="Delegate", fieldtype="Link", options="Employee",
          insert_after="leave_approver_name", ignore_user_permissions=1),
