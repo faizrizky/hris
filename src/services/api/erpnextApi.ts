@@ -32,6 +32,7 @@ import {
 } from "../types";
 import { tanggalPendek, tanggalPendekTahun, toISODate } from "../../utils/date";
 import { ApiError, get, post, put } from "./http";
+import { kembalikan, terjemahkan } from "@/i18n/serverLabels";
 
 interface EmployeeRow {
   name: string;
@@ -62,7 +63,9 @@ function inisial(nama: string): string {
 
 // ERPNext menambahkan sufiks company: "Keuangan - FT" -> "Keuangan".
 function tanpaSufiks(departemen: string | null): string {
-  return departemen ? departemen.replace(/ - [^-]+$/, "") : "—";
+  return departemen
+    ? terjemahkan("department", departemen.replace(/ - [^-]+$/, ""))
+    : "—";
 }
 
 // Doc User dan Has Role tidak bisa dibaca role Employee, jadi role diambil
@@ -115,7 +118,9 @@ async function ambilKaryawanSaatIni() {
     nik: row.employee_number ?? "—",
     fullName: row.employee_name,
     role: await ambilRole(),
-    jobTitle: row.designation ?? "—",
+    jobTitle: row.designation
+      ? terjemahkan("designation", row.designation)
+      : "—",
     department: tanpaSufiks(row.department),
     avatarInitials: inisial(row.employee_name),
     joinDate: row.date_of_joining ?? "",
@@ -138,13 +143,13 @@ interface LeaveDetailsRes {
 
 // Hanya jenis cuti yang dikenal aplikasi. Jenis lain di ERPNext diabaikan dulu.
 const JENIS_SALDO: Record<string, { type: LeaveType; label: string }> = {
-  "Cuti Tahunan": { type: "cuti", label: "Cuti tahunan" },
-  "Cuti Sakit": { type: "sakit", label: "Cuti sakit" },
+  "Annual Leave": { type: "cuti", label: "Cuti tahunan" },
+  "Sick Leave": { type: "sakit", label: "Cuti sakit" },
 };
 
 const NAMA_JENIS: Partial<Record<LeaveType, string>> = {
-  cuti: "Cuti Tahunan",
-  sakit: "Cuti Sakit",
+  cuti: "Annual Leave",
+  sakit: "Sick Leave",
 };
 
 async function ambilSaldo(employeeId: string): Promise<LeaveBalance[]> {
@@ -227,9 +232,11 @@ function bentukPengajuan(row: LeaveRow): LeaveRequest {
     employeeId: row.employee,
     employeeName: row.employee_name,
     employeeInitials: inisial(row.employee_name),
-    employeeJobTitle: row.custom_designation ?? "",
-    type: row.leave_type === "Cuti Sakit" ? "sakit" : "cuti",
-    label: `${row.leave_type} · ${row.total_leave_days} hari`,
+    employeeJobTitle: row.custom_designation
+      ? terjemahkan("designation", row.custom_designation)
+      : "",
+    type: row.leave_type === "Sick Leave" ? "sakit" : "cuti",
+    label: `${terjemahkan("leaveType", row.leave_type)} · ${row.total_leave_days} hari`,
     reason: row.description ? `${periode} · ${row.description}` : periode,
     delegateName: row.custom_delegate_name,
     stage: status.stage,
@@ -350,14 +357,14 @@ function bentukStaff(r: StaffRow): Staff {
     id: r.name,
     initials: inisial(r.employee_name),
     fullName: r.employee_name,
-    jobTitle: r.designation ?? "—",
+    jobTitle: r.designation ? terjemahkan("designation", r.designation) : "—",
     department: tanpaSufiks(r.department),
     code: r.employee_number ?? r.name,
     status: r.employment_type === "Contract" ? "Kontrak" : "Tetap",
     employment: teksKepegawaian(r),
     joinDate: r.date_of_joining ?? "",
     manager: r.reports_to_name ?? "—",
-    shift: r.shift ?? "—",
+    shift: r.shift ? terjemahkan("shift", r.shift) : "—",
     email: r.company_email ?? "—",
     phone: r.cell_number ?? "—",
     leaveLeft: r.leave_left ?? 0,
@@ -367,7 +374,7 @@ function bentukStaff(r: StaffRow): Staff {
       state: r.today.state ?? "belum",
       checkIn: r.today.check_in,
       checkOut: r.today.check_out,
-      label: r.today.label,
+      label: terjemahkan("attendanceLabel", r.today.label),
     },
   };
 }
@@ -428,7 +435,9 @@ function bentukProfil(r: ProfileRow): PersonalProfile {
     family: [], // belum ada sumbernya
     primaryEmergency: {
       name: r.emergency.name ?? "—",
-      relation: r.emergency.relation ?? "—",
+      relation: r.emergency.relation
+        ? terjemahkan("relation", r.emergency.relation)
+        : "—",
       phone: r.emergency.phone ?? "—",
     },
     editable: {
@@ -436,7 +445,9 @@ function bentukProfil(r: ProfileRow): PersonalProfile {
       personalEmail: r.personal_email ?? "",
       address: r.current_address ?? "",
       em2Name: r.em2.name ?? "",
-      em2Relation: r.em2.relation ?? "",
+      em2Relation: r.em2.relation
+        ? terjemahkan("relation", r.em2.relation)
+        : "",
       em2Phone: r.em2.phone ?? "",
     },
   };
@@ -619,11 +630,11 @@ function bentukSlip(r: SlipRow): Payslip {
     bankAccount: samarkanRekening(r.bank_account_no),
     paidAt: tanggalPendekTahun(r.posting_date),
     earnings: r.earnings.map((e) => ({
-      label: e.salary_component,
+      label: terjemahkan("salaryComponent", e.salary_component),
       amount: e.amount,
     })),
     deductions: r.deductions.map((d) => ({
-      label: d.salary_component,
+      label: terjemahkan("salaryComponent", d.salary_component),
       amount: d.amount,
     })),
     grossPay: r.gross_pay,
@@ -701,7 +712,7 @@ export const erpnextApi: HrisApi = {
       id: r.name,
       initials: inisial(r.employee_name),
       fullName: r.employee_name,
-      jobTitle: r.designation ?? "—",
+      jobTitle: r.designation ? terjemahkan("designation", r.designation) : "—",
     }));
   },
 
@@ -842,6 +853,9 @@ export const erpnextApi: HrisApi = {
     const tahun = data?.year ?? new Date().getFullYear();
     const latest = data?.latest;
     const gross = latest?.gross_pay ?? 0;
+    const bulanTerakhir = (data?.months ?? [])
+      .filter((m) => m.gross > 0)
+      .at(-1);
     return {
       year: tahun,
       // PTKP, NPWP, dan TER tidak ada sumbernya di ERPNext; tidak dikarang.
@@ -854,7 +868,8 @@ export const erpnextApi: HrisApi = {
           amount: m.pph21,
         })),
       peakReason: "",
-      basePeriod: latest ? latest.period.split(" ")[0]! : "—",
+      // Nama bulan dari nomor bulan, bukan dari teks server (berbahasa Inggris).
+      basePeriod: bulanTerakhir ? BULAN[bulanTerakhir.month - 1]! : "—",
       grossPay: gross,
       terCategory: "—",
       ptkpStatus: "—",
@@ -862,7 +877,7 @@ export const erpnextApi: HrisApi = {
       monthTax: latest?.pph21 ?? 0,
       // Tinggal porsi karyawan (persen dari bruto); porsi perusahaan tidak ada.
       bpjs: (latest?.bpjs ?? []).map((b) => ({
-        label: b.label,
+        label: terjemahkan("salaryComponent", b.label),
         employeePct: gross ? Math.round((b.amount / gross) * 10000) / 100 : 0,
         companyPct: 0,
       })),
@@ -886,7 +901,7 @@ export const erpnextApi: HrisApi = {
         personal_email: data.personalEmail,
         address: data.address,
         em2_name: data.em2Name,
-        em2_relation: data.em2Relation,
+        em2_relation: kembalikan("relation", data.em2Relation),
         em2_phone: data.em2Phone,
       },
     );
