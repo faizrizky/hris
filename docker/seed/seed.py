@@ -357,15 +357,19 @@ except Exception as ex:
     frappe.db.rollback()
     log(f"PERINGATAN: payroll dilewati ({ex})")
 
-# Employee Checkin.time berada di permlevel 1, sehingga nilai `time` dari role Employee diabaikan
-# diam-diam (diganti jam server). Izin tulis permlevel 1 dibutuhkan agar antrean offline bisa
-# mengirim waktu aslinya.
-from frappe.permissions import add_permission, update_permission_property
-if not frappe.db.exists("Custom DocPerm", {"parent": "Employee Checkin", "role": "Employee", "permlevel": 1, "write": 1}):
-    add_permission("Employee Checkin", "Employee", 1)
-    update_permission_property("Employee Checkin", "Employee", 1, "write", 1)
-    frappe.db.commit()
-    log("izin tulis permlevel 1 Employee Checkin untuk role Employee ditambahkan")
+# Employee Checkin.time berada di permlevel 1. Dulu role Employee diberi izin tulis permlevel 1 agar
+# klien bisa mengirim jam; sekarang jam ditentukan server lewat hris_checkin (sadar zona waktu),
+# jadi izin itu DICABUT (idempoten). Jam yang dikirim langsung ke /api/resource diabaikan (jam server).
+for _n in frappe.get_all("Custom DocPerm", filters={"parent": "Employee Checkin", "role": "Employee", "permlevel": 1},
+                         pluck="name"):
+    frappe.delete_doc("Custom DocPerm", _n, force=1)
+    frappe.clear_cache(doctype="Employee Checkin")
+    log("izin tulis permlevel 1 Employee Checkin untuk role Employee dicabut")
+if not frappe.db.exists("Custom Field", {"dt": "Employee Checkin", "fieldname": "custom_timezone"}):
+    make(dict(doctype="Custom Field", dt="Employee Checkin", fieldname="custom_timezone", label="Timezone Used",
+              fieldtype="Data", insert_after="device_id"))
+    frappe.clear_cache(doctype="Employee Checkin")
+frappe.db.commit()
 
 # Custom Field delegasi cuti. ignore_user_permissions=1 supaya ESS boleh memilih rekan
 # yang tidak termasuk User Permission-nya (Employee dirinya sendiri).
@@ -433,6 +437,51 @@ for i, (key, (addr, em1, em2)) in enumerate(PERSONAL.items(), start=1):
         if em2:
             vals.update(custom_em2_name=em2[0], custom_em2_relation=em2[1], custom_em2_phone=em2[2])
         frappe.db.set_value("Employee", emp[key], vals)
+frappe.db.commit()
+
+for cf in [
+    dict(dt="Travel Request", fieldname="custom_destination", label="Destination", fieldtype="Data", insert_after="employee_name"),
+    dict(dt="Travel Request", fieldname="custom_from_date", label="From Date", fieldtype="Date", insert_after="custom_destination"),
+    dict(dt="Travel Request", fieldname="custom_to_date", label="To Date", fieldtype="Date", insert_after="custom_from_date"),
+    dict(dt="Travel Request", fieldname="custom_transport", label="Transport", fieldtype="Data", insert_after="custom_to_date"),
+    dict(dt="Travel Request", fieldname="custom_timezone", label="Work Location Timezone", fieldtype="Data",
+         default="Asia/Jakarta", description="IANA timezone, e.g. Asia/Jakarta, Asia/Makassar, Asia/Jayapura",
+         insert_after="custom_transport"),
+    dict(dt="Travel Request", fieldname="custom_rejected", label="Rejected", fieldtype="Check", permlevel=1,
+         insert_after="custom_timezone"),
+]:
+    if not frappe.db.exists("Custom Field", {"dt": cf["dt"], "fieldname": cf["fieldname"]}):
+        make(dict(doctype="Custom Field", **cf))
+        frappe.clear_cache(doctype=cf["dt"])
+
+# Doctype kustom "Overtime Request" (hrms Overtime Slip berbasis payroll/attendance, tanpa alur pengajuan).
+# Dibuat/diakses lewat Server Script (ignore_permissions); role HR mengelola di web.
+if not frappe.db.exists("DocType", "Overtime Request"):
+    make(dict(
+        doctype="DocType", name="Overtime Request", module="HR", custom=1, naming_rule="Expression (old style)",
+        autoname="OT-.YYYY.-.#####", track_changes=1,
+        fields=[
+            dict(fieldname="employee", label="Employee", fieldtype="Link", options="Employee", reqd=1, in_list_view=1),
+            dict(fieldname="employee_name", label="Employee Name", fieldtype="Data", fetch_from="employee.employee_name",
+                 read_only=1, in_list_view=1),
+            dict(fieldname="date", label="Date", fieldtype="Date", reqd=1, in_list_view=1),
+            dict(fieldname="is_holiday", label="Holiday / Weekly Off", fieldtype="Check"),
+            dict(fieldname="start_time", label="Start Time", fieldtype="Time", reqd=1),
+            dict(fieldname="end_time", label="End Time", fieldtype="Time", reqd=1),
+            dict(fieldname="hours", label="Hours", fieldtype="Float", in_list_view=1),
+            dict(fieldname="note", label="Work Description", fieldtype="Small Text"),
+            dict(fieldname="status", label="Status", fieldtype="Select", options="pending\napproved\npaid\nrejected",
+                 default="pending", in_list_view=1, in_standard_filter=1),
+        ],
+        permissions=[dict(role="System Manager", read=1, write=1, create=1, delete=1),
+                     dict(role="HR Manager", read=1, write=1, create=1, delete=1),
+                     dict(role="HR User", read=1, write=1, create=1)]))
+    frappe.clear_cache()
+if frappe.db.get_value("DocType", "Overtime Request", "autoname") != "OT-.YYYY.-.#####":
+    frappe.db.set_value("DocType", "Overtime Request", {"autoname": "OT-.YYYY.-.#####",
+                                                         "naming_rule": "Expression (old style)"})
+    frappe.clear_cache()
+    log("penamaan Overtime Request diperbaiki")
 frappe.db.commit()
 
 # Sinkronkan label Custom Field yang sudah ada ke bahasa Inggris (nama field tidak berubah).

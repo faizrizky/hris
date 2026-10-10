@@ -10,7 +10,27 @@ me = frappe.get_all(
     limit_page_length=1,
 )
 if me:
-    today = frappe.utils.nowdate()
+    # --- zona waktu kerja aktif: custom_timezone Travel Request approved yang mencakup hari ini ---
+    tz = frappe.utils.get_system_timezone()
+    sys_today = frappe.utils.nowdate()
+    trips = frappe.get_all(
+        "Travel Request",
+        filters={
+            "employee": me[0].name,
+            "docstatus": 1,
+            "custom_rejected": 0,
+            "custom_from_date": ["<=", sys_today],
+            "custom_to_date": [">=", sys_today],
+        },
+        fields=["custom_timezone"],
+        order_by="custom_from_date desc",
+        limit_page_length=1,
+    )
+    if trips and trips[0].custom_timezone:
+        tz = trips[0].custom_timezone
+    local_now = str(frappe.utils.get_datetime_in_timezone(tz))[:19]
+    today = local_now[:10]
+
     logs = frappe.get_all(
         "Employee Checkin",
         filters={

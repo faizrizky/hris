@@ -2,7 +2,7 @@
 # Kotak masuk notifikasi pemanggil (Notification Log, for_user = session user), terbaru dulu, maks 50.
 # category diturunkan dari document_type: Leave Application -> Approval, Salary Slip -> Payroll,
 # Attendance Request -> Presensi. tone: ok | warn | info | bad. time = waktu server (Asia/Jakarta, tanpa offset).
-cat_map = {"Leave Application": "Approval", "Salary Slip": "Payroll", "Attendance Request": "Presensi"}
+cat_map = {"Leave Application": "Approval", "Salary Slip": "Payroll", "Attendance Request": "Presensi", "Travel Request": "Approval", "Overtime Request": "Approval"}
 rows = frappe.get_all(
     "Notification Log",
     filters={"for_user": frappe.session.user},
