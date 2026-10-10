@@ -3,11 +3,13 @@ import { Animated, Easing, StyleSheet, Text, View } from "react-native";
 import Svg, { Line, Rect } from "react-native-svg";
 import { Palette } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
+import { useT } from "@/i18n";
 
 const MAP_H = 216;
 const CELL = 26;
 
 export function MapPreview() {
+  const t = useT();
   const [width, setWidth] = useState(0);
   const [pulse] = useState(() => new Animated.Value(0));
 
@@ -95,7 +97,7 @@ export function MapPreview() {
       <View style={styles.pin} />
 
       <View style={styles.mapBadge}>
-        <Text style={styles.mapBadgeText}>radius 120 m · geofence OK</Text>
+        <Text style={styles.mapBadgeText}>{t("ab.radius")}</Text>
       </View>
     </View>
   );

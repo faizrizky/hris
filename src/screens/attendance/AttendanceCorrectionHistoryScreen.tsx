@@ -20,17 +20,21 @@ import {
 } from "@/constants/statusLabels";
 import { pisahAlasan } from "@/utils/Correction";
 import { bulanSingkat, namaHari, tanggalAngka } from "@/utils/date";
+import { namaJenisKoreksi } from "./KoreksiCards";
+import { useT } from "@/i18n";
+import type { Kunci } from "@/i18n/id";
 
 type Filter = "semua" | AttendanceRequestedStatus;
 
-const CHIPS: { key: Filter; label: string }[] = [
-  { key: "semua", label: "Semua" },
-  { key: "pending", label: "Menunggu" },
-  { key: "approved", label: "Disetujui" },
-  { key: "rejected", label: "Ditolak" },
+const CHIPS: { key: Filter; label: Kunci }[] = [
+  { key: "semua", label: "kor.semua" },
+  { key: "pending", label: "st.menunggu" },
+  { key: "approved", label: "st.disetujui" },
+  { key: "rejected", label: "st.ditolak" },
 ];
 
 export function AttendanceCorrectionHistoryScreen({ navigation }: any) {
+  const t = useT();
   const { employee } = useSession();
   const insets = useSafeAreaInsets();
   const koreksi = useLoad(
@@ -69,14 +73,14 @@ export function AttendanceCorrectionHistoryScreen({ navigation }: any) {
         <Pressable style={styles.backBtn} onPress={() => navigation.goBack()}>
           <Ionicons name="chevron-back" size={18} color={c.ink} />
         </Pressable>
-        <Text style={styles.headerTitle}>Riwayat Koreksi</Text>
+        <Text style={styles.headerTitle}>{t("kor.hJudul")}</Text>
         <View style={{ flex: 1 }} />
         <Pressable
           style={styles.addBtn}
           onPress={() => navigation.navigate("AttendanceCorrection")}
         >
           <LineIcon d={ICON.plus} color="#fff" size={13} />
-          <Text style={styles.addText}>Ajukan</Text>
+          <Text style={styles.addText}>{t("kor.ajukan")}</Text>
         </Pressable>
       </View>
 
@@ -94,7 +98,7 @@ export function AttendanceCorrectionHistoryScreen({ navigation }: any) {
               style={[styles.chip, on && styles.chipOn]}
             >
               <Text style={[styles.chipText, on && styles.chipTextOn]}>
-                {c.label}
+                {t(c.label)}
                 {n > 0 ? ` ${n}` : ""}
               </Text>
             </Pressable>
@@ -109,12 +113,24 @@ export function AttendanceCorrectionHistoryScreen({ navigation }: any) {
         ListHeaderComponent={
           total > 0 ? (
             <View style={styles.recapCard}>
-              <Text style={styles.recapLabel}>Ringkasan pengajuan</Text>
+              <Text style={styles.recapLabel}>{t("kor.ringkasan")}</Text>
 
               <View style={styles.recapRow}>
-                <Recap value={pending} label="Menunggu" color={c.warn.ink} />
-                <Recap value={approved} label="Disetujui" color={c.ok.ink} />
-                <Recap value={rejected} label="Ditolak" color={c.bad.ink} />
+                <Recap
+                  value={pending}
+                  label={t("st.menunggu")}
+                  color={c.warn.ink}
+                />
+                <Recap
+                  value={approved}
+                  label={t("st.disetujui")}
+                  color={c.ok.ink}
+                />
+                <Recap
+                  value={rejected}
+                  label={t("st.ditolak")}
+                  color={c.bad.ink}
+                />
               </View>
 
               <View style={styles.bar}>
@@ -135,8 +151,8 @@ export function AttendanceCorrectionHistoryScreen({ navigation }: any) {
 
               <Text style={styles.recapNote}>
                 {pending > 0
-                  ? `${pending} pengajuan masih menunggu keputusan atasan`
-                  : "Semua pengajuan sudah diputuskan"}
+                  ? t("kor.masihMenunggu", { n: pending })
+                  : t("kor.semuaPutus")}
               </Text>
             </View>
           ) : null
@@ -163,21 +179,19 @@ export function AttendanceCorrectionHistoryScreen({ navigation }: any) {
                 <LineIcon d={ICON.fileCheck} color={c.muted} size={22} />
               </View>
               <Text style={styles.emptyTitle}>
-                {total === 0
-                  ? "Belum ada pengajuan koreksi"
-                  : "Tidak ada yang cocok"}
+                {total === 0 ? t("kor.kosongJudul") : t("kor.tidakCocok")}
               </Text>
               <Text style={styles.emptyText}>
-                {total === 0
-                  ? "Koreksi dipakai saat log absensi tidak sesuai, misalnya lupa absen keluar atau aplikasi error."
-                  : "Ganti filter di atas untuk melihat pengajuan lainnya."}
+                {total === 0 ? t("kor.kosongIsi") : t("kor.gantiFilter")}
               </Text>
               {total === 0 && (
                 <Pressable
                   style={styles.emptyBtn}
                   onPress={() => navigation.navigate("AttendanceCorrection")}
                 >
-                  <Text style={styles.emptyBtnText}>Ajukan koreksi</Text>
+                  <Text style={styles.emptyBtnText}>
+                    {t("kor.ajukanKoreksi")}
+                  </Text>
                 </Pressable>
               )}
             </View>
@@ -202,7 +216,7 @@ export function AttendanceCorrectionHistoryScreen({ navigation }: any) {
 
                 <View style={{ flex: 1, minWidth: 0 }}>
                   <Text style={styles.rowTitle} numberOfLines={1}>
-                    {jenis}
+                    {namaJenisKoreksi(jenis)}
                   </Text>
                   <Text style={styles.rowDetail}>
                     {namaHari(item.date)} · {item.requestedCheckIn} –{" "}
@@ -224,11 +238,11 @@ export function AttendanceCorrectionHistoryScreen({ navigation }: any) {
 
               {terbuka && (
                 <View style={styles.rowBody}>
-                  <Text style={styles.bodyLabel}>Penjelasan</Text>
+                  <Text style={styles.bodyLabel}>{t("kor.penjelasan")}</Text>
                   <Text style={styles.bodyText}>{catatan || "—"}</Text>
 
                   <Text style={[styles.bodyLabel, { marginTop: 11 }]}>
-                    Dokumen ERPNext
+                    {t("kor.dokErp")}
                   </Text>
                   <Text style={styles.bodyDoc}>
                     Attendance Request · HR-ATR-{item.id}

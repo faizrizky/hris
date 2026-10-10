@@ -17,11 +17,13 @@ import {
   ATTENDANCE_STATUS_LABEL as STATUS_LABEL,
   ATTENDANCE_STATUS_TONE as STATUS_TONE,
 } from "@/constants/statusLabels";
-import { namaHari, tanggalAngka, bulanSingkat } from "@/utils/date";
+import { namaHari, tanggalAngka, bulanSingkat, namaBulan } from "@/utils/date";
+import { useT, bahasaAktif } from "@/i18n";
 
 type Filter = "semua" | "telat" | "izin";
 
 export function AttendanceHistoryScreen({ navigation }: any) {
+  const t = useT();
   const { employee } = useSession();
   const insets = useSafeAreaInsets();
   const riwayat = useLoad(
@@ -47,7 +49,7 @@ export function AttendanceHistoryScreen({ navigation }: any) {
   const izin = count("izin");
 
   const persen = semua.length
-    ? `${(((hadir + telat) / semua.length) * 100).toFixed(1).replace(".", ",")}%`
+    ? `${(((hadir + telat) / semua.length) * 100).toFixed(1).replace(".", bahasaAktif() === "en" ? "." : ",")}%`
     : "–";
 
   const filtered = semua.filter(
@@ -55,9 +57,9 @@ export function AttendanceHistoryScreen({ navigation }: any) {
   );
 
   const chips: { key: Filter; label: string }[] = [
-    { key: "semua", label: "September" },
-    { key: "telat", label: `Telat (${telat})` },
-    { key: "izin", label: `Izin (${izin})` },
+    { key: "semua", label: namaBulan() },
+    { key: "telat", label: t("ab.telatN", { n: telat }) },
+    { key: "izin", label: t("ab.izinN", { n: izin }) },
   ];
 
   return (
@@ -66,10 +68,10 @@ export function AttendanceHistoryScreen({ navigation }: any) {
         <Pressable style={styles.backBtn} onPress={() => navigation.goBack()}>
           <Ionicons name="chevron-back" size={18} color={c.ink} />
         </Pressable>
-        <Text style={styles.headerTitle}>Riwayat Absensi</Text>
+        <Text style={styles.headerTitle}>{t("ab.hTitle")}</Text>
         <View style={{ flex: 1 }} />
         <Pressable style={styles.exportBtn}>
-          <Text style={styles.exportText}>Export</Text>
+          <Text style={styles.exportText}>{t("ab.export")}</Text>
         </Pressable>
       </View>
 
@@ -97,10 +99,10 @@ export function AttendanceHistoryScreen({ navigation }: any) {
         ListHeaderComponent={
           <View style={styles.recapCard}>
             <View style={{ flex: 1 }}>
-              <Text style={styles.recapLabel}>Rekap bulan ini</Text>
+              <Text style={styles.recapLabel}>{t("ab.rekap")}</Text>
               <View style={styles.recapRow}>
                 {memuat ? (
-                  ["Hadir", "Telat", "Izin", "Alpha"].map((l) => (
+                  ["hadir", "telat", "izin", "alpha"].map((l) => (
                     <View key={l} style={{ gap: 6 }}>
                       <Skeleton width={26} height={20} radius={6} />
                       <Skeleton width={30} height={9} radius={4} />
@@ -108,10 +110,18 @@ export function AttendanceHistoryScreen({ navigation }: any) {
                   ))
                 ) : (
                   <>
-                    <Recap value={hadir} label="Hadir" color={c.ink} />
-                    <Recap value={telat} label="Telat" color={c.warn.ink} />
-                    <Recap value={izin} label="Izin" color={c.info.ink} />
-                    <Recap value={0} label="Alpha" color={c.bad.ink} />
+                    <Recap value={hadir} label={t("st.hadir")} color={c.ink} />
+                    <Recap
+                      value={telat}
+                      label={t("st.telat")}
+                      color={c.warn.ink}
+                    />
+                    <Recap
+                      value={izin}
+                      label={t("st.izin")}
+                      color={c.info.ink}
+                    />
+                    <Recap value={0} label={t("ab.alpha")} color={c.bad.ink} />
                   </>
                 )}
               </View>

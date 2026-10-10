@@ -14,15 +14,34 @@ import {
 } from "@/constants/statusLabels";
 import { jamMenit } from "@/utils/date";
 import { BuktiFile } from "@/screens/leave/LemburFormCards";
+import { useT, tt } from "@/i18n";
 
+// Nilai ini ikut tersimpan di ERPNext (bahasa Inggris); tampilannya diterjemahkan.
 export const JENIS_KOREKSI = [
-  "Lupa absen masuk",
-  "Lupa absen keluar",
-  "Aplikasi gagal / error",
-  "GPS tidak akurat",
-  "Dinas luar kantor",
-  "Lainnya",
+  "Forgot check-in",
+  "Forgot check-out",
+  "App error",
+  "Inaccurate GPS",
+  "Off-site duty",
+  "Other",
 ] as const;
+
+// Pengajuan lama tersimpan dengan teks Indonesia.
+const JENIS_LAMA: Record<string, JenisKoreksi> = {
+  "Lupa absen masuk": "Forgot check-in",
+  "Lupa absen keluar": "Forgot check-out",
+  "Aplikasi gagal / error": "App error",
+  "GPS tidak akurat": "Inaccurate GPS",
+  "Dinas luar kantor": "Off-site duty",
+  Lainnya: "Other",
+};
+
+export function namaJenisKoreksi(v: string): string {
+  const baku = (JENIS_KOREKSI as readonly string[]).includes(v)
+    ? (v as JenisKoreksi)
+    : JENIS_LAMA[v];
+  return baku ? tt(`kor.${baku}`) : v;
+}
 
 export type JenisKoreksi = (typeof JENIS_KOREKSI)[number];
 
@@ -31,12 +50,13 @@ const STEP = 15;
 /* ---------- Data tercatat (read-only) ---------- */
 
 export function TercatatCard({ record }: { record: AttendanceRecord | null }) {
+  const t = useT();
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
   return (
     <View style={[styles.card, { marginTop: 12 }]}>
       <View style={styles.headRow}>
-        <Text style={styles.cardTitle}>Data tercatat</Text>
+        <Text style={styles.cardTitle}>{t("kor.dataTercatat")}</Text>
         {record ? (
           <StatusBadge
             label={ATTENDANCE_STATUS_LABEL[record.status]}
@@ -44,23 +64,21 @@ export function TercatatCard({ record }: { record: AttendanceRecord | null }) {
             variant="compact"
           />
         ) : (
-          <StatusBadge label="Tidak ada log" tone="bad" variant="compact" />
+          <StatusBadge label={t("kor.tanpaLog")} tone="bad" variant="compact" />
         )}
       </View>
 
       <Text style={styles.desc}>
-        {record
-          ? "Nilai dari mesin absensi. Bandingkan dengan jam yang kamu ajukan."
-          : "Tidak ada log di tanggal ini, jadi bukti pendukung wajib dilampirkan."}
+        {record ? t("kor.descAda") : t("kor.descTanpa")}
       </Text>
 
       <View style={styles.timeRow}>
         <View style={styles.readBox}>
-          <Text style={styles.label}>Masuk</Text>
+          <Text style={styles.label}>{t("kor.masuk")}</Text>
           <Text style={styles.readValue}>{record?.checkIn ?? "—"}</Text>
         </View>
         <View style={styles.readBox}>
-          <Text style={styles.label}>Keluar</Text>
+          <Text style={styles.label}>{t("kor.keluar")}</Text>
           <Text style={styles.readValue}>{record?.checkOut ?? "—"}</Text>
         </View>
       </View>
@@ -111,25 +129,34 @@ export function JamAjuanCard({
   onChangeMasuk: (v: number) => void;
   onChangeKeluar: (v: number) => void;
 }) {
+  const t = useT();
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
   return (
     <View style={[styles.card, { marginTop: 12 }]}>
       <View style={styles.headRow}>
-        <Text style={styles.cardTitle}>Jam yang diajukan</Text>
+        <Text style={styles.cardTitle}>{t("kor.jamAjuan")}</Text>
         <View style={[styles.badge, { backgroundColor: c.info.bg }]}>
           <Text style={[styles.badgeText, { color: c.info.ink }]}>
-            Langkah {STEP} menit
+            {t("kor.langkah", { n: STEP })}
           </Text>
         </View>
       </View>
 
       <View style={styles.timeRow}>
-        <StepBox label="Masuk" nilai={masuk} onChange={onChangeMasuk} />
-        <StepBox label="Keluar" nilai={keluar} onChange={onChangeKeluar} />
+        <StepBox
+          label={t("kor.masuk")}
+          nilai={masuk}
+          onChange={onChangeMasuk}
+        />
+        <StepBox
+          label={t("kor.keluar")}
+          nilai={keluar}
+          onChange={onChangeKeluar}
+        />
       </View>
 
-      <Text style={styles.rule}>Masuk 05:00–12:00 · keluar 06:00–23:45</Text>
+      <Text style={styles.rule}>{t("kor.aturanJam")}</Text>
     </View>
   );
 }
@@ -149,36 +176,40 @@ export function AlasanKoreksiCard({
 }) {
   const [buka, setBuka] = useState(false);
   const panjang = alasan.trim().length;
+  const t = useT();
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
 
   return (
     <View style={[styles.card, { marginTop: 12 }]}>
-      <Text style={styles.cardTitle}>Alasan koreksi</Text>
+      <Text style={styles.cardTitle}>{t("kor.alasan")}</Text>
 
-      <Text style={[styles.label, { marginTop: 14 }]}>Jenis</Text>
+      <Text style={[styles.label, { marginTop: 14 }]}>{t("kor.jenis")}</Text>
       <Pressable style={styles.selectBox} onPress={() => setBuka(true)}>
-        <Text style={styles.selectText}>{jenis}</Text>
+        <Text style={styles.selectText}>{namaJenisKoreksi(jenis)}</Text>
         <Ionicons name="chevron-down" size={15} color={c.muted} />
       </Pressable>
 
-      <Text style={[styles.label, { marginTop: 14 }]}>Penjelasan</Text>
+      <Text style={[styles.label, { marginTop: 14 }]}>
+        {t("kor.penjelasan")}
+      </Text>
       <TextInput
         style={styles.textarea}
         value={alasan}
         onChangeText={onChangeAlasan}
-        placeholder="Contoh: HP mati saat tiba di kantor, kehadiran dicatat manual oleh security."
+        placeholder={t("kor.contoh")}
         placeholderTextColor={c.mutedLabel}
         multiline
       />
       <Text style={[styles.counter, panjang < 15 && { color: c.bad.ink }]}>
-        {panjang}/15 karakter minimum
+        {t("kor.minimum", { n: panjang })}
       </Text>
 
       <PickerSheet
         visible={buka}
-        title="Jenis koreksi"
+        title={t("kor.jenisKoreksi")}
         options={JENIS_KOREKSI}
+        labelOf={namaJenisKoreksi}
         value={jenis}
         onSelect={(v) => onPickJenis(v as JenisKoreksi)}
         onClose={() => setBuka(false)}
@@ -201,26 +232,25 @@ export function BuktiKoreksiCard({
   onRemove: (index: number) => void;
 }) {
   const kurang = wajib && files.length === 0;
+  const t = useT();
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
 
   return (
     <View style={[styles.card, { marginTop: 12 }]}>
       <View style={styles.headRow}>
-        <Text style={styles.cardTitle}>Bukti pendukung</Text>
+        <Text style={styles.cardTitle}>{t("kor.buktiPendukung")}</Text>
         <View
           style={[styles.badge, { backgroundColor: wajib ? c.bad.bg : c.chip }]}
         >
           <Text
             style={[styles.badgeText, { color: wajib ? c.bad.ink : c.muted }]}
           >
-            {wajib ? "Wajib" : "Opsional"}
+            {wajib ? t("kor.wajib") : t("kor.opsional")}
           </Text>
         </View>
       </View>
-      <Text style={styles.desc}>
-        Screenshot log aplikasi, foto buku tamu, atau surat keterangan atasan
-      </Text>
+      <Text style={styles.desc}>{t("kor.buktiDesc")}</Text>
 
       <View style={{ gap: 8, marginTop: 12 }}>
         {files.map((f, i) => (
@@ -251,7 +281,7 @@ export function BuktiKoreksiCard({
             size={18}
           />
           <Text style={[styles.addText, kurang ? { color: c.bad.ink } : null]}>
-            Tambah lampiran
+            {t("kor.tambahLampiran")}
           </Text>
         </Pressable>
       </View>

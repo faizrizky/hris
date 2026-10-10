@@ -16,7 +16,7 @@ import { Palette } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
 import { hrisApi } from "@/services/api";
 import { useSession } from "@/services/session";
-import { AttendanceRecord } from "@/services/types";
+import { AttendanceRecord, LeaveApprover } from "@/services/types";
 import { ATTENDANCE_STATUS_LABEL } from "@/constants/statusLabels";
 import { DatePickerCard } from "@/components/DatePickerCard";
 import {
@@ -31,6 +31,7 @@ import {
   JamAjuanCard,
   JenisKoreksi,
   TercatatCard,
+  namaJenisKoreksi,
 } from "./KoreksiCards";
 import {
   durasiJam,
@@ -40,13 +41,11 @@ import {
   tanggalPendek,
 } from "@/utils/date";
 import { describeError } from "@/services/api/http";
-
-const APPROVERS: ApprovalStep[] = [
-  { ini: "BP", name: "Bayu Pratama", role: "Atasan langsung" },
-  { ini: "DL", name: "Dinda Larasati", role: "HR Admin" },
-];
+import { useT } from "@/i18n";
 
 export function AttendanceCorrectionScreen({ navigation }: any) {
+  const t = useT();
+  const [approver, setApprover] = useState<LeaveApprover | null>(null);
   const { employee } = useSession();
   const insets = useSafeAreaInsets();
 
@@ -54,7 +53,7 @@ export function AttendanceCorrectionScreen({ navigation }: any) {
   const [tanggal, setTanggal] = useState<string | null>(null);
   const [masuk, setMasukRaw] = useState(8 * 60);
   const [keluar, setKeluarRaw] = useState(17 * 60);
-  const [jenis, setJenis] = useState<JenisKoreksi>("Lupa absen masuk");
+  const [jenis, setJenis] = useState<JenisKoreksi>("Forgot check-in");
   const [alasan, setAlasan] = useState("");
   const [files, setFiles] = useState<BuktiFile[]>([]);
   const [sending, setSending] = useState(false);
@@ -65,6 +64,10 @@ export function AttendanceCorrectionScreen({ navigation }: any) {
 
   useEffect(() => {
     if (!employee) return;
+    hrisApi
+      .getLeaveApprover(employee.id)
+      .then(setApprover)
+      .catch(() => setApprover(null));
     hrisApi
       .getAttendanceHistory(employee.id)
       .then(setHistory)
@@ -96,13 +99,13 @@ export function AttendanceCorrectionScreen({ navigation }: any) {
   const buktiWajib = !!tanggal && !record;
 
   const blockMsg = !tanggal
-    ? "Tanggal belum dipilih"
+    ? t("kor.blokTgl")
     : keluar < masuk + 60
-      ? "Jam keluar minimal 1 jam setelah masuk"
+      ? t("kor.blokJam")
       : alasan.trim().length < 15
-        ? "Penjelasan minimal 15 karakter"
+        ? t("kor.blokPenjelasan")
         : buktiWajib && files.length === 0
-          ? "Tidak ada log absensi, bukti wajib dilampirkan"
+          ? t("kor.blokBukti")
           : "";
 
   const bisaKirim = !blockMsg && !sending;
@@ -110,29 +113,47 @@ export function AttendanceCorrectionScreen({ navigation }: any) {
   const footer = tanggal
     ? [
         {
-          label: "Tanggal",
+          label: t("kor.tanggal"),
           value: `${namaHari(tanggal)}, ${tanggalPendek(tanggal)}`,
         },
         {
-          label: "Log tercatat",
-          value: record ? ATTENDANCE_STATUS_LABEL[record.status] : "Tidak ada",
+          label: t("kor.logTercatat"),
+          value: record
+            ? ATTENDANCE_STATUS_LABEL[record.status]
+            : t("kor.tidakAda"),
           accent: !record,
         },
       ]
     : [
-        { label: "Tanggal", value: "Belum dipilih" },
-        { label: "Log tercatat", value: "—" },
+        { label: t("kor.tanggal"), value: t("kor.belumDipilih") },
+        { label: t("kor.logTercatat"), value: "—" },
       ];
 
   const buatDoneRows = () => {
     if (!tanggal) return [];
     return [
-      { k: "Tanggal", v: `${namaHari(tanggal)}, ${tanggalPendek(tanggal)}` },
-      { k: "Jam diajukan", v: `${jamMenit(masuk)} – ${jamMenit(keluar)}` },
-      { k: "Jenis", v: jenis },
-      { k: "Bukti", v: `${files.length} file` },
+      {
+        k: t("kor.tanggal"),
+        v: `${namaHari(tanggal)}, ${tanggalPendek(tanggal)}`,
+      },
+      {
+        k: t("kor.jamDiajukan"),
+        v: `${jamMenit(masuk)} – ${jamMenit(keluar)}`,
+      },
+      { k: t("kor.jenis"), v: namaJenisKoreksi(jenis) },
+      { k: t("kor.bukti"), v: t("kor.nFile", { n: files.length }) },
     ];
   };
+
+  const langkahApproval: ApprovalStep[] = approver
+    ? [
+        {
+          ini: approver.initials,
+          name: approver.fullName,
+          role: t("lr.atasan"),
+        },
+      ]
+    : [];
 
   const handleSubmit = async () => {
     if (!employee || !tanggal || !bisaKirim) return;
@@ -162,7 +183,7 @@ export function AttendanceCorrectionScreen({ navigation }: any) {
             <Ionicons name="chevron-back" size={18} color={c.ink} />
           </Pressable>
           <View style={{ flex: 1, minWidth: 0 }}>
-            <Text style={styles.headerTitle}>Koreksi Absensi</Text>
+            <Text style={styles.headerTitle}>{t("kor.judul")}</Text>
             <Text style={styles.headerSub}>Attendance Request</Text>
           </View>
         </View>
@@ -178,8 +199,8 @@ export function AttendanceCorrectionScreen({ navigation }: any) {
         >
           {done ? (
             <FormDoneView
-              title="Koreksi absensi terkirim"
-              waitingOn={APPROVERS[0].name}
+              title={t("kor.terkirim")}
+              waitingOn={approver?.fullName ?? t("lr.approver")}
               rows={buatDoneRows()}
               doc={`Attendance Request · HR-ATR-${done}`}
               onLihat={() => navigation.navigate("AttendanceCorrectionHistory")}
@@ -190,8 +211,8 @@ export function AttendanceCorrectionScreen({ navigation }: any) {
               <DatePickerCard
                 mode="single"
                 allow="past"
-                title="Tanggal yang dikoreksi"
-                hint="Hanya tanggal yang sudah berjalan"
+                title={t("kor.tglKoreksi")}
+                hint={t("kor.hintTgl")}
                 start={tanggal}
                 end={tanggal}
                 onChange={(s) => setTanggal(s)}
@@ -221,7 +242,7 @@ export function AttendanceCorrectionScreen({ navigation }: any) {
                   setFiles((prev) => [
                     ...prev,
                     {
-                      name: `bukti-koreksi-${prev.length + 1}.jpg`,
+                      name: t("kor.buktiFile", { n: prev.length + 1 }),
                       size: "0,9 MB",
                     },
                   ])
@@ -231,7 +252,7 @@ export function AttendanceCorrectionScreen({ navigation }: any) {
                 }
               />
 
-              <ApprovalFlowCard steps={APPROVERS} />
+              <ApprovalFlowCard steps={langkahApproval} />
             </>
           )}
         </ScrollView>
@@ -246,7 +267,7 @@ export function AttendanceCorrectionScreen({ navigation }: any) {
                 blockMsg || galat ? { color: c.bad.ink } : null,
               ]}
             >
-              {blockMsg || galat || "Siap dikirim"}
+              {blockMsg || galat || t("kor.siap")}
             </Text>
             <Text style={styles.sumTop}>
               {tanggal && keluar > masuk
@@ -267,7 +288,7 @@ export function AttendanceCorrectionScreen({ navigation }: any) {
                   bisaKirim ? { color: "#fff" } : null,
                 ]}
               >
-                {sending ? "Mengirim..." : "Kirim koreksi"}
+                {sending ? t("kor.mengirim") : t("kor.kirim")}
               </Text>
             </LinearGradient>
           </Pressable>

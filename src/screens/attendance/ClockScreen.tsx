@@ -18,8 +18,10 @@ import { FaceViewfinder } from "./FaceViewfinder";
 import { Skeleton } from "@/components/Skeleton";
 import { describeError } from "@/services/api/http";
 import { ErrorState } from "@/components/ErrorState";
+import { useT } from "@/i18n";
 
 export function ClockScreen({ navigation }: any) {
+  const t = useT();
   const { employee } = useSession();
   const insets = useSafeAreaInsets();
   const [state, setState] = useState<ClockState | null>(null);
@@ -56,7 +58,7 @@ export function ClockScreen({ navigation }: any) {
           >
             <Ionicons name="chevron-back" size={18} color={c.ink} />
           </Pressable>
-          <Text style={styles.headerTitle}>Presensi</Text>
+          <Text style={styles.headerTitle}>{t("ab.presensi")}</Text>
         </View>
 
         <View style={styles.content}>
@@ -91,7 +93,7 @@ export function ClockScreen({ navigation }: any) {
     );
   }
 
-  const aksi = state.clockedIn ? "Clock Out" : "Clock In";
+  const aksi = state.clockedIn ? t("ab.clockOut") : t("ab.clockIn");
   const done = step === 2;
 
   const handleNext = async () => {
@@ -119,10 +121,10 @@ export function ClockScreen({ navigation }: any) {
   };
 
   const ctaLabel = done
-    ? "Selesai, ke Beranda"
+    ? t("ab.selesai")
     : step === 0
-      ? "Lanjut verifikasi wajah"
-      : `Konfirmasi ${aksi}`;
+      ? t("ab.lanjutWajah")
+      : t("ab.konfirmasi", { aksi });
 
   const jam = state.clockedIn ? state.lastCheckIn : state.lastCheckOut;
 
@@ -135,10 +137,10 @@ export function ClockScreen({ navigation }: any) {
         >
           <Ionicons name="chevron-back" size={18} color={c.ink} />
         </Pressable>
-        <Text style={styles.headerTitle}>Presensi</Text>
+        <Text style={styles.headerTitle}>{t("ab.presensi")}</Text>
         <View style={{ flex: 1 }} />
         <View style={styles.onlinePill}>
-          <Text style={styles.onlineText}>Online</Text>
+          <Text style={styles.onlineText}>{t("ab.online")}</Text>
         </View>
       </View>
 
@@ -167,12 +169,8 @@ export function ClockScreen({ navigation }: any) {
                 <LineIcon d={ICON.location} color={c.info.ink} size={16} />
               </View>
               <View style={{ flex: 1, minWidth: 0 }}>
-                <Text style={styles.locationName}>
-                  Kantor Pusat — Jl. Gatot Subroto 42
-                </Text>
-                <Text style={styles.locationCoord}>
-                  -6.23412, 106.81674 · akurasi 8 m
-                </Text>
+                <Text style={styles.locationName}>{t("ab.kantor")}</Text>
+                <Text style={styles.locationCoord}>{t("ab.koordinat")}</Text>
               </View>
             </View>
           </View>
@@ -180,10 +178,8 @@ export function ClockScreen({ navigation }: any) {
 
         {step === 1 && (
           <View style={[styles.panel, styles.facePanel]}>
-            <Text style={styles.faceTitle}>Face Recognition</Text>
-            <Text style={styles.faceSub}>
-              Posisikan wajah di dalam bingkai, lepas masker dan kacamata gelap
-            </Text>
+            <Text style={styles.faceTitle}>{t("ab.faceTitle")}</Text>
+            <Text style={styles.faceSub}>{t("ab.faceSub")}</Text>
             <FaceViewfinder />
             <View style={styles.faceChips}>
               <View style={[styles.faceChip, { backgroundColor: c.ok.bg }]}>
@@ -211,20 +207,20 @@ export function ClockScreen({ navigation }: any) {
               <View style={styles.doneCheck}>
                 <Ionicons name="checkmark" size={30} color="#fff" />
               </View>
-              <Text style={styles.doneTitle}>{aksi} berhasil</Text>
+              <Text style={styles.doneTitle}>{t("ab.berhasil", { aksi })}</Text>
               <Text style={styles.doneSub}>
                 {formatTanggalPanjang()} · {jam ?? "--:--"} WIB
               </Text>
 
               <View style={styles.doneMeta}>
-                <DoneMeta label="Metode" value="Face + GPS" />
-                <DoneMeta label="Status" value="Tepat waktu" />
-                <DoneMeta label="Shift" value="Reguler" />
+                <DoneMeta label={t("ab.metode")} value="Face + GPS" />
+                <DoneMeta label={t("ab.status")} value={t("ab.tepat")} />
+                <DoneMeta label={t("ab.shift")} value={t("ab.reguler")} />
               </View>
             </LinearGradient>
 
             <View style={styles.syncCard}>
-              <Text style={styles.syncLabel}>Tersinkron ke ERPNext</Text>
+              <Text style={styles.syncLabel}>{t("ab.tersinkron")}</Text>
               <Text style={styles.syncValue}>
                 Employee Checkin · ECKIN-2026-08841
               </Text>
@@ -242,7 +238,7 @@ export function ClockScreen({ navigation }: any) {
             disabled={loading}
           >
             <Text style={styles.ctaText}>
-              {loading ? "Memproses..." : ctaLabel}
+              {loading ? t("umum.memproses") : ctaLabel}
             </Text>
           </Pressable>
 
@@ -250,21 +246,21 @@ export function ClockScreen({ navigation }: any) {
             style={styles.secondary}
             onPress={() => navigation.navigate("History")}
           >
-            <Text style={styles.secondaryText}>Lihat riwayat absensi</Text>
+            <Text style={styles.secondaryText}>{t("ab.riwayat")}</Text>
           </Pressable>
 
           <Pressable
             style={styles.secondary}
             onPress={() => navigation.navigate("AttendanceCorrection")}
           >
-            <Text style={styles.secondaryText}>Ajukan koreksi absensi</Text>
+            <Text style={styles.secondaryText}>{t("ab.koreksi")}</Text>
           </Pressable>
 
           <Pressable
             style={styles.secondary}
             onPress={() => navigation.navigate("AttendanceCorrectionHistory")}
           >
-            <Text style={styles.secondaryText}>Riwayat koreksi</Text>
+            <Text style={styles.secondaryText}>{t("ab.riwayatKoreksi")}</Text>
           </Pressable>
         </View>
       </ScrollView>
