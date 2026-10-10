@@ -196,6 +196,45 @@ for e in emp.values():
                   start_date=f"{Y}-01-01", end_date=f"{Y}-12-31", status="Active"), submit=True)
 frappe.db.commit()
 
+# 7b. Pengaturan gaji per karyawan (isi di form Employee, tab/section "Pengaturan Gaji").
+# permlevel 1: hanya HR User / HR Manager yang boleh melihat dan mengubah.
+_payroll_fields_created = False
+for cf in [
+    dict(fieldname="custom_pengaturan_gaji", label="Pengaturan Gaji", fieldtype="Section Break",
+         permlevel=1, insert_after="ctc"),
+    dict(fieldname="custom_tunjangan_jabatan", label="Tunjangan Jabatan (Rp)", fieldtype="Currency",
+         default="0", permlevel=1, insert_after="custom_pengaturan_gaji"),
+    dict(fieldname="custom_tarif_bpjs_kesehatan", label="Tarif BPJS Kesehatan (%)", fieldtype="Float",
+         default="1", permlevel=1, insert_after="custom_tunjangan_jabatan"),
+    dict(fieldname="custom_tarif_bpjs_jht", label="Tarif BPJS JHT (%)", fieldtype="Float",
+         default="2", permlevel=1, insert_after="custom_tarif_bpjs_kesehatan"),
+    dict(fieldname="custom_tarif_bpjs_jp", label="Tarif BPJS JP (%)", fieldtype="Float",
+         default="1", permlevel=1, insert_after="custom_tarif_bpjs_jht"),
+    dict(fieldname="custom_tarif_pph21", label="Tarif PPh 21 (%)", fieldtype="Float",
+         default="2.5", permlevel=1, insert_after="custom_tarif_bpjs_jp"),
+]:
+    if not frappe.db.exists("Custom Field", {"dt": "Employee", "fieldname": cf["fieldname"]}):
+        make(dict(doctype="Custom Field", dt="Employee", **cf))
+        _payroll_fields_created = True
+if _payroll_fields_created:
+    frappe.clear_cache(doctype="Employee")
+for _role in ("HR User", "HR Manager"):
+    if not frappe.db.exists("Custom DocPerm", {"parent": "Employee", "role": _role, "permlevel": 1}):
+        from frappe.permissions import add_permission, update_permission_property
+        add_permission("Employee", _role, 1)
+        update_permission_property("Employee", _role, 1, "write", 1)
+        log(f"izin permlevel 1 Employee untuk {_role} ditambahkan")
+frappe.db.commit()
+# Nilai awal HANYA saat field baru dibuat; sesudahnya nilai yang diubah user di web tidak disentuh.
+if _payroll_fields_created:
+    for _k, _e in emp.items():
+        frappe.db.set_value("Employee", _e, {
+            "custom_tunjangan_jabatan": 1500000 if _k == "dewi" else 0,
+            "custom_tarif_bpjs_kesehatan": 1, "custom_tarif_bpjs_jht": 2,
+            "custom_tarif_bpjs_jp": 1, "custom_tarif_pph21": 2.5})
+    frappe.db.commit()
+    log("nilai awal pengaturan gaji diisi")
+
 # 8. Payroll: komponen, struktur gaji, slip gaji Juli-September -------------------------
 BANK = {"rani": "1234567801", "budi": "1234567802", "dewi": "1234567803",
         "sari": "1234567804", "agus": "1234567805", "maya": "1234567806"}
@@ -206,11 +245,11 @@ COMPONENTS = [  # (nama, abbr, tipe, formula, remove_if_zero)
     ("Gaji Pokok", "GP", "Earning", "base", 0),
     ("Tunjangan Transport", "TT", "Earning", "500000", 0),
     ("Tunjangan Makan", "TM", "Earning", "750000", 0),
-    ("Tunjangan Jabatan", "TJ", "Earning", '1500000 if designation == "Manajer Keuangan" else 0', 1),
-    ("BPJS Kesehatan", "BPK", "Deduction", "GP * 0.01", 0),
-    ("BPJS JHT", "BJHT", "Deduction", "GP * 0.02", 0),
-    ("BPJS JP", "BJP", "Deduction", "GP * 0.01", 0),
-    ("PPh 21", "PPH", "Deduction", "(GP + TT + TM + TJ) * 0.025", 0),
+    ("Tunjangan Jabatan", "TJ", "Earning", "custom_tunjangan_jabatan", 1),
+    ("BPJS Kesehatan", "BPK", "Deduction", "GP * custom_tarif_bpjs_kesehatan / 100", 0),
+    ("BPJS JHT", "BJHT", "Deduction", "GP * custom_tarif_bpjs_jht / 100", 0),
+    ("BPJS JP", "BJP", "Deduction", "GP * custom_tarif_bpjs_jp / 100", 0),
+    ("PPh 21", "PPH", "Deduction", "(GP + TT + TM + TJ) * custom_tarif_pph21 / 100", 0),
 ]
 try:
     for key, num in BANK.items():
@@ -234,16 +273,26 @@ try:
         frappe.delete_doc("Salary Component", "Potongan BPJS", force=1)
         frappe.db.commit()
         log("struktur gaji lama dibongkar")
+    OLD_FORMULAS = {  # migrasi satu kali: rumus lama (tarif tetap) -> rumus baru (field Employee)
+        "Tunjangan Jabatan": '1500000 if designation == "Manajer Keuangan" else 0',
+        "BPJS Kesehatan": "GP * 0.01", "BPJS JHT": "GP * 0.02", "BPJS JP": "GP * 0.01",
+        "PPh 21": "(GP + TT + TM + TJ) * 0.025",
+    }
     for n, ab, t, fm, rz in COMPONENTS:
-        vals = dict(salary_component_abbr=ab, type=t, amount_based_on_formula=1, formula=fm,
-                    remove_if_zero_valued=rz, depends_on_payment_days=0 if t == "Deduction" else 1)
         if not exists("Salary Component", n):
-            make(dict(doctype="Salary Component", salary_component=n, **vals))
-        else:
-            sc = frappe.get_doc("Salary Component", n)
-            if any(sc.get(k) != v for k, v in vals.items()):
-                sc.update(vals)
-                sc.save()
+            make(dict(doctype="Salary Component", salary_component=n, salary_component_abbr=ab, type=t,
+                      amount_based_on_formula=1, formula=fm, remove_if_zero_valued=rz,
+                      depends_on_payment_days=0 if t == "Deduction" else 1))
+        elif OLD_FORMULAS.get(n) and frappe.db.get_value("Salary Component", n, "formula") == OLD_FORMULAS[n]:
+            frappe.db.set_value("Salary Component", n, "formula", fm)
+            log(f"rumus komponen {n} dimigrasi")
+        if exists("Salary Structure", STRUCT) and OLD_FORMULAS.get(n):
+            # update di tempat (kolom formula allow_on_submit), tanpa bongkar struktur
+            for _row in frappe.get_all("Salary Detail", filters={"parent": STRUCT, "salary_component": n,
+                                                                   "formula": OLD_FORMULAS[n]}, pluck="name"):
+                frappe.db.set_value("Salary Detail", _row, "formula", fm)
+                log(f"rumus {n} di {STRUCT} dimigrasi")
+    frappe.db.commit()
     if not exists("Salary Structure", STRUCT):
         def rows(tp):
             return [dict(salary_component=n, abbr=ab, amount_based_on_formula=1, formula=fm)
