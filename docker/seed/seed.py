@@ -196,27 +196,75 @@ for e in emp.values():
                   start_date=f"{Y}-01-01", end_date=f"{Y}-12-31", status="Active"), submit=True)
 frappe.db.commit()
 
-# 8. Salary structure + slip contoh (opsional) ----------------------------------
+# 8. Payroll: komponen, struktur gaji, slip gaji Juli-September -------------------------
+BANK = {"rani": "1234567801", "budi": "1234567802", "dewi": "1234567803",
+        "sari": "1234567804", "agus": "1234567805", "maya": "1234567806"}
+BASE = {"rani": 7500000, "budi": 6500000, "dewi": 12000000, "sari": 11000000,
+        "agus": 6000000, "maya": 6500000}
+STRUCT = "Struktur Gaji Standar"
+COMPONENTS = [  # (nama, abbr, tipe, formula, remove_if_zero)
+    ("Gaji Pokok", "GP", "Earning", "base", 0),
+    ("Tunjangan Transport", "TT", "Earning", "500000", 0),
+    ("Tunjangan Makan", "TM", "Earning", "750000", 0),
+    ("Tunjangan Jabatan", "TJ", "Earning", '1500000 if designation == "Manajer Keuangan" else 0', 1),
+    ("BPJS Kesehatan", "BPK", "Deduction", "GP * 0.01", 0),
+    ("BPJS JHT", "BJHT", "Deduction", "GP * 0.02", 0),
+    ("BPJS JP", "BJP", "Deduction", "GP * 0.01", 0),
+    ("PPh 21", "PPH", "Deduction", "(GP + TT + TM + TJ) * 0.025", 0),
+]
 try:
-    for n, t, ab in [("Gaji Pokok", "Earning", "GP"), ("Potongan BPJS", "Deduction", "BPJS")]:
+    for key, num in BANK.items():
+        frappe.db.set_value("Employee", emp[key], {"bank_name": "BCA", "bank_ac_no": num, "salary_mode": "Bank"})
+    # Migrasi: struktur lama (komponen "Potongan BPJS" tunggal) dibongkar lalu dibangun ulang.
+    if exists("Salary Structure", STRUCT) and any(d.salary_component == "Potongan BPJS" for d in
+                                                  frappe.get_doc("Salary Structure", STRUCT).deductions):
+        for n in frappe.get_all("Salary Slip", pluck="name"):
+            d = frappe.get_doc("Salary Slip", n)
+            if d.docstatus == 1:
+                d.cancel()
+            frappe.delete_doc("Salary Slip", n, force=1)
+        for n in frappe.get_all("Salary Structure Assignment", pluck="name"):
+            d = frappe.get_doc("Salary Structure Assignment", n)
+            if d.docstatus == 1:
+                d.cancel()
+            frappe.delete_doc("Salary Structure Assignment", n, force=1)
+        d = frappe.get_doc("Salary Structure", STRUCT)
+        d.cancel()
+        frappe.delete_doc("Salary Structure", STRUCT, force=1)
+        frappe.delete_doc("Salary Component", "Potongan BPJS", force=1)
+        frappe.db.commit()
+        log("struktur gaji lama dibongkar")
+    for n, ab, t, fm, rz in COMPONENTS:
+        vals = dict(salary_component_abbr=ab, type=t, amount_based_on_formula=1, formula=fm,
+                    remove_if_zero_valued=rz, depends_on_payment_days=0 if t == "Deduction" else 1)
         if not exists("Salary Component", n):
-            make(dict(doctype="Salary Component", salary_component=n, salary_component_abbr=ab, type=t))
-    if not exists("Salary Structure", "Struktur Gaji Standar"):
-        make(dict(doctype="Salary Structure", name="Struktur Gaji Standar", company=C, currency="IDR",
+            make(dict(doctype="Salary Component", salary_component=n, **vals))
+        else:
+            sc = frappe.get_doc("Salary Component", n)
+            if any(sc.get(k) != v for k, v in vals.items()):
+                sc.update(vals)
+                sc.save()
+    if not exists("Salary Structure", STRUCT):
+        def rows(tp):
+            return [dict(salary_component=n, abbr=ab, amount_based_on_formula=1, formula=fm)
+                    for n, ab, t, fm, rz in COMPONENTS if t == tp]
+        make(dict(doctype="Salary Structure", name=STRUCT, company=C, currency="IDR",
                   payroll_frequency="Monthly", is_active="Yes",
-                  earnings=[dict(salary_component="Gaji Pokok", amount=10000000)],
-                  deductions=[dict(salary_component="Potongan BPJS", amount=200000)]), submit=True)
-    for e in emp.values():
+                  earnings=rows("Earning"), deductions=rows("Deduction")), submit=True)
+    for key, e in emp.items():
         if not exists("Salary Structure Assignment", {"employee": e, "docstatus": 1}):
-            make(dict(doctype="Salary Structure Assignment", employee=e, salary_structure="Struktur Gaji Standar",
-                      from_date=f"{Y}-01-01", company=C, base=10000000), submit=True)
-        if not exists("Salary Slip", {"employee": e}):
-            make(dict(doctype="Salary Slip", employee=e, posting_date=f"{Y}-09-30", start_date=f"{Y}-09-01",
-                      end_date=f"{Y}-09-30", salary_structure="Struktur Gaji Standar"), submit=True)
+            make(dict(doctype="Salary Structure Assignment", employee=e, salary_structure=STRUCT,
+                      from_date=f"{Y}-01-01", company=C, base=BASE[key]), submit=True)
+        for m in (7, 8, 9):
+            first = f"{Y}-{m:02d}-01"
+            if not exists("Salary Slip", {"employee": e, "start_date": first, "docstatus": 1}):
+                last = frappe.utils.get_last_day(first).strftime("%Y-%m-%d")
+                make(dict(doctype="Salary Slip", employee=e, posting_date=last, start_date=first,
+                          end_date=last, salary_structure=STRUCT), submit=True)
     frappe.db.commit()
 except Exception as ex:
     frappe.db.rollback()
-    log(f"PERINGATAN: salary dilewati ({ex})")
+    log(f"PERINGATAN: payroll dilewati ({ex})")
 
 # Employee Checkin.time berada di permlevel 1, sehingga nilai `time` dari role Employee diabaikan
 # diam-diam (diganti jam server). Izin tulis permlevel 1 dibutuhkan agar antrean offline bisa
