@@ -28,10 +28,14 @@ import {
   kekurangan,
   persenKelengkapan,
 } from "@/utils/ProfileCompleteness";
+import { useT } from "@/i18n";
+import { terjemahkan } from "@/i18n/serverLabels";
 
-const HUBUNGAN = ["Ibu", "Saudara", "Teman", "Lainnya"];
+// Nilai baku ERPNext; tampilannya mengikuti bahasa lewat terjemahkan().
+const HUBUNGAN = ["Mother", "Sibling", "Friend", "Other"];
 
 export function ProfileEditScreen({ navigation }: any) {
+  const t = useT();
   const { employee } = useSession();
   const insets = useSafeAreaInsets();
   const c = useTheme();
@@ -82,7 +86,7 @@ export function ProfileEditScreen({ navigation }: any) {
       <Pressable style={styles.backBtn} onPress={() => navigation.goBack()}>
         <Ionicons name="chevron-back" size={18} color={c.ink} />
       </Pressable>
-      <Text style={styles.headerTitle}>Ubah Data</Text>
+      <Text style={styles.headerTitle}>{t("pe.judul")}</Text>
     </View>
   );
 
@@ -156,7 +160,7 @@ export function ProfileEditScreen({ navigation }: any) {
         >
           <View style={styles.card}>
             <View style={styles.cardHead}>
-              <Text style={styles.cardTitle}>Kelengkapan data</Text>
+              <Text style={styles.cardTitle}>{t("pe.kelengkapan")}</Text>
               <Text style={styles.pct}>{persen}%</Text>
             </View>
             <View style={styles.track}>
@@ -164,26 +168,28 @@ export function ProfileEditScreen({ navigation }: any) {
             </View>
             <Text style={styles.hint}>
               {kurang.length === 0
-                ? "Semua data sudah terisi. Simpan untuk mengirim ke HR."
-                : `Tersisa ${kurang.map((k) => k.judul.toLowerCase()).join(" dan ")}.`}
+                ? t("pe.lengkap")
+                : t("pe.tersisa", {
+                    daftar: kurang
+                      .map((k) => k.judul.toLowerCase())
+                      .join(t("pe.dan")),
+                  })}
             </Text>
           </View>
 
           <View style={[styles.card, { marginTop: 12 }]}>
-            <Text style={styles.cardTitle}>Data pribadi</Text>
+            <Text style={styles.cardTitle}>{t("pe.dataPribadi")}</Text>
             <View style={{ gap: 12, marginTop: 14 }}>
-              <LockedRow label="Nama lengkap" value={profil?.fullName ?? "—"} />
-              <LockedRow label="NIK" value={profil?.nikMasked ?? "—"} />
+              <LockedRow label={t("pe.nama")} value={profil?.fullName ?? "—"} />
+              <LockedRow label={t("pe.nik")} value={profil?.nikMasked ?? "—"} />
             </View>
-            <Text style={styles.note}>
-              Nama dan NIK hanya dapat diubah oleh HR melalui pengajuan dokumen.
-            </Text>
+            <Text style={styles.note}>{t("pe.catatanKunci")}</Text>
           </View>
 
           <View style={[styles.card, { marginTop: 12 }]}>
-            <Text style={styles.cardTitle}>Kontak & alamat</Text>
+            <Text style={styles.cardTitle}>{t("pe.kontakAlamat")}</Text>
 
-            <Text style={styles.label}>Telepon</Text>
+            <Text style={styles.label}>{t("pe.telepon")}</Text>
             <TextInput
               style={styles.input}
               value={draft?.phone ?? ""}
@@ -193,7 +199,7 @@ export function ProfileEditScreen({ navigation }: any) {
               keyboardType="phone-pad"
             />
 
-            <Text style={styles.label}>Email pribadi</Text>
+            <Text style={styles.label}>{t("pe.emailPribadi")}</Text>
             <TextInput
               style={[styles.input, emailSalah && { borderColor: c.bad.ink }]}
               value={draft?.personalEmail ?? ""}
@@ -205,51 +211,53 @@ export function ProfileEditScreen({ navigation }: any) {
               autoCorrect={false}
             />
             {emailSalah && (
-              <Text style={styles.error}>Format email belum sesuai</Text>
+              <Text style={styles.error}>{t("pe.emailSalah")}</Text>
             )}
 
-            <Text style={styles.label}>Alamat domisili</Text>
+            <Text style={styles.label}>{t("pe.alamat")}</Text>
             <TextInput
               style={[styles.input, styles.textarea]}
               value={draft?.address ?? ""}
               onChangeText={(v) => ubah({ address: v })}
-              placeholder="Alamat lengkap"
+              placeholder={t("pe.alamatPh")}
               placeholderTextColor={c.mutedLabel}
               multiline
             />
           </View>
 
           <View style={[styles.card, { marginTop: 12 }]}>
-            <Text style={styles.cardTitle}>Kontak darurat kedua</Text>
+            <Text style={styles.cardTitle}>{t("kl.kontak2")}</Text>
 
-            <Text style={styles.label}>Nama</Text>
+            <Text style={styles.label}>{t("pe.nama2")}</Text>
             <TextInput
               style={styles.input}
               value={draft?.em2Name ?? ""}
               onChangeText={(v) => ubah({ em2Name: v })}
-              placeholder="Nama lengkap"
+              placeholder={t("pe.namaPh")}
               placeholderTextColor={c.mutedLabel}
             />
 
-            <Text style={styles.label}>Hubungan</Text>
+            <Text style={styles.label}>{t("pe.hubungan")}</Text>
             <View style={styles.chipRow}>
               {HUBUNGAN.map((h) => {
-                const on = draft?.em2Relation === h;
+                const on = draft?.em2Relation === terjemahkan("relation", h);
                 return (
                   <Pressable
                     key={h}
-                    onPress={() => ubah({ em2Relation: h })}
+                    onPress={() =>
+                      ubah({ em2Relation: terjemahkan("relation", h) })
+                    }
                     style={[styles.chip, on && styles.chipOn]}
                   >
                     <Text style={[styles.chipText, on && styles.chipTextOn]}>
-                      {h}
+                      {terjemahkan("relation", h)}
                     </Text>
                   </Pressable>
                 );
               })}
             </View>
 
-            <Text style={styles.label}>Telepon</Text>
+            <Text style={styles.label}>{t("pe.telepon")}</Text>
             <TextInput
               style={styles.input}
               value={draft?.em2Phone ?? ""}
@@ -267,7 +275,7 @@ export function ProfileEditScreen({ navigation }: any) {
           <Text
             style={[styles.barLabel, galatSimpan ? { color: c.bad.ink } : null]}
           >
-            {galatSimpan ?? "Kelengkapan setelah disimpan"}
+            {galatSimpan ?? t("pe.kelengkapanSetelah")}
           </Text>
           <Text style={styles.barValue}>{persen}%</Text>
         </View>
@@ -286,7 +294,7 @@ export function ProfileEditScreen({ navigation }: any) {
                 !emailSalah && !sending ? { color: "#fff" } : null,
               ]}
             >
-              {sending ? "Menyimpan..." : "Simpan perubahan"}
+              {sending ? t("pw.menyimpan") : t("pe.simpan")}
             </Text>
           </LinearGradient>
         </Pressable>

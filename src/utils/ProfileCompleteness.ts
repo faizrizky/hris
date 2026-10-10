@@ -1,4 +1,5 @@
 import { EditableProfile } from "@/services/types";
+import { tt } from "@/i18n";
 
 export interface Kekurangan {
   judul: string;
@@ -18,13 +19,13 @@ export function kekurangan(e: EditableProfile): Kekurangan[] {
   const out: Kekurangan[] = [];
   if (!emailValid(e.personalEmail))
     out.push({
-      judul: "Email pribadi",
-      alasan: "Untuk pemulihan akun dan pengiriman slip gaji",
+      judul: tt("kl.email"),
+      alasan: tt("kl.emailAlasan"),
     });
   if (!teleponValid(e.em2Phone))
     out.push({
-      judul: "Kontak darurat kedua",
-      alasan: "Nama dan nomor telepon",
+      judul: tt("kl.kontak2"),
+      alasan: tt("kl.kontak2Alasan"),
     });
   return out;
 }

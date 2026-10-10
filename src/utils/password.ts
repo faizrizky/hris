@@ -1,4 +1,5 @@
 import { SemanticTone } from "@/theme/colors";
+import { tt } from "@/i18n";
 
 export interface SyaratPassword {
   label: string;
@@ -8,10 +9,10 @@ export interface SyaratPassword {
 /** Satu-satunya definisi syarat password. */
 export function syaratPassword(pw: string): SyaratPassword[] {
   return [
-    { label: "Minimal 8 karakter", ok: pw.length >= 8 },
-    { label: "Mengandung huruf besar", ok: /[A-Z]/.test(pw) },
-    { label: "Mengandung angka", ok: /\d/.test(pw) },
-    { label: "Mengandung simbol", ok: /[^A-Za-z0-9]/.test(pw) },
+    { label: tt("pw.min8"), ok: pw.length >= 8 },
+    { label: tt("pw.besar"), ok: /[A-Z]/.test(pw) },
+    { label: tt("pw.angka"), ok: /\d/.test(pw) },
+    { label: tt("pw.simbol"), ok: /[^A-Za-z0-9]/.test(pw) },
   ];
 }
 
@@ -22,10 +23,12 @@ export function skorPassword(pw: string) {
 }
 
 export function labelKekuatan(pw: string) {
-  if (!pw) return "Belum diisi";
-  return ["", "Lemah", "Cukup", "Kuat", "Sangat kuat"][
-    Math.max(skorPassword(pw), 1)
-  ];
+  if (!pw) return tt("pw.kosong");
+  return tt(
+    (["pw.lemah", "pw.lemah", "pw.cukup", "pw.kuat", "pw.sangatKuat"] as const)[
+      Math.max(skorPassword(pw), 1)
+    ],
+  );
 }
 
 export function toneKekuatan(pw: string): SemanticTone {

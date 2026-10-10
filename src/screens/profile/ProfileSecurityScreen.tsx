@@ -19,8 +19,10 @@ import { ICON } from "@/constants/icons";
 import { Skeleton } from "@/components/Skeleton";
 import { desimal } from "@/utils/currency";
 import { tanggalPendekTahun } from "@/utils/date";
+import { useT } from "@/i18n";
 
 export function ProfileSecurityScreen({ navigation }: any) {
+  const t = useT();
   const { employee } = useSession();
   const insets = useSafeAreaInsets();
   const c = useTheme();
@@ -44,10 +46,10 @@ export function ProfileSecurityScreen({ navigation }: any) {
 
   const gagalAksi = (e: unknown) => {
     void confirm({
-      title: "Gagal memproses",
+      title: t("umum.gagalMemproses"),
       message: describeError(e),
       tone: "bad",
-      confirmText: "Mengerti",
+      confirmText: t("umum.mengerti"),
       cancelText: null,
     });
   };
@@ -64,15 +66,17 @@ export function ProfileSecurityScreen({ navigation }: any) {
     if (!employee || !info) return;
     const lain = info.devices.filter((d) => !d.current);
     const ya = await confirm({
-      title: "Keluar dari perangkat lain?",
-      message: `${lain.map((d) => d.name).join(", ")} akan diminta login ulang. Perangkat ini tetap masuk.`,
+      title: t("sec.keluarLainJudul"),
+      message: t("sec.keluarLainPesan", {
+        daftar: lain.map((d) => d.name).join(", "),
+      }),
       tone: "bad",
-      confirmText: "Ya, keluarkan",
-      cancelText: "Batal",
+      confirmText: t("sec.ya"),
+      cancelText: t("umum.batal"),
       from: keluarLainRef,
       fromColor: c.bad.bg,
       fromTextColor: c.bad.ink,
-      fromLabel: "Keluar dari perangkat lain",
+      fromLabel: t("sec.keluarLain"),
       fromRadius: 22,
     });
     if (ya) {
@@ -85,7 +89,7 @@ export function ProfileSecurityScreen({ navigation }: any) {
       <Pressable style={styles.backBtn} onPress={() => navigation.goBack()}>
         <Ionicons name="chevron-back" size={18} color={c.ink} />
       </Pressable>
-      <Text style={styles.headerTitle}>Keamanan & Face ID</Text>
+      <Text style={styles.headerTitle}>{t("sec.judul")}</Text>
     </View>
   );
 
@@ -137,10 +141,12 @@ export function ProfileSecurityScreen({ navigation }: any) {
             </LinearGradient>
 
             <View style={{ flex: 1, minWidth: 0 }}>
-              <Text style={styles.faceTitle}>Face Recognition aktif</Text>
+              <Text style={styles.faceTitle}>{t("sec.faceAktif")}</Text>
               <Text style={styles.faceSub}>
-                Terdaftar {tanggalPendekTahun(info.faceEnrolledAt)} · diperbarui{" "}
-                {tanggalPendekTahun(info.faceUpdatedAt)}
+                {t("sec.terdaftar", {
+                  a: tanggalPendekTahun(info.faceEnrolledAt),
+                  b: tanggalPendekTahun(info.faceUpdatedAt),
+                })}
               </Text>
             </View>
           </View>
@@ -153,7 +159,7 @@ export function ProfileSecurityScreen({ navigation }: any) {
               ]}
             >
               <Text style={[styles.pillText, { color: "#4ADE80" }]}>
-                Liveness {info.livenessOk ? "✓" : "✗"}
+                {t("sec.liveness", { x: info.livenessOk ? "✓" : "✗" })}
               </Text>
             </View>
             <View
@@ -163,7 +169,7 @@ export function ProfileSecurityScreen({ navigation }: any) {
               ]}
             >
               <Text style={[styles.pillText, { color: c.accentLight }]}>
-                Match {desimal(info.matchScore)}%
+                {t("sec.match", { x: desimal(info.matchScore) })}
               </Text>
             </View>
           </View>
@@ -190,11 +196,11 @@ export function ProfileSecurityScreen({ navigation }: any) {
             onPress={() => navigation.navigate("ProfilePassword")}
           >
             <View style={{ flex: 1, minWidth: 0 }}>
-              <Text style={styles.rowTitle}>Ubah password</Text>
+              <Text style={styles.rowTitle}>{t("sec.ubahPw")}</Text>
               <Text style={styles.rowSub}>
                 {info.passwordChangedDaysAgo === 0
-                  ? "Baru saja diubah"
-                  : `Terakhir diubah ${info.passwordChangedDaysAgo} hari lalu`}
+                  ? t("sec.baruSaja")
+                  : t("sec.terakhir", { n: info.passwordChangedDaysAgo })}
               </Text>
             </View>
             <Ionicons name="chevron-forward" size={16} color={c.mutedLabel} />
@@ -202,7 +208,7 @@ export function ProfileSecurityScreen({ navigation }: any) {
         </View>
 
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>Perangkat aktif</Text>
+          <Text style={styles.cardTitle}>{t("sec.perangkat")}</Text>
           <View style={{ gap: 13, marginTop: 14 }}>
             {info.devices.map((d) => (
               <View key={d.id} style={styles.devRow}>
@@ -229,7 +235,7 @@ export function ProfileSecurityScreen({ navigation }: any) {
                       { color: d.current ? c.ok.ink : c.info.ink },
                     ]}
                   >
-                    {d.current ? "Perangkat ini" : "Web"}
+                    {d.current ? t("sec.iniPerangkat") : t("sec.web")}
                   </Text>
                 </View>
               </View>
@@ -243,11 +249,11 @@ export function ProfileSecurityScreen({ navigation }: any) {
             style={styles.dangerBtn}
             onPress={keluarkanLain}
           >
-            <Text style={styles.dangerText}>Keluar dari perangkat lain</Text>
+            <Text style={styles.dangerText}>{t("sec.keluarLain")}</Text>
           </Pressable>
         ) : (
           <View style={styles.okBanner}>
-            <Text style={styles.okText}>Semua perangkat lain sudah keluar</Text>
+            <Text style={styles.okText}>{t("sec.semuaKeluar")}</Text>
           </View>
         )}
       </ScrollView>

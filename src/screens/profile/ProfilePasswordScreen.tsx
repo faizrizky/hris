@@ -25,8 +25,10 @@ import {
   syaratPassword,
   toneKekuatan,
 } from "@/utils/password";
+import { useT } from "@/i18n";
 
 export function ProfilePasswordScreen({ navigation }: any) {
+  const t = useT();
   const { employee, setEmployee } = useSession();
   const insets = useSafeAreaInsets();
   const c = useTheme();
@@ -46,13 +48,13 @@ export function ProfilePasswordScreen({ navigation }: any) {
   const cocok = konfirmasi.length > 0 && konfirmasi === baru;
 
   const blockMsg = !lama
-    ? "Password saat ini belum diisi"
+    ? t("pw.blokLama")
     : skor < TOTAL_SYARAT
-      ? "Password baru belum memenuhi semua syarat"
+      ? t("pw.blokSyarat")
       : baru === lama
-        ? "Password baru tidak boleh sama dengan yang lama"
+        ? t("pw.blokSama")
         : !cocok
-          ? "Konfirmasi belum cocok"
+          ? t("pw.blokKonfirmasi")
           : "";
   const bisaSimpan = !blockMsg && !sending;
 
@@ -75,7 +77,7 @@ export function ProfilePasswordScreen({ navigation }: any) {
       <Pressable style={styles.backBtn} onPress={() => navigation.goBack()}>
         <Ionicons name="chevron-back" size={18} color={c.ink} />
       </Pressable>
-      <Text style={styles.headerTitle}>Ubah Password</Text>
+      <Text style={styles.headerTitle}>{t("pw.judul")}</Text>
     </View>
   );
 
@@ -93,17 +95,15 @@ export function ProfilePasswordScreen({ navigation }: any) {
             <View style={styles.doneCheck}>
               <Ionicons name="checkmark" size={30} color="#fff" />
             </View>
-            <Text style={styles.doneTitle}>Password berhasil diubah</Text>
-            <Text style={styles.doneSub}>
-              Sesi ini berakhir demi keamanan. Masuk lagi dengan password baru.
-            </Text>
+            <Text style={styles.doneTitle}>{t("pw.berhasil")}</Text>
+            <Text style={styles.doneSub}>{t("pw.sesiBerakhir")}</Text>
           </LinearGradient>
 
           <Pressable
             style={styles.primaryBtn}
             onPress={() => setEmployee(null)}
           >
-            <Text style={styles.primaryText}>Masuk lagi</Text>
+            <Text style={styles.primaryText}>{t("pw.masukLagi")}</Text>
           </Pressable>
         </ScrollView>
       </View>
@@ -124,31 +124,31 @@ export function ProfilePasswordScreen({ navigation }: any) {
         >
           <View style={styles.card}>
             <View style={styles.cardHead}>
-              <Text style={styles.cardTitle}>Password</Text>
+              <Text style={styles.cardTitle}>{t("pw.password")}</Text>
               <Pressable onPress={() => setTampil((v) => !v)} hitSlop={8}>
                 <Text style={styles.link}>
-                  {tampil ? "Sembunyikan" : "Tampilkan"}
+                  {tampil ? t("pw.sembunyikan") : t("pw.tampilkan")}
                 </Text>
               </Pressable>
             </View>
 
-            <Text style={styles.label}>Password saat ini</Text>
+            <Text style={styles.label}>{t("pw.saatIni")}</Text>
             <TextInput
               style={styles.input}
               value={lama}
               onChangeText={setLama}
-              placeholder="Masukkan password lama"
+              placeholder={t("pw.masukkanLama")}
               placeholderTextColor={c.mutedLabel}
               secureTextEntry={!tampil}
               autoCapitalize="none"
             />
 
-            <Text style={styles.label}>Password baru</Text>
+            <Text style={styles.label}>{t("pw.baru")}</Text>
             <TextInput
               style={styles.input}
               value={baru}
               onChangeText={setBaru}
-              placeholder="Minimal 8 karakter"
+              placeholder={t("pw.min8Ph")}
               placeholderTextColor={c.mutedLabel}
               secureTextEntry={!tampil}
               autoCapitalize="none"
@@ -176,12 +176,12 @@ export function ProfilePasswordScreen({ navigation }: any) {
               {labelKekuatan(baru)}
             </Text>
 
-            <Text style={styles.label}>Konfirmasi password baru</Text>
+            <Text style={styles.label}>{t("pw.konfirmasi")}</Text>
             <TextInput
               style={styles.input}
               value={konfirmasi}
               onChangeText={setKonfirmasi}
-              placeholder="Ulangi password baru"
+              placeholder={t("pw.ulangi")}
               placeholderTextColor={c.mutedLabel}
               secureTextEntry={!tampil}
               autoCapitalize="none"
@@ -193,13 +193,13 @@ export function ProfilePasswordScreen({ navigation }: any) {
                   { color: cocok ? c.ok.ink : c.bad.ink },
                 ]}
               >
-                {cocok ? "Password cocok" : "Password tidak cocok"}
+                {cocok ? t("pw.cocok") : t("pw.tidakCocok")}
               </Text>
             )}
           </View>
 
           <View style={[styles.card, { marginTop: 12 }]}>
-            <Text style={styles.cardTitle}>Syarat password</Text>
+            <Text style={styles.cardTitle}>{t("pw.syarat")}</Text>
             <View style={{ gap: 11, marginTop: 13 }}>
               {syarat.map((s) => (
                 <View key={s.label} style={styles.ruleRow}>
@@ -221,9 +221,7 @@ export function ProfilePasswordScreen({ navigation }: any) {
                 </View>
               ))}
             </View>
-            <Text style={styles.note}>
-              Setelah password diganti, perangkat lain diminta login ulang.
-            </Text>
+            <Text style={styles.note}>{t("pw.catatan")}</Text>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -236,7 +234,7 @@ export function ProfilePasswordScreen({ navigation }: any) {
               blockMsg || galat ? { color: c.bad.ink } : null,
             ]}
           >
-            {blockMsg || galat || "Siap disimpan"}
+            {blockMsg || galat || t("pw.siap")}
           </Text>
         </View>
         <Pressable onPress={simpan} disabled={!bisaSimpan}>
@@ -249,7 +247,7 @@ export function ProfilePasswordScreen({ navigation }: any) {
             <Text
               style={[styles.saveText, bisaSimpan ? { color: "#fff" } : null]}
             >
-              {sending ? "Menyimpan..." : "Simpan password"}
+              {sending ? t("pw.menyimpan") : t("pw.simpan")}
             </Text>
           </LinearGradient>
         </Pressable>
