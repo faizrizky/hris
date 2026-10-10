@@ -22,6 +22,9 @@ import {
   AttendanceRecord,
   AttendanceStatus,
   AttendanceCorrectionRequest,
+  Payslip,
+  TaxSummary,
+  BpjsItem,
 } from "../types";
 import { tanggalPendek, tanggalPendekTahun, toISODate } from "../../utils/date";
 import { ApiError, get, post, put } from "./http";
@@ -459,6 +462,77 @@ function bentukKoreksi(
   };
 }
 
+const BULAN_SINGKAT = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "Mei",
+  "Jun",
+  "Jul",
+  "Agt",
+  "Sep",
+  "Okt",
+  "Nov",
+  "Des",
+];
+
+interface SlipRow {
+  name: string;
+  start_date: string;
+  posting_date: string;
+  bank_account_no: string | null;
+  gross_pay: number;
+  total_deduction: number;
+  net_pay: number;
+  earnings: { salary_component: string; amount: number }[];
+  deductions: { salary_component: string; amount: number }[];
+}
+
+// Nomor rekening penuh tidak ditampilkan di layar: hanya empat digit terakhir.
+function samarkanRekening(no: string | null): string {
+  return no ? `•••• ${no.slice(-4)}` : "—";
+}
+
+function bentukSlip(r: SlipRow): Payslip {
+  const [tahun, bulan] = r.start_date.split("-").map(Number);
+  const nama = BULAN[bulan! - 1]!;
+  return {
+    id: r.name,
+    period: `${nama} ${tahun}`,
+    monthShort: BULAN_SINGKAT[bulan! - 1]!.toUpperCase(),
+    // Belum ada sumber untuk "Termasuk THR"; slip dianggap reguler.
+    note: "Reguler",
+    status: "Diterbitkan",
+    bankAccount: samarkanRekening(r.bank_account_no),
+    paidAt: tanggalPendekTahun(r.posting_date),
+    earnings: r.earnings.map((e) => ({
+      label: e.salary_component,
+      amount: e.amount,
+    })),
+    deductions: r.deductions.map((d) => ({
+      label: d.salary_component,
+      amount: d.amount,
+    })),
+    grossPay: r.gross_pay,
+    totalDeduction: r.total_deduction,
+    netPay: r.net_pay,
+  };
+}
+
+interface TaxRes {
+  message: {
+    year: number;
+    months: { month: number; pph21: number; bpjs: number; gross: number }[];
+    latest: {
+      period: string;
+      gross_pay: number;
+      pph21: number;
+      bpjs: { label: string; amount: number }[];
+    } | null;
+  } | null;
+}
+
 export const erpnextApi: HrisApi = {
   ...mockApi,
 
@@ -641,5 +715,45 @@ export const erpnextApi: HrisApi = {
       "/api/method/hris_get_attendance_corrections",
     );
     return res.message.map((r) => bentukKoreksi(r, employeeId));
+  },
+
+  async getPayslips(): Promise<Payslip[]> {
+    const res = await get<{ message: SlipRow[] }>(
+      "/api/method/hris_get_payslips",
+    );
+    return res.message.map(bentukSlip);
+  },
+
+  async getTaxSummary(): Promise<TaxSummary> {
+    const res = await get<TaxRes>("/api/method/hris_get_tax_summary");
+    const data = res.message;
+    const tahun = data?.year ?? new Date().getFullYear();
+    const latest = data?.latest;
+    const gross = latest?.gross_pay ?? 0;
+    return {
+      year: tahun,
+      // PTKP, NPWP, dan TER tidak ada sumbernya di ERPNext; tidak dikarang.
+      scheme: "—",
+      // Hanya bulan yang punya slip, supaya grafik tidak penuh batang kosong.
+      monthly: (data?.months ?? [])
+        .filter((m) => m.gross > 0)
+        .map((m) => ({
+          monthShort: BULAN_SINGKAT[m.month - 1]!,
+          amount: m.pph21,
+        })),
+      peakReason: "",
+      basePeriod: latest ? latest.period.split(" ")[0]! : "—",
+      grossPay: gross,
+      terCategory: "—",
+      ptkpStatus: "—",
+      npwpMasked: "—",
+      monthTax: latest?.pph21 ?? 0,
+      // Tinggal porsi karyawan (persen dari bruto); porsi perusahaan tidak ada.
+      bpjs: (latest?.bpjs ?? []).map((b) => ({
+        label: b.label,
+        employeePct: gross ? Math.round((b.amount / gross) * 10000) / 100 : 0,
+        companyPct: 0,
+      })),
+    };
   },
 };

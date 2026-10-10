@@ -151,7 +151,9 @@ export function TaxScreen({ navigation }: any) {
 
           <Text style={styles.chartNote}>
             {pertama} — {terakhir}
-            {puncak ? ` · puncak ${puncak.monthShort} (${tax.peakReason})` : ""}
+            {puncak
+              ? ` · puncak ${puncak.monthShort}${tax.peakReason ? ` (${tax.peakReason})` : ""}`
+              : ""}
           </Text>
         </View>
 
