@@ -12,7 +12,7 @@ import {
   CutiTypeCard,
   CutiDetailCard,
   JenisCuti,
-  NAMA_CUTI,
+  namaCuti,
 } from "./CutiFormCards";
 import { ApprovalFlowCard, FormDoneView, ApprovalStep } from "./FormFlowCards";
 import {
@@ -47,41 +47,31 @@ import {
 import { rupiah } from "@/utils/currency";
 import { LinearGradient } from "expo-linear-gradient";
 import { describeError } from "@/services/api/http";
+import { useT } from "@/i18n";
 
 const SEGMENTS = [
-  { key: "cuti", label: "Cuti" },
-  { key: "lembur", label: "Lembur" },
-  { key: "dinas", label: "Dinas Luar" },
+  { key: "cuti", label: "lr.cuti" },
+  { key: "lembur", label: "lr.lembur" },
+  { key: "dinas", label: "lr.dinas" },
 ] as const;
 
 export type FormKind = (typeof SEGMENTS)[number]["key"];
 
-const FORM_META: Record<FormKind, { title: string; subtitle: string }> = {
-  cuti: { title: "Pengajuan Cuti", subtitle: "Leave Application" },
-  lembur: { title: "Pengajuan Lembur", subtitle: "Overtime Request" },
-  dinas: { title: "Pengajuan Dinas Luar", subtitle: "Travel Request" },
-};
+const FORM_META = {
+  cuti: { title: "lr.judulCuti", subtitle: "Leave Application" },
+  lembur: { title: "lr.judulLembur", subtitle: "Overtime Request" },
+  dinas: { title: "lr.judulDinas", subtitle: "Travel Request" },
+} as const;
 
-const APPROVERS: Record<FormKind, ApprovalStep[]> = {
-  cuti: [
-    { ini: "BP", name: "Bayu Pratama", role: "Atasan langsung" },
-    { ini: "DL", name: "Dinda Larasati", role: "HR Admin" },
-  ],
-  lembur: [{ ini: "BP", name: "Bayu Pratama", role: "Atasan langsung" }],
-  dinas: [
-    { ini: "BP", name: "Bayu Pratama", role: "Atasan langsung" },
-    { ini: "DL", name: "Dinda Larasati", role: "HR / General Affairs" },
-    { ini: "FN", name: "Fajar Nugroho", role: "Finance · uang muka" },
-  ],
-};
-
-const DOC_PREFIX: Record<FormKind, string> = {
-  cuti: "Leave Application · HR-LAP",
-  lembur: "Overtime Request · HR-OT",
-  dinas: "Travel Request · HR-TRQ",
+// Nama dokumen ERPNext tempat pengajuan tersimpan.
+const DOC_NAMA: Record<FormKind, string> = {
+  cuti: "Leave Application",
+  lembur: "Overtime Request",
+  dinas: "Travel Request",
 };
 
 export function LeaveRequestScreen({ navigation, route }: any) {
+  const t = useT();
   const { employee } = useSession();
   const [balances, setBalances] = useState<LeaveBalance[]>([]);
   const [jenisCuti, setJenisCuti] = useState<JenisCuti>("Tahunan");
@@ -147,21 +137,21 @@ export function LeaveRequestScreen({ navigation, route }: any) {
   ).length;
 
   const blockMsg = !start
-    ? "Tanggal belum dipilih"
+    ? t("lr.blokTgl")
     : kind === "cuti" && !alasan.trim()
-      ? "Alasan belum diisi"
+      ? t("lr.blokAlasan")
       : kind === "cuti" && approver === null
-        ? "Belum ada approver, hubungi HR"
+        ? t("lr.blokApprover")
         : kind === "lembur" && !uraian.trim()
-          ? "Uraian pekerjaan belum diisi"
+          ? t("lr.blokUraian")
           : kind === "lembur" && otFiles.length === 0
-            ? "Bukti lembur belum diunggah"
+            ? t("lr.blokBukti")
             : kind === "dinas" && !dest.trim()
-              ? "Kota tujuan belum diisi"
+              ? t("lr.blokKota")
               : kind === "dinas" && !transport
-                ? "Transportasi belum dipilih"
+                ? t("lr.blokTransport")
                 : kind === "dinas" && buktiBiayaKurang
-                  ? `${buktiBiayaKurang} bukti biaya belum diunggah`
+                  ? t("lr.blokBiaya", { n: buktiBiayaKurang })
                   : "";
 
   const bisaKirim = !blockMsg && !sending;
@@ -185,10 +175,13 @@ export function LeaveRequestScreen({ navigation, route }: any) {
                 : "cuti",
         label:
           kind === "cuti"
-            ? `${NAMA_CUTI[jenisCuti]} · ${hariKerja} hari kerja`
+            ? t("lr.labelCuti", { jenis: namaCuti(jenisCuti), n: hariKerja })
             : kind === "lembur"
-              ? `Lembur ${durasiJam(otJam)} · ${tanggalPendek(start!)}`
-              : `Dinas luar · ${hariPerjalanan} hari`,
+              ? t("lr.labelLembur", {
+                  durasi: durasiJam(otJam),
+                  tgl: tanggalPendek(start!),
+                })
+              : t("lr.labelDinas", { n: hariPerjalanan }),
         reason:
           kind === "cuti"
             ? alasan.trim()
@@ -226,26 +219,35 @@ export function LeaveRequestScreen({ navigation, route }: any) {
 
     if (kind === "cuti") {
       return [
-        { k: "Jenis", v: NAMA_CUTI[jenisCuti] },
-        { k: "Tanggal", v: `${tanggalPendek(start)} – ${tanggalPendek(end)}` },
-        { k: "Durasi", v: `${hariKerja} hari kerja` },
-        { k: "Delegasi", v: delegasi?.fullName ?? "—" },
+        { k: t("lr.rowJenis"), v: namaCuti(jenisCuti) },
+        {
+          k: t("lr.rowTanggal"),
+          v: `${tanggalPendek(start)} – ${tanggalPendek(end)}`,
+        },
+        { k: t("lr.rowDurasi"), v: t("lr.nHariKerja", { n: hariKerja }) },
+        { k: t("lr.rowDelegasi"), v: delegasi?.fullName ?? "—" },
       ];
     }
 
     if (kind === "lembur") {
       return [
-        { k: "Tanggal", v: tanggalPendek(start) },
-        { k: "Jam", v: `${jamMenit(otStart)} – ${jamMenit(otEnd)}` },
-        { k: "Bukti", v: `${otFiles.length} file` },
+        { k: t("lr.rowTanggal"), v: tanggalPendek(start) },
+        { k: t("lr.rowJam"), v: `${jamMenit(otStart)} – ${jamMenit(otEnd)}` },
+        { k: t("lr.rowBukti"), v: t("lr.nFile", { n: otFiles.length }) },
       ];
     }
 
     return [
-      { k: "Tujuan", v: dest },
-      { k: "Tanggal", v: `${tanggalPendek(start)} – ${tanggalPendek(end)}` },
-      { k: "Total biaya", v: rupiah(totalDinas.total) },
-      { k: "Bukti", v: `${biaya.filter((x) => x.bukti).length} file` },
+      { k: t("lr.rowTujuan"), v: dest },
+      {
+        k: t("lr.rowTanggal"),
+        v: `${tanggalPendek(start)} – ${tanggalPendek(end)}`,
+      },
+      { k: t("lr.rowTotalBiaya"), v: rupiah(totalDinas.total) },
+      {
+        k: t("lr.rowBukti"),
+        v: t("lr.nFile", { n: biaya.filter((x) => x.bukti).length }),
+      },
     ];
   };
 
@@ -260,58 +262,62 @@ export function LeaveRequestScreen({ navigation, route }: any) {
 
   const calTitle =
     kind === "dinas"
-      ? "Tanggal perjalanan"
+      ? t("lr.tglPerjalanan")
       : kind === "lembur"
-        ? "Tanggal lembur"
-        : "Tanggal cuti";
+        ? t("lr.tglLembur")
+        : t("lr.tglCuti");
 
-  const calHint = isSingle
-    ? "Ketuk satu tanggal"
-    : "Ketuk tanggal mulai, lalu tanggal selesai";
+  const calHint = isSingle ? t("lr.hintSatu") : t("lr.hintRentang");
 
   const footer: FooterItem[] = isSingle
     ? [
-        { label: "Tanggal", value: start ? tanggalPendek(start) : "Pilih" },
         {
-          label: "Jenis hari",
+          label: t("lr.tanggal"),
+          value: start ? tanggalPendek(start) : t("lr.pilih"),
+        },
+        {
+          label: t("lr.jenisHari"),
           value: start
             ? [0, 6].includes(fromISODate(start).getDay())
-              ? "Hari libur"
-              : "Hari kerja"
+              ? t("lr.hariLibur")
+              : t("lr.hariKerja")
             : "—",
         },
         {
-          label: "Durasi",
+          label: t("lr.durasi"),
           value: otDate ? durasiJam(otJam) : "—",
           accent: true,
         },
       ]
     : [
-        { label: "Mulai", value: start ? tanggalPendek(start) : "Pilih" },
-        { label: "Selesai", value: end ? tanggalPendek(end) : "Pilih" },
         {
-          label: "Durasi",
+          label: t("lr.mulai"),
+          value: start ? tanggalPendek(start) : t("lr.pilih"),
+        },
+        {
+          label: t("lr.selesai"),
+          value: end ? tanggalPendek(end) : t("lr.pilih"),
+        },
+        {
+          label: t("lr.durasi"),
           value: range
             ? kind === "dinas"
-              ? `${hitungHari(start!, end!)} hari`
-              : `${hitungHariKerja(start!, end!)} hari kerja`
+              ? t("lr.nHari", { n: hitungHari(start!, end!) })
+              : t("lr.nHariKerja", { n: hitungHariKerja(start!, end!) })
             : "—",
           accent: true,
         },
       ];
 
-  const langkahApproval: ApprovalStep[] =
-    kind === "cuti"
-      ? approver
-        ? [
-            {
-              ini: approver.initials,
-              name: approver.fullName,
-              role: "Atasan langsung",
-            },
-          ]
-        : [] // masih memuat, atau tidak ada approver
-      : APPROVERS[kind];
+  const langkahApproval: ApprovalStep[] = approver
+    ? [
+        {
+          ini: approver.initials,
+          name: approver.fullName,
+          role: t("lr.atasan"),
+        },
+      ]
+    : []; // masih memuat, atau tidak ada approver
 
   return (
     <View style={styles.container}>
@@ -321,7 +327,7 @@ export function LeaveRequestScreen({ navigation, route }: any) {
             <Ionicons name="chevron-back" size={18} color={c.ink} />
           </Pressable>
           <View style={{ flex: 1, minWidth: 0 }}>
-            <Text style={styles.headerTitle}>{meta.title}</Text>
+            <Text style={styles.headerTitle}>{t(meta.title)}</Text>
             <Text style={styles.headerSub}>{meta.subtitle}</Text>
           </View>
         </View>
@@ -336,7 +342,7 @@ export function LeaveRequestScreen({ navigation, route }: any) {
                 style={[styles.segBtn, on && styles.segBtnOn]}
               >
                 <Text style={[styles.segText, on && styles.segTextOn]}>
-                  {s.label}
+                  {t(s.label)}
                 </Text>
               </Pressable>
             );
@@ -354,14 +360,16 @@ export function LeaveRequestScreen({ navigation, route }: any) {
         >
           {done ? (
             <FormDoneView
-              title={`Pengajuan ${kind === "dinas" ? "dinas luar" : kind} terkirim`}
-              waitingOn={langkahApproval[0]?.name ?? "approver"}
-              rows={buatDoneRows()}
-              doc={
+              title={t(
                 kind === "cuti"
-                  ? `Leave Application · ${done}`
-                  : `${DOC_PREFIX[kind]}-${done}`
-              }
+                  ? "lr.terkirimCuti"
+                  : kind === "lembur"
+                    ? "lr.terkirimLembur"
+                    : "lr.terkirimDinas",
+              )}
+              waitingOn={langkahApproval[0]?.name ?? t("lr.approver")}
+              rows={buatDoneRows()}
+              doc={`${DOC_NAMA[kind]} · ${done}`}
               onLihat={() => navigation.goBack()}
               onHome={() => navigation.getParent()?.navigate("Beranda")}
             />
@@ -407,11 +415,7 @@ export function LeaveRequestScreen({ navigation, route }: any) {
                     holiday={otHoliday}
                     startLabel={jamMenit(otStart)}
                     endLabel={jamMenit(otEnd)}
-                    rule={
-                      otHoliday
-                        ? "Hari libur · maks. 8 jam"
-                        : "Hari kerja · mulai setelah jam pulang, maks. 4 jam"
-                    }
+                    rule={otHoliday ? t("lr.aturanLibur") : t("lr.aturanKerja")}
                     onMinus={() => setOtEndRaw(otEnd - 30)}
                     onPlus={() => setOtEndRaw(otEnd + 30)}
                   />
@@ -422,7 +426,7 @@ export function LeaveRequestScreen({ navigation, route }: any) {
                       setOtFiles((prev) => [
                         ...prev,
                         {
-                          name: `bukti-lembur-${prev.length + 1}.jpg`,
+                          name: t("lr.buktiFile", { n: prev.length + 1 }),
                           size: "1,2 MB",
                         },
                       ])
@@ -483,11 +487,11 @@ export function LeaveRequestScreen({ navigation, route }: any) {
                 blockMsg || galat ? { color: c.bad.ink } : null,
               ]}
             >
-              {blockMsg || galat || "Siap dikirim"}
+              {blockMsg || galat || t("lr.siap")}
             </Text>
             <Text style={styles.sumTop}>
               {kind === "cuti" && hariKerja > 0
-                ? `${hariKerja} hari kerja`
+                ? t("lr.nHariKerja", { n: hariKerja })
                 : kind === "lembur" && otDate
                   ? durasiJam(otJam)
                   : kind === "dinas" && start && end
@@ -508,7 +512,7 @@ export function LeaveRequestScreen({ navigation, route }: any) {
                   bisaKirim ? { color: "#fff" } : null,
                 ]}
               >
-                {sending ? "Mengirim..." : "Kirim pengajuan"}
+                {sending ? t("lr.mengirim") : t("lr.kirim")}
               </Text>
             </LinearGradient>
           </Pressable>

@@ -7,6 +7,7 @@ import { ICON } from "@/constants/icons";
 import { Palette } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
 import { angka, rupiah } from "@/utils/currency";
+import { useT, tt } from "@/i18n";
 
 export const KATEGORI_BIAYA = [
   "Transportasi",
@@ -15,6 +16,11 @@ export const KATEGORI_BIAYA = [
   "Parkir & Tol",
   "Lainnya",
 ] as const;
+
+export const kategoriBiaya = (k: string) =>
+  (KATEGORI_BIAYA as readonly string[]).includes(k)
+    ? tt(`bi.${k}` as never)
+    : k;
 
 export const PERDIEM_PER_HARI = 350000;
 
@@ -48,19 +54,18 @@ export function DinasBiayaCard({
   const [editing, setEditing] = useState<string | null>(null);
   const { pengeluaran, perdiem, total } = totalBiaya(items, hari);
   const c = useTheme();
+  const t = useT();
   const styles = useMemo(() => makeStyles(c), [c]);
 
   return (
     <View style={[styles.card, { marginTop: 12 }]}>
       <View style={styles.headRow}>
-        <Text style={styles.cardTitle}>Rincian biaya</Text>
+        <Text style={styles.cardTitle}>{t("bi.rincian")}</Text>
         <Pressable style={styles.addBtn} onPress={onAdd}>
-          <Text style={styles.addBtnText}>+ Tambah biaya</Text>
+          <Text style={styles.addBtnText}>{t("bi.tambah")}</Text>
         </Pressable>
       </View>
-      <Text style={styles.desc}>
-        Isi nominal dan unggah bukti (struk, tiket, invoice) untuk setiap biaya
-      </Text>
+      <Text style={styles.desc}>{t("bi.desc")}</Text>
 
       <View style={{ gap: 10, marginTop: 12 }}>
         {items.map((x) => {
@@ -74,7 +79,9 @@ export function DinasBiayaCard({
                   style={styles.catPill}
                   onPress={() => setEditing(x.id)}
                 >
-                  <Text style={styles.catText}>{x.kategori}</Text>
+                  <Text style={styles.catText}>
+                    {kategoriBiaya(x.kategori)}
+                  </Text>
                   <Ionicons name="chevron-down" size={12} color={c.info.ink} />
                 </Pressable>
                 <View style={{ flex: 1 }} />
@@ -90,7 +97,7 @@ export function DinasBiayaCard({
                 style={styles.noteInput}
                 value={x.keterangan}
                 onChangeText={(v) => onChange(x.id, { keterangan: v })}
-                placeholder="Keterangan, mis. tiket kereta PP"
+                placeholder={t("bi.ket")}
                 placeholderTextColor={c.mutedLabel}
               />
 
@@ -113,7 +120,7 @@ export function DinasBiayaCard({
                   <LineIcon d={ICON.fileCheck} color={c.ok.ink} size={15} />
                   <Text style={styles.proofName}>{x.bukti}</Text>
                   <Pressable onPress={() => onChange(x.id, { bukti: null })}>
-                    <Text style={styles.proofRemove}>Hapus</Text>
+                    <Text style={styles.proofRemove}>{t("bi.hapus")}</Text>
                   </Pressable>
                 </View>
               ) : (
@@ -137,7 +144,7 @@ export function DinasBiayaCard({
                       { color: wajibBukti ? c.bad.ink : c.muted },
                     ]}
                   >
-                    Unggah bukti (wajib)
+                    {t("bi.unggahWajib")}
                   </Text>
                 </Pressable>
               )}
@@ -147,21 +154,25 @@ export function DinasBiayaCard({
       </View>
 
       <View style={styles.totals}>
-        <TotalRow label="Total biaya diajukan" value={rupiah(pengeluaran)} />
+        <TotalRow label={t("bi.totalDiajukan")} value={rupiah(pengeluaran)} />
         <TotalRow
-          label={`Uang harian (${Math.max(0, hari)} hari × ${rupiah(PERDIEM_PER_HARI)})`}
+          label={t("bi.uangHarian", {
+            n: Math.max(0, hari),
+            tarif: rupiah(PERDIEM_PER_HARI),
+          })}
           value={rupiah(perdiem)}
         />
         <View style={styles.totalRow}>
-          <Text style={styles.totalLabel}>Total</Text>
+          <Text style={styles.totalLabel}>{t("bi.total")}</Text>
           <Text style={styles.totalValue}>{rupiah(total)}</Text>
         </View>
       </View>
 
       <PickerSheet
         visible={editing !== null}
-        title="Kategori biaya"
+        title={t("bi.kategori")}
         options={KATEGORI_BIAYA}
+        labelOf={kategoriBiaya}
         value={items.find((x) => x.id === editing)?.kategori}
         onSelect={(v) => editing && onChange(editing, { kategori: v })}
         onClose={() => setEditing(null)}

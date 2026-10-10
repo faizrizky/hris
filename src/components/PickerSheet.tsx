@@ -19,6 +19,7 @@ interface Props {
   options: readonly string[];
   value?: string | null;
   onSelect: (v: string) => void;
+  labelOf?: (v: string) => string;
   onClose: () => void;
 }
 
@@ -28,6 +29,7 @@ export function PickerSheet({
   options,
   value,
   onSelect,
+  labelOf,
   onClose,
 }: Props) {
   const c = useTheme();
@@ -86,7 +88,7 @@ export function PickerSheet({
               }}
             >
               <Text style={[styles.rowText, on && styles.rowTextOn]}>
-                {opt}
+                {labelOf ? labelOf(opt) : opt}
               </Text>
               {on && <Ionicons name="checkmark" size={18} color={c.accent} />}
             </Pressable>

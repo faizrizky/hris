@@ -10,6 +10,7 @@ import { useTheme } from "@/theme/ThemeContext";
 import { hrisApi } from "@/services/api";
 import { describeError } from "@/services/api/http";
 import { ErrorState } from "@/components/ErrorState";
+import { useT } from "@/i18n";
 import { useSession } from "@/services/session";
 import { OvertimeRecord } from "@/services/types";
 import { StatusBadge } from "@/components/StatusBadge";
@@ -64,6 +65,7 @@ export function OvertimeScreen({ navigation }: any) {
   const estimasi = totalJam * UPAH_LEMBUR_PER_JAM;
   const mepet = totalJam >= BATAS_LEMBUR_JAM * 0.8;
   const c = useTheme();
+  const t = useT();
   const styles = useMemo(() => makeStyles(c), [c]);
 
   return (
@@ -72,14 +74,14 @@ export function OvertimeScreen({ navigation }: any) {
         <Pressable style={styles.backBtn} onPress={() => navigation.goBack()}>
           <Ionicons name="chevron-back" size={18} color={c.ink} />
         </Pressable>
-        <Text style={styles.headerTitle}>Lembur (Overtime)</Text>
+        <Text style={styles.headerTitle}>{t("ot.judul")}</Text>
       </View>
 
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.sheet}>
           <View style={styles.sheetHead}>
             <Text style={styles.sheetLabel}>
-              Total jam lembur {namaBulan()}
+              {t("ot.totalJam", { bulan: namaBulan() })}
             </Text>
             <View
               style={[
@@ -88,7 +90,7 @@ export function OvertimeScreen({ navigation }: any) {
               ]}
             >
               <Text style={[styles.limitText, mepet && { color: c.warn.ink }]}>
-                Batas {BATAS_LEMBUR_JAM} j
+                {t("ot.batas", { n: BATAS_LEMBUR_JAM })}
               </Text>
             </View>
           </View>
@@ -100,7 +102,8 @@ export function OvertimeScreen({ navigation }: any) {
               <>
                 <Text style={styles.bigValue}>{jam}</Text>
                 <Text style={styles.bigUnit}>
-                  jam{menit > 0 ? ` ${menit} mnt` : ""}
+                  {t("ot.jam")}
+                  {menit > 0 ? ` ${t("ot.mnt", { n: menit })}` : ""}
                 </Text>
               </>
             )}
@@ -119,7 +122,7 @@ export function OvertimeScreen({ navigation }: any) {
           </View>
 
           <View style={styles.payRow}>
-            <Text style={styles.payLabel}>Estimasi upah lembur</Text>
+            <Text style={styles.payLabel}>{t("ot.estimasi")}</Text>
             {records === null ? (
               <Skeleton width={96} height={14} radius={5} />
             ) : (
@@ -139,11 +142,11 @@ export function OvertimeScreen({ navigation }: any) {
             end={{ x: 1, y: 1 }}
             style={styles.cta}
           >
-            <Text style={styles.ctaText}>Ajukan lembur baru</Text>
+            <Text style={styles.ctaText}>{t("ot.ajukanBaru")}</Text>
           </LinearGradient>
         </Pressable>
 
-        <Text style={styles.sectionTitle}>Riwayat pengajuan</Text>
+        <Text style={styles.sectionTitle}>{t("ot.riwayat")}</Text>
 
         {galat && records === null ? (
           <ErrorState pesan={galat} onUlangi={muat} />
@@ -158,11 +161,8 @@ export function OvertimeScreen({ navigation }: any) {
             <View style={styles.emptyIcon}>
               <LineIcon d={ICON.overtime} color={c.muted} size={22} />
             </View>
-            <Text style={styles.emptyTitle}>Belum ada pengajuan lembur</Text>
-            <Text style={styles.emptyText}>
-              Lembur diajukan setelah jam kerja selesai, atau sepanjang hari
-              pada hari libur.
-            </Text>
+            <Text style={styles.emptyTitle}>{t("ot.kosongJudul")}</Text>
+            <Text style={styles.emptyText}>{t("ot.kosongIsi")}</Text>
           </View>
         ) : (
           <View style={{ gap: 10 }}>

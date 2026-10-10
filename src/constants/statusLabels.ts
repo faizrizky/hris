@@ -8,21 +8,37 @@ import {
   DocStatus,
 } from "@/services/types";
 import { SemanticTone } from "@/theme/colors";
+import { tt } from "@/i18n";
+import type { Kunci } from "@/i18n/id";
+
+// Label dibaca saat dipakai (bukan saat modul dimuat) supaya mengikuti bahasa aktif.
+function labelBahasa<K extends string>(
+  peta: Record<K, Kunci>,
+): Record<K, string> {
+  const hasil = {} as Record<K, string>;
+  for (const k of Object.keys(peta) as K[]) {
+    Object.defineProperty(hasil, k, {
+      enumerable: true,
+      get: () => tt(peta[k]),
+    });
+  }
+  return hasil;
+}
 
 export function leaveDecisionBadge(decision: LeaveDecision): {
   label: string;
   tone: SemanticTone;
 } {
-  if (decision === "approve") return { label: "Disetujui", tone: "ok" };
-  if (decision === "reject") return { label: "Ditolak", tone: "bad" };
-  return { label: "Menunggu", tone: "warn" };
+  if (decision === "approve") return { label: tt("st.disetujui"), tone: "ok" };
+  if (decision === "reject") return { label: tt("st.ditolak"), tone: "bad" };
+  return { label: tt("st.menunggu"), tone: "warn" };
 }
 
-export const ATTENDANCE_STATUS_LABEL: Record<AttendanceStatus, string> = {
-  hadir: "Hadir",
-  telat: "Telat",
-  izin: "Izin",
-};
+export const ATTENDANCE_STATUS_LABEL = labelBahasa<AttendanceStatus>({
+  hadir: "st.hadir",
+  telat: "st.telat",
+  izin: "st.izin",
+});
 
 export const ATTENDANCE_STATUS_TONE: Record<AttendanceStatus, SemanticTone> = {
   hadir: "ok",
@@ -30,14 +46,11 @@ export const ATTENDANCE_STATUS_TONE: Record<AttendanceStatus, SemanticTone> = {
   izin: "info",
 };
 
-export const CORRECTION_STATUS_LABEL: Record<
-  AttendanceRequestedStatus,
-  string
-> = {
-  pending: "Menunggu",
-  approved: "Disetujui",
-  rejected: "Ditolak",
-};
+export const CORRECTION_STATUS_LABEL = labelBahasa<AttendanceRequestedStatus>({
+  pending: "st.menunggu",
+  approved: "st.disetujui",
+  rejected: "st.ditolak",
+});
 
 export const CORRECTION_STATUS_TONE: Record<
   AttendanceRequestedStatus,
@@ -48,12 +61,12 @@ export const CORRECTION_STATUS_TONE: Record<
   rejected: "bad",
 };
 
-export const LEAVE_TYPE_LABEL: Record<LeaveType, string> = {
-  cuti: "Cuti",
-  lembur: "Lembur",
-  dinas_luar: "Dinas luar",
-  sakit: "Sakit",
-};
+export const LEAVE_TYPE_LABEL = labelBahasa<LeaveType>({
+  cuti: "jenis.cuti",
+  lembur: "jenis.lembur",
+  dinas_luar: "jenis.dinas",
+  sakit: "jenis.sakit",
+});
 
 export const LEAVE_TYPE_TONE: Record<LeaveType, SemanticTone> = {
   cuti: "info",
@@ -62,12 +75,12 @@ export const LEAVE_TYPE_TONE: Record<LeaveType, SemanticTone> = {
   sakit: "bad",
 };
 
-export const OVERTIME_STATUS_LABEL: Record<OvertimeStatus, string> = {
-  pending: "Pending",
-  approved: "Approved",
-  paid: "Dibayar",
-  rejected: "Ditolak",
-};
+export const OVERTIME_STATUS_LABEL = labelBahasa<OvertimeStatus>({
+  pending: "st.menunggu",
+  approved: "st.disetujui",
+  paid: "st.dibayar",
+  rejected: "st.ditolak",
+});
 
 export const OVERTIME_STATUS_TONE: Record<OvertimeStatus, SemanticTone> = {
   pending: "warn",
@@ -76,11 +89,11 @@ export const OVERTIME_STATUS_TONE: Record<OvertimeStatus, SemanticTone> = {
   rejected: "bad",
 };
 
-export const DOC_STATUS_LABEL: Record<DocStatus, string> = {
-  verified: "Terverifikasi",
-  pending: "Menunggu verifikasi",
-  expiring: "Segera berakhir",
-};
+export const DOC_STATUS_LABEL = labelBahasa<DocStatus>({
+  verified: "st.terverifikasi",
+  pending: "st.menungguVerifikasi",
+  expiring: "st.segeraBerakhir",
+});
 
 export const DOC_STATUS_TONE: Record<DocStatus, SemanticTone> = {
   verified: "ok",
@@ -88,9 +101,9 @@ export const DOC_STATUS_TONE: Record<DocStatus, SemanticTone> = {
   expiring: "warn",
 };
 
-export const DOC_CATEGORY_LABEL: Record<DocCategory, string> = {
-  kontrak: "Kontrak",
-  sk: "SK",
-  sertifikat: "Sertifikat",
-  identitas: "Identitas",
-};
+export const DOC_CATEGORY_LABEL = labelBahasa<DocCategory>({
+  kontrak: "dok.kontrak",
+  sk: "dok.sk",
+  sertifikat: "dok.sertifikat",
+  identitas: "dok.identitas",
+});

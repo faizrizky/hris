@@ -4,6 +4,7 @@ import { LineIcon } from "@/components/LineIcon";
 import { ICON } from "@/constants/icons";
 import { Palette } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
+import { useT } from "@/i18n";
 
 export interface BuktiFile {
   name: string;
@@ -26,12 +27,13 @@ export function LemburJamCard({
   onPlus: () => void;
 }) {
   const c = useTheme();
+  const t = useT();
   const styles = useMemo(() => makeStyles(c), [c]);
 
   return (
     <View style={[styles.card, { marginTop: 12 }]}>
       <View style={styles.headRow}>
-        <Text style={styles.cardTitle}>Jam lembur</Text>
+        <Text style={styles.cardTitle}>{t("fc.jamLembur")}</Text>
         <View
           style={[
             styles.badge,
@@ -44,20 +46,20 @@ export function LemburJamCard({
               { color: holiday ? c.warn.ink : c.info.ink },
             ]}
           >
-            {holiday ? "Hari libur" : "Hari kerja"}
+            {holiday ? t("lr.hariLibur") : t("lr.hariKerja")}
           </Text>
         </View>
       </View>
 
       <View style={styles.timeRow}>
         <View style={styles.timeBox}>
-          <Text style={styles.label}>Mulai</Text>
+          <Text style={styles.label}>{t("lr.mulai")}</Text>
           <Text style={styles.timeValue}>{startLabel}</Text>
         </View>
 
         <View style={styles.timeBoxWide}>
           <View style={{ flex: 1 }}>
-            <Text style={styles.label}>Selesai</Text>
+            <Text style={styles.label}>{t("lr.selesai")}</Text>
             <Text style={styles.timeValue}>{endLabel}</Text>
           </View>
           <Pressable style={styles.stepMinus} onPress={onMinus}>
@@ -83,16 +85,17 @@ export function LemburUraianCard({
   onChange: (v: string) => void;
 }) {
   const c = useTheme();
+  const t = useT();
   const styles = useMemo(() => makeStyles(c), [c]);
 
   return (
     <View style={[styles.card, { marginTop: 12 }]}>
-      <Text style={styles.cardTitle}>Uraian pekerjaan</Text>
+      <Text style={styles.cardTitle}>{t("fc.uraian")}</Text>
       <TextInput
         style={styles.textarea}
         value={uraian}
         onChangeText={onChange}
-        placeholder="Contoh: closing laporan keuangan bulanan"
+        placeholder={t("fc.uraianContoh")}
         placeholderTextColor={c.mutedLabel}
         multiline
       />
@@ -111,19 +114,20 @@ export function LemburBuktiCard({
 }) {
   const kosong = files.length === 0;
   const c = useTheme();
+  const t = useT();
   const styles = useMemo(() => makeStyles(c), [c]);
 
   return (
     <View style={[styles.card, { marginTop: 12 }]}>
       <View style={styles.headRow}>
-        <Text style={styles.cardTitle}>Bukti lembur</Text>
+        <Text style={styles.cardTitle}>{t("fc.buktiLembur")}</Text>
         <View style={[styles.badge, { backgroundColor: c.bad.bg }]}>
-          <Text style={[styles.badgeText, { color: c.bad.ink }]}>Wajib</Text>
+          <Text style={[styles.badgeText, { color: c.bad.ink }]}>
+            {t("fc.wajib")}
+          </Text>
         </View>
       </View>
-      <Text style={styles.desc}>
-        Foto hasil kerja, screenshot sistem, atau surat perintah lembur
-      </Text>
+      <Text style={styles.desc}>{t("fc.buktiDesc")}</Text>
 
       <View style={{ gap: 8, marginTop: 12 }}>
         {files.map((f, i) => (
@@ -153,9 +157,9 @@ export function LemburBuktiCard({
           </View>
           <View style={{ flex: 1, minWidth: 0 }}>
             <Text style={styles.fileName}>
-              {kosong ? "Unggah bukti lembur" : "Tambah file lain"}
+              {kosong ? t("fc.unggahBukti") : t("fc.tambahFile")}
             </Text>
-            <Text style={styles.fileSize}>JPG, PNG, atau PDF · maks. 5 MB</Text>
+            <Text style={styles.fileSize}>{t("fc.jpgPng")}</Text>
           </View>
         </Pressable>
       </View>

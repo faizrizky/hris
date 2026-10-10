@@ -6,27 +6,28 @@ import { LineIcon } from "@/components/LineIcon";
 import { ICON } from "@/constants/icons";
 import { Palette } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
+import { useT, tt } from "@/i18n";
 
 export const JENIS_CUTI = ["Tahunan", "Sakit"] as const;
 
-export const NAMA_CUTI: Record<JenisCuti, string> = {
-  Tahunan: "Cuti tahunan",
-  Sakit: "Cuti sakit",
-};
+export const namaCuti = (j: JenisCuti) => tt(`lr.jenisCutiNama.${j}`);
 
 export type JenisCuti = (typeof JENIS_CUTI)[number];
 
+export const namaJenis = (j: JenisCuti) => tt(`lr.jenisCutiNama.${j}`);
+
 function infoCuti(jenis: JenisCuti, saldo: number, hariKerja: number) {
+  const t = tt;
   if (jenis === "Tahunan") {
     return hariKerja > saldo
-      ? `Durasi melebihi saldo cuti (${saldo} hari). Kurangi tanggal atau ajukan cuti di luar tanggungan.`
-      : `Saldo ${saldo} hari · setelah pengajuan ini sisa ${saldo - hariKerja} hari`;
+      ? t("fc.infoMelebihi", { saldo })
+      : t("fc.infoSaldo", { saldo, sisa: saldo - hariKerja });
   }
-  return "Lampirkan surat dokter untuk cuti sakit lebih dari 1 hari. Tidak memotong saldo cuti tahunan.";
+  return t("fc.infoSakit");
 }
 
 export function labelLampiran(jenis: JenisCuti) {
-  return jenis === "Sakit" ? "Surat dokter (wajib)" : "Lampiran (opsional)";
+  return jenis === "Sakit" ? tt("fc.lampiranSakit") : tt("fc.lampiranOpsional");
 }
 
 export function CutiTypeCard({
@@ -42,11 +43,12 @@ export function CutiTypeCard({
 }) {
   const melebihi = jenis === "Tahunan" && hariKerja > saldo;
   const c = useTheme();
+  const t = useT();
   const styles = useMemo(() => makeStyles(c), [c]);
 
   return (
     <View style={styles.card}>
-      <Text style={styles.cardTitle}>Jenis cuti</Text>
+      <Text style={styles.cardTitle}>{t("fc.jenisCuti")}</Text>
 
       <View style={styles.chipWrap}>
         {JENIS_CUTI.map((j) => {
@@ -58,7 +60,7 @@ export function CutiTypeCard({
               style={[styles.chip, on && styles.chipOn]}
             >
               <Text style={[styles.chipText, on && styles.chipTextOn]}>
-                {j}
+                {namaJenis(j)}
               </Text>
             </Pressable>
           );
@@ -105,19 +107,20 @@ export function CutiDetailCard({
   onPickDelegasi: (v: Colleague) => void;
 }) {
   const c = useTheme();
+  const t = useT();
   const styles = useMemo(() => makeStyles(c), [c]);
   const [buka, setBuka] = useState(false);
 
   return (
     <View style={[styles.card, { marginTop: 12 }]}>
-      <Text style={styles.cardTitle}>Detail pengajuan</Text>
+      <Text style={styles.cardTitle}>{t("fc.detail")}</Text>
 
-      <Text style={styles.label}>Alasan</Text>
+      <Text style={styles.label}>{t("fc.alasan")}</Text>
       <TextInput
         style={styles.textarea}
         value={alasan}
         onChangeText={onChangeAlasan}
-        placeholder="Contoh: acara keluarga di Semarang"
+        placeholder={t("fc.alasanContoh")}
         placeholderTextColor={c.mutedLabel}
         multiline
       />
@@ -128,12 +131,12 @@ export function CutiDetailCard({
           <LineIcon d={ICON.upload} color={c.info.ink} size={17} />
         </View>
         <View style={{ flex: 1, minWidth: 0 }}>
-          <Text style={styles.rowTitle}>Unggah dokumen</Text>
-          <Text style={styles.rowSub}>PDF atau JPG, maks. 5 MB</Text>
+          <Text style={styles.rowTitle}>{t("fc.unggahDok")}</Text>
+          <Text style={styles.rowSub}>{t("fc.pdfJpg")}</Text>
         </View>
       </Pressable>
 
-      <Text style={styles.label}>Delegasi tugas</Text>
+      <Text style={styles.label}>{t("fc.delegasi")}</Text>
       <Pressable style={styles.delegateBox} onPress={() => setBuka(true)}>
         {delegasi ? (
           <>
@@ -144,7 +147,7 @@ export function CutiDetailCard({
               <Text style={styles.rowTitle}>{delegasi.fullName}</Text>
               <Text style={styles.rowSub}>{delegasi.jobTitle}</Text>
             </View>
-            <Text style={styles.changeText}>Ganti</Text>
+            <Text style={styles.changeText}>{t("fc.ganti")}</Text>
           </>
         ) : (
           <>
@@ -152,12 +155,12 @@ export function CutiDetailCard({
               <LineIcon d={ICON.user} color={c.muted} size={18} />
             </View>
             <View style={{ flex: 1, minWidth: 0 }}>
-              <Text style={styles.rowTitle}>Belum dipilih</Text>
+              <Text style={styles.rowTitle}>{t("fc.belumDipilih")}</Text>
               <Text style={styles.rowSub}>
-                {rekan.length} rekan sedepartemen
+                {t("fc.rekan", { n: rekan.length })}
               </Text>
             </View>
-            <Text style={styles.changeText}>Pilih</Text>
+            <Text style={styles.changeText}>{t("fc.pilih")}</Text>
           </>
         )}
       </Pressable>

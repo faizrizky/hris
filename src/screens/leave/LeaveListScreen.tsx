@@ -15,11 +15,13 @@ import { hrisApi } from "@/services/api";
 import { useSession } from "@/services/session";
 import { useLoad } from "@/hooks/useLoad";
 import { ErrorState } from "@/components/ErrorState";
+import { useT } from "@/i18n";
 
 export function LeaveListScreen({ navigation }: any) {
   const { employee } = useSession();
   const insets = useSafeAreaInsets();
   const c = useTheme();
+  const t = useT();
   const styles = useMemo(() => makeStyles(c), [c]);
   const saldo = useLoad(
     () =>
@@ -57,7 +59,7 @@ export function LeaveListScreen({ navigation }: any) {
         >
           <Ionicons name="chevron-back" size={18} color={c.ink} />
         </Pressable>
-        <Text style={styles.headerTitle}>Cuti &amp; Izin</Text>
+        <Text style={styles.headerTitle}>{t("cl.judul")}</Text>
       </View>
 
       <FlatList
@@ -75,7 +77,9 @@ export function LeaveListScreen({ navigation }: any) {
               >
                 <View style={styles.heroBlob} />
 
-                <Text style={styles.heroLabel}>Saldo cuti tahunan 2026</Text>
+                <Text style={styles.heroLabel}>
+                  {t("cl.saldoTahunan", { y: new Date().getFullYear() })}
+                </Text>
 
                 {memuat ? (
                   <Skeleton
@@ -91,7 +95,7 @@ export function LeaveListScreen({ navigation }: any) {
                       {cuti?.remaining ?? "–"}
                     </Text>
                     <Text style={styles.balanceTotal}>
-                      / {cuti?.total ?? "–"} {cuti?.unit ?? "hari"}
+                      / {cuti?.total ?? "–"} {cuti?.unit ?? t("cl.hari")}
                     </Text>
                   </View>
                 )}
@@ -102,7 +106,7 @@ export function LeaveListScreen({ navigation }: any) {
 
                 <View style={styles.heroBoxes}>
                   <View style={styles.heroBox}>
-                    <Text style={styles.heroBoxLabel}>Terpakai</Text>
+                    <Text style={styles.heroBoxLabel}>{t("cl.terpakai")}</Text>
                     {memuat ? (
                       <Skeleton
                         width={62}
@@ -113,12 +117,12 @@ export function LeaveListScreen({ navigation }: any) {
                       />
                     ) : (
                       <Text style={styles.heroBoxValue}>
-                        {terpakai} {cuti?.unit ?? "hari"}
+                        {terpakai} {cuti?.unit ?? t("cl.hari")}
                       </Text>
                     )}
                   </View>
                   <View style={styles.heroBox}>
-                    <Text style={styles.heroBoxLabel}>Sisa cuti sakit</Text>
+                    <Text style={styles.heroBoxLabel}>{t("cl.sisaSakit")}</Text>
                     {memuat ? (
                       <Skeleton
                         width={62}
@@ -149,8 +153,8 @@ export function LeaveListScreen({ navigation }: any) {
                 >
                   <LineIcon d={ICON.plus} color={c.info.ink} size={16} />
                 </View>
-                <Text style={styles.actionTitle}>Ajukan cuti</Text>
-                <Text style={styles.actionSub}>Tahunan, sakit, melahirkan</Text>
+                <Text style={styles.actionTitle}>{t("cl.ajukanCuti")}</Text>
+                <Text style={styles.actionSub}>{t("cl.ajukanCutiSub")}</Text>
               </Pressable>
 
               <Pressable
@@ -164,14 +168,12 @@ export function LeaveListScreen({ navigation }: any) {
                 >
                   <LineIcon d={ICON.location} color={c.purple.ink} size={16} />
                 </View>
-                <Text style={styles.actionTitle}>Dinas luar</Text>
-                <Text style={styles.actionSub}>
-                  Perjalanan kerja / kunjungan
-                </Text>
+                <Text style={styles.actionTitle}>{t("cl.dinasLuar")}</Text>
+                <Text style={styles.actionSub}>{t("cl.dinasLuarSub")}</Text>
               </Pressable>
             </View>
 
-            <Text style={styles.sectionTitle}>Pengajuan saya</Text>
+            <Text style={styles.sectionTitle}>{t("cl.pengajuanSaya")}</Text>
           </>
         }
         ListEmptyComponent={
@@ -180,7 +182,7 @@ export function LeaveListScreen({ navigation }: any) {
           ) : memuat ? (
             <RequestCardSkeleton />
           ) : (
-            <Text style={styles.empty}>Belum ada pengajuan.</Text>
+            <Text style={styles.empty}>{t("cl.kosong")}</Text>
           )
         }
         renderItem={({ item }) => {
@@ -208,7 +210,7 @@ export function LeaveListScreen({ navigation }: any) {
                   </Text>
                 </View>
                 <Text style={styles.approverName}>
-                  Approver: {item.approverName}
+                  {t("cl.approver", { nama: item.approverName })}
                 </Text>
                 <Text style={styles.stage}>{item.stage}</Text>
               </View>

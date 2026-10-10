@@ -1,5 +1,38 @@
-const HARI = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
-const BULAN = [
+import { bahasaAktif } from "@/i18n";
+
+const HARI_ID = [
+  "Minggu",
+  "Senin",
+  "Selasa",
+  "Rabu",
+  "Kamis",
+  "Jumat",
+  "Sabtu",
+];
+const HARI_EN = [
+  "Sunday",
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+];
+const BULAN_EN = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
+];
+const BULAN_ID = [
   "Januari",
   "Februari",
   "Maret",
@@ -14,14 +47,18 @@ const BULAN = [
   "Desember",
 ];
 
+// Nama hari/bulan dibaca saat dipanggil supaya mengikuti bahasa aktif.
+const hariAktif = () => (bahasaAktif() === "en" ? HARI_EN : HARI_ID);
+const bulanAktif = () => (bahasaAktif() === "en" ? BULAN_EN : BULAN_ID);
+
 export function formatTanggalPanjang(d: Date = new Date()) {
-  return `${HARI[d.getDay()]}, ${d.getDate()} ${BULAN[d.getMonth()]} ${d.getFullYear()}`;
+  return `${hariAktif()[d.getDay()]}, ${d.getDate()} ${bulanAktif()[d.getMonth()]} ${d.getFullYear()}`;
 }
 
 /** "2026-09-18" -> "18 Sep" */
 export function tanggalPendek(iso: string) {
   const d = fromISODate(iso);
-  return `${d.getDate()} ${BULAN[d.getMonth()].slice(0, 3)}`;
+  return `${d.getDate()} ${bulanAktif()[d.getMonth()].slice(0, 3)}`;
 }
 
 /** "2026-09-12" -> "12 Sep 2026" */
@@ -52,16 +89,18 @@ export function menitDari(jam: string) {
 export function durasiJam(jam: number) {
   const h = Math.floor(jam);
   const m = Math.round((jam % 1) * 60);
-  return `${h}j ${String(m).padStart(2, "0")}m`;
+  const j = bahasaAktif() === "en" ? "h" : "j";
+  return `${h}${j} ${String(m).padStart(2, "0")}m`;
 }
 
 /** 4 -> "4j", 0.5 -> "30m", 2.5 -> "2j30m" — untuk chip sempit */
 export function durasiSingkat(jam: number) {
   const h = Math.floor(jam);
   const m = Math.round((jam % 1) * 60);
+  const j = bahasaAktif() === "en" ? "h" : "j";
   if (h === 0) return `${m}m`;
-  if (m === 0) return `${h}j`;
-  return `${h}j${m}m`;
+  if (m === 0) return `${h}${j}`;
+  return `${h}${j}${m}m`;
 }
 
 /** "2026-09-14" -> Date lokal (tanpa geser timezone) */
@@ -80,7 +119,7 @@ export function toISODate(d: Date) {
 
 /** "Senin" */
 export function namaHari(iso: string) {
-  return HARI[fromISODate(iso).getDay()];
+  return hariAktif()[fromISODate(iso).getDay()];
 }
 
 /** "14" */
@@ -90,17 +129,17 @@ export function tanggalAngka(iso: string) {
 
 /** "SEP" */
 export function bulanSingkat(iso: string) {
-  return BULAN[fromISODate(iso).getMonth()].slice(0, 3).toUpperCase();
+  return bulanAktif()[fromISODate(iso).getMonth()].slice(0, 3).toUpperCase();
 }
 
 /** Date -> "Sep 2026" */
 export function labelBulan(d: Date) {
-  return `${BULAN[d.getMonth()].slice(0, 3)} ${d.getFullYear()}`;
+  return `${bulanAktif()[d.getMonth()].slice(0, 3)} ${d.getFullYear()}`;
 }
 
 /** Date -> "September" */
 export function namaBulan(d: Date = new Date()) {
-  return BULAN[d.getMonth()];
+  return bulanAktif()[d.getMonth()];
 }
 
 /** Jumlah hari kalender, inklusif kedua ujung */

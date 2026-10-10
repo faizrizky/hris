@@ -14,6 +14,7 @@ import { LeaveRequest } from "@/services/types";
 import { useConfirm } from "@/components/ConfirmDialog";
 import { describeError } from "@/services/api/http";
 import { ErrorState } from "@/components/ErrorState";
+import { useT } from "@/i18n";
 
 // Layar ini cuma di-mount untuk role mss/hr (lihat RootNavigator).
 export function LeaveApprovalScreen({ navigation }: any) {
@@ -24,6 +25,7 @@ export function LeaveApprovalScreen({ navigation }: any) {
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
   const confirm = useConfirm();
+  const t = useT();
   const [galat, setGalat] = useState<string | null>(null);
 
   const load = useCallback(() => {
@@ -42,10 +44,10 @@ export function LeaveApprovalScreen({ navigation }: any) {
       return true;
     } catch (e) {
       void confirm({
-        title: "Gagal memproses",
+        title: t("umum.gagalMemproses"),
         message: describeError(e),
         tone: "bad",
-        confirmText: "Mengerti",
+        confirmText: t("umum.mengerti"),
         cancelText: null,
       });
       return false;
@@ -55,12 +57,11 @@ export function LeaveApprovalScreen({ navigation }: any) {
   const approveAll = async () => {
     const antre = (items ?? []).filter((r) => r.decision === null);
     const ya = await confirm({
-      title: `Setujui ${antre.length} pengajuan?`,
-      message:
-        "Semua pengajuan yang menunggu akan disetujui dan tidak bisa dibatalkan.",
+      title: t("ap.setujuiN", { n: antre.length }),
+      message: t("ap.setujuiPesan"),
       tone: "warn",
-      confirmText: "Setujui semua",
-      cancelText: "Batal",
+      confirmText: t("ap.setujuiSemua"),
+      cancelText: t("umum.batal"),
     });
     if (!ya) return;
     setBusy(true);
@@ -89,13 +90,13 @@ export function LeaveApprovalScreen({ navigation }: any) {
         </Pressable>
 
         <View style={{ flex: 1, minWidth: 0 }}>
-          <Text style={styles.headerTitle}>Inbox Approval</Text>
+          <Text style={styles.headerTitle}>{t("ap.judul")}</Text>
           <Text style={styles.headerSub}>
             {memuat
-              ? "Memuat…"
+              ? t("umum.memuat")
               : pending > 0
-                ? `${pending} menunggu persetujuan`
-                : "Semua sudah diproses"}
+                ? t("ap.menunggu", { n: pending })
+                : t("ap.semuaDiproses")}
           </Text>
         </View>
 
@@ -106,7 +107,7 @@ export function LeaveApprovalScreen({ navigation }: any) {
             disabled={busy}
           >
             <Text style={styles.approveAllText}>
-              {busy ? "Memproses..." : "Setujui semua"}
+              {busy ? t("umum.memproses") : t("ap.setujuiSemua")}
             </Text>
           </Pressable>
         )}
@@ -122,7 +123,7 @@ export function LeaveApprovalScreen({ navigation }: any) {
           ) : memuat ? (
             <ApprovalCardSkeleton />
           ) : (
-            <Text style={styles.empty}>Tidak ada approval yang menunggu.</Text>
+            <Text style={styles.empty}>{t("ap.kosong")}</Text>
           )
         }
         renderItem={({ item }) => {
@@ -153,7 +154,9 @@ export function LeaveApprovalScreen({ navigation }: any) {
                 <Text style={styles.reason}>{item.reason}</Text>
                 <View style={styles.metaRow}>
                   <Text style={styles.stage}>{item.stage}</Text>
-                  <Text style={styles.quota}>· sisa kuota {item.quota}</Text>
+                  <Text style={styles.quota}>
+                    {t("ap.sisaKuota", { q: item.quota })}
+                  </Text>
                 </View>
               </View>
 
@@ -163,13 +166,13 @@ export function LeaveApprovalScreen({ navigation }: any) {
                     style={styles.rejectBtn}
                     onPress={() => decide(item.id, "reject")}
                   >
-                    <Text style={styles.rejectText}>Tolak</Text>
+                    <Text style={styles.rejectText}>{t("ap.tolak")}</Text>
                   </Pressable>
                   <Pressable
                     style={styles.approveBtn}
                     onPress={() => decide(item.id, "approve")}
                   >
-                    <Text style={styles.approveText}>Setujui</Text>
+                    <Text style={styles.approveText}>{t("ap.setujui")}</Text>
                   </Pressable>
                 </View>
               ) : (
@@ -192,8 +195,8 @@ export function LeaveApprovalScreen({ navigation }: any) {
                     ]}
                   >
                     {item.decision === "approve"
-                      ? "Sudah disetujui"
-                      : "Sudah ditolak"}
+                      ? t("ap.sudahDisetujui")
+                      : t("ap.sudahDitolak")}
                   </Text>
                 </View>
               )}

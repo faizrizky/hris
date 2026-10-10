@@ -4,6 +4,7 @@ import { LineIcon } from "@/components/LineIcon";
 import { ICON } from "@/constants/icons";
 import { Palette } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
+import { useT, tt } from "@/i18n";
 
 export const TRANSPORTASI = [
   { value: "Pesawat", icon: ICON.plane },
@@ -22,18 +23,19 @@ export function DinasTujuanCard({
   onChange: (v: string) => void;
 }) {
   const c = useTheme();
+  const t = useT();
   const styles = useMemo(() => makeStyles(c), [c]);
 
   return (
     <View style={styles.card}>
-      <Text style={styles.cardTitle}>Kota tujuan</Text>
+      <Text style={styles.cardTitle}>{t("fc.kotaTujuan")}</Text>
       <View style={styles.inputBox}>
         <LineIcon d={ICON.location} color={c.accent} size={17} />
         <TextInput
           style={styles.input}
           value={dest}
           onChangeText={onChange}
-          placeholder="Kota tujuan"
+          placeholder={t("fc.kotaTujuan")}
           placeholderTextColor={c.mutedLabel}
         />
       </View>
@@ -53,36 +55,37 @@ export function DinasDetailCard({
   onChangeKeperluan: (v: string) => void;
 }) {
   const c = useTheme();
+  const t = useT();
   const styles = useMemo(() => makeStyles(c), [c]);
 
   return (
     <View style={[styles.card, { marginTop: 12 }]}>
-      <Text style={styles.cardTitle}>Transportasi</Text>
+      <Text style={styles.cardTitle}>{t("fc.transportasi")}</Text>
 
       <View style={styles.transGrid}>
-        {TRANSPORTASI.map((t) => {
-          const on = transport === t.value;
+        {TRANSPORTASI.map((tp) => {
+          const on = transport === tp.value;
           return (
             <Pressable
-              key={t.value}
-              onPress={() => onPickTransport(t.value)}
+              key={tp.value}
+              onPress={() => onPickTransport(tp.value)}
               style={[styles.transCard, on && styles.transCardOn]}
             >
-              <LineIcon d={t.icon} color={on ? "#fff" : c.ink} size={20} />
+              <LineIcon d={tp.icon} color={on ? "#fff" : c.ink} size={20} />
               <Text style={[styles.transLabel, on && styles.transLabelOn]}>
-                {t.value}
+                {tt(`tr.${tp.value}`)}
               </Text>
             </Pressable>
           );
         })}
       </View>
 
-      <Text style={styles.label}>Keperluan</Text>
+      <Text style={styles.label}>{t("fc.keperluan")}</Text>
       <TextInput
         style={styles.textarea}
         value={keperluan}
         onChangeText={onChangeKeperluan}
-        placeholder="Contoh: kunjungan klien PT Sinar Abadi"
+        placeholder={t("fc.keperluanContoh")}
         placeholderTextColor={c.mutedLabel}
         multiline
       />

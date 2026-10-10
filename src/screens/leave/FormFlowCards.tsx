@@ -4,6 +4,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { Palette } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
+import { useT } from "@/i18n";
 
 export interface ApprovalStep {
   ini: string;
@@ -13,10 +14,11 @@ export interface ApprovalStep {
 
 export function ApprovalFlowCard({ steps }: { steps: ApprovalStep[] }) {
   const c = useTheme();
+  const t = useT();
   const styles = useMemo(() => makeStyles(c), [c]);
   return (
     <View style={[styles.card, { marginTop: 12 }]}>
-      <Text style={styles.cardTitle}>Alur approval</Text>
+      <Text style={styles.cardTitle}>{t("ff.alur")}</Text>
 
       <View style={{ marginTop: 14 }}>
         {steps.map((s, i) => (
@@ -31,7 +33,7 @@ export function ApprovalFlowCard({ steps }: { steps: ApprovalStep[] }) {
             <View style={styles.stepBody}>
               <Text style={styles.stepName}>{s.name}</Text>
               <Text style={styles.stepRole}>
-                Tahap {i + 1} · {s.role}
+                {t("ff.tahap", { n: i + 1, role: s.role })}
               </Text>
             </View>
           </View>
@@ -57,6 +59,7 @@ export function FormDoneView({
   onHome: () => void;
 }) {
   const c = useTheme();
+  const t = useT();
   const styles = useMemo(() => makeStyles(c), [c]);
 
   return (
@@ -71,7 +74,9 @@ export function FormDoneView({
           <Ionicons name="checkmark" size={30} color="#fff" />
         </View>
         <Text style={styles.doneTitle}>{title}</Text>
-        <Text style={styles.doneSub}>Menunggu approval {waitingOn}</Text>
+        <Text style={styles.doneSub}>
+          {t("ff.menunggu", { nama: waitingOn })}
+        </Text>
       </LinearGradient>
 
       <View style={[styles.card, { marginTop: 12 }]}>
@@ -85,16 +90,16 @@ export function FormDoneView({
         </View>
 
         <View style={styles.divider} />
-        <Text style={styles.syncLabel}>Tersinkron ke ERPNext</Text>
+        <Text style={styles.syncLabel}>{t("ff.tersinkron")}</Text>
         <Text style={styles.syncValue}>{doc}</Text>
       </View>
 
       <View style={styles.doneActions}>
         <Pressable style={styles.secondaryBtn} onPress={onLihat}>
-          <Text style={styles.secondaryText}>Lihat pengajuan</Text>
+          <Text style={styles.secondaryText}>{t("ff.lihat")}</Text>
         </Pressable>
         <Pressable style={styles.primaryBtn} onPress={onHome}>
-          <Text style={styles.primaryText}>Kembali ke Beranda</Text>
+          <Text style={styles.primaryText}>{t("ff.beranda")}</Text>
         </Pressable>
       </View>
     </>
