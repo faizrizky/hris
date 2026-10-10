@@ -6,16 +6,18 @@ import { Palette } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
 import { angka, rupiah } from "@/utils/currency";
 import { Payslip, PayslipLine } from "@/services/types";
+import { useT } from "@/i18n";
 
 /* ---------- Hero take-home ---------- */
 
 export function PayslipHero({
   payslip,
-  label = "Take home pay",
+  label,
 }: {
   payslip: Payslip;
   label?: string;
 }) {
+  const t = useT();
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
 
@@ -31,7 +33,7 @@ export function PayslipHero({
 
         <View style={styles.heroTop}>
           <Text style={styles.heroLabel}>
-            {label} · {payslip.period}
+            {label ?? t("pay.takeHome")} · {payslip.period}
           </Text>
           <View style={styles.statusPill}>
             <Text style={styles.statusText}>{payslip.status}</Text>
@@ -114,20 +116,21 @@ export function PayslipLinesCard({
 /* ---------- Informasi slip ---------- */
 
 export function PayslipInfoCard({ payslip }: { payslip: Payslip }) {
+  const t = useT();
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
 
   const rows = [
-    { k: "Periode", v: payslip.period },
-    { k: "Keterangan", v: payslip.note },
-    { k: "Status", v: payslip.status },
-    { k: "Rekening", v: payslip.bankAccount },
-    { k: "Tanggal bayar", v: payslip.paidAt },
+    { k: t("pay.periode"), v: payslip.period },
+    { k: t("pay.keterangan"), v: payslip.note },
+    { k: t("pay.status"), v: payslip.status },
+    { k: t("pay.rekening"), v: payslip.bankAccount },
+    { k: t("pay.tglBayar"), v: payslip.paidAt },
   ];
 
   return (
     <View style={[styles.sheet, { marginTop: 10 }]}>
-      <Text style={styles.sheetTitle}>Informasi slip</Text>
+      <Text style={styles.sheetTitle}>{t("pay.info")}</Text>
       <View style={styles.lines}>
         {rows.map((r) => (
           <View key={r.k} style={styles.lineRow}>
@@ -136,7 +139,7 @@ export function PayslipInfoCard({ payslip }: { payslip: Payslip }) {
           </View>
         ))}
         <View style={styles.divider} />
-        <Text style={styles.syncLabel}>Tersinkron ke ERPNext</Text>
+        <Text style={styles.syncLabel}>{t("pay.tersinkron")}</Text>
         <Text style={styles.syncValue}>
           Salary Slip · {payslip.id.toUpperCase()}
         </Text>
@@ -154,6 +157,7 @@ export function PayslipCompareCard({
   current: Payslip;
   previous: Payslip;
 }) {
+  const t = useT();
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
 
@@ -164,7 +168,9 @@ export function PayslipCompareCard({
 
   return (
     <View style={[styles.sheet, { marginTop: 10 }]}>
-      <Text style={styles.sheetTitle}>Dibanding {previous.period}</Text>
+      <Text style={styles.sheetTitle}>
+        {t("pay.dibanding", { periode: previous.period })}
+      </Text>
 
       <View style={styles.compareRow}>
         <View
@@ -189,8 +195,11 @@ export function PayslipCompareCard({
           </Text>
           <Text style={styles.compareNote}>
             {delta === 0
-              ? "Take home pay sama dengan bulan sebelumnya"
-              : `${persen.toFixed(1)}% ${naik ? "lebih tinggi" : "lebih rendah"} · ${previous.note}`}
+              ? t("pay.sama")
+              : t(naik ? "pay.lebihTinggi" : "pay.lebihRendah", {
+                  p: persen.toFixed(1),
+                  note: previous.note,
+                })}
           </Text>
         </View>
       </View>

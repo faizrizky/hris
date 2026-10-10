@@ -12,14 +12,16 @@ import { angka, rupiah } from "@/utils/currency";
 import { Skeleton } from "@/components/Skeleton";
 import { useLoad } from "@/hooks/useLoad";
 import { ErrorState } from "@/components/ErrorState";
+import { useT, bahasaAktif } from "@/i18n";
 
 /** 3.7 -> "3,7" · 2 -> "2" */
 function persen(n: number) {
-  return String(n).replace(".", ",");
+  return String(n).replace(".", bahasaAktif() === "en" ? "." : ",");
 }
 const TINGGI_BAR = [44, 60, 38, 96, 50, 64, 42, 72, 55, 48, 68];
 
 export function TaxScreen({ navigation }: any) {
+  const t = useT();
   const { employee } = useSession();
   const insets = useSafeAreaInsets();
   const ringkasan = useLoad(
@@ -36,7 +38,7 @@ export function TaxScreen({ navigation }: any) {
       <Pressable style={styles.backBtn} onPress={() => navigation.goBack()}>
         <Ionicons name="chevron-back" size={18} color={c.ink} />
       </Pressable>
-      <Text style={styles.headerTitle}>PPh 21 & BPJS</Text>
+      <Text style={styles.headerTitle}>{t("tax.judul")}</Text>
     </View>
   );
 
@@ -70,12 +72,12 @@ export function TaxScreen({ navigation }: any) {
               style={{ marginTop: 14 }}
             />
             <View style={styles.chart}>
-              {TINGGI_BAR.map((t, i) => (
+              {TINGGI_BAR.map((tinggi, i) => (
                 <View
                   key={i}
                   style={[
                     styles.bar,
-                    { height: `${t}%`, backgroundColor: c.onDark.track },
+                    { height: `${tinggi}%`, backgroundColor: c.onDark.track },
                   ]}
                 />
               ))}
@@ -119,10 +121,10 @@ export function TaxScreen({ navigation }: any) {
   const terakhir = tax.monthly[tax.monthly.length - 1]?.monthShort ?? "";
 
   const dasar = [
-    { k: "Penghasilan bruto", v: angka(tax.grossPay) },
-    { k: "Kategori TER", v: tax.terCategory },
-    { k: "Status PTKP", v: tax.ptkpStatus },
-    { k: "NPWP", v: tax.npwpMasked },
+    { k: t("tax.penghasilan"), v: angka(tax.grossPay) },
+    { k: t("tax.kategoriTer"), v: tax.terCategory },
+    { k: t("tax.ptkp"), v: tax.ptkpStatus },
+    { k: t("tax.npwp"), v: tax.npwpMasked },
   ];
 
   return (
@@ -133,7 +135,7 @@ export function TaxScreen({ navigation }: any) {
         <View style={styles.darkCard}>
           <View style={styles.darkHead}>
             <Text style={styles.darkLabel}>
-              PPh 21 terpotong {tax.year} (YTD)
+              {t("tax.terpotong", { y: tax.year })}
             </Text>
             <View style={styles.schemePill}>
               <Text style={styles.schemeText}>{tax.scheme}</Text>
@@ -164,14 +166,14 @@ export function TaxScreen({ navigation }: any) {
           <Text style={styles.chartNote}>
             {pertama} — {terakhir}
             {puncak
-              ? ` · puncak ${puncak.monthShort}${tax.peakReason ? ` (${tax.peakReason})` : ""}`
+              ? ` ${t("tax.puncak", { bulan: puncak.monthShort })}${tax.peakReason ? ` (${tax.peakReason})` : ""}`
               : ""}
           </Text>
         </View>
 
         <View style={styles.sheet}>
           <Text style={styles.sheetTitle}>
-            Dasar perhitungan {tax.basePeriod}
+            {t("tax.dasar", { periode: tax.basePeriod })}
           </Text>
           <View style={styles.lines}>
             {dasar.map((r) => (
@@ -182,17 +184,15 @@ export function TaxScreen({ navigation }: any) {
             ))}
             <View style={styles.divider} />
             <View style={styles.lineRow}>
-              <Text style={styles.totalLabel}>PPh 21 bulan ini</Text>
+              <Text style={styles.totalLabel}>{t("tax.bulanIni")}</Text>
               <Text style={styles.totalValue}>{angka(tax.monthTax)}</Text>
             </View>
           </View>
         </View>
 
         <View style={[styles.sheet, { marginTop: 10 }]}>
-          <Text style={styles.sheetTitle}>Iuran BPJS</Text>
-          <Text style={styles.sheetDesc}>
-            Porsi karyawan dan perusahaan per bulan
-          </Text>
+          <Text style={styles.sheetTitle}>{t("tax.iuran")}</Text>
+          <Text style={styles.sheetDesc}>{t("tax.iuranDesc")}</Text>
 
           <View style={{ gap: 12, marginTop: 14 }}>
             {tax.bpjs.map((b) => (
@@ -200,8 +200,8 @@ export function TaxScreen({ navigation }: any) {
             ))}
 
             <View style={styles.legend}>
-              <LegendDot color={c.accent} label="Karyawan" />
-              <LegendDot color={c.info.bg} label="Perusahaan" />
+              <LegendDot color={c.accent} label={t("tax.karyawan")} />
+              <LegendDot color={c.info.bg} label={t("tax.perusahaan")} />
             </View>
           </View>
         </View>

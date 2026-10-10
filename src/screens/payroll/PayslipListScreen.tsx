@@ -16,8 +16,10 @@ import { PdfButton } from "@/components/PdfButton";
 import { Skeleton } from "@/components/Skeleton";
 import { useLoad } from "@/hooks/useLoad";
 import { ErrorState } from "@/components/ErrorState";
+import { useT } from "@/i18n";
 
 export function PayslipListScreen({ navigation }: any) {
+  const t = useT();
   const { employee } = useSession();
   const insets = useSafeAreaInsets();
   const slip = useLoad(
@@ -42,7 +44,7 @@ export function PayslipListScreen({ navigation }: any) {
         >
           <Ionicons name="chevron-back" size={18} color={c.ink} />
         </Pressable>
-        <Text style={styles.headerTitle}>Slip Gaji</Text>
+        <Text style={styles.headerTitle}>{t("pay.judul")}</Text>
         <PdfButton />
       </View>
 
@@ -97,20 +99,20 @@ export function PayslipListScreen({ navigation }: any) {
             <PayslipHero payslip={latest} />
 
             <PayslipLinesCard
-              title="Pendapatan (Earnings)"
+              title={t("pay.pendapatan")}
               lines={latest.earnings}
-              totalLabel="Bruto"
+              totalLabel={t("pay.bruto")}
               total={latest.grossPay}
             />
 
             <PayslipLinesCard
               tight
               negative
-              title="Potongan (Deductions)"
+              title={t("pay.potongan")}
               lines={latest.deductions}
-              totalLabel="Total potongan"
+              totalLabel={t("pay.totalPotongan")}
               total={latest.totalDeduction}
-              linkLabel="Rincian"
+              linkLabel={t("pay.rincian")}
               onLink={() => navigation.navigate("TaxDetail")}
             />
           </>
@@ -118,7 +120,7 @@ export function PayslipListScreen({ navigation }: any) {
 
         {previous.length > 0 && (
           <>
-            <Text style={styles.sectionTitle}>Slip sebelumnya</Text>
+            <Text style={styles.sectionTitle}>{t("pay.sebelumnya")}</Text>
             <PayslipHistoryCard items={previous} />
           </>
         )}
