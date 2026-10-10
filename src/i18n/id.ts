@@ -81,6 +81,10 @@ export const id = {
   "login.atau": "atau",
   "login.faceId": "Masuk dengan Face ID",
 
+  "notif.hariIni": "Hari ini",
+  "notif.kemarin": "Kemarin",
+  "notif.sebelumnya": "Sebelumnya",
+
   // Pilihan bahasa
   "bahasa.id": "Indonesia",
   "bahasa.en": "English",

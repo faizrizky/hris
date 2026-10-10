@@ -75,6 +75,10 @@ export const en: Record<Kunci, string> = {
   "login.atau": "or",
   "login.faceId": "Sign in with Face ID",
 
+  "notif.hariIni": "Today",
+  "notif.kemarin": "Yesterday",
+  "notif.sebelumnya": "Earlier",
+
   "bahasa.id": "Indonesia",
   "bahasa.en": "English",
 };

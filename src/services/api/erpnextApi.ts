@@ -29,10 +29,16 @@ import {
   SecurityInfo,
   SecurityToggleKey,
   ActiveDevice,
+  AppNotification,
+  NotifCategory,
 } from "../types";
 import { tanggalPendek, tanggalPendekTahun, toISODate } from "../../utils/date";
 import { ApiError, get, post, put } from "./http";
-import { kembalikan, terjemahkan } from "@/i18n/serverLabels";
+import {
+  kembalikan,
+  terjemahkan,
+  terjemahkanNotifikasi,
+} from "@/i18n/serverLabels";
 import { tt } from "@/i18n";
 
 interface EmployeeRow {
@@ -486,6 +492,40 @@ async function ambilInfoKeamanan(employeeId: string): Promise<SecurityInfo> {
     ambilPerangkat(),
   ]);
   return { ...dasar, devices };
+}
+
+interface NotifRow {
+  name: string;
+  subject: string;
+  body: string | null;
+  category: NotifCategory;
+  tone: AppNotification["tone"];
+  time: string; // "YYYY-MM-DDTHH:MM:SS" dalam WIB, tanpa offset
+  read: number;
+}
+
+function bentukNotifikasi(r: NotifRow): AppNotification {
+  const [tanggal, jam = ""] = r.time.split("T");
+  const hari = toISODate(new Date());
+  const kemarin = toISODate(new Date(Date.now() - 24 * 60 * 60 * 1000));
+  const hhmm = jam.slice(0, 5);
+  const { title, body } = terjemahkanNotifikasi(r.subject, r.body ?? "");
+  const [group, timeLabel] =
+    tanggal === hari
+      ? [tt("notif.hariIni"), hhmm]
+      : tanggal === kemarin
+        ? [tt("notif.kemarin"), `${tt("notif.kemarin")} ${hhmm}`]
+        : [tt("notif.sebelumnya"), `${tanggalPendekTahun(tanggal!)} ${hhmm}`];
+  return {
+    id: r.name,
+    title,
+    body,
+    category: r.category,
+    timeLabel,
+    group,
+    tone: r.tone,
+    read: r.read === 1,
+  };
 }
 
 const NAMA_KEPEGAWAIAN: Record<string, string> = {
@@ -945,5 +985,23 @@ export const erpnextApi: HrisApi = {
       }
       throw e;
     }
+  },
+  async getNotificationInbox(): Promise<AppNotification[]> {
+    const res = await get<{ message: NotifRow[] }>(
+      "/api/method/hris_get_notifications",
+    );
+    return res.message.map(bentukNotifikasi);
+  },
+
+  async markNotificationsRead(
+    _employeeId: string,
+    ids?: string[],
+  ): Promise<AppNotification[]> {
+    const res = await post<{ message: NotifRow[] }>(
+      "/api/method/hris_mark_notifications_read",
+      // Dipisah koma: Server Script tidak bisa mengurai JSON dari isi form.
+      ids ? { names: ids.join(",") } : undefined,
+    );
+    return res.message.map(bentukNotifikasi);
   },
 };

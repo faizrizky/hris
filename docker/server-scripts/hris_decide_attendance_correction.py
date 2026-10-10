@@ -39,6 +39,19 @@ if not allowed:
 
 if decision == "reject":
     frappe.db.set_value("Attendance Request", name, "custom_rejected", 1)
+    target = frappe.db.get_value("Employee", req.employee, "user_id")
+    if target:
+        frappe.get_doc(
+            {
+                "doctype": "Notification Log",
+                "type": "Alert",
+                "for_user": target,
+                "subject": "Your attendance correction was rejected",
+                "email_content": "Attendance date: " + str(req.from_date),
+                "document_type": "Attendance Request",
+                "document_name": name,
+            }
+        ).insert(ignore_permissions=True)
     frappe.response["message"] = {"name": name, "status": "rejected"}
 else:
     req.flags.ignore_permissions = True

@@ -497,7 +497,12 @@ for _dt in ("Leave Type", "Designation", "Salary Component", "Shift Type", "Depa
 frappe.db.commit()
 frappe.clear_cache()
 
-EVENT_SCRIPTS = {}  # isi {"nama_file": ("DocType", "Before Save")} untuk script berbasis event dokumen
+EVENT_SCRIPTS = {  # script berbasis event dokumen: nama_file -> (DocType, event)
+    "hris_notify_leave_created": ("Leave Application", "After Insert"),
+    "hris_notify_leave_decided": ("Leave Application", "After Save"),
+    "hris_notify_payslip": ("Salary Slip", "After Submit"),
+    "hris_notify_attendance_correction": ("Attendance Request", "After Submit"),
+}
 
 # 9. Server Script (satu file .py per script, nama file = nama method API) ----------
 if os.path.isdir(SS_DIR):
@@ -522,6 +527,16 @@ if os.path.isdir(SS_DIR):
     frappe.clear_cache()
 
 ensure_roles()
+
+# 9b. Notifikasi awal untuk slip gaji yang sudah ada (sekali per slip; type Alert tidak mengirim email)
+for _sl in frappe.get_all("Salary Slip", filters={"docstatus": 1}, fields=["name", "employee", "start_date", "posting_date", "net_pay"]):
+    _u = frappe.db.get_value("Employee", _sl.employee, "user_id")
+    if _u and not frappe.db.exists("Notification Log", {"for_user": _u, "document_type": "Salary Slip", "document_name": _sl.name}):
+        _n = make(dict(doctype="Notification Log", type="Alert", for_user=_u,
+                       subject="Your " + frappe.utils.formatdate(_sl.start_date, "MMMM yyyy") + " payslip is available",
+                       email_content="Net pay: " + str(_sl.net_pay), document_type="Salary Slip", document_name=_sl.name))
+        frappe.db.set_value("Notification Log", _n.name, "creation", f"{_sl.posting_date} 09:00:00", update_modified=False)
+frappe.db.commit()
 
 # 10. API key untuk user ESS (hanya jika belum ada atau diminta) -------------------
 rani_email = mail["rani"]
