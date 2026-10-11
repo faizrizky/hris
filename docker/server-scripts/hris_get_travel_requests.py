@@ -52,7 +52,17 @@ if ok:
             limit_page_length=100,
         ):
             total = total + (c.total_amount or 0)
-            costs.append({"category": c.expense_type, "description": c.comments, "amount": c.total_amount})
+            costs.append({"category": c.expense_type, "description": c.comments, "amount": c.total_amount, "attachments": []})
+        files = frappe.get_all("File", filters={"attached_to_doctype": "Travel Request", "attached_to_name": q.name},
+                               fields=["file_name", "file_url", "attached_to_field"], order_by="creation asc",
+                               limit_page_length=50)
+        atts = []
+        for f in files:
+            fld = f.attached_to_field or ""
+            if fld.startswith("cost_") and fld[5:].isdigit() and int(fld[5:]) < len(costs):
+                costs[int(fld[5:])]["attachments"].append({"file_name": f.file_name, "file_url": f.file_url})
+            else:
+                atts.append({"file_name": f.file_name, "file_url": f.file_url})
         item = {
             "name": q.name,
             "destination": q.custom_destination,
@@ -64,6 +74,7 @@ if ok:
             "costs": costs,
             "total_cost": total,
             "status": status,
+            "attachments": atts,
         }
         if scope == "team":
             item["employee"] = q.employee

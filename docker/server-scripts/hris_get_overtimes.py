@@ -35,6 +35,10 @@ if ok:
         order_by="date desc, creation desc",
         limit_page_length=50,
     ):
+        atts = []
+        for f in frappe.get_all("File", filters={"attached_to_doctype": "Overtime Request", "attached_to_name": q.name},
+                                fields=["file_name", "file_url"], order_by="creation asc", limit_page_length=20):
+            atts.append({"file_name": f.file_name, "file_url": f.file_url})
         item = {
             "name": q.name,
             "date": str(q.date),
@@ -43,6 +47,7 @@ if ok:
             "hours": q.hours,
             "note": q.note,
             "status": q.status,
+            "attachments": atts,
         }
         if scope == "team":
             item["employee"] = q.employee

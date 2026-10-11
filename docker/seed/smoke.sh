@@ -64,6 +64,8 @@ except Exception: print("")' "$TMP/body")
   call "GET hris_get_my_documents" "$auth" "$BASE/api/method/hris_get_my_documents"
   call "GET hris_get_my_appraisal" "$auth" "$BASE/api/method/hris_get_my_appraisal"
   call "GET hris_get_staff_attendance_history (diri sendiri)" "$auth" "$BASE/api/method/hris_get_staff_attendance_history" -G --data-urlencode "employee=$emp" --data-urlencode "limit=30"
+  call "POST hris_register_push_token" "$auth" "$BASE/api/method/hris_register_push_token" -X POST -d "token=ExponentPushToken[smoke-test]" -d platform=smoke
+  call "POST hris_unregister_push_token" "$auth" "$BASE/api/method/hris_unregister_push_token" -X POST -d "token=ExponentPushToken[smoke-test]"
   call "GET hris_get_colleagues" "$auth" "$BASE/api/method/hris_get_colleagues"
   if [ -n "$emp" ]; then
     call "GET get_leave_details ($emp, $TODAY)" "$auth" \

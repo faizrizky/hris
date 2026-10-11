@@ -546,6 +546,49 @@ if not frappe.db.get_single_value("System Settings", "allowed_file_extensions"):
     frappe.db.set_single_value("System Settings", "allowed_file_extensions", "PDF\nJPG\nJPEG\nPNG")
 frappe.db.commit()
 
+# Izin lampiran bukti: Employee boleh baca/ubah dokumen Overtime Request / Travel Request miliknya
+# sendiri (if_owner) supaya upload_file berjalan; HR mengelola penuh. Atasan dapat akses baca via DocShare.
+from frappe.permissions import add_permission, update_permission_property
+for _dt, _roles in (("Overtime Request", ("Employee",)), ("Travel Request", ("Employee", "HR User", "HR Manager"))):
+    for _role in _roles:
+        _has = frappe.db.exists("Custom DocPerm", {"parent": _dt, "role": _role, "permlevel": 0}) or \
+            any(p.role == _role and p.permlevel == 0 for p in frappe.get_meta(_dt).permissions)
+        if not _has:
+            add_permission(_dt, _role, 0)
+            update_permission_property(_dt, _role, 0, "read", 1)
+            update_permission_property(_dt, _role, 0, "write", 1)
+            if _role == "Employee":
+                update_permission_property(_dt, _role, 0, "if_owner", 1)
+            else:
+                update_permission_property(_dt, _role, 0, "create", 1)
+                update_permission_property(_dt, _role, 0, "submit", 1)
+            frappe.clear_cache(doctype=_dt)
+            log(f"izin {_role} pada {_dt} ditambahkan")
+frappe.db.commit()
+
+# Push notification (Expo). Push Token: dikelola lewat Server Script; Push Settings: saklar dry run.
+if not frappe.db.exists("DocType", "Push Token"):
+    make(dict(
+        doctype="DocType", name="Push Token", module="HR", custom=1, naming_rule="By fieldname", autoname="field:token",
+        fields=[
+            dict(fieldname="user", label="User", fieldtype="Link", options="User", reqd=1, in_list_view=1),
+            dict(fieldname="token", label="Token", fieldtype="Data", reqd=1, unique=1, in_list_view=1),
+            dict(fieldname="platform", label="Platform", fieldtype="Data"),
+            dict(fieldname="device_name", label="Device Name", fieldtype="Data"),
+            dict(fieldname="last_seen", label="Last Seen", fieldtype="Datetime"),
+        ],
+        permissions=[dict(role="System Manager", read=1, write=1, create=1, delete=1),
+                     dict(role="HR Manager", read=1, write=1, create=1, delete=1)]))
+    frappe.clear_cache()
+if not frappe.db.exists("DocType", "Push Settings"):
+    make(dict(
+        doctype="DocType", name="Push Settings", module="HR", custom=1, issingle=1,
+        fields=[dict(fieldname="dry_run", label="Dry Run (log payload instead of sending)", fieldtype="Check", default="1")],
+        permissions=[dict(role="System Manager", read=1, write=1), dict(role="HR Manager", read=1, write=1)]))
+    frappe.clear_cache()
+    frappe.db.set_single_value("Push Settings", "dry_run", 1)  # nilai awal dev; ubah di web untuk kirim sungguhan
+frappe.db.commit()
+
 # Sinkronkan label Custom Field yang sudah ada ke bahasa Inggris (nama field tidak berubah).
 for (_dt, _fn), _label in {
     ("Employee", "custom_pengaturan_gaji"): "Salary Settings",
@@ -624,6 +667,7 @@ EVENT_SCRIPTS = {  # script berbasis event dokumen: nama_file -> (DocType, event
     "hris_notify_payslip": ("Salary Slip", "After Submit"),
     "hris_notify_attendance_correction": ("Attendance Request", "After Submit"),
     "hris_notify_document_status": ("Employee Document", "After Save"),
+    "hris_push_on_notification": ("Notification Log", "After Insert"),
 }
 
 # 9. Server Script (satu file .py per script, nama file = nama method API) ----------

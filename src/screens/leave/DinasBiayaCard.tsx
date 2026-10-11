@@ -8,6 +8,8 @@ import { Palette } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
 import { angka, rupiah } from "@/utils/currency";
 import { useT, tt } from "@/i18n";
+import { useConfirm } from "@/components/ConfirmDialog";
+import { BuktiBerkas, pilihBukti } from "@/utils/pilihBukti";
 
 export const KATEGORI_BIAYA = [
   "Transportasi",
@@ -29,7 +31,7 @@ export interface Biaya {
   kategori: string;
   keterangan: string;
   nominal: string; // digit mentah, diformat saat ditampilkan
-  bukti: string | null;
+  bukti: BuktiBerkas | null;
 }
 
 export function totalBiaya(items: Biaya[], hari: number) {
@@ -52,6 +54,22 @@ export function DinasBiayaCard({
   onChange: (id: string, patch: Partial<Biaya>) => void;
 }) {
   const [editing, setEditing] = useState<string | null>(null);
+  const confirm = useConfirm();
+  const pilih = async (id: string) => {
+    const r = await pilihBukti();
+    if (!r) return;
+    if ("terlaluBesar" in r) {
+      void confirm({
+        title: t("bi.besarJudul"),
+        message: t("bi.besarPesan", { ukuran: r.terlaluBesar }),
+        tone: "warn",
+        confirmText: t("umum.mengerti"),
+        cancelText: null,
+      });
+      return;
+    }
+    onChange(id, { bukti: r.berkas });
+  };
   const { pengeluaran, perdiem, total } = totalBiaya(items, hari);
   const c = useTheme();
   const t = useT();
@@ -118,14 +136,14 @@ export function DinasBiayaCard({
               {x.bukti ? (
                 <View style={styles.proofOk}>
                   <LineIcon d={ICON.fileCheck} color={c.ok.ink} size={15} />
-                  <Text style={styles.proofName}>{x.bukti}</Text>
+                  <Text style={styles.proofName}>{x.bukti.name}</Text>
                   <Pressable onPress={() => onChange(x.id, { bukti: null })}>
                     <Text style={styles.proofRemove}>{t("bi.hapus")}</Text>
                   </Pressable>
                 </View>
               ) : (
                 <Pressable
-                  onPress={() => onChange(x.id, { bukti: `bukti-${x.id}.jpg` })}
+                  onPress={() => pilih(x.id)}
                   style={[
                     styles.proofAdd,
                     {

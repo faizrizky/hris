@@ -78,6 +78,13 @@ export interface LeaveRequest {
   approverInitials: string;
   decision: LeaveDecision;
   createdAt: string;
+  buktiGagal?: number; // jumlah lampiran yang gagal diunggah setelah pengajuan terkirim
+}
+
+export interface BerkasLampiran {
+  uri: string;
+  name: string;
+  mimeType: string;
 }
 
 export interface LeaveBalance {
@@ -350,11 +357,17 @@ export interface HrisApi {
     delegateId?: string;
     delegateName?: string;
     overtimeEnd?: string; // lembur: "HH:MM"
+    attachments?: BerkasLampiran[]; // lembur: bukti
     travel?: {
       destination: string;
       transport: string; // nilai TRANSPORTASI di aplikasi
       purpose: string;
-      costs: { category: string; description: string; amount: number }[];
+      costs: {
+        category: string;
+        description: string;
+        amount: number;
+        proof?: BerkasLampiran;
+      }[];
     };
   }): Promise<LeaveRequest>;
 

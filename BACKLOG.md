@@ -17,14 +17,12 @@ Status per 2026-10-11. Sumber kebenaran: method di `HrisApi` ([src/services/type
 Tidak ada: seluruh method `HrisApi` sudah punya implementasi ERPNext. Dokumen Digital (`hris_*_my_document` + `upload_file`) dan Appraisal (`hris_get_my_appraisal`) baru tersambung dan belum diuji di perangkat.
 
 ## Berikutnya
-- [ ] Bukti lembur dan bukti biaya dinas luar: kini file tiruan di aplikasi, belum terkirim
-- [ ] Zona waktu dari server ditampilkan di ClockScreen (kini tertulis "WIB" tetap)
-- [ ] Riwayat absensi per karyawan (`StaffDetail`/`StaffHistory` memanggil riwayat milik pemanggil)
+- [ ] Uji di HP fisik: unggah bukti lembur/biaya dinas dan dokumen, jam menurut zona dinas (butuh dinas aktif di zona lain), riwayat absensi staf
+- [ ] Push notification: butuh dev build + akun Apple Developer + `projectId` EAS di app.json (`extra.eas.projectId`). Server sudah siap (Push Settings → Dry Run diubah ke 0 untuk kirim sungguhan); pengiriman masih sinkron di request pembuat notifikasi (maks 8 detik)
+- [ ] Lampiran terlihat oleh atasan di kartu approval (data `attachments` sudah dikirim server, belum ditampilkan)
+- [ ] Bukti koreksi absensi masih file contoh
 - [ ] Antrean check-in offline tidak bisa mengirim jam asli
-- [ ] Kategori notifikasi Pengumuman/Appraisal belum punya sumber (usulan: doctype "HR Announcement")
-- [ ] Push notification ke HP: butuh dev build (bukan Expo Go), akun Apple Developer, dan pekerja luar untuk memanggil layanan push
+- [ ] Kategori notifikasi Pengumuman belum punya sumber khusus (usulan: doctype "HR Announcement")
 - [ ] Verifikasi wajah (ML Kit) dan geofence asli
 - [ ] Jenis cuti Melahirkan dan Izin penting belum punya Leave Type
-- [ ] Uji di HP fisik (ATS iOS / cleartext Android untuk build non-Expo Go)
 - [ ] Seed dari nol (`down -v`) belum diuji; seed baru perlu dijalankan di srv-vllm
-- [ ] `graphify-out/` perlu masuk .gitignore

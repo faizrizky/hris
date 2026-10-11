@@ -677,6 +677,11 @@ export const id = {
   "rate.Poor": "Kurang",
   "err.dokumenGagal": "Dokumen gagal diunggah",
   "err.tanpaAppraisal": "Belum ada penilaian kinerja untuk akun ini",
+  "bi.besarJudul": "File terlalu besar",
+  "bi.besarPesan": "Ukuran {ukuran} melebihi batas 5 MB.",
+  "lr.buktiGagalJudul": "Bukti belum terunggah",
+  "lr.buktiGagalPesan":
+    "Pengajuan sudah terkirim, tetapi {n} bukti gagal diunggah. Hubungi atasan atau HR untuk melengkapinya.",
 } as const;
 
 export type Kunci = keyof typeof id;

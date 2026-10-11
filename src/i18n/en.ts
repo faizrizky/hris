@@ -669,4 +669,9 @@ export const en: Record<Kunci, string> = {
   "rate.Poor": "Poor",
   "err.dokumenGagal": "The document could not be uploaded",
   "err.tanpaAppraisal": "No performance appraisal yet for this account",
+  "bi.besarJudul": "File too large",
+  "bi.besarPesan": "Size {ukuran} exceeds the 5 MB limit.",
+  "lr.buktiGagalJudul": "Proof not uploaded",
+  "lr.buktiGagalPesan":
+    "The request was sent, but {n} proof file(s) could not be uploaded. Contact your supervisor or HR to complete it.",
 };

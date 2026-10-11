@@ -9,6 +9,8 @@ import { useT } from "@/i18n";
 export interface BuktiFile {
   name: string;
   size: string;
+  uri?: string; // ada bila berkas sungguhan, kosong bila contoh
+  mimeType?: string;
 }
 
 export function LemburJamCard({

@@ -13,6 +13,7 @@ import {
   LeaveRequest,
   LeaveType,
   Appraisal,
+  BerkasLampiran,
   DocCategory,
   DocStatus,
   EmployeeDocument,
@@ -431,6 +432,34 @@ async function ambilMilikSendiri(employeeId: string): Promise<LeaveRequest[]> {
     },
   );
   return res.data.map(bentukPengajuan);
+}
+
+// Lampiran dikirim setelah dokumennya ada. Satu yang gagal tidak menggagalkan
+// pengajuan; jumlah yang gagal dikembalikan supaya pengguna diberi tahu.
+async function lampirkanSemua(
+  doctype: string,
+  docname: string,
+  daftar: { f: BerkasLampiran; field: string }[],
+): Promise<number> {
+  let gagal = 0;
+  for (const { f, field } of daftar) {
+    try {
+      const form = new FormData();
+      form.append("file", {
+        uri: f.uri,
+        name: f.name,
+        type: f.mimeType,
+      } as unknown as Blob);
+      form.append("is_private", "1");
+      form.append("doctype", doctype);
+      form.append("docname", docname);
+      form.append("fieldname", field);
+      await upload("/api/method/upload_file", form);
+    } catch {
+      gagal += 1;
+    }
+  }
+  return gagal;
 }
 
 // ---- Dokumen Digital dan Appraisal ----
@@ -1097,7 +1126,15 @@ export const erpnextApi: HrisApi = {
           note: input.reason,
         },
       );
-      return bentukLembur(res.message, input.employeeId);
+      const gagal = await lampirkanSemua(
+        "Overtime Request",
+        res.message.name,
+        (input.attachments ?? []).map((f) => ({ f, field: "proof" })),
+      );
+      return {
+        ...bentukLembur(res.message, input.employeeId),
+        buktiGagal: gagal || undefined,
+      };
     }
     if (input.type === "dinas_luar") {
       const t = input.travel;
@@ -1119,7 +1156,19 @@ export const erpnextApi: HrisApi = {
             .join(";"),
         },
       );
-      return bentukDinas(res.message, input.employeeId);
+      // Indeks bukti mengikuti urutan baris biaya yang benar-benar dikirim.
+      const terkirim = t.costs.filter((x) => x.amount > 0);
+      const gagal = await lampirkanSemua(
+        "Travel Request",
+        res.message.name,
+        terkirim.flatMap((x, n) =>
+          x.proof ? [{ f: x.proof, field: `cost_${n}` }] : [],
+        ),
+      );
+      return {
+        ...bentukDinas(res.message, input.employeeId),
+        buktiGagal: gagal || undefined,
+      };
     }
     const jenis = NAMA_JENIS[input.type];
     if (!jenis) return mockApi.submitLeaveRequest(input);

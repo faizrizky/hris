@@ -48,6 +48,8 @@ import { rupiah } from "@/utils/currency";
 import { LinearGradient } from "expo-linear-gradient";
 import { describeError } from "@/services/api/http";
 import { useT } from "@/i18n";
+import { useConfirm } from "@/components/ConfirmDialog";
+import { pilihBukti } from "@/utils/pilihBukti";
 
 const SEGMENTS = [
   { key: "cuti", label: "lr.cuti" },
@@ -72,6 +74,7 @@ const DOC_NAMA: Record<FormKind, string> = {
 
 export function LeaveRequestScreen({ navigation, route }: any) {
   const t = useT();
+  const confirm = useConfirm();
   const { employee } = useSession();
   const [balances, setBalances] = useState<LeaveBalance[]>([]);
   const [jenisCuti, setJenisCuti] = useState<JenisCuti>("Tahunan");
@@ -156,6 +159,17 @@ export function LeaveRequestScreen({ navigation, route }: any) {
 
   const bisaKirim = !blockMsg && !sending;
 
+  const tambahBukti = async () => {
+    const r = await pilihBukti();
+    if (!r) return;
+    if ("terlaluBesar" in r) {
+      setGalat(t("up.besarPesan", { ukuran: r.terlaluBesar }));
+      return;
+    }
+    setGalat(null);
+    setOtFiles((prev) => [...prev, r.berkas]);
+  };
+
   const handleSubmit = async () => {
     if (!bisaKirim || !employee) return;
     setSending(true);
@@ -192,6 +206,14 @@ export function LeaveRequestScreen({ navigation, route }: any) {
           kind === "cuti" && delegasi ? delegasi.fullName : undefined,
         delegateId: kind === "cuti" && delegasi ? delegasi.id : undefined,
         overtimeEnd: kind === "lembur" ? jamMenit(otEnd) : undefined,
+        attachments:
+          kind === "lembur"
+            ? otFiles.flatMap((f) =>
+                f.uri
+                  ? [{ uri: f.uri, name: f.name, mimeType: f.mimeType ?? "" }]
+                  : [],
+              )
+            : undefined,
         travel:
           kind === "dinas" && transport
             ? {
@@ -202,11 +224,27 @@ export function LeaveRequestScreen({ navigation, route }: any) {
                   category: x.kategori,
                   description: x.keterangan,
                   amount: Number(x.nominal) || 0,
+                  proof: x.bukti
+                    ? {
+                        uri: x.bukti.uri,
+                        name: x.bukti.name,
+                        mimeType: x.bukti.mimeType,
+                      }
+                    : undefined,
                 })),
               }
             : undefined,
       });
       setDone(created.id);
+      if (created.buktiGagal) {
+        void confirm({
+          title: t("lr.buktiGagalJudul"),
+          message: t("lr.buktiGagalPesan", { n: created.buktiGagal }),
+          tone: "warn",
+          confirmText: t("umum.mengerti"),
+          cancelText: null,
+        });
+      }
     } catch (e) {
       setGalat(describeError(e));
     } finally {
@@ -422,15 +460,7 @@ export function LeaveRequestScreen({ navigation, route }: any) {
                   <LemburUraianCard uraian={uraian} onChange={setUraian} />
                   <LemburBuktiCard
                     files={otFiles}
-                    onAdd={() =>
-                      setOtFiles((prev) => [
-                        ...prev,
-                        {
-                          name: t("lr.buktiFile", { n: prev.length + 1 }),
-                          size: "1,2 MB",
-                        },
-                      ])
-                    }
+                    onAdd={tambahBukti}
                     onRemove={(i) =>
                       setOtFiles((prev) => prev.filter((_, idx) => idx !== i))
                     }

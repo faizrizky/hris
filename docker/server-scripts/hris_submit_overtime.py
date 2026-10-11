@@ -58,8 +58,9 @@ doc = frappe.get_doc(
     }
 )
 doc.insert(ignore_permissions=True)
-if me[0].reports_to:
-    boss = frappe.db.get_value("Employee", me[0].reports_to, "user_id")
+boss_user = frappe.db.get_value("Employee", me[0].reports_to, "user_id") if me[0].reports_to else None
+if boss_user:
+    boss = boss_user
     if boss:
         frappe.get_doc(
             {
@@ -72,6 +73,13 @@ if me[0].reports_to:
                 "document_name": doc.name,
             }
         ).insert(ignore_permissions=True)
+if boss_user:
+    share = frappe.get_doc({"doctype": "DocShare", "user": boss_user, "share_doctype": "Overtime Request",
+                            "share_name": doc.name, "read": 1})
+    share.flags.ignore_share_permission = True
+    share.insert(ignore_permissions=True)
+# Bukti: POST /api/method/upload_file (multipart: file, is_private=1, doctype="Overtime Request",
+#   docname=<name>, fieldname="proof") dengan sesi pemilik; atasan diberi akses baca lewat DocShare.
 frappe.response["message"] = {
     "name": doc.name,
     "date": date,
