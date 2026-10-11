@@ -33,6 +33,8 @@ if decision == "approve":
         p_fields["personal_email"] = prop["personal_email"] or None
     if "address" in prop:
         p_fields["current_address"] = prop["address"] or None
+    if "marital_status" in prop:
+        p_fields["marital_status"] = prop["marital_status"] or None
     ec_rows = prop.get("emergency_contacts")
     fam_rows = prop.get("family")
     # @include: _lib/profile_apply.py

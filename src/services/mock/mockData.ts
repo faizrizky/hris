@@ -676,6 +676,7 @@ export const MOCK_PROFILE: PersonalProfile = {
     address: "Jl. Cipaganti No. 18, Coblong, Bandung 40131",
     contacts: [],
     family: [],
+    maritalStatus: "Single",
   },
 };
 

@@ -27,6 +27,12 @@ for key in p_mapping:
                     frappe.throw("Invalid phone number format")
         p_fields[p_mapping[key][0]] = val if val else None
 
+if "marital_status" in fd:
+    ms = str(fd.get("marital_status") or "").strip()
+    if ms not in ("Single", "Married", "Divorced", "Widowed"):
+        frappe.throw("marital_status must be Single, Married, Divorced or Widowed")
+    p_fields["marital_status"] = ms
+
 ec_rows = None
 if "emergency_contacts" in fd:
     raw = fd.get("emergency_contacts")

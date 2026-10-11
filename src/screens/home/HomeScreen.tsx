@@ -185,6 +185,13 @@ export function HomeScreen() {
         ]
       : []),
     {
+      label: t("hm.aPengumuman"),
+      icon: ICON.bell,
+      bg: c.warn.bg,
+      ink: c.warn.ink,
+      onPress: () => navigation.navigate("Announcements"),
+    },
+    {
       label: t("hm.aAbsensi"),
       icon: ICON.clock,
       bg: c.info.bg,

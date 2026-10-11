@@ -1,10 +1,11 @@
 # --- @lib profile_current: data pribadi saat ini untuk Employee `target_emp` -> cur ---
 cur_e = frappe.get_all("Employee", filters={"name": target_emp},
-                       fields=["cell_number", "personal_email", "current_address"], limit_page_length=1)[0]
+                       fields=["cell_number", "personal_email", "current_address", "marital_status"], limit_page_length=1)[0]
 cur = {
     "phone": cur_e.cell_number or "",
     "personal_email": cur_e.personal_email or "",
     "address": cur_e.current_address or "",
+    "marital_status": cur_e.marital_status or "",
     "emergency_contacts": [
         {"contact_name": c.contact_name, "relation": c.relation, "phone": c.phone}
         for c in frappe.get_all("Employee Emergency Contact", filters={"parent": target_emp, "parenttype": "Employee"},

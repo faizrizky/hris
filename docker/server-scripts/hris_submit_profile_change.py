@@ -1,5 +1,5 @@
 # Server Script (type: API, method: hris_submit_profile_change, allow_guest: 0)
-# Ajukan perubahan data pribadi. POST: phone, personal_email, address, emergency_contacts, family, reason (wajib).
+# Ajukan perubahan data pribadi. POST: phone, personal_email, address, marital_status, emergency_contacts, family, reason (wajib).
 # Format dan validasi sama dengan hris_update_my_profile. Bila sudah ada request Pending, request itu diperbarui.
 # Tidak ada perbedaan dengan data saat ini -> 417 "No changes to submit". HR diberi notifikasi.
 user = frappe.session.user
@@ -19,7 +19,8 @@ if len(reason) > 500:
 existing = frappe.get_all("Profile Change Request", filters={"employee": target_emp, "status": "Pending"},
                           fields=["name", "proposed"], order_by="creation desc", limit_page_length=1)
 proposed = json.loads(existing[0].proposed) if existing and existing[0].proposed else {}
-for api_key, col in (("phone", "cell_number"), ("personal_email", "personal_email"), ("address", "current_address")):
+for api_key, col in (("phone", "cell_number"), ("personal_email", "personal_email"), ("address", "current_address"),
+                     ("marital_status", "marital_status")):
     if col in p_fields:
         proposed[api_key] = p_fields[col] or ""
 if ec_rows is not None:
@@ -34,11 +35,11 @@ def line_fam(r):
     return (str(r["member_name"]) + " · " + str(r["relation"]) + " · " + str(r["date_of_birth"] or "-") + " · "
             + ("Dependent" if r["is_dependent"] else "Not dependent"))
 
-labels = {"phone": "Phone", "personal_email": "Personal Email", "address": "Address",
+labels = {"phone": "Phone", "personal_email": "Personal Email", "address": "Address", "marital_status": "Marital Status",
           "emergency_contacts": "Emergency Contacts", "family": "Family Members"}
 changes = []
 kept = {}
-for k in ("phone", "personal_email", "address", "emergency_contacts", "family"):
+for k in ("phone", "personal_email", "address", "marital_status", "emergency_contacts", "family"):
     if k not in proposed:
         continue
     if json.dumps(proposed[k], sort_keys=True) == json.dumps(cur[k], sort_keys=True):

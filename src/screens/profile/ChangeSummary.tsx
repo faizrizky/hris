@@ -9,6 +9,7 @@ import { tanggalPendekTahun } from "@/utils/date";
 
 const FIELD: Record<string, Kunci> = {
   phone: "pc.f.phone",
+  marital_status: "pc.f.marital_status",
   personal_email: "pc.f.personal_email",
   address: "pc.f.address",
   emergency_contacts: "pc.f.emergency_contacts",

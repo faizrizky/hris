@@ -12,6 +12,7 @@ import {
   LeaveDecision,
   LeaveRequest,
   LeaveType,
+  Announcement,
   Appraisal,
   ProfileChange,
   FeedbackForm,
@@ -702,6 +703,7 @@ function paramProfil(data: EditableProfile) {
   const bersih = (x: string) => x.replace(/[|;]/g, " ").trim();
   return {
     phone: data.phone,
+    marital_status: data.maritalStatus,
     personal_email: data.personalEmail,
     address: data.address,
     family: data.family
@@ -823,6 +825,7 @@ function bentukProfil(r: ProfileRow): PersonalProfile {
       phone: r.cell_number ?? "",
       personalEmail: r.personal_email ?? "",
       address: r.current_address ?? "",
+      maritalStatus: r.marital_status ?? "Single",
       family: (r.family ?? []).map((m) => ({
         name: m.member_name,
         relation: m.relation ?? "Other",
@@ -1692,6 +1695,31 @@ export const erpnextApi: HrisApi = {
       ...paramProfil(data),
       reason,
     });
+  },
+
+  async getAnnouncements(): Promise<Announcement[]> {
+    const res = await get<{
+      message: {
+        name: string;
+        title: string;
+        content: string | null;
+        priority: "Normal" | "Important";
+        published_on: string | null;
+        expires_on: string | null;
+        attachments?: LampiranRow[];
+        posted_by: string | null;
+      }[];
+    }>("/api/method/hris_get_announcements");
+    return res.message.map((a) => ({
+      id: a.name,
+      title: a.title,
+      content: a.content ?? "",
+      priority: a.priority,
+      publishedOn: a.published_on ? a.published_on.slice(0, 10) : null,
+      expiresOn: a.expires_on,
+      attachments: keLampiran(a.attachments) ?? [],
+      postedBy: a.posted_by,
+    }));
   },
 
   async getMyProfileChanges(): Promise<ProfileChange[]> {

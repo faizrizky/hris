@@ -329,6 +329,10 @@ export const mockApi: HrisApi = {
     return personalProfile;
   },
 
+  async getAnnouncements() {
+    return [];
+  },
+
   async submitProfileChange() {},
 
   async getMyProfileChanges() {

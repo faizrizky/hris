@@ -843,4 +843,18 @@ export const en: Record<Kunci, string> = {
     "Your leave, overtime, and business trip requests will appear here.",
   "cr.judul": "New request",
   "cr.sub": "Every request goes through the approval workflow",
+  "pe.statusNikah": "Marital status",
+  "pe.statusNikahCatatan":
+    "Marital status and dependents determine your PTKP and PPh 21 tax rate. The change applies once HR approves it.",
+  "pc.f.marital_status": "Marital status",
+  "an.judul": "Announcements",
+  "an.sub": "News from HR and the company",
+  "an.penting": "Important",
+  "an.kosongJudul": "No announcements yet",
+  "an.kosongIsi": "Announcements from HR will appear here.",
+  "an.oleh": "by {nama}",
+  "an.berlaku": "valid until {tgl}",
+  "an.bacaSelengkapnya": "Read more",
+  "an.tutup": "Show less",
+  "hm.aPengumuman": "Announcements",
 };

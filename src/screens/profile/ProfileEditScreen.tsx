@@ -42,10 +42,18 @@ import { tanggalPendekTahun } from "@/utils/date";
 import { terjemahkan } from "@/i18n/serverLabels";
 import { useConfirm } from "@/components/ConfirmDialog";
 import { kembali } from "@/navigation/kembali";
+import type { Kunci } from "@/i18n/id";
 
 // Nilai baku ERPNext; tampilannya mengikuti bahasa lewat terjemahkan().
 const HUBUNGAN = ["Mother", "Father", "Sibling", "Spouse", "Friend", "Other"];
 const MAKS_KONTAK = 5;
+const STATUS_NIKAH = ["Single", "Married", "Divorced", "Widowed"] as const;
+const NAMA_NIKAH: Record<(typeof STATUS_NIKAH)[number], Kunci> = {
+  Single: "api.belumMenikah",
+  Married: "api.menikah",
+  Divorced: "api.ceraiHidup",
+  Widowed: "api.ceraiMati",
+};
 const KELUARGA = ["Spouse", "Child", "Father", "Mother", "Sibling", "Other"];
 const MAKS_KELUARGA = 10;
 
@@ -419,6 +427,27 @@ export function ProfileEditScreen({ navigation }: any) {
                 </Text>
               </Pressable>
             )}
+          </View>
+
+          <View style={[styles.card, { marginTop: 12 }]}>
+            <Text style={styles.cardTitle}>{t("pe.statusNikah")}</Text>
+            <View style={[styles.chipRow, { marginTop: 12 }]}>
+              {STATUS_NIKAH.map((st) => {
+                const on = draft.maritalStatus === st;
+                return (
+                  <Pressable
+                    key={st}
+                    onPress={() => ubah({ maritalStatus: st })}
+                    style={[styles.chip, on && styles.chipOn]}
+                  >
+                    <Text style={[styles.chipText, on && styles.chipTextOn]}>
+                      {t(NAMA_NIKAH[st])}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+            <Text style={styles.note}>{t("pe.statusNikahCatatan")}</Text>
           </View>
 
           <View style={[styles.card, { marginTop: 12 }]}>

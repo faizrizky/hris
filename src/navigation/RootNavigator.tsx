@@ -15,6 +15,7 @@ import { AppraisalFeedbackScreen } from "@/screens/appraisal/AppraisalFeedbackSc
 import { EmployeeDocumentDetailScreen } from "@/screens/documents/EmployeeDocumentDetailScreen";
 import { ProfileChangeReviewScreen } from "@/screens/profile/ProfileChangeReviewScreen";
 import { ProfileChangeReviewDetailScreen } from "@/screens/profile/ProfileChangeReviewDetailScreen";
+import { AnnouncementsScreen } from "@/screens/announcements/AnnouncementsScreen";
 import { DocumentReviewScreen } from "@/screens/documents/DocumentReviewScreen";
 import { DocumentReviewDetailScreen } from "@/screens/documents/DocumentReviewDetailScreen";
 import { LeaveApprovalScreen } from "@/screens/leave/LeaveApprovalScreen";
@@ -161,6 +162,7 @@ function HomeStack() {
       screenOptions={{ headerShown: false, animation: "none" }}
     >
       <Stack.Screen name="HomeMain" component={HomeScreen} />
+      <Stack.Screen name="Announcements" component={AnnouncementsScreen} />
       {/* Tujuan Aksi Cepat Beranda ikut ditumpuk di sini (nama sama dengan di
           tab asalnya), supaya geser/tombol kembali selalu pulang ke Beranda. */}
       <Stack.Screen name="Approval" component={LeaveApprovalScreen} />

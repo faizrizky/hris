@@ -848,6 +848,20 @@ export const id = {
     "Pengajuan cuti, lembur, dan dinas luar milikmu akan muncul di sini.",
   "cr.judul": "Buat pengajuan",
   "cr.sub": "Semua pengajuan masuk ke workflow approval berjenjang",
+  "pe.statusNikah": "Status pernikahan",
+  "pe.statusNikahCatatan":
+    "Status pernikahan dan jumlah tanggungan menentukan PTKP dan tarif pajak PPh 21. Perubahan berlaku setelah HR menyetujui.",
+  "pc.f.marital_status": "Status pernikahan",
+  "an.judul": "Pengumuman",
+  "an.sub": "Kabar dari HR dan perusahaan",
+  "an.penting": "Penting",
+  "an.kosongJudul": "Belum ada pengumuman",
+  "an.kosongIsi": "Pengumuman dari HR akan muncul di sini.",
+  "an.oleh": "oleh {nama}",
+  "an.berlaku": "berlaku s.d. {tgl}",
+  "an.bacaSelengkapnya": "Baca selengkapnya",
+  "an.tutup": "Ringkas",
+  "hm.aPengumuman": "Pengumuman",
 } as const;
 
 export type Kunci = keyof typeof id;

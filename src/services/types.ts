@@ -254,6 +254,7 @@ export interface EditableProfile {
   // Relasi memakai nilai baku ERPNext (Mother, Friend, ...); tampilan diterjemahkan.
   contacts: EmergencyContact[];
   family: FamilyMember[];
+  maritalStatus: string; // nilai baku ERPNext: Single, Married, Divorced, Widowed
 }
 
 /** Sisanya hanya bisa diubah HR lewat pengajuan dokumen. */
@@ -293,6 +294,17 @@ export interface EmployeeDocument {
   changeReason?: string | null;
   expiresOn?: string | null; // ISO
   uploadedOn?: string | null; // ISO
+}
+
+export interface Announcement {
+  id: string;
+  title: string;
+  content: string; // teks bersih
+  priority: "Normal" | "Important";
+  publishedOn: string | null; // ISO
+  expiresOn: string | null; // ISO
+  attachments: { name: string; url: string }[];
+  postedBy: string | null;
 }
 
 export type ChangeStatus = "Pending" | "Approved" | "Rejected";
@@ -509,6 +521,7 @@ export interface HrisApi {
   // Karyawan non-HR tidak mengubah data pribadi langsung: mereka mengajukan permintaan.
   submitProfileChange(data: EditableProfile, reason: string): Promise<void>;
   getMyProfileChanges(): Promise<ProfileChange[]>;
+  getAnnouncements(): Promise<Announcement[]>;
   getProfileChangesForReview(
     status: ChangeStatus | "all",
   ): Promise<ProfileChange[]>;

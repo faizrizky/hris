@@ -74,6 +74,9 @@ export function NotificationScreen({ navigation }: any) {
           navigation.navigate("Profil", { screen: "ProfileDocs" });
         }
         return;
+      case "HR Announcement":
+        navigation.navigate("Announcements", { id: n.documentName });
+        return;
       case "Profile Change Request":
         if (employee?.role === "hr" && n.tone === "warn") {
           navigation.navigate("ProfileChangeReview");
