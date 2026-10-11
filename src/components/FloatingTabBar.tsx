@@ -84,6 +84,7 @@ export function FloatingTabBar({ state, navigation }: BottomTabBarProps) {
     "ProfileUpload",
     "ProfilePassword",
     "DocumentReviewDetail",
+    "EmployeeDocumentDetail",
     "AppraisalFeedback",
   ];
   if (nestedRoute && HIDE_ON.includes(nestedRoute)) return null;

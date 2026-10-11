@@ -1,6 +1,7 @@
 # Server Script (type: DocType Event, doctype: Employee Document, event: After Save)
 # Notifikasi ke karyawan ketika HR mengubah status menjadi Verified / Rejected.
-if (doc.status == "Verified" or doc.status == "Rejected") and doc.has_value_changed("status"):
+prev = doc.get_doc_before_save()
+if (doc.status == "Verified" or doc.status == "Rejected") and doc.has_value_changed("status") and not (prev and prev.status == "Change Requested"):
     target = frappe.db.get_value("Employee", doc.employee, "user_id")
     if target:
         word = "verified" if doc.status == "Verified" else "rejected"

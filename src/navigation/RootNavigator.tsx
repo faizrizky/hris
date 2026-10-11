@@ -12,6 +12,7 @@ import { AttendanceCorrectionHistoryScreen } from "@/screens/attendance/Attendan
 import { LeaveListScreen } from "@/screens/leave/LeaveListScreen";
 import { LeaveRequestScreen } from "@/screens/leave/LeaveRequestScreen";
 import { AppraisalFeedbackScreen } from "@/screens/appraisal/AppraisalFeedbackScreen";
+import { EmployeeDocumentDetailScreen } from "@/screens/documents/EmployeeDocumentDetailScreen";
 import { DocumentReviewScreen } from "@/screens/documents/DocumentReviewScreen";
 import { DocumentReviewDetailScreen } from "@/screens/documents/DocumentReviewDetailScreen";
 import { LeaveApprovalScreen } from "@/screens/leave/LeaveApprovalScreen";
@@ -184,6 +185,10 @@ function ProfileStack() {
       <Stack.Screen name="ProfileEdit" component={ProfileEditScreen} />
       <Stack.Screen name="ProfileDocs" component={ProfileDocsScreen} />
       <Stack.Screen name="ProfileUpload" component={ProfileUploadScreen} />
+      <Stack.Screen
+        name="EmployeeDocumentDetail"
+        component={EmployeeDocumentDetailScreen}
+      />
       <Stack.Screen name="ProfileSecurity" component={ProfileSecurityScreen} />
       <Stack.Screen name="ProfilePassword" component={ProfilePasswordScreen} />
     </Stack.Navigator>

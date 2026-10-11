@@ -504,7 +504,8 @@ interface DokumenRow {
   size_bytes: number | null;
   uploaded_on: string | null;
   expires_on: string | null;
-  status: "Pending" | "Verified" | "Rejected";
+  status: "Pending" | "Verified" | "Rejected" | "Change Requested";
+  change_reason?: string | null;
   file_url?: string | null;
   file_name?: string | null;
   rejection_reason?: string | null;
@@ -536,11 +537,13 @@ function bentukDokumen(r: DokumenRow): EmployeeDocument {
   const status: DocStatus =
     r.status === "Rejected"
       ? "rejected"
-      : r.status === "Pending"
-        ? "pending"
-        : hampirHabis
-          ? "expiring"
-          : "verified";
+      : r.status === "Change Requested"
+        ? "changeRequested"
+        : r.status === "Pending"
+          ? "pending"
+          : hampirHabis
+            ? "expiring"
+            : "verified";
   const dateLabel = hampirHabis
     ? sisa! < 0
       ? tt("doc.sudahBerakhir")
@@ -561,6 +564,9 @@ function bentukDokumen(r: DokumenRow): EmployeeDocument {
     fileUrl: r.file_url ?? null,
     fileName: r.file_name ? decodeURIComponent(r.file_name) : null,
     rejectionReason: r.rejection_reason ?? null,
+    changeReason: r.change_reason ?? null,
+    expiresOn: r.expires_on,
+    uploadedOn: r.uploaded_on,
   };
 }
 
@@ -1409,7 +1415,19 @@ export const erpnextApi: HrisApi = {
       fileUrl: r.file_url ?? null,
       fileName: r.file_name ? decodeURIComponent(r.file_name) : null,
       rejectionReason: r.rejection_reason ?? null,
+      changeReason: r.change_reason ?? null,
     }));
+  },
+
+  async requestDocumentChange(id, reason) {
+    await post("/api/method/hris_request_document_change", {
+      name: id,
+      reason,
+    });
+  },
+
+  async replaceDocumentFile(id, file) {
+    await unggahBerkas(file, "Employee Document", id, "file");
   },
 
   async decideDocument(id, decision, reason) {

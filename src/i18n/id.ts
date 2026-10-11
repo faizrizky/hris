@@ -761,6 +761,31 @@ export const id = {
   "fb.kirimPesan": "Penilaian untuk {nama} tidak bisa diubah setelah dikirim.",
   "rv.semua": "Semua",
   "sec.aplikasi": "Aplikasi",
+  "st.perubahanDiminta": "Perubahan diminta",
+  "rv.perubahan": "Perubahan",
+  "rv.alasanUbah": "Alasan permintaan perubahan",
+  "rv.tolakUbah": "Tolak Perubahan",
+  "rv.kirimTolakUbah": "Tolak perubahan",
+  "rv.izinkanUbah": "Izinkan Perubahan",
+  "rv.izinkanJudul": "Izinkan perubahan?",
+  "rv.izinkanPesan":
+    "{nama} akan diminta mengunggah berkas baru, lalu dokumen perlu diverifikasi ulang.",
+  "dk.judul": "Dokumen",
+  "dk.ubah": "Ajukan Perubahan",
+  "dk.ubahJudul": "Alasan perubahan",
+  "dk.ubahContoh": "Contoh: nama di dokumen salah ketik, perlu diganti",
+  "dk.kirimUbah": "Kirim permintaan",
+  "dk.alasanWajib": "Alasan perubahan wajib diisi",
+  "dk.menungguHr": "Permintaan perubahan sedang ditinjau HR.",
+  "dk.alasanMu": "Alasan yang kamu ajukan",
+  "dk.ganti": "Unggah File Baru",
+  "dk.gantiBerhasil": "File baru terkirim dan menunggu verifikasi HR",
+  "dk.terverifikasiInfo":
+    "Dokumen terverifikasi tidak bisa diubah langsung. Ajukan perubahan bila ada yang perlu diganti.",
+  "dk.pendingInfo":
+    "Dokumen menunggu verifikasi HR. Kamu masih bisa mengganti berkasnya.",
+  "dk.ditolakInfo":
+    "Dokumen ditolak. Unggah berkas baru untuk diverifikasi ulang.",
 } as const;
 
 export type Kunci = keyof typeof id;

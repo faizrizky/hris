@@ -22,8 +22,6 @@ import {
 import { useT } from "@/i18n";
 import { EmptyState } from "@/components/EmptyState";
 import { ICON } from "@/constants/icons";
-import { useConfirm } from "@/components/ConfirmDialog";
-import { bukaLampiran } from "@/utils/lampiran";
 
 const SEMUA = "semua";
 const KATEGORI: DocCategory[] = ["kontrak", "sk", "sertifikat", "identitas"];
@@ -31,7 +29,6 @@ const TAB: (DocCategory | typeof SEMUA)[] = [SEMUA, ...KATEGORI];
 
 export function ProfileDocsScreen({ navigation }: any) {
   const t = useT();
-  const confirm = useConfirm();
   const { employee } = useSession();
   const insets = useSafeAreaInsets();
   const c = useTheme();
@@ -41,22 +38,6 @@ export function ProfileDocsScreen({ navigation }: any) {
   const [tab, setTab] = useState<DocCategory | typeof SEMUA>(SEMUA);
 
   const [galat, setGalat] = useState<string | null>(null);
-
-  const buka = async (d: EmployeeDocument) => {
-    if (!d.fileUrl) return;
-    try {
-      if (!(await bukaLampiran(d.fileUrl, d.fileName ?? d.name)))
-        throw new Error("unavailable");
-    } catch {
-      void confirm({
-        title: t("lamp.gagalJudul"),
-        message: t("lamp.gagalPesan"),
-        tone: "warn",
-        confirmText: t("umum.mengerti"),
-        cancelText: null,
-      });
-    }
-  };
 
   const muat = useCallback(() => {
     if (!employee) return;
@@ -174,8 +155,9 @@ export function ProfileDocsScreen({ navigation }: any) {
               <Pressable
                 key={d.id}
                 style={styles.row}
-                onPress={() => buka(d)}
-                disabled={!d.fileUrl}
+                onPress={() =>
+                  navigation.navigate("EmployeeDocumentDetail", { doc: d })
+                }
               >
                 <View
                   style={[
@@ -209,13 +191,11 @@ export function ProfileDocsScreen({ navigation }: any) {
                     <Text style={styles.reason}>{d.rejectionReason}</Text>
                   ) : null}
                 </View>
-                {d.fileUrl ? (
-                  <Ionicons
-                    name="chevron-forward"
-                    size={14}
-                    color={c.mutedLabel}
-                  />
-                ) : null}
+                <Ionicons
+                  name="chevron-forward"
+                  size={14}
+                  color={c.mutedLabel}
+                />
               </Pressable>
             );
           })

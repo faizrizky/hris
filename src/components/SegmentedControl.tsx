@@ -115,5 +115,5 @@ const makeStyles = (c: Palette) =>
       alignItems: "center",
     },
     text: { fontSize: 12, fontWeight: "700", color: c.muted },
-    textOn: { color: c.ink },
+    textOn: { color: c.accent },
   });

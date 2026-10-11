@@ -22,6 +22,7 @@ const FILTER: { key: ReviewStatus | "all"; label: Kunci }[] = [
   { key: "Pending", label: "rv.menunggu" },
   { key: "Verified", label: "rv.diverifikasi" },
   { key: "Rejected", label: "rv.ditolak" },
+  { key: "Change Requested", label: "rv.perubahan" },
 ];
 
 // HR: daftar Dokumen Digital karyawan yang perlu (atau sudah) diverifikasi.
@@ -150,10 +151,23 @@ function DocRow({
           <Text
             style={[
               styles.badgeText,
-              { color: doc.status === "Verified" ? c.ok.ink : c.bad.ink },
+              {
+                color:
+                  doc.status === "Verified"
+                    ? c.ok.ink
+                    : doc.status === "Rejected"
+                      ? c.bad.ink
+                      : c.warn.ink,
+              },
             ]}
           >
-            {t(doc.status === "Verified" ? "rv.diverifikasi" : "rv.ditolak")}
+            {t(
+              doc.status === "Verified"
+                ? "rv.diverifikasi"
+                : doc.status === "Rejected"
+                  ? "rv.ditolak"
+                  : "rv.perubahan",
+            )}
           </Text>
         </View>
       )}

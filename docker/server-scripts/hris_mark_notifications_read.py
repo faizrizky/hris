@@ -38,7 +38,7 @@ for r in rows:
         tone = "ok"
     elif "rejected" in low:
         tone = "bad"
-    elif "waiting" in low:
+    elif "waiting" in low or "requested" in low:
         tone = "warn"
     file_url = None
     file_name = None

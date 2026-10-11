@@ -1,6 +1,6 @@
 # Server Script (type: API, method: hris_get_documents_for_review, allow_guest: 0)
 # Daftar Employee Document untuk verifikasi HR. Hanya HR User / HR Manager (selain itu 403).
-# ?status=Pending (default) | Verified | Rejected | all. Terbaru dulu, maks 200.
+# ?status=Pending (default) | Verified | Rejected | "Change Requested" | all. Terbaru dulu, maks 200.
 user = frappe.session.user
 is_hr = user == "Administrator" or len(
     frappe.get_all("Has Role", filters={"parent": user, "parenttype": "User",
@@ -9,15 +9,15 @@ is_hr = user == "Administrator" or len(
 if not is_hr:
     frappe.throw("Only HR can review documents", frappe.PermissionError)
 status = frappe.form_dict.get("status") or "Pending"
-if status not in ("Pending", "Verified", "Rejected", "all"):
-    frappe.throw("status must be Pending, Verified, Rejected or all")
+if status not in ("Pending", "Verified", "Rejected", "Change Requested", "all"):
+    frappe.throw("status must be Pending, Verified, Rejected, Change Requested or all")
 filters = {}
 if status != "all":
     filters["status"] = status
 result = []
 for q in frappe.get_all("Employee Document", filters=filters,
                         fields=["name", "employee", "employee_name", "document_name", "category", "expires_on",
-                                "status", "verified_by", "rejection_reason", "creation"],
+                                "status", "verified_by", "rejection_reason", "change_reason", "creation"],
                         order_by="creation desc", limit_page_length=200):
     emp = frappe.db.get_value("Employee", q.employee, ["designation", "department"], as_dict=True) or {}
     f = frappe.get_all("File", filters={"attached_to_doctype": "Employee Document", "attached_to_name": q.name},
@@ -40,5 +40,6 @@ for q in frappe.get_all("Employee Document", filters=filters,
         "file_name": fu.file_name if fu else None,
         "verified_by": q.verified_by,
         "rejection_reason": q.rejection_reason,
+        "change_reason": q.change_reason,
     })
 frappe.response["message"] = result

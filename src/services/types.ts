@@ -275,7 +275,8 @@ export interface PersonalProfile {
 }
 
 export type DocCategory = "kontrak" | "sk" | "sertifikat" | "identitas";
-export type DocStatus = "verified" | "pending" | "expiring" | "rejected";
+export type DocStatus =
+  "verified" | "pending" | "expiring" | "rejected" | "changeRequested";
 
 export interface EmployeeDocument {
   id: string;
@@ -288,9 +289,13 @@ export interface EmployeeDocument {
   fileUrl?: string | null;
   fileName?: string | null;
   rejectionReason?: string | null;
+  changeReason?: string | null;
+  expiresOn?: string | null; // ISO
+  uploadedOn?: string | null; // ISO
 }
 
-export type ReviewStatus = "Pending" | "Verified" | "Rejected";
+export type ReviewStatus =
+  "Pending" | "Verified" | "Rejected" | "Change Requested";
 
 /** Dokumen karyawan yang ditinjau HR. */
 export interface ReviewDocument {
@@ -308,6 +313,7 @@ export interface ReviewDocument {
   fileUrl: string | null;
   fileName: string | null;
   rejectionReason: string | null;
+  changeReason: string | null;
 }
 
 export interface TeamAppraisal {
@@ -392,9 +398,12 @@ export interface HrisApi {
   ): Promise<ReviewDocument[]>;
   decideDocument(
     id: string,
-    decision: "verify" | "reject",
+    decision: "verify" | "reject" | "allow_change" | "deny_change",
     reason?: string,
   ): Promise<void>;
+  // Karyawan: minta mengubah dokumen yang sudah terverifikasi, atau ganti berkasnya.
+  requestDocumentChange(id: string, reason: string): Promise<void>;
+  replaceDocumentFile(id: string, file: BerkasLampiran): Promise<void>;
 
   // Atasan/HR: penilaian kinerja tim.
   getTeamAppraisals(): Promise<TeamAppraisal[]>;

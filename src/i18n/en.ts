@@ -754,4 +754,30 @@ export const en: Record<Kunci, string> = {
     "Feedback for {nama} cannot be changed after it is submitted.",
   "rv.semua": "All",
   "sec.aplikasi": "App",
+  "st.perubahanDiminta": "Change requested",
+  "rv.perubahan": "Changes",
+  "rv.alasanUbah": "Reason for the change request",
+  "rv.tolakUbah": "Deny Change",
+  "rv.kirimTolakUbah": "Deny change",
+  "rv.izinkanUbah": "Allow Change",
+  "rv.izinkanJudul": "Allow this change?",
+  "rv.izinkanPesan":
+    "{nama} will be asked to upload a new file, and the document must be verified again.",
+  "dk.judul": "Document",
+  "dk.ubah": "Request a Change",
+  "dk.ubahJudul": "Reason for the change",
+  "dk.ubahContoh":
+    "Example: the name on the document has a typo and must be replaced",
+  "dk.kirimUbah": "Send request",
+  "dk.alasanWajib": "A reason for the change is required",
+  "dk.menungguHr": "Your change request is being reviewed by HR.",
+  "dk.alasanMu": "The reason you gave",
+  "dk.ganti": "Upload a New File",
+  "dk.gantiBerhasil": "The new file was sent and awaits HR verification",
+  "dk.terverifikasiInfo":
+    "A verified document cannot be edited directly. Request a change if something needs replacing.",
+  "dk.pendingInfo":
+    "The document is awaiting HR verification. You can still replace its file.",
+  "dk.ditolakInfo":
+    "The document was rejected. Upload a new file to be verified again.",
 };

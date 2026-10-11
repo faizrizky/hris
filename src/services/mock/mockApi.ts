@@ -144,6 +144,10 @@ export const mockApi: HrisApi = {
 
   async decideDocument() {},
 
+  async requestDocumentChange() {},
+
+  async replaceDocumentFile() {},
+
   async getTeamAppraisals() {
     return [];
   },

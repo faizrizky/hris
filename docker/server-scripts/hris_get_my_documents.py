@@ -6,7 +6,7 @@ me = frappe.get_all("Employee", filters={"user_id": frappe.session.user, "status
                     fields=["name"], limit_page_length=1)
 if me:
     for q in frappe.get_all("Employee Document", filters={"employee": me[0].name},
-                            fields=["name", "document_name", "category", "file", "expires_on", "status", "creation", "rejection_reason"],
+                            fields=["name", "document_name", "category", "file", "expires_on", "status", "creation", "rejection_reason", "change_reason"],
                             order_by="creation desc", limit_page_length=100):
         ext = None
         size = None
@@ -32,5 +32,6 @@ if me:
             "file_url": furl,
             "file_name": fname,
             "rejection_reason": q.rejection_reason,
+            "change_reason": q.change_reason,
         })
 frappe.response["message"] = result

@@ -24,7 +24,7 @@ for r in rows:
         tone = "ok"
     elif "rejected" in low:
         tone = "bad"
-    elif "waiting" in low:
+    elif "waiting" in low or "requested" in low:
         tone = "warn"
     body = frappe.utils.strip_html(r.email_content) if r.email_content else ""
     file_url = None

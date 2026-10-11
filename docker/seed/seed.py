@@ -543,6 +543,17 @@ if not frappe.db.exists("Custom Field", {"dt": "Employee Document", "fieldname":
     make(dict(doctype="Custom Field", dt="Employee Document", fieldname="rejection_reason", label="Rejection Reason",
               fieldtype="Small Text", permlevel=1, insert_after="verified_by"))
     frappe.clear_cache(doctype="Employee Document")
+if not frappe.db.exists("Custom Field", {"dt": "Employee Document", "fieldname": "change_reason"}):
+    make(dict(doctype="Custom Field", dt="Employee Document", fieldname="change_reason", label="Change Reason",
+              fieldtype="Small Text", permlevel=1, insert_after="rejection_reason"))
+    frappe.clear_cache(doctype="Employee Document")
+_dd = frappe.get_doc("DocType", "Employee Document")
+_stf = [f for f in _dd.fields if f.fieldname == "status"][0]
+if "Change Requested" not in (_stf.options or ""):
+    _stf.options = "Pending\nVerified\nRejected\nChange Requested"
+    _dd.save()
+    frappe.clear_cache(doctype="Employee Document")
+    log("status Change Requested ditambahkan ke Employee Document")
 # Batas unggah: 5 MB dan hanya PDF/JPG/PNG (berlaku global untuk unggahan di site ini).
 if frappe.db.get_single_value("System Settings", "max_file_size") != 5:
     frappe.db.set_single_value("System Settings", "max_file_size", 5)
@@ -708,6 +719,7 @@ EVENT_SCRIPTS = {  # script berbasis event dokumen: nama_file -> (DocType, event
     "hris_notify_payslip": ("Salary Slip", "After Submit"),
     "hris_notify_attendance_correction": ("Attendance Request", "After Submit"),
     "hris_notify_document_status": ("Employee Document", "After Save"),
+    "hris_guard_document_upload": ("File", "Before Insert"),
     "hris_push_on_notification": ("Notification Log", "After Insert"),
 }
 
@@ -836,6 +848,11 @@ try:
 except Exception as ex:
     frappe.db.rollback()
     log(f"PERINGATAN: appraisal dilewati ({ex})")
+
+# Dokumen contoh harus dimiliki (owner) user rani supaya aturan if_owner mengizinkan unggah ulang olehnya.
+for _n in frappe.get_all("Employee Document", filters={"employee": emp["rani"], "owner": "Administrator"}, pluck="name"):
+    frappe.db.set_value("Employee Document", _n, "owner", USERS["rani"][0], update_modified=False)
+frappe.db.commit()
 
 # 9b. Notifikasi awal untuk slip gaji yang sudah ada (sekali per slip; type Alert tidak mengirim email)
 for _sl in frappe.get_all("Salary Slip", filters={"docstatus": 1}, fields=["name", "employee", "start_date", "posting_date", "net_pay"]):

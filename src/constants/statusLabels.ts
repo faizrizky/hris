@@ -94,6 +94,7 @@ export const DOC_STATUS_LABEL = labelBahasa<DocStatus>({
   pending: "st.menungguVerifikasi",
   expiring: "st.segeraBerakhir",
   rejected: "st.ditolak",
+  changeRequested: "st.perubahanDiminta",
 });
 
 export const DOC_STATUS_TONE: Record<DocStatus, SemanticTone> = {
@@ -101,6 +102,7 @@ export const DOC_STATUS_TONE: Record<DocStatus, SemanticTone> = {
   pending: "warn",
   expiring: "warn",
   rejected: "bad",
+  changeRequested: "info",
 };
 
 export const DOC_CATEGORY_LABEL = labelBahasa<DocCategory>({
