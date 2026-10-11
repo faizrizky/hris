@@ -485,26 +485,21 @@ if frappe.db.get_value("DocType", "Overtime Request", "autoname") != "OT-.YYYY.-
     log("penamaan Overtime Request diperbaiki")
 frappe.db.commit()
 
-# Workspace "HR Requests": jalan pintas ke daftar dan form baru Lembur dan Dinas Luar (Travel Request),
-# karena doctype Overtime Request kustom tidak muncul di workspace bawaan.
-_WS_ITEMS = [
-    ("Overtime Requests", "Overtime Request", "List"),
-    ("New Overtime Request", "Overtime Request", "New"),
-    ("Travel Requests", "Travel Request", "List"),
-    ("New Travel Request", "Travel Request", "New"),
-]
-if not frappe.db.exists("Workspace", "HR Requests"):
-    _content = [{"id": "hdr", "type": "header", "data": {"text": "<span class=\"h4\"><b>Overtime &amp; Travel</b></span>", "col": 12}}]
-    for _i, (_lbl, _, _) in enumerate(_WS_ITEMS):
-        _content.append({"id": f"sc{_i}", "type": "shortcut", "data": {"shortcut_name": _lbl, "col": 3}})
-    _ws = frappe.get_doc(dict(
-        doctype="Workspace", name="HR Requests", title="HR Requests", label="HR Requests", module="HR",
-        public=1, is_hidden=0, sequence_id=1, icon="calendar", content=json.dumps(_content),
-        shortcuts=[dict(label=l, type="DocType", link_to=dt, doc_view=v, color="Grey") for l, dt, v in _WS_ITEMS]))
-    _ws.insert(ignore_permissions=True)
-    log("workspace HR Requests dibuat")
-    frappe.db.commit()
-    frappe.clear_cache()
+# Sidebar modul Leaves (v16): tautan ke Overtime Request dan Travel Request lewat lapisan
+# kustom situs (Custom Sidebar), cara resmi menambah item tanpa mengubah sidebar bawaan hrms.
+# Workspace "HR Requests" percobaan lama dihapus.
+for _dt in ("Workspace", "Workspace Sidebar"):
+    if frappe.db.exists(_dt, "HR Requests"):
+        frappe.delete_doc(_dt, "HR Requests", ignore_permissions=True, force=True)
+        log(f"{_dt} HR Requests dihapus")
+if frappe.db.exists("Sidebar", "Leaves"):
+    from frappe.desk.doctype.custom_sidebar.custom_sidebar import add_site_sidebar_item
+    for _dt, _ic in (("Overtime Request", "clock"), ("Travel Request", "briefcase")):
+        add_site_sidebar_item("Leaves", dict(label=_dt, type="Link", link_type="DocType", link_to=_dt,
+                                             icon=_ic, collapsible=1))
+    log("sidebar Leaves: tautan Overtime Request dan Travel Request")
+frappe.db.commit()
+frappe.clear_cache()
 
 # Sinkronkan label Custom Field yang sudah ada ke bahasa Inggris (nama field tidak berubah).
 for (_dt, _fn), _label in {
