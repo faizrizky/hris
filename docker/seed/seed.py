@@ -2,6 +2,7 @@
 Semua langkah memeriksa keberadaan data lebih dulu, jadi aman dijalankan berulang.
 Password dibaca dari environment (diteruskan seed.sh dari docker/.credentials.local)."""
 import os
+import json
 import frappe
 from frappe.utils import nowdate
 
@@ -483,6 +484,27 @@ if frappe.db.get_value("DocType", "Overtime Request", "autoname") != "OT-.YYYY.-
     frappe.clear_cache()
     log("penamaan Overtime Request diperbaiki")
 frappe.db.commit()
+
+# Workspace "HR Requests": jalan pintas ke daftar dan form baru Lembur dan Dinas Luar (Travel Request),
+# karena doctype Overtime Request kustom tidak muncul di workspace bawaan.
+_WS_ITEMS = [
+    ("Overtime Requests", "Overtime Request", "List"),
+    ("New Overtime Request", "Overtime Request", "New"),
+    ("Travel Requests", "Travel Request", "List"),
+    ("New Travel Request", "Travel Request", "New"),
+]
+if not frappe.db.exists("Workspace", "HR Requests"):
+    _content = [{"id": "hdr", "type": "header", "data": {"text": "<span class=\"h4\"><b>Overtime &amp; Travel</b></span>", "col": 12}}]
+    for _i, (_lbl, _, _) in enumerate(_WS_ITEMS):
+        _content.append({"id": f"sc{_i}", "type": "shortcut", "data": {"shortcut_name": _lbl, "col": 3}})
+    _ws = frappe.get_doc(dict(
+        doctype="Workspace", name="HR Requests", title="HR Requests", label="HR Requests", module="HR",
+        public=1, is_hidden=0, sequence_id=1, icon="calendar", content=json.dumps(_content),
+        shortcuts=[dict(label=l, type="DocType", link_to=dt, doc_view=v, color="Grey") for l, dt, v in _WS_ITEMS]))
+    _ws.insert(ignore_permissions=True)
+    log("workspace HR Requests dibuat")
+    frappe.db.commit()
+    frappe.clear_cache()
 
 # Sinkronkan label Custom Field yang sudah ada ke bahasa Inggris (nama field tidak berubah).
 for (_dt, _fn), _label in {
