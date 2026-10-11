@@ -36,6 +36,8 @@ export interface AttendanceCorrectionRequest {
   requestedCheckOut: string;
   reason: string;
   status: AttendanceRequestedStatus;
+  attachments?: { name: string; url: string }[];
+  buktiGagal?: number;
 }
 
 export type OvertimeStatus = "pending" | "approved" | "paid" | "rejected";
@@ -380,6 +382,7 @@ export interface HrisApi {
     requestedCheckIn: string;
     requestedCheckOut: string;
     reason: string;
+    attachments?: BerkasLampiran[];
   }): Promise<AttendanceCorrectionRequest>;
 
   getPendingApprovals(approverId: string): Promise<LeaveRequest[]>;

@@ -22,6 +22,7 @@ import { pisahAlasan } from "@/utils/Correction";
 import { bulanSingkat, namaHari, tanggalAngka } from "@/utils/date";
 import { namaJenisKoreksi } from "./KoreksiCards";
 import { useT } from "@/i18n";
+import { LampiranList } from "@/screens/leave/LampiranList";
 import type { Kunci } from "@/i18n/id";
 
 type Filter = "semua" | AttendanceRequestedStatus;
@@ -247,6 +248,7 @@ export function AttendanceCorrectionHistoryScreen({ navigation }: any) {
                   <Text style={styles.bodyDoc}>
                     Attendance Request · HR-ATR-{item.id}
                   </Text>
+                  <LampiranList items={item.attachments} />
                 </View>
               )}
             </Pressable>

@@ -56,6 +56,10 @@ if ok:
             status = "rejected"
         elif q.docstatus == 1:
             status = "approved"
+        atts = []
+        for f in frappe.get_all("File", filters={"attached_to_doctype": "Attendance Request", "attached_to_name": q.name},
+                                fields=["file_name", "file_url"], order_by="creation asc", limit_page_length=20):
+            atts.append({"file_name": f.file_name, "file_url": f.file_url})
         item = {
             "name": q.name,
             "date": str(q.from_date),
@@ -63,6 +67,7 @@ if ok:
             "check_out": hhmm(q.custom_requested_check_out),
             "reason": q.explanation,
             "status": status,
+            "attachments": atts,
         }
         if scope == "team":
             item["employee"] = q.employee

@@ -53,6 +53,15 @@ doc = frappe.get_doc(
     }
 )
 doc.insert(ignore_permissions=True)
+boss_id = frappe.db.get_value("Employee", me[0].name, "reports_to")
+boss_user = frappe.db.get_value("Employee", boss_id, "user_id") if boss_id else None
+if boss_user:
+    share = frappe.get_doc({"doctype": "DocShare", "user": boss_user, "share_doctype": "Attendance Request",
+                            "share_name": doc.name, "read": 1})
+    share.flags.ignore_share_permission = True
+    share.insert(ignore_permissions=True)
+# Bukti: POST /api/method/upload_file (multipart: file, is_private=1, doctype="Attendance Request",
+#   docname=<name>, fieldname="proof") dengan sesi pemilik; atasan diberi akses baca lewat DocShare.
 frappe.response["message"] = {
     "name": doc.name,
     "date": date,

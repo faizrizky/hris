@@ -42,9 +42,12 @@ import {
 } from "@/utils/date";
 import { describeError } from "@/services/api/http";
 import { useT } from "@/i18n";
+import { useConfirm } from "@/components/ConfirmDialog";
+import { pilihBukti } from "@/utils/pilihBukti";
 
 export function AttendanceCorrectionScreen({ navigation }: any) {
   const t = useT();
+  const confirm = useConfirm();
   const [approver, setApprover] = useState<LeaveApprover | null>(null);
   const { employee } = useSession();
   const insets = useSafeAreaInsets();
@@ -155,6 +158,17 @@ export function AttendanceCorrectionScreen({ navigation }: any) {
       ]
     : [];
 
+  const tambahBukti = async () => {
+    const r = await pilihBukti();
+    if (!r) return;
+    if ("terlaluBesar" in r) {
+      setGalat(t("up.besarPesan", { ukuran: r.terlaluBesar }));
+      return;
+    }
+    setGalat(null);
+    setFiles((prev) => [...prev, r.berkas]);
+  };
+
   const handleSubmit = async () => {
     if (!employee || !tanggal || !bisaKirim) return;
     setSending(true);
@@ -166,8 +180,22 @@ export function AttendanceCorrectionScreen({ navigation }: any) {
         requestedCheckIn: jamMenit(masuk),
         requestedCheckOut: jamMenit(keluar),
         reason: gabungAlasan(jenis, alasan),
+        attachments: files.flatMap((f) =>
+          f.uri
+            ? [{ uri: f.uri, name: f.name, mimeType: f.mimeType ?? "" }]
+            : [],
+        ),
       });
       setDone(res.id);
+      if (res.buktiGagal) {
+        void confirm({
+          title: t("lr.buktiGagalJudul"),
+          message: t("lr.buktiGagalPesan", { n: res.buktiGagal }),
+          tone: "warn",
+          confirmText: t("umum.mengerti"),
+          cancelText: null,
+        });
+      }
     } catch (e) {
       setGalat(describeError(e));
     } finally {
@@ -238,15 +266,7 @@ export function AttendanceCorrectionScreen({ navigation }: any) {
               <BuktiKoreksiCard
                 files={files}
                 wajib={buktiWajib}
-                onAdd={() =>
-                  setFiles((prev) => [
-                    ...prev,
-                    {
-                      name: t("kor.buktiFile", { n: prev.length + 1 }),
-                      size: "0,9 MB",
-                    },
-                  ])
-                }
+                onAdd={tambahBukti}
                 onRemove={(i) =>
                   setFiles((prev) => prev.filter((_, idx) => idx !== i))
                 }

@@ -589,6 +589,13 @@ if not frappe.db.exists("DocType", "Push Settings"):
     frappe.db.set_single_value("Push Settings", "dry_run", 1)  # nilai awal dev; ubah di web untuk kirim sungguhan
 frappe.db.commit()
 
+# Bukti koreksi absensi: batasi role Employee pada Attendance Request ke dokumen miliknya (if_owner).
+if not any(p.role == "Employee" and p.permlevel == 0 and p.if_owner for p in frappe.get_meta("Attendance Request").permissions):
+    update_permission_property("Attendance Request", "Employee", 0, "if_owner", 1)
+    frappe.clear_cache(doctype="Attendance Request")
+    log("Attendance Request: izin Employee dibatasi if_owner")
+frappe.db.commit()
+
 # Sinkronkan label Custom Field yang sudah ada ke bahasa Inggris (nama field tidak berubah).
 for (_dt, _fn), _label in {
     ("Employee", "custom_pengaturan_gaji"): "Salary Settings",

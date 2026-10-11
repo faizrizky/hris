@@ -880,6 +880,7 @@ interface CorrectionRow {
   check_out: string;
   reason: string;
   status: "pending" | "approved" | "rejected";
+  attachments?: LampiranRow[];
 }
 
 function bentukKoreksi(
@@ -894,6 +895,7 @@ function bentukKoreksi(
     requestedCheckOut: r.check_out,
     reason: r.reason,
     status: r.status,
+    attachments: keLampiran(r.attachments),
   };
 }
 
@@ -1322,7 +1324,15 @@ export const erpnextApi: HrisApi = {
         reason: input.reason,
       },
     );
-    return bentukKoreksi(res.message, input.employeeId);
+    const gagal = await lampirkanSemua(
+      "Attendance Request",
+      res.message.name,
+      (input.attachments ?? []).map((f) => ({ f, field: "proof" })),
+    );
+    return {
+      ...bentukKoreksi(res.message, input.employeeId),
+      buktiGagal: gagal || undefined,
+    };
   },
 
   async getAttendanceCorrections(employeeId: string) {
