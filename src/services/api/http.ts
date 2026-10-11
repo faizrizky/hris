@@ -114,6 +114,19 @@ export const post = <T>(path: string, params?: Params) =>
 export const upload = <T>(path: string, form: FormData) =>
   request<T>("POST", path, undefined, form);
 
+// Mengunduh berkas privat dengan sesi aplikasi (cookie yang sama dengan panggilan API).
+export async function unduhBerkas(path: string): Promise<Uint8Array> {
+  if (!BASE_URL) throw new ApiError(tt("err.noBase"), 0, null);
+  let res: Response;
+  try {
+    res = await fetch(`${BASE_URL}${path}`, { credentials: "include" });
+  } catch {
+    throw new ApiError(tt("err.network"), 0, "Network");
+  }
+  if (!res.ok) throw new ApiError(`HTTP ${res.status}`, res.status, null);
+  return new Uint8Array(await res.arrayBuffer());
+}
+
 export const put = <T>(path: string, params?: Params) =>
   request<T>("PUT", path, params);
 

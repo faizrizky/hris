@@ -15,6 +15,7 @@ import { useConfirm } from "@/components/ConfirmDialog";
 import { describeError } from "@/services/api/http";
 import { ErrorState } from "@/components/ErrorState";
 import { useT } from "@/i18n";
+import { LampiranList } from "./LampiranList";
 
 // Layar ini cuma di-mount untuk role mss/hr (lihat RootNavigator).
 export function LeaveApprovalScreen({ navigation }: any) {
@@ -152,6 +153,7 @@ export function LeaveApprovalScreen({ navigation }: any) {
               <View style={styles.detailBox}>
                 <Text style={styles.detail}>{item.label}</Text>
                 <Text style={styles.reason}>{item.reason}</Text>
+                <LampiranList items={item.attachments} />
                 <View style={styles.metaRow}>
                   <Text style={styles.stage}>{item.stage}</Text>
                   <Text style={styles.quota}>

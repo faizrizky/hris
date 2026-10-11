@@ -271,7 +271,18 @@ function bentukPengajuan(row: LeaveRow): LeaveRequest {
 
 // ---- Lembur dan Dinas Luar (endpoint Server Script) ----
 
+interface LampiranRow {
+  file_name: string;
+  file_url: string;
+}
+
+const keLampiran = (l?: LampiranRow[]) =>
+  l?.length
+    ? l.map((x) => ({ name: x.file_name, url: x.file_url }))
+    : undefined;
+
 interface LemburRow {
+  attachments?: LampiranRow[];
   name: string;
   employee?: string;
   employee_name?: string;
@@ -285,6 +296,8 @@ interface LemburRow {
 }
 
 interface DinasRow {
+  attachments?: LampiranRow[];
+  costs?: { attachments?: LampiranRow[] }[];
   name: string;
   employee?: string;
   employee_name?: string;
@@ -325,6 +338,7 @@ function bentukLembur(r: LemburRow, saya?: string): LeaveRequest {
       ? terjemahkan("designation", r.designation)
       : "",
     type: "lembur",
+    attachments: keLampiran(r.attachments),
     label: tt("api.lemburLabel", { jam: r.hours, tgl: tanggalPendek(r.date) }),
     reason: `${jamMenitServer(r.start_minute)}–${jamMenitServer(r.end_minute)} · ${r.note}`,
     delegateName: null,
@@ -349,6 +363,10 @@ function bentukDinas(r: DinasRow, saya?: string): LeaveRequest {
       ? terjemahkan("designation", r.designation)
       : "",
     type: "dinas_luar",
+    attachments: keLampiran([
+      ...(r.attachments ?? []),
+      ...(r.costs ?? []).flatMap((c) => c.attachments ?? []),
+    ]),
     label: tt("api.dinasLabel", { kota: r.destination }),
     reason: `${periodeCuti(r.from_date, r.to_date)} · ${r.purpose}`,
     delegateName: null,

@@ -674,4 +674,9 @@ export const en: Record<Kunci, string> = {
   "lr.buktiGagalJudul": "Proof not uploaded",
   "lr.buktiGagalPesan":
     "The request was sent, but {n} proof file(s) could not be uploaded. Contact your supervisor or HR to complete it.",
+  "lamp.judul": "Attachments",
+  "lamp.gagalJudul": "Could not open the attachment",
+  "lamp.gagalPesan":
+    "Try again shortly. If it still fails, ask the requester to upload it again.",
+  "lamp.tidakTersedia": "File sharing is not available on this device",
 };

@@ -78,6 +78,7 @@ export interface LeaveRequest {
   approverInitials: string;
   decision: LeaveDecision;
   createdAt: string;
+  attachments?: { name: string; url: string }[];
   buktiGagal?: number; // jumlah lampiran yang gagal diunggah setelah pengajuan terkirim
 }
 

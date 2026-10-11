@@ -16,6 +16,7 @@ import { useSession } from "@/services/session";
 import { useLoad } from "@/hooks/useLoad";
 import { ErrorState } from "@/components/ErrorState";
 import { useT } from "@/i18n";
+import { LampiranList } from "./LampiranList";
 
 export function LeaveListScreen({ navigation }: any) {
   const { employee } = useSession();
@@ -202,6 +203,8 @@ export function LeaveListScreen({ navigation }: any) {
                   variant="compact"
                 />
               </View>
+
+              <LampiranList items={item.attachments} />
 
               <View style={styles.divider} />
 
