@@ -271,8 +271,8 @@ export const en: Record<Kunci, string> = {
   "hm.kali": "{n} times",
   "hm.aksiCepat": "Quick Actions",
   "hm.lihatSemua": "See all",
-  "hm.kosongEss": "No requests yet.",
-  "hm.kosongMgr": "Nothing is waiting for approval.",
+  "hm.kosongEss": "No requests yet",
+  "hm.kosongMgr": "Nothing is waiting for approval",
   "hm.aApproval": "Approval",
   "hm.aKaryawan": "Employees",
   "hm.aAbsensiTim": "Team Attendance",
@@ -837,4 +837,8 @@ export const en: Record<Kunci, string> = {
   "pcr.alasanKaryawan": "Employee's reason",
   "pcr.aksi": "Data Changes",
   "pc.catatanBar": "Sent to HR as a request",
+  "hm.kosongMgrIsi":
+    "Requests from your team that need your decision will appear here.",
+  "hm.kosongEssIsi":
+    "Your leave, overtime, and business trip requests will appear here.",
 };

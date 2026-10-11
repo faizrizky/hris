@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useRef } from "react";
 import {
   KeyboardAvoidingView,
   Platform,
@@ -30,6 +30,8 @@ export function ProfileChangeReviewDetailScreen({ navigation, route }: any) {
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
   const confirm = useConfirm();
+  // Dialog konfirmasi tumbuh dari tombol ini, seperti dialog Keluar.
+  const pemicu = useRef<View>(null);
 
   const [tolak, setTolak] = useState(false);
   const [catatan, setCatatan] = useState("");
@@ -49,6 +51,11 @@ export function ProfileChangeReviewDetailScreen({ navigation, route }: any) {
         tone: "info",
         confirmText: t("pcr.setujui"),
         cancelText: t("umum.batal"),
+        from: pemicu,
+        fromColor: c.accent,
+        fromTextColor: "#FFFFFF",
+        fromLabel: t("pcr.setujui"),
+        fromRadius: 14,
       });
       if (!ya) return;
     }
@@ -143,6 +150,7 @@ export function ProfileChangeReviewDetailScreen({ navigation, route }: any) {
                     <Text style={styles.rejectText}>{t("pcr.tolak")}</Text>
                   </Pressable>
                   <Pressable
+                    ref={pemicu}
                     style={{ flex: 2 }}
                     disabled={sending}
                     onPress={() => putuskan("approve")}

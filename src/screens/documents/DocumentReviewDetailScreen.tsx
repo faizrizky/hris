@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useRef } from "react";
 import {
   KeyboardAvoidingView,
   Platform,
@@ -31,6 +31,8 @@ export function DocumentReviewDetailScreen({ navigation, route }: any) {
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
   const confirm = useConfirm();
+  // Dialog konfirmasi tumbuh dari tombol ini, seperti dialog Keluar.
+  const pemicu = useRef<View>(null);
 
   const [tolak, setTolak] = useState(false);
   const [alasan, setAlasan] = useState("");
@@ -54,6 +56,11 @@ export function DocumentReviewDetailScreen({ navigation, route }: any) {
         tone: "info",
         confirmText: t(verif ? "rv.verifikasi" : "rv.izinkanUbah"),
         cancelText: t("umum.batal"),
+        from: pemicu,
+        fromColor: c.accent,
+        fromTextColor: "#FFFFFF",
+        fromLabel: t(verif ? "rv.verifikasi" : "rv.izinkanUbah"),
+        fromRadius: 14,
       });
       if (!ya) return;
     }
@@ -203,6 +210,7 @@ export function DocumentReviewDetailScreen({ navigation, route }: any) {
                     </Text>
                   </Pressable>
                   <Pressable
+                    ref={pemicu}
                     style={{ flex: 2 }}
                     disabled={sending || (menunggu && !doc.fileUrl)}
                     onPress={() =>

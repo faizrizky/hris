@@ -1,4 +1,4 @@
-import React, { useCallback, useState, useMemo } from "react";
+import React, { useCallback, useState, useMemo, useRef } from "react";
 import { useFocusEffect } from "@react-navigation/native";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { RevealFlatList as FlatList } from "@/components/Reveal";
@@ -29,6 +29,8 @@ export function LeaveApprovalScreen({ navigation }: any) {
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
   const confirm = useConfirm();
+  // Dialog konfirmasi tumbuh dari tombol ini, seperti dialog Keluar.
+  const pemicu = useRef<View>(null);
   const t = useT();
   const [galat, setGalat] = useState<string | null>(null);
 
@@ -69,6 +71,11 @@ export function LeaveApprovalScreen({ navigation }: any) {
       tone: "warn",
       confirmText: t("ap.setujuiSemua"),
       cancelText: t("umum.batal"),
+      from: pemicu,
+      fromColor: c.accent,
+      fromTextColor: "#FFFFFF",
+      fromLabel: t("ap.setujuiSemua"),
+      fromRadius: 999,
     });
     if (!ya) return;
     setBusy(true);
@@ -109,6 +116,7 @@ export function LeaveApprovalScreen({ navigation }: any) {
 
         {pending > 0 && (
           <Pressable
+            ref={pemicu}
             style={styles.approveAll}
             onPress={approveAll}
             disabled={busy}

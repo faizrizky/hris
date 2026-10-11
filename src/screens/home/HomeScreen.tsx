@@ -27,6 +27,7 @@ import { DonutChart } from "@/components/DonutChart";
 import { Skeleton } from "@/components/Skeleton";
 import { describeError } from "@/services/api/http";
 import { ErrorState } from "@/components/ErrorState";
+import { EmptyState } from "@/components/EmptyState";
 
 export function HomeScreen() {
   const t = useT();
@@ -394,13 +395,18 @@ export function HomeScreen() {
               ))
             : null}
           {!memuat && (notifications ?? []).length === 0 ? (
-            <View style={styles.feedRow}>
-              <Text style={styles.feedSub}>
-                {employee.role === "ess"
-                  ? t("hm.kosongEss")
-                  : t("hm.kosongMgr")}
-              </Text>
-            </View>
+            <EmptyState
+              tinggi={230}
+              icon={employee.role === "ess" ? ICON.leave : ICON.approval}
+              title={
+                employee.role === "ess" ? t("hm.kosongEss") : t("hm.kosongMgr")
+              }
+              text={
+                employee.role === "ess"
+                  ? t("hm.kosongEssIsi")
+                  : t("hm.kosongMgrIsi")
+              }
+            />
           ) : null}
           {(notifications ?? []).map((n, i) => (
             <Pressable

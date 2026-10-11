@@ -279,8 +279,8 @@ export const id = {
   "hm.kali": "{n} kali",
   "hm.aksiCepat": "Aksi Cepat",
   "hm.lihatSemua": "Lihat semua",
-  "hm.kosongEss": "Belum ada pengajuan.",
-  "hm.kosongMgr": "Tidak ada yang menunggu persetujuan.",
+  "hm.kosongEss": "Belum ada pengajuan",
+  "hm.kosongMgr": "Tidak ada yang menunggu persetujuan",
   "hm.aApproval": "Approval",
   "hm.aKaryawan": "Karyawan",
   "hm.aAbsensiTim": "Absensi Tim",
@@ -842,6 +842,10 @@ export const id = {
   "pcr.alasanKaryawan": "Alasan karyawan",
   "pcr.aksi": "Perubahan Data",
   "pc.catatanBar": "Dikirim sebagai permintaan ke HR",
+  "hm.kosongMgrIsi":
+    "Pengajuan dari tim yang perlu keputusanmu akan muncul di sini.",
+  "hm.kosongEssIsi":
+    "Pengajuan cuti, lembur, dan dinas luar milikmu akan muncul di sini.",
 } as const;
 
 export type Kunci = keyof typeof id;

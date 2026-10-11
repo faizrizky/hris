@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, useRef } from "react";
 import {
   KeyboardAvoidingView,
   Platform,
@@ -34,6 +34,8 @@ export function AppraisalFeedbackScreen({ navigation, route }: any) {
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
   const confirm = useConfirm();
+  // Dialog konfirmasi tumbuh dari tombol ini, seperti dialog Keluar.
+  const pemicu = useRef<View>(null);
 
   const [form, setForm] = useState<FeedbackForm | null>(null);
   const [galatMuat, setGalatMuat] = useState<string | null>(null);
@@ -90,6 +92,11 @@ export function AppraisalFeedbackScreen({ navigation, route }: any) {
         tone: "warn",
         confirmText: t("fb.kirim"),
         cancelText: t("umum.batal"),
+        from: pemicu,
+        fromColor: c.accent,
+        fromTextColor: "#FFFFFF",
+        fromLabel: t("fb.kirim"),
+        fromRadius: 14,
       });
       if (!ya) return;
     }
@@ -276,6 +283,7 @@ export function AppraisalFeedbackScreen({ navigation, route }: any) {
             <Text style={styles.draftText}>{t("fb.simpanDraft")}</Text>
           </Pressable>
           <Pressable
+            ref={pemicu}
             style={{ flex: 2 }}
             disabled={sending}
             onPress={() => simpan(true)}
