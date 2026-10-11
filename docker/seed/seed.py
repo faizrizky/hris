@@ -498,6 +498,15 @@ if frappe.db.exists("Sidebar", "Leaves"):
         add_site_sidebar_item("Leaves", dict(label=_dt, type="Link", link_type="DocType", link_to=_dt,
                                              icon=_ic, collapsible=1))
     log("sidebar Leaves: tautan Overtime Request dan Travel Request")
+    # Urutan: tepat di bawah Leave Application (secara bawaan item tambahan jatuh di paling bawah).
+    from frappe.desk.doctype.custom_sidebar.custom_sidebar import _save_customization, layer_arrangement
+    _arr = layer_arrangement("Leaves", None)
+    _mine = [r for r in _arr if r.get("link_to") in ("Overtime Request", "Travel Request")]
+    _rest = [r for r in _arr if r not in _mine]
+    _at = next((n for n, r in enumerate(_rest) if r.get("link_to") == "Leave Application"), 0) + 1
+    _mine.sort(key=lambda r: r["link_to"] != "Overtime Request")
+    _save_customization("Leaves", _rest[:_at] + _mine + _rest[_at:], None)
+    log("sidebar Leaves: diurutkan di bawah Leave Application")
 frappe.db.commit()
 frappe.clear_cache()
 
