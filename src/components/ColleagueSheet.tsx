@@ -13,6 +13,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { Palette } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
 import { Colleague } from "@/services/types";
+import { useT } from "@/i18n";
 
 interface Props {
   visible: boolean;
@@ -30,6 +31,7 @@ export function ColleagueSheet({
   onClose,
 }: Props) {
   const c = useTheme();
+  const t = useT();
   const styles = useMemo(() => makeStyles(c), [c]);
 
   const insets = useSafeAreaInsets();
@@ -72,14 +74,11 @@ export function ColleagueSheet({
         ]}
       >
         <View style={styles.grabber} />
-        <Text style={styles.title}>Delegasi tugas</Text>
-        <Text style={styles.hint}>Rekan satu departemen denganmu</Text>
+        <Text style={styles.title}>{t("cmp.delegasi")}</Text>
+        <Text style={styles.hint}>{t("cmp.sedept")}</Text>
 
         {options.length === 0 ? (
-          <Text style={styles.empty}>
-            Belum ada rekan satu departemen yang bisa dipilih. Hubungi HR kalau
-            tugasmu perlu didelegasikan ke departemen lain.
-          </Text>
+          <Text style={styles.empty}>{t("cmp.kosongRekan")}</Text>
         ) : (
           options.map((o) => {
             const on = o.id === value?.id;

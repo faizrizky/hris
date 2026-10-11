@@ -15,6 +15,7 @@ import { useTheme } from "@/theme/ThemeContext";
 import { LineIcon } from "@/components/LineIcon";
 import { ICON } from "@/constants/icons";
 import { BATAS_LEMBUR_JAM } from "@/constants/payroll";
+import { useT } from "@/i18n";
 
 type Item = {
   key: string;
@@ -34,6 +35,7 @@ export function CreateSheet({
   navigation: any;
 }) {
   const c = useTheme();
+  const t = useT();
   const styles = useMemo(() => makeStyles(c), [c]);
 
   const insets = useSafeAreaInsets();
@@ -61,16 +63,16 @@ export function CreateSheet({
   const items: Item[] = [
     {
       key: "presensi",
-      title: "Presensi (GPS + Face)",
-      subtitle: "Clock in / clock out",
+      title: t("cr.presensi"),
+      subtitle: t("cr.presensiSub"),
       icon: ICON.clock,
       gradient: true,
       go: () => navigation.navigate("Absensi", { screen: "Clock" }),
     },
     {
       key: "cuti",
-      title: "Cuti / izin",
-      subtitle: "Tahunan, sakit, melahirkan",
+      title: t("cr.cuti"),
+      subtitle: t("cr.cutiSub"),
       icon: ICON.leave,
       bg: c.info.bg,
       ink: c.info.ink,
@@ -82,10 +84,10 @@ export function CreateSheet({
     },
     {
       key: "lembur",
-      title: "Lembur (overtime)",
+      title: t("cr.lembur"),
       // Dibaca dari konstanta yang sama dengan layar Lembur, supaya angka
       // 18 tidak pernah beda antara menu ini dan kartu ringkasannya.
-      subtitle: `Maksimal ${BATAS_LEMBUR_JAM} jam / bulan`,
+      subtitle: t("cr.lemburSub", { n: BATAS_LEMBUR_JAM }),
       icon: ICON.overtime,
       bg: c.warn.bg,
       ink: c.warn.ink,
@@ -97,8 +99,8 @@ export function CreateSheet({
     },
     {
       key: "dinas",
-      title: "Dinas luar",
-      subtitle: "Travel request & uang muka",
+      title: t("cr.dinas"),
+      subtitle: t("cr.dinasSub"),
       icon: ICON.briefcase,
       bg: c.purple.bg,
       ink: c.purple.ink,
@@ -110,8 +112,8 @@ export function CreateSheet({
     },
     {
       key: "self",
-      title: "Self-assessment",
-      subtitle: "Siklus H1 2026 · sampai 30 Sep",
+      title: t("cr.self"),
+      subtitle: t("cr.selfSub"),
       icon: ICON.appraisal,
       bg: c.purple.bg,
       ink: c.purple.ink,

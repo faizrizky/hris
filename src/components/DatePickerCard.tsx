@@ -4,8 +4,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { Palette } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
 import { toISODate, fromISODate, labelBulan } from "@/utils/date";
-
-const HARI_PENDEK = ["Sen", "Sel", "Rab", "Kam", "Jum", "Sab", "Min"];
+import { useT } from "@/i18n";
 
 type Cell = { iso: string; day: number } | null;
 
@@ -42,6 +41,7 @@ export function DatePickerCard({
     start ? fromISODate(start) : new Date(),
   );
   const c = useTheme();
+  const t = useT();
   const styles = useMemo(() => makeStyles(c), [c]);
 
   const today = toISODate(new Date());
@@ -97,11 +97,13 @@ export function DatePickerCard({
       </View>
 
       <View style={styles.weekRow}>
-        {HARI_PENDEK.map((h) => (
-          <Text key={h} style={styles.weekLabel}>
-            {h}
-          </Text>
-        ))}
+        {t("cmp.hariPendek")
+          .split(",")
+          .map((h) => (
+            <Text key={h} style={styles.weekLabel}>
+              {h}
+            </Text>
+          ))}
       </View>
 
       {rows.map((row, i) => (

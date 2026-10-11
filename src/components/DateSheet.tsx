@@ -13,6 +13,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Palette } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
 import { DatePickerCard } from "@/components/DatePickerCard";
+import { useT } from "@/i18n";
 
 interface Props {
   visible: boolean;
@@ -38,6 +39,7 @@ export function DateSheet({
   allow = "future",
 }: Props) {
   const c = useTheme();
+  const t = useT();
   const styles = useMemo(() => makeStyles(c), [c]);
 
   const insets = useSafeAreaInsets();
@@ -106,11 +108,11 @@ export function DateSheet({
                 onClose();
               }}
             >
-              <Text style={styles.ghostText}>Hapus tanggal</Text>
+              <Text style={styles.ghostText}>{t("cmp.hapusTgl")}</Text>
             </Pressable>
           ) : null}
           <Pressable style={styles.ghost} onPress={onClose}>
-            <Text style={styles.ghostText}>Tutup</Text>
+            <Text style={styles.ghostText}>{t("cmp.tutup")}</Text>
           </Pressable>
         </View>
       </Animated.View>

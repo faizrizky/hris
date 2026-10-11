@@ -21,6 +21,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { Palette, SemanticTone } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
+import { tt } from "@/i18n";
 
 // Ukuran dan waktu diukur frame per frame dari video referensi.
 const MARGIN = 14; // jarak kartu ke tepi layar
@@ -77,8 +78,8 @@ function ConfirmDialog({
     title,
     message,
     tone = "info",
-    confirmText = "Lanjut",
-    cancelText = "Batal",
+    confirmText = tt("umum.lanjut"),
+    cancelText = tt("umum.batal"),
   } = req;
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);

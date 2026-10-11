@@ -642,6 +642,28 @@ export const id = {
   "up.unggah": "Unggah",
   "up.berlakuJudul": "Berlaku sampai",
   "up.berlakuHint": "Pilih tanggal kedaluwarsa dokumen",
+  "umum.lanjut": "Lanjut",
+  "cmp.hariPendek": "Sen,Sel,Rab,Kam,Jum,Sab,Min",
+  "cmp.hapusTgl": "Hapus tanggal",
+  "cmp.tutup": "Tutup",
+  "cmp.delegasi": "Delegasi tugas",
+  "cmp.sedept": "Rekan satu departemen denganmu",
+  "cmp.kosongRekan":
+    "Belum ada rekan satu departemen yang bisa dipilih. Hubungi HR kalau tugasmu perlu didelegasikan ke departemen lain.",
+  "cmp.pdfJudul": "Belum tersedia",
+  "cmp.pdfPesan":
+    "Unduh PDF aktif setelah aplikasi terhubung ke ERPNext. Untuk sekarang rincian slip bisa dilihat langsung di layar.",
+  "cmp.unduhPdf": "Unduh PDF",
+  "cr.presensi": "Presensi (GPS + Face)",
+  "cr.presensiSub": "Clock in / clock out",
+  "cr.cuti": "Cuti / izin",
+  "cr.cutiSub": "Tahunan, sakit, melahirkan",
+  "cr.lembur": "Lembur (overtime)",
+  "cr.lemburSub": "Maksimal {n} jam / bulan",
+  "cr.dinas": "Dinas luar",
+  "cr.dinasSub": "Travel request & uang muka",
+  "cr.self": "Self-assessment",
+  "cr.selfSub": "Siklus H1 2026 · sampai 30 Sep",
 } as const;
 
 export type Kunci = keyof typeof id;
