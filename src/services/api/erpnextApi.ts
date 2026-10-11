@@ -1109,6 +1109,9 @@ function bentukSlip(r: SlipRow): Payslip {
 interface TaxRes {
   message: {
     year: number;
+    ptkp_status?: string | null;
+    ter_category?: string | null;
+    ptkp_annual?: number | null;
     months: { month: number; pph21: number; bpjs: number; gross: number }[];
     latest: {
       period: string;
@@ -1660,8 +1663,11 @@ export const erpnextApi: HrisApi = {
         ? namaBulan(new Date(2000, bulanTerakhir.month - 1, 1))
         : "—",
       grossPay: gross,
-      terCategory: "—",
-      ptkpStatus: "—",
+      terCategory: data?.ter_category
+        ? tt("tax.terKategori", { k: data.ter_category })
+        : "—",
+      ptkpStatus: data?.ptkp_status ?? "—",
+      ptkpAnnual: data?.ptkp_annual ?? 0,
       npwpMasked: "—",
       monthTax: latest?.pph21 ?? 0,
       // Tinggal porsi karyawan (persen dari bruto); porsi perusahaan tidak ada.

@@ -55,6 +55,7 @@ except Exception: print("")' "$TMP/body")
   call "GET hris_get_payslips" "$auth" "$BASE/api/method/hris_get_payslips"
   expect "Basic Salary"
   call "GET hris_get_tax_summary" "$auth" "$BASE/api/method/hris_get_tax_summary"
+  expect "ter_category"
   call "GET hris_get_my_profile" "$auth" "$BASE/api/method/hris_get_my_profile"
   expect "ptkp_status"
   call "GET hris_get_active_sessions" "$auth" "$BASE/api/method/hris_get_active_sessions"
@@ -75,6 +76,7 @@ except Exception: print("")' "$TMP/body")
   case "$who" in rani*) ;; *) call "GET hris_get_team_appraisals" "$auth" "$BASE/api/method/hris_get_team_appraisals" ;; esac
   call "GET hris_get_my_profile_changes" "$auth" "$BASE/api/method/hris_get_my_profile_changes"
   case "$who" in hr) call "GET hris_get_profile_changes_for_review" "$auth" "$BASE/api/method/hris_get_profile_changes_for_review" ;; esac
+  call "GET hris_get_announcements" "$auth" "$BASE/api/method/hris_get_announcements"
   call "GET hris_get_colleagues" "$auth" "$BASE/api/method/hris_get_colleagues"
   if [ -n "$emp" ]; then
     call "GET get_leave_details ($emp, $TODAY)" "$auth" \

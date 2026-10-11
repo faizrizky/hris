@@ -53,6 +53,8 @@ for r in rows:
             if f:
                 file_url = f[0].file_url
                 file_name = f[0].file_name
+    if r.document_type == "HR Announcement":
+        tone = "warn" if frappe.db.get_value("HR Announcement", r.document_name, "priority") == "Important" else "info"
     result.append(
         {
             "name": r.name,

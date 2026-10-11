@@ -26,6 +26,8 @@ for r in rows:
         tone = "bad"
     elif "waiting" in low or "requested" in low:
         tone = "warn"
+    if r.document_type == "HR Announcement":
+        tone = "warn" if frappe.db.get_value("HR Announcement", r.document_name, "priority") == "Important" else "info"
     body = frappe.utils.strip_html(r.email_content) if r.email_content else ""
     file_url = None
     file_name = None

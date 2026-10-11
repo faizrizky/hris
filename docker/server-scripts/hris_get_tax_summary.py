@@ -52,5 +52,9 @@ if me:
                 "pph21": pph,
                 "bpjs": bpjs_items,
             }
-        result = {"year": year, "months": months, "latest": latest}
+        ev = frappe.db.get_value("Employee", me[0].name, ["custom_ptkp_status", "custom_ter_category"], as_dict=True) or {}
+        st = ev.get("custom_ptkp_status") or "TK/0"
+        ptkp_annual = 54000000 + (4500000 if st.startswith("K/") else 0) + 4500000 * int(st[-1])
+        result = {"year": year, "months": months, "latest": latest, "ptkp_status": st,
+                  "ter_category": ev.get("custom_ter_category"), "ptkp_annual": ptkp_annual}
 frappe.response["message"] = result

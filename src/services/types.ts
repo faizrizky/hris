@@ -136,8 +136,9 @@ export interface TaxSummary {
   peakReason: string; // "THR" — alasan bulan tertinggi
   basePeriod: string; // "Agustus"
   grossPay: number;
-  terCategory: string; // "TER A · 2,5%"
+  terCategory: string; // "TER A"
   ptkpStatus: string; // "TK/0"
+  ptkpAnnual: number; // PTKP setahun untuk status itu (Rp)
   npwpMasked: string; // "•••• 8823"
   monthTax: number;
   bpjs: BpjsItem[];

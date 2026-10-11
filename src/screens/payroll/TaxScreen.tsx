@@ -124,7 +124,12 @@ export function TaxScreen({ navigation }: any) {
   const dasar = [
     { k: t("tax.penghasilan"), v: angka(tax.grossPay) },
     { k: t("tax.kategoriTer"), v: tax.terCategory },
-    { k: t("tax.ptkp"), v: tax.ptkpStatus },
+    {
+      k: t("tax.ptkp"),
+      v: tax.ptkpAnnual
+        ? `${tax.ptkpStatus} · ${t("tax.ptkpTahunan", { x: rupiah(tax.ptkpAnnual) })}`
+        : tax.ptkpStatus,
+    },
     { k: t("tax.npwp"), v: tax.npwpMasked },
   ];
 

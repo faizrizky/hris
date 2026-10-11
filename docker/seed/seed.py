@@ -254,7 +254,8 @@ for cf in [
     dict(fieldname="custom_tarif_bpjs_jp", label="BPJS JP Rate (%)", fieldtype="Float",
          default="1", permlevel=1, insert_after="custom_tarif_bpjs_jht"),
     dict(fieldname="custom_tarif_pph21", label="Income Tax (PPh 21) Rate (%)", fieldtype="Float",
-         default="2.5", permlevel=1, insert_after="custom_tarif_bpjs_jp"),
+         default="0", permlevel=1, insert_after="custom_tarif_bpjs_jp",
+         description="Manual rate. Leave 0 to calculate PPh 21 automatically from the TER table."),
 ]:
     if not frappe.db.exists("Custom Field", {"dt": "Employee", "fieldname": cf["fieldname"]}):
         make(dict(doctype="Custom Field", dt="Employee", **cf))
@@ -274,7 +275,7 @@ if _payroll_fields_created:
         frappe.db.set_value("Employee", _e, {
             "custom_tunjangan_jabatan": 1500000 if _k == "dewi" else 0,
             "custom_tarif_bpjs_kesehatan": 1, "custom_tarif_bpjs_jht": 2,
-            "custom_tarif_bpjs_jp": 1, "custom_tarif_pph21": 2.5})
+            "custom_tarif_bpjs_jp": 1, "custom_tarif_pph21": 0})
     frappe.db.commit()
     log("nilai awal pengaturan gaji diisi")
 
@@ -682,6 +683,117 @@ if not frappe.db.exists("Custom Field", {"dt": "Employee", "fieldname": "custom_
     frappe.clear_cache(doctype="Employee")
 frappe.db.commit()
 
+# ---- Pajak PPh 21 (PMK 168/2023): status PTKP, kategori TER, tabel TER ----
+for cf in [
+    dict(fieldname="custom_ptkp_status", label="PTKP Status (auto)", fieldtype="Data", read_only=1, permlevel=1,
+         insert_after="custom_tarif_pph21"),
+    dict(fieldname="custom_ter_category", label="TER Category (auto)", fieldtype="Data", read_only=1, permlevel=1,
+         insert_after="custom_ptkp_status"),
+]:
+    if not frappe.db.exists("Custom Field", {"dt": "Employee", "fieldname": cf["fieldname"]}):
+        make(dict(doctype="Custom Field", dt="Employee", **cf))
+        frappe.clear_cache(doctype="Employee")
+# Migrasi: tarif PPh 21 manual bawaan 2.5 diganti 0 (0 = hitung otomatis dari TER); sekali saja.
+_cfp = frappe.db.get_value("Custom Field", {"dt": "Employee", "fieldname": "custom_tarif_pph21"}, ["name", "default"], as_dict=True)
+if _cfp and _cfp.default == "2.5":
+    frappe.db.set_value("Custom Field", _cfp.name, {"default": "0",
+        "description": "Manual rate. Leave 0 to calculate PPh 21 automatically from the TER table."})
+    frappe.db.sql("update `tabEmployee` set custom_tarif_pph21=0 where custom_tarif_pph21=2.5")
+    frappe.clear_cache(doctype="Employee")
+    log("tarif PPh 21 manual 2.5 direset ke 0 (otomatis TER)")
+if not frappe.db.exists("DocType", "PPh21 TER Rate"):
+    make(dict(
+        doctype="DocType", name="PPh21 TER Rate", module="HR", custom=1, naming_rule="Random", autoname="hash",
+        fields=[
+            dict(fieldname="category", label="TER Category", fieldtype="Select", options="A\nB\nC", reqd=1, in_list_view=1),
+            dict(fieldname="bruto_from", label="Gross From (IDR)", fieldtype="Currency", reqd=1, in_list_view=1),
+            dict(fieldname="bruto_to", label="Gross To (IDR, 0 = no limit)", fieldtype="Currency", in_list_view=1),
+            dict(fieldname="rate", label="Rate (%)", fieldtype="Float", reqd=1, in_list_view=1),
+        ],
+        permissions=[dict(role="System Manager", read=1, write=1, create=1, delete=1),
+                     dict(role="HR Manager", read=1, write=1, create=1, delete=1),
+                     dict(role="HR User", read=1)]))
+    frappe.clear_cache()
+# Tabel TER (PMK 168/2023 Lampiran, tarif bulanan atas penghasilan bruto). Format: (batas atas, tarif %), None = tanpa batas.
+TER_TABLES = {
+    "A": [(5400000, 0), (5650000, 0.25), (5950000, 0.5), (6300000, 0.75), (6750000, 1), (7500000, 1.25), (8550000, 1.5),
+          (9650000, 1.75), (10050000, 2), (10350000, 2.25), (10700000, 2.5), (11050000, 3), (11600000, 3.5), (12500000, 4),
+          (13750000, 5), (15100000, 6), (16950000, 7), (19750000, 8), (24150000, 9), (26450000, 10), (28000000, 11),
+          (30050000, 12), (32400000, 13), (35400000, 14), (39100000, 15), (43850000, 16), (47800000, 17), (51400000, 18),
+          (56300000, 19), (62200000, 20), (68600000, 21), (77500000, 22), (89000000, 23), (103000000, 24), (125000000, 25),
+          (157000000, 26), (206000000, 27), (337000000, 28), (454000000, 29), (550000000, 30), (695000000, 31),
+          (910000000, 32), (1400000000, 33), (None, 34)],
+    "B": [(6200000, 0), (6500000, 0.25), (6850000, 0.5), (7300000, 0.75), (9200000, 1), (10750000, 1.5), (11250000, 2),
+          (11600000, 2.5), (12600000, 3), (13600000, 4), (14950000, 5), (16400000, 6), (18450000, 7), (21850000, 8),
+          (26000000, 9), (27700000, 10), (29350000, 11), (31450000, 12), (33950000, 13), (37100000, 14), (41100000, 15),
+          (45800000, 16), (49500000, 17), (53800000, 18), (58500000, 19), (64000000, 20), (71000000, 21), (80000000, 22),
+          (93000000, 23), (109000000, 24), (129000000, 25), (163000000, 26), (211000000, 27), (374000000, 28),
+          (459000000, 29), (555000000, 30), (704000000, 31), (957000000, 32), (1405000000, 33), (None, 34)],
+    "C": [(6600000, 0), (6950000, 0.25), (7350000, 0.5), (7800000, 0.75), (8850000, 1), (9800000, 1.25), (10950000, 1.5),
+          (11200000, 1.75), (12050000, 2), (12950000, 3), (14150000, 4), (15550000, 5), (17050000, 6), (19500000, 7),
+          (22700000, 8), (26600000, 9), (28100000, 10), (30100000, 11), (32600000, 12), (35400000, 13), (38900000, 14),
+          (43000000, 15), (47400000, 16), (51200000, 17), (55800000, 18), (60400000, 19), (66700000, 20), (74500000, 21),
+          (83200000, 22), (95600000, 23), (110000000, 24), (134000000, 25), (169000000, 26), (221000000, 27),
+          (390000000, 28), (463000000, 29), (561000000, 30), (709000000, 31), (965000000, 32), (1419000000, 33), (None, 34)],
+}
+if frappe.db.count("PPh21 TER Rate") == 0:
+    for _cat, _rows in TER_TABLES.items():
+        _lo = 0
+        for _hi, _rt in _rows:
+            frappe.get_doc(dict(doctype="PPh21 TER Rate", category=_cat, bruto_from=_lo, bruto_to=_hi or 0,
+                                rate=_rt)).insert(ignore_permissions=True)
+            _lo = (_hi + 1) if _hi else 0
+    log("tabel TER PPh 21 diisi")
+frappe.db.commit()
+# Hitung status PTKP / kategori TER untuk semua Employee (idempoten; selanjutnya otomatis lewat Server Script).
+for _e in frappe.get_all("Employee", fields=["name", "marital_status", "custom_ptkp_status"]):
+    _deps = frappe.db.sql("select count(*) from `tabEmployee Family Member` where parent=%s and parenttype='Employee' "
+                          "and is_dependent=1 and relation!='Spouse'", _e.name)[0][0]
+    _deps = min(_deps, 3)
+    _st = ("K/" if _e.marital_status == "Married" else "TK/") + str(_deps)
+    _cat = "A" if _st in ("TK/0", "TK/1", "K/0") else ("B" if _st in ("TK/2", "TK/3", "K/1", "K/2") else "C")
+    frappe.db.set_value("Employee", _e.name, {"custom_ptkp_status": _st, "custom_ter_category": _cat}, update_modified=False)
+frappe.db.commit()
+
+# ---- HR Announcement ----
+if not frappe.db.exists("DocType", "HR Announcement"):
+    make(dict(
+        doctype="DocType", name="HR Announcement", module="HR", custom=1, naming_rule="Expression (old style)",
+        autoname="HR-ANN-.YYYY.-.#####", track_changes=1,
+        fields=[
+            dict(fieldname="title", label="Title", fieldtype="Data", reqd=1, in_list_view=1),
+            dict(fieldname="priority", label="Priority", fieldtype="Select", options="Normal\nImportant", default="Normal",
+                 in_list_view=1, in_standard_filter=1),
+            dict(fieldname="audience", label="Audience", fieldtype="Select", options="All Employees\nDepartment",
+                 default="All Employees", in_list_view=1),
+            dict(fieldname="department", label="Department", fieldtype="Link", options="Department",
+                 depends_on="eval:doc.audience=='Department'", mandatory_depends_on="eval:doc.audience=='Department'"),
+            dict(fieldname="published", label="Published", fieldtype="Check", in_list_view=1, in_standard_filter=1),
+            dict(fieldname="published_on", label="Published On", fieldtype="Datetime", read_only=1),
+            dict(fieldname="expires_on", label="Expires On", fieldtype="Date"),
+            dict(fieldname="content", label="Content", fieldtype="Text Editor"),
+            dict(fieldname="attachment", label="Attachment", fieldtype="Attach"),
+        ],
+        permissions=[dict(role="System Manager", read=1, write=1, create=1, delete=1),
+                     dict(role="HR Manager", read=1, write=1, create=1, delete=1),
+                     dict(role="HR User", read=1, write=1, create=1, delete=1),
+                     dict(role="Employee", read=1)]))
+    frappe.clear_cache()
+frappe.db.commit()
+# Sidebar "Shift and Attendance": HR Announcement tepat di bawah Dashboard.
+if frappe.db.exists("Sidebar", "Shift & Attendance"):
+    from frappe.desk.doctype.custom_sidebar.custom_sidebar import add_site_sidebar_item, _save_customization, layer_arrangement
+    add_site_sidebar_item("Shift and Attendance", dict(label="HR Announcement", type="Link", link_type="DocType",
+                                                      link_to="HR Announcement", icon="bell", collapsible=1))
+    _arr = layer_arrangement("Shift and Attendance", None)
+    _mine = [r for r in _arr if r.get("link_to") == "HR Announcement"]
+    _rest = [r for r in _arr if r not in _mine]
+    _at = next((n for n, r in enumerate(_rest) if r.get("label") == "Dashboard"), 0) + 1
+    _save_customization("Shift and Attendance", _rest[:_at] + _mine + _rest[_at:], None)
+    frappe.db.commit()
+    log("sidebar Shift & Attendance: HR Announcement di bawah Dashboard")
+    frappe.clear_cache()
+
 # Sinkronkan label Custom Field yang sudah ada ke bahasa Inggris (nama field tidak berubah).
 for (_dt, _fn), _label in {
     ("Employee", "custom_pengaturan_gaji"): "Salary Settings",
@@ -765,6 +877,10 @@ EVENT_SCRIPTS = {  # script berbasis event dokumen: nama_file -> (DocType, event
     "hris_notify_attendance_correction": ("Attendance Request", "After Submit"),
     "hris_notify_document_status": ("Employee Document", "After Save"),
     "hris_guard_document_upload": ("File", "Before Insert"),
+    "hris_employee_tax_status": ("Employee", "Before Save"),
+    "hris_salary_slip_pph21": ("Salary Slip", "Before Save"),
+    "hris_announcement_publish": ("HR Announcement", "Before Save"),
+    "hris_notify_announcement": ("HR Announcement", "After Save"),
     "hris_push_on_notification": ("Notification Log", "After Insert"),
 }
 
@@ -789,6 +905,8 @@ if os.path.isdir(SS_DIR):
         if name in EVENT_SCRIPTS:  # script berbasis event dokumen, bukan API
             vals = dict(script_type="DocType Event", reference_doctype=EVENT_SCRIPTS[name][0],
                         doctype_event=EVENT_SCRIPTS[name][1], disabled=0, script=code)
+        if name == "hris_announcement_visibility":  # Permission Query
+            vals = dict(script_type="Permission Query", reference_doctype="HR Announcement", disabled=0, script=code)
         if exists("Server Script", name):
             doc = frappe.get_doc("Server Script", name)
             if any(doc.get(k) != v for k, v in vals.items()):
@@ -907,6 +1025,18 @@ except Exception as ex:
 # Dokumen contoh harus dimiliki (owner) user rani supaya aturan if_owner mengizinkan unggah ulang olehnya.
 for _n in frappe.get_all("Employee Document", filters={"employee": emp["rani"], "owner": "Administrator"}, pluck="name"):
     frappe.db.set_value("Employee Document", _n, "owner", USERS["rani"][0], update_modified=False)
+frappe.db.commit()
+
+# 9d. Pengumuman contoh (published, audience semua karyawan)
+for _t, _pr, _ct in [
+    ("Office closed on Independence Day", "Normal",
+     "<p>The office will be closed on <b>17 August</b>.</p><p>Regular operations resume the next working day.</p>"),
+    ("Mandatory information security training", "Important",
+     "<p>All employees must complete the information security training by the end of this month.</p>"
+     "<p>Contact HR if you need help accessing the course.</p>"),
+]:
+    if not exists("HR Announcement", {"title": _t}):
+        make(dict(doctype="HR Announcement", title=_t, priority=_pr, audience="All Employees", published=1, content=_ct))
 frappe.db.commit()
 
 # 9b. Notifikasi awal untuk slip gaji yang sudah ada (sekali per slip; type Alert tidak mengirim email)

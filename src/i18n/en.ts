@@ -857,4 +857,6 @@ export const en: Record<Kunci, string> = {
   "an.bacaSelengkapnya": "Read more",
   "an.tutup": "Show less",
   "hm.aPengumuman": "Announcements",
+  "tax.terKategori": "TER {k}",
+  "tax.ptkpTahunan": "PTKP {x} / year",
 };

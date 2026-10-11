@@ -862,6 +862,8 @@ export const id = {
   "an.bacaSelengkapnya": "Baca selengkapnya",
   "an.tutup": "Ringkas",
   "hm.aPengumuman": "Pengumuman",
+  "tax.terKategori": "TER {k}",
+  "tax.ptkpTahunan": "PTKP {x} / tahun",
 } as const;
 
 export type Kunci = keyof typeof id;
