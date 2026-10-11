@@ -1,9 +1,10 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Image,
   KeyboardAvoidingView,
   Platform,
+  ScrollView as RNScrollView,
   Pressable,
   StyleSheet,
   Text,
@@ -43,6 +44,7 @@ export function DocumentReviewDetailScreen({ navigation, route }: any) {
   const [alasan, setAlasan] = useState("");
   const [sending, setSending] = useState(false);
   const [galat, setGalat] = useState<string | null>(null);
+  const gulir = useRef<RNScrollView>(null);
 
   // Gambar diunduh dengan sesi aplikasi lalu ditampilkan dari cache lokal.
   useEffect(() => {
@@ -142,6 +144,7 @@ export function DocumentReviewDetailScreen({ navigation, route }: any) {
         behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
         <ScrollView
+          ref={gulir}
           contentContainerStyle={styles.content}
           keyboardShouldPersistTaps="handled"
         >
@@ -214,66 +217,74 @@ export function DocumentReviewDetailScreen({ navigation, route }: any) {
                 placeholderTextColor={c.mutedLabel}
                 multiline
                 autoFocus
+                // Kolom alasan ada di paling bawah: gulir supaya tidak tertutup keyboard.
+                onFocus={() =>
+                  setTimeout(
+                    () => gulir.current?.scrollToEnd({ animated: true }),
+                    250,
+                  )
+                }
               />
             </View>
           ) : null}
           {galat ? <Text style={styles.galat}>{galat}</Text> : null}
         </ScrollView>
-      </KeyboardAvoidingView>
-
-      {menunggu ? (
-        <View style={[styles.actionBar, { paddingBottom: insets.bottom + 14 }]}>
-          {tolak ? (
-            <>
-              <Pressable
-                style={styles.secondaryBtn}
-                onPress={() => {
-                  setTolak(false);
-                  setGalat(null);
-                }}
-              >
-                <Text style={styles.secondaryText}>{t("umum.batal")}</Text>
-              </Pressable>
-              <Pressable
-                style={[styles.rejectBtn, { flex: 2 }]}
-                disabled={sending}
-                onPress={() => putuskan("reject")}
-              >
-                <Text style={styles.rejectText}>
-                  {sending ? t("umum.memproses") : t("rv.kirimTolak")}
-                </Text>
-              </Pressable>
-            </>
-          ) : (
-            <>
-              <Pressable
-                style={styles.rejectBtn}
-                onPress={() => setTolak(true)}
-              >
-                <Text style={styles.rejectText}>{t("rv.tolak")}</Text>
-              </Pressable>
-              <Pressable
-                style={{ flex: 2 }}
-                disabled={sending || !doc.fileUrl}
-                onPress={() => putuskan("verify")}
-              >
-                <LinearGradient
-                  colors={
-                    doc.fileUrl ? [c.accent, c.accent2] : [c.track, c.track]
-                  }
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                  style={styles.approveBtn}
+        {menunggu ? (
+          <View
+            style={[styles.actionBar, { paddingBottom: insets.bottom + 14 }]}
+          >
+            {tolak ? (
+              <>
+                <Pressable
+                  style={styles.secondaryBtn}
+                  onPress={() => {
+                    setTolak(false);
+                    setGalat(null);
+                  }}
                 >
-                  <Text style={styles.approveText}>
-                    {sending ? t("umum.memproses") : t("rv.verifikasi")}
+                  <Text style={styles.secondaryText}>{t("umum.batal")}</Text>
+                </Pressable>
+                <Pressable
+                  style={[styles.rejectBtn, { flex: 2 }]}
+                  disabled={sending}
+                  onPress={() => putuskan("reject")}
+                >
+                  <Text style={styles.rejectText}>
+                    {sending ? t("umum.memproses") : t("rv.kirimTolak")}
                   </Text>
-                </LinearGradient>
-              </Pressable>
-            </>
-          )}
-        </View>
-      ) : null}
+                </Pressable>
+              </>
+            ) : (
+              <>
+                <Pressable
+                  style={styles.rejectBtn}
+                  onPress={() => setTolak(true)}
+                >
+                  <Text style={styles.rejectText}>{t("rv.tolak")}</Text>
+                </Pressable>
+                <Pressable
+                  style={{ flex: 2 }}
+                  disabled={sending || !doc.fileUrl}
+                  onPress={() => putuskan("verify")}
+                >
+                  <LinearGradient
+                    colors={
+                      doc.fileUrl ? [c.accent, c.accent2] : [c.track, c.track]
+                    }
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    style={styles.approveBtn}
+                  >
+                    <Text style={styles.approveText}>
+                      {sending ? t("umum.memproses") : t("rv.verifikasi")}
+                    </Text>
+                  </LinearGradient>
+                </Pressable>
+              </>
+            )}
+          </View>
+        ) : null}
+      </KeyboardAvoidingView>
     </View>
   );
 }

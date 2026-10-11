@@ -17,6 +17,8 @@ import { describeError } from "@/services/api/http";
 import { ErrorState } from "@/components/ErrorState";
 import { useT } from "@/i18n";
 import { LampiranList } from "./LampiranList";
+import { EmptyState } from "@/components/EmptyState";
+import { ICON } from "@/constants/icons";
 
 // Layar ini cuma di-mount untuk role mss/hr (lihat RootNavigator).
 export function LeaveApprovalScreen({ navigation }: any) {
@@ -128,7 +130,7 @@ export function LeaveApprovalScreen({ navigation }: any) {
           ) : memuat ? (
             <ApprovalCardSkeleton />
           ) : (
-            <Text style={styles.empty}>{t("ap.kosong")}</Text>
+            <EmptyState icon={ICON.approval} title={t("ap.kosong")} />
           )
         }
         renderItem={({ item }) => {

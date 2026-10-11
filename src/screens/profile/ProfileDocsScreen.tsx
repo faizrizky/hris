@@ -20,6 +20,10 @@ import {
   DOC_STATUS_TONE,
 } from "@/constants/statusLabels";
 import { useT } from "@/i18n";
+import { EmptyState } from "@/components/EmptyState";
+import { ICON } from "@/constants/icons";
+import { useConfirm } from "@/components/ConfirmDialog";
+import { bukaLampiran } from "@/utils/lampiran";
 
 const SEMUA = "semua";
 const KATEGORI: DocCategory[] = ["kontrak", "sk", "sertifikat", "identitas"];
@@ -27,6 +31,7 @@ const TAB: (DocCategory | typeof SEMUA)[] = [SEMUA, ...KATEGORI];
 
 export function ProfileDocsScreen({ navigation }: any) {
   const t = useT();
+  const confirm = useConfirm();
   const { employee } = useSession();
   const insets = useSafeAreaInsets();
   const c = useTheme();
@@ -36,6 +41,22 @@ export function ProfileDocsScreen({ navigation }: any) {
   const [tab, setTab] = useState<DocCategory | typeof SEMUA>(SEMUA);
 
   const [galat, setGalat] = useState<string | null>(null);
+
+  const buka = async (d: EmployeeDocument) => {
+    if (!d.fileUrl) return;
+    try {
+      if (!(await bukaLampiran(d.fileUrl, d.fileName ?? d.name)))
+        throw new Error("unavailable");
+    } catch {
+      void confirm({
+        title: t("lamp.gagalJudul"),
+        message: t("lamp.gagalPesan"),
+        tone: "warn",
+        confirmText: t("umum.mengerti"),
+        cancelText: null,
+      });
+    }
+  };
 
   const muat = useCallback(() => {
     if (!employee) return;
@@ -140,50 +161,64 @@ export function ProfileDocsScreen({ navigation }: any) {
             ))}
           </View>
         ) : tersaring.length === 0 ? (
-          <View style={styles.emptyCard}>
-            <Text style={styles.emptyTitle}>{t("doc.kosongJudul")}</Text>
-            <Text style={styles.emptyText}>{t("doc.kosongIsi")}</Text>
-          </View>
+          <EmptyState
+            icon={ICON.document}
+            title={t("doc.kosongJudul")}
+            text={t("doc.kosongIsi")}
+          />
         ) : (
-          <View style={{ gap: 10 }}>
-            {tersaring.map((d) => {
-              const tone = c[DOC_STATUS_TONE[d.status]];
-              const pdf = d.ext === "PDF";
-              return (
-                <View key={d.id} style={styles.row}>
-                  <View
+          tersaring.map((d) => {
+            const tone = c[DOC_STATUS_TONE[d.status]];
+            const pdf = d.ext === "PDF";
+            return (
+              <Pressable
+                key={d.id}
+                style={styles.row}
+                onPress={() => buka(d)}
+                disabled={!d.fileUrl}
+              >
+                <View
+                  style={[
+                    styles.extChip,
+                    { backgroundColor: pdf ? c.bad.bg : c.info.bg },
+                  ]}
+                >
+                  <Text
                     style={[
-                      styles.extChip,
-                      { backgroundColor: pdf ? c.bad.bg : c.info.bg },
+                      styles.extText,
+                      { color: pdf ? c.bad.ink : c.info.ink },
                     ]}
                   >
-                    <Text
-                      style={[
-                        styles.extText,
-                        { color: pdf ? c.bad.ink : c.info.ink },
-                      ]}
-                    >
-                      {d.ext}
-                    </Text>
-                  </View>
-
-                  <View style={{ flex: 1, minWidth: 0 }}>
-                    <Text style={styles.docName}>{d.name}</Text>
-                    <Text style={styles.docMeta}>
-                      {d.sizeLabel} · {d.dateLabel}
-                    </Text>
-                    <View
-                      style={[styles.statusBadge, { backgroundColor: tone.bg }]}
-                    >
-                      <Text style={[styles.statusText, { color: tone.ink }]}>
-                        {DOC_STATUS_LABEL[d.status]}
-                      </Text>
-                    </View>
-                  </View>
+                    {d.ext}
+                  </Text>
                 </View>
-              );
-            })}
-          </View>
+
+                <View style={{ flex: 1, minWidth: 0 }}>
+                  <Text style={styles.docName}>{d.name}</Text>
+                  <Text style={styles.docMeta}>
+                    {d.sizeLabel} · {d.dateLabel}
+                  </Text>
+                  <View
+                    style={[styles.statusBadge, { backgroundColor: tone.bg }]}
+                  >
+                    <Text style={[styles.statusText, { color: tone.ink }]}>
+                      {DOC_STATUS_LABEL[d.status]}
+                    </Text>
+                  </View>
+                  {d.status === "rejected" && d.rejectionReason ? (
+                    <Text style={styles.reason}>{d.rejectionReason}</Text>
+                  ) : null}
+                </View>
+                {d.fileUrl ? (
+                  <Ionicons
+                    name="chevron-forward"
+                    size={14}
+                    color={c.mutedLabel}
+                  />
+                ) : null}
+              </Pressable>
+            );
+          })
         )}
       </ScrollView>
     </View>
@@ -277,6 +312,7 @@ const makeStyles = (c: Palette) =>
     list: { paddingHorizontal: 18, paddingBottom: 130 },
 
     row: {
+      marginBottom: 10,
       flexDirection: "row",
       alignItems: "center",
       gap: 12,
@@ -315,6 +351,12 @@ const makeStyles = (c: Palette) =>
       marginTop: 7,
     },
     statusText: { fontSize: 9.5, fontWeight: "700" },
+    reason: {
+      fontSize: 11,
+      fontWeight: "500",
+      color: c.bad.ink,
+      marginTop: 6,
+    },
 
     emptyCard: {
       alignItems: "center",

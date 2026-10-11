@@ -285,6 +285,9 @@ export interface EmployeeDocument {
   sizeLabel: string; // "1,2 MB"
   dateLabel: string; // "14 Sep 2023" / "berakhir 30 hari lagi"
   status: DocStatus;
+  fileUrl?: string | null;
+  fileName?: string | null;
+  rejectionReason?: string | null;
 }
 
 export type ReviewStatus = "Pending" | "Verified" | "Rejected";

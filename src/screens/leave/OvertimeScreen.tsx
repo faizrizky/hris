@@ -14,7 +14,6 @@ import { useT } from "@/i18n";
 import { useSession } from "@/services/session";
 import { OvertimeRecord } from "@/services/types";
 import { StatusBadge } from "@/components/StatusBadge";
-import { LineIcon } from "@/components/LineIcon";
 import { ICON } from "@/constants/icons";
 import {
   OVERTIME_STATUS_LABEL,
@@ -31,6 +30,7 @@ import {
   toISODate,
 } from "@/utils/date";
 import { Skeleton } from "@/components/Skeleton";
+import { EmptyState } from "@/components/EmptyState";
 
 export function OvertimeScreen({ navigation }: any) {
   const { employee } = useSession();
@@ -160,13 +160,12 @@ export function OvertimeScreen({ navigation }: any) {
             ))}
           </View>
         ) : records.length === 0 ? (
-          <View style={styles.emptyCard}>
-            <View style={styles.emptyIcon}>
-              <LineIcon d={ICON.overtime} color={c.muted} size={22} />
-            </View>
-            <Text style={styles.emptyTitle}>{t("ot.kosongJudul")}</Text>
-            <Text style={styles.emptyText}>{t("ot.kosongIsi")}</Text>
-          </View>
+          <EmptyState
+            icon={ICON.overtime}
+            tinggi={260}
+            title={t("ot.kosongJudul")}
+            text={t("ot.kosongIsi")}
+          />
         ) : (
           <View style={{ gap: 10 }}>
             {records.map((r) => (

@@ -1,5 +1,7 @@
 import React, { useMemo, useState } from "react";
 import { TimAppraisal } from "./TimAppraisal";
+import { SegmentedControl } from "@/components/SegmentedControl";
+import { EmptyState } from "@/components/EmptyState";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { RevealScrollView as ScrollView } from "@/components/Reveal";
 import Svg, { Circle, G } from "react-native-svg";
@@ -15,7 +17,6 @@ import { ErrorState } from "@/components/ErrorState";
 import { desimal } from "@/utils/currency";
 import { Skeleton } from "@/components/Skeleton";
 import { useT } from "@/i18n";
-import { LineIcon } from "@/components/LineIcon";
 import { ICON } from "@/constants/icons";
 
 const RING = 104;
@@ -32,42 +33,41 @@ export function AppraisalScreen({ navigation }: any) {
   const [tab, setTab] = useState<"saya" | "tim">("saya");
   const bisaTim = employee?.role === "mss" || employee?.role === "hr";
 
-  const segmen = bisaTim ? (
-    <View style={styles.segment}>
-      {(["saya", "tim"] as const).map((k) => {
-        const on = tab === k;
-        return (
-          <Pressable
-            key={k}
-            onPress={() => setTab(k)}
-            style={[styles.segBtn, on && styles.segBtnOn]}
-          >
-            <Text style={[styles.segText, on && styles.segTextOn]}>
-              {t(k === "saya" ? "ap2.tabSaya" : "ap2.tabTim")}
-            </Text>
-          </Pressable>
-        );
-      })}
-    </View>
-  ) : null;
+  const insets = useSafeAreaInsets();
 
-  return tab === "tim" ? (
-    <TimAppraisal navigation={navigation} atas={segmen} />
-  ) : (
-    <AppraisalSaya navigation={navigation} atas={segmen} />
+  return (
+    <View style={styles.container}>
+      <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
+        <View style={styles.headerRow}>
+          <Pressable style={styles.backBtn} onPress={() => navigation.goBack()}>
+            <Ionicons name="chevron-back" size={18} color={c.ink} />
+          </Pressable>
+          <Text style={styles.headerTitle}>{t("ap2.judul")}</Text>
+        </View>
+        {bisaTim && (
+          <SegmentedControl
+            style={{ marginTop: 14 }}
+            items={[
+              { key: "saya", label: t("ap2.tabSaya") },
+              { key: "tim", label: t("ap2.tabTim") },
+            ]}
+            value={tab}
+            onChange={setTab}
+          />
+        )}
+      </View>
+      {tab === "tim" ? (
+        <TimAppraisal navigation={navigation} />
+      ) : (
+        <AppraisalSaya />
+      )}
+    </View>
   );
 }
 
-function AppraisalSaya({
-  navigation,
-  atas,
-}: {
-  navigation: any;
-  atas: React.ReactNode;
-}) {
+function AppraisalSaya() {
   const t = useT();
   const { employee } = useSession();
-  const insets = useSafeAreaInsets();
   const penilaian = useLoad(
     () =>
       employee ? hrisApi.getAppraisal(employee.id) : Promise.resolve(null),
@@ -77,48 +77,31 @@ function AppraisalSaya({
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
 
-  const head = (
-    <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
-      <Pressable style={styles.backBtn} onPress={() => navigation.goBack()}>
-        <Ionicons name="chevron-back" size={18} color={c.ink} />
-      </Pressable>
-      <Text style={styles.headerTitle}>{t("ap2.judul")}</Text>
-    </View>
-  );
-
   if (!data) {
     if (penilaian.error) {
       return (
-        <View style={styles.container}>
-          {head}
-          {atas}
+        <>
           <ScrollView contentContainerStyle={styles.content}>
             <ErrorState pesan={penilaian.error} onUlangi={penilaian.ulangi} />
           </ScrollView>
-        </View>
+        </>
       );
     }
     if (!penilaian.memuat) {
       return (
-        <View style={styles.container}>
-          {head}
-          {atas}
+        <>
           <ScrollView contentContainerStyle={styles.content}>
-            <View style={styles.emptyCard}>
-              <View style={styles.emptyIcon}>
-                <LineIcon d={ICON.appraisal} color={c.muted} size={22} />
-              </View>
-              <Text style={styles.emptyTitle}>{t("ap2.kosongJudul")}</Text>
-              <Text style={styles.emptyText}>{t("ap2.kosongIsi")}</Text>
-            </View>
+            <EmptyState
+              icon={ICON.appraisal}
+              title={t("ap2.kosongJudul")}
+              text={t("ap2.kosongIsi")}
+            />
           </ScrollView>
-        </View>
+        </>
       );
     }
     return (
-      <View style={styles.container}>
-        {head}
-        {atas}
+      <>
         <ScrollView contentContainerStyle={styles.content}>
           <View style={styles.heroCard}>
             <Skeleton width={RING} height={RING} radius={RING / 2} />
@@ -159,17 +142,14 @@ function AppraisalSaya({
             ))}
           </View>
         </ScrollView>
-      </View>
+      </>
     );
   }
 
   const tone = c[data.ratingTone];
 
   return (
-    <View style={styles.container}>
-      {head}
-      {atas}
-
+    <>
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.heroCard}>
           <ScoreRing score={data.score} max={data.maxScore} />
@@ -201,7 +181,7 @@ function AppraisalSaya({
           ))}
         </View>
       </ScrollView>
-    </View>
+    </>
   );
 }
 
@@ -355,15 +335,13 @@ export const makeStyles = (c: Palette) =>
     container: { flex: 1, backgroundColor: c.bg },
 
     header: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: 12,
       paddingHorizontal: 20,
       paddingBottom: 16,
       backgroundColor: c.card,
       borderBottomWidth: 1,
       borderBottomColor: c.hair,
     },
+    headerRow: { flexDirection: "row", alignItems: "center", gap: 12 },
     backBtn: {
       width: 36,
       height: 36,

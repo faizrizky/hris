@@ -710,7 +710,7 @@ export const id = {
   "pw.masukLagi2": "Masuk lagi",
   "sec.nSesi": "{n} sesi",
   "rv.judul": "Verifikasi Dokumen",
-  "rv.sub": "Dokumen Digital karyawan",
+  "rv.sub": "Dokumen Digital Karyawan",
   "rv.menunggu": "Menunggu",
   "rv.diverifikasi": "Diverifikasi",
   "rv.ditolak": "Ditolak",
@@ -735,7 +735,7 @@ export const id = {
   "rv.verifikasiJudul": "Verifikasi dokumen?",
   "rv.verifikasiPesan":
     "Dokumen {nama} akan ditandai terverifikasi dan karyawan mendapat notifikasi.",
-  "hm.aVerifikasi": "Verifikasi dokumen",
+  "hm.aVerifikasi": "Verifikasi Dokumen",
   "ap2.tabSaya": "Saya",
   "ap2.tabTim": "Tim",
   "ap2.timKosongJudul": "Belum ada anggota tim untuk dinilai",
@@ -759,6 +759,8 @@ export const id = {
   "fb.kirim": "Kirim penilaian",
   "fb.kirimJudul": "Kirim penilaian?",
   "fb.kirimPesan": "Penilaian untuk {nama} tidak bisa diubah setelah dikirim.",
+  "rv.semua": "Semua",
+  "sec.aplikasi": "Aplikasi",
 } as const;
 
 export type Kunci = keyof typeof id;

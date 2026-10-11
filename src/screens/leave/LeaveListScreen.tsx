@@ -17,6 +17,7 @@ import { useLoad } from "@/hooks/useLoad";
 import { ErrorState } from "@/components/ErrorState";
 import { useT } from "@/i18n";
 import { LampiranList } from "./LampiranList";
+import { EmptyState } from "@/components/EmptyState";
 
 export function LeaveListScreen({ navigation }: any) {
   const { employee } = useSession();
@@ -191,7 +192,7 @@ export function LeaveListScreen({ navigation }: any) {
           ) : memuat ? (
             <RequestCardSkeleton />
           ) : (
-            <Text style={styles.empty}>{t("cl.kosong")}</Text>
+            <EmptyState icon={ICON.leave} tinggi={240} title={t("cl.kosong")} />
           )
         }
         renderItem={({ item }) => {

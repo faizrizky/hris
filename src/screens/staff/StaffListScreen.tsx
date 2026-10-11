@@ -13,6 +13,8 @@ import { useSession } from "@/services/session";
 import { Staff, StaffDirectory } from "@/services/types";
 import { Skeleton } from "@/components/Skeleton";
 import { useT } from "@/i18n";
+import { EmptyState } from "@/components/EmptyState";
+import { ICON } from "@/constants/icons";
 
 const SEMUA = "Semua";
 
@@ -154,14 +156,15 @@ export function StaffListScreen({ navigation }: any) {
             ))}
           </View>
         ) : tersaring.length === 0 ? (
-          <View style={styles.emptyCard}>
-            <Text style={styles.emptyTitle}>{t("stf.tidakCocok")}</Text>
-            <Text style={styles.emptyText}>
-              {q
+          <EmptyState
+            icon={ICON.user}
+            title={t("stf.tidakCocok")}
+            text={
+              q
                 ? t("stf.tanpaKata", { q: cari.trim() })
-                : t("stf.kosongLingkup")}
-            </Text>
-          </View>
+                : t("stf.kosongLingkup")
+            }
+          />
         ) : (
           <View style={{ gap: 9 }}>
             {tersaring.map((s) => (

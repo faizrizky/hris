@@ -15,6 +15,7 @@ import { LineIcon } from "@/components/LineIcon";
 import { ICON } from "@/constants/icons";
 import { Skeleton } from "@/components/Skeleton";
 import { useT } from "@/i18n";
+import { EmptyState } from "@/components/EmptyState";
 
 const ICON_KATEGORI: Record<NotifCategory, string> = {
   Approval: ICON.approval,
@@ -131,13 +132,11 @@ export function NotificationScreen({ navigation }: any) {
             ))}
           </View>
         ) : items.length === 0 ? (
-          <View style={styles.emptyCard}>
-            <View style={styles.emptyIcon}>
-              <LineIcon d={ICON.bell} color={c.muted} size={22} />
-            </View>
-            <Text style={styles.emptyTitle}>{t("nt.kosongJudul")}</Text>
-            <Text style={styles.emptyText}>{t("nt.kosongIsi")}</Text>
-          </View>
+          <EmptyState
+            icon={ICON.bell}
+            title={t("nt.kosongJudul")}
+            text={t("nt.kosongIsi")}
+          />
         ) : (
           grup.map((g) => (
             <View key={g}>

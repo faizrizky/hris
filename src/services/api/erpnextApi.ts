@@ -505,6 +505,9 @@ interface DokumenRow {
   uploaded_on: string | null;
   expires_on: string | null;
   status: "Pending" | "Verified" | "Rejected";
+  file_url?: string | null;
+  file_name?: string | null;
+  rejection_reason?: string | null;
 }
 
 const KATEGORI_DOK: Record<DokumenRow["category"], DocCategory> = {
@@ -555,6 +558,9 @@ function bentukDokumen(r: DokumenRow): EmployeeDocument {
     sizeLabel: r.size_bytes ? ukuranFile(r.size_bytes) : "—",
     dateLabel,
     status,
+    fileUrl: r.file_url ?? null,
+    fileName: r.file_name ? decodeURIComponent(r.file_name) : null,
+    rejectionReason: r.rejection_reason ?? null,
   };
 }
 
@@ -569,9 +575,6 @@ interface ReviewRow extends DokumenRow {
   employee_name: string;
   designation: string | null;
   department: string | null;
-  file_url: string | null;
-  file_name: string | null;
-  rejection_reason: string | null;
 }
 
 interface AppraisalRes {
@@ -814,11 +817,13 @@ async function ambilPerangkat(): Promise<ActiveDevice[]> {
   const res = await get<{ message: SesiRow[] }>(
     "/api/method/hris_get_active_sessions",
   );
-  // Satu baris per perangkat: sesi dengan user agent dan IP yang sama digabung,
+  // Satu baris per perangkat: sesi dengan jenis, nama tampilan, dan IP yang sama
+  // digabung (versi user agent yang sedikit berbeda tetap dianggap satu),
   // diwakili sesi terbarunya (atau sesi perangkat ini bila termasuk).
   const grup = new Map<string, SesiRow[]>();
   for (const s of res.message) {
-    const k = `${s.user_agent ?? ""}|${s.ip ?? ""}`;
+    const d = bentukPerangkat(s);
+    const k = `${d.kind}|${d.name}|${s.ip ?? ""}`;
     grup.set(k, [...(grup.get(k) ?? []), s]);
   }
   return [...grup.values()]
@@ -1401,9 +1406,9 @@ export const erpnextApi: HrisApi = {
       uploadedOn: r.uploaded_on,
       expiresOn: r.expires_on,
       status: r.status,
-      fileUrl: r.file_url,
+      fileUrl: r.file_url ?? null,
       fileName: r.file_name ? decodeURIComponent(r.file_name) : null,
-      rejectionReason: r.rejection_reason,
+      rejectionReason: r.rejection_reason ?? null,
     }));
   },
 

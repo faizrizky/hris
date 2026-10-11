@@ -24,6 +24,7 @@ import { namaJenisKoreksi } from "./KoreksiCards";
 import { useT } from "@/i18n";
 import { LampiranList } from "@/screens/leave/LampiranList";
 import type { Kunci } from "@/i18n/id";
+import { EmptyState } from "@/components/EmptyState";
 
 type Filter = "semua" | AttendanceRequestedStatus;
 
@@ -175,16 +176,12 @@ export function AttendanceCorrectionHistoryScreen({ navigation }: any) {
               ))}
             </>
           ) : (
-            <View style={styles.emptyCard}>
-              <View style={styles.emptyIcon}>
-                <LineIcon d={ICON.fileCheck} color={c.muted} size={22} />
-              </View>
-              <Text style={styles.emptyTitle}>
-                {total === 0 ? t("kor.kosongJudul") : t("kor.tidakCocok")}
-              </Text>
-              <Text style={styles.emptyText}>
-                {total === 0 ? t("kor.kosongIsi") : t("kor.gantiFilter")}
-              </Text>
+            <EmptyState
+              icon={ICON.fileCheck}
+              tinggi={300}
+              title={total === 0 ? t("kor.kosongJudul") : t("kor.tidakCocok")}
+              text={total === 0 ? t("kor.kosongIsi") : t("kor.gantiFilter")}
+            >
               {total === 0 && (
                 <Pressable
                   style={styles.emptyBtn}
@@ -195,7 +192,7 @@ export function AttendanceCorrectionHistoryScreen({ navigation }: any) {
                   </Text>
                 </Pressable>
               )}
-            </View>
+            </EmptyState>
           )
         }
         renderItem={({ item }) => {

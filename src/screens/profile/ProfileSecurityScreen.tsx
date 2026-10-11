@@ -235,7 +235,11 @@ export function ProfileSecurityScreen({ navigation }: any) {
                       { color: d.current ? c.ok.ink : c.info.ink },
                     ]}
                   >
-                    {d.current ? t("sec.iniPerangkat") : t("sec.web")}
+                    {d.current
+                      ? t("sec.iniPerangkat")
+                      : d.kind === "mobile"
+                        ? t("sec.aplikasi")
+                        : t("sec.web")}
                   </Text>
                 </View>
               </View>

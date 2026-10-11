@@ -20,6 +20,8 @@ import {
 } from "@/utils/date";
 import { useT } from "@/i18n";
 import type { Kunci } from "@/i18n/id";
+import { EmptyState } from "@/components/EmptyState";
+import { ICON } from "@/constants/icons";
 
 const SEMUA = "Semua";
 
@@ -153,17 +155,14 @@ export function StaffAttendanceScreen({ navigation }: any) {
             ))}
           </View>
         ) : tersaring.length === 0 ? (
-          <View style={styles.emptyCard}>
-            <Text style={styles.emptyTitle}>{t("stf.kosongKategori")}</Text>
-            <Text style={styles.emptyText}>
-              {t("stf.kosongKategoriIsi", {
-                status: t(
-                  TABS.find((tb) => tb.key === tab)!.label,
-                ).toLowerCase(),
-                dept: dept === SEMUA ? "" : t("stf.diDept", { dept }),
-              })}
-            </Text>
-          </View>
+          <EmptyState
+            icon={ICON.attendanceRate}
+            title={t("stf.kosongKategori")}
+            text={t("stf.kosongKategoriIsi", {
+              status: t(TABS.find((tb) => tb.key === tab)!.label).toLowerCase(),
+              dept: dept === SEMUA ? "" : t("stf.diDept", { dept }),
+            })}
+          />
         ) : (
           <View style={{ gap: 10 }}>
             {tersaring.map((s) => (

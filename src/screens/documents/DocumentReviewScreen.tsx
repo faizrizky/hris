@@ -13,9 +13,12 @@ import { Skeleton } from "@/components/Skeleton";
 import { DOC_CATEGORY_LABEL } from "@/constants/statusLabels";
 import { tanggalPendekTahun } from "@/utils/date";
 import { useT } from "@/i18n";
+import { EmptyState } from "@/components/EmptyState";
+import { ICON } from "@/constants/icons";
 import type { Kunci } from "@/i18n/id";
 
-const FILTER: { key: ReviewStatus; label: Kunci }[] = [
+const FILTER: { key: ReviewStatus | "all"; label: Kunci }[] = [
+  { key: "all", label: "rv.semua" },
   { key: "Pending", label: "rv.menunggu" },
   { key: "Verified", label: "rv.diverifikasi" },
   { key: "Rejected", label: "rv.ditolak" },
@@ -27,7 +30,7 @@ export function DocumentReviewScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
-  const [status, setStatus] = useState<ReviewStatus>("Pending");
+  const [status, setStatus] = useState<ReviewStatus | "all">("Pending");
 
   const dok = useLoad(() => hrisApi.getDocumentsForReview(status), status);
   const items = dok.data ?? [];
@@ -77,22 +80,21 @@ export function DocumentReviewScreen({ navigation }: any) {
             ))}
           </View>
         ) : items.length === 0 ? (
-          <View style={styles.emptyCard}>
-            <Text style={styles.emptyTitle}>{t("rv.kosongJudul")}</Text>
-            <Text style={styles.emptyText}>{t("rv.kosongIsi")}</Text>
-          </View>
+          <EmptyState
+            icon={ICON.document}
+            title={t("rv.kosongJudul")}
+            text={t("rv.kosongIsi")}
+          />
         ) : (
-          <View style={{ gap: 10 }}>
-            {items.map((d) => (
-              <DocRow
-                key={d.id}
-                doc={d}
-                onPress={() =>
-                  navigation.navigate("DocumentReviewDetail", { doc: d })
-                }
-              />
-            ))}
-          </View>
+          items.map((d) => (
+            <DocRow
+              key={d.id}
+              doc={d}
+              onPress={() =>
+                navigation.navigate("DocumentReviewDetail", { doc: d })
+              }
+            />
+          ))
         )}
       </ScrollView>
     </View>
@@ -136,6 +138,25 @@ function DocRow({
           {doc.fileUrl ? "" : ` · ${t("rv.tanpaFile")}`}
         </Text>
       </View>
+      {doc.status !== "Pending" && (
+        <View
+          style={[
+            styles.badge,
+            {
+              backgroundColor: doc.status === "Verified" ? c.ok.bg : c.bad.bg,
+            },
+          ]}
+        >
+          <Text
+            style={[
+              styles.badgeText,
+              { color: doc.status === "Verified" ? c.ok.ink : c.bad.ink },
+            ]}
+          >
+            {t(doc.status === "Verified" ? "rv.diverifikasi" : "rv.ditolak")}
+          </Text>
+        </View>
+      )}
       <Ionicons name="chevron-forward" size={14} color={c.mutedLabel} />
     </Pressable>
   );
@@ -184,6 +205,7 @@ export const makeStyles = (c: Palette) =>
     chipTextOn: { color: "#fff" },
     list: { paddingHorizontal: 18, paddingBottom: 130 },
     row: {
+      marginBottom: 10,
       flexDirection: "row",
       alignItems: "center",
       gap: 12,
@@ -194,6 +216,8 @@ export const makeStyles = (c: Palette) =>
       paddingHorizontal: 14,
       paddingVertical: 13,
     },
+    badge: { paddingHorizontal: 9, paddingVertical: 4, borderRadius: 8 },
+    badgeText: { fontSize: 10, fontWeight: "700" },
     extChip: {
       width: 44,
       height: 44,

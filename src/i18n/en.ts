@@ -702,7 +702,7 @@ export const en: Record<Kunci, string> = {
   "pw.masukLagi2": "Sign in again",
   "sec.nSesi": "{n} sessions",
   "rv.judul": "Document Verification",
-  "rv.sub": "Employee digital documents",
+  "rv.sub": "Employee Digital Documents",
   "rv.menunggu": "Pending",
   "rv.diverifikasi": "Verified",
   "rv.ditolak": "Rejected",
@@ -727,7 +727,7 @@ export const en: Record<Kunci, string> = {
   "rv.verifikasiJudul": "Verify this document?",
   "rv.verifikasiPesan":
     "{nama}'s document will be marked verified and the employee will be notified.",
-  "hm.aVerifikasi": "Verify documents",
+  "hm.aVerifikasi": "Verify Documents",
   "ap2.tabSaya": "Mine",
   "ap2.tabTim": "Team",
   "ap2.timKosongJudul": "No team members to appraise yet",
@@ -752,4 +752,6 @@ export const en: Record<Kunci, string> = {
   "fb.kirimJudul": "Submit feedback?",
   "fb.kirimPesan":
     "Feedback for {nama} cannot be changed after it is submitted.",
+  "rv.semua": "All",
+  "sec.aplikasi": "App",
 };

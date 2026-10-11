@@ -1,8 +1,6 @@
 import React, { useMemo } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { RevealScrollView as ScrollView } from "@/components/Reveal";
-import { Ionicons } from "@expo/vector-icons";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Palette } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
 import { hrisApi } from "@/services/api";
@@ -13,70 +11,54 @@ import { Skeleton } from "@/components/Skeleton";
 import { desimal } from "@/utils/currency";
 import { inisial } from "@/utils/ProfileCompleteness";
 import { useT } from "@/i18n";
+import { EmptyState } from "@/components/EmptyState";
+import { ICON } from "@/constants/icons";
 
 // Tab "Tim": karyawan yang bisa dinilai pemanggil (bawahan langsung, atau semua untuk HR).
-export function TimAppraisal({
-  navigation,
-  atas,
-}: {
-  navigation: any;
-  atas: React.ReactNode;
-}) {
+export function TimAppraisal({ navigation }: { navigation: any }) {
   const t = useT();
-  const insets = useSafeAreaInsets();
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
   const tim = useLoad(() => hrisApi.getTeamAppraisals(), "tim");
   const items = tim.data ?? [];
 
   return (
-    <View style={styles.container}>
-      <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
-        <Pressable style={styles.backBtn} onPress={() => navigation.goBack()}>
-          <Ionicons name="chevron-back" size={18} color={c.ink} />
-        </Pressable>
-        <Text style={styles.headerTitle}>{t("ap2.judul")}</Text>
-      </View>
-      {atas}
-
-      <ScrollView contentContainerStyle={styles.content}>
-        {tim.error && !tim.data ? (
-          <ErrorState pesan={tim.error} onUlangi={tim.ulangi} />
-        ) : tim.memuat ? (
-          <View style={{ gap: 10 }}>
-            {[0, 1, 2].map((i) => (
-              <View key={i} style={styles.row}>
-                <Skeleton width={44} height={44} radius={22} />
-                <View style={{ flex: 1, gap: 7 }}>
-                  <Skeleton width="58%" height={12} radius={4} />
-                  <Skeleton width="40%" height={10} radius={4} />
-                </View>
+    <ScrollView contentContainerStyle={styles.content}>
+      {tim.error && !tim.data ? (
+        <ErrorState pesan={tim.error} onUlangi={tim.ulangi} />
+      ) : tim.memuat ? (
+        <View style={{ gap: 10 }}>
+          {[0, 1, 2].map((i) => (
+            <View key={i} style={styles.row}>
+              <Skeleton width={44} height={44} radius={22} />
+              <View style={{ flex: 1, gap: 7 }}>
+                <Skeleton width="58%" height={12} radius={4} />
+                <Skeleton width="40%" height={10} radius={4} />
               </View>
-            ))}
-          </View>
-        ) : items.length === 0 ? (
-          <View style={styles.emptyCard}>
-            <Text style={styles.emptyTitle}>{t("ap2.timKosongJudul")}</Text>
-            <Text style={styles.emptyText}>{t("ap2.timKosongIsi")}</Text>
-          </View>
-        ) : (
-          <View style={{ gap: 10 }}>
-            {items.map((a) => (
-              <Baris
-                key={a.employeeId}
-                a={a}
-                onPress={() =>
-                  navigation.navigate("AppraisalFeedback", {
-                    employeeId: a.employeeId,
-                    employeeName: a.employeeName,
-                  })
-                }
-              />
-            ))}
-          </View>
-        )}
-      </ScrollView>
-    </View>
+            </View>
+          ))}
+        </View>
+      ) : items.length === 0 ? (
+        <EmptyState
+          icon={ICON.user}
+          title={t("ap2.timKosongJudul")}
+          text={t("ap2.timKosongIsi")}
+        />
+      ) : (
+        items.map((a) => (
+          <Baris
+            key={a.employeeId}
+            a={a}
+            onPress={() =>
+              navigation.navigate("AppraisalFeedback", {
+                employeeId: a.employeeId,
+                employeeName: a.employeeName,
+              })
+            }
+          />
+        ))
+      )}
+    </ScrollView>
   );
 }
 
@@ -142,6 +124,7 @@ const makeStyles = (c: Palette) =>
     headerTitle: { fontSize: 15, fontWeight: "700", color: c.ink },
     content: { paddingHorizontal: 18, paddingTop: 12, paddingBottom: 130 },
     row: {
+      marginBottom: 10,
       flexDirection: "row",
       alignItems: "center",
       gap: 12,
