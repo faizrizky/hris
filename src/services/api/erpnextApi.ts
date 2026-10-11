@@ -709,6 +709,13 @@ interface ProfileRow {
   permanent_address: string | null;
   emergency: KontakRow;
   em2: KontakRow;
+  ptkp_status?: string | null;
+  family?: {
+    member_name: string;
+    relation: string | null;
+    date_of_birth: string | null;
+    is_dependent: number;
+  }[];
   emergency_contacts?: {
     contact_name: string;
     relation: string | null;
@@ -745,8 +752,7 @@ function bentukProfil(r: ProfileRow): PersonalProfile {
     npwpMasked: "—",
     workEmail: r.company_email ?? "—",
     ktpAddress: r.permanent_address ?? "—",
-    ptkpStatus: "—",
-    family: [], // belum ada sumbernya
+    ptkpStatus: r.ptkp_status ?? "—",
     primaryEmergency: {
       name: r.emergency.name ?? "—",
       relation: r.emergency.relation
@@ -758,6 +764,12 @@ function bentukProfil(r: ProfileRow): PersonalProfile {
       phone: r.cell_number ?? "",
       personalEmail: r.personal_email ?? "",
       address: r.current_address ?? "",
+      family: (r.family ?? []).map((m) => ({
+        name: m.member_name,
+        relation: m.relation ?? "Other",
+        birthDate: m.date_of_birth,
+        dependent: m.is_dependent === 1,
+      })),
       contacts: (r.emergency_contacts ?? []).map((k) => ({
         name: k.contact_name,
         relation: k.relation ?? "Other",
@@ -1615,6 +1627,16 @@ export const erpnextApi: HrisApi = {
         phone: data.phone,
         personal_email: data.personalEmail,
         address: data.address,
+        family: data.family
+          .map((m) =>
+            [
+              m.name.replace(/[|;]/g, " ").trim(),
+              m.relation,
+              m.birthDate ?? "",
+              m.dependent ? "1" : "0",
+            ].join("|"),
+          )
+          .join(";"),
         // Form-encoded, jadi daftar dikirim sebagai "nama|relasi|telepon;...".
         emergency_contacts: data.contacts
           .map((k) =>

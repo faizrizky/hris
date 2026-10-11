@@ -640,6 +640,24 @@ for _e in frappe.get_all("Employee", filters={"custom_em2_name": ["is", "set"]},
         log(f"kontak darurat kedua {_e.name} dimigrasi ke tabel")
 frappe.db.commit()
 
+# Anggota keluarga karyawan (child table), dipakai untuk bagian Keluarga dan perhitungan PTKP.
+if not frappe.db.exists("DocType", "Employee Family Member"):
+    make(dict(
+        doctype="DocType", name="Employee Family Member", module="HR", custom=1, istable=1, editable_grid=1,
+        fields=[
+            dict(fieldname="member_name", label="Member Name", fieldtype="Data", reqd=1, in_list_view=1),
+            dict(fieldname="relation", label="Relation", fieldtype="Select",
+                 options="Spouse\nChild\nFather\nMother\nSibling\nOther", in_list_view=1),
+            dict(fieldname="date_of_birth", label="Date of Birth", fieldtype="Date", in_list_view=1),
+            dict(fieldname="is_dependent", label="Is Dependent (PTKP)", fieldtype="Check", in_list_view=1),
+        ]))
+    frappe.clear_cache()
+if not frappe.db.exists("Custom Field", {"dt": "Employee", "fieldname": "custom_family_members"}):
+    make(dict(doctype="Custom Field", dt="Employee", fieldname="custom_family_members", label="Family Members",
+              fieldtype="Table", options="Employee Family Member", insert_after="custom_emergency_contacts"))
+    frappe.clear_cache(doctype="Employee")
+frappe.db.commit()
+
 # Sinkronkan label Custom Field yang sudah ada ke bahasa Inggris (nama field tidak berubah).
 for (_dt, _fn), _label in {
     ("Employee", "custom_pengaturan_gaji"): "Salary Settings",
@@ -652,6 +670,7 @@ for (_dt, _fn), _label in {
     ("Employee", "custom_em2_relation"): "Second Emergency Contact: Relation",
     ("Employee", "custom_em2_phone"): "Second Emergency Contact: Phone",
     ("Employee", "custom_emergency_contacts"): "Additional Emergency Contacts",
+    ("Employee", "custom_family_members"): "Family Members",
     ("Attendance Request", "custom_requested_check_in"): "Requested Check-in",
     ("Attendance Request", "custom_requested_check_out"): "Requested Check-out",
 }.items():
@@ -669,6 +688,8 @@ if frappe.db.exists("Language", "id") and not frappe.db.get_value("Language", "i
 TRANSLATIONS_ID = {
     # label Custom Field
     "Salary Settings": "Pengaturan Gaji",
+    "Family Members": "Anggota Keluarga", "Member Name": "Nama Anggota", "Is Dependent (PTKP)": "Tanggungan (PTKP)",
+    "Spouse": "Pasangan", "Child": "Anak", "Father": "Ayah", "Mother": "Ibu", "Sibling": "Saudara", "Other": "Lainnya",
     "Position Allowance (IDR)": "Tunjangan Jabatan (Rp)",
     "BPJS Health Rate (%)": "Tarif BPJS Kesehatan (%)",
     "BPJS JHT Rate (%)": "Tarif BPJS JHT (%)",

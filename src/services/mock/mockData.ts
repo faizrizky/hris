@@ -663,29 +663,6 @@ export const MOCK_PROFILE: PersonalProfile = {
   workEmail: "rani.wijaya@nkm.co.id",
   ktpAddress: "Jl. Cipaganti No. 18, Coblong, Bandung 40131",
   ptkpStatus: "TK/0",
-  family: [
-    {
-      initials: "HW",
-      name: "Hendra Wijaya",
-      relation: "Ayah",
-      age: "58 th",
-      dependent: false,
-    },
-    {
-      initials: "SW",
-      name: "Sri Wahyuni",
-      relation: "Ibu",
-      age: "55 th",
-      dependent: false,
-    },
-    {
-      initials: "DW",
-      name: "Dito Wijaya",
-      relation: "Saudara",
-      age: "22 th",
-      dependent: false,
-    },
-  ],
   primaryEmergency: {
     name: "Hendra Wijaya",
     relation: "Ayah",
@@ -696,6 +673,7 @@ export const MOCK_PROFILE: PersonalProfile = {
     personalEmail: "",
     address: "Jl. Cipaganti No. 18, Coblong, Bandung 40131",
     contacts: [],
+    family: [],
   },
 };
 

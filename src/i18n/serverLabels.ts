@@ -46,6 +46,7 @@ const ID = {
     Father: "Ayah",
     Sibling: "Saudara",
     Spouse: "Pasangan",
+    Child: "Anak",
     Friend: "Teman",
     Other: "Lainnya",
   },

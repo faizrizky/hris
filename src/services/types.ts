@@ -234,11 +234,10 @@ export interface AppNotification {
 }
 
 export interface FamilyMember {
-  initials: string;
   name: string;
-  relation: string;
-  age: string; // "58 th"
-  dependent: boolean;
+  relation: string; // nilai baku ERPNext: Spouse, Child, Father, Mother, Sibling, Other
+  birthDate: string | null; // ISO
+  dependent: boolean; // tanggungan untuk PTKP
 }
 
 export interface EmergencyContact {
@@ -254,6 +253,7 @@ export interface EditableProfile {
   address: string;
   // Relasi memakai nilai baku ERPNext (Mother, Friend, ...); tampilan diterjemahkan.
   contacts: EmergencyContact[];
+  family: FamilyMember[];
 }
 
 /** Sisanya hanya bisa diubah HR lewat pengajuan dokumen. */
@@ -269,7 +269,6 @@ export interface PersonalProfile {
   workEmail: string;
   ktpAddress: string;
   ptkpStatus: string;
-  family: FamilyMember[];
   primaryEmergency: EmergencyContact;
   editable: EditableProfile;
 }

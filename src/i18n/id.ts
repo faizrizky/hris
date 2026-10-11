@@ -786,6 +786,21 @@ export const id = {
     "Dokumen menunggu verifikasi HR. Kamu masih bisa mengganti berkasnya.",
   "dk.ditolakInfo":
     "Dokumen ditolak. Unggah berkas baru untuk diverifikasi ulang.",
+  "pe.keluarga": "Keluarga",
+  "pe.keluargaDesc":
+    "Untuk perhitungan PTKP. Tandai tanggungan bila ditanggung penghasilanmu.",
+  "pe.tambahAnggota": "+ Tambah anggota keluarga",
+  "pe.anggotaN": "Anggota {n}",
+  "pe.tglLahir": "Tanggal lahir",
+  "pe.pilihTgl": "Pilih tanggal lahir",
+  "pe.tglLahirHint": "Tanggal lahir anggota keluarga",
+  "pe.tanggungan": "Tanggungan",
+  "pe.keluargaTidakLengkap":
+    "Isi nama setiap anggota keluarga, atau hapus barisnya",
+  "pd.umur": "{n} th",
+  "pd.keluargaKosong": "Belum ada anggota keluarga. Tambahkan lewat Ubah Data.",
+  "pd.tambahKeluarga": "Tambah anggota keluarga",
+  "pd.ubahKeluarga": "Ubah data keluarga",
 } as const;
 
 export type Kunci = keyof typeof id;

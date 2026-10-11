@@ -38,6 +38,47 @@ for key in mapping:
 if updates:
     frappe.db.set_value("Employee", me[0].name, updates)
 
+# family: "nama|relasi|YYYY-MM-DD|0atau1;..." atau daftar JSON [{member_name,relation,date_of_birth,is_dependent}].
+# Mengganti seluruh tabel. Maks 10 baris; nama wajib; relasi tak dikenal -> Other; tanggal lahir valid dan bukan masa depan.
+if "family" in fd:
+    rawf = fd.get("family")
+    fitems = []
+    if isinstance(rawf, list):
+        for c in rawf:
+            fitems.append([str(c.get("member_name") or "").strip(), str(c.get("relation") or "").strip(),
+                           str(c.get("date_of_birth") or "").strip(), str(c.get("is_dependent") or "0").strip()])
+    elif rawf:
+        for part in str(rawf).split(";"):
+            if not part.strip():
+                continue
+            bits = [b.strip() for b in part.split("|")]
+            while len(bits) < 4:
+                bits.append("")
+            fitems.append(bits[:4])
+    if len(fitems) > 10:
+        frappe.throw("At most 10 family members are allowed")
+    rel_ok = ["Spouse", "Child", "Father", "Mother", "Sibling", "Other"]
+    frows = []
+    for it in fitems:
+        if not it[0]:
+            frappe.throw("Family member name is required")
+        if len(it[0]) > 140:
+            frappe.throw("Family member name is too long (max 140 characters)")
+        dob = None
+        if it[2]:
+            if len(it[2]) != 10 or it[2][4] != "-" or it[2][7] != "-" or not (it[2][:4] + it[2][5:7] + it[2][8:]).isdigit():
+                frappe.throw("Invalid date of birth (use YYYY-MM-DD)")
+            if frappe.utils.getdate(it[2]) > frappe.utils.getdate(frappe.utils.nowdate()):
+                frappe.throw("Date of birth cannot be in the future")
+            dob = it[2]
+        frows.append({"member_name": it[0], "relation": it[1] if it[1] in rel_ok else "Other",
+                      "date_of_birth": dob, "is_dependent": 1 if it[3] in ("1", "true", "True") else 0})
+    emp_f = frappe.get_doc("Employee", me[0].name)
+    emp_f.set("custom_family_members", frows)
+    emp_f.flags.ignore_permissions = True
+    emp_f.flags.ignore_mandatory = True
+    emp_f.save()
+
 # emergency_contacts: daftar JSON [{contact_name, relation, phone}] atau teks "nama|relasi|telepon;..."
 # Mengganti seluruh isi tabel. Maks 5 baris; nama dan telepon wajib; telepon minimal 8 digit.
 if "emergency_contacts" in fd:
@@ -79,6 +120,18 @@ if "emergency_contacts" in fd:
     emp_doc.flags.ignore_permissions = True
     emp_doc.flags.ignore_mandatory = True
     emp_doc.save()
+fam = []
+deps = 0
+for m in frappe.get_all("Employee Family Member", filters={"parent": me[0].name, "parenttype": "Employee"},
+                        fields=["member_name", "relation", "date_of_birth", "is_dependent"], order_by="idx asc",
+                        parent_doctype="Employee", limit_page_length=20):
+    fam.append({"member_name": m.member_name, "relation": m.relation,
+                "date_of_birth": str(m.date_of_birth) if m.date_of_birth else None,
+                "is_dependent": 1 if m.is_dependent else 0})
+    if m.is_dependent and m.relation != "Spouse":
+        deps = deps + 1
+if deps > 3:
+    deps = 3
 e = frappe.get_all(
     "Employee",
     filters={"name": me[0].name},
@@ -104,7 +157,8 @@ frappe.response["message"] = {
     "permanent_address": e.permanent_address,
     "emergency": {"name": e.person_to_be_contacted, "relation": e.relation, "phone": e.emergency_phone_number},
     "em2": {"name": e.custom_em2_name, "relation": e.custom_em2_relation, "phone": e.custom_em2_phone},
-    "family": [],
+    "family": fam,
+    "ptkp_status": ("K/" if e.marital_status == "Married" else "TK/") + str(deps),
     "emergency_contacts": [
         {"contact_name": c.contact_name, "relation": c.relation, "phone": c.phone}
         for c in frappe.get_all("Employee Emergency Contact", filters={"parent": me[0].name, "parenttype": "Employee"},

@@ -1,9 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
 import {
+  Keyboard,
   KeyboardAvoidingView,
   Platform,
   Pressable,
   StyleSheet,
+  Switch,
   Text,
   TextInput,
   View,
@@ -22,6 +24,7 @@ import { useSession } from "@/services/session";
 import {
   EditableProfile,
   EmergencyContact,
+  FamilyMember,
   PersonalProfile,
 } from "@/services/types";
 import { LineIcon } from "@/components/LineIcon";
@@ -34,11 +37,15 @@ import {
   teleponValid,
 } from "@/utils/ProfileCompleteness";
 import { useT } from "@/i18n";
+import { DateSheet } from "@/components/DateSheet";
+import { tanggalPendekTahun } from "@/utils/date";
 import { terjemahkan } from "@/i18n/serverLabels";
 
 // Nilai baku ERPNext; tampilannya mengikuti bahasa lewat terjemahkan().
 const HUBUNGAN = ["Mother", "Father", "Sibling", "Spouse", "Friend", "Other"];
 const MAKS_KONTAK = 5;
+const KELUARGA = ["Spouse", "Child", "Father", "Mother", "Sibling", "Other"];
+const MAKS_KELUARGA = 10;
 
 export function ProfileEditScreen({ navigation }: any) {
   const t = useT();
@@ -72,6 +79,40 @@ export function ProfileEditScreen({ navigation }: any) {
   const persen = draft ? persenKelengkapan(draft) : 0;
   const kurang = draft ? kekurangan(draft) : [];
   const emailSalah = !!draft?.personalEmail && !emailValid(draft.personalEmail);
+
+  const [pilihTgl, setPilihTgl] = useState<number | null>(null);
+  const ubahAnggota = (i: number, patch: Partial<FamilyMember>) =>
+    setDraft((prev) =>
+      prev
+        ? {
+            ...prev,
+            family: prev.family.map((m, j) =>
+              j === i ? { ...m, ...patch } : m,
+            ),
+          }
+        : prev,
+    );
+  const tambahAnggota = () =>
+    setDraft((prev) =>
+      prev
+        ? {
+            ...prev,
+            family: [
+              ...prev.family,
+              {
+                name: "",
+                relation: "Child",
+                birthDate: null,
+                dependent: false,
+              },
+            ],
+          }
+        : prev,
+    );
+  const hapusAnggota = (i: number) =>
+    setDraft((prev) =>
+      prev ? { ...prev, family: prev.family.filter((_, j) => j !== i) } : prev,
+    );
 
   const ubahKontak = (i: number, patch: Partial<EmergencyContact>) =>
     setDraft((prev) =>
@@ -111,6 +152,10 @@ export function ProfileEditScreen({ navigation }: any) {
     );
     if (kontak.some((k) => !k.name.trim() || !teleponValid(k.phone))) {
       setGalatSimpan(t("pe.kontakTidakLengkap"));
+      return;
+    }
+    if (draft.family.some((m) => !m.name.trim())) {
+      setGalatSimpan(t("pe.keluargaTidakLengkap"));
       return;
     }
     setSending(true);
@@ -338,23 +383,108 @@ export function ProfileEditScreen({ navigation }: any) {
           </View>
 
           <View style={[styles.card, { marginTop: 12 }]}>
-            <Text style={styles.cardTitle}>{t("pe.akunLogin")}</Text>
-            <View style={{ gap: 12, marginTop: 14 }}>
-              <LockedRow
-                label={t("pe.emailKantor")}
-                value={profil?.workEmail ?? "—"}
-              />
-            </View>
-            <Text style={styles.note}>{t("pe.emailKantorCatatan")}</Text>
-            <Pressable
-              style={styles.addContact}
-              onPress={() => navigation.navigate("ProfilePassword")}
-            >
-              <Text style={styles.addContactText}>{t("pe.ubahPassword")}</Text>
-            </Pressable>
+            <Text style={styles.cardTitle}>{t("pe.keluarga")}</Text>
+            <Text style={styles.note}>{t("pe.keluargaDesc")}</Text>
+
+            {draft.family.map((m, i) => (
+              <View key={i} style={styles.contactBox}>
+                <View style={styles.contactHead}>
+                  <Text style={styles.contactTitle}>
+                    {t("pe.anggotaN", { n: i + 1 })}
+                  </Text>
+                  <Pressable onPress={() => hapusAnggota(i)} hitSlop={8}>
+                    <Text style={styles.removeText}>{t("pe.hapusKontak")}</Text>
+                  </Pressable>
+                </View>
+
+                <Text style={styles.label}>{t("pe.nama2")}</Text>
+                <TextInput
+                  style={styles.input}
+                  value={m.name}
+                  onChangeText={(v) => ubahAnggota(i, { name: v })}
+                  placeholder={t("pe.namaPh")}
+                  placeholderTextColor={c.mutedLabel}
+                />
+
+                <Text style={styles.label}>{t("pe.hubungan")}</Text>
+                <View style={styles.chipRow}>
+                  {KELUARGA.map((h) => {
+                    const on = m.relation === h;
+                    return (
+                      <Pressable
+                        key={h}
+                        onPress={() => ubahAnggota(i, { relation: h })}
+                        style={[styles.chip, on && styles.chipOn]}
+                      >
+                        <Text
+                          style={[styles.chipText, on && styles.chipTextOn]}
+                        >
+                          {terjemahkan("relation", h)}
+                        </Text>
+                      </Pressable>
+                    );
+                  })}
+                </View>
+
+                <Text style={styles.label}>{t("pe.tglLahir")}</Text>
+                <Pressable
+                  style={styles.input}
+                  onPress={() => {
+                    Keyboard.dismiss();
+                    setPilihTgl(i);
+                  }}
+                >
+                  <Text
+                    style={{
+                      fontSize: 13,
+                      color: m.birthDate ? c.ink : c.mutedLabel,
+                    }}
+                  >
+                    {m.birthDate
+                      ? tanggalPendekTahun(m.birthDate)
+                      : t("pe.pilihTgl")}
+                  </Text>
+                </Pressable>
+
+                <View style={styles.switchRow}>
+                  <Text style={styles.contactTitle}>{t("pe.tanggungan")}</Text>
+                  <Switch
+                    value={m.dependent}
+                    onValueChange={(v) => ubahAnggota(i, { dependent: v })}
+                    trackColor={{ false: c.track, true: c.accent }}
+                    thumbColor="#fff"
+                  />
+                </View>
+              </View>
+            ))}
+
+            {draft.family.length < MAKS_KELUARGA && (
+              <Pressable style={styles.addContact} onPress={tambahAnggota}>
+                <Text style={styles.addContactText}>
+                  {t("pe.tambahAnggota")}
+                </Text>
+              </Pressable>
+            )}
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
+
+      <DateSheet
+        visible={pilihTgl !== null}
+        title={t("pe.tglLahir")}
+        hint={t("pe.tglLahirHint")}
+        value={
+          pilihTgl !== null ? (draft.family[pilihTgl]?.birthDate ?? null) : null
+        }
+        allow="past"
+        onPick={(iso) =>
+          pilihTgl !== null && ubahAnggota(pilihTgl, { birthDate: iso })
+        }
+        onClear={() =>
+          pilihTgl !== null && ubahAnggota(pilihTgl, { birthDate: null })
+        }
+        onClose={() => setPilihTgl(null)}
+      />
 
       <View style={[styles.actionBar, { paddingBottom: insets.bottom + 14 }]}>
         <View style={{ flex: 1, minWidth: 0 }}>
@@ -511,6 +641,12 @@ const makeStyles = (c: Palette) =>
     },
 
     chipRow: { flexDirection: "row", flexWrap: "wrap", gap: 7 },
+    switchRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      marginTop: 14,
+    },
     contactBox: {
       marginTop: 14,
       paddingTop: 12,

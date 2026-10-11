@@ -17,6 +17,19 @@ rows = frappe.get_all(
 result = None
 if rows:
     e = rows[0]
+    fam = []
+    deps = 0
+    for m in frappe.get_all("Employee Family Member", filters={"parent": rows[0].name, "parenttype": "Employee"},
+                            fields=["member_name", "relation", "date_of_birth", "is_dependent"], order_by="idx asc",
+                            parent_doctype="Employee", limit_page_length=20):
+        fam.append({"member_name": m.member_name, "relation": m.relation,
+                    "date_of_birth": str(m.date_of_birth) if m.date_of_birth else None,
+                    "is_dependent": 1 if m.is_dependent else 0})
+        if m.is_dependent and m.relation != "Spouse":
+            deps = deps + 1
+    if deps > 3:
+        deps = 3
+    ptkp = ("K/" if e.marital_status == "Married" else "TK/") + str(deps)
     result = {
         "employee_name": e.employee_name,
         "date_of_birth": str(e.date_of_birth) if e.date_of_birth else None,
@@ -39,7 +52,8 @@ if rows:
             "relation": e.custom_em2_relation,
             "phone": e.custom_em2_phone,
         },
-        "family": [],
+        "family": fam,
+        "ptkp_status": ptkp,
         "emergency_contacts": [
             {"contact_name": c.contact_name, "relation": c.relation, "phone": c.phone}
             for c in frappe.get_all("Employee Emergency Contact",

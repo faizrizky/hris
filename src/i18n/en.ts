@@ -780,4 +780,19 @@ export const en: Record<Kunci, string> = {
     "The document is awaiting HR verification. You can still replace its file.",
   "dk.ditolakInfo":
     "The document was rejected. Upload a new file to be verified again.",
+  "pe.keluarga": "Family",
+  "pe.keluargaDesc":
+    "Used for the PTKP calculation. Mark someone as a dependent if your income supports them.",
+  "pe.tambahAnggota": "+ Add family member",
+  "pe.anggotaN": "Member {n}",
+  "pe.tglLahir": "Date of birth",
+  "pe.pilihTgl": "Select date of birth",
+  "pe.tglLahirHint": "The family member's date of birth",
+  "pe.tanggungan": "Dependent",
+  "pe.keluargaTidakLengkap":
+    "Enter a name for every family member, or remove the row",
+  "pd.umur": "{n} y/o",
+  "pd.keluargaKosong": "No family members yet. Add them from Edit Data.",
+  "pd.tambahKeluarga": "Add family member",
+  "pd.ubahKeluarga": "Edit family data",
 };

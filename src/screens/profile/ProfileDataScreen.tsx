@@ -21,7 +21,7 @@ import {
   kekurangan,
   persenKelengkapan,
 } from "@/utils/ProfileCompleteness";
-import { tanggalPendekTahun } from "@/utils/date";
+import { tahunSejak, tanggalPendekTahun } from "@/utils/date";
 import { useT } from "@/i18n";
 import { terjemahkan } from "@/i18n/serverLabels";
 
@@ -236,25 +236,41 @@ export function ProfileDataScreen({ navigation }: any) {
           </View>
 
           <View style={{ gap: 13, marginTop: 14 }}>
-            {profil.family.map((m) => (
-              <View key={m.name} style={styles.famRow}>
-                <View style={styles.famAvatar}>
-                  <Text style={styles.famAvatarText}>{m.initials}</Text>
+            {e.family.length === 0 ? (
+              <Text style={styles.famMeta}>{t("pd.keluargaKosong")}</Text>
+            ) : (
+              e.family.map((m, i) => (
+                <View key={`${m.name}-${i}`} style={styles.famRow}>
+                  <View style={styles.famAvatar}>
+                    <Text style={styles.famAvatarText}>{inisial(m.name)}</Text>
+                  </View>
+                  <View style={{ flex: 1, minWidth: 0 }}>
+                    <Text style={styles.famName}>{m.name}</Text>
+                    <Text style={styles.famMeta}>
+                      {terjemahkan("relation", m.relation)}
+                      {m.birthDate
+                        ? ` · ${t("pd.umur", { n: tahunSejak(m.birthDate) })}`
+                        : ""}
+                    </Text>
+                  </View>
+                  <View style={styles.chipBadge}>
+                    <Text style={styles.chipBadgeText}>
+                      {m.dependent ? t("pd.tanggungan") : t("pd.nonTanggungan")}
+                    </Text>
+                  </View>
                 </View>
-                <View style={{ flex: 1, minWidth: 0 }}>
-                  <Text style={styles.famName}>{m.name}</Text>
-                  <Text style={styles.famMeta}>
-                    {m.relation} · {m.age}
-                  </Text>
-                </View>
-                <View style={styles.chipBadge}>
-                  <Text style={styles.chipBadgeText}>
-                    {m.dependent ? t("pd.tanggungan") : t("pd.nonTanggungan")}
-                  </Text>
-                </View>
-              </View>
-            ))}
+              ))
+            )}
           </View>
+
+          <Pressable
+            style={styles.addBtn}
+            onPress={() => navigation.navigate("ProfileEdit")}
+          >
+            <Text style={styles.addBtnText}>
+              {e.family.length ? t("pd.ubahKeluarga") : t("pd.tambahKeluarga")}
+            </Text>
+          </Pressable>
         </View>
 
         <View style={[styles.card, { marginTop: 12 }]}>

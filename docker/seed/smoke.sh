@@ -56,6 +56,7 @@ except Exception: print("")' "$TMP/body")
   expect "Basic Salary"
   call "GET hris_get_tax_summary" "$auth" "$BASE/api/method/hris_get_tax_summary"
   call "GET hris_get_my_profile" "$auth" "$BASE/api/method/hris_get_my_profile"
+  expect "ptkp_status"
   call "GET hris_get_active_sessions" "$auth" "$BASE/api/method/hris_get_active_sessions"
   call "GET hris_get_notifications" "$auth" "$BASE/api/method/hris_get_notifications"
   call "GET hris_get_my_language" "$auth" "$BASE/api/method/hris_get_my_language"
