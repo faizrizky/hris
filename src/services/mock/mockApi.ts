@@ -134,6 +134,14 @@ export const mockApi: HrisApi = {
     return MOCK_OVERTIMES.filter((r) => r.employeeId === employeeId);
   },
 
+  async getStaffAttendanceHistory(staffId: string) {
+    return this.getAttendanceHistory(staffId);
+  },
+
+  async registerPushToken() {},
+
+  async unregisterPushToken() {},
+
   async getLanguage() {
     return null;
   },

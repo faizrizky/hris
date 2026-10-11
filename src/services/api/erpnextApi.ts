@@ -46,6 +46,7 @@ import {
 } from "../../utils/date";
 import { ApiError, get, post, put, upload } from "./http";
 import { ukuranFile } from "../../utils/file";
+import { tokenPushSaatIni } from "../push";
 import {
   kembalikan,
   terjemahkan,
@@ -768,6 +769,8 @@ interface ClockRes {
     clocked_in: boolean;
     last_check_in: string | null;
     last_check_out: string | null;
+    timezone_label?: string | null;
+    work_location?: string | null;
   };
 }
 
@@ -785,6 +788,8 @@ function ambilStatusJam(): Promise<ClockState> {
     clockedIn: r.message.clocked_in,
     lastCheckIn: r.message.last_check_in,
     lastCheckOut: r.message.last_check_out,
+    timezoneLabel: r.message.timezone_label ?? undefined,
+    workLocation: r.message.work_location ?? null,
   }));
 }
 
@@ -923,6 +928,13 @@ export const erpnextApi: HrisApi = {
   },
 
   async logout(): Promise<void> {
+    // Token dilepas dulu selagi sesi masih berlaku; gagal tidak boleh menahan logout.
+    const token = tokenPushSaatIni();
+    if (token) {
+      await post("/api/method/hris_unregister_push_token", { token }).catch(
+        () => {},
+      );
+    }
     await post("/api/method/logout");
   },
 
@@ -993,6 +1005,18 @@ export const erpnextApi: HrisApi = {
       note: r.note,
       status: r.status,
     }));
+  },
+
+  async registerPushToken(input) {
+    await post("/api/method/hris_register_push_token", {
+      token: input.token,
+      platform: input.platform,
+      device_name: input.deviceName,
+    });
+  },
+
+  async unregisterPushToken(token) {
+    await post("/api/method/hris_unregister_push_token", { token });
   },
 
   async getLanguage() {
@@ -1205,6 +1229,16 @@ export const erpnextApi: HrisApi = {
   async getAttendanceHistory(): Promise<AttendanceRecord[]> {
     const res = await get<{ message: AttendanceRow[] }>(
       "/api/method/hris_get_attendance_history",
+    );
+    return res.message.map(bentukAbsensi);
+  },
+
+  async getStaffAttendanceHistory(
+    staffId: string,
+  ): Promise<AttendanceRecord[]> {
+    const res = await get<{ message: AttendanceRow[] }>(
+      "/api/method/hris_get_staff_attendance_history",
+      { employee: staffId },
     );
     return res.message.map(bentukAbsensi);
   },

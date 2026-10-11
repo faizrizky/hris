@@ -33,6 +33,13 @@ trips = frappe.get_all(
 if trips and trips[0].custom_timezone:
     tz = trips[0].custom_timezone
 local_now = str(frappe.utils.get_datetime_in_timezone(tz))[:19]
+offset = str(frappe.utils.get_datetime_in_timezone(tz))[-6:]
+tz_names = {"Asia/Jakarta": "WIB", "Asia/Makassar": "WITA", "Asia/Jayapura": "WIT"}
+tz_label = tz_names.get(tz)
+if not tz_label:
+    tz_label = "GMT" + offset[0] + str(int(offset[1:3]))
+    if offset[4:6] != "00":
+        tz_label = tz_label + ":" + offset[4:6]
 doc = frappe.get_doc(
     {
         "doctype": "Employee Checkin",
@@ -44,4 +51,4 @@ doc = frappe.get_doc(
     }
 )
 doc.insert(ignore_permissions=True)
-frappe.response["message"] = {"name": doc.name, "log_type": log_type, "time": local_now, "timezone": tz}
+frappe.response["message"] = {"name": doc.name, "log_type": log_type, "time": local_now, "timezone": tz, "timezone_label": tz_label}

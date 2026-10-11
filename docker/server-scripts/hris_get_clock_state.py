@@ -1,8 +1,8 @@
 # Server Script (type: API, method: hris_get_clock_state, allow_guest: 0)
 # Status clock in/out pemanggil berdasarkan Employee Checkin HARI INI (zona sistem Asia/Jakarta).
-# Hasil: {"clocked_in": bool, "last_check_in": "HH:MM"|null, "last_check_out": "HH:MM"|null}
+# Hasil: {"clocked_in","last_check_in","last_check_out","timezone" (IANA),"timezone_label" (WIB/WITA/WIT/GMT+n),"work_location"}
 # Panggil: GET /api/method/hris_get_clock_state
-state = {"clocked_in": False, "last_check_in": None, "last_check_out": None}
+state = {"clocked_in": False, "last_check_in": None, "last_check_out": None, "timezone": None, "timezone_label": None, "work_location": None}
 me = frappe.get_all(
     "Employee",
     filters={"user_id": frappe.session.user, "status": "Active"},
@@ -22,12 +22,25 @@ if me:
             "custom_from_date": ["<=", sys_today],
             "custom_to_date": [">=", sys_today],
         },
-        fields=["custom_timezone"],
+        fields=["custom_timezone", "custom_destination"],
         order_by="custom_from_date desc",
         limit_page_length=1,
     )
-    if trips and trips[0].custom_timezone:
-        tz = trips[0].custom_timezone
+    work_location = None
+    if trips:
+        work_location = trips[0].custom_destination
+        if trips[0].custom_timezone:
+            tz = trips[0].custom_timezone
+    offset = str(frappe.utils.get_datetime_in_timezone(tz))[-6:]
+    tz_names = {"Asia/Jakarta": "WIB", "Asia/Makassar": "WITA", "Asia/Jayapura": "WIT"}
+    tz_label = tz_names.get(tz)
+    if not tz_label:
+        tz_label = "GMT" + offset[0] + str(int(offset[1:3]))
+        if offset[4:6] != "00":
+            tz_label = tz_label + ":" + offset[4:6]
+    state["timezone"] = tz
+    state["timezone_label"] = tz_label
+    state["work_location"] = work_location
     local_now = str(frappe.utils.get_datetime_in_timezone(tz))[:19]
     today = local_now[:10]
 

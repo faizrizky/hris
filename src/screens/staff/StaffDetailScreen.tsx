@@ -40,7 +40,7 @@ export function StaffDetailScreen({ navigation, route }: any) {
 
     Promise.all([
       hrisApi.getStaffDirectory(employee.id),
-      hrisApi.getAttendanceHistory(staffId),
+      hrisApi.getStaffAttendanceHistory(staffId),
     ])
       .then(([dir, riwayat]) => {
         if (batal) return;

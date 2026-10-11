@@ -169,7 +169,9 @@ export function ClockScreen({ navigation }: any) {
                 <LineIcon d={ICON.location} color={c.info.ink} size={16} />
               </View>
               <View style={{ flex: 1, minWidth: 0 }}>
-                <Text style={styles.locationName}>{t("ab.kantor")}</Text>
+                <Text style={styles.locationName}>
+                  {state.workLocation ?? t("ab.kantor")}
+                </Text>
                 <Text style={styles.locationCoord}>{t("ab.koordinat")}</Text>
               </View>
             </View>
@@ -209,7 +211,8 @@ export function ClockScreen({ navigation }: any) {
               </View>
               <Text style={styles.doneTitle}>{t("ab.berhasil", { aksi })}</Text>
               <Text style={styles.doneSub}>
-                {formatTanggalPanjang()} · {jam ?? "--:--"} WIB
+                {formatTanggalPanjang()} · {jam ?? "--:--"}{" "}
+                {state.timezoneLabel ?? "WIB"}
               </Text>
 
               <View style={styles.doneMeta}>

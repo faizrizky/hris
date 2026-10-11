@@ -55,6 +55,8 @@ export interface ClockState {
   clockedIn: boolean;
   lastCheckIn: string | null;
   lastCheckOut: string | null;
+  timezoneLabel?: string; // "WIB", "WITA", "GMT+8", dari server
+  workLocation?: string | null;
 }
 
 export type LeaveType = "cuti" | "lembur" | "dinas_luar" | "sakit";
@@ -322,10 +324,18 @@ export interface HrisApi {
   clockIn(employeeId: string): Promise<ClockState>;
   clockOut(employeeId: string): Promise<ClockState>;
   getAttendanceHistory(employeeId: string): Promise<AttendanceRecord[]>;
+  // Riwayat karyawan lain, untuk atasan/HR (server membatasi hak aksesnya).
+  getStaffAttendanceHistory(staffId: string): Promise<AttendanceRecord[]>;
   getAttendanceCorrections(
     employeeId: string,
   ): Promise<AttendanceCorrectionRequest[]>;
   getOvertimes(employeeId: string): Promise<OvertimeRecord[]>;
+  registerPushToken(input: {
+    token: string;
+    platform: string;
+    deviceName: string;
+  }): Promise<void>;
+  unregisterPushToken(token: string): Promise<void>;
   getLanguage(): Promise<"id" | "en" | null>;
   setLanguage(language: "id" | "en"): Promise<void>;
   getLeaveBalances(employeeId: string): Promise<LeaveBalance[]>;

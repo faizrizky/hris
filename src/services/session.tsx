@@ -6,6 +6,7 @@ import React, { useEffect, createContext, useContext, useState } from "react";
 import { Employee } from "./types";
 import { hrisApi } from "./api";
 import { useBahasa } from "@/i18n";
+import { ambilTokenPush } from "./push";
 
 interface SessionContextValue {
   employee: Employee | null;
@@ -35,6 +36,14 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
       .then((b) => b && setBahasa(b))
       .catch(() => {});
   }, [employeeId, setBahasa]);
+
+  // Daftarkan perangkat untuk push; tanpa izin atau di simulator, dilewati.
+  useEffect(() => {
+    if (!employeeId) return;
+    ambilTokenPush()
+      .then((t) => t && hrisApi.registerPushToken(t))
+      .catch(() => {});
+  }, [employeeId]);
 
   return (
     <SessionContext.Provider value={{ employee, setEmployee }}>
