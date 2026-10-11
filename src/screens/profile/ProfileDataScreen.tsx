@@ -23,6 +23,7 @@ import {
 } from "@/utils/ProfileCompleteness";
 import { tanggalPendekTahun } from "@/utils/date";
 import { useT } from "@/i18n";
+import { terjemahkan } from "@/i18n/serverLabels";
 
 export function ProfileDataScreen({ navigation }: any) {
   const t = useT();
@@ -129,15 +130,10 @@ export function ProfileDataScreen({ navigation }: any) {
 
   const darurat = [
     profil.primaryEmergency,
-    ...(e.em2Phone
-      ? [
-          {
-            name: e.em2Name || t("pd.kontakDarurat"),
-            relation: e.em2Relation,
-            phone: e.em2Phone,
-          },
-        ]
-      : []),
+    ...e.contacts.map((k) => ({
+      ...k,
+      relation: terjemahkan("relation", k.relation),
+    })),
   ];
 
   return (
@@ -303,7 +299,7 @@ export function ProfileDataScreen({ navigation }: any) {
             onPress={() => navigation.navigate("ProfileEdit")}
           >
             <Text style={styles.addBtnText}>
-              {e.em2Phone ? t("pd.ubahKontak2") : t("pd.tambahKontak")}
+              {e.contacts.length ? t("pd.ubahKontak2") : t("pd.tambahKontak")}
             </Text>
           </Pressable>
         </View>

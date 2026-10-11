@@ -19,7 +19,11 @@ import { hrisApi } from "@/services/api";
 import { describeError } from "@/services/api/http";
 import { ErrorState } from "@/components/ErrorState";
 import { useSession } from "@/services/session";
-import { EditableProfile, PersonalProfile } from "@/services/types";
+import {
+  EditableProfile,
+  EmergencyContact,
+  PersonalProfile,
+} from "@/services/types";
 import { LineIcon } from "@/components/LineIcon";
 import { Skeleton } from "@/components/Skeleton";
 import { ICON } from "@/constants/icons";
@@ -27,12 +31,14 @@ import {
   emailValid,
   kekurangan,
   persenKelengkapan,
+  teleponValid,
 } from "@/utils/ProfileCompleteness";
 import { useT } from "@/i18n";
 import { terjemahkan } from "@/i18n/serverLabels";
 
 // Nilai baku ERPNext; tampilannya mengikuti bahasa lewat terjemahkan().
-const HUBUNGAN = ["Mother", "Sibling", "Friend", "Other"];
+const HUBUNGAN = ["Mother", "Father", "Sibling", "Spouse", "Friend", "Other"];
+const MAKS_KONTAK = 5;
 
 export function ProfileEditScreen({ navigation }: any) {
   const t = useT();
@@ -67,12 +73,53 @@ export function ProfileEditScreen({ navigation }: any) {
   const kurang = draft ? kekurangan(draft) : [];
   const emailSalah = !!draft?.personalEmail && !emailValid(draft.personalEmail);
 
+  const ubahKontak = (i: number, patch: Partial<EmergencyContact>) =>
+    setDraft((prev) =>
+      prev
+        ? {
+            ...prev,
+            contacts: prev.contacts.map((k, j) =>
+              j === i ? { ...k, ...patch } : k,
+            ),
+          }
+        : prev,
+    );
+  const tambahKontak = () =>
+    setDraft((prev) =>
+      prev
+        ? {
+            ...prev,
+            contacts: [
+              ...prev.contacts,
+              { name: "", relation: "Other", phone: "" },
+            ],
+          }
+        : prev,
+    );
+  const hapusKontak = (i: number) =>
+    setDraft((prev) =>
+      prev
+        ? { ...prev, contacts: prev.contacts.filter((_, j) => j !== i) }
+        : prev,
+    );
+
   const simpan = async () => {
     if (!employee || !draft || emailSalah) return;
+    // Baris yang benar-benar kosong dibuang; yang setengah terisi harus dilengkapi.
+    const kontak = draft.contacts.filter(
+      (k) => k.name.trim() || k.phone.trim(),
+    );
+    if (kontak.some((k) => !k.name.trim() || !teleponValid(k.phone))) {
+      setGalatSimpan(t("pe.kontakTidakLengkap"));
+      return;
+    }
     setSending(true);
     setGalatSimpan(null);
     try {
-      await hrisApi.savePersonalProfile(employee.id, draft);
+      await hrisApi.savePersonalProfile(employee.id, {
+        ...draft,
+        contacts: kontak,
+      });
       navigation.goBack();
     } catch (e) {
       setGalatSimpan(describeError(e));
@@ -226,46 +273,85 @@ export function ProfileEditScreen({ navigation }: any) {
           </View>
 
           <View style={[styles.card, { marginTop: 12 }]}>
-            <Text style={styles.cardTitle}>{t("kl.kontak2")}</Text>
+            <Text style={styles.cardTitle}>{t("pe.kontakDarurat")}</Text>
+            <Text style={styles.note}>{t("pe.kontakDesc")}</Text>
 
-            <Text style={styles.label}>{t("pe.nama2")}</Text>
-            <TextInput
-              style={styles.input}
-              value={draft?.em2Name ?? ""}
-              onChangeText={(v) => ubah({ em2Name: v })}
-              placeholder={t("pe.namaPh")}
-              placeholderTextColor={c.mutedLabel}
-            />
-
-            <Text style={styles.label}>{t("pe.hubungan")}</Text>
-            <View style={styles.chipRow}>
-              {HUBUNGAN.map((h) => {
-                const on = draft?.em2Relation === terjemahkan("relation", h);
-                return (
-                  <Pressable
-                    key={h}
-                    onPress={() =>
-                      ubah({ em2Relation: terjemahkan("relation", h) })
-                    }
-                    style={[styles.chip, on && styles.chipOn]}
-                  >
-                    <Text style={[styles.chipText, on && styles.chipTextOn]}>
-                      {terjemahkan("relation", h)}
-                    </Text>
+            {draft.contacts.map((k, i) => (
+              <View key={i} style={styles.contactBox}>
+                <View style={styles.contactHead}>
+                  <Text style={styles.contactTitle}>
+                    {t("pe.kontakN", { n: i + 1 })}
+                  </Text>
+                  <Pressable onPress={() => hapusKontak(i)} hitSlop={8}>
+                    <Text style={styles.removeText}>{t("pe.hapusKontak")}</Text>
                   </Pressable>
-                );
-              })}
-            </View>
+                </View>
 
-            <Text style={styles.label}>{t("pe.telepon")}</Text>
-            <TextInput
-              style={styles.input}
-              value={draft?.em2Phone ?? ""}
-              onChangeText={(v) => ubah({ em2Phone: v })}
-              placeholder="08xx xxxx xxxx"
-              placeholderTextColor={c.mutedLabel}
-              keyboardType="phone-pad"
-            />
+                <Text style={styles.label}>{t("pe.nama2")}</Text>
+                <TextInput
+                  style={styles.input}
+                  value={k.name}
+                  onChangeText={(v) => ubahKontak(i, { name: v })}
+                  placeholder={t("pe.namaPh")}
+                  placeholderTextColor={c.mutedLabel}
+                />
+
+                <Text style={styles.label}>{t("pe.hubungan")}</Text>
+                <View style={styles.chipRow}>
+                  {HUBUNGAN.map((h) => {
+                    const on = k.relation === h;
+                    return (
+                      <Pressable
+                        key={h}
+                        onPress={() => ubahKontak(i, { relation: h })}
+                        style={[styles.chip, on && styles.chipOn]}
+                      >
+                        <Text
+                          style={[styles.chipText, on && styles.chipTextOn]}
+                        >
+                          {terjemahkan("relation", h)}
+                        </Text>
+                      </Pressable>
+                    );
+                  })}
+                </View>
+
+                <Text style={styles.label}>{t("pe.telepon")}</Text>
+                <TextInput
+                  style={styles.input}
+                  value={k.phone}
+                  onChangeText={(v) => ubahKontak(i, { phone: v })}
+                  placeholder="08xx xxxx xxxx"
+                  placeholderTextColor={c.mutedLabel}
+                  keyboardType="phone-pad"
+                />
+              </View>
+            ))}
+
+            {draft.contacts.length < MAKS_KONTAK && (
+              <Pressable style={styles.addContact} onPress={tambahKontak}>
+                <Text style={styles.addContactText}>
+                  {t("pe.tambahKontak")}
+                </Text>
+              </Pressable>
+            )}
+          </View>
+
+          <View style={[styles.card, { marginTop: 12 }]}>
+            <Text style={styles.cardTitle}>{t("pe.akunLogin")}</Text>
+            <View style={{ gap: 12, marginTop: 14 }}>
+              <LockedRow
+                label={t("pe.emailKantor")}
+                value={profil?.workEmail ?? "—"}
+              />
+            </View>
+            <Text style={styles.note}>{t("pe.emailKantorCatatan")}</Text>
+            <Pressable
+              style={styles.addContact}
+              onPress={() => navigation.navigate("ProfilePassword")}
+            >
+              <Text style={styles.addContactText}>{t("pe.ubahPassword")}</Text>
+            </Pressable>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -425,6 +511,29 @@ const makeStyles = (c: Palette) =>
     },
 
     chipRow: { flexDirection: "row", flexWrap: "wrap", gap: 7 },
+    contactBox: {
+      marginTop: 14,
+      paddingTop: 12,
+      borderTopWidth: 1,
+      borderTopColor: c.hair,
+    },
+    contactHead: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+    },
+    contactTitle: { fontSize: 12.5, fontWeight: "700", color: c.ink },
+    removeText: { fontSize: 12, fontWeight: "700", color: c.bad.ink },
+    addContact: {
+      marginTop: 14,
+      paddingVertical: 12,
+      borderRadius: 14,
+      borderWidth: 1,
+      borderColor: c.fieldBorder,
+      borderStyle: "dashed",
+      alignItems: "center",
+    },
+    addContactText: { fontSize: 12.5, fontWeight: "700", color: c.accent },
     chip: {
       paddingHorizontal: 14,
       paddingVertical: 9,

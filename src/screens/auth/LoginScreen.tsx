@@ -51,11 +51,13 @@ export function LoginScreen() {
       <RadialGlow size={340} color={c.glowTop} top={-120} right={-90} />
       <RadialGlow size={320} color={c.glowBottom} bottom={-140} left={-110} />
 
+      {/* Ikut alur layout (bukan absolute): saat keyboard muncul hero mengecil
+          dan terpotong di bawah pemilih bahasa, bukan menimpanya. */}
       <View
         style={{
-          position: "absolute",
-          top: insets.top + 12,
-          left: 20,
+          paddingTop: insets.top + 12,
+          paddingHorizontal: 20,
+          alignItems: "flex-start",
           zIndex: 2,
         }}
       >
@@ -184,6 +186,7 @@ const makeStyles = (c: Palette) =>
     container: { flex: 1, backgroundColor: c.headerBg },
     hero: {
       flex: 1,
+      overflow: "hidden",
       justifyContent: "flex-end",
       paddingHorizontal: 28,
       paddingBottom: 26,

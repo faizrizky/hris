@@ -16,7 +16,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Palette } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
 import { hrisApi } from "@/services/api";
-import { describeError } from "@/services/api/http";
+import { ApiError, describeError } from "@/services/api/http";
 import { useSession } from "@/services/session";
 import {
   TOTAL_SYARAT,
@@ -26,9 +26,11 @@ import {
   toneKekuatan,
 } from "@/utils/password";
 import { useT } from "@/i18n";
+import { useConfirm } from "@/components/ConfirmDialog";
 
 export function ProfilePasswordScreen({ navigation }: any) {
   const t = useT();
+  const confirm = useConfirm();
   const { employee, setEmployee } = useSession();
   const insets = useSafeAreaInsets();
   const c = useTheme();
@@ -66,6 +68,19 @@ export function ProfilePasswordScreen({ navigation }: any) {
       await hrisApi.changePassword(employee.id, lama, baru);
       setSelesai(true);
     } catch (e) {
+      // Frappe menghapus sesi bila password lama salah (cookie sid dikosongkan),
+      // jadi percobaan berikutnya selalu ditolak. Pengguna harus masuk lagi.
+      if (e instanceof ApiError && e.excType === "WrongPassword") {
+        await confirm({
+          title: t("pw.salahJudul"),
+          message: t("pw.salahPesan"),
+          tone: "bad",
+          confirmText: t("pw.masukLagi2"),
+          cancelText: null,
+        });
+        setEmployee(null);
+        return;
+      }
       setGalat(describeError(e));
     } finally {
       setSending(false);

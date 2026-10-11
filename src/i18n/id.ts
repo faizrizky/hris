@@ -529,7 +529,7 @@ export const id = {
   "pw.simpan": "Simpan password",
   "kl.email": "Email pribadi",
   "kl.emailAlasan": "Untuk pemulihan akun dan pengiriman slip gaji",
-  "kl.kontak2": "Kontak darurat kedua",
+  "kl.kontak2": "Kontak darurat tambahan",
   "kl.kontak2Alasan": "Nama dan nomor telepon",
   "pe.judul": "Ubah Data",
   "pe.kelengkapan": "Kelengkapan data",
@@ -600,7 +600,7 @@ export const id = {
   "pd.tanggungan": "Tanggungan",
   "pd.nonTanggungan": "Non-tanggungan",
   "pd.nKontak": "{n} kontak",
-  "pd.ubahKontak2": "Ubah kontak darurat kedua",
+  "pd.ubahKontak2": "Ubah kontak darurat",
   "pd.tambahKontak": "Tambah kontak darurat",
   "doc.judul": "Dokumen Digital",
   "doc.unggah": "Unggah",
@@ -692,6 +692,22 @@ export const id = {
   "ap2.kosongIsi":
     "Penilaian muncul di sini setelah HR membuka siklus appraisal untukmu.",
   "err.ditolakServer": "Ditolak server: {pesan}",
+  "pe.kontakDarurat": "Kontak darurat tambahan",
+  "pe.kontakDesc": "Kontak utama diatur HR. Tambahkan hingga 5 kontak lain.",
+  "pe.tambahKontak": "+ Tambah kontak",
+  "pe.hapusKontak": "Hapus",
+  "pe.kontakN": "Kontak {n}",
+  "pe.kontakTidakLengkap":
+    "Lengkapi nama dan telepon (min. 8 digit) setiap kontak, atau hapus barisnya",
+  "pe.akunLogin": "Akun & keamanan",
+  "pe.emailKantor": "Email kantor (untuk masuk)",
+  "pe.emailKantorCatatan":
+    "Email kantor dan akun login dikelola HR. Password bisa diubah sendiri.",
+  "pe.ubahPassword": "Ubah password",
+  "pw.salahJudul": "Password saat ini salah",
+  "pw.salahPesan":
+    "Demi keamanan, ERPNext mengakhiri sesi setelah password lama salah. Silakan masuk lagi, lalu ulangi mengubah password.",
+  "pw.masukLagi2": "Masuk lagi",
 } as const;
 
 export type Kunci = keyof typeof id;

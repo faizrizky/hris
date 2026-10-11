@@ -522,7 +522,7 @@ export const en: Record<Kunci, string> = {
   "pw.simpan": "Save password",
   "kl.email": "Personal email",
   "kl.emailAlasan": "For account recovery and sending payslips",
-  "kl.kontak2": "Second emergency contact",
+  "kl.kontak2": "Additional emergency contact",
   "kl.kontak2Alasan": "Name and phone number",
   "pe.judul": "Edit Data",
   "pe.kelengkapan": "Data completeness",
@@ -593,7 +593,7 @@ export const en: Record<Kunci, string> = {
   "pd.tanggungan": "Dependent",
   "pd.nonTanggungan": "Not a dependent",
   "pd.nKontak": "{n} contacts",
-  "pd.ubahKontak2": "Edit second emergency contact",
+  "pd.ubahKontak2": "Edit emergency contacts",
   "pd.tambahKontak": "Add emergency contact",
   "doc.judul": "Digital Documents",
   "doc.unggah": "Upload",
@@ -684,4 +684,20 @@ export const en: Record<Kunci, string> = {
   "ap2.kosongIsi":
     "Your appraisal appears here once HR opens an appraisal cycle for you.",
   "err.ditolakServer": "Rejected by the server: {pesan}",
+  "pe.kontakDarurat": "Additional emergency contacts",
+  "pe.kontakDesc": "HR manages the primary contact. Add up to 5 more.",
+  "pe.tambahKontak": "+ Add contact",
+  "pe.hapusKontak": "Remove",
+  "pe.kontakN": "Contact {n}",
+  "pe.kontakTidakLengkap":
+    "Fill in the name and phone (min. 8 digits) of every contact, or remove the row",
+  "pe.akunLogin": "Account & security",
+  "pe.emailKantor": "Work email (used to sign in)",
+  "pe.emailKantorCatatan":
+    "Work email and the login account are managed by HR. You can change your password yourself.",
+  "pe.ubahPassword": "Change password",
+  "pw.salahJudul": "Current password is incorrect",
+  "pw.salahPesan":
+    "For security, ERPNext ends the session after a wrong current password. Please sign in again, then try changing the password again.",
+  "pw.masukLagi2": "Sign in again",
 };

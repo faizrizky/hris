@@ -695,9 +695,7 @@ export const MOCK_PROFILE: PersonalProfile = {
     phone: "0811 3390 7721",
     personalEmail: "",
     address: "Jl. Cipaganti No. 18, Coblong, Bandung 40131",
-    em2Name: "",
-    em2Relation: "Ibu",
-    em2Phone: "",
+    contacts: [],
   },
 };
 

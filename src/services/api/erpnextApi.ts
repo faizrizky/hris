@@ -49,11 +49,7 @@ import { ApiError, get, post, put, upload } from "./http";
 import { ukuranFile } from "../../utils/file";
 import { File as FileFs } from "expo-file-system";
 import { tokenPushSaatIni } from "../push";
-import {
-  kembalikan,
-  terjemahkan,
-  terjemahkanNotifikasi,
-} from "@/i18n/serverLabels";
+import { terjemahkan, terjemahkanNotifikasi } from "@/i18n/serverLabels";
 import { tt } from "@/i18n";
 import type { Kunci } from "@/i18n/id";
 
@@ -691,6 +687,11 @@ interface ProfileRow {
   permanent_address: string | null;
   emergency: KontakRow;
   em2: KontakRow;
+  emergency_contacts?: {
+    contact_name: string;
+    relation: string | null;
+    phone: string;
+  }[];
 }
 
 const JENIS_KELAMIN: Record<string, Kunci> = {
@@ -735,11 +736,11 @@ function bentukProfil(r: ProfileRow): PersonalProfile {
       phone: r.cell_number ?? "",
       personalEmail: r.personal_email ?? "",
       address: r.current_address ?? "",
-      em2Name: r.em2.name ?? "",
-      em2Relation: r.em2.relation
-        ? terjemahkan("relation", r.em2.relation)
-        : "",
-      em2Phone: r.em2.phone ?? "",
+      contacts: (r.emergency_contacts ?? []).map((k) => ({
+        name: k.contact_name,
+        relation: k.relation ?? "Other",
+        phone: k.phone,
+      })),
     },
   };
 }
@@ -794,6 +795,9 @@ interface NotifRow {
   tone: AppNotification["tone"];
   time: string; // "YYYY-MM-DDTHH:MM:SS" dalam WIB, tanpa offset
   read: number;
+  document_type?: string | null;
+  document_name?: string | null;
+  file_url?: string | null;
 }
 
 function bentukNotifikasi(r: NotifRow): AppNotification {
@@ -817,6 +821,9 @@ function bentukNotifikasi(r: NotifRow): AppNotification {
     group,
     tone: r.tone,
     read: r.read === 1,
+    documentType: r.document_type ?? null,
+    documentName: r.document_name ?? null,
+    fileUrl: r.file_url ?? null,
   };
 }
 
@@ -1421,9 +1428,14 @@ export const erpnextApi: HrisApi = {
         phone: data.phone,
         personal_email: data.personalEmail,
         address: data.address,
-        em2_name: data.em2Name,
-        em2_relation: kembalikan("relation", data.em2Relation),
-        em2_phone: data.em2Phone,
+        // Form-encoded, jadi daftar dikirim sebagai "nama|relasi|telepon;...".
+        emergency_contacts: data.contacts
+          .map((k) =>
+            [k.name, k.relation, k.phone]
+              .map((x) => x.replace(/[|;]/g, " ").trim())
+              .join("|"),
+          )
+          .join(";"),
       },
     );
     return bentukProfil(res.message);

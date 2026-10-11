@@ -228,6 +228,9 @@ export interface AppNotification {
   group: string; // "Hari ini" / "Kemarin" — jadi judul seksi
   tone: "ok" | "warn" | "info" | "bad";
   read: boolean;
+  documentType?: string | null; // doctype ERPNext yang dirujuk, untuk dibuka saat diketuk
+  documentName?: string | null;
+  fileUrl?: string | null; // Employee Document: berkas yang bisa dibuka (HR/pemilik)
 }
 
 export interface FamilyMember {
@@ -249,9 +252,8 @@ export interface EditableProfile {
   phone: string;
   personalEmail: string;
   address: string;
-  em2Name: string;
-  em2Relation: string;
-  em2Phone: string;
+  // Relasi memakai nilai baku ERPNext (Mother, Friend, ...); tampilan diterjemahkan.
+  contacts: EmergencyContact[];
 }
 
 /** Sisanya hanya bisa diubah HR lewat pengajuan dokumen. */

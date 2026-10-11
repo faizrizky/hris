@@ -15,6 +15,8 @@ import { LineIcon } from "@/components/LineIcon";
 import { ICON } from "@/constants/icons";
 import { Skeleton } from "@/components/Skeleton";
 import { useT } from "@/i18n";
+import { bukaLampiran } from "@/utils/lampiran";
+import { useConfirm } from "@/components/ConfirmDialog";
 
 const ICON_KATEGORI: Record<NotifCategory, string> = {
   Approval: ICON.approval,
@@ -26,6 +28,7 @@ const ICON_KATEGORI: Record<NotifCategory, string> = {
 
 export function NotificationScreen({ navigation }: any) {
   const t = useT();
+  const confirm = useConfirm();
   const { employee } = useSession();
   const insets = useSafeAreaInsets();
   const [items, setItems] = useState<AppNotification[] | null>(null);
@@ -54,6 +57,54 @@ export function NotificationScreen({ navigation }: any) {
       .then(setItems)
       // Gagal menandai dibaca tidak kritis; daftar tetap seperti semula.
       .catch(() => {});
+  };
+
+  // Mengetuk notifikasi menandainya dibaca lalu membuka tempat yang dirujuk.
+  // Nada "warn" dipakai server untuk "menunggu keputusanmu"; selain itu kabar
+  // tentang pengajuan milik sendiri.
+  const buka = async (n: AppNotification) => {
+    if (!n.read) tandai([n.id]);
+    const atasan = employee?.role === "mss" || employee?.role === "hr";
+    const menunggu = n.tone === "warn" && atasan;
+    switch (n.documentType) {
+      case "Employee Document":
+        if (n.fileUrl && employee?.role === "hr") {
+          try {
+            await bukaLampiran(n.fileUrl, n.documentName ?? "dokumen");
+          } catch {
+            void confirm({
+              title: t("lamp.gagalJudul"),
+              message: t("lamp.gagalPesan"),
+              tone: "warn",
+              confirmText: t("umum.mengerti"),
+              cancelText: null,
+            });
+          }
+          return;
+        }
+        if (employee?.role !== "hr") {
+          navigation.navigate("Profil", { screen: "ProfileDocs" });
+        }
+        return;
+      case "Leave Application":
+      case "Overtime Request":
+      case "Travel Request":
+      case "Attendance Request":
+        if (menunggu) {
+          navigation.navigate("Approval");
+          return;
+        }
+        if (n.documentType === "Attendance Request") {
+          navigation.navigate("Absensi", {
+            screen: "AttendanceCorrectionHistory",
+          });
+        } else if (n.documentType === "Overtime Request") {
+          navigation.navigate("Cuti", { screen: "Overtime" });
+        } else {
+          navigation.navigate("Cuti", { screen: "LeaveList" });
+        }
+        return;
+    }
   };
 
   // Judul seksi diturunkan dari datanya, bukan daftar tetap: urutan grup
@@ -113,7 +164,7 @@ export function NotificationScreen({ navigation }: any) {
                     return (
                       <Pressable
                         key={n.id}
-                        onPress={() => !n.read && tandai([n.id])}
+                        onPress={() => buka(n)}
                         style={[
                           styles.card,
                           !n.read && { backgroundColor: c.unread },

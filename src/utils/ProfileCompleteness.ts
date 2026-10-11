@@ -22,7 +22,7 @@ export function kekurangan(e: EditableProfile): Kekurangan[] {
       judul: tt("kl.email"),
       alasan: tt("kl.emailAlasan"),
     });
-  if (!teleponValid(e.em2Phone))
+  if (!e.contacts.some((k) => k.name.trim() && teleponValid(k.phone)))
     out.push({
       judul: tt("kl.kontak2"),
       alasan: tt("kl.kontak2Alasan"),
