@@ -12,7 +12,7 @@ import { hrisApi } from "@/services/api";
 import { describeError } from "@/services/api/http";
 import { ErrorState } from "@/components/ErrorState";
 import { useSession } from "@/services/session";
-import { PersonalProfile } from "@/services/types";
+import { PersonalProfile, ProfileChange } from "@/services/types";
 import { LineIcon } from "@/components/LineIcon";
 import { ICON } from "@/constants/icons";
 import { Skeleton } from "@/components/Skeleton";
@@ -23,6 +23,7 @@ import {
 } from "@/utils/ProfileCompleteness";
 import { tahunSejak, tanggalPendekTahun } from "@/utils/date";
 import { useT } from "@/i18n";
+import { ChangeSummary } from "@/screens/profile/ChangeSummary";
 import { terjemahkan } from "@/i18n/serverLabels";
 
 export function ProfileDataScreen({ navigation }: any) {
@@ -34,13 +35,23 @@ export function ProfileDataScreen({ navigation }: any) {
 
   const [profil, setProfil] = useState<PersonalProfile | null>(null);
   const [galat, setGalat] = useState<string | null>(null);
+  const [permintaan, setPermintaan] = useState<ProfileChange[]>([]);
 
   const muat = useCallback(() => {
     if (!employee) return;
     setGalat(null);
     hrisApi
       .getPersonalProfile(employee.id)
-      .then(setProfil)
+      .then((p) => {
+        setProfil(p);
+        // Riwayat permintaan hanya relevan bagi yang tidak mengubah langsung.
+        if (!p.canEditDirectly) {
+          hrisApi
+            .getMyProfileChanges()
+            .then(setPermintaan)
+            .catch(() => setPermintaan([]));
+        }
+      })
       .catch((e) => setGalat(describeError(e)));
   }, [employee]);
 
@@ -60,7 +71,9 @@ export function ProfileDataScreen({ navigation }: any) {
         style={styles.editBtn}
         onPress={() => navigation.navigate("ProfileEdit")}
       >
-        <Text style={styles.editText}>{t("pd.ubah")}</Text>
+        <Text style={styles.editText}>
+          {t(profil && !profil.canEditDirectly ? "pc.ajukan" : "pd.ubah")}
+        </Text>
       </Pressable>
     </View>
   );
@@ -175,6 +188,23 @@ export function ProfileDataScreen({ navigation }: any) {
                 })}
           </Text>
         </LinearGradient>
+
+        {profil.pendingChange ? (
+          <View style={styles.pendingBanner}>
+            <Text style={styles.pendingText}>{t("pc.menunggu")}</Text>
+          </View>
+        ) : null}
+
+        {permintaan.length > 0 ? (
+          <View style={[styles.card, { marginTop: 12 }]}>
+            <Text style={styles.cardTitle}>{t("pc.riwayat")}</Text>
+            <View style={{ gap: 12, marginTop: 12 }}>
+              {permintaan.slice(0, 5).map((p) => (
+                <ChangeSummary key={p.id} p={p} />
+              ))}
+            </View>
+          </View>
+        ) : null}
 
         {lengkap ? (
           <View style={styles.okBanner}>
@@ -326,6 +356,13 @@ export function ProfileDataScreen({ navigation }: any) {
 
 const makeStyles = (c: Palette) =>
   StyleSheet.create({
+    pendingBanner: {
+      marginTop: 12,
+      padding: 14,
+      borderRadius: 18,
+      backgroundColor: c.warn.bg,
+    },
+    pendingText: { fontSize: 12, fontWeight: "700", color: c.warn.ink },
     container: { flex: 1, backgroundColor: c.bg },
 
     header: {

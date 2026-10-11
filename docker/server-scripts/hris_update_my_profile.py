@@ -1,125 +1,22 @@
 # Server Script (type: API, method: hris_update_my_profile, allow_guest: 0)
-# Ubah bagian profil yang boleh diedit sendiri. POST body (semua opsional, hanya yang dikirim diubah):
-#   phone, personal_email, address, em2_name, em2_relation, em2_phone
-# Hanya Employee milik pemanggil dan hanya field itu. Hasil: profil terbaru (bentuk hris_get_my_profile).
-fd = frappe.form_dict
-mapping = {
-    "phone": ("cell_number", 20),
-    "personal_email": ("personal_email", 140),
-    "address": ("current_address", 500),
-    "em2_name": ("custom_em2_name", 140),
-    "em2_relation": ("custom_em2_relation", 60),
-    "em2_phone": ("custom_em2_phone", 20),
-}
-me = frappe.get_all(
-    "Employee",
-    filters={"user_id": frappe.session.user, "status": "Active"},
-    fields=["name"],
-    limit_page_length=1,
-)
+# HANYA HR User / HR Manager (data dirinya sendiri). Karyawan lain: 403, harus mengajukan Profile Change Request
+# (hris_submit_profile_change). POST body (semua opsional, hanya yang dikirim diubah):
+#   phone, personal_email, address, em2_name, em2_relation, em2_phone,
+#   emergency_contacts ("nama|relasi|telepon;..." atau daftar JSON), family ("nama|relasi|YYYY-MM-DD|0/1;..." atau JSON)
+# Hasil: profil terbaru (bentuk hris_get_my_profile).
+user = frappe.session.user
+is_hr = user == "Administrator" or len(
+    frappe.get_all("Has Role", filters={"parent": user, "parenttype": "User",
+                                        "role": ["in", ["HR User", "HR Manager"]]}, limit_page_length=1)
+) > 0
+if not is_hr:
+    frappe.throw("Personal data is managed by HR. Submit a change request instead.", frappe.PermissionError)
+me = frappe.get_all("Employee", filters={"user_id": user, "status": "Active"}, fields=["name"], limit_page_length=1)
 if not me:
     frappe.throw("This account is not linked to an active employee")
-updates = {}
-for key in mapping:
-    if key in fd:
-        val = fd.get(key)
-        val = "" if val is None else str(val).strip()
-        if len(val) > mapping[key][1]:
-            frappe.throw(key + " is too long (max " + str(mapping[key][1]) + " characters)")
-        if key == "personal_email" and val:
-            at = val.find("@")
-            if at < 1 or "." not in val[at:] or " " in val or val.endswith(".") or val.count("@") != 1:
-                frappe.throw("Invalid email format")
-        if key in ("phone", "em2_phone") and val:
-            for ch in val:
-                if ch not in "0123456789+-() ":
-                    frappe.throw("Invalid phone number format")
-        updates[mapping[key][0]] = val if val else None
-if updates:
-    frappe.db.set_value("Employee", me[0].name, updates)
-
-# family: "nama|relasi|YYYY-MM-DD|0atau1;..." atau daftar JSON [{member_name,relation,date_of_birth,is_dependent}].
-# Mengganti seluruh tabel. Maks 10 baris; nama wajib; relasi tak dikenal -> Other; tanggal lahir valid dan bukan masa depan.
-if "family" in fd:
-    rawf = fd.get("family")
-    fitems = []
-    if isinstance(rawf, list):
-        for c in rawf:
-            fitems.append([str(c.get("member_name") or "").strip(), str(c.get("relation") or "").strip(),
-                           str(c.get("date_of_birth") or "").strip(), str(c.get("is_dependent") or "0").strip()])
-    elif rawf:
-        for part in str(rawf).split(";"):
-            if not part.strip():
-                continue
-            bits = [b.strip() for b in part.split("|")]
-            while len(bits) < 4:
-                bits.append("")
-            fitems.append(bits[:4])
-    if len(fitems) > 10:
-        frappe.throw("At most 10 family members are allowed")
-    rel_ok = ["Spouse", "Child", "Father", "Mother", "Sibling", "Other"]
-    frows = []
-    for it in fitems:
-        if not it[0]:
-            frappe.throw("Family member name is required")
-        if len(it[0]) > 140:
-            frappe.throw("Family member name is too long (max 140 characters)")
-        dob = None
-        if it[2]:
-            if len(it[2]) != 10 or it[2][4] != "-" or it[2][7] != "-" or not (it[2][:4] + it[2][5:7] + it[2][8:]).isdigit():
-                frappe.throw("Invalid date of birth (use YYYY-MM-DD)")
-            if frappe.utils.getdate(it[2]) > frappe.utils.getdate(frappe.utils.nowdate()):
-                frappe.throw("Date of birth cannot be in the future")
-            dob = it[2]
-        frows.append({"member_name": it[0], "relation": it[1] if it[1] in rel_ok else "Other",
-                      "date_of_birth": dob, "is_dependent": 1 if it[3] in ("1", "true", "True") else 0})
-    emp_f = frappe.get_doc("Employee", me[0].name)
-    emp_f.set("custom_family_members", frows)
-    emp_f.flags.ignore_permissions = True
-    emp_f.flags.ignore_mandatory = True
-    emp_f.save()
-
-# emergency_contacts: daftar JSON [{contact_name, relation, phone}] atau teks "nama|relasi|telepon;..."
-# Mengganti seluruh isi tabel. Maks 5 baris; nama dan telepon wajib; telepon minimal 8 digit.
-if "emergency_contacts" in fd:
-    raw = fd.get("emergency_contacts")
-    items = []
-    if isinstance(raw, list):
-        for c in raw:
-            items.append([str(c.get("contact_name") or "").strip(), str(c.get("relation") or "").strip(),
-                          str(c.get("phone") or "").strip()])
-    elif raw:
-        for part in str(raw).split(";"):
-            if not part.strip():
-                continue
-            bits = [b.strip() for b in part.split("|")]
-            while len(bits) < 3:
-                bits.append("")
-            items.append(bits[:3])
-    if len(items) > 5:
-        frappe.throw("At most 5 emergency contacts are allowed")
-    allowed_rel = ["Mother", "Father", "Sibling", "Spouse", "Friend", "Other"]
-    rows = []
-    for it in items:
-        if not it[0] or not it[2]:
-            frappe.throw("Emergency contact name and phone are required")
-        if len(it[0]) > 140:
-            frappe.throw("Emergency contact name is too long (max 140 characters)")
-        digits = 0
-        for ch in it[2]:
-            if ch.isdigit():
-                digits = digits + 1
-            elif ch not in "+-() ":
-                frappe.throw("Invalid phone number format")
-        if digits < 8:
-            frappe.throw("Emergency contact phone must have at least 8 digits")
-        rel = it[1] if it[1] in allowed_rel else ("Other" if it[1] else None)
-        rows.append({"contact_name": it[0], "relation": rel, "phone": it[2]})
-    emp_doc = frappe.get_doc("Employee", me[0].name)
-    emp_doc.set("custom_emergency_contacts", rows)
-    emp_doc.flags.ignore_permissions = True
-    emp_doc.flags.ignore_mandatory = True
-    emp_doc.save()
+target_emp = me[0].name
+# @include: _lib/profile_input.py
+# @include: _lib/profile_apply.py
 fam = []
 deps = 0
 for m in frappe.get_all("Employee Family Member", filters={"parent": me[0].name, "parenttype": "Employee"},
@@ -158,6 +55,8 @@ frappe.response["message"] = {
     "emergency": {"name": e.person_to_be_contacted, "relation": e.relation, "phone": e.emergency_phone_number},
     "em2": {"name": e.custom_em2_name, "relation": e.custom_em2_relation, "phone": e.custom_em2_phone},
     "family": fam,
+    "can_edit_directly": True,
+    "pending_change": None,
     "ptkp_status": ("K/" if e.marital_status == "Married" else "TK/") + str(deps),
     "emergency_contacts": [
         {"contact_name": c.contact_name, "relation": c.relation, "phone": c.phone}

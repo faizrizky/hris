@@ -13,6 +13,7 @@ import {
   LeaveRequest,
   LeaveType,
   Appraisal,
+  ProfileChange,
   FeedbackForm,
   ReviewDocument,
   TeamAppraisal,
@@ -695,6 +696,60 @@ interface KontakRow {
   phone: string | null;
 }
 
+// Parameter form-encoded untuk menyimpan/mengajukan data pribadi. Daftar dikirim
+// sebagai teks: kontak "nama|relasi|telepon;...", keluarga "nama|relasi|tgl|0/1;...".
+function paramProfil(data: EditableProfile) {
+  const bersih = (x: string) => x.replace(/[|;]/g, " ").trim();
+  return {
+    phone: data.phone,
+    personal_email: data.personalEmail,
+    address: data.address,
+    family: data.family
+      .map((m) =>
+        [
+          bersih(m.name),
+          m.relation,
+          m.birthDate ?? "",
+          m.dependent ? "1" : "0",
+        ].join("|"),
+      )
+      .join(";"),
+    emergency_contacts: data.contacts
+      .map((k) => [k.name, k.relation, k.phone].map(bersih).join("|"))
+      .join(";"),
+  };
+}
+
+interface ChangeRow {
+  name: string;
+  status: ProfileChange["status"];
+  reason: string;
+  hr_note: string | null;
+  changes: { field: string; current: string; proposed: string }[];
+  created_on: string | null;
+  decided_on: string | null;
+  employee_name?: string;
+  designation?: string | null;
+  department?: string | null;
+}
+
+function bentukPerubahan(r: ChangeRow): ProfileChange {
+  return {
+    id: r.name,
+    status: r.status,
+    reason: r.reason,
+    hrNote: r.hr_note,
+    changes: r.changes ?? [],
+    createdOn: r.created_on ? r.created_on.slice(0, 10) : null,
+    decidedOn: r.decided_on ? r.decided_on.slice(0, 10) : null,
+    employeeName: r.employee_name,
+    designation: r.designation
+      ? terjemahkan("designation", r.designation)
+      : undefined,
+    department: r.department ? tanpaSufiks(r.department) : undefined,
+  };
+}
+
 interface ProfileRow {
   employee_name: string;
   date_of_birth: string | null;
@@ -710,6 +765,8 @@ interface ProfileRow {
   emergency: KontakRow;
   em2: KontakRow;
   ptkp_status?: string | null;
+  can_edit_directly?: boolean;
+  pending_change?: string | null;
   family?: {
     member_name: string;
     relation: string | null;
@@ -760,6 +817,8 @@ function bentukProfil(r: ProfileRow): PersonalProfile {
         : "—",
       phone: r.emergency.phone ?? "—",
     },
+    canEditDirectly: r.can_edit_directly === true,
+    pendingChange: r.pending_change ?? null,
     editable: {
       phone: r.cell_number ?? "",
       personalEmail: r.personal_email ?? "",
@@ -1623,31 +1682,39 @@ export const erpnextApi: HrisApi = {
   ): Promise<PersonalProfile> {
     const res = await post<{ message: ProfileRow }>(
       "/api/method/hris_update_my_profile",
-      {
-        phone: data.phone,
-        personal_email: data.personalEmail,
-        address: data.address,
-        family: data.family
-          .map((m) =>
-            [
-              m.name.replace(/[|;]/g, " ").trim(),
-              m.relation,
-              m.birthDate ?? "",
-              m.dependent ? "1" : "0",
-            ].join("|"),
-          )
-          .join(";"),
-        // Form-encoded, jadi daftar dikirim sebagai "nama|relasi|telepon;...".
-        emergency_contacts: data.contacts
-          .map((k) =>
-            [k.name, k.relation, k.phone]
-              .map((x) => x.replace(/[|;]/g, " ").trim())
-              .join("|"),
-          )
-          .join(";"),
-      },
+      paramProfil(data),
     );
     return bentukProfil(res.message);
+  },
+
+  async submitProfileChange(data: EditableProfile, reason: string) {
+    await post("/api/method/hris_submit_profile_change", {
+      ...paramProfil(data),
+      reason,
+    });
+  },
+
+  async getMyProfileChanges(): Promise<ProfileChange[]> {
+    const res = await get<{ message: ChangeRow[] }>(
+      "/api/method/hris_get_my_profile_changes",
+    );
+    return res.message.map(bentukPerubahan);
+  },
+
+  async getProfileChangesForReview(status): Promise<ProfileChange[]> {
+    const res = await get<{ message: ChangeRow[] }>(
+      "/api/method/hris_get_profile_changes_for_review",
+      { status },
+    );
+    return res.message.map(bentukPerubahan);
+  },
+
+  async decideProfileChange(id, decision, note) {
+    await post("/api/method/hris_decide_profile_change", {
+      name: id,
+      decision,
+      note,
+    });
   },
 
   async getSecurityInfo(employeeId: string): Promise<SecurityInfo> {

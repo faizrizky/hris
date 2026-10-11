@@ -668,6 +668,8 @@ export const MOCK_PROFILE: PersonalProfile = {
     relation: "Ayah",
     phone: "0812 5567 3300",
   },
+  canEditDirectly: true,
+  pendingChange: null,
   editable: {
     phone: "0811 3390 7721",
     personalEmail: "",

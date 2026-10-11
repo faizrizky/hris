@@ -40,6 +40,7 @@ import { useT } from "@/i18n";
 import { DateSheet } from "@/components/DateSheet";
 import { tanggalPendekTahun } from "@/utils/date";
 import { terjemahkan } from "@/i18n/serverLabels";
+import { useConfirm } from "@/components/ConfirmDialog";
 
 // Nilai baku ERPNext; tampilannya mengikuti bahasa lewat terjemahkan().
 const HUBUNGAN = ["Mother", "Father", "Sibling", "Spouse", "Friend", "Other"];
@@ -49,6 +50,7 @@ const MAKS_KELUARGA = 10;
 
 export function ProfileEditScreen({ navigation }: any) {
   const t = useT();
+  const confirm = useConfirm();
   const { employee } = useSession();
   const insets = useSafeAreaInsets();
   const c = useTheme();
@@ -144,8 +146,16 @@ export function ProfileEditScreen({ navigation }: any) {
         : prev,
     );
 
+  // Non-HR tidak menyimpan langsung: perubahan dikirim sebagai permintaan ke HR.
+  const ajuan = !!profil && !profil.canEditDirectly;
+  const [alasan, setAlasan] = useState("");
+
   const simpan = async () => {
     if (!employee || !draft || emailSalah) return;
+    if (ajuan && !alasan.trim()) {
+      setGalatSimpan(t("pc.alasanWajib"));
+      return;
+    }
     // Baris yang benar-benar kosong dibuang; yang setengah terisi harus dilengkapi.
     const kontak = draft.contacts.filter(
       (k) => k.name.trim() || k.phone.trim(),
@@ -161,10 +171,19 @@ export function ProfileEditScreen({ navigation }: any) {
     setSending(true);
     setGalatSimpan(null);
     try {
-      await hrisApi.savePersonalProfile(employee.id, {
-        ...draft,
-        contacts: kontak,
-      });
+      const data = { ...draft, contacts: kontak };
+      if (ajuan) {
+        await hrisApi.submitProfileChange(data, alasan.trim());
+        await confirm({
+          title: t("pc.terkirimJudul"),
+          message: t("pc.terkirimPesan"),
+          tone: "info",
+          confirmText: t("umum.mengerti"),
+          cancelText: null,
+        });
+      } else {
+        await hrisApi.savePersonalProfile(employee.id, data);
+      }
       navigation.goBack();
     } catch (e) {
       setGalatSimpan(describeError(e));
@@ -178,7 +197,9 @@ export function ProfileEditScreen({ navigation }: any) {
       <Pressable style={styles.backBtn} onPress={() => navigation.goBack()}>
         <Ionicons name="chevron-back" size={18} color={c.ink} />
       </Pressable>
-      <Text style={styles.headerTitle}>{t("pe.judul")}</Text>
+      <Text style={styles.headerTitle}>
+        {t(ajuan ? "pc.judulEdit" : "pe.judul")}
+      </Text>
     </View>
   );
 
@@ -250,7 +271,24 @@ export function ProfileEditScreen({ navigation }: any) {
           contentContainerStyle={styles.content}
           keyboardShouldPersistTaps="handled"
         >
-          <View style={styles.card}>
+          {ajuan ? (
+            <View style={styles.card}>
+              <Text style={styles.noteTop}>{t("pc.catatanHr")}</Text>
+              <Text style={[styles.label, { marginTop: 14 }]}>
+                {t("pc.alasan")}
+              </Text>
+              <TextInput
+                style={[styles.input, styles.textarea]}
+                value={alasan}
+                onChangeText={setAlasan}
+                placeholder={t("pc.alasanContoh")}
+                placeholderTextColor={c.mutedLabel}
+                multiline
+              />
+            </View>
+          ) : null}
+
+          <View style={[styles.card, ajuan ? { marginTop: 12 } : null]}>
             <View style={styles.cardHead}>
               <Text style={styles.cardTitle}>{t("pe.kelengkapan")}</Text>
               <Text style={styles.pct}>{persen}%</Text>
@@ -491,7 +529,8 @@ export function ProfileEditScreen({ navigation }: any) {
           <Text
             style={[styles.barLabel, galatSimpan ? { color: c.bad.ink } : null]}
           >
-            {galatSimpan ?? t("pe.kelengkapanSetelah")}
+            {galatSimpan ??
+              t(ajuan ? "pc.catatanBar" : "pe.kelengkapanSetelah")}
           </Text>
           <Text style={styles.barValue}>{persen}%</Text>
         </View>
@@ -510,7 +549,9 @@ export function ProfileEditScreen({ navigation }: any) {
                 !emailSalah && !sending ? { color: "#fff" } : null,
               ]}
             >
-              {sending ? t("pw.menyimpan") : t("pe.simpan")}
+              {sending
+                ? t("pw.menyimpan")
+                : t(ajuan ? "pc.kirim" : "pe.simpan")}
             </Text>
           </LinearGradient>
         </Pressable>
@@ -605,6 +646,12 @@ const makeStyles = (c: Palette) =>
     lockedValue: { flexDirection: "row", alignItems: "center", gap: 7 },
     rowKey: { fontSize: 12.5, fontWeight: "500", color: c.muted },
     rowValue: { fontSize: 12.5, fontWeight: "600", color: c.ink },
+    noteTop: {
+      fontSize: 12,
+      fontWeight: "500",
+      color: c.info.ink,
+      lineHeight: 18,
+    },
     note: {
       fontSize: 10.5,
       lineHeight: 16,

@@ -13,6 +13,8 @@ import { LeaveListScreen } from "@/screens/leave/LeaveListScreen";
 import { LeaveRequestScreen } from "@/screens/leave/LeaveRequestScreen";
 import { AppraisalFeedbackScreen } from "@/screens/appraisal/AppraisalFeedbackScreen";
 import { EmployeeDocumentDetailScreen } from "@/screens/documents/EmployeeDocumentDetailScreen";
+import { ProfileChangeReviewScreen } from "@/screens/profile/ProfileChangeReviewScreen";
+import { ProfileChangeReviewDetailScreen } from "@/screens/profile/ProfileChangeReviewDetailScreen";
 import { DocumentReviewScreen } from "@/screens/documents/DocumentReviewScreen";
 import { DocumentReviewDetailScreen } from "@/screens/documents/DocumentReviewDetailScreen";
 import { LeaveApprovalScreen } from "@/screens/leave/LeaveApprovalScreen";
@@ -166,6 +168,14 @@ function HomeStack() {
         component={AppraisalFeedbackScreen}
       />
       <Stack.Screen name="DocumentReview" component={DocumentReviewScreen} />
+      <Stack.Screen
+        name="ProfileChangeReview"
+        component={ProfileChangeReviewScreen}
+      />
+      <Stack.Screen
+        name="ProfileChangeReviewDetail"
+        component={ProfileChangeReviewDetailScreen}
+      />
       <Stack.Screen
         name="DocumentReviewDetail"
         component={DocumentReviewDetailScreen}

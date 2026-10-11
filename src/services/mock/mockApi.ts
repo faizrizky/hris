@@ -329,6 +329,18 @@ export const mockApi: HrisApi = {
     return personalProfile;
   },
 
+  async submitProfileChange() {},
+
+  async getMyProfileChanges() {
+    return [];
+  },
+
+  async getProfileChangesForReview() {
+    return [];
+  },
+
+  async decideProfileChange() {},
+
   async savePersonalProfile(
     _employeeId: string,
     data: EditableProfile,

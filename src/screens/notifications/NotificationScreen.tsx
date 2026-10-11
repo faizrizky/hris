@@ -73,6 +73,13 @@ export function NotificationScreen({ navigation }: any) {
           navigation.navigate("Profil", { screen: "ProfileDocs" });
         }
         return;
+      case "Profile Change Request":
+        if (employee?.role === "hr" && n.tone === "warn") {
+          navigation.navigate("ProfileChangeReview");
+        } else {
+          navigation.navigate("Profil", { screen: "ProfileData" });
+        }
+        return;
       case "Leave Application":
       case "Overtime Request":
       case "Travel Request":

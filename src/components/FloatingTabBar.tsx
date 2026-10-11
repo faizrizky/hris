@@ -84,6 +84,7 @@ export function FloatingTabBar({ state, navigation }: BottomTabBarProps) {
     "ProfileUpload",
     "ProfilePassword",
     "DocumentReviewDetail",
+    "ProfileChangeReviewDetail",
     "EmployeeDocumentDetail",
     "AppraisalFeedback",
   ];

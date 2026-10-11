@@ -155,6 +155,13 @@ export function HomeScreen() {
                   ink: c.info.ink,
                   onPress: () => navigation.navigate("DocumentReview"),
                 },
+                {
+                  label: t("pcr.aksi"),
+                  icon: ICON.user,
+                  bg: c.purple.bg,
+                  ink: c.purple.ink,
+                  onPress: () => navigation.navigate("ProfileChangeReview"),
+                },
               ]
             : []),
         ]

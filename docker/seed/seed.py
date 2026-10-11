@@ -485,6 +485,30 @@ if frappe.db.get_value("DocType", "Overtime Request", "autoname") != "OT-.YYYY.-
     log("penamaan Overtime Request diperbaiki")
 frappe.db.commit()
 
+# Permintaan perubahan data pribadi (diajukan karyawan, diputuskan HR). Karyawan tanpa hak langsung.
+if not frappe.db.exists("DocType", "Profile Change Request"):
+    make(dict(
+        doctype="DocType", name="Profile Change Request", module="HR", custom=1, naming_rule="Expression (old style)",
+        autoname="PCR-.YYYY.-.#####", track_changes=1,
+        fields=[
+            dict(fieldname="employee", label="Employee", fieldtype="Link", options="Employee", reqd=1, in_list_view=1),
+            dict(fieldname="employee_name", label="Employee Name", fieldtype="Data", fetch_from="employee.employee_name",
+                 read_only=1, in_list_view=1),
+            dict(fieldname="status", label="Status", fieldtype="Select", options="Pending\nApproved\nRejected",
+                 default="Pending", in_list_view=1, in_standard_filter=1),
+            dict(fieldname="reason", label="Reason", fieldtype="Small Text", reqd=1),
+            dict(fieldname="proposed", label="Proposed Values (JSON)", fieldtype="Long Text", read_only=1),
+            dict(fieldname="changes", label="Changes (JSON)", fieldtype="Long Text", read_only=1),
+            dict(fieldname="hr_note", label="HR Note", fieldtype="Small Text"),
+            dict(fieldname="decided_by", label="Decided By", fieldtype="Link", options="User", read_only=1),
+            dict(fieldname="decided_on", label="Decided On", fieldtype="Datetime", read_only=1),
+        ],
+        permissions=[dict(role="System Manager", read=1, write=1, create=1, delete=1),
+                     dict(role="HR Manager", read=1, write=1, create=1, delete=1),
+                     dict(role="HR User", read=1, write=1, create=1)]))
+    frappe.clear_cache()
+frappe.db.commit()
+
 # Sidebar modul Leaves (v16): tautan ke Overtime Request dan Travel Request lewat lapisan
 # kustom situs (Custom Sidebar), cara resmi menambah item tanpa mengubah sidebar bawaan hrms.
 # Workspace "HR Requests" percobaan lama dihapus.
@@ -494,17 +518,17 @@ for _dt in ("Workspace", "Workspace Sidebar"):
         log(f"{_dt} HR Requests dihapus")
 if frappe.db.exists("Sidebar", "Leaves"):
     from frappe.desk.doctype.custom_sidebar.custom_sidebar import add_site_sidebar_item
-    for _dt, _ic in (("Overtime Request", "clock"), ("Travel Request", "briefcase")):
+    for _dt, _ic in (("Overtime Request", "clock"), ("Travel Request", "briefcase"), ("Profile Change Request", "user")):
         add_site_sidebar_item("Leaves", dict(label=_dt, type="Link", link_type="DocType", link_to=_dt,
                                              icon=_ic, collapsible=1))
     log("sidebar Leaves: tautan Overtime Request dan Travel Request")
     # Urutan: tepat di bawah Leave Application (secara bawaan item tambahan jatuh di paling bawah).
     from frappe.desk.doctype.custom_sidebar.custom_sidebar import _save_customization, layer_arrangement
     _arr = layer_arrangement("Leaves", None)
-    _mine = [r for r in _arr if r.get("link_to") in ("Overtime Request", "Travel Request")]
+    _mine = [r for r in _arr if r.get("link_to") in ("Overtime Request", "Travel Request", "Profile Change Request")]
     _rest = [r for r in _arr if r not in _mine]
     _at = next((n for n, r in enumerate(_rest) if r.get("link_to") == "Leave Application"), 0) + 1
-    _mine.sort(key=lambda r: r["link_to"] != "Overtime Request")
+    _mine.sort(key=lambda r: ["Overtime Request", "Travel Request", "Profile Change Request"].index(r["link_to"]))
     _save_customization("Leaves", _rest[:_at] + _mine + _rest[_at:], None)
     log("sidebar Leaves: diurutkan di bawah Leave Application")
 frappe.db.commit()
@@ -687,7 +711,7 @@ if frappe.db.exists("Language", "id") and not frappe.db.get_value("Language", "i
     log("bahasa id diaktifkan")
 TRANSLATIONS_ID = {
     # label Custom Field
-    "Salary Settings": "Pengaturan Gaji",
+    "Salary Settings": "Pengaturan Gaji", "Profile Change Request": "Permintaan Perubahan Profil",
     "Family Members": "Anggota Keluarga", "Member Name": "Nama Anggota", "Is Dependent (PTKP)": "Tanggungan (PTKP)",
     "Spouse": "Pasangan", "Child": "Anak", "Father": "Ayah", "Mother": "Ibu", "Sibling": "Saudara", "Other": "Lainnya",
     "Position Allowance (IDR)": "Tunjangan Jabatan (Rp)",
@@ -751,6 +775,16 @@ if os.path.isdir(SS_DIR):
             continue
         name = fname[:-3]
         code = open(os.path.join(SS_DIR, fname), encoding="utf-8").read()
+        # "# @include: _lib/xxx.py" disisipkan apa adanya, dengan indentasi baris include (Server Script tidak bisa import)
+        _out = []
+        for _ln in code.split("\n"):
+            if _ln.strip().startswith("# @include: "):
+                _ind = _ln[:len(_ln) - len(_ln.lstrip())]
+                _snip = open(os.path.join(SS_DIR, _ln.strip()[len("# @include: "):].strip()), encoding="utf-8").read().rstrip("\n")
+                _out.extend([(_ind + _l if _l.strip() else _l) for _l in _snip.split("\n")])
+            else:
+                _out.append(_ln)
+        code = "\n".join(_out)
         vals = dict(script_type="API", api_method=name, allow_guest=0, disabled=0, script=code)
         if name in EVENT_SCRIPTS:  # script berbasis event dokumen, bukan API
             vals = dict(script_type="DocType Event", reference_doctype=EVENT_SCRIPTS[name][0],

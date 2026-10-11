@@ -271,6 +271,8 @@ export interface PersonalProfile {
   ptkpStatus: string;
   primaryEmergency: EmergencyContact;
   editable: EditableProfile;
+  canEditDirectly: boolean; // hanya HR; lainnya mengajukan permintaan
+  pendingChange: string | null;
 }
 
 export type DocCategory = "kontrak" | "sk" | "sertifikat" | "identitas";
@@ -291,6 +293,21 @@ export interface EmployeeDocument {
   changeReason?: string | null;
   expiresOn?: string | null; // ISO
   uploadedOn?: string | null; // ISO
+}
+
+export type ChangeStatus = "Pending" | "Approved" | "Rejected";
+
+export interface ProfileChange {
+  id: string;
+  status: ChangeStatus;
+  reason: string;
+  hrNote: string | null;
+  changes: { field: string; current: string; proposed: string }[];
+  createdOn: string | null; // ISO
+  decidedOn: string | null; // ISO
+  employeeName?: string;
+  designation?: string;
+  department?: string;
 }
 
 export type ReviewStatus =
@@ -489,6 +506,17 @@ export interface HrisApi {
   ): Promise<AppNotification[]>;
 
   getPersonalProfile(employeeId: string): Promise<PersonalProfile>;
+  // Karyawan non-HR tidak mengubah data pribadi langsung: mereka mengajukan permintaan.
+  submitProfileChange(data: EditableProfile, reason: string): Promise<void>;
+  getMyProfileChanges(): Promise<ProfileChange[]>;
+  getProfileChangesForReview(
+    status: ChangeStatus | "all",
+  ): Promise<ProfileChange[]>;
+  decideProfileChange(
+    id: string,
+    decision: "approve" | "reject",
+    note?: string,
+  ): Promise<void>;
   savePersonalProfile(
     employeeId: string,
     data: EditableProfile,

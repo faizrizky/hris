@@ -15,6 +15,14 @@ rows = frappe.get_all(
     limit_page_length=1,
 )
 result = None
+can_edit = frappe.session.user == "Administrator" or len(
+    frappe.get_all("Has Role", filters={"parent": frappe.session.user, "parenttype": "User",
+                                        "role": ["in", ["HR User", "HR Manager"]]}, limit_page_length=1)
+) > 0
+pending = []
+if rows:
+    pending = frappe.get_all("Profile Change Request", filters={"employee": rows[0].name, "status": "Pending"},
+                             pluck="name", order_by="creation desc", limit_page_length=1)
 if rows:
     e = rows[0]
     fam = []
@@ -53,6 +61,8 @@ if rows:
             "phone": e.custom_em2_phone,
         },
         "family": fam,
+        "can_edit_directly": can_edit,
+        "pending_change": pending[0] if pending else None,
         "ptkp_status": ptkp,
         "emergency_contacts": [
             {"contact_name": c.contact_name, "relation": c.relation, "phone": c.phone}
