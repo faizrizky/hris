@@ -138,6 +138,29 @@ export const mockApi: HrisApi = {
     return this.getAttendanceHistory(staffId);
   },
 
+  async getDocumentsForReview() {
+    return [];
+  },
+
+  async decideDocument() {},
+
+  async getTeamAppraisals() {
+    return [];
+  },
+
+  async getFeedbackForm(employeeId: string) {
+    return {
+      employeeId,
+      employeeName: "—",
+      cycle: "—",
+      criteria: [],
+      goals: [],
+      mine: null,
+    };
+  },
+
+  async submitFeedback() {},
+
   async registerPushToken() {},
 
   async unregisterPushToken() {},

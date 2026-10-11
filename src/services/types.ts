@@ -287,6 +287,50 @@ export interface EmployeeDocument {
   status: DocStatus;
 }
 
+export type ReviewStatus = "Pending" | "Verified" | "Rejected";
+
+/** Dokumen karyawan yang ditinjau HR. */
+export interface ReviewDocument {
+  id: string;
+  employeeName: string;
+  designation: string;
+  department: string;
+  name: string;
+  category: DocCategory;
+  ext: string;
+  sizeLabel: string;
+  uploadedOn: string | null; // ISO
+  expiresOn: string | null; // ISO
+  status: ReviewStatus;
+  fileUrl: string | null;
+  fileName: string | null;
+  rejectionReason: string | null;
+}
+
+export interface TeamAppraisal {
+  employeeId: string;
+  employeeName: string;
+  designation: string;
+  cycle: string;
+  finalScore: number;
+  myStatus: "none" | "draft" | "submitted";
+  myScore: number | null;
+}
+
+export interface FeedbackForm {
+  employeeId: string;
+  employeeName: string;
+  cycle: string;
+  criteria: { name: string; weight: number }[];
+  goals: { name: string; progress: number }[];
+  mine: {
+    status: "draft" | "submitted";
+    ratings: Record<string, number>;
+    feedback: string;
+    totalScore: number;
+  } | null;
+}
+
 export type SecurityToggleKey = "face" | "presence" | "lock" | "twofa";
 
 export interface SecurityToggle {
@@ -338,6 +382,26 @@ export interface HrisApi {
   getAttendanceHistory(employeeId: string): Promise<AttendanceRecord[]>;
   // Riwayat karyawan lain, untuk atasan/HR (server membatasi hak aksesnya).
   getStaffAttendanceHistory(staffId: string): Promise<AttendanceRecord[]>;
+
+  // HR: tinjau Dokumen Digital karyawan.
+  getDocumentsForReview(
+    status: ReviewStatus | "all",
+  ): Promise<ReviewDocument[]>;
+  decideDocument(
+    id: string,
+    decision: "verify" | "reject",
+    reason?: string,
+  ): Promise<void>;
+
+  // Atasan/HR: penilaian kinerja tim.
+  getTeamAppraisals(): Promise<TeamAppraisal[]>;
+  getFeedbackForm(employeeId: string): Promise<FeedbackForm>;
+  submitFeedback(input: {
+    employeeId: string;
+    ratings: Record<string, number>;
+    feedback: string;
+    submit: boolean;
+  }): Promise<void>;
   getAttendanceCorrections(
     employeeId: string,
   ): Promise<AttendanceCorrectionRequest[]>;

@@ -13,6 +13,9 @@ import {
   LeaveRequest,
   LeaveType,
   Appraisal,
+  FeedbackForm,
+  ReviewDocument,
+  TeamAppraisal,
   BerkasLampiran,
   DocCategory,
   DocStatus,
@@ -460,8 +463,9 @@ async function unggahBerkas(
 ): Promise<void> {
   const sumber = new FileFs(f.uri);
   const form = new FormData();
+  // fetch Expo meng-encode nama berkas (spasi jadi %20), jadi dibersihkan dulu.
   form.append("file", {
-    name: f.name,
+    name: f.name.replace(/[^\w.\-]+/g, "_"),
     type: f.mimeType || "application/octet-stream",
     bytes: () => sumber.bytes(),
   } as unknown as Blob);
@@ -559,6 +563,15 @@ async function ambilDokumen(): Promise<EmployeeDocument[]> {
     "/api/method/hris_get_my_documents",
   );
   return res.message.map(bentukDokumen);
+}
+
+interface ReviewRow extends DokumenRow {
+  employee_name: string;
+  designation: string | null;
+  department: string | null;
+  file_url: string | null;
+  file_name: string | null;
+  rejection_reason: string | null;
 }
 
 interface AppraisalRes {
@@ -1367,6 +1380,114 @@ export const erpnextApi: HrisApi = {
       "/api/method/hris_get_attendance_history",
     );
     return res.message.map(bentukAbsensi);
+  },
+
+  async getDocumentsForReview(status): Promise<ReviewDocument[]> {
+    const res = await get<{ message: ReviewRow[] }>(
+      "/api/method/hris_get_documents_for_review",
+      { status },
+    );
+    return res.message.map((r) => ({
+      id: r.name,
+      employeeName: r.employee_name,
+      designation: r.designation
+        ? terjemahkan("designation", r.designation)
+        : "",
+      department: tanpaSufiks(r.department),
+      name: r.document_name,
+      category: KATEGORI_DOK[r.category] ?? "sertifikat",
+      ext: r.ext ?? "FILE",
+      sizeLabel: r.size_bytes ? ukuranFile(r.size_bytes) : "—",
+      uploadedOn: r.uploaded_on,
+      expiresOn: r.expires_on,
+      status: r.status,
+      fileUrl: r.file_url,
+      fileName: r.file_name ? decodeURIComponent(r.file_name) : null,
+      rejectionReason: r.rejection_reason,
+    }));
+  },
+
+  async decideDocument(id, decision, reason) {
+    await post("/api/method/hris_decide_document", {
+      name: id,
+      decision,
+      reason,
+    });
+  },
+
+  async getTeamAppraisals(): Promise<TeamAppraisal[]> {
+    const res = await get<{
+      message: {
+        employee: string;
+        employee_name: string;
+        designation: string | null;
+        cycle: string;
+        final_score: number | null;
+        my_feedback_status: TeamAppraisal["myStatus"];
+        my_feedback_score: number | null;
+      }[];
+    }>("/api/method/hris_get_team_appraisals");
+    return res.message.map((r) => ({
+      employeeId: r.employee,
+      employeeName: r.employee_name,
+      designation: r.designation
+        ? terjemahkan("designation", r.designation)
+        : "",
+      cycle: r.cycle,
+      finalScore: r.final_score ?? 0,
+      myStatus: r.my_feedback_status,
+      myScore: r.my_feedback_score,
+    }));
+  },
+
+  async getFeedbackForm(employeeId: string): Promise<FeedbackForm> {
+    const res = await get<{
+      message: {
+        employee: string;
+        employee_name: string;
+        cycle: string;
+        criteria: { criteria: string; per_weightage: number }[];
+        goals: { name: string; progress: number }[];
+        my_feedback: {
+          status: "draft" | "submitted";
+          ratings: { criteria: string; rating: number }[];
+          feedback: string | null;
+          total_score: number;
+        } | null;
+      };
+    }>("/api/method/hris_get_feedback_form", { employee: employeeId });
+    const m = res.message;
+    return {
+      employeeId: m.employee,
+      employeeName: m.employee_name,
+      cycle: m.cycle,
+      criteria: m.criteria.map((k) => ({
+        name: k.criteria,
+        weight: k.per_weightage,
+      })),
+      goals: m.goals,
+      mine: m.my_feedback
+        ? {
+            status: m.my_feedback.status,
+            ratings: Object.fromEntries(
+              m.my_feedback.ratings.map((r) => [r.criteria, r.rating]),
+            ),
+            feedback: m.my_feedback.feedback ?? "",
+            totalScore: m.my_feedback.total_score,
+          }
+        : null,
+    };
+  },
+
+  async submitFeedback(input) {
+    await post("/api/method/hris_submit_feedback", {
+      employee: input.employeeId,
+      ratings: Object.entries(input.ratings)
+        .map(([k, v]) => `${k.replace(/[|;]/g, " ")}|${v}`)
+        .join(";"),
+      feedback: input.feedback,
+      submit: input.submit ? 1 : 0,
+    });
   },
 
   async getStaffAttendanceHistory(

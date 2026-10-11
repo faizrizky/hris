@@ -146,6 +146,17 @@ export function HomeScreen() {
             ink: c.purple.ink,
             onPress: () => navigation.navigate("StaffList"),
           },
+          ...(employee.role === "hr"
+            ? [
+                {
+                  label: t("hm.aVerifikasi"),
+                  icon: ICON.document,
+                  bg: c.info.bg,
+                  ink: c.info.ink,
+                  onPress: () => navigation.navigate("DocumentReview"),
+                },
+              ]
+            : []),
         ]
       : []),
     ...(employee?.role === "mss"

@@ -11,6 +11,9 @@ import { AttendanceHistoryScreen } from "@/screens/attendance/AttendanceHistoryS
 import { AttendanceCorrectionHistoryScreen } from "@/screens/attendance/AttendanceCorrectionHistoryScreen";
 import { LeaveListScreen } from "@/screens/leave/LeaveListScreen";
 import { LeaveRequestScreen } from "@/screens/leave/LeaveRequestScreen";
+import { AppraisalFeedbackScreen } from "@/screens/appraisal/AppraisalFeedbackScreen";
+import { DocumentReviewScreen } from "@/screens/documents/DocumentReviewScreen";
+import { DocumentReviewDetailScreen } from "@/screens/documents/DocumentReviewDetailScreen";
 import { LeaveApprovalScreen } from "@/screens/leave/LeaveApprovalScreen";
 import { OvertimeScreen } from "@/screens/leave/OvertimeScreen";
 import { PayslipListScreen } from "@/screens/payroll/PayslipListScreen";
@@ -157,6 +160,15 @@ function HomeStack() {
       <Stack.Screen name="StaffDetail" component={StaffDetailScreen} />
       <Stack.Screen name="StaffAttendance" component={StaffAttendanceScreen} />
       <Stack.Screen name="StaffHistory" component={StaffHistoryScreen} />
+      <Stack.Screen
+        name="AppraisalFeedback"
+        component={AppraisalFeedbackScreen}
+      />
+      <Stack.Screen name="DocumentReview" component={DocumentReviewScreen} />
+      <Stack.Screen
+        name="DocumentReviewDetail"
+        component={DocumentReviewDetailScreen}
+      />
     </Stack.Navigator>
   );
 }

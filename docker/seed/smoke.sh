@@ -71,6 +71,7 @@ except Exception: print("")' "$TMP/body")
 try: print(json.load(open(sys.argv[1]))["message"]["name"])
 except Exception: print("")' "$TMP/body")
   call "POST hris_delete_my_document ($docn)" "$auth" "$BASE/api/method/hris_delete_my_document" -X POST -d "name=$docn"
+  case "$who" in rani*) ;; *) call "GET hris_get_team_appraisals" "$auth" "$BASE/api/method/hris_get_team_appraisals" ;; esac
   call "GET hris_get_colleagues" "$auth" "$BASE/api/method/hris_get_colleagues"
   if [ -n "$emp" ]; then
     call "GET get_leave_details ($emp, $TODAY)" "$auth" \

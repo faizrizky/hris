@@ -15,8 +15,6 @@ import { LineIcon } from "@/components/LineIcon";
 import { ICON } from "@/constants/icons";
 import { Skeleton } from "@/components/Skeleton";
 import { useT } from "@/i18n";
-import { bukaLampiran } from "@/utils/lampiran";
-import { useConfirm } from "@/components/ConfirmDialog";
 
 const ICON_KATEGORI: Record<NotifCategory, string> = {
   Approval: ICON.approval,
@@ -28,7 +26,6 @@ const ICON_KATEGORI: Record<NotifCategory, string> = {
 
 export function NotificationScreen({ navigation }: any) {
   const t = useT();
-  const confirm = useConfirm();
   const { employee } = useSession();
   const insets = useSafeAreaInsets();
   const [items, setItems] = useState<AppNotification[] | null>(null);
@@ -68,21 +65,10 @@ export function NotificationScreen({ navigation }: any) {
     const menunggu = n.tone === "warn" && atasan;
     switch (n.documentType) {
       case "Employee Document":
-        if (n.fileUrl && employee?.role === "hr") {
-          try {
-            await bukaLampiran(n.fileUrl, n.documentName ?? "dokumen");
-          } catch {
-            void confirm({
-              title: t("lamp.gagalJudul"),
-              message: t("lamp.gagalPesan"),
-              tone: "warn",
-              confirmText: t("umum.mengerti"),
-              cancelText: null,
-            });
-          }
-          return;
-        }
-        if (employee?.role !== "hr") {
+        // HR meninjau di layar verifikasi; karyawan melihat daftar dokumennya.
+        if (employee?.role === "hr" && n.tone === "warn") {
+          navigation.navigate("DocumentReview");
+        } else {
           navigation.navigate("Profil", { screen: "ProfileDocs" });
         }
         return;

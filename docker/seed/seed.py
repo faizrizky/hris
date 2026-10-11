@@ -794,6 +794,30 @@ try:
         make(dict(doctype="Appraisal", employee=emp["rani"], company=C, appraisal_cycle=CYCLE,
                   appraisal_kra=[dict(kra="Delivery Quality", per_weightage=50), dict(kra="Teamwork", per_weightage=25),
                                  dict(kra="Initiative", per_weightage=25)]))
+    # Appraisal juga untuk dewi (atasan) dan sari (HR) supaya tab "Saya" terisi di semua akun uji.
+    _cyc = frappe.get_doc("Appraisal Cycle", CYCLE)
+    for _k in ("dewi", "sari"):
+        if not any(r.employee == emp[_k] for r in _cyc.appraisees):
+            _cyc.append("appraisees", dict(employee=emp[_k]))
+            _cyc.save(ignore_permissions=True)
+    for _k, _goals in (
+        ("dewi", [("Deliver the FY budget on schedule", "Delivery Quality", 80, "Draft approved, final review pending"),
+                  ("Coach two finance staff to independence", "Teamwork", 50, "One of two completed")]),
+        ("sari", [("Launch the HR mobile app pilot", "Initiative", 70, "Pilot running with three users"),
+                  ("Reduce time-to-hire to 30 days", "Delivery Quality", 60, "Currently 38 days")]),
+    ):
+        for _g, _kra, _prog, _desc in _goals:
+            if not exists("Goal", {"goal_name": _g, "employee": emp[_k]}):
+                make(dict(doctype="Goal", goal_name=_g, employee=emp[_k], company=C, kra=_kra, progress=_prog,
+                          status="In Progress", start_date=f"{Y}-01-01", end_date=f"{Y}-12-31",
+                          appraisal_cycle=CYCLE, description=_desc))
+        if not exists("Appraisal", {"employee": emp[_k], "appraisal_cycle": CYCLE}):
+            make(dict(doctype="Appraisal", employee=emp[_k], company=C, appraisal_cycle=CYCLE,
+                      appraisal_kra=[dict(kra="Delivery Quality", per_weightage=50), dict(kra="Teamwork", per_weightage=25),
+                                     dict(kra="Initiative", per_weightage=25)],
+                      self_ratings=[dict(criteria="Communication", per_weightage=40, rating=0.8),
+                                    dict(criteria="Work Quality", per_weightage=40, rating=0.8),
+                                    dict(criteria="Initiative", per_weightage=20, rating=0.7)]))
     _apr = frappe.db.get_value("Appraisal", {"employee": emp["rani"], "appraisal_cycle": CYCLE}, "name")
     for _rv, _rt in [("dewi", (0.9, 0.8, 0.8)), ("sari", (0.8, 0.8, 0.6))]:
         if not exists("Employee Performance Feedback", {"appraisal": _apr, "reviewer": emp[_rv]}):

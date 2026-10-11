@@ -1,4 +1,5 @@
-import { useMemo } from "react";
+import React, { useMemo, useState } from "react";
+import { TimAppraisal } from "./TimAppraisal";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { RevealScrollView as ScrollView } from "@/components/Reveal";
 import Svg, { Circle, G } from "react-native-svg";
@@ -22,7 +23,48 @@ const STROKE = 13;
 const R = (RING - STROKE) / 2;
 const CIRC = 2 * Math.PI * R;
 
+// Atasan dan HR mendapat dua tab: penilaian diri sendiri dan penilaian tim.
 export function AppraisalScreen({ navigation }: any) {
+  const { employee } = useSession();
+  const t = useT();
+  const c = useTheme();
+  const styles = useMemo(() => makeStyles(c), [c]);
+  const [tab, setTab] = useState<"saya" | "tim">("saya");
+  const bisaTim = employee?.role === "mss" || employee?.role === "hr";
+
+  const segmen = bisaTim ? (
+    <View style={styles.segment}>
+      {(["saya", "tim"] as const).map((k) => {
+        const on = tab === k;
+        return (
+          <Pressable
+            key={k}
+            onPress={() => setTab(k)}
+            style={[styles.segBtn, on && styles.segBtnOn]}
+          >
+            <Text style={[styles.segText, on && styles.segTextOn]}>
+              {t(k === "saya" ? "ap2.tabSaya" : "ap2.tabTim")}
+            </Text>
+          </Pressable>
+        );
+      })}
+    </View>
+  ) : null;
+
+  return tab === "tim" ? (
+    <TimAppraisal navigation={navigation} atas={segmen} />
+  ) : (
+    <AppraisalSaya navigation={navigation} atas={segmen} />
+  );
+}
+
+function AppraisalSaya({
+  navigation,
+  atas,
+}: {
+  navigation: any;
+  atas: React.ReactNode;
+}) {
   const t = useT();
   const { employee } = useSession();
   const insets = useSafeAreaInsets();
@@ -49,6 +91,7 @@ export function AppraisalScreen({ navigation }: any) {
       return (
         <View style={styles.container}>
           {head}
+          {atas}
           <ScrollView contentContainerStyle={styles.content}>
             <ErrorState pesan={penilaian.error} onUlangi={penilaian.ulangi} />
           </ScrollView>
@@ -59,6 +102,7 @@ export function AppraisalScreen({ navigation }: any) {
       return (
         <View style={styles.container}>
           {head}
+          {atas}
           <ScrollView contentContainerStyle={styles.content}>
             <View style={styles.emptyCard}>
               <View style={styles.emptyIcon}>
@@ -74,6 +118,7 @@ export function AppraisalScreen({ navigation }: any) {
     return (
       <View style={styles.container}>
         {head}
+        {atas}
         <ScrollView contentContainerStyle={styles.content}>
           <View style={styles.heroCard}>
             <Skeleton width={RING} height={RING} radius={RING / 2} />
@@ -123,6 +168,7 @@ export function AppraisalScreen({ navigation }: any) {
   return (
     <View style={styles.container}>
       {head}
+      {atas}
 
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.heroCard}>
@@ -248,8 +294,33 @@ function GoalCard({ goal }: { goal: AppraisalGoal }) {
   );
 }
 
-const makeStyles = (c: Palette) =>
+export const makeStyles = (c: Palette) =>
   StyleSheet.create({
+    segment: {
+      flexDirection: "row",
+      gap: 4,
+      padding: 4,
+      borderRadius: 14,
+      backgroundColor: c.chip,
+      marginHorizontal: 18,
+      marginTop: 12,
+    },
+    segBtn: {
+      flex: 1,
+      paddingVertical: 9,
+      borderRadius: 11,
+      alignItems: "center",
+    },
+    segBtnOn: {
+      backgroundColor: c.card,
+      shadowColor: "#0F1720",
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.14,
+      shadowRadius: 4,
+      elevation: 2,
+    },
+    segText: { fontSize: 12, fontWeight: "700", color: c.muted },
+    segTextOn: { color: c.ink },
     emptyCard: {
       alignItems: "center",
       borderRadius: 22,
