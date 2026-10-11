@@ -395,7 +395,7 @@ export interface HrisApi {
 
   getTaxSummary(employeeId: string): Promise<TaxSummary>;
 
-  getAppraisal(employeeId: string): Promise<Appraisal>;
+  getAppraisal(employeeId: string): Promise<Appraisal | null>;
 
   getStaffDirectory(employeeId: string): Promise<StaffDirectory>;
 

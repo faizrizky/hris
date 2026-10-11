@@ -66,6 +66,11 @@ except Exception: print("")' "$TMP/body")
   call "GET hris_get_staff_attendance_history (diri sendiri)" "$auth" "$BASE/api/method/hris_get_staff_attendance_history" -G --data-urlencode "employee=$emp" --data-urlencode "limit=30"
   call "POST hris_register_push_token" "$auth" "$BASE/api/method/hris_register_push_token" -X POST -d "token=ExponentPushToken[smoke-test]" -d platform=smoke
   call "POST hris_unregister_push_token" "$auth" "$BASE/api/method/hris_unregister_push_token" -X POST -d "token=ExponentPushToken[smoke-test]"
+  call "POST hris_create_my_document (smoke)" "$auth" "$BASE/api/method/hris_create_my_document" -X POST -d "document_name=Smoke test" -d category=Certificate
+  local docn; docn=$(python3 -c 'import sys,json
+try: print(json.load(open(sys.argv[1]))["message"]["name"])
+except Exception: print("")' "$TMP/body")
+  call "POST hris_delete_my_document ($docn)" "$auth" "$BASE/api/method/hris_delete_my_document" -X POST -d "name=$docn"
   call "GET hris_get_colleagues" "$auth" "$BASE/api/method/hris_get_colleagues"
   if [ -n "$emp" ]; then
     call "GET get_leave_details ($emp, $TODAY)" "$auth" \

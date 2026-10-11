@@ -79,7 +79,7 @@ export function CreateSheet({
       go: () =>
         navigation.navigate("Cuti", {
           screen: "LeaveRequest",
-          params: { kind: "cuti" },
+          params: { kind: "cuti", n: Date.now() },
         }),
     },
     {
@@ -94,7 +94,7 @@ export function CreateSheet({
       go: () =>
         navigation.navigate("Cuti", {
           screen: "LeaveRequest",
-          params: { kind: "lembur" },
+          params: { kind: "lembur", n: Date.now() },
         }),
     },
     {
@@ -107,7 +107,7 @@ export function CreateSheet({
       go: () =>
         navigation.navigate("Cuti", {
           screen: "LeaveRequest",
-          params: { kind: "dinas" },
+          params: { kind: "dinas", n: Date.now() },
         }),
     },
     {

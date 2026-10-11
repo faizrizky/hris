@@ -22,6 +22,22 @@ export class ApiError extends Error {
   }
 }
 
+// Frappe menaruh alasan penolakan di `_server_messages` (JSON berlapis, bisa berisi HTML).
+function pesanServer(obj: Record<string, unknown>): string | null {
+  if (typeof obj._server_messages !== "string") return null;
+  try {
+    const daftar = JSON.parse(obj._server_messages) as string[];
+    const pertama = JSON.parse(daftar[0] ?? "{}") as { message?: string };
+    const teks = (pertama.message ?? "")
+      .replace(/<[^>]+>/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+    return teks || null;
+  } catch {
+    return null;
+  }
+}
+
 type Params = Record<string, string | number | boolean | object | undefined>;
 
 function encode(params: Params): string {
@@ -97,7 +113,8 @@ async function request<T>(
       throw new ApiError(tt("err.fileBesar"), 413, "TooLarge");
     }
     const message =
-      typeof obj.message === "string" ? obj.message : `HTTP ${res.status}`;
+      pesanServer(obj) ??
+      (typeof obj.message === "string" ? obj.message : `HTTP ${res.status}`);
     throw new ApiError(message, res.status, excType);
   }
 
@@ -152,7 +169,10 @@ export function describeError(e: unknown): string {
       return e.message;
     }
     if (e.status === 417) {
-      return tt("err.ditolak");
+      // Alasan asli dari server (bahasa Inggris) lebih berguna daripada pesan umum.
+      return e.message && !e.message.startsWith("HTTP ")
+        ? tt("err.ditolakServer", { pesan: e.message })
+        : tt("err.ditolak");
     }
     if (e.status === 401) return tt("err.loginSalah");
     if (e.status === 0) return e.message;

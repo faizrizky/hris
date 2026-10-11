@@ -133,7 +133,10 @@ export function OvertimeScreen({ navigation }: any) {
 
         <Pressable
           onPress={() =>
-            navigation.navigate("LeaveRequest", { kind: "lembur" })
+            navigation.navigate("LeaveRequest", {
+              kind: "lembur",
+              n: Date.now(),
+            })
           }
         >
           <LinearGradient

@@ -46,7 +46,8 @@ export const en: Record<Kunci, string> = {
     "This account is not linked to an employee record. Contact HR.",
   "err.tanpaApprover": "No approver assigned. Contact HR.",
   "err.dataKurang": "The request data is incomplete",
-  "err.bentrokCuti": "Dates overlap with another leave request",
+  "err.bentrokCuti":
+    "The dates overlap with another of your requests. Check your request list.",
   "err.passwordLama": "Current password is incorrect",
   "err.passwordLemah":
     "New password is too weak. Use a mix of uppercase, lowercase, numbers, and symbols.",
@@ -679,4 +680,8 @@ export const en: Record<Kunci, string> = {
   "lamp.gagalPesan":
     "Try again shortly. If it still fails, ask the requester to upload it again.",
   "lamp.tidakTersedia": "File sharing is not available on this device",
+  "ap2.kosongJudul": "No performance appraisal yet",
+  "ap2.kosongIsi":
+    "Your appraisal appears here once HR opens an appraisal cycle for you.",
+  "err.ditolakServer": "Rejected by the server: {pesan}",
 };

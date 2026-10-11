@@ -17,6 +17,11 @@ for n in frappe.get_all("Notification Log", filters=filters, pluck="name", limit
     frappe.db.set_value("Notification Log", n, "read", 1)
 
 cat_map = {"Leave Application": "Approval", "Salary Slip": "Payroll", "Attendance Request": "Presensi", "Travel Request": "Approval", "Overtime Request": "Approval", "Employee Document": "Pengumuman"}
+is_hr = frappe.session.user == "Administrator" or len(
+    frappe.get_all("Has Role", filters={"parent": frappe.session.user, "parenttype": "User",
+                                        "role": ["in", ["HR User", "HR Manager", "System Manager"]]},
+                   limit_page_length=1)
+) > 0
 rows = frappe.get_all(
     "Notification Log",
     filters={"for_user": frappe.session.user},
@@ -35,6 +40,17 @@ for r in rows:
         tone = "bad"
     elif "waiting" in low:
         tone = "warn"
+    file_url = None
+    if r.document_type == "Employee Document" and r.document_name:
+        # file terbaru yang terlampir, hanya bila pemanggil berhak membaca dokumennya
+        doc_emp = frappe.db.get_value("Employee Document", r.document_name, "employee")
+        can_read = is_hr or (doc_emp and frappe.db.get_value("Employee", doc_emp, "user_id") == frappe.session.user)
+        if can_read:
+            f = frappe.get_all("File", filters={"attached_to_doctype": "Employee Document",
+                                                 "attached_to_name": r.document_name},
+                               fields=["file_url"], order_by="creation desc", limit_page_length=1)
+            if f:
+                file_url = f[0].file_url
     result.append(
         {
             "name": r.name,
@@ -46,6 +62,7 @@ for r in rows:
             "read": 1 if r.read else 0,
             "document_type": r.document_type,
             "document_name": r.document_name,
+            "file_url": file_url,
         }
     )
 frappe.response["message"] = result

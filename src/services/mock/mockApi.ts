@@ -227,7 +227,7 @@ export const mockApi: HrisApi = {
     return MOCK_TAX;
   },
 
-  async getAppraisal(_employeeId: string): Promise<Appraisal> {
+  async getAppraisal(_employeeId: string): Promise<Appraisal | null> {
     await delay();
     return MOCK_APPRAISAL;
   },

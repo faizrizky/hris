@@ -148,7 +148,10 @@ export function LeaveListScreen({ navigation }: any) {
               <Pressable
                 style={styles.actionCard}
                 onPress={() =>
-                  navigation.navigate("LeaveRequest", { kind: "cuti" })
+                  navigation.navigate("LeaveRequest", {
+                    kind: "cuti",
+                    n: Date.now(),
+                  })
                 }
               >
                 <View
@@ -163,7 +166,10 @@ export function LeaveListScreen({ navigation }: any) {
               <Pressable
                 style={styles.actionCard}
                 onPress={() =>
-                  navigation.navigate("LeaveRequest", { kind: "dinas" })
+                  navigation.navigate("LeaveRequest", {
+                    kind: "dinas",
+                    n: Date.now(),
+                  })
                 }
               >
                 <View

@@ -11,6 +11,7 @@ import { ICON } from "@/constants/icons";
 import { CreateSheet } from "@/components/CreateSheet";
 import { useT } from "@/i18n";
 import type { Kunci } from "@/i18n/id";
+import { getFocusedRouteNameFromRoute } from "@react-navigation/native";
 
 const RIGHT = ["Slip Gaji", "Profil"];
 
@@ -60,7 +61,11 @@ export function FloatingTabBar({ state, navigation }: BottomTabBarProps) {
   const currentRoute = state.routes[state.index].name;
   const active = state.routes[state.index] as any;
   const nested = active.state;
-  const nestedRoute = nested?.routes?.[nested.index ?? 0]?.name;
+  // Saat tab baru pertama kali dibuka lewat { screen }, state bersarangnya belum
+  // ada; getFocusedRouteNameFromRoute membaca params.screen sebagai gantinya.
+  const nestedRoute =
+    nested?.routes?.[nested.index ?? 0]?.name ??
+    getFocusedRouteNameFromRoute(active);
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
 

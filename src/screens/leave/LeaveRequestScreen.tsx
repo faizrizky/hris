@@ -1,5 +1,7 @@
 import React, { useEffect, useState, useMemo } from "react";
 import {
+  Animated,
+  Easing,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -72,7 +74,19 @@ const DOC_NAMA: Record<FormKind, string> = {
   dinas: "Travel Request",
 };
 
+// Setiap kali dibuka dari menu (+), daftar cuti, atau layar lembur, form dimulai
+// bersih: `n` di params berbeda tiap navigasi, jadi state lama tidak terbawa.
 export function LeaveRequestScreen({ navigation, route }: any) {
+  return (
+    <LeaveRequestForm
+      key={`${route?.params?.kind ?? "cuti"}-${route?.params?.n ?? 0}`}
+      navigation={navigation}
+      route={route}
+    />
+  );
+}
+
+function LeaveRequestForm({ navigation, route }: any) {
   const t = useT();
   const confirm = useConfirm();
   const { employee } = useSession();
@@ -83,6 +97,11 @@ export function LeaveRequestScreen({ navigation, route }: any) {
   const [delegasi, setDelegasi] = useState<Colleague | null>(null);
   const insets = useSafeAreaInsets();
   const [kind, setKind] = useState<FormKind>(route?.params?.kind ?? "cuti");
+  const [segW, setSegW] = useState(0);
+  const [geser] = useState(
+    () => new Animated.Value(SEGMENTS.findIndex((x) => x.key === kind)),
+  );
+  const [muncul] = useState(() => new Animated.Value(1));
   const [otEndRaw, setOtEndRaw] = useState(0);
   const [uraian, setUraian] = useState("");
   const [otFiles, setOtFiles] = useState<BuktiFile[]>([]);
@@ -121,6 +140,28 @@ export function LeaveRequestScreen({ navigation, route }: any) {
   const [sending, setSending] = useState(false);
 
   const [galat, setGalat] = useState<string | null>(null);
+
+  // Ganti jenis pengajuan: indikator bergeser, isi form memudar masuk, dan
+  // hasil kiriman sebelumnya tidak ikut ke jenis lain.
+  const gantiKind = (k: FormKind) => {
+    if (k === kind) return;
+    setKind(k);
+    setDone(null);
+    setGalat(null);
+    Animated.timing(geser, {
+      toValue: SEGMENTS.findIndex((x) => x.key === k),
+      duration: 260,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: true,
+    }).start();
+    muncul.setValue(0);
+    Animated.timing(muncul, {
+      toValue: 1,
+      duration: 280,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: true,
+    }).start();
+  };
 
   useEffect(() => {
     if (!employee) return;
@@ -370,14 +411,40 @@ export function LeaveRequestScreen({ navigation, route }: any) {
           </View>
         </View>
 
-        <View style={styles.segment}>
+        <View
+          style={styles.segment}
+          onLayout={(e) => setSegW(e.nativeEvent.layout.width)}
+        >
+          {segW > 0 && (
+            <Animated.View
+              pointerEvents="none"
+              style={[
+                styles.segIndicator,
+                {
+                  width: (segW - 16) / 3,
+                  transform: [
+                    {
+                      translateX: geser.interpolate({
+                        inputRange: [0, 1, 2],
+                        outputRange: [
+                          0,
+                          (segW - 16) / 3 + 4,
+                          ((segW - 16) / 3 + 4) * 2,
+                        ],
+                      }),
+                    },
+                  ],
+                },
+              ]}
+            />
+          )}
           {SEGMENTS.map((s) => {
             const on = kind === s.key;
             return (
               <Pressable
                 key={s.key}
-                onPress={() => setKind(s.key)}
-                style={[styles.segBtn, on && styles.segBtnOn]}
+                onPress={() => gantiKind(s.key)}
+                style={styles.segBtn}
               >
                 <Text style={[styles.segText, on && styles.segTextOn]}>
                   {t(s.label)}
@@ -396,116 +463,134 @@ export function LeaveRequestScreen({ navigation, route }: any) {
           contentContainerStyle={styles.content}
           keyboardShouldPersistTaps="handled"
         >
-          {done ? (
-            <FormDoneView
-              title={t(
-                kind === "cuti"
-                  ? "lr.terkirimCuti"
-                  : kind === "lembur"
-                    ? "lr.terkirimLembur"
-                    : "lr.terkirimDinas",
-              )}
-              waitingOn={langkahApproval[0]?.name ?? t("lr.approver")}
-              rows={buatDoneRows()}
-              doc={`${DOC_NAMA[kind]} · ${done}`}
-              onLihat={() => navigation.goBack()}
-              onHome={() => navigation.getParent()?.navigate("Beranda")}
-            />
-          ) : (
-            <>
-              {kind === "cuti" && (
-                <CutiTypeCard
-                  jenis={jenisCuti}
-                  onPick={setJenisCuti}
-                  saldo={saldo}
-                  hariKerja={hariKerja}
-                />
-              )}
-              {kind === "dinas" && (
-                <DinasTujuanCard dest={dest} onChange={setDest} />
-              )}
-
-              <DatePickerCard
-                key={kind}
-                mode={isSingle ? "single" : "range"}
-                title={calTitle}
-                hint={calHint}
-                start={start}
-                end={end}
-                onChange={handleDateChange}
-                footer={footer}
+          <Animated.View
+            style={{
+              opacity: muncul,
+              transform: [
+                {
+                  translateY: muncul.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [14, 0],
+                  }),
+                },
+              ],
+            }}
+          >
+            {done ? (
+              <FormDoneView
+                title={t(
+                  kind === "cuti"
+                    ? "lr.terkirimCuti"
+                    : kind === "lembur"
+                      ? "lr.terkirimLembur"
+                      : "lr.terkirimDinas",
+                )}
+                waitingOn={langkahApproval[0]?.name ?? t("lr.approver")}
+                rows={buatDoneRows()}
+                doc={`${DOC_NAMA[kind]} · ${done}`}
+                onLihat={() => navigation.goBack()}
+                onHome={() => navigation.getParent()?.navigate("Beranda")}
               />
-
-              {kind === "cuti" && (
-                <CutiDetailCard
-                  jenis={jenisCuti}
-                  alasan={alasan}
-                  onChangeAlasan={setAlasan}
-                  rekan={rekan}
-                  delegasi={delegasi}
-                  onPickDelegasi={setDelegasi}
-                />
-              )}
-
-              {kind === "lembur" && (
-                <>
-                  <LemburJamCard
-                    holiday={otHoliday}
-                    startLabel={jamMenit(otStart)}
-                    endLabel={jamMenit(otEnd)}
-                    rule={otHoliday ? t("lr.aturanLibur") : t("lr.aturanKerja")}
-                    onMinus={() => setOtEndRaw(otEnd - 30)}
-                    onPlus={() => setOtEndRaw(otEnd + 30)}
+            ) : (
+              <>
+                {kind === "cuti" && (
+                  <CutiTypeCard
+                    jenis={jenisCuti}
+                    onPick={setJenisCuti}
+                    saldo={saldo}
+                    hariKerja={hariKerja}
                   />
-                  <LemburUraianCard uraian={uraian} onChange={setUraian} />
-                  <LemburBuktiCard
-                    files={otFiles}
-                    onAdd={tambahBukti}
-                    onRemove={(i) =>
-                      setOtFiles((prev) => prev.filter((_, idx) => idx !== i))
+                )}
+                {kind === "dinas" && (
+                  <DinasTujuanCard dest={dest} onChange={setDest} />
+                )}
+
+                <DatePickerCard
+                  key={kind}
+                  // Lembur diajukan setelah dikerjakan: hanya hari ini dan sebelumnya.
+                  allow={kind === "lembur" ? "past" : "future"}
+                  mode={isSingle ? "single" : "range"}
+                  title={calTitle}
+                  hint={calHint}
+                  start={start}
+                  end={end}
+                  onChange={handleDateChange}
+                  footer={footer}
+                />
+
+                {kind === "cuti" && (
+                  <CutiDetailCard
+                    jenis={jenisCuti}
+                    alasan={alasan}
+                    onChangeAlasan={setAlasan}
+                    rekan={rekan}
+                    delegasi={delegasi}
+                    onPickDelegasi={setDelegasi}
+                  />
+                )}
+
+                {kind === "lembur" && (
+                  <>
+                    <LemburJamCard
+                      holiday={otHoliday}
+                      startLabel={jamMenit(otStart)}
+                      endLabel={jamMenit(otEnd)}
+                      rule={
+                        otHoliday ? t("lr.aturanLibur") : t("lr.aturanKerja")
+                      }
+                      onMinus={() => setOtEndRaw(otEnd - 30)}
+                      onPlus={() => setOtEndRaw(otEnd + 30)}
+                    />
+                    <LemburUraianCard uraian={uraian} onChange={setUraian} />
+                    <LemburBuktiCard
+                      files={otFiles}
+                      onAdd={tambahBukti}
+                      onRemove={(i) =>
+                        setOtFiles((prev) => prev.filter((_, idx) => idx !== i))
+                      }
+                    />
+                  </>
+                )}
+
+                {kind === "dinas" && (
+                  <DinasDetailCard
+                    transport={transport}
+                    onPickTransport={setTransport}
+                    keperluan={keperluan}
+                    onChangeKeperluan={setKeperluan}
+                  />
+                )}
+
+                {kind === "dinas" && (
+                  <DinasBiayaCard
+                    items={biaya}
+                    hari={hariPerjalanan}
+                    onAdd={() =>
+                      setBiaya((prev) => [
+                        ...prev,
+                        {
+                          id: `b${Date.now()}`,
+                          kategori: "Transportasi",
+                          keterangan: "",
+                          nominal: "",
+                          bukti: null,
+                        },
+                      ])
+                    }
+                    onRemove={(id) =>
+                      setBiaya((prev) => prev.filter((x) => x.id !== id))
+                    }
+                    onChange={(id, patch) =>
+                      setBiaya((prev) =>
+                        prev.map((x) => (x.id === id ? { ...x, ...patch } : x)),
+                      )
                     }
                   />
-                </>
-              )}
-
-              {kind === "dinas" && (
-                <DinasDetailCard
-                  transport={transport}
-                  onPickTransport={setTransport}
-                  keperluan={keperluan}
-                  onChangeKeperluan={setKeperluan}
-                />
-              )}
-
-              {kind === "dinas" && (
-                <DinasBiayaCard
-                  items={biaya}
-                  hari={hariPerjalanan}
-                  onAdd={() =>
-                    setBiaya((prev) => [
-                      ...prev,
-                      {
-                        id: `b${Date.now()}`,
-                        kategori: "Transportasi",
-                        keterangan: "",
-                        nominal: "",
-                        bukti: null,
-                      },
-                    ])
-                  }
-                  onRemove={(id) =>
-                    setBiaya((prev) => prev.filter((x) => x.id !== id))
-                  }
-                  onChange={(id, patch) =>
-                    setBiaya((prev) =>
-                      prev.map((x) => (x.id === id ? { ...x, ...patch } : x)),
-                    )
-                  }
-                />
-              )}
-              <ApprovalFlowCard steps={langkahApproval} />
-            </>
-          )}
+                )}
+                <ApprovalFlowCard steps={langkahApproval} />
+              </>
+            )}
+          </Animated.View>
         </ScrollView>
       </KeyboardAvoidingView>
       {!done && (
@@ -594,7 +679,12 @@ const makeStyles = (c: Palette) =>
       borderRadius: 11,
       alignItems: "center",
     },
-    segBtnOn: {
+    segIndicator: {
+      position: "absolute",
+      top: 4,
+      bottom: 4,
+      left: 4,
+      borderRadius: 11,
       backgroundColor: c.card,
       shadowColor: "#0F1720",
       shadowOffset: { width: 0, height: 1 },

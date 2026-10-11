@@ -47,6 +47,7 @@ import {
 } from "../../utils/date";
 import { ApiError, get, post, put, upload } from "./http";
 import { ukuranFile } from "../../utils/file";
+import { File as FileFs } from "expo-file-system";
 import { tokenPushSaatIni } from "../push";
 import {
   kembalikan,
@@ -452,6 +453,29 @@ async function ambilMilikSendiri(employeeId: string): Promise<LeaveRequest[]> {
   return res.data.map(bentukPengajuan);
 }
 
+// Unggah satu berkas ke upload_file. fetch bawaan Expo tidak menerima bentuk
+// {uri,name,type} khas React Native, jadi isinya dibaca lewat expo-file-system
+// dan dikirim sebagai bagian multipart biasa (objek dengan bytes()).
+async function unggahBerkas(
+  f: BerkasLampiran,
+  doctype: string,
+  docname: string,
+  fieldname: string,
+): Promise<void> {
+  const sumber = new FileFs(f.uri);
+  const form = new FormData();
+  form.append("file", {
+    name: f.name,
+    type: f.mimeType || "application/octet-stream",
+    bytes: () => sumber.bytes(),
+  } as unknown as Blob);
+  form.append("is_private", "1");
+  form.append("doctype", doctype);
+  form.append("docname", docname);
+  form.append("fieldname", fieldname);
+  await upload("/api/method/upload_file", form);
+}
+
 // Lampiran dikirim setelah dokumennya ada. Satu yang gagal tidak menggagalkan
 // pengajuan; jumlah yang gagal dikembalikan supaya pengguna diberi tahu.
 async function lampirkanSemua(
@@ -462,17 +486,7 @@ async function lampirkanSemua(
   let gagal = 0;
   for (const { f, field } of daftar) {
     try {
-      const form = new FormData();
-      form.append("file", {
-        uri: f.uri,
-        name: f.name,
-        type: f.mimeType,
-      } as unknown as Blob);
-      form.append("is_private", "1");
-      form.append("doctype", doctype);
-      form.append("docname", docname);
-      form.append("fieldname", field);
-      await upload("/api/method/upload_file", form);
+      await unggahBerkas(f, doctype, docname, field);
     } catch {
       gagal += 1;
     }
@@ -1003,27 +1017,30 @@ export const erpnextApi: HrisApi = {
         expires_on: input.expiresOn,
       },
     );
-    const form = new FormData();
-    // React Native menerima objek {uri,name,type} sebagai berkas multipart.
-    form.append("file", {
-      uri: input.file.uri,
-      name: input.file.name,
-      type: input.file.mimeType,
-    } as unknown as Blob);
-    form.append("is_private", "1");
-    form.append("doctype", "Employee Document");
-    form.append("docname", dibuat.message.name);
-    form.append("fieldname", "file");
-    await upload("/api/method/upload_file", form);
+    try {
+      await unggahBerkas(
+        input.file,
+        "Employee Document",
+        dibuat.message.name,
+        "file",
+      );
+    } catch (e) {
+      // Dokumen tanpa berkas tidak berguna; dihapus supaya tidak muncul dobel saat diulang.
+      await post("/api/method/hris_delete_my_document", {
+        name: dibuat.message.name,
+      }).catch(() => {});
+      throw e;
+    }
     return ambilDokumen();
   },
 
-  async getAppraisal(): Promise<Appraisal> {
+  async getAppraisal(): Promise<Appraisal | null> {
     const res = await get<{ message: AppraisalRes | null }>(
       "/api/method/hris_get_my_appraisal",
     );
     const a = res.message;
-    if (!a) throw new ApiError(tt("err.tanpaAppraisal"), 404, "NoAppraisal");
+    // null = belum ada penilaian (bukan galat), layar menampilkan keadaan kosong.
+    if (!a) return null;
     return {
       cycle: a.cycle,
       method: a.method,

@@ -14,6 +14,8 @@ import { ErrorState } from "@/components/ErrorState";
 import { desimal } from "@/utils/currency";
 import { Skeleton } from "@/components/Skeleton";
 import { useT } from "@/i18n";
+import { LineIcon } from "@/components/LineIcon";
+import { ICON } from "@/constants/icons";
 
 const RING = 104;
 const STROKE = 13;
@@ -49,6 +51,22 @@ export function AppraisalScreen({ navigation }: any) {
           {head}
           <ScrollView contentContainerStyle={styles.content}>
             <ErrorState pesan={penilaian.error} onUlangi={penilaian.ulangi} />
+          </ScrollView>
+        </View>
+      );
+    }
+    if (!penilaian.memuat) {
+      return (
+        <View style={styles.container}>
+          {head}
+          <ScrollView contentContainerStyle={styles.content}>
+            <View style={styles.emptyCard}>
+              <View style={styles.emptyIcon}>
+                <LineIcon d={ICON.appraisal} color={c.muted} size={22} />
+              </View>
+              <Text style={styles.emptyTitle}>{t("ap2.kosongJudul")}</Text>
+              <Text style={styles.emptyText}>{t("ap2.kosongIsi")}</Text>
+            </View>
           </ScrollView>
         </View>
       );
@@ -232,6 +250,37 @@ function GoalCard({ goal }: { goal: AppraisalGoal }) {
 
 const makeStyles = (c: Palette) =>
   StyleSheet.create({
+    emptyCard: {
+      alignItems: "center",
+      borderRadius: 22,
+      backgroundColor: c.card,
+      borderWidth: 1,
+      borderColor: c.cardBorder,
+      paddingVertical: 32,
+      paddingHorizontal: 24,
+    },
+    emptyIcon: {
+      width: 52,
+      height: 52,
+      borderRadius: 17,
+      backgroundColor: c.chip,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    emptyTitle: {
+      fontSize: 13.5,
+      fontWeight: "700",
+      color: c.ink,
+      marginTop: 14,
+    },
+    emptyText: {
+      fontSize: 11.5,
+      fontWeight: "500",
+      color: c.muted,
+      lineHeight: 17,
+      textAlign: "center",
+      marginTop: 6,
+    },
     container: { flex: 1, backgroundColor: c.bg },
 
     header: {

@@ -37,6 +37,48 @@ for key in mapping:
         updates[mapping[key][0]] = val if val else None
 if updates:
     frappe.db.set_value("Employee", me[0].name, updates)
+
+# emergency_contacts: daftar JSON [{contact_name, relation, phone}] atau teks "nama|relasi|telepon;..."
+# Mengganti seluruh isi tabel. Maks 5 baris; nama dan telepon wajib; telepon minimal 8 digit.
+if "emergency_contacts" in fd:
+    raw = fd.get("emergency_contacts")
+    items = []
+    if isinstance(raw, list):
+        for c in raw:
+            items.append([str(c.get("contact_name") or "").strip(), str(c.get("relation") or "").strip(),
+                          str(c.get("phone") or "").strip()])
+    elif raw:
+        for part in str(raw).split(";"):
+            if not part.strip():
+                continue
+            bits = [b.strip() for b in part.split("|")]
+            while len(bits) < 3:
+                bits.append("")
+            items.append(bits[:3])
+    if len(items) > 5:
+        frappe.throw("At most 5 emergency contacts are allowed")
+    allowed_rel = ["Mother", "Father", "Sibling", "Spouse", "Friend", "Other"]
+    rows = []
+    for it in items:
+        if not it[0] or not it[2]:
+            frappe.throw("Emergency contact name and phone are required")
+        if len(it[0]) > 140:
+            frappe.throw("Emergency contact name is too long (max 140 characters)")
+        digits = 0
+        for ch in it[2]:
+            if ch.isdigit():
+                digits = digits + 1
+            elif ch not in "+-() ":
+                frappe.throw("Invalid phone number format")
+        if digits < 8:
+            frappe.throw("Emergency contact phone must have at least 8 digits")
+        rel = it[1] if it[1] in allowed_rel else ("Other" if it[1] else None)
+        rows.append({"contact_name": it[0], "relation": rel, "phone": it[2]})
+    emp_doc = frappe.get_doc("Employee", me[0].name)
+    emp_doc.set("custom_emergency_contacts", rows)
+    emp_doc.flags.ignore_permissions = True
+    emp_doc.flags.ignore_mandatory = True
+    emp_doc.save()
 e = frappe.get_all(
     "Employee",
     filters={"name": me[0].name},
@@ -63,4 +105,10 @@ frappe.response["message"] = {
     "emergency": {"name": e.person_to_be_contacted, "relation": e.relation, "phone": e.emergency_phone_number},
     "em2": {"name": e.custom_em2_name, "relation": e.custom_em2_relation, "phone": e.custom_em2_phone},
     "family": [],
+    "emergency_contacts": [
+        {"contact_name": c.contact_name, "relation": c.relation, "phone": c.phone}
+        for c in frappe.get_all("Employee Emergency Contact", filters={"parent": me[0].name, "parenttype": "Employee"},
+                                fields=["contact_name", "relation", "phone"], order_by="idx asc",
+                                parent_doctype="Employee", limit_page_length=20)
+    ],
 }

@@ -3,7 +3,7 @@
 # place_of_birth dan religion tidak ada di Employee v16, jadi selalu null. family belum ada sumber: [].
 # Panggil: GET /api/method/hris_get_my_profile
 fields = [
-    "employee_name", "date_of_birth", "gender", "marital_status", "company_email",
+    "name", "employee_name", "date_of_birth", "gender", "marital_status", "company_email",
     "personal_email", "cell_number", "current_address", "permanent_address",
     "person_to_be_contacted", "relation", "emergency_phone_number",
     "custom_em2_name", "custom_em2_relation", "custom_em2_phone",
@@ -40,5 +40,12 @@ if rows:
             "phone": e.custom_em2_phone,
         },
         "family": [],
+        "emergency_contacts": [
+            {"contact_name": c.contact_name, "relation": c.relation, "phone": c.phone}
+            for c in frappe.get_all("Employee Emergency Contact",
+                                    filters={"parent": rows[0].name, "parenttype": "Employee"},
+                                    fields=["contact_name", "relation", "phone"], order_by="idx asc",
+                                    parent_doctype="Employee", limit_page_length=20)
+        ],
     }
 frappe.response["message"] = result

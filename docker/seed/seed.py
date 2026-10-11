@@ -596,6 +596,35 @@ if not any(p.role == "Employee" and p.permlevel == 0 and p.if_owner for p in fra
     log("Attendance Request: izin Employee dibatasi if_owner")
 frappe.db.commit()
 
+# Kontak darurat tambahan (child table) di Employee. Kontak utama tetap di field bawaan Employee.
+if not frappe.db.exists("DocType", "Employee Emergency Contact"):
+    make(dict(
+        doctype="DocType", name="Employee Emergency Contact", module="HR", custom=1, istable=1, editable_grid=1,
+        fields=[
+            dict(fieldname="contact_name", label="Contact Name", fieldtype="Data", reqd=1, in_list_view=1),
+            dict(fieldname="relation", label="Relation", fieldtype="Select",
+                 options="\nMother\nFather\nSibling\nSpouse\nFriend\nOther", in_list_view=1),
+            dict(fieldname="phone", label="Phone", fieldtype="Data", reqd=1, in_list_view=1),
+        ]))
+    frappe.clear_cache()
+if not frappe.db.exists("Custom Field", {"dt": "Employee", "fieldname": "custom_emergency_contacts"}):
+    make(dict(doctype="Custom Field", dt="Employee", fieldname="custom_emergency_contacts",
+              label="Additional Emergency Contacts", fieldtype="Table", options="Employee Emergency Contact",
+              insert_after="custom_em2_phone"))
+    frappe.clear_cache(doctype="Employee")
+frappe.db.commit()
+# Migrasi satu kali: custom_em2_* -> baris tabel (hanya bila tabel karyawan itu masih kosong). Field lama dibiarkan.
+for _e in frappe.get_all("Employee", filters={"custom_em2_name": ["is", "set"]},
+                         fields=["name", "custom_em2_name", "custom_em2_relation", "custom_em2_phone"]):
+    if not frappe.db.exists("Employee Emergency Contact", {"parent": _e.name, "parenttype": "Employee"}):
+        _rel = _e.custom_em2_relation if _e.custom_em2_relation in ("Mother", "Father", "Sibling", "Spouse", "Friend") \
+            else ("Other" if _e.custom_em2_relation else None)
+        frappe.get_doc(dict(doctype="Employee Emergency Contact", parent=_e.name, parenttype="Employee",
+                            parentfield="custom_emergency_contacts", idx=1, contact_name=_e.custom_em2_name,
+                            relation=_rel, phone=_e.custom_em2_phone or "-")).db_insert()
+        log(f"kontak darurat kedua {_e.name} dimigrasi ke tabel")
+frappe.db.commit()
+
 # Sinkronkan label Custom Field yang sudah ada ke bahasa Inggris (nama field tidak berubah).
 for (_dt, _fn), _label in {
     ("Employee", "custom_pengaturan_gaji"): "Salary Settings",
@@ -607,6 +636,7 @@ for (_dt, _fn), _label in {
     ("Employee", "custom_em2_name"): "Second Emergency Contact: Name",
     ("Employee", "custom_em2_relation"): "Second Emergency Contact: Relation",
     ("Employee", "custom_em2_phone"): "Second Emergency Contact: Phone",
+    ("Employee", "custom_emergency_contacts"): "Additional Emergency Contacts",
     ("Attendance Request", "custom_requested_check_in"): "Requested Check-in",
     ("Attendance Request", "custom_requested_check_out"): "Requested Check-out",
 }.items():

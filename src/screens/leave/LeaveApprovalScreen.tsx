@@ -1,4 +1,5 @@
 import React, { useCallback, useState, useMemo } from "react";
+import { useFocusEffect } from "@react-navigation/native";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { RevealFlatList as FlatList } from "@/components/Reveal";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -37,6 +38,9 @@ export function LeaveApprovalScreen({ navigation }: any) {
       .then(setItems)
       .catch((e) => setGalat(describeError(e)));
   }, [employee]);
+
+  // Dimuat ulang tiap layar mendapat fokus, supaya pengajuan baru langsung masuk.
+  useFocusEffect(load);
 
   const decide = async (id: string, decision: "approve" | "reject") => {
     try {

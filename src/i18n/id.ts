@@ -51,7 +51,8 @@ export const id = {
     "Akun ini belum terhubung ke data karyawan. Hubungi HR.",
   "err.tanpaApprover": "Belum ada approver. Hubungi HR.",
   "err.dataKurang": "Data pengajuan belum lengkap",
-  "err.bentrokCuti": "Tanggal bertabrakan dengan pengajuan cuti lain",
+  "err.bentrokCuti":
+    "Tanggal bertabrakan dengan pengajuan lain milikmu. Cek daftar pengajuan.",
   "err.passwordLama": "Password lama salah",
   "err.passwordLemah":
     "Password baru terlalu lemah. Gunakan kombinasi huruf besar, huruf kecil, angka, dan simbol.",
@@ -687,6 +688,10 @@ export const id = {
   "lamp.gagalPesan":
     "Coba lagi sebentar. Jika masih gagal, minta pengaju mengunggah ulang.",
   "lamp.tidakTersedia": "Berbagi file tidak tersedia di perangkat ini",
+  "ap2.kosongJudul": "Belum ada penilaian kinerja",
+  "ap2.kosongIsi":
+    "Penilaian muncul di sini setelah HR membuka siklus appraisal untukmu.",
+  "err.ditolakServer": "Ditolak server: {pesan}",
 } as const;
 
 export type Kunci = keyof typeof id;
