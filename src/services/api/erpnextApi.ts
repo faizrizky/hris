@@ -12,6 +12,10 @@ import {
   LeaveDecision,
   LeaveRequest,
   LeaveType,
+  Appraisal,
+  DocCategory,
+  DocStatus,
+  EmployeeDocument,
   OvertimeRecord,
   Role,
   LeaveApprover,
@@ -40,7 +44,8 @@ import {
   tanggalPendekTahun,
   toISODate,
 } from "../../utils/date";
-import { ApiError, get, post, put } from "./http";
+import { ApiError, get, post, put, upload } from "./http";
+import { ukuranFile } from "../../utils/file";
 import {
   kembalikan,
   terjemahkan,
@@ -426,6 +431,96 @@ async function ambilMilikSendiri(employeeId: string): Promise<LeaveRequest[]> {
   );
   return res.data.map(bentukPengajuan);
 }
+
+// ---- Dokumen Digital dan Appraisal ----
+
+interface DokumenRow {
+  name: string;
+  document_name: string;
+  category: "Contract" | "Decree" | "Certificate" | "Identity";
+  ext: string | null;
+  size_bytes: number | null;
+  uploaded_on: string | null;
+  expires_on: string | null;
+  status: "Pending" | "Verified" | "Rejected";
+}
+
+const KATEGORI_DOK: Record<DokumenRow["category"], DocCategory> = {
+  Contract: "kontrak",
+  Decree: "sk",
+  Certificate: "sertifikat",
+  Identity: "identitas",
+};
+
+const KATEGORI_DOK_SERVER: Record<DocCategory, DokumenRow["category"]> = {
+  kontrak: "Contract",
+  sk: "Decree",
+  sertifikat: "Certificate",
+  identitas: "Identity",
+};
+
+// Hitungan hari kalender dari hari ini; negatif = sudah lewat.
+function hariKe(iso: string): number {
+  const hari = fromISODate(toISODate(new Date()));
+  return Math.round((fromISODate(iso).getTime() - hari.getTime()) / 86400000);
+}
+
+function bentukDokumen(r: DokumenRow): EmployeeDocument {
+  const sisa = r.expires_on ? hariKe(r.expires_on) : null;
+  const hampirHabis = r.status === "Verified" && sisa !== null && sisa <= 60;
+  const status: DocStatus =
+    r.status === "Rejected"
+      ? "rejected"
+      : r.status === "Pending"
+        ? "pending"
+        : hampirHabis
+          ? "expiring"
+          : "verified";
+  const dateLabel = hampirHabis
+    ? sisa! < 0
+      ? tt("doc.sudahBerakhir")
+      : tt("doc.berakhirHari", { n: sisa! })
+    : r.expires_on
+      ? tt("doc.berlakuSd", { tgl: tanggalPendekTahun(r.expires_on) })
+      : tt("doc.diunggah", {
+          tgl: r.uploaded_on ? tanggalPendekTahun(r.uploaded_on) : "—",
+        });
+  return {
+    id: r.name,
+    category: KATEGORI_DOK[r.category] ?? "sertifikat",
+    ext: r.ext ?? "FILE",
+    name: r.document_name,
+    sizeLabel: r.size_bytes ? ukuranFile(r.size_bytes) : "—",
+    dateLabel,
+    status,
+  };
+}
+
+async function ambilDokumen(): Promise<EmployeeDocument[]> {
+  const res = await get<{ message: DokumenRow[] }>(
+    "/api/method/hris_get_my_documents",
+  );
+  return res.message.map(bentukDokumen);
+}
+
+interface AppraisalRes {
+  cycle: string;
+  method: string;
+  score: number;
+  max_score: number;
+  rating: string;
+  rating_tone: Appraisal["ratingTone"];
+  raters: { name: string; score: number; weight: number }[];
+  goals: { name: string; progress: number; note: string | null }[];
+}
+
+const RATING: Record<string, Kunci> = {
+  Excellent: "rate.Excellent",
+  Good: "rate.Good",
+  Fair: "rate.Fair",
+  "Needs Improvement": "rate.Needs Improvement",
+  Poor: "rate.Poor",
+};
 
 const BADGE_KEPUTUSAN: Record<
   string,
@@ -829,6 +924,59 @@ export const erpnextApi: HrisApi = {
 
   async logout(): Promise<void> {
     await post("/api/method/logout");
+  },
+
+  async getDocuments(): Promise<EmployeeDocument[]> {
+    return ambilDokumen();
+  },
+
+  // Dua langkah: buat dokumen (employee dari sesi), lalu lampirkan file lewat
+  // upload_file. Batas 5 MB dan tipe pdf/jpg/png dijaga server.
+  async uploadDocument(_employeeId, input) {
+    if (!input.file) throw new ApiError(tt("err.dokumenGagal"), 0, "NoFile");
+    const dibuat = await post<{ message: { name: string } }>(
+      "/api/method/hris_create_my_document",
+      {
+        document_name: input.name,
+        category: KATEGORI_DOK_SERVER[input.category],
+        expires_on: input.expiresOn,
+      },
+    );
+    const form = new FormData();
+    // React Native menerima objek {uri,name,type} sebagai berkas multipart.
+    form.append("file", {
+      uri: input.file.uri,
+      name: input.file.name,
+      type: input.file.mimeType,
+    } as unknown as Blob);
+    form.append("is_private", "1");
+    form.append("doctype", "Employee Document");
+    form.append("docname", dibuat.message.name);
+    form.append("fieldname", "file");
+    await upload("/api/method/upload_file", form);
+    return ambilDokumen();
+  },
+
+  async getAppraisal(): Promise<Appraisal> {
+    const res = await get<{ message: AppraisalRes | null }>(
+      "/api/method/hris_get_my_appraisal",
+    );
+    const a = res.message;
+    if (!a) throw new ApiError(tt("err.tanpaAppraisal"), 404, "NoAppraisal");
+    return {
+      cycle: a.cycle,
+      method: a.method,
+      score: a.score,
+      maxScore: a.max_score,
+      rating: RATING[a.rating] ? tt(RATING[a.rating]!) : a.rating,
+      ratingTone: a.rating_tone,
+      raters: a.raters,
+      goals: a.goals.map((g) => ({
+        name: g.name,
+        progress: g.progress,
+        note: g.note ?? "",
+      })),
+    };
   },
 
   async getOvertimes(employeeId: string): Promise<OvertimeRecord[]> {

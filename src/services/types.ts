@@ -261,7 +261,7 @@ export interface PersonalProfile {
 }
 
 export type DocCategory = "kontrak" | "sk" | "sertifikat" | "identitas";
-export type DocStatus = "verified" | "pending" | "expiring";
+export type DocStatus = "verified" | "pending" | "expiring" | "rejected";
 
 export interface EmployeeDocument {
   id: string;
@@ -398,7 +398,8 @@ export interface HrisApi {
       ext: string;
       name: string;
       sizeLabel: string;
-      expiresLabel?: string;
+      expiresOn?: string; // ISO
+      file?: { uri: string; name: string; mimeType: string };
     },
   ): Promise<EmployeeDocument[]>;
 

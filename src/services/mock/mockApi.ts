@@ -315,7 +315,8 @@ export const mockApi: HrisApi = {
       ext: string;
       name: string;
       sizeLabel: string;
-      expiresLabel?: string;
+      expiresOn?: string;
+      file?: { uri: string; name: string; mimeType: string };
     },
   ): Promise<EmployeeDocument[]> {
     await delay(400);
@@ -325,8 +326,8 @@ export const mockApi: HrisApi = {
       ext: input.ext,
       name: input.name,
       sizeLabel: input.sizeLabel,
-      dateLabel: input.expiresLabel
-        ? `berlaku s.d. ${input.expiresLabel}`
+      dateLabel: input.expiresOn
+        ? `berlaku s.d. ${input.expiresOn}`
         : "baru diunggah",
       status: "pending",
     };

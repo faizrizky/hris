@@ -664,6 +664,19 @@ export const id = {
   "cr.dinasSub": "Travel request & uang muka",
   "cr.self": "Self-assessment",
   "cr.selfSub": "Siklus H1 2026 · sampai 30 Sep",
+  "err.fileBesar": "File melebihi batas 5 MB",
+  "doc.berakhirHari": "berakhir {n} hari lagi",
+  "doc.sudahBerakhir": "sudah berakhir",
+  "doc.berlakuSd": "berlaku s.d. {tgl}",
+  "doc.diunggah": "diunggah {tgl}",
+  "st.ditolakDok": "Ditolak",
+  "rate.Excellent": "Sangat baik",
+  "rate.Good": "Baik",
+  "rate.Fair": "Cukup",
+  "rate.Needs Improvement": "Perlu ditingkatkan",
+  "rate.Poor": "Kurang",
+  "err.dokumenGagal": "Dokumen gagal diunggah",
+  "err.tanpaAppraisal": "Belum ada penilaian kinerja untuk akun ini",
 } as const;
 
 export type Kunci = keyof typeof id;

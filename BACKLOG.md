@@ -9,12 +9,12 @@ Status per 2026-10-11. Sumber kebenaran: method di `HrisApi` ([src/services/type
 - Absensi: status jam, check-in/out dengan jam dari server menurut zona waktu (`hris_checkin`), riwayat, koreksi
 - Karyawan, ringkasan kepegawaian, absensi tim, Beranda (feed, statistik)
 - Slip gaji, PPh21/BPJS
+- Dokumen Digital (unggah multipart, verifikasi HR) dan Appraisal
 - Profil, keamanan (password, perangkat aktif), notifikasi (Notification Log)
 - Semua layar sudah ID/EN mengikuti bahasa akun
 
 ## Masih mock
-- [ ] `getAppraisal` (Appraisal Cycle / Appraisal / Goal hrms v16)
-- [ ] `getDocuments`, `uploadDocument` (Dokumen Digital: doctype kustom + upload_file)
+Tidak ada: seluruh method `HrisApi` sudah punya implementasi ERPNext. Dokumen Digital (`hris_*_my_document` + `upload_file`) dan Appraisal (`hris_get_my_appraisal`) baru tersambung dan belum diuji di perangkat.
 
 ## Berikutnya
 - [ ] Bukti lembur dan bukti biaya dinas luar: kini file tiruan di aplikasi, belum terkirim

@@ -49,6 +49,8 @@ interface Berkas {
   name: string;
   ext: string;
   size: number;
+  uri: string;
+  mimeType: string;
 }
 
 export function ProfileUploadScreen({ navigation }: any) {
@@ -95,6 +97,8 @@ export function ProfileUploadScreen({ navigation }: any) {
       name: a.name,
       ext: ekstensiDari(a.name),
       size: a.size ?? 0,
+      uri: a.uri,
+      mimeType: a.mimeType ?? "application/octet-stream",
     });
   };
 
@@ -117,6 +121,8 @@ export function ProfileUploadScreen({ navigation }: any) {
       name: a.fileName ?? t("up.fotoNama", { n: Date.now() }),
       ext: "JPG",
       size: a.fileSize ?? 0,
+      uri: a.uri,
+      mimeType: a.mimeType ?? "image/jpeg",
     });
   };
 
@@ -137,7 +143,8 @@ export function ProfileUploadScreen({ navigation }: any) {
         ext: berkas.ext,
         name: nama.trim(),
         sizeLabel: ukuranFile(berkas.size),
-        expiresLabel: berlaku ? tanggalPendekTahun(berlaku) : undefined,
+        expiresOn: berlaku ?? undefined,
+        file: { uri: berkas.uri, name: berkas.name, mimeType: berkas.mimeType },
       });
       navigation.goBack();
     } catch (e) {

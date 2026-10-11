@@ -39,6 +39,7 @@ async function request<T>(
   method: "GET" | "POST" | "PUT",
   path: string,
   params?: Params,
+  formData?: FormData,
 ): Promise<T> {
   if (!BASE_URL) {
     throw new ApiError(tt("err.noBase"), 0, null);
@@ -56,11 +57,12 @@ async function request<T>(
       method,
       headers: {
         Accept: "application/json",
+        // Untuk multipart, Content-Type (beserta boundary) diisi runtime.
         ...(isForm
           ? { "Content-Type": "application/x-www-form-urlencoded" }
           : {}),
       },
-      body: isForm ? encode(params) : undefined,
+      body: formData ?? (isForm ? encode(params) : undefined),
       credentials: "include",
       signal: controller.signal,
     });
@@ -90,6 +92,10 @@ async function request<T>(
       throw new ApiError(tt("err.sesiBerakhir"), 403, "SessionExpired");
     }
     const excType = typeof obj.exc_type === "string" ? obj.exc_type : null;
+    // Nginx menolak file terlalu besar dengan halaman HTML, bukan JSON.
+    if (res.status === 413) {
+      throw new ApiError(tt("err.fileBesar"), 413, "TooLarge");
+    }
     const message =
       typeof obj.message === "string" ? obj.message : `HTTP ${res.status}`;
     throw new ApiError(message, res.status, excType);
@@ -103,6 +109,10 @@ export const get = <T>(path: string, params?: Params) =>
 
 export const post = <T>(path: string, params?: Params) =>
   request<T>("POST", path, params);
+
+// Unggah multipart (mis. upload_file); form tidak boleh ikut dikodekan sebagai urlencoded.
+export const upload = <T>(path: string, form: FormData) =>
+  request<T>("POST", path, undefined, form);
 
 export const put = <T>(path: string, params?: Params) =>
   request<T>("PUT", path, params);
@@ -121,6 +131,9 @@ export function describeError(e: unknown): string {
     }
     if (e.excType === "OverlapError") {
       return tt("err.bentrokCuti");
+    }
+    if (e.excType === "TooLarge" || e.excType === "NoAppraisal") {
+      return e.message;
     }
     if (e.excType === "WrongPassword" || e.excType === "WeakPassword") {
       return e.message;
