@@ -19,7 +19,6 @@ Tidak ada: seluruh method `HrisApi` sudah punya implementasi ERPNext. Dokumen Di
 ## Berikutnya
 - [ ] Uji di HP fisik: buka lampiran dari kartu approval (unduh dengan sesi lalu lembar berbagi), unggah bukti lembur/biaya dinas dan dokumen, jam menurut zona dinas (butuh dinas aktif di zona lain), riwayat absensi staf
 - [ ] Push notification: butuh dev build + akun Apple Developer + `projectId` EAS di app.json (`extra.eas.projectId`). Server sudah siap (Push Settings → Dry Run diubah ke 0 untuk kirim sungguhan); pengiriman masih sinkron di request pembuat notifikasi (maks 8 detik)
-- [ ] Bukti koreksi absensi masih file contoh
 - [ ] Antrean check-in offline tidak bisa mengirim jam asli
 - [ ] Kategori notifikasi Pengumuman belum punya sumber khusus (usulan: doctype "HR Announcement")
 - [ ] Verifikasi wajah (ML Kit) dan geofence asli
