@@ -539,6 +539,10 @@ if not frappe.db.exists("DocType", "Employee Document"):
             dict(role="Employee", read=1, write=1, if_owner=1),
         ]))
     frappe.clear_cache()
+if not frappe.db.exists("Custom Field", {"dt": "Employee Document", "fieldname": "rejection_reason"}):
+    make(dict(doctype="Custom Field", dt="Employee Document", fieldname="rejection_reason", label="Rejection Reason",
+              fieldtype="Small Text", permlevel=1, insert_after="verified_by"))
+    frappe.clear_cache(doctype="Employee Document")
 # Batas unggah: 5 MB dan hanya PDF/JPG/PNG (berlaku global untuk unggahan di site ini).
 if frappe.db.get_single_value("System Settings", "max_file_size") != 5:
     frappe.db.set_single_value("System Settings", "max_file_size", 5)

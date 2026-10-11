@@ -708,6 +708,7 @@ export const id = {
   "pw.salahPesan":
     "Demi keamanan, ERPNext mengakhiri sesi setelah password lama salah. Silakan masuk lagi, lalu ulangi mengubah password.",
   "pw.masukLagi2": "Masuk lagi",
+  "sec.nSesi": "{n} sesi",
 } as const;
 
 export type Kunci = keyof typeof id;

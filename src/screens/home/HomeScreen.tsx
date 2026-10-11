@@ -121,6 +121,14 @@ export function HomeScreen() {
 
   const canApprove = employee.role === "mss" || employee.role === "hr";
 
+  // Atasan/HR membuka Inbox Approval; karyawan membuka daftar pengajuannya.
+  const bukaFeed = (id: string) => {
+    if (canApprove) navigation.navigate("Approval");
+    else if (id.startsWith("OT-"))
+      navigation.navigate("Cuti", { screen: "Overtime" });
+    else navigation.navigate("Cuti", { screen: "LeaveList" });
+  };
+
   const quickActions = [
     ...(canApprove
       ? [
@@ -377,8 +385,9 @@ export function HomeScreen() {
             </View>
           ) : null}
           {(notifications ?? []).map((n, i) => (
-            <View
+            <Pressable
               key={n.id}
+              onPress={() => bukaFeed(n.id)}
               style={[
                 styles.feedRow,
                 i < (notifications?.length ?? 0) - 1 && styles.feedRowDivider,
@@ -393,7 +402,7 @@ export function HomeScreen() {
               </View>
 
               <StatusBadge label={n.badge} tone={n.tone} variant="compact" />
-            </View>
+            </Pressable>
           ))}
         </Card>
       </ScrollView>

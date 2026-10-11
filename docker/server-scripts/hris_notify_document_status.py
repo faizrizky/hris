@@ -8,5 +8,5 @@ if (doc.status == "Verified" or doc.status == "Rejected") and doc.has_value_chan
         if not frappe.db.exists("Notification Log", {"for_user": target, "document_type": "Employee Document",
                                                        "document_name": doc.name, "subject": subject}):
             frappe.get_doc({"doctype": "Notification Log", "type": "Alert", "for_user": target, "subject": subject,
-                            "email_content": str(doc.category), "document_type": "Employee Document",
+                            "email_content": str(doc.category) + ((": " + str(doc.rejection_reason)) if doc.status == "Rejected" and doc.rejection_reason else ""), "document_type": "Employee Document",
                             "document_name": doc.name}).insert(ignore_permissions=True)

@@ -7,7 +7,7 @@ export const en: Record<Kunci, string> = {
 
   "tab.home": "Home",
   "tab.absensi": "Attendance",
-  "tab.absensiKry": "Team Attendance",
+  "tab.absensiKry": "Team",
   "tab.approval": "Approvals",
   "tab.payroll": "Payroll",
   "tab.profil": "Profile",
@@ -700,4 +700,5 @@ export const en: Record<Kunci, string> = {
   "pw.salahPesan":
     "For security, ERPNext ends the session after a wrong current password. Please sign in again, then try changing the password again.",
   "pw.masukLagi2": "Sign in again",
+  "sec.nSesi": "{n} sessions",
 };

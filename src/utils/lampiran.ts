@@ -9,7 +9,10 @@ export async function bukaLampiran(
   nama: string,
 ): Promise<boolean> {
   const bytes = await unduhBerkas(url);
-  const aman = nama.replace(/[^\w.\- ]+/g, "_") || "lampiran";
+  // Nama harus berekstensi supaya pratinjau sistem tahu cara membukanya.
+  const ext = url.split("?")[0]!.match(/\.[a-z0-9]+$/i)?.[0] ?? "";
+  const dasar = nama.replace(/[^\w.\- ]+/g, "_") || "lampiran";
+  const aman = /\.[a-z0-9]+$/i.test(dasar) ? dasar : `${dasar}${ext}`;
   const file = new File(Paths.cache, aman);
   file.create({ overwrite: true });
   file.write(bytes);

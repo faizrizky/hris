@@ -113,7 +113,14 @@ export function FloatingTabBar({ state, navigation }: BottomTabBarProps) {
         <View style={styles.iconSlot}>
           <TabIcon route={routeName} color={color} />
         </View>
-        <Text style={[styles.tabLabel, { color }]}>{t(LABEL[routeName]!)}</Text>
+        <Text
+          style={[styles.tabLabel, { color }]}
+          numberOfLines={1}
+          adjustsFontSizeToFit
+          minimumFontScale={0.8}
+        >
+          {t(LABEL[routeName]!)}
+        </Text>
       </Pressable>
     );
   };

@@ -16,7 +16,7 @@ if raw:
 for n in frappe.get_all("Notification Log", filters=filters, pluck="name", limit_page_length=1000):
     frappe.db.set_value("Notification Log", n, "read", 1)
 
-cat_map = {"Leave Application": "Approval", "Salary Slip": "Payroll", "Attendance Request": "Presensi", "Travel Request": "Approval", "Overtime Request": "Approval", "Employee Document": "Pengumuman"}
+cat_map = {"Leave Application": "Approval", "Salary Slip": "Payroll", "Attendance Request": "Presensi", "Travel Request": "Approval", "Overtime Request": "Approval", "Employee Document": "Pengumuman", "Employee Performance Feedback": "Appraisal", "Appraisal": "Appraisal"}
 is_hr = frappe.session.user == "Administrator" or len(
     frappe.get_all("Has Role", filters={"parent": frappe.session.user, "parenttype": "User",
                                         "role": ["in", ["HR User", "HR Manager", "System Manager"]]},
@@ -41,6 +41,7 @@ for r in rows:
     elif "waiting" in low:
         tone = "warn"
     file_url = None
+    file_name = None
     if r.document_type == "Employee Document" and r.document_name:
         # file terbaru yang terlampir, hanya bila pemanggil berhak membaca dokumennya
         doc_emp = frappe.db.get_value("Employee Document", r.document_name, "employee")
@@ -48,9 +49,10 @@ for r in rows:
         if can_read:
             f = frappe.get_all("File", filters={"attached_to_doctype": "Employee Document",
                                                  "attached_to_name": r.document_name},
-                               fields=["file_url"], order_by="creation desc", limit_page_length=1)
+                               fields=["file_url", "file_name"], order_by="creation desc", limit_page_length=1)
             if f:
                 file_url = f[0].file_url
+                file_name = f[0].file_name
     result.append(
         {
             "name": r.name,
@@ -63,6 +65,7 @@ for r in rows:
             "document_type": r.document_type,
             "document_name": r.document_name,
             "file_url": file_url,
+            "file_name": file_name,
         }
     )
 frappe.response["message"] = result

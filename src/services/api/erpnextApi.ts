@@ -753,18 +753,45 @@ interface SesiRow {
   current: boolean;
 }
 
-function bentukPerangkat(s: SesiRow): ActiveDevice {
+// "Chrome · macOS" dari user agent; cukup untuk membedakan perangkat di daftar.
+function namaBrowser(ua: string): string {
+  const browser = /edg\//i.test(ua)
+    ? "Edge"
+    : /firefox\//i.test(ua)
+      ? "Firefox"
+      : /chrome\//i.test(ua)
+        ? "Chrome"
+        : /safari\//i.test(ua)
+          ? "Safari"
+          : tt("api.browser");
+  const os = /windows/i.test(ua)
+    ? "Windows"
+    : /mac os x|macintosh/i.test(ua)
+      ? "macOS"
+      : /android/i.test(ua)
+        ? "Android"
+        : /iphone|ipad/i.test(ua)
+          ? "iOS"
+          : /linux/i.test(ua)
+            ? "Linux"
+            : "";
+  return os ? `${browser} · ${os}` : browser;
+}
+
+function bentukPerangkat(s: SesiRow, jumlah = 1): ActiveDevice {
   const ua = s.user_agent ?? "";
-  const mobile = /expo|cfnetwork|okhttp|android|iphone|dalvik/i.test(ua);
+  const mobile = /expo|cfnetwork|okhttp|dalvik/i.test(ua);
   const waktu = s.last_updated ? s.last_updated.slice(0, 16) : "";
   return {
     id: s.id,
     name: mobile
       ? tt("api.appHris")
       : ua
-        ? tt("api.browser")
+        ? namaBrowser(ua)
         : tt("api.perangkat"),
-    meta: [s.ip ?? "—", waktu].filter(Boolean).join(" · "),
+    meta: [s.ip ?? "—", waktu, jumlah > 1 ? tt("sec.nSesi", { n: jumlah }) : ""]
+      .filter(Boolean)
+      .join(" · "),
     kind: mobile ? "mobile" : "web",
     current: s.current,
   };
@@ -774,7 +801,23 @@ async function ambilPerangkat(): Promise<ActiveDevice[]> {
   const res = await get<{ message: SesiRow[] }>(
     "/api/method/hris_get_active_sessions",
   );
-  return res.message.map(bentukPerangkat);
+  // Satu baris per perangkat: sesi dengan user agent dan IP yang sama digabung,
+  // diwakili sesi terbarunya (atau sesi perangkat ini bila termasuk).
+  const grup = new Map<string, SesiRow[]>();
+  for (const s of res.message) {
+    const k = `${s.user_agent ?? ""}|${s.ip ?? ""}`;
+    grup.set(k, [...(grup.get(k) ?? []), s]);
+  }
+  return [...grup.values()]
+    .map((daftar) => {
+      const wakil =
+        daftar.find((s) => s.current) ??
+        [...daftar].sort((a, b) =>
+          (b.last_updated ?? "").localeCompare(a.last_updated ?? ""),
+        )[0]!;
+      return bentukPerangkat(wakil, daftar.length);
+    })
+    .sort((a, b) => Number(b.current) - Number(a.current));
 }
 
 // Daftar perangkat asli; verifikasi wajah dan toggle masih dari mock sampai

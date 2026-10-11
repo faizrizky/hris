@@ -21,6 +21,9 @@ export function useLoad<T>(
 ): Load<T> {
   const [data, setData] = useState<T | null>(null);
   const [error, setError] = useState<string | null>(null);
+  // Data boleh null secara sah (mis. belum ada appraisal), jadi "sudah dimuat"
+  // dicatat terpisah dari isinya.
+  const [selesai, setSelesai] = useState(false);
   const urutan = useRef(0); // abaikan jawaban dari permintaan yang sudah usang
   const ambilTerbaru = useRef(ambil);
 
@@ -34,7 +37,10 @@ export function useLoad<T>(
     ambilTerbaru
       .current()
       .then((hasil) => {
-        if (saya === urutan.current) setData(hasil);
+        if (saya === urutan.current) {
+          setData(hasil);
+          setSelesai(true);
+        }
       })
       .catch((e) => {
         if (saya === urutan.current) setError(describeError(e));
@@ -48,7 +54,7 @@ export function useLoad<T>(
   return {
     data,
     error,
-    memuat: data === null && error === null,
+    memuat: !selesai && error === null,
     ulangi: jalankan,
   };
 }
