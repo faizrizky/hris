@@ -510,6 +510,42 @@ if frappe.db.exists("Sidebar", "Leaves"):
 frappe.db.commit()
 frappe.clear_cache()
 
+# Dokumen digital karyawan. Role Employee: hanya baca/ubah dokumen miliknya sendiri (if_owner), tanpa hak
+# membuat langsung (dibuat lewat hris_create_my_document). status/verified_by di permlevel 1 (HR saja).
+if not frappe.db.exists("DocType", "Employee Document"):
+    make(dict(
+        doctype="DocType", name="Employee Document", module="HR", custom=1, naming_rule="Expression (old style)",
+        autoname="EMPDOC-.YYYY.-.#####", track_changes=1,
+        fields=[
+            dict(fieldname="employee", label="Employee", fieldtype="Link", options="Employee", reqd=1, in_list_view=1),
+            dict(fieldname="employee_name", label="Employee Name", fieldtype="Data", fetch_from="employee.employee_name",
+                 read_only=1, in_list_view=1),
+            dict(fieldname="document_name", label="Document Name", fieldtype="Data", reqd=1, in_list_view=1),
+            dict(fieldname="category", label="Category", fieldtype="Select", options="Contract\nDecree\nCertificate\nIdentity",
+                 reqd=1, in_list_view=1, in_standard_filter=1),
+            dict(fieldname="file", label="File", fieldtype="Attach"),
+            dict(fieldname="expires_on", label="Expires On", fieldtype="Date"),
+            dict(fieldname="status", label="Status", fieldtype="Select", options="Pending\nVerified\nRejected",
+                 default="Pending", permlevel=1, in_list_view=1, in_standard_filter=1),
+            dict(fieldname="verified_by", label="Verified By", fieldtype="Link", options="User", permlevel=1, read_only=1),
+        ],
+        permissions=[
+            dict(role="System Manager", read=1, write=1, create=1, delete=1),
+            dict(role="HR Manager", read=1, write=1, create=1, delete=1),
+            dict(role="HR User", read=1, write=1, create=1),
+            dict(role="System Manager", permlevel=1, read=1, write=1),
+            dict(role="HR Manager", permlevel=1, read=1, write=1),
+            dict(role="HR User", permlevel=1, read=1, write=1),
+            dict(role="Employee", read=1, write=1, if_owner=1),
+        ]))
+    frappe.clear_cache()
+# Batas unggah: 5 MB dan hanya PDF/JPG/PNG (berlaku global untuk unggahan di site ini).
+if frappe.db.get_single_value("System Settings", "max_file_size") != 5:
+    frappe.db.set_single_value("System Settings", "max_file_size", 5)
+if not frappe.db.get_single_value("System Settings", "allowed_file_extensions"):
+    frappe.db.set_single_value("System Settings", "allowed_file_extensions", "PDF\nJPG\nJPEG\nPNG")
+frappe.db.commit()
+
 # Sinkronkan label Custom Field yang sudah ada ke bahasa Inggris (nama field tidak berubah).
 for (_dt, _fn), _label in {
     ("Employee", "custom_pengaturan_gaji"): "Salary Settings",
@@ -587,6 +623,7 @@ EVENT_SCRIPTS = {  # script berbasis event dokumen: nama_file -> (DocType, event
     "hris_notify_leave_decided": ("Leave Application", "After Save"),
     "hris_notify_payslip": ("Salary Slip", "After Submit"),
     "hris_notify_attendance_correction": ("Attendance Request", "After Submit"),
+    "hris_notify_document_status": ("Employee Document", "After Save"),
 }
 
 # 9. Server Script (satu file .py per script, nama file = nama method API) ----------
@@ -612,6 +649,84 @@ if os.path.isdir(SS_DIR):
     frappe.clear_cache()
 
 ensure_roles()
+
+# 9a. Dokumen contoh untuk rani (file kecil sungguhan, private)
+_r = emp["rani"]
+for _name, _cat, _exp, _st, _fn in [
+    ("Employment Contract", "Contract", None, "Verified", "employment-contract.pdf"),
+    ("Master's Degree Certificate", "Certificate", None, "Pending", "degree-certificate.pdf"),
+    ("National ID Card (KTP)", "Identity", frappe.utils.add_days(nowdate(), 30), "Verified", "national-id.png"),
+]:
+    if not exists("Employee Document", {"employee": _r, "document_name": _name}):
+        _d = make(dict(doctype="Employee Document", employee=_r, document_name=_name, category=_cat, expires_on=_exp))
+        if _fn.endswith(".pdf"):
+            _objs = [b"<< /Type /Catalog /Pages 2 0 R >>", b"<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
+                     b"<< /Type /Page /Parent 2 0 R /MediaBox [0 0 200 200] >>"]
+            _body = b"%PDF-1.4\n% " + _name.encode() + b"\n"
+            _offs = []
+            for _i, _o in enumerate(_objs, start=1):
+                _offs.append(len(_body))
+                _body += f"{_i} 0 obj\n".encode() + _o + b"\nendobj\n"
+            _xref = len(_body)
+            _body += f"xref\n0 {len(_objs) + 1}\n".encode() + b"0000000000 65535 f \n"
+            for _of in _offs:
+                _body += f"{_of:010d} 00000 n \n".encode()
+            _body += f"trailer\n<< /Size {len(_objs) + 1} /Root 1 0 R >>\nstartxref\n{_xref}\n%%EOF\n".encode()
+        else:
+            _body = bytes.fromhex("89504e470d0a1a0a0000000d49484452000000010000000108060000001f15c4890000000a49444154789c6360000002000154a24f5d0000000049454e44ae426082")
+        _f = frappe.get_doc(dict(doctype="File", file_name=_fn, content=_body, is_private=1,
+                                 attached_to_doctype="Employee Document", attached_to_name=_d.name,
+                                 attached_to_field="file")).insert(ignore_permissions=True)
+        frappe.db.set_value("Employee Document", _d.name, {"file": _f.file_url, "status": _st,
+                                                            "verified_by": "hr.test@example.com" if _st == "Verified" else None})
+frappe.db.commit()
+
+# 9c. Appraisal contoh untuk rani (siklus, KRA, goal, appraisal, feedback dari atasan dan HR)
+try:
+    CYCLE = f"FY {Y} Annual Appraisal"
+    for _t in ("Delivery Quality", "Teamwork", "Initiative"):
+        if not exists("KRA", _t):
+            make(dict(doctype="KRA", title=_t))
+    for _c in ("Communication", "Work Quality", "Initiative"):
+        if not exists("Employee Feedback Criteria", _c):
+            make(dict(doctype="Employee Feedback Criteria", criteria=_c))
+    if not exists("Appraisal Cycle", CYCLE):
+        make(dict(doctype="Appraisal Cycle", cycle_name=CYCLE, company=C, status="In Progress",
+                  start_date=f"{Y}-01-01", end_date=f"{Y}-12-31",
+                  kra_evaluation_method="Automated Based on Goal Progress",
+                  appraisees=[dict(employee=emp["rani"])]))
+    for _g, _kra, _prog, _desc in [
+        ("Close monthly books within 5 working days", "Delivery Quality", 90, "Closed 9 of 10 months on time"),
+        ("Reduce invoice errors by 30%", "Delivery Quality", 70, "Error rate down 21% so far"),
+        ("Cross-train two teammates on payables", "Teamwork", 100, "Completed in Q2"),
+        ("Propose one process improvement per quarter", "Initiative", 60, "Two of four proposals delivered"),
+    ]:
+        if not exists("Goal", {"goal_name": _g, "employee": emp["rani"]}):
+            make(dict(doctype="Goal", goal_name=_g, employee=emp["rani"], company=C, kra=_kra, progress=_prog,
+                      status="In Progress" if _prog < 100 else "Completed", start_date=f"{Y}-01-01",
+                      end_date=f"{Y}-12-31", appraisal_cycle=CYCLE, description=_desc))
+    if not exists("Appraisal", {"employee": emp["rani"], "appraisal_cycle": CYCLE}):
+        make(dict(doctype="Appraisal", employee=emp["rani"], company=C, appraisal_cycle=CYCLE,
+                  appraisal_kra=[dict(kra="Delivery Quality", per_weightage=50), dict(kra="Teamwork", per_weightage=25),
+                                 dict(kra="Initiative", per_weightage=25)]))
+    _apr = frappe.db.get_value("Appraisal", {"employee": emp["rani"], "appraisal_cycle": CYCLE}, "name")
+    for _rv, _rt in [("dewi", (0.9, 0.8, 0.8)), ("sari", (0.8, 0.8, 0.6))]:
+        if not exists("Employee Performance Feedback", {"appraisal": _apr, "reviewer": emp[_rv]}):
+            _fb = make(dict(doctype="Employee Performance Feedback", employee=emp["rani"], company=C, reviewer=emp[_rv],
+                            appraisal=_apr, appraisal_cycle=CYCLE, added_on=frappe.utils.now_datetime(),
+                            feedback="Reliable and detail oriented.",
+                            feedback_ratings=[dict(criteria="Communication", per_weightage=40, rating=_rt[0]),
+                                              dict(criteria="Work Quality", per_weightage=40, rating=_rt[1]),
+                                              dict(criteria="Initiative", per_weightage=20, rating=_rt[2])]), submit=True)
+    _doc = frappe.get_doc("Appraisal", _apr)
+    if not _doc.self_ratings:  # penilaian diri, supaya final_score tidak tertarik ke bawah oleh self_score 0
+        for _c, _w in (("Communication", 40), ("Work Quality", 40), ("Initiative", 20)):
+            _doc.append("self_ratings", dict(criteria=_c, per_weightage=_w, rating=0.8))
+    _doc.save(ignore_permissions=True)
+    frappe.db.commit()
+except Exception as ex:
+    frappe.db.rollback()
+    log(f"PERINGATAN: appraisal dilewati ({ex})")
 
 # 9b. Notifikasi awal untuk slip gaji yang sudah ada (sekali per slip; type Alert tidak mengirim email)
 for _sl in frappe.get_all("Salary Slip", filters={"docstatus": 1}, fields=["name", "employee", "start_date", "posting_date", "net_pay"]):

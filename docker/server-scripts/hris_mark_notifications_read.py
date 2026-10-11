@@ -16,7 +16,7 @@ if raw:
 for n in frappe.get_all("Notification Log", filters=filters, pluck="name", limit_page_length=1000):
     frappe.db.set_value("Notification Log", n, "read", 1)
 
-cat_map = {"Leave Application": "Approval", "Salary Slip": "Payroll", "Attendance Request": "Presensi", "Travel Request": "Approval", "Overtime Request": "Approval"}
+cat_map = {"Leave Application": "Approval", "Salary Slip": "Payroll", "Attendance Request": "Presensi", "Travel Request": "Approval", "Overtime Request": "Approval", "Employee Document": "Pengumuman"}
 rows = frappe.get_all(
     "Notification Log",
     filters={"for_user": frappe.session.user},
