@@ -43,9 +43,13 @@ const Stack = createNativeStackNavigator();
 
 // Pindah halaman seperti video referensi: tanpa geser, halaman lama langsung
 // hilang, lalu isi halaman baru memudar masuk bergiliran (lihat Reveal.tsx).
-const revealLayout = ({ children }: { children: React.ReactElement }) => (
-  <RevealScope>{children}</RevealScope>
-);
+const revealLayout = ({
+  children,
+  route,
+}: {
+  children: React.ReactElement;
+  route: { key: string };
+}) => <RevealScope routeKey={route.key}>{children}</RevealScope>;
 
 // Stack kecil di dalam tab Absensi (Clock -> History) dan tab Cuti
 // (List -> Request) supaya tetap 1 tab tapi bisa navigasi berjenjang.

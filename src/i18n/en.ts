@@ -841,4 +841,6 @@ export const en: Record<Kunci, string> = {
     "Requests from your team that need your decision will appear here.",
   "hm.kosongEssIsi":
     "Your leave, overtime, and business trip requests will appear here.",
+  "cr.judul": "New request",
+  "cr.sub": "Every request goes through the approval workflow",
 };

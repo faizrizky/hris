@@ -51,7 +51,13 @@ interface RevealCtx {
 const RevealContext = createContext<RevealCtx | null>(null);
 
 // Dipasang sekali per halaman lewat screenLayout di navigator.
-export function RevealScope({ children }: { children: React.ReactNode }) {
+export function RevealScope({
+  children,
+  routeKey,
+}: {
+  children: React.ReactNode;
+  routeKey?: string;
+}) {
   const c = useTheme();
   const navigation = useContext(NavigationContext);
   const [epoch, setEpoch] = useState(0);
@@ -76,8 +82,27 @@ export function RevealScope({ children }: { children: React.ReactNode }) {
       return;
     }
     if (navigation.isFocused()) play();
-    return navigation.addListener("focus", play);
-  }, [navigation, fade]);
+    // Kembali dari halaman yang menumpuk di atasnya (tombol/geser kembali)
+    // tidak memutar ulang animasi masuk: isinya masih sama, dan memutarnya
+    // membuat halaman terlihat seperti dimuat ulang. Ganti tab tetap diputar.
+    let tertutup = false;
+    const lepasBlur = navigation.addListener("blur", () => {
+      const st = navigation.getState();
+      const sini = st?.routes.findIndex((r) => r.key === routeKey) ?? -1;
+      tertutup = st?.type === "stack" && sini >= 0 && sini < st.index;
+    });
+    const lepasFokus = navigation.addListener("focus", () => {
+      if (tertutup) {
+        tertutup = false;
+        return;
+      }
+      play();
+    });
+    return () => {
+      lepasBlur();
+      lepasFokus();
+    };
+  }, [navigation, fade, routeKey]);
 
   const value = useMemo<RevealCtx>(
     () => ({

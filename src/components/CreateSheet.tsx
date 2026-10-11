@@ -121,11 +121,23 @@ export function CreateSheet({
     },
   ];
 
+  // Lembar turun dan latar memudar dulu, baru modal benar-benar ditutup.
+  const tutup = (lalu?: () => void) => {
+    Animated.timing(anim, {
+      toValue: 0,
+      duration: 200,
+      easing: Easing.in(Easing.cubic),
+      useNativeDriver: true,
+    }).start(() => {
+      onClose();
+      lalu?.();
+    });
+  };
+
   const pilih = (item: Item) => {
     // Tutup dulu, baru navigasi — kalau dibalik, modal sempat terlihat
     // menumpuk di atas layar tujuan.
-    onClose();
-    item.go();
+    tutup(item.go);
   };
 
   return (
@@ -133,10 +145,10 @@ export function CreateSheet({
       visible={visible}
       transparent
       animationType="none"
-      onRequestClose={onClose}
+      onRequestClose={() => tutup()}
     >
       <Animated.View style={[styles.backdrop, { opacity: anim }]}>
-        <Pressable style={{ flex: 1 }} onPress={onClose} />
+        <Pressable style={{ flex: 1 }} onPress={() => tutup()} />
       </Animated.View>
 
       <Animated.View
@@ -147,10 +159,8 @@ export function CreateSheet({
         ]}
       >
         <View style={styles.grabber} />
-        <Text style={styles.title}>Buat pengajuan</Text>
-        <Text style={styles.subtitle}>
-          Semua pengajuan masuk ke workflow approval berjenjang
-        </Text>
+        <Text style={styles.title}>{t("cr.judul")}</Text>
+        <Text style={styles.subtitle}>{t("cr.sub")}</Text>
 
         <View style={{ gap: 9, marginTop: 16 }}>
           {items.map((item) => (

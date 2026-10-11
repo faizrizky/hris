@@ -846,6 +846,8 @@ export const id = {
     "Pengajuan dari tim yang perlu keputusanmu akan muncul di sini.",
   "hm.kosongEssIsi":
     "Pengajuan cuti, lembur, dan dinas luar milikmu akan muncul di sini.",
+  "cr.judul": "Buat pengajuan",
+  "cr.sub": "Semua pengajuan masuk ke workflow approval berjenjang",
 } as const;
 
 export type Kunci = keyof typeof id;

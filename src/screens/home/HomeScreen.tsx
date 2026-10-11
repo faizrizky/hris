@@ -42,6 +42,7 @@ export function HomeScreen() {
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
   const [galat, setGalat] = useState<string | null>(null);
+  const [belumDibaca, setBelumDibaca] = useState(0);
 
   // Dimuat ulang setiap Beranda mendapat fokus, supaya hasil persetujuan atau
   // pengajuan di tab lain langsung tampil saat kembali ke sini.
@@ -63,6 +64,12 @@ export function HomeScreen() {
         setEmployment(komposisi);
       })
       .catch((e) => setGalat(describeError(e)));
+    // Titik merah di lonceng hanya bila masih ada notifikasi belum dibaca.
+    // Dimuat terpisah supaya kegagalannya tidak menggagalkan Beranda.
+    hrisApi
+      .getNotificationInbox(employee.id)
+      .then((n) => setBelumDibaca(n.filter((x) => !x.read).length))
+      .catch(() => setBelumDibaca(0));
   }, [employee]);
 
   useFocusEffect(muat);
@@ -247,7 +254,7 @@ export function HomeScreen() {
               size={18}
               color={c.onDark.ink}
             />
-            <View style={styles.notifDot} />
+            {belumDibaca > 0 && <View style={styles.notifDot} />}
           </Pressable>
         </View>
         <Text style={styles.greeting}>{greeting}</Text>
