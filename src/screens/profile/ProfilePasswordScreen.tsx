@@ -27,6 +27,7 @@ import {
 } from "@/utils/password";
 import { useT } from "@/i18n";
 import { useConfirm } from "@/components/ConfirmDialog";
+import { kembali } from "@/navigation/kembali";
 
 export function ProfilePasswordScreen({ navigation }: any) {
   const t = useT();
@@ -89,7 +90,7 @@ export function ProfilePasswordScreen({ navigation }: any) {
 
   const header = (
     <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
-      <Pressable style={styles.backBtn} onPress={() => navigation.goBack()}>
+      <Pressable style={styles.backBtn} onPress={() => kembali(navigation)}>
         <Ionicons name="chevron-back" size={18} color={c.ink} />
       </Pressable>
       <Text style={styles.headerTitle}>{t("pw.judul")}</Text>

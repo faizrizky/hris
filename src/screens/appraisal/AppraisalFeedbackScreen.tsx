@@ -22,6 +22,7 @@ import { ErrorState } from "@/components/ErrorState";
 import { Skeleton } from "@/components/Skeleton";
 import { desimal } from "@/utils/currency";
 import { useT } from "@/i18n";
+import { kembali } from "@/navigation/kembali";
 
 const LANGKAH = 0.5;
 
@@ -109,7 +110,7 @@ export function AppraisalFeedbackScreen({ navigation, route }: any) {
         feedback: catatan.trim(),
         submit,
       });
-      navigation.goBack();
+      kembali(navigation);
     } catch (e) {
       setGalat(describeError(e));
     } finally {
@@ -119,7 +120,7 @@ export function AppraisalFeedbackScreen({ navigation, route }: any) {
 
   const header = (
     <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
-      <Pressable style={styles.backBtn} onPress={() => navigation.goBack()}>
+      <Pressable style={styles.backBtn} onPress={() => kembali(navigation)}>
         <Ionicons name="chevron-back" size={18} color={c.ink} />
       </Pressable>
       <View style={{ flex: 1, minWidth: 0 }}>

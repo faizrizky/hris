@@ -16,6 +16,7 @@ import { ICON } from "@/constants/icons";
 import { Skeleton } from "@/components/Skeleton";
 import { useT } from "@/i18n";
 import { EmptyState } from "@/components/EmptyState";
+import { kembali } from "@/navigation/kembali";
 
 const ICON_KATEGORI: Record<NotifCategory, string> = {
   Approval: ICON.approval,
@@ -89,13 +90,11 @@ export function NotificationScreen({ navigation }: any) {
           return;
         }
         if (n.documentType === "Attendance Request") {
-          navigation.navigate("Absensi", {
-            screen: "AttendanceCorrectionHistory",
-          });
+          navigation.navigate("AttendanceCorrectionHistory");
         } else if (n.documentType === "Overtime Request") {
-          navigation.navigate("Cuti", { screen: "Overtime" });
+          navigation.navigate("Overtime");
         } else {
-          navigation.navigate("Cuti", { screen: "LeaveList" });
+          navigation.navigate("LeaveList");
         }
         return;
     }
@@ -109,7 +108,7 @@ export function NotificationScreen({ navigation }: any) {
   return (
     <View style={styles.container}>
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
-        <Pressable style={styles.backBtn} onPress={() => navigation.goBack()}>
+        <Pressable style={styles.backBtn} onPress={() => kembali(navigation)}>
           <Ionicons name="chevron-back" size={18} color={c.ink} />
         </Pressable>
         <Text style={styles.headerTitle}>{t("nt.judul")}</Text>

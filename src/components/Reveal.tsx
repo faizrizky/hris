@@ -32,6 +32,7 @@ import {
 } from "react-native";
 import { NavigationContext } from "@react-navigation/native";
 import { useTheme } from "@/theme/ThemeContext";
+import { ambilTandaKembali } from "@/navigation/kembali";
 
 const EASE = Easing.bezier(0.25, 0.1, 0.25, 1);
 const ITEM_MS = 500;
@@ -92,10 +93,13 @@ export function RevealScope({
       tertutup = st?.type === "stack" && sini >= 0 && sini < st.index;
     });
     const lepasFokus = navigation.addListener("focus", () => {
-      if (tertutup) {
+      // Kembali lewat tombol tetap beranimasi; lewat geser tidak.
+      const lewatTombol = ambilTandaKembali();
+      if (tertutup && !lewatTombol) {
         tertutup = false;
         return;
       }
+      tertutup = false;
       play();
     });
     return () => {

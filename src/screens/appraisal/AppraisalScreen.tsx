@@ -18,6 +18,7 @@ import { desimal } from "@/utils/currency";
 import { Skeleton } from "@/components/Skeleton";
 import { useT } from "@/i18n";
 import { ICON } from "@/constants/icons";
+import { kembali } from "@/navigation/kembali";
 
 const RING = 104;
 const STROKE = 13;
@@ -39,7 +40,7 @@ export function AppraisalScreen({ navigation }: any) {
     <View style={styles.container}>
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
         <View style={styles.headerRow}>
-          <Pressable style={styles.backBtn} onPress={() => navigation.goBack()}>
+          <Pressable style={styles.backBtn} onPress={() => kembali(navigation)}>
             <Ionicons name="chevron-back" size={18} color={c.ink} />
           </Pressable>
           <Text style={styles.headerTitle}>{t("ap2.judul")}</Text>

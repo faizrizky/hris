@@ -25,6 +25,7 @@ import { tahunSejak, tanggalPendekTahun } from "@/utils/date";
 import { useT } from "@/i18n";
 import { ChangeSummary } from "@/screens/profile/ChangeSummary";
 import { terjemahkan } from "@/i18n/serverLabels";
+import { kembali } from "@/navigation/kembali";
 
 export function ProfileDataScreen({ navigation }: any) {
   const t = useT();
@@ -63,7 +64,7 @@ export function ProfileDataScreen({ navigation }: any) {
 
   const header = (
     <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
-      <Pressable style={styles.backBtn} onPress={() => navigation.goBack()}>
+      <Pressable style={styles.backBtn} onPress={() => kembali(navigation)}>
         <Ionicons name="chevron-back" size={18} color={c.ink} />
       </Pressable>
       <Text style={styles.headerTitle}>{t("pd.judul")}</Text>

@@ -17,6 +17,7 @@ import { Skeleton } from "@/components/Skeleton";
 import { useLoad } from "@/hooks/useLoad";
 import { ErrorState } from "@/components/ErrorState";
 import { useT } from "@/i18n";
+import { kembaliAtauBeranda } from "@/navigation/kembali";
 
 export function PayslipListScreen({ navigation }: any) {
   const t = useT();
@@ -40,7 +41,7 @@ export function PayslipListScreen({ navigation }: any) {
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
         <Pressable
           style={styles.backBtn}
-          onPress={() => navigation.getParent()?.navigate("Beranda")}
+          onPress={() => kembaliAtauBeranda(navigation)}
         >
           <Ionicons name="chevron-back" size={18} color={c.ink} />
         </Pressable>

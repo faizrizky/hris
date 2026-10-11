@@ -19,6 +19,7 @@ import { Skeleton } from "@/components/Skeleton";
 import { describeError } from "@/services/api/http";
 import { ErrorState } from "@/components/ErrorState";
 import { useT } from "@/i18n";
+import { kembaliAtauBeranda, keBeranda } from "@/navigation/kembali";
 
 export function ClockScreen({ navigation }: any) {
   const t = useT();
@@ -54,7 +55,7 @@ export function ClockScreen({ navigation }: any) {
         <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
           <Pressable
             style={styles.backBtn}
-            onPress={() => navigation.getParent()?.navigate("Beranda")}
+            onPress={() => kembaliAtauBeranda(navigation)}
           >
             <Ionicons name="chevron-back" size={18} color={c.ink} />
           </Pressable>
@@ -98,7 +99,7 @@ export function ClockScreen({ navigation }: any) {
 
   const handleNext = async () => {
     if (done) {
-      navigation.getParent()?.navigate("Beranda");
+      keBeranda(navigation);
       return;
     }
     if (step === 0) {
@@ -133,7 +134,7 @@ export function ClockScreen({ navigation }: any) {
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
         <Pressable
           style={styles.backBtn}
-          onPress={() => navigation.getParent()?.navigate("Beranda")}
+          onPress={() => kembaliAtauBeranda(navigation)}
         >
           <Ionicons name="chevron-back" size={18} color={c.ink} />
         </Pressable>

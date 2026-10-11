@@ -31,6 +31,7 @@ import {
 } from "@/utils/date";
 import { Skeleton } from "@/components/Skeleton";
 import { EmptyState } from "@/components/EmptyState";
+import { kembali } from "@/navigation/kembali";
 
 export function OvertimeScreen({ navigation }: any) {
   const { employee } = useSession();
@@ -71,7 +72,7 @@ export function OvertimeScreen({ navigation }: any) {
   return (
     <View style={styles.container}>
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
-        <Pressable style={styles.backBtn} onPress={() => navigation.goBack()}>
+        <Pressable style={styles.backBtn} onPress={() => kembali(navigation)}>
           <Ionicons name="chevron-back" size={18} color={c.ink} />
         </Pressable>
         <Text style={styles.headerTitle}>{t("ot.judul")}</Text>

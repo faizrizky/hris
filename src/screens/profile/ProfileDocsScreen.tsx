@@ -22,6 +22,7 @@ import {
 import { useT } from "@/i18n";
 import { EmptyState } from "@/components/EmptyState";
 import { ICON } from "@/constants/icons";
+import { kembali } from "@/navigation/kembali";
 
 const SEMUA = "semua";
 const KATEGORI: DocCategory[] = ["kontrak", "sk", "sertifikat", "identitas"];
@@ -64,7 +65,7 @@ export function ProfileDocsScreen({ navigation }: any) {
   return (
     <View style={styles.container}>
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
-        <Pressable style={styles.backBtn} onPress={() => navigation.goBack()}>
+        <Pressable style={styles.backBtn} onPress={() => kembali(navigation)}>
           <Ionicons name="chevron-back" size={18} color={c.ink} />
         </Pressable>
         <Text style={styles.headerTitle}>{t("doc.judul")}</Text>

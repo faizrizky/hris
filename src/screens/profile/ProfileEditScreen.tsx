@@ -41,6 +41,7 @@ import { DateSheet } from "@/components/DateSheet";
 import { tanggalPendekTahun } from "@/utils/date";
 import { terjemahkan } from "@/i18n/serverLabels";
 import { useConfirm } from "@/components/ConfirmDialog";
+import { kembali } from "@/navigation/kembali";
 
 // Nilai baku ERPNext; tampilannya mengikuti bahasa lewat terjemahkan().
 const HUBUNGAN = ["Mother", "Father", "Sibling", "Spouse", "Friend", "Other"];
@@ -184,7 +185,7 @@ export function ProfileEditScreen({ navigation }: any) {
       } else {
         await hrisApi.savePersonalProfile(employee.id, data);
       }
-      navigation.goBack();
+      kembali(navigation);
     } catch (e) {
       setGalatSimpan(describeError(e));
     } finally {
@@ -194,7 +195,7 @@ export function ProfileEditScreen({ navigation }: any) {
 
   const head = (
     <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
-      <Pressable style={styles.backBtn} onPress={() => navigation.goBack()}>
+      <Pressable style={styles.backBtn} onPress={() => kembali(navigation)}>
         <Ionicons name="chevron-back" size={18} color={c.ink} />
       </Pressable>
       <Text style={styles.headerTitle}>

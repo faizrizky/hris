@@ -19,6 +19,7 @@ import {
 import { desimal } from "@/utils/currency";
 import { bulanSingkat, tanggalAngka, tanggalPendekTahun } from "@/utils/date";
 import { useT } from "@/i18n";
+import { kembali } from "@/navigation/kembali";
 
 export function StaffDetailScreen({ navigation, route }: any) {
   const t = useT();
@@ -66,7 +67,7 @@ export function StaffDetailScreen({ navigation, route }: any) {
       <RadialGlow size={250} color={c.glowHeader} top={-80} right={-50} />
 
       <View style={styles.headerRow}>
-        <Pressable style={styles.backBtn} onPress={() => navigation.goBack()}>
+        <Pressable style={styles.backBtn} onPress={() => kembali(navigation)}>
           <Ionicons name="chevron-back" size={18} color="#fff" />
         </Pressable>
         <Text style={styles.headerTitle}>{t("stf.detail")}</Text>

@@ -25,6 +25,7 @@ import { useT } from "@/i18n";
 import { LampiranList } from "@/screens/leave/LampiranList";
 import type { Kunci } from "@/i18n/id";
 import { EmptyState } from "@/components/EmptyState";
+import { kembali } from "@/navigation/kembali";
 
 type Filter = "semua" | AttendanceRequestedStatus;
 
@@ -72,7 +73,7 @@ export function AttendanceCorrectionHistoryScreen({ navigation }: any) {
   return (
     <View style={styles.container}>
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
-        <Pressable style={styles.backBtn} onPress={() => navigation.goBack()}>
+        <Pressable style={styles.backBtn} onPress={() => kembali(navigation)}>
           <Ionicons name="chevron-back" size={18} color={c.ink} />
         </Pressable>
         <Text style={styles.headerTitle}>{t("kor.hJudul")}</Text>

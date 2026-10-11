@@ -44,6 +44,7 @@ import { describeError } from "@/services/api/http";
 import { useT } from "@/i18n";
 import { useConfirm } from "@/components/ConfirmDialog";
 import { pilihBukti } from "@/utils/pilihBukti";
+import { kembali, keBeranda } from "@/navigation/kembali";
 
 export function AttendanceCorrectionScreen({ navigation }: any) {
   const t = useT();
@@ -207,7 +208,7 @@ export function AttendanceCorrectionScreen({ navigation }: any) {
     <View style={styles.container}>
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
         <View style={styles.headerRow}>
-          <Pressable style={styles.backBtn} onPress={() => navigation.goBack()}>
+          <Pressable style={styles.backBtn} onPress={() => kembali(navigation)}>
             <Ionicons name="chevron-back" size={18} color={c.ink} />
           </Pressable>
           <View style={{ flex: 1, minWidth: 0 }}>
@@ -232,7 +233,7 @@ export function AttendanceCorrectionScreen({ navigation }: any) {
               rows={buatDoneRows()}
               doc={`Attendance Request · HR-ATR-${done}`}
               onLihat={() => navigation.navigate("AttendanceCorrectionHistory")}
-              onHome={() => navigation.getParent()?.navigate("Beranda")}
+              onHome={() => keBeranda(navigation)}
             />
           ) : (
             <>

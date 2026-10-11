@@ -132,9 +132,8 @@ export function HomeScreen() {
   // Atasan/HR membuka Inbox Approval; karyawan membuka daftar pengajuannya.
   const bukaFeed = (id: string) => {
     if (canApprove) navigation.navigate("Approval");
-    else if (id.startsWith("OT-"))
-      navigation.navigate("Cuti", { screen: "Overtime" });
-    else navigation.navigate("Cuti", { screen: "LeaveList" });
+    else if (id.startsWith("OT-")) navigation.navigate("Overtime");
+    else navigation.navigate("LeaveList");
   };
 
   const quickActions = [
@@ -190,28 +189,28 @@ export function HomeScreen() {
       icon: ICON.clock,
       bg: c.info.bg,
       ink: c.info.ink,
-      onPress: () => navigation.navigate("Absensi"),
+      onPress: () => navigation.navigate("Clock"),
     },
     {
       label: t("hm.aCuti"),
       icon: ICON.leave,
       bg: c.info.bg,
       ink: c.info.ink,
-      onPress: () => navigation.navigate("Cuti"),
+      onPress: () => navigation.navigate("LeaveList"),
     },
     {
       label: t("hm.aLembur"),
       icon: ICON.overtime,
       bg: c.warn.bg,
       ink: c.warn.ink,
-      onPress: () => navigation.navigate("Cuti", { screen: "Overtime" }),
+      onPress: () => navigation.navigate("Overtime"),
     },
     {
       label: t("hm.aSlip"),
       icon: ICON.payslip,
       bg: c.ok.bg,
       ink: c.ok.ink,
-      onPress: () => navigation.navigate("Slip Gaji"),
+      onPress: () => navigation.navigate("PayslipList"),
     },
     {
       label: t("hm.aAppraisal"),
@@ -225,7 +224,7 @@ export function HomeScreen() {
       icon: ICON.tax,
       bg: c.info.bg,
       ink: c.info.ink,
-      onPress: () => navigation.navigate("Slip Gaji", { screen: "TaxDetail" }),
+      onPress: () => navigation.navigate("TaxDetail"),
     },
   ];
 
@@ -314,7 +313,7 @@ export function HomeScreen() {
 
             <Pressable
               style={styles.heroCta}
-              onPress={() => navigation.navigate("Absensi")}
+              onPress={() => navigation.navigate("Clock")}
             >
               <Text style={styles.heroCtaText}>{clockCta}</Text>
             </Pressable>
@@ -378,7 +377,9 @@ export function HomeScreen() {
           <Text style={styles.sectionTitle}>{feedTitle}</Text>
           <Pressable
             onPress={() =>
-              navigation.navigate(employee.role === "ess" ? "Cuti" : "Approval")
+              navigation.navigate(
+                employee.role === "ess" ? "LeaveList" : "Approval",
+              )
             }
           >
             <Text style={styles.sectionLink}>{t("hm.lihatSemua")}</Text>

@@ -161,6 +161,24 @@ function HomeStack() {
       screenOptions={{ headerShown: false, animation: "none" }}
     >
       <Stack.Screen name="HomeMain" component={HomeScreen} />
+      {/* Tujuan Aksi Cepat Beranda ikut ditumpuk di sini (nama sama dengan di
+          tab asalnya), supaya geser/tombol kembali selalu pulang ke Beranda. */}
+      <Stack.Screen name="Approval" component={LeaveApprovalScreen} />
+      <Stack.Screen name="LeaveList" component={LeaveListScreen} />
+      <Stack.Screen name="LeaveRequest" component={LeaveRequestScreen} />
+      <Stack.Screen name="Overtime" component={OvertimeScreen} />
+      <Stack.Screen name="Clock" component={ClockScreen} />
+      <Stack.Screen name="History" component={AttendanceHistoryScreen} />
+      <Stack.Screen
+        name="AttendanceCorrection"
+        component={AttendanceCorrectionScreen}
+      />
+      <Stack.Screen
+        name="AttendanceCorrectionHistory"
+        component={AttendanceCorrectionHistoryScreen}
+      />
+      <Stack.Screen name="PayslipList" component={PayslipListScreen} />
+      <Stack.Screen name="TaxDetail" component={TaxScreen} />
       <Stack.Screen name="Notifications" component={NotificationScreen} />
       <Stack.Screen name="Appraisal" component={AppraisalScreen} />
       <Stack.Screen name="StaffList" component={StaffListScreen} />

@@ -20,6 +20,7 @@ import { ProfileChange } from "@/services/types";
 import { useConfirm } from "@/components/ConfirmDialog";
 import { useT } from "@/i18n";
 import { ChangeSummary } from "./ChangeSummary";
+import { kembali } from "@/navigation/kembali";
 
 // HR: perbandingan data sekarang dengan usulan karyawan, lalu menyetujui
 // (usulan diterapkan ke data karyawan) atau menolak dengan catatan.
@@ -67,7 +68,7 @@ export function ProfileChangeReviewDetailScreen({ navigation, route }: any) {
         decision,
         catatan.trim() || undefined,
       );
-      navigation.goBack();
+      kembali(navigation);
     } catch (e) {
       setGalat(describeError(e));
     } finally {
@@ -78,7 +79,7 @@ export function ProfileChangeReviewDetailScreen({ navigation, route }: any) {
   return (
     <View style={styles.container}>
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
-        <Pressable style={styles.backBtn} onPress={() => navigation.goBack()}>
+        <Pressable style={styles.backBtn} onPress={() => kembali(navigation)}>
           <Ionicons name="chevron-back" size={18} color={c.ink} />
         </Pressable>
         <View style={{ flex: 1, minWidth: 0 }}>

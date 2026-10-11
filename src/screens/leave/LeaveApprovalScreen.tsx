@@ -19,6 +19,7 @@ import { useT } from "@/i18n";
 import { LampiranList } from "./LampiranList";
 import { EmptyState } from "@/components/EmptyState";
 import { ICON } from "@/constants/icons";
+import { kembaliAtauBeranda } from "@/navigation/kembali";
 
 // Layar ini cuma di-mount untuk role mss/hr (lihat RootNavigator).
 export function LeaveApprovalScreen({ navigation }: any) {
@@ -98,7 +99,7 @@ export function LeaveApprovalScreen({ navigation }: any) {
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
         <Pressable
           style={styles.backBtn}
-          onPress={() => navigation.navigate("Beranda")}
+          onPress={() => kembaliAtauBeranda(navigation)}
         >
           <Ionicons name="chevron-back" size={18} color={c.ink} />
         </Pressable>

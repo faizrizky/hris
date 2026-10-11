@@ -19,6 +19,7 @@ import {
 } from "@/constants/statusLabels";
 import { namaHari, tanggalAngka, bulanSingkat, namaBulan } from "@/utils/date";
 import { useT, bahasaAktif } from "@/i18n";
+import { kembali } from "@/navigation/kembali";
 
 type Filter = "semua" | "telat" | "izin";
 
@@ -65,7 +66,7 @@ export function AttendanceHistoryScreen({ navigation }: any) {
   return (
     <View style={styles.container}>
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
-        <Pressable style={styles.backBtn} onPress={() => navigation.goBack()}>
+        <Pressable style={styles.backBtn} onPress={() => kembali(navigation)}>
           <Ionicons name="chevron-back" size={18} color={c.ink} />
         </Pressable>
         <Text style={styles.headerTitle}>{t("ab.hTitle")}</Text>

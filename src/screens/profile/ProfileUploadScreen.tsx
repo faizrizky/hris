@@ -35,6 +35,7 @@ import {
 import { useConfirm } from "@/components/ConfirmDialog";
 import { useT } from "@/i18n";
 import type { Kunci } from "@/i18n/id";
+import { kembali } from "@/navigation/kembali";
 
 const KATEGORI: DocCategory[] = ["kontrak", "sk", "sertifikat", "identitas"];
 
@@ -146,7 +147,7 @@ export function ProfileUploadScreen({ navigation }: any) {
         expiresOn: berlaku ?? undefined,
         file: { uri: berkas.uri, name: berkas.name, mimeType: berkas.mimeType },
       });
-      navigation.goBack();
+      kembali(navigation);
     } catch (e) {
       setGalat(describeError(e));
     } finally {
@@ -159,7 +160,7 @@ export function ProfileUploadScreen({ navigation }: any) {
   return (
     <View style={styles.container}>
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
-        <Pressable style={styles.backBtn} onPress={() => navigation.goBack()}>
+        <Pressable style={styles.backBtn} onPress={() => kembali(navigation)}>
           <Ionicons name="chevron-back" size={18} color={c.ink} />
         </Pressable>
         <Text style={styles.headerTitle}>{t("up.judul")}</Text>

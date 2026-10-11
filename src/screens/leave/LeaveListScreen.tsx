@@ -18,6 +18,7 @@ import { ErrorState } from "@/components/ErrorState";
 import { useT } from "@/i18n";
 import { LampiranList } from "./LampiranList";
 import { EmptyState } from "@/components/EmptyState";
+import { kembaliAtauBeranda } from "@/navigation/kembali";
 
 export function LeaveListScreen({ navigation }: any) {
   const { employee } = useSession();
@@ -57,7 +58,7 @@ export function LeaveListScreen({ navigation }: any) {
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
         <Pressable
           style={styles.backBtn}
-          onPress={() => navigation.getParent()?.navigate("Beranda")}
+          onPress={() => kembaliAtauBeranda(navigation)}
         >
           <Ionicons name="chevron-back" size={18} color={c.ink} />
         </Pressable>

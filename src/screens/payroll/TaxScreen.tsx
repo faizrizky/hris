@@ -13,6 +13,7 @@ import { Skeleton } from "@/components/Skeleton";
 import { useLoad } from "@/hooks/useLoad";
 import { ErrorState } from "@/components/ErrorState";
 import { useT, bahasaAktif } from "@/i18n";
+import { kembali } from "@/navigation/kembali";
 
 /** 3.7 -> "3,7" · 2 -> "2" */
 function persen(n: number) {
@@ -35,7 +36,7 @@ export function TaxScreen({ navigation }: any) {
 
   const head = (
     <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
-      <Pressable style={styles.backBtn} onPress={() => navigation.goBack()}>
+      <Pressable style={styles.backBtn} onPress={() => kembali(navigation)}>
         <Ionicons name="chevron-back" size={18} color={c.ink} />
       </Pressable>
       <Text style={styles.headerTitle}>{t("tax.judul")}</Text>

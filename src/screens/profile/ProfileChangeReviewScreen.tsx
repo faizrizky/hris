@@ -16,6 +16,7 @@ import { inisial } from "@/utils/ProfileCompleteness";
 import { tanggalPendekTahun } from "@/utils/date";
 import { useT } from "@/i18n";
 import type { Kunci } from "@/i18n/id";
+import { kembali } from "@/navigation/kembali";
 
 const FILTER: { key: ChangeStatus | "all"; label: Kunci }[] = [
   { key: "all", label: "pcr.semua" },
@@ -40,7 +41,7 @@ export function ProfileChangeReviewScreen({ navigation }: any) {
   return (
     <View style={styles.container}>
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
-        <Pressable style={styles.backBtn} onPress={() => navigation.goBack()}>
+        <Pressable style={styles.backBtn} onPress={() => kembali(navigation)}>
           <Ionicons name="chevron-back" size={18} color={c.ink} />
         </Pressable>
         <View style={{ flex: 1, minWidth: 0 }}>

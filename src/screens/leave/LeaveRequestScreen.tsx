@@ -52,6 +52,7 @@ import { describeError } from "@/services/api/http";
 import { useT } from "@/i18n";
 import { useConfirm } from "@/components/ConfirmDialog";
 import { pilihBukti } from "@/utils/pilihBukti";
+import { kembali, keBeranda } from "@/navigation/kembali";
 
 const SEGMENTS = [
   { key: "cuti", label: "lr.cuti" },
@@ -402,7 +403,7 @@ function LeaveRequestForm({ navigation, route }: any) {
     <View style={styles.container}>
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
         <View style={styles.headerRow}>
-          <Pressable style={styles.backBtn} onPress={() => navigation.goBack()}>
+          <Pressable style={styles.backBtn} onPress={() => kembali(navigation)}>
             <Ionicons name="chevron-back" size={18} color={c.ink} />
           </Pressable>
           <View style={{ flex: 1, minWidth: 0 }}>
@@ -488,8 +489,8 @@ function LeaveRequestForm({ navigation, route }: any) {
                 waitingOn={langkahApproval[0]?.name ?? t("lr.approver")}
                 rows={buatDoneRows()}
                 doc={`${DOC_NAMA[kind]} · ${done}`}
-                onLihat={() => navigation.goBack()}
-                onHome={() => navigation.getParent()?.navigate("Beranda")}
+                onLihat={() => kembali(navigation)}
+                onHome={() => keBeranda(navigation)}
               />
             ) : (
               <>
