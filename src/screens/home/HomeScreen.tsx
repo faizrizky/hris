@@ -153,6 +153,13 @@ export function HomeScreen() {
             ink: c.purple.ink,
             onPress: () => navigation.navigate("StaffList"),
           },
+          {
+            label: t("hm.aOffline"),
+            icon: ICON.clock,
+            bg: c.warn.bg,
+            ink: c.warn.ink,
+            onPress: () => navigation.navigate("OfflineReview"),
+          },
           ...(employee.role === "hr"
             ? [
                 {

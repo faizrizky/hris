@@ -867,4 +867,17 @@ export const en: Record<Kunci, string> = {
     "Saved on this phone, sent automatically when you are online",
   "profil.antreanN": "{n} offline check-in(s) waiting to send",
   "ab.menungguKirim": "Waiting to send",
+  "ofr.judul": "Offline Check-ins",
+  "ofr.sub": "Flagged by the server for review",
+  "ofr.perlu": "Needs Review",
+  "ofr.kosongJudul": "No offline check-ins",
+  "ofr.kosongIsi": "Offline check-ins flagged by the server will appear here.",
+  "ofr.diklaim": "Claimed time",
+  "ofr.tercatat": "Recorded by server",
+  "ofr.selisihJam": "Phone clock differs by {n} min from trusted time",
+  "ofr.pakaiJamKlaim": "Use claimed time",
+  "ofr.setujuiJudul": "Use the claimed time?",
+  "ofr.setujuiPesan":
+    "The check-in will be recorded at {jam} as the employee claimed.",
+  "hm.aOffline": "Offline Check-ins",
 };

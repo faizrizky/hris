@@ -2,7 +2,7 @@
 # Kotak masuk notifikasi pemanggil (Notification Log, for_user = session user), terbaru dulu, maks 50.
 # category diturunkan dari document_type: Leave Application -> Approval, Salary Slip -> Payroll,
 # Attendance Request -> Presensi. tone: ok | warn | info | bad. time = waktu server (Asia/Jakarta, tanpa offset).
-cat_map = {"Leave Application": "Approval", "Salary Slip": "Payroll", "Attendance Request": "Presensi", "Travel Request": "Approval", "Overtime Request": "Approval", "Employee Document": "Pengumuman", "Employee Performance Feedback": "Appraisal", "Appraisal": "Appraisal"}
+cat_map = {"Leave Application": "Approval", "Salary Slip": "Payroll", "Attendance Request": "Presensi", "Travel Request": "Approval", "Overtime Request": "Approval", "Employee Document": "Pengumuman", "Employee Checkin": "Presensi", "Employee Performance Feedback": "Appraisal", "Appraisal": "Appraisal"}
 is_hr = frappe.session.user == "Administrator" or len(
     frappe.get_all("Has Role", filters={"parent": frappe.session.user, "parenttype": "User",
                                         "role": ["in", ["HR User", "HR Manager", "System Manager"]]},
@@ -24,7 +24,7 @@ for r in rows:
         tone = "ok"
     elif "rejected" in low:
         tone = "bad"
-    elif "waiting" in low or "requested" in low:
+    elif "waiting" in low or "requested" in low or "needs review" in low:
         tone = "warn"
     if r.document_type == "HR Announcement":
         tone = "warn" if frappe.db.get_value("HR Announcement", r.document_name, "priority") == "Important" else "info"

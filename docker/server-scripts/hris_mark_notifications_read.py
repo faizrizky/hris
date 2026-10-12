@@ -16,7 +16,7 @@ if raw:
 for n in frappe.get_all("Notification Log", filters=filters, pluck="name", limit_page_length=1000):
     frappe.db.set_value("Notification Log", n, "read", 1)
 
-cat_map = {"Leave Application": "Approval", "Salary Slip": "Payroll", "Attendance Request": "Presensi", "Travel Request": "Approval", "Overtime Request": "Approval", "Employee Document": "Pengumuman", "Employee Performance Feedback": "Appraisal", "Appraisal": "Appraisal"}
+cat_map = {"Leave Application": "Approval", "Salary Slip": "Payroll", "Attendance Request": "Presensi", "Travel Request": "Approval", "Overtime Request": "Approval", "Employee Document": "Pengumuman", "Employee Checkin": "Presensi", "Employee Performance Feedback": "Appraisal", "Appraisal": "Appraisal"}
 is_hr = frappe.session.user == "Administrator" or len(
     frappe.get_all("Has Role", filters={"parent": frappe.session.user, "parenttype": "User",
                                         "role": ["in", ["HR User", "HR Manager", "System Manager"]]},
@@ -38,7 +38,7 @@ for r in rows:
         tone = "ok"
     elif "rejected" in low:
         tone = "bad"
-    elif "waiting" in low or "requested" in low:
+    elif "waiting" in low or "requested" in low or "needs review" in low:
         tone = "warn"
     file_url = None
     file_name = None

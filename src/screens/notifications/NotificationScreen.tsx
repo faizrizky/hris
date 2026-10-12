@@ -74,6 +74,9 @@ export function NotificationScreen({ navigation }: any) {
           navigation.navigate("Profil", { screen: "ProfileDocs" });
         }
         return;
+      case "Employee Checkin":
+        if (menunggu) navigation.navigate("OfflineReview");
+        return;
       case "HR Announcement":
         navigation.navigate("Announcements", { id: n.documentName });
         return;

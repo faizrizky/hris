@@ -871,6 +871,18 @@ export const id = {
   "ab.tersimpanOffline": "Tersimpan di HP, dikirim otomatis saat ada sinyal",
   "profil.antreanN": "{n} check-in offline menunggu kirim",
   "ab.menungguKirim": "Menunggu kirim",
+  "ofr.judul": "Check-in Offline",
+  "ofr.sub": "Ditandai server untuk ditinjau",
+  "ofr.perlu": "Perlu Ditinjau",
+  "ofr.kosongJudul": "Tidak ada check-in offline",
+  "ofr.kosongIsi": "Check-in offline yang ditandai server akan muncul di sini.",
+  "ofr.diklaim": "Jam diklaim",
+  "ofr.tercatat": "Tercatat server",
+  "ofr.selisihJam": "Jam HP berbeda {n} menit dari jam terpercaya",
+  "ofr.pakaiJamKlaim": "Pakai jam klaim",
+  "ofr.setujuiJudul": "Pakai jam yang diklaim?",
+  "ofr.setujuiPesan": "Check-in akan dicatat pada {jam} sesuai klaim karyawan.",
+  "hm.aOffline": "Check-in Offline",
 } as const;
 
 export type Kunci = keyof typeof id;
