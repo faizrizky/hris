@@ -36,9 +36,9 @@
     "semantic_hash": "cb8007364835d00ff12ba23dfc5199e1"
   },
   "docker/seed/seed.py": {
-    "mtime": 1791762541.7600515,
-    "seen": 1791762736.311734,
-    "ast_hash": "7faf628bfd95dc02fa1d564f93b1509a",
+    "mtime": 1791780166.4852324,
+    "seen": 1791780430.5718899,
+    "ast_hash": "a05df089a1ff00762118084fed39cab8",
     "semantic_hash": ""
   },
   "docker/seed/seed.sh": {
@@ -48,9 +48,9 @@
     "semantic_hash": ""
   },
   "docker/seed/smoke.sh": {
-    "mtime": 1791762652.3111703,
-    "seen": 1791762736.311737,
-    "ast_hash": "fe9b63f702c890b81da1e2daffe239c8",
+    "mtime": 1791780166.4860907,
+    "seen": 1791780430.5718951,
+    "ast_hash": "fca84a0ab6b39dfa30b6c846ea1cefcc",
     "semantic_hash": ""
   },
   "docker/server-scripts/hris_get_attendance_history.py": {
@@ -246,9 +246,9 @@
     "semantic_hash": ""
   },
   "src/navigation/RootNavigator.tsx": {
-    "mtime": 1791762413.9344053,
-    "seen": 1791762455.7190132,
-    "ast_hash": "844b31fbbd2f867376b6241fd3b26b3c",
+    "mtime": 1791780315.4350612,
+    "seen": 1791780430.572238,
+    "ast_hash": "62d8e9523d5bcc741e8f1c2a8b472fcf",
     "semantic_hash": ""
   },
   "src/screens/appraisal/AppraisalScreen.tsx": {
@@ -276,9 +276,9 @@
     "semantic_hash": ""
   },
   "src/screens/attendance/ClockScreen.tsx": {
-    "mtime": 1791715585.3623261,
-    "seen": 1791715636.605665,
-    "ast_hash": "f96e9436e19b0919546badf384692f30",
+    "mtime": 1791780254.7859616,
+    "seen": 1791780430.572253,
+    "ast_hash": "550ace59056a7cf5d6f3dc8529dcb061",
     "semantic_hash": ""
   },
   "src/screens/attendance/FaceViewfinder.tsx": {
@@ -306,9 +306,9 @@
     "semantic_hash": ""
   },
   "src/screens/home/HomeScreen.tsx": {
-    "mtime": 1791762413.9350872,
-    "seen": 1791762455.7190342,
-    "ast_hash": "0244d75372fd497faa3f7034e8f9a73f",
+    "mtime": 1791780315.4374948,
+    "seen": 1791780430.572268,
+    "ast_hash": "968cbfaaaafb9199134c12048d995ccd",
     "semantic_hash": ""
   },
   "src/screens/leave/CutiFormCards.tsx": {
@@ -348,9 +348,9 @@
     "semantic_hash": ""
   },
   "src/screens/leave/LeaveRequestScreen.tsx": {
-    "mtime": 1791715595.047155,
-    "seen": 1791715636.605682,
-    "ast_hash": "9ec777f75a753380002a9ddd9150628b",
+    "mtime": 1791778881.1129255,
+    "seen": 1791780430.572285,
+    "ast_hash": "694cb4d6bdf570097c59908864e92415",
     "semantic_hash": ""
   },
   "src/screens/leave/LemburFormCards.tsx": {
@@ -366,9 +366,9 @@
     "semantic_hash": ""
   },
   "src/screens/notifications/NotificationScreen.tsx": {
-    "mtime": 1791762413.9353986,
-    "seen": 1791762455.7190459,
-    "ast_hash": "d719bc82c1d4df89f54926bd1b4351f6",
+    "mtime": 1791780315.439232,
+    "seen": 1791780430.5722911,
+    "ast_hash": "47eeaa9b3b224fd26d41ca47790639f8",
     "semantic_hash": ""
   },
   "src/screens/payroll/PayslipCards.tsx": {
@@ -414,9 +414,9 @@
     "semantic_hash": ""
   },
   "src/screens/profile/ProfileScreen.tsx": {
-    "mtime": 1791654975.1831653,
-    "seen": 1791714819.0794282,
-    "ast_hash": "4f1d8fb4bafb25bb52c94f2984816da1",
+    "mtime": 1791780202.4978483,
+    "seen": 1791780430.5723462,
+    "ast_hash": "ae6d89033df9cbcd633ecc4364813980",
     "semantic_hash": ""
   },
   "src/screens/profile/ProfileSecurityScreen.tsx": {
@@ -456,15 +456,15 @@
     "semantic_hash": ""
   },
   "src/services/api/erpnextApi.ts": {
-    "mtime": 1791762708.932572,
-    "seen": 1791762736.311885,
-    "ast_hash": "1d1bfda2ee62a890c6b988b367b91a0b",
+    "mtime": 1791780163.0423992,
+    "seen": 1791780430.5723588,
+    "ast_hash": "2e8c32a6213121d056f92a3477e20ad7",
     "semantic_hash": ""
   },
   "src/services/api/http.ts": {
-    "mtime": 1791706358.940784,
-    "seen": 1791714819.079435,
-    "ast_hash": "6276835a5d3fba609db7107bc6bf7edc",
+    "mtime": 1791780149.925499,
+    "seen": 1791780430.57236,
+    "ast_hash": "f2ae13881914662db96c93673b623d64",
     "semantic_hash": ""
   },
   "src/services/api/index.ts": {
@@ -474,9 +474,9 @@
     "semantic_hash": "20085c4949f48ec7cdc747100e5423c2"
   },
   "src/services/mock/mockApi.ts": {
-    "mtime": 1791762413.882778,
-    "seen": 1791762455.719069,
-    "ast_hash": "37d4967d9562cf918132f3bee1d7f9f7",
+    "mtime": 1791780149.9266355,
+    "seen": 1791780430.572364,
+    "ast_hash": "ed593437dc47cd77e840e5b9750d1694",
     "semantic_hash": ""
   },
   "src/services/mock/mockData.ts": {
@@ -486,15 +486,15 @@
     "semantic_hash": ""
   },
   "src/services/session.tsx": {
-    "mtime": 1791678307.9427366,
-    "seen": 1791714819.0794392,
-    "ast_hash": "3b3a981f8eb8c2375865e7fa4defdcdf",
+    "mtime": 1791780194.6615596,
+    "seen": 1791780430.572371,
+    "ast_hash": "4237048ea60fa31eebb4368d29079a75",
     "semantic_hash": ""
   },
   "src/services/types.ts": {
-    "mtime": 1791762708.932164,
-    "seen": 1791762736.3118908,
-    "ast_hash": "f26d4ce756902116c641b02d82dea1e6",
+    "mtime": 1791780149.9260092,
+    "seen": 1791780430.572374,
+    "ast_hash": "e3a47eaa4314b5d8a9b6c0a06a88d237",
     "semantic_hash": ""
   },
   "src/theme/ThemeContext.tsx": {
@@ -594,9 +594,9 @@
     "semantic_hash": ""
   },
   "docker/server-scripts/hris_checkin.py": {
-    "mtime": 1791678307.942556,
-    "seen": 1791714819.0793228,
-    "ast_hash": "56c08055f2d0618175cb59a9e367913d",
+    "mtime": 1791780225.5917914,
+    "seen": 1791780430.572038,
+    "ast_hash": "0a084a9719ad51a7e490950e10cbc697",
     "semantic_hash": ""
   },
   "docker/server-scripts/hris_create_my_document.py": {
@@ -696,9 +696,9 @@
     "semantic_hash": ""
   },
   "docker/server-scripts/hris_get_notifications.py": {
-    "mtime": 1791762498.1725662,
-    "seen": 1791762736.311776,
-    "ast_hash": "84da9bd4a599dd47fe23f6abfd32ceac",
+    "mtime": 1791780311.4353838,
+    "seen": 1791780430.572107,
+    "ast_hash": "242903b2bddd6a424df22ea55a3e5b21",
     "semantic_hash": ""
   },
   "docker/server-scripts/hris_get_overtimes.py": {
@@ -756,9 +756,9 @@
     "semantic_hash": ""
   },
   "docker/server-scripts/hris_mark_notifications_read.py": {
-    "mtime": 1791762524.0701342,
-    "seen": 1791762736.311787,
-    "ast_hash": "bde362fc727358a2bc13484be80d9b66",
+    "mtime": 1791780311.4359615,
+    "seen": 1791780430.5721312,
+    "ast_hash": "94656cdba3a4743a4be446cd957b3977",
     "semantic_hash": ""
   },
   "docker/server-scripts/hris_notify_attendance_correction.py": {
@@ -876,15 +876,15 @@
     "semantic_hash": ""
   },
   "src/i18n/en.ts": {
-    "mtime": 1791762708.9317486,
-    "seen": 1791762736.311836,
-    "ast_hash": "f37c16626c103be234057dce8f808a7b",
+    "mtime": 1791780319.913799,
+    "seen": 1791780430.5722308,
+    "ast_hash": "04f2c9e5b7203ff78da64d4a39e3bd0a",
     "semantic_hash": ""
   },
   "src/i18n/id.ts": {
-    "mtime": 1791762708.9313416,
-    "seen": 1791762736.311837,
-    "ast_hash": "4da5f058396085d40345039f02db6168",
+    "mtime": 1791780315.4119213,
+    "seen": 1791780430.572232,
+    "ast_hash": "a52e47a16c227f6780bab6aa38714397",
     "semantic_hash": ""
   },
   "src/i18n/index.tsx": {
@@ -1041,6 +1041,72 @@
     "mtime": 1791762498.0583127,
     "seen": 1791762736.3118,
     "ast_hash": "f654d3629de3260957f8f90ad34be1fa",
+    "semantic_hash": ""
+  },
+  "docker/server-scripts/hris_decide_offline_checkin.py": {
+    "mtime": 1791780166.4159615,
+    "seen": 1791780430.572053,
+    "ast_hash": "d42400ed6c2f9a64c70c229cdb5fb6f8",
+    "semantic_hash": ""
+  },
+  "docker/server-scripts/hris_get_offline_checkins.py": {
+    "mtime": 1791780166.4117558,
+    "seen": 1791780430.572109,
+    "ast_hash": "351dde8881e72b6b772db200144689fa",
+    "semantic_hash": ""
+  },
+  "docker/server-scripts/hris_get_offline_report.py": {
+    "mtime": 1791780166.421326,
+    "seen": 1791780430.5721111,
+    "ast_hash": "62ba41aa784ec8e4f270443c705ffdf0",
+    "semantic_hash": ""
+  },
+  "modules/hris-clock/android/build.gradle": {
+    "mtime": 1791780081.2582636,
+    "seen": 1791780430.572175,
+    "ast_hash": "ef9d05dc8a63507bce381b75d10a3730",
+    "semantic_hash": ""
+  },
+  "modules/hris-clock/android/src/main/java/expo/modules/hrisclock/HrisClockModule.kt": {
+    "mtime": 1791780081.2664714,
+    "seen": 1791780430.572176,
+    "ast_hash": "519ca3399e121cc621ce21fcfb5798a3",
+    "semantic_hash": ""
+  },
+  "modules/hris-clock/expo-module.config.json": {
+    "mtime": 1791780081.2519028,
+    "seen": 1791780430.572178,
+    "ast_hash": "72059f0e761c15f7a2397f41c6c085ea",
+    "semantic_hash": ""
+  },
+  "modules/hris-clock/ios/HrisClockModule.swift": {
+    "mtime": 1791780081.4934087,
+    "seen": 1791780430.57218,
+    "ast_hash": "7af681be0afcd94f0c3661392b0ae675",
+    "semantic_hash": ""
+  },
+  "src/hooks/useJumlahAntrean.ts": {
+    "mtime": 1791780115.0601735,
+    "seen": 1791780430.5722282,
+    "ast_hash": "450ab2496fde43d30c676dad6c99960d",
+    "semantic_hash": ""
+  },
+  "src/screens/attendance/OfflineReviewScreen.tsx": {
+    "mtime": 1791780321.4674177,
+    "seen": 1791780430.572258,
+    "ast_hash": "38ae5d66ddd4b4f062d53d6ad012fb27",
+    "semantic_hash": ""
+  },
+  "src/services/offlineQueue.ts": {
+    "mtime": 1791780115.0568235,
+    "seen": 1791780430.5723672,
+    "ast_hash": "13e11d45d2012c1c0085e4f1bab67661",
+    "semantic_hash": ""
+  },
+  "src/services/trustedTime.ts": {
+    "mtime": 1791780115.053335,
+    "seen": 1791780430.572373,
+    "ast_hash": "3fc6052347fe306d4ff63085add06a22",
     "semantic_hash": ""
   }
 }

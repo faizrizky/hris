@@ -1578,7 +1578,7 @@ export const erpnextApi: HrisApi = {
         log_type: "IN" | "OUT";
         time: string;
         claimed_time: string | null;
-        flags: string | null;
+        flags: string[] | string | null;
         review_status: OfflineCheckin["status"];
         clock_skew_seconds: number | null;
         queue_age_seconds: number | null;
@@ -1593,7 +1593,7 @@ export const erpnextApi: HrisApi = {
       logType: r.log_type,
       time: r.time,
       claimedTime: r.claimed_time,
-      flags: r.flags ?? "",
+      flags: Array.isArray(r.flags) ? r.flags.join(", ") : (r.flags ?? ""),
       status: r.review_status,
       skewSeconds: r.clock_skew_seconds ?? 0,
       queueAgeSeconds: r.queue_age_seconds ?? 0,
