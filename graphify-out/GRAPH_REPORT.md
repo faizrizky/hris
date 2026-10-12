@@ -1,17 +1,17 @@
 # Graph Report - HRIS  (2026-10-12)
 
 ## Corpus Check
-- 167 files · ~101,978 words
+- 173 files · ~103,938 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 3 file(s) not represented in the graph (top: (none) 2, .example 1)
 
 ## Summary
-- 952 nodes · 3594 edges · 90 communities (31 shown, 59 thin omitted)
+- 958 nodes · 3594 edges · 96 communities (31 shown, 65 thin omitted)
 - Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS · INFERRED: 15 edges (avg confidence: 0.88)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `aa225579`
+- Built from commit: `a4b2e70d`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -84,7 +84,7 @@
 - **ERPNext dev compose stack services** — docker_docker_compose_backend, docker_docker_compose_frontend, docker_docker_compose_websocket, docker_docker_compose_queue_workers, docker_docker_compose_scheduler, docker_docker_compose_db, docker_docker_compose_redis [EXTRACTED 0.95]
 - **HrisApi contract with mock and ERPNext implementations** — readme_hrisapi_contract, readme_mock_api, readme_erpnext_api, readme_api_index_swap [EXTRACTED 0.95]
 
-## Communities (90 total, 59 thin omitted)
+## Communities (96 total, 65 thin omitted)
 
 ### Community 0 - "LeaveRequestScreen.tsx"
 Cohesion: 0.06
@@ -212,20 +212,20 @@ Nodes (31): labelBahasa(), isi(), tt(), terjemahkan(), terjemahkanNotifikasi(), 
 
 ## Knowledge Gaps
 - **29 isolated node(s):** `@expo/metro-runtime`, `expo`, `expo-build-properties`, `react-native-screens`, `@babel/core` (+24 more)
-  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 356 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
-- **59 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 362 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
+- **65 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `HrisApi` connect `HrisApi` to `erpnextApi.ts`, `RootNavigator.tsx`, `types.ts`?**
-  _High betweenness centrality (0.082) - this node is a cross-community bridge._
+  _High betweenness centrality (0.081) - this node is a cross-community bridge._
 - **What connects `@expo/metro-runtime`, `expo`, `expo-build-properties` to the rest of the system?**
   _29 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `LeaveRequestScreen.tsx` be split into smaller, more focused modules?**
   _Cohesion score 0.06392405063291139 - nodes in this community are weakly interconnected._
 - **Why does `useTheme()` connect `useTheme` to `LeaveRequestScreen.tsx`, `AttendanceCorrectionHistoryScreen.tsx`, `ThemeContext.tsx`, `RootNavigator.tsx`, `HomeScreen.tsx`, `ProfilePasswordScreen.tsx`, `index.tsx`?**
-  _High betweenness centrality (0.070) - this node is a cross-community bridge._
+  _High betweenness centrality (0.069) - this node is a cross-community bridge._
 - **Should `AttendanceCorrectionHistoryScreen.tsx` be split into smaller, more focused modules?**
   _Cohesion score 0.12310606060606061 - nodes in this community are weakly interconnected._
 - **Why does `dependencies` connect `dependencies` to `package.json`?**

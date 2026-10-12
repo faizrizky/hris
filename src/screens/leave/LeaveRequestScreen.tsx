@@ -181,23 +181,27 @@ function LeaveRequestForm({ navigation, route }: any) {
     (x) => Number(x.nominal) > 0 && !x.bukti,
   ).length;
 
+  // Rentang (cuti, dinas) baru lengkap setelah tanggal selesai dipilih; tanpa itu
+  // toDate terkirim null dan server menolaknya.
   const blockMsg = !start
     ? t("lr.blokTgl")
-    : kind === "cuti" && !alasan.trim()
-      ? t("lr.blokAlasan")
-      : kind === "cuti" && approver === null
-        ? t("lr.blokApprover")
-        : kind === "lembur" && !uraian.trim()
-          ? t("lr.blokUraian")
-          : kind === "lembur" && otFiles.length === 0
-            ? t("lr.blokBukti")
-            : kind === "dinas" && !dest.trim()
-              ? t("lr.blokKota")
-              : kind === "dinas" && !transport
-                ? t("lr.blokTransport")
-                : kind === "dinas" && buktiBiayaKurang
-                  ? t("lr.blokBiaya", { n: buktiBiayaKurang })
-                  : "";
+    : !end
+      ? t("lr.blokTglSelesai")
+      : kind === "cuti" && !alasan.trim()
+        ? t("lr.blokAlasan")
+        : kind === "cuti" && approver === null
+          ? t("lr.blokApprover")
+          : kind === "lembur" && !uraian.trim()
+            ? t("lr.blokUraian")
+            : kind === "lembur" && otFiles.length === 0
+              ? t("lr.blokBukti")
+              : kind === "dinas" && !dest.trim()
+                ? t("lr.blokKota")
+                : kind === "dinas" && !transport
+                  ? t("lr.blokTransport")
+                  : kind === "dinas" && buktiBiayaKurang
+                    ? t("lr.blokBiaya", { n: buktiBiayaKurang })
+                    : "";
 
   const bisaKirim = !blockMsg && !sending;
 
@@ -615,23 +619,26 @@ function LeaveRequestForm({ navigation, route }: any) {
                     : "—"}
             </Text>
           </View>
-          <Pressable onPress={handleSubmit} disabled={!bisaKirim}>
-            <LinearGradient
-              colors={bisaKirim ? [c.accent, c.accent2] : [c.track, c.track]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.submitBtn}
-            >
-              <Text
-                style={[
-                  styles.submitText,
-                  bisaKirim ? { color: "#fff" } : null,
-                ]}
+          {/* Tombol kirim baru muncul setelah form lengkap. */}
+          {bisaKirim || sending ? (
+            <Pressable onPress={handleSubmit} disabled={!bisaKirim}>
+              <LinearGradient
+                colors={bisaKirim ? [c.accent, c.accent2] : [c.track, c.track]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.submitBtn}
               >
-                {sending ? t("lr.mengirim") : t("lr.kirim")}
-              </Text>
-            </LinearGradient>
-          </Pressable>
+                <Text
+                  style={[
+                    styles.submitText,
+                    bisaKirim ? { color: "#fff" } : null,
+                  ]}
+                >
+                  {sending ? t("lr.mengirim") : t("lr.kirim")}
+                </Text>
+              </LinearGradient>
+            </Pressable>
+          ) : null}
         </View>
       )}
     </View>

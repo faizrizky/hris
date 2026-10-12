@@ -88,5 +88,11 @@
   "86": "hris_update_my_profile.py",
   "87": "profile_apply.py",
   "88": "profile_current.py",
-  "89": "profile_input.py"
+  "89": "profile_input.py",
+  "90": "hris_announcement_publish.py",
+  "91": "hris_announcement_visibility.py",
+  "92": "hris_employee_tax_status.py",
+  "93": "hris_get_announcements.py",
+  "94": "hris_notify_announcement.py",
+  "95": "hris_salary_slip_pph21.py"
 }

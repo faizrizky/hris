@@ -859,4 +859,5 @@ export const en: Record<Kunci, string> = {
   "hm.aPengumuman": "Announcements",
   "tax.terKategori": "TER {k}",
   "tax.ptkpTahunan": "PTKP {x} / year",
+  "lr.blokTglSelesai": "Select the end date",
 };
