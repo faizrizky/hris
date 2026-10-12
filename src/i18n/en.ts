@@ -860,4 +860,11 @@ export const en: Record<Kunci, string> = {
   "tax.terKategori": "TER {k}",
   "tax.ptkpTahunan": "PTKP {x} / year",
   "lr.blokTglSelesai": "Select the end date",
+  "ab.offlineTersimpan": "Check-in saved, waiting for a connection to send",
+  "ab.offlineN": "{n} offline check-in(s) waiting to send",
+  "ab.berhasilOffline": "{aksi} saved",
+  "ab.tersimpanOffline":
+    "Saved on this phone, sent automatically when you are online",
+  "profil.antreanN": "{n} offline check-in(s) waiting to send",
+  "ab.menungguKirim": "Waiting to send",
 };

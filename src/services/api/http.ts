@@ -2,6 +2,7 @@
 // Auth memakai cookie `sid` yang dikelola cookie jar native (credentials: "include").
 
 import { tt } from "@/i18n";
+import { catatKontakServer } from "@/services/trustedTime";
 
 const BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL;
 const TIMEOUT_MS = 15_000;
@@ -92,6 +93,9 @@ async function request<T>(
   } finally {
     clearTimeout(timer);
   }
+
+  // Setiap kontak berhasil memperbarui jangkar jam terpercaya (lihat trustedTime.ts).
+  if (res.ok) catatKontakServer(res.headers.get("date"));
 
   // Frappe selalu membalas JSON, tapi jangan percaya buta (mis. halaman 502 dari nginx).
   let body: unknown = null;

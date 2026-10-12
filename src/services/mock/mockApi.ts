@@ -329,6 +329,16 @@ export const mockApi: HrisApi = {
     return personalProfile;
   },
 
+  async syncOfflineCheckins() {
+    return { sent: 0, remaining: 0 };
+  },
+
+  async getOfflineCheckins() {
+    return [];
+  },
+
+  async decideOfflineCheckin() {},
+
   async getAnnouncements() {
     return [];
   },

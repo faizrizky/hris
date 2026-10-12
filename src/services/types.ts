@@ -59,6 +59,7 @@ export interface ClockState {
   lastCheckOut: string | null;
   timezoneLabel?: string; // "WIB", "WITA", "GMT+8", dari server
   workLocation?: string | null;
+  pendingOffline?: boolean; // ada check-in yang masih menunggu dikirim
 }
 
 export type LeaveType = "cuti" | "lembur" | "dinas_luar" | "sakit";
@@ -308,6 +309,21 @@ export interface Announcement {
   postedBy: string | null;
 }
 
+export type OfflineReviewStatus = "Needs Review" | "Approved" | "Rejected";
+
+export interface OfflineCheckin {
+  id: string;
+  employeeName: string;
+  designation: string;
+  logType: "IN" | "OUT";
+  time: string; // "YYYY-MM-DD HH:MM:SS" zona kerja (yang tercatat)
+  claimedTime: string | null; // jam yang diklaim karyawan
+  flags: string; // alasan ditandai (bahasa Inggris dari server)
+  status: OfflineReviewStatus;
+  skewSeconds: number;
+  queueAgeSeconds: number;
+}
+
 export type ChangeStatus = "Pending" | "Approved" | "Rejected";
 
 export interface ProfileChange {
@@ -420,6 +436,18 @@ export interface HrisApi {
   getAttendanceHistory(employeeId: string): Promise<AttendanceRecord[]>;
   // Riwayat karyawan lain, untuk atasan/HR (server membatasi hak aksesnya).
   getStaffAttendanceHistory(staffId: string): Promise<AttendanceRecord[]>;
+
+  // Check-in offline: kirim antrean yang tertunda; peninjauan oleh atasan/HR.
+  syncOfflineCheckins(): Promise<{ sent: number; remaining: number }>;
+  getOfflineCheckins(
+    status: OfflineReviewStatus | "all",
+    scope?: "team",
+  ): Promise<OfflineCheckin[]>;
+  decideOfflineCheckin(
+    id: string,
+    decision: "approve" | "reject",
+    note?: string,
+  ): Promise<void>;
 
   // HR: tinjau Dokumen Digital karyawan.
   getDocumentsForReview(

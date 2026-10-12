@@ -794,6 +794,62 @@ if frappe.db.exists("Sidebar", "Shift & Attendance"):
     log("sidebar Shift & Attendance: HR Announcement di bawah Dashboard")
     frappe.clear_cache()
 
+# ---- Check-in offline tahan kecurangan ----
+if not frappe.db.exists("DocType", "Attendance Offline Settings"):
+    make(dict(
+        doctype="DocType", name="Attendance Offline Settings", module="HR", custom=1, issingle=1,
+        fields=[
+            dict(fieldname="max_age_hours", label="Max Queue Age (hours)", fieldtype="Int", default="24"),
+            dict(fieldname="skew_tolerance_seconds", label="Clock Skew Tolerance (seconds)", fieldtype="Int", default="300"),
+            dict(fieldname="max_per_month", label="Max Offline Check-ins per Month", fieldtype="Int", default="5"),
+            dict(fieldname="future_tolerance_seconds", label="Future Tolerance (seconds)", fieldtype="Int", default="120"),
+            dict(fieldname="max_anchor_age_hours", label="Max Hours Since Last Server Contact", fieldtype="Int", default="72"),
+        ],
+        permissions=[dict(role="System Manager", read=1, write=1), dict(role="HR Manager", read=1, write=1)]))
+    frappe.clear_cache()
+    for _f, _v in (("max_age_hours", 24), ("skew_tolerance_seconds", 300), ("max_per_month", 5),
+                   ("future_tolerance_seconds", 120), ("max_anchor_age_hours", 72)):
+        frappe.db.set_single_value("Attendance Offline Settings", _f, _v)
+for cf in [
+    dict(fieldname="custom_offline", label="Offline Check-in", fieldtype="Check", permlevel=1, read_only=1,
+         insert_after="custom_timezone"),
+    dict(fieldname="custom_client_id", label="Client ID", fieldtype="Data", permlevel=1, read_only=1, unique=0,
+         insert_after="custom_offline"),
+    dict(fieldname="custom_clock_skew_seconds", label="Clock Skew (seconds)", fieldtype="Int", permlevel=1, read_only=1,
+         insert_after="custom_client_id"),
+    dict(fieldname="custom_queue_age_seconds", label="Queue Age (seconds)", fieldtype="Int", permlevel=1, read_only=1,
+         insert_after="custom_clock_skew_seconds"),
+    dict(fieldname="custom_claimed_time", label="Claimed Time", fieldtype="Datetime", permlevel=1,
+         insert_after="custom_queue_age_seconds"),
+    dict(fieldname="custom_review_status", label="Review Status", fieldtype="Select",
+         options="None\nNeeds Review\nApproved\nRejected", default="None", permlevel=1, in_standard_filter=1,
+         insert_after="custom_claimed_time"),
+    dict(fieldname="custom_flags", label="Flags", fieldtype="Small Text", permlevel=1, read_only=1,
+         insert_after="custom_review_status"),
+    dict(fieldname="custom_reviewed_by", label="Reviewed By", fieldtype="Link", options="User", permlevel=1, read_only=1,
+         insert_after="custom_flags"),
+    dict(fieldname="custom_reviewed_on", label="Reviewed On", fieldtype="Datetime", permlevel=1, read_only=1,
+         insert_after="custom_reviewed_by"),
+]:
+    if not frappe.db.exists("Custom Field", {"dt": "Employee Checkin", "fieldname": cf["fieldname"]}):
+        make(dict(doctype="Custom Field", dt="Employee Checkin", **cf))
+        frappe.clear_cache(doctype="Employee Checkin")
+frappe.db.commit()
+# Sidebar: "Offline Check-in Review" di bawah "Employee Checkin" (Shift and Attendance).
+if frappe.db.exists("Sidebar", "Shift & Attendance"):
+    from frappe.desk.doctype.custom_sidebar.custom_sidebar import add_site_sidebar_item, _save_customization, layer_arrangement
+    add_site_sidebar_item("Shift and Attendance", dict(label="Offline Check-in Review", type="Link", link_type="DocType",
+                                                        link_to="Employee Checkin", icon="clock", collapsible=1,
+                                                        route_options='{"custom_review_status": "Needs Review"}'))
+    _arr = layer_arrangement("Shift and Attendance", None)
+    _mine = [r for r in _arr if r.get("label") == "Offline Check-in Review"]
+    _rest = [r for r in _arr if r not in _mine]
+    _at = next((n for n, r in enumerate(_rest) if r.get("link_to") == "Employee Checkin" and r.get("label") == "Employee Checkin"), 0) + 1
+    _save_customization("Shift and Attendance", _rest[:_at] + _mine + _rest[_at:], None)
+    frappe.db.commit()
+    log("sidebar: Offline Check-in Review di bawah Employee Checkin")
+    frappe.clear_cache()
+
 # Sinkronkan label Custom Field yang sudah ada ke bahasa Inggris (nama field tidak berubah).
 for (_dt, _fn), _label in {
     ("Employee", "custom_pengaturan_gaji"): "Salary Settings",

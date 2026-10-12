@@ -14,6 +14,7 @@ import {
   LeaveType,
   Announcement,
   Appraisal,
+  OfflineCheckin,
   ProfileChange,
   FeedbackForm,
   ReviewDocument,
@@ -54,6 +55,14 @@ import { ApiError, get, post, put, upload } from "./http";
 import { ukuranFile } from "../../utils/file";
 import { File as FileFs } from "expo-file-system";
 import { tokenPushSaatIni } from "../push";
+import { waktuTerpercaya } from "../trustedTime";
+import {
+  ItemAntrean,
+  ambilAntrean,
+  antre,
+  hapusDariAntrean,
+  jumlahAntrean,
+} from "../offlineQueue";
 import { terjemahkan, terjemahkanNotifikasi } from "@/i18n/serverLabels";
 import { tt } from "@/i18n";
 import type { Kunci } from "@/i18n/id";
@@ -992,21 +1001,126 @@ interface AttendanceRow {
   late_entry: number;
 }
 
-function ambilStatusJam(): Promise<ClockState> {
-  return get<ClockRes>("/api/method/hris_get_clock_state").then((r) => ({
-    clockedIn: r.message.clocked_in,
-    lastCheckIn: r.message.last_check_in,
-    lastCheckOut: r.message.last_check_out,
-    timezoneLabel: r.message.timezone_label ?? undefined,
-    workLocation: r.message.work_location ?? null,
-  }));
+// Status jam terakhir yang berhasil dibaca; dipakai bila layar dibuka tanpa sinyal.
+let statusTerakhir: ClockState | null = null;
+
+const jamLokal = (ms: number) => {
+  const d = new Date(ms);
+  return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+};
+
+// Status sementara dari antrean offline: memperlihatkan hasil ketukan karyawan
+// walau server belum menerimanya.
+async function statusDariAntrean(): Promise<ClockState | null> {
+  const daftar = await ambilAntrean();
+  const terakhir = daftar.at(-1);
+  if (!terakhir) return statusTerakhir;
+  const jam = jamLokal(terakhir.capturedMs || terakhir.deviceMs);
+  return {
+    clockedIn: terakhir.logType === "IN",
+    lastCheckIn:
+      terakhir.logType === "IN" ? jam : (statusTerakhir?.lastCheckIn ?? null),
+    lastCheckOut: terakhir.logType === "OUT" ? jam : null,
+    timezoneLabel: statusTerakhir?.timezoneLabel,
+    workLocation: statusTerakhir?.workLocation ?? null,
+    pendingOffline: true,
+  };
+}
+
+async function ambilStatusJam(): Promise<ClockState> {
+  try {
+    const r = await get<ClockRes>("/api/method/hris_get_clock_state");
+    const status: ClockState = {
+      clockedIn: r.message.clocked_in,
+      lastCheckIn: r.message.last_check_in,
+      lastCheckOut: r.message.last_check_out,
+      timezoneLabel: r.message.timezone_label ?? undefined,
+      workLocation: r.message.work_location ?? null,
+    };
+    statusTerakhir = status;
+    return status;
+  } catch (e) {
+    // Tanpa sinyal: tampilkan keadaan terakhir yang diketahui beserta antrean.
+    if (e instanceof ApiError && e.status === 0) {
+      const sementara = await statusDariAntrean();
+      if (sementara) return sementara;
+    }
+    throw e;
+  }
+}
+
+const idKlien = () =>
+  `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+
+async function kirimItem(i: ItemAntrean, offline: boolean) {
+  await post("/api/method/hris_checkin", {
+    log_type: i.logType,
+    client_id: i.clientId,
+    ...(offline
+      ? {
+          offline: 1,
+          captured_ms: i.trusted ? Math.round(i.capturedMs) : 0,
+          device_ms: Math.round(i.deviceMs),
+          trusted: i.trusted ? 1 : 0,
+          anchor_age_s: i.anchorAgeS,
+        }
+      : {}),
+  });
 }
 
 async function kirimCheckin(_employeeId: string, logType: "IN" | "OUT") {
-  // Jam ditentukan server menurut zona waktu lokasi kerja (dinas luar ikut
-  // zona tujuan), jadi jam perangkat tidak dikirim.
-  await post("/api/method/hris_checkin", { log_type: logType });
+  const t = waktuTerpercaya();
+  const item: ItemAntrean = {
+    clientId: idKlien(),
+    logType,
+    capturedMs: t.ms,
+    deviceMs: Date.now(),
+    trusted: t.trusted,
+    anchorAgeS: t.anchorAgeS,
+  };
+  try {
+    // Jam ditentukan server menurut zona kerja; client_id mencegah check-in
+    // dobel bila jawabannya hilang di jalan lalu item dikirim ulang dari antrean.
+    await kirimItem(item, false);
+  } catch (e) {
+    if (e instanceof ApiError && e.status === 0) {
+      await antre(item);
+      const sementara = await statusDariAntrean();
+      if (sementara) return sementara;
+    }
+    throw e;
+  }
   return ambilStatusJam();
+}
+
+let sedangSinkron = false;
+
+// Mengirim antrean berurutan. Berhenti di galat jaringan (coba lagi nanti);
+// item yang ditolak server (4xx) dibuang supaya antrean tidak macet selamanya.
+async function sinkronAntrean(): Promise<{ sent: number; remaining: number }> {
+  if (sedangSinkron) return { sent: 0, remaining: await jumlahAntrean() };
+  sedangSinkron = true;
+  let terkirim = 0;
+  try {
+    for (const item of [...(await ambilAntrean())]) {
+      try {
+        await kirimItem(item, true);
+        await hapusDariAntrean(item.clientId);
+        terkirim += 1;
+      } catch (e) {
+        if (e instanceof ApiError && e.status === 0) break;
+        if (e instanceof ApiError && e.status >= 400 && e.status < 500) {
+          await hapusDariAntrean(item.clientId);
+          continue;
+        }
+        break;
+      }
+    }
+  } finally {
+    sedangSinkron = false;
+  }
+  if (terkirim > 0) statusTerakhir = null;
+  return { sent: terkirim, remaining: await jumlahAntrean() };
 }
 
 // "Present"/"Absent"/"On Leave" dipetakan ke tiga status yang dikenal layar.
@@ -1449,6 +1563,49 @@ export const erpnextApi: HrisApi = {
         : s.label,
       count: s.count,
     }));
+  },
+
+  async syncOfflineCheckins() {
+    return sinkronAntrean();
+  },
+
+  async getOfflineCheckins(status, scope): Promise<OfflineCheckin[]> {
+    const res = await get<{
+      message: {
+        name: string;
+        employee_name: string;
+        designation: string | null;
+        log_type: "IN" | "OUT";
+        time: string;
+        claimed_time: string | null;
+        flags: string | null;
+        review_status: OfflineCheckin["status"];
+        clock_skew_seconds: number | null;
+        queue_age_seconds: number | null;
+      }[];
+    }>("/api/method/hris_get_offline_checkins", { status, scope });
+    return res.message.map((r) => ({
+      id: r.name,
+      employeeName: r.employee_name,
+      designation: r.designation
+        ? terjemahkan("designation", r.designation)
+        : "",
+      logType: r.log_type,
+      time: r.time,
+      claimedTime: r.claimed_time,
+      flags: r.flags ?? "",
+      status: r.review_status,
+      skewSeconds: r.clock_skew_seconds ?? 0,
+      queueAgeSeconds: r.queue_age_seconds ?? 0,
+    }));
+  },
+
+  async decideOfflineCheckin(id, decision, note) {
+    await post("/api/method/hris_decide_offline_checkin", {
+      name: id,
+      decision,
+      note,
+    });
   },
 
   async getClockState(): Promise<ClockState> {

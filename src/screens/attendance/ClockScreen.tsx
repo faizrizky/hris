@@ -162,6 +162,12 @@ export function ClockScreen({ navigation }: any) {
           />
         </View>
 
+        {state.pendingOffline && !done ? (
+          <View style={styles.offlineBanner}>
+            <Text style={styles.offlineText}>{t("ab.offlineTersimpan")}</Text>
+          </View>
+        ) : null}
+
         {step === 0 && (
           <View style={styles.panel}>
             <MapPreview />
@@ -210,7 +216,14 @@ export function ClockScreen({ navigation }: any) {
               <View style={styles.doneCheck}>
                 <Ionicons name="checkmark" size={30} color="#fff" />
               </View>
-              <Text style={styles.doneTitle}>{t("ab.berhasil", { aksi })}</Text>
+              <Text style={styles.doneTitle}>
+                {t(
+                  state.pendingOffline ? "ab.berhasilOffline" : "ab.berhasil",
+                  {
+                    aksi,
+                  },
+                )}
+              </Text>
               <Text style={styles.doneSub}>
                 {formatTanggalPanjang()} · {jam ?? "--:--"}{" "}
                 {state.timezoneLabel ?? "WIB"}
@@ -218,7 +231,12 @@ export function ClockScreen({ navigation }: any) {
 
               <View style={styles.doneMeta}>
                 <DoneMeta label={t("ab.metode")} value="Face + GPS" />
-                <DoneMeta label={t("ab.status")} value={t("ab.tepat")} />
+                <DoneMeta
+                  label={t("ab.status")}
+                  value={
+                    state.pendingOffline ? t("ab.menungguKirim") : t("ab.tepat")
+                  }
+                />
                 <DoneMeta label={t("ab.shift")} value={t("ab.reguler")} />
               </View>
             </LinearGradient>
@@ -226,7 +244,9 @@ export function ClockScreen({ navigation }: any) {
             <View style={styles.syncCard}>
               <Text style={styles.syncLabel}>{t("ab.tersinkron")}</Text>
               <Text style={styles.syncValue}>
-                Employee Checkin · ECKIN-2026-08841
+                {state.pendingOffline
+                  ? t("ab.tersimpanOffline")
+                  : "Employee Checkin"}
               </Text>
             </View>
           </>
@@ -285,6 +305,13 @@ function DoneMeta({ label, value }: { label: string; value: string }) {
 
 const makeStyles = (c: Palette) =>
   StyleSheet.create({
+    offlineBanner: {
+      marginBottom: 12,
+      padding: 13,
+      borderRadius: 16,
+      backgroundColor: c.warn.bg,
+    },
+    offlineText: { fontSize: 12, fontWeight: "700", color: c.warn.ink },
     container: { flex: 1, backgroundColor: c.bg },
 
     header: {

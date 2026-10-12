@@ -1,0 +1,5 @@
+{
+  "platforms": ["apple", "android"],
+  "apple": { "modules": ["HrisClockModule"] },
+  "android": { "modules": ["expo.modules.hrisclock.HrisClockModule"] }
+}

@@ -77,6 +77,8 @@ except Exception: print("")' "$TMP/body")
   call "GET hris_get_my_profile_changes" "$auth" "$BASE/api/method/hris_get_my_profile_changes"
   case "$who" in hr) call "GET hris_get_profile_changes_for_review" "$auth" "$BASE/api/method/hris_get_profile_changes_for_review" ;; esac
   call "GET hris_get_announcements" "$auth" "$BASE/api/method/hris_get_announcements"
+  case "$who" in mss|hr) call "GET hris_get_offline_checkins" "$auth" "$BASE/api/method/hris_get_offline_checkins" ;; esac
+  case "$who" in hr) call "GET hris_get_offline_report" "$auth" "$BASE/api/method/hris_get_offline_report" ;; esac
   call "GET hris_get_colleagues" "$auth" "$BASE/api/method/hris_get_colleagues"
   if [ -n "$emp" ]; then
     call "GET get_leave_details ($emp, $TODAY)" "$auth" \

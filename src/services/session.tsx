@@ -7,6 +7,9 @@ import { Employee } from "./types";
 import { hrisApi } from "./api";
 import { useBahasa } from "@/i18n";
 import { ambilTokenPush } from "./push";
+import { muatJangkar } from "./trustedTime";
+import { jumlahAntrean } from "./offlineQueue";
+import { AppState } from "react-native";
 
 interface SessionContextValue {
   employee: Employee | null;
@@ -36,6 +39,30 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
       .then((b) => b && setBahasa(b))
       .catch(() => {});
   }, [employeeId, setBahasa]);
+
+  // Jangkar jam terpercaya dimuat sekali; antrean check-in offline dikirim saat
+  // login, saat aplikasi kembali aktif, dan tiap setengah menit selama masih ada.
+  useEffect(() => {
+    void muatJangkar();
+  }, []);
+
+  useEffect(() => {
+    if (!employeeId) return;
+    const kirim = () => {
+      void jumlahAntrean().then((n) => {
+        if (n > 0) void hrisApi.syncOfflineCheckins().catch(() => {});
+      });
+    };
+    kirim();
+    const langganan = AppState.addEventListener("change", (s) => {
+      if (s === "active") kirim();
+    });
+    const timer = setInterval(kirim, 30_000);
+    return () => {
+      langganan.remove();
+      clearInterval(timer);
+    };
+  }, [employeeId]);
 
   // Daftarkan perangkat untuk push; tanpa izin atau di simulator, dilewati.
   useEffect(() => {

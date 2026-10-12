@@ -865,6 +865,12 @@ export const id = {
   "tax.terKategori": "TER {k}",
   "tax.ptkpTahunan": "PTKP {x} / tahun",
   "lr.blokTglSelesai": "Pilih tanggal selesai",
+  "ab.offlineTersimpan": "Check-in tersimpan, menunggu sinyal untuk dikirim",
+  "ab.offlineN": "{n} check-in offline menunggu dikirim",
+  "ab.berhasilOffline": "{aksi} tersimpan",
+  "ab.tersimpanOffline": "Tersimpan di HP, dikirim otomatis saat ada sinyal",
+  "profil.antreanN": "{n} check-in offline menunggu kirim",
+  "ab.menungguKirim": "Menunggu kirim",
 } as const;
 
 export type Kunci = keyof typeof id;

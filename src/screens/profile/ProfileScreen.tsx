@@ -16,6 +16,7 @@ import { useSession } from "@/services/session";
 import { LeaveBalance } from "@/services/types";
 import { useConfirm } from "@/components/ConfirmDialog";
 import { useT } from "@/i18n";
+import { useJumlahAntrean } from "@/hooks/useJumlahAntrean";
 import { LanguagePicker } from "@/components/LanguagePicker";
 
 export function ProfileScreen({ navigation }: any) {
@@ -25,6 +26,7 @@ export function ProfileScreen({ navigation }: any) {
   const [pushOn, setPushOn] = useState(true);
   const { mode, toggle } = useThemeMode();
   const t = useT();
+  const antrean = useJumlahAntrean();
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
   const confirm = useConfirm();
@@ -164,14 +166,24 @@ export function ProfileScreen({ navigation }: any) {
           <View style={styles.syncRow}>
             <View style={[styles.dot, { backgroundColor: c.ok.ink }]} />
             <Text style={styles.syncText}>{t("profil.tersinkron")}</Text>
-            <Text style={styles.syncTime}>14 Sep 08:41</Text>
           </View>
 
-          <View style={[styles.syncRow, { marginTop: 9 }]}>
-            <View style={[styles.dot, { backgroundColor: c.warn.ink }]} />
-            <Text style={styles.syncText}>{t("profil.antrean")}</Text>
-            <Text style={styles.syncAction}>{t("umum.kirim")}</Text>
-          </View>
+          {antrean > 0 ? (
+            <View style={[styles.syncRow, { marginTop: 9 }]}>
+              <View style={[styles.dot, { backgroundColor: c.warn.ink }]} />
+              <Text style={styles.syncText}>
+                {t("profil.antreanN", { n: antrean })}
+              </Text>
+              <Pressable
+                onPress={() =>
+                  void hrisApi.syncOfflineCheckins().catch(() => {})
+                }
+                hitSlop={8}
+              >
+                <Text style={styles.syncAction}>{t("umum.kirim")}</Text>
+              </Pressable>
+            </View>
+          ) : null}
         </View>
 
         <Pressable
