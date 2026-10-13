@@ -8,6 +8,7 @@ import { ICON } from "@/constants/icons";
 import { Palette } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
 import { useT, tt } from "@/i18n";
+import type { BuktiFile } from "./LemburFormCards";
 
 export const JENIS_UTAMA = ["Tahunan", "Sakit", "Melahirkan"] as const;
 
@@ -173,6 +174,9 @@ export function CutiDetailCard({
   rekan,
   delegasi,
   onPickDelegasi,
+  files,
+  onAdd,
+  onRemove,
 }: {
   jenis: JenisCuti;
   alasan: string;
@@ -180,6 +184,9 @@ export function CutiDetailCard({
   rekan: Colleague[];
   delegasi: Colleague | null;
   onPickDelegasi: (v: Colleague) => void;
+  files: BuktiFile[];
+  onAdd: () => void;
+  onRemove: (index: number) => void;
 }) {
   const c = useTheme();
   const t = useT();
@@ -201,12 +208,28 @@ export function CutiDetailCard({
       />
 
       <Text style={styles.label}>{labelLampiran(jenis)}</Text>
-      <Pressable style={styles.uploadBox}>
+      {files.map((f, i) => (
+        <View key={`${f.name}-${i}`} style={styles.fileRow}>
+          <LineIcon d={ICON.fileCheck} color={c.ok.ink} size={16} />
+          <View style={{ flex: 1, minWidth: 0 }}>
+            <Text style={styles.rowTitle} numberOfLines={1}>
+              {f.name}
+            </Text>
+            <Text style={styles.rowSub}>{f.size}</Text>
+          </View>
+          <Pressable onPress={() => onRemove(i)} hitSlop={8}>
+            <LineIcon d={ICON.close} color={c.muted} size={14} />
+          </Pressable>
+        </View>
+      ))}
+      <Pressable style={styles.uploadBox} onPress={onAdd}>
         <View style={styles.uploadIcon}>
           <LineIcon d={ICON.upload} color={c.info.ink} size={17} />
         </View>
         <View style={{ flex: 1, minWidth: 0 }}>
-          <Text style={styles.rowTitle}>{t("fc.unggahDok")}</Text>
+          <Text style={styles.rowTitle}>
+            {files.length ? t("fc.tambahDok") : t("fc.unggahDok")}
+          </Text>
           <Text style={styles.rowSub}>{t("fc.pdfJpg")}</Text>
         </View>
       </Pressable>
@@ -252,6 +275,15 @@ export function CutiDetailCard({
 }
 const makeStyles = (c: Palette) =>
   StyleSheet.create({
+    fileRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 10,
+      padding: 11,
+      borderRadius: 14,
+      backgroundColor: c.ok.bg,
+      marginBottom: 8,
+    },
     card: {
       backgroundColor: c.card,
       borderWidth: 1,

@@ -429,6 +429,37 @@ async function ambilDinas(tim: boolean): Promise<LeaveRequest[]> {
 const urutBaru = (a: LeaveRequest, b: LeaveRequest) =>
   b.createdAt.localeCompare(a.createdAt);
 
+// Lampiran pengajuan cuti diambil sekali untuk semua pengajuan sekaligus.
+async function lampiranCuti(daftar: LeaveRequest[]): Promise<LeaveRequest[]> {
+  const nama = daftar.map((r) => r.id).filter((id) => id.startsWith("HR-LAP"));
+  if (nama.length === 0) return daftar;
+  try {
+    const res = await get<{
+      data: { file_name: string; file_url: string; attached_to_name: string }[];
+    }>(`/api/resource/File`, {
+      filters: [
+        ["attached_to_doctype", "=", "Leave Application"],
+        ["attached_to_name", "in", nama],
+      ],
+      fields: ["file_name", "file_url", "attached_to_name"],
+      limit_page_length: 200,
+    });
+    const peta = new Map<string, { name: string; url: string }[]>();
+    for (const f of res.data) {
+      peta.set(f.attached_to_name, [
+        ...(peta.get(f.attached_to_name) ?? []),
+        { name: f.file_name, url: f.file_url },
+      ]);
+    }
+    return daftar.map((r) =>
+      peta.has(r.id) ? { ...r, attachments: peta.get(r.id) } : r,
+    );
+  } catch {
+    // Lampiran hanya pelengkap; gagal memuatnya tidak boleh menggagalkan daftar.
+    return daftar;
+  }
+}
+
 async function ambilMenunggu(): Promise<LeaveRequest[]> {
   const { message: email } = await get<{ message: string }>(
     "/api/method/frappe.auth.get_logged_user",
@@ -446,7 +477,7 @@ async function ambilMenunggu(): Promise<LeaveRequest[]> {
       limit_page_length: 50,
     },
   );
-  return res.data.map(bentukPengajuan);
+  return lampiranCuti(res.data.map(bentukPengajuan));
 }
 
 async function ambilMilikSendiri(employeeId: string): Promise<LeaveRequest[]> {
@@ -1398,9 +1429,8 @@ export const erpnextApi: HrisApi = {
       ambilLembur(false),
       ambilDinas(false),
     ]);
-    return [...res.data.map(bentukPengajuan), ...lembur, ...dinas].sort(
-      urutBaru,
-    );
+    const cuti = await lampiranCuti(res.data.map(bentukPengajuan));
+    return [...cuti, ...lembur, ...dinas].sort(urutBaru);
   },
 
   // Pemanggil dikenali server dari sesinya, jadi employeeId tidak dikirim.
@@ -1508,7 +1538,16 @@ export const erpnextApi: HrisApi = {
         custom_delegate: input.delegateId ?? "",
       },
     );
-    return bentukPengajuan(res.data);
+    // Bukti (surat dokter, akta, dll.) dilampirkan setelah pengajuan ada.
+    const gagal = await lampirkanSemua(
+      "Leave Application",
+      res.data.name,
+      (input.attachments ?? []).map((f) => ({ f, field: "proof" })),
+    );
+    return {
+      ...bentukPengajuan(res.data),
+      buktiGagal: gagal || undefined,
+    };
   },
 
   async getPendingApprovals(): Promise<LeaveRequest[]> {

@@ -920,6 +920,9 @@ export const id = {
     "Maksimal {hari} hari per pengajuan. Tidak memotong saldo cuti tahunan. Sertakan bukti pendukung bila diminta HR.",
   "fc.melebihiMaks": "Durasi melebihi batas {hari} hari untuk jenis ini.",
   "lr.nHariKalender": "{n} hari kalender",
+  "lr.blokSurat":
+    "Surat dokter belum diunggah (wajib untuk cuti sakit lebih dari 1 hari)",
+  "fc.tambahDok": "Tambah dokumen lain",
 } as const;
 
 export type Kunci = keyof typeof id;

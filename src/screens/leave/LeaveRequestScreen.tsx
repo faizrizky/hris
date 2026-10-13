@@ -108,6 +108,7 @@ function LeaveRequestForm({ navigation, route }: any) {
   const [otEndRaw, setOtEndRaw] = useState(0);
   const [uraian, setUraian] = useState("");
   const [otFiles, setOtFiles] = useState<BuktiFile[]>([]);
+  const [cutiFiles, setCutiFiles] = useState<BuktiFile[]>([]);
   const [dest, setDest] = useState("");
   const [transport, setTransport] = useState<Transportasi | null>(null);
   const [keperluan, setKeperluan] = useState("");
@@ -208,21 +209,26 @@ function LeaveRequestForm({ navigation, route }: any) {
     ? t("lr.blokTgl")
     : !end
       ? t("lr.blokTglSelesai")
-      : kind === "cuti" && !alasan.trim()
-        ? t("lr.blokAlasan")
-        : kind === "cuti" && approver === null
-          ? t("lr.blokApprover")
-          : kind === "lembur" && !uraian.trim()
-            ? t("lr.blokUraian")
-            : kind === "lembur" && otFiles.length === 0
-              ? t("lr.blokBukti")
-              : kind === "dinas" && !dest.trim()
-                ? t("lr.blokKota")
-                : kind === "dinas" && !transport
-                  ? t("lr.blokTransport")
-                  : kind === "dinas" && buktiBiayaKurang
-                    ? t("lr.blokBiaya", { n: buktiBiayaKurang })
-                    : "";
+      : kind === "cuti" &&
+          jenisCuti === "Sakit" &&
+          hariKerja > 1 &&
+          cutiFiles.length === 0
+        ? t("lr.blokSurat")
+        : kind === "cuti" && !alasan.trim()
+          ? t("lr.blokAlasan")
+          : kind === "cuti" && approver === null
+            ? t("lr.blokApprover")
+            : kind === "lembur" && !uraian.trim()
+              ? t("lr.blokUraian")
+              : kind === "lembur" && otFiles.length === 0
+                ? t("lr.blokBukti")
+                : kind === "dinas" && !dest.trim()
+                  ? t("lr.blokKota")
+                  : kind === "dinas" && !transport
+                    ? t("lr.blokTransport")
+                    : kind === "dinas" && buktiBiayaKurang
+                      ? t("lr.blokBiaya", { n: buktiBiayaKurang })
+                      : "";
 
   const bisaKirim = !blockMsg && !sending;
 
@@ -235,6 +241,17 @@ function LeaveRequestForm({ navigation, route }: any) {
     }
     setGalat(null);
     setOtFiles((prev) => [...prev, r.berkas]);
+  };
+
+  const tambahBuktiCuti = async () => {
+    const r = await pilihBukti();
+    if (!r) return;
+    if ("terlaluBesar" in r) {
+      setGalat(t("up.besarPesan", { ukuran: r.terlaluBesar }));
+      return;
+    }
+    setGalat(null);
+    setCutiFiles((prev) => [...prev, r.berkas]);
   };
 
   const handleSubmit = async () => {
@@ -274,14 +291,16 @@ function LeaveRequestForm({ navigation, route }: any) {
         delegateId: kind === "cuti" && delegasi ? delegasi.id : undefined,
         leaveType: kind === "cuti" ? JENIS_SERVER[jenisCuti] : undefined,
         overtimeEnd: kind === "lembur" ? jamMenit(otEnd) : undefined,
-        attachments:
-          kind === "lembur"
-            ? otFiles.flatMap((f) =>
-                f.uri
-                  ? [{ uri: f.uri, name: f.name, mimeType: f.mimeType ?? "" }]
-                  : [],
-              )
-            : undefined,
+        attachments: (kind === "lembur"
+          ? otFiles
+          : kind === "cuti"
+            ? cutiFiles
+            : []
+        ).flatMap((f) =>
+          f.uri
+            ? [{ uri: f.uri, name: f.name, mimeType: f.mimeType ?? "" }]
+            : [],
+        ),
         travel:
           kind === "dinas" && transport
             ? {
@@ -564,6 +583,11 @@ function LeaveRequestForm({ navigation, route }: any) {
                     rekan={rekan}
                     delegasi={delegasi}
                     onPickDelegasi={setDelegasi}
+                    files={cutiFiles}
+                    onAdd={tambahBuktiCuti}
+                    onRemove={(i) =>
+                      setCutiFiles((prev) => prev.filter((_, idx) => idx !== i))
+                    }
                   />
                 )}
 

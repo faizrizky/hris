@@ -917,4 +917,7 @@ export const en: Record<Kunci, string> = {
     "Up to {hari} days per request. Does not deduct annual leave. Provide supporting proof if HR asks.",
   "fc.melebihiMaks": "Duration exceeds the {hari}-day limit for this type.",
   "lr.nHariKalender": "{n} calendar days",
+  "lr.blokSurat":
+    "Doctor's note not uploaded (required for sick leave longer than 1 day)",
+  "fc.tambahDok": "Add another document",
 };
