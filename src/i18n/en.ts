@@ -944,4 +944,18 @@ export const en: Record<Kunci, string> = {
   "hari.sun": "Sun",
   "login.server": "Server",
   "login.alamatServer": "Server address",
+  "face.izin":
+    "Allow the front camera to confirm you are present. Photos are not saved.",
+  "face.beriIzin": "Allow camera",
+  "face.tidakAda": "No face yet. Face the camera.",
+  "face.banyak": "More than one face detected.",
+  "face.dekat": "Move closer to the camera.",
+  "face.depan": "Look straight at the camera with your eyes open.",
+  "face.kedip": "Good. Now blink.",
+  "face.toleh": "Good. Now turn your head to the side.",
+  "face.lulus": "Face verified",
+  "face.habis": "Time is up. Face check did not succeed.",
+  "face.ulang": "Try again",
+  "face.chipLiveness": "Liveness ✓",
+  "face.tidakDidukung": "Face check is not available on this device.",
 };

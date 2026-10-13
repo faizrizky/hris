@@ -14,7 +14,8 @@ import { formatTanggalPanjang } from "@/utils/date";
 import { hrisApi } from "@/services/api";
 import { useSession } from "@/services/session";
 import { ClockState } from "@/services/types";
-import { FaceViewfinder } from "./FaceViewfinder";
+import { FaceCheck } from "./FaceCheck";
+import { wajahDidukung } from "@/services/faceCheck";
 import { Skeleton } from "@/components/Skeleton";
 import { describeError } from "@/services/api/http";
 import { ErrorState } from "@/components/ErrorState";
@@ -32,6 +33,10 @@ export function ClockScreen({ navigation }: any) {
     step < 2,
   ); // 0 = GPS, 1 = wajah, 2 = selesai
   const [loading, setLoading] = useState(false);
+  const [faceLulus, setFaceLulus] = useState(false);
+  const onWajahLulus = useCallback(() => setFaceLulus(true), []);
+  // Perangkat tanpa modul wajah (iOS, Expo Go) melewati langkah ini.
+  const faceOk = faceLulus || !wajahDidukung();
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
   const [galat, setGalat] = useState<string | null>(null);
@@ -138,6 +143,7 @@ export function ClockScreen({ navigation }: any) {
         : await hrisApi.clockIn(employee.id, lokasi);
       setState(next);
       setStep(2);
+      setFaceLulus(false);
     } catch (e) {
       setGalat(describeError(e));
     } finally {
@@ -265,19 +271,20 @@ export function ClockScreen({ navigation }: any) {
           <View style={[styles.panel, styles.facePanel]}>
             <Text style={styles.faceTitle}>{t("ab.faceTitle")}</Text>
             <Text style={styles.faceSub}>{t("ab.faceSub")}</Text>
-            <FaceViewfinder />
-            <View style={styles.faceChips}>
-              <View style={[styles.faceChip, { backgroundColor: c.ok.bg }]}>
-                <Text style={[styles.faceChipText, { color: c.ok.ink }]}>
-                  Liveness ✓
-                </Text>
+            {wajahDidukung() ? (
+              <FaceCheck onLulus={onWajahLulus} />
+            ) : (
+              <Text style={styles.faceSub}>{t("face.tidakDidukung")}</Text>
+            )}
+            {faceOk && wajahDidukung() ? (
+              <View style={styles.faceChips}>
+                <View style={[styles.faceChip, { backgroundColor: c.ok.bg }]}>
+                  <Text style={[styles.faceChipText, { color: c.ok.ink }]}>
+                    {t("face.chipLiveness")}
+                  </Text>
+                </View>
               </View>
-              <View style={[styles.faceChip, { backgroundColor: c.info.bg }]}>
-                <Text style={[styles.faceChipText, { color: c.info.ink }]}>
-                  Match 98,4%
-                </Text>
-              </View>
-            </View>
+            ) : null}
           </View>
         )}
 
@@ -335,13 +342,13 @@ export function ClockScreen({ navigation }: any) {
               {
                 backgroundColor: done
                   ? c.ok.ink
-                  : alasanBlokir
+                  : alasanBlokir || (step === 1 && !faceOk)
                     ? c.track
                     : c.accent,
               },
             ]}
             onPress={handleNext}
-            disabled={loading || !!alasanBlokir}
+            disabled={loading || !!alasanBlokir || (step === 1 && !faceOk)}
           >
             <Text style={styles.ctaText}>
               {loading ? t("umum.memproses") : ctaLabel}

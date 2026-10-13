@@ -36,6 +36,13 @@
         {
           "locationWhenInUsePermission": "HRIS memakai lokasi untuk memastikan kamu berada di area kerja saat check-in."
         }
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "HRIS memakai kamera depan untuk memastikan kamu hadir saat check-in. Foto tidak disimpan.",
+          "recordAudioAndroid": false
+        }
       ]
     ],
     "extra": {

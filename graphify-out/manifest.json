@@ -6,9 +6,9 @@
     "semantic_hash": ""
   },
   "app.json": {
-    "mtime": 1791914210.8637164,
-    "seen": 1791914300.1436641,
-    "ast_hash": "1907d8824abf1ed1cd553f67bcc8ac93",
+    "mtime": 1791917551.2215145,
+    "seen": 1791934562.5856588,
+    "ast_hash": "771ad1afdf04798addd9ae21678a94e1",
     "semantic_hash": ""
   },
   "babel.config.js": {
@@ -294,9 +294,9 @@
     "semantic_hash": ""
   },
   "src/screens/auth/LoginScreen.tsx": {
-    "mtime": 1791706486.0100648,
-    "seen": 1791714819.079405,
-    "ast_hash": "ac8f6e5a24198e4d987980dc33ea9b29",
+    "mtime": 1791934540.5448854,
+    "seen": 1791934562.58583,
+    "ast_hash": "3b3d8c205b78a3c70a56eb7b603277a1",
     "semantic_hash": ""
   },
   "src/screens/home/HomeScreen.tsx": {
@@ -456,9 +456,9 @@
     "semantic_hash": ""
   },
   "src/services/api/http.ts": {
-    "mtime": 1791916222.549733,
-    "seen": 1791916282.057468,
-    "ast_hash": "7b97a5a858dc10065f0282b76195b86c",
+    "mtime": 1791934540.5444236,
+    "seen": 1791934562.585875,
+    "ast_hash": "c590f2f64e9dc9fa33b6e9dfa16933f7",
     "semantic_hash": ""
   },
   "src/services/api/index.ts": {
@@ -870,15 +870,15 @@
     "semantic_hash": ""
   },
   "src/i18n/en.ts": {
-    "mtime": 1791916977.6894298,
-    "seen": 1791917038.005135,
-    "ast_hash": "b3263f7b662fe84d32d6dd5dd7875322",
+    "mtime": 1791934540.5458617,
+    "seen": 1791934562.5858061,
+    "ast_hash": "93986caf1f91c7df3243e7abaf5a63d5",
     "semantic_hash": ""
   },
   "src/i18n/id.ts": {
-    "mtime": 1791916977.7151256,
-    "seen": 1791917038.0051358,
-    "ast_hash": "c35430d2960504ce87abc7ef90f79d5e",
+    "mtime": 1791934540.5455158,
+    "seen": 1791934562.5858078,
+    "ast_hash": "00c06a6fc62c2c496fac6e754c47a8da",
     "semantic_hash": ""
   },
   "src/i18n/index.tsx": {
@@ -972,9 +972,9 @@
     "semantic_hash": ""
   },
   "TESTING.md": {
-    "mtime": 1791688482.0022686,
-    "seen": 1791714819.079454,
-    "ast_hash": "41ad49c353e1910b8e9e5a0bd7997e43",
+    "mtime": 1791917208.0954807,
+    "seen": 1791934562.585906,
+    "ast_hash": "1e2441062f3de997a92575a6093cd24c",
     "semantic_hash": ""
   },
   "src/navigation/kembali.ts": {
@@ -984,9 +984,9 @@
     "semantic_hash": ""
   },
   "eas.json": {
-    "mtime": 1791762381.682035,
-    "seen": 1791762455.718975,
-    "ast_hash": "656783ef1523ba8d2ee8e498834592ae",
+    "mtime": 1791917556.8633153,
+    "seen": 1791934562.585761,
+    "ast_hash": "9f30d2c72186727bbf9078c30eb94ce1",
     "semantic_hash": ""
   },
   "src/screens/announcements/AnnouncementsScreen.tsx": {

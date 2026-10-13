@@ -947,6 +947,20 @@ export const id = {
   "hari.sun": "Min",
   "login.server": "Server",
   "login.alamatServer": "Alamat server",
+  "face.izin":
+    "Izinkan kamera depan untuk memastikan kamu hadir. Foto tidak disimpan.",
+  "face.beriIzin": "Izinkan kamera",
+  "face.tidakAda": "Wajah belum terlihat. Hadapkan wajah ke kamera.",
+  "face.banyak": "Terdeteksi lebih dari satu wajah.",
+  "face.dekat": "Dekatkan wajah ke kamera.",
+  "face.depan": "Hadap lurus ke kamera dengan mata terbuka.",
+  "face.kedip": "Bagus. Sekarang kedipkan mata.",
+  "face.toleh": "Bagus. Sekarang tolehkan kepala ke samping.",
+  "face.lulus": "Wajah terverifikasi",
+  "face.habis": "Waktu habis. Verifikasi wajah belum berhasil.",
+  "face.ulang": "Coba lagi",
+  "face.chipLiveness": "Liveness ✓",
+  "face.tidakDidukung": "Verifikasi wajah belum tersedia di perangkat ini.",
 } as const;
 
 export type Kunci = keyof typeof id;

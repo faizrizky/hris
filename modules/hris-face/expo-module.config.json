@@ -1,0 +1,5 @@
+{
+  "platforms": ["apple", "android"],
+  "apple": { "modules": ["HrisFaceModule"] },
+  "android": { "modules": ["expo.modules.hrisface.HrisFaceModule"] }
+}
