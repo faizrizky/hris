@@ -852,6 +852,25 @@ if frappe.db.exists("DocType", "Work Location"):
     frappe.delete_doc("DocType", "Work Location", ignore_permissions=True, force=True)
     frappe.db.commit()
     log("DocType Work Location dihapus (diganti Shift Location bawaan hrms)")
+# hrms menyembunyikan radius, koordinat, dan peta di form Shift Location kecuali "Allow Geolocation Tracking" menyala,
+# padahal menyalakannya memaksa lokasi pada SEMUA check-in (termasuk Clock Out/WFH). Client Script ini menampilkannya
+# kembali; peta dipakai langsung dan disinkronkan ke koordinat oleh Server Script hris_shift_location_map.
+_CS = "Shift Location - show map"
+_JS = """frappe.ui.form.on("Shift Location", {
+	refresh: async (frm) => {
+		// hrms menyembunyikan field ini secara asinkron; tunggu lalu tampilkan lagi.
+		await frappe.db.get_single_value("HR Settings", "allow_geolocation_tracking");
+		setTimeout(() => {
+			unhide_field(["checkin_radius", "latitude", "longitude", "geolocation"]);
+			frm.refresh_fields();
+		}, 400);
+	},
+});
+"""
+if not frappe.db.exists("Client Script", _CS):
+    make(dict(doctype="Client Script", name=_CS, dt="Shift Location", view="Form", enabled=1, script=_JS))
+else:
+    frappe.db.set_value("Client Script", _CS, {"script": _JS, "enabled": 1})
 if not frappe.db.exists("DocType", "Geofence Settings"):
     make(dict(
         doctype="DocType", name="Geofence Settings", module="HR", custom=1, issingle=1,
@@ -1035,6 +1054,7 @@ EVENT_SCRIPTS = {  # script berbasis event dokumen: nama_file -> (DocType, event
     "hris_notify_document_status": ("Employee Document", "After Save"),
     "hris_guard_document_upload": ("File", "Before Insert"),
     "hris_employee_tax_status": ("Employee", "Before Save"),
+    "hris_shift_location_map": ("Shift Location", "Before Save"),
     "hris_salary_slip_pph21": ("Salary Slip", "Before Save"),
     "hris_announcement_publish": ("HR Announcement", "Before Save"),
     "hris_notify_announcement": ("HR Announcement", "After Save"),
@@ -1215,4 +1235,9 @@ if not cur_key or os.environ.get("SEED_REGEN_KEYS") == "1":
     frappe.db.commit()
     print("SEED_API_KEY=" + frappe.db.get_value("User", rani_email, "api_key"))
     print("SEED_API_SECRET=" + res["api_secret"])
+# Peta Shift Location diisi dari koordinat (Server Script sinkron sudah terpasang di atas).
+for _sl in frappe.get_all("Shift Location", filters={"geolocation": ["is", "not set"]}, pluck="name"):
+    frappe.get_doc("Shift Location", _sl).save(ignore_permissions=True)
+    frappe.db.commit()
+    log(f"Shift Location {_sl}: peta diisi dari koordinat")
 log("selesai")
