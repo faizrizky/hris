@@ -28,7 +28,13 @@ function pesanServer(obj: Record<string, unknown>): string | null {
   if (typeof obj._server_messages !== "string") return null;
   try {
     const daftar = JSON.parse(obj._server_messages) as string[];
-    const pertama = JSON.parse(daftar[0] ?? "{}") as { message?: string };
+    // Frappe bisa mengirim beberapa pesan (peringatan lalu galat). Pakai yang
+    // memicu galat; bila tidak ada, yang terakhir.
+    const semua = daftar.map(
+      (m) => JSON.parse(m) as { message?: string; raise_exception?: number },
+    );
+    const pertama =
+      semua.find((m) => m.raise_exception) ?? semua[semua.length - 1] ?? {};
     const teks = (pertama.message ?? "")
       .replace(/<[^>]+>/g, " ")
       .replace(/\s+/g, " ")

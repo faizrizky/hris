@@ -527,6 +527,7 @@ export interface HrisApi {
     toDate: string; // ISO
     delegateId?: string;
     delegateName?: string;
+    leaveType?: string; // nama Leave Type ERPNext bila bukan Tahunan/Sakit
     overtimeEnd?: string; // lembur: "HH:MM"
     attachments?: BerkasLampiran[]; // lembur: bukti
     travel?: {

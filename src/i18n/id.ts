@@ -905,6 +905,21 @@ export const id = {
     "Akurasi GPS terlalu rendah ({m} m). Pindah ke area terbuka lalu coba lagi.",
   "loc.wfh": "Hari ini jadwal WFH: Clock In bisa dari mana saja.",
   "loc.keluarBebas": "Clock Out bisa dilakukan di mana saja.",
+  "lr.jenisCutiNama.Melahirkan": "Cuti melahirkan",
+  "lr.jenisCutiNama.Menikah": "Izin menikah",
+  "lr.jenisCutiNama.MenikahkanAnak": "Izin menikahkan anak",
+  "lr.jenisCutiNama.KhitanBaptis": "Izin khitan atau baptis anak",
+  "lr.jenisCutiNama.IstriMelahirkan": "Izin istri melahirkan atau keguguran",
+  "lr.jenisCutiNama.KeluargaInti": "Izin keluarga inti meninggal",
+  "lr.jenisCutiNama.SerumahMeninggal": "Izin anggota serumah meninggal",
+  "fc.penting": "Izin penting",
+  "fc.pilihPenting": "Jenis izin penting",
+  "fc.infoMelahirkan":
+    "Cuti melahirkan hingga {hari} hari kalender (termasuk akhir pekan dan libur). Tidak memotong saldo cuti tahunan.",
+  "fc.infoPenting":
+    "Maksimal {hari} hari per pengajuan. Tidak memotong saldo cuti tahunan. Sertakan bukti pendukung bila diminta HR.",
+  "fc.melebihiMaks": "Durasi melebihi batas {hari} hari untuk jenis ini.",
+  "lr.nHariKalender": "{n} hari kalender",
 } as const;
 
 export type Kunci = keyof typeof id;

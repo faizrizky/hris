@@ -15,6 +15,7 @@ import {
   CutiDetailCard,
   JenisCuti,
   namaCuti,
+  JENIS_SERVER,
 } from "./CutiFormCards";
 import { ApprovalFlowCard, FormDoneView, ApprovalStep } from "./FormFlowCards";
 import {
@@ -49,7 +50,7 @@ import {
 import { rupiah } from "@/utils/currency";
 import { LinearGradient } from "expo-linear-gradient";
 import { describeError } from "@/services/api/http";
-import { useT } from "@/i18n";
+import { useT, tt } from "@/i18n";
 import { useConfirm } from "@/components/ConfirmDialog";
 import { pilihBukti } from "@/utils/pilihBukti";
 import { kembali, keBeranda } from "@/navigation/kembali";
@@ -93,6 +94,7 @@ function LeaveRequestForm({ navigation, route }: any) {
   const { employee } = useSession();
   const [balances, setBalances] = useState<LeaveBalance[]>([]);
   const [jenisCuti, setJenisCuti] = useState<JenisCuti>("Tahunan");
+  const [gender, setGender] = useState<"F" | "M" | null>(null);
   const [alasan, setAlasan] = useState("");
   const [rekan, setRekan] = useState<Colleague[]>([]);
   const [delegasi, setDelegasi] = useState<Colleague | null>(null);
@@ -172,10 +174,29 @@ function LeaveRequestForm({ navigation, route }: any) {
     hrisApi.getLeaveBalances(employee.id).then(setBalances).catch(tangkap);
     hrisApi.getColleagues(employee.id).then(setRekan).catch(tangkap);
     hrisApi.getLeaveApprover(employee.id).then(setApprover).catch(tangkap);
+    // Jenis cuti tertentu hanya untuk satu jenis kelamin.
+    hrisApi
+      .getPersonalProfile(employee.id)
+      .then((p) =>
+        setGender(
+          p.gender === tt("api.perempuan")
+            ? "F"
+            : p.gender === tt("api.lakiLaki")
+              ? "M"
+              : null,
+        ),
+      )
+      .catch(() => {});
   }, [employee]);
 
   const saldo = balances.find((b) => b.type === "cuti")?.remaining ?? 0;
-  const hariKerja = start && end ? hitungHariKerja(start, end) : 0;
+  // Cuti melahirkan dihitung hari kalender; yang lain hari kerja.
+  const hariKerja =
+    start && end
+      ? jenisCuti === "Melahirkan"
+        ? hitungHari(start, end)
+        : hitungHariKerja(start, end)
+      : 0;
 
   const buktiBiayaKurang = biaya.filter(
     (x) => Number(x.nominal) > 0 && !x.bukti,
@@ -251,6 +272,7 @@ function LeaveRequestForm({ navigation, route }: any) {
         delegateName:
           kind === "cuti" && delegasi ? delegasi.fullName : undefined,
         delegateId: kind === "cuti" && delegasi ? delegasi.id : undefined,
+        leaveType: kind === "cuti" ? JENIS_SERVER[jenisCuti] : undefined,
         overtimeEnd: kind === "lembur" ? jamMenit(otEnd) : undefined,
         attachments:
           kind === "lembur"
@@ -308,7 +330,15 @@ function LeaveRequestForm({ navigation, route }: any) {
           k: t("lr.rowTanggal"),
           v: `${tanggalPendek(start)} – ${tanggalPendek(end)}`,
         },
-        { k: t("lr.rowDurasi"), v: t("lr.nHariKerja", { n: hariKerja }) },
+        {
+          k: t("lr.rowDurasi"),
+          v: t(
+            jenisCuti === "Melahirkan" ? "lr.nHariKalender" : "lr.nHariKerja",
+            {
+              n: hariKerja,
+            },
+          ),
+        },
         { k: t("lr.rowDelegasi"), v: delegasi?.fullName ?? "—" },
       ];
     }
@@ -387,7 +417,9 @@ function LeaveRequestForm({ navigation, route }: any) {
           value: range
             ? kind === "dinas"
               ? t("lr.nHari", { n: hitungHari(start!, end!) })
-              : t("lr.nHariKerja", { n: hitungHariKerja(start!, end!) })
+              : jenisCuti === "Melahirkan" && kind === "cuti"
+                ? t("lr.nHariKalender", { n: hariKerja })
+                : t("lr.nHariKerja", { n: hitungHariKerja(start!, end!) })
             : "—",
           accent: true,
         },
@@ -504,6 +536,7 @@ function LeaveRequestForm({ navigation, route }: any) {
                     onPick={setJenisCuti}
                     saldo={saldo}
                     hariKerja={hariKerja}
+                    gender={gender}
                   />
                 )}
                 {kind === "dinas" && (
@@ -611,7 +644,12 @@ function LeaveRequestForm({ navigation, route }: any) {
             </Text>
             <Text style={styles.sumTop}>
               {kind === "cuti" && hariKerja > 0
-                ? t("lr.nHariKerja", { n: hariKerja })
+                ? t(
+                    jenisCuti === "Melahirkan"
+                      ? "lr.nHariKalender"
+                      : "lr.nHariKerja",
+                    { n: hariKerja },
+                  )
                 : kind === "lembur" && otDate
                   ? durasiJam(otJam)
                   : kind === "dinas" && start && end

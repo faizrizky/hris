@@ -3,21 +3,64 @@ import { ColleagueSheet } from "@/components/ColleagueSheet";
 import { Colleague } from "@/services/types";
 import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { LineIcon } from "@/components/LineIcon";
+import { PickerSheet } from "@/components/PickerSheet";
 import { ICON } from "@/constants/icons";
 import { Palette } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
 import { useT, tt } from "@/i18n";
 
-export const JENIS_CUTI = ["Tahunan", "Sakit"] as const;
+export const JENIS_UTAMA = ["Tahunan", "Sakit", "Melahirkan"] as const;
+
+// Izin penting menurut UU 13/2003 Pasal 93: dibayar, tidak memotong cuti tahunan.
+export const IZIN_PENTING = [
+  "Menikah",
+  "MenikahkanAnak",
+  "KhitanBaptis",
+  "IstriMelahirkan",
+  "KeluargaInti",
+  "SerumahMeninggal",
+] as const;
+
+export type JenisCuti =
+  (typeof JENIS_UTAMA)[number] | (typeof IZIN_PENTING)[number];
+
+export const adalahIzinPenting = (j: JenisCuti) =>
+  (IZIN_PENTING as readonly string[]).includes(j);
+
+// Nama Leave Type di ERPNext untuk tiap jenis.
+export const JENIS_SERVER: Record<JenisCuti, string> = {
+  Tahunan: "Annual Leave",
+  Sakit: "Sick Leave",
+  Melahirkan: "Maternity Leave",
+  Menikah: "Marriage Leave",
+  MenikahkanAnak: "Child Marriage Leave",
+  KhitanBaptis: "Child Circumcision or Baptism Leave",
+  IstriMelahirkan: "Spouse Childbirth Leave",
+  KeluargaInti: "Bereavement Leave - Immediate Family",
+  SerumahMeninggal: "Bereavement Leave - Household Member",
+};
+
+// Batas hari per pengajuan (sama dengan Leave Type di server).
+export const HARI_MAKS: Partial<Record<JenisCuti, number>> = {
+  Melahirkan: 90,
+  Menikah: 3,
+  MenikahkanAnak: 2,
+  KhitanBaptis: 2,
+  IstriMelahirkan: 2,
+  KeluargaInti: 2,
+  SerumahMeninggal: 1,
+};
 
 export const namaCuti = (j: JenisCuti) => tt(`lr.jenisCutiNama.${j}`);
-
-export type JenisCuti = (typeof JENIS_CUTI)[number];
 
 export const namaJenis = (j: JenisCuti) => tt(`lr.jenisCutiNama.${j}`);
 
 function infoCuti(jenis: JenisCuti, saldo: number, hariKerja: number) {
   const t = tt;
+  if (jenis === "Melahirkan")
+    return t("fc.infoMelahirkan", { hari: HARI_MAKS.Melahirkan! });
+  if (adalahIzinPenting(jenis))
+    return t("fc.infoPenting", { hari: HARI_MAKS[jenis]! });
   if (jenis === "Tahunan") {
     return hariKerja > saldo
       ? t("fc.infoMelebihi", { saldo })
@@ -35,23 +78,35 @@ export function CutiTypeCard({
   onPick,
   saldo,
   hariKerja,
+  gender,
 }: {
   jenis: JenisCuti;
   onPick: (j: JenisCuti) => void;
   saldo: number;
-  hariKerja: number;
+  hariKerja: number; // hari yang dihitung untuk jenis ini (kerja, atau kalender untuk melahirkan)
+  gender: "F" | "M" | null;
 }) {
-  const melebihi = jenis === "Tahunan" && hariKerja > saldo;
+  const melebihi =
+    (jenis === "Tahunan" && hariKerja > saldo) ||
+    (HARI_MAKS[jenis] !== undefined && hariKerja > HARI_MAKS[jenis]!);
   const c = useTheme();
   const t = useT();
   const styles = useMemo(() => makeStyles(c), [c]);
+  const [bukaPenting, setBukaPenting] = useState(false);
+
+  // Jenis yang hanya berlaku untuk satu jenis kelamin disembunyikan bagi yang lain.
+  const utama = JENIS_UTAMA.filter((j) => j !== "Melahirkan" || gender === "F");
+  const penting = IZIN_PENTING.filter(
+    (j) => j !== "IstriMelahirkan" || gender === "M",
+  );
+  const pentingAktif = adalahIzinPenting(jenis);
 
   return (
     <View style={styles.card}>
       <Text style={styles.cardTitle}>{t("fc.jenisCuti")}</Text>
 
       <View style={styles.chipWrap}>
-        {JENIS_CUTI.map((j) => {
+        {utama.map((j) => {
           const on = jenis === j;
           return (
             <Pressable
@@ -65,6 +120,14 @@ export function CutiTypeCard({
             </Pressable>
           );
         })}
+        <Pressable
+          onPress={() => setBukaPenting(true)}
+          style={[styles.chip, pentingAktif && styles.chipOn]}
+        >
+          <Text style={[styles.chipText, pentingAktif && styles.chipTextOn]}>
+            {pentingAktif ? namaJenis(jenis) : t("fc.penting")}
+          </Text>
+        </Pressable>
       </View>
 
       <View
@@ -84,9 +147,21 @@ export function CutiTypeCard({
             { color: melebihi ? c.warn.ink : c.info.ink },
           ]}
         >
-          {infoCuti(jenis, saldo, hariKerja)}
+          {HARI_MAKS[jenis] !== undefined && hariKerja > HARI_MAKS[jenis]!
+            ? t("fc.melebihiMaks", { hari: HARI_MAKS[jenis]! })
+            : infoCuti(jenis, saldo, hariKerja)}
         </Text>
       </View>
+
+      <PickerSheet
+        visible={bukaPenting}
+        title={t("fc.pilihPenting")}
+        options={penting}
+        value={pentingAktif ? jenis : null}
+        labelOf={(v) => namaJenis(v as JenisCuti)}
+        onSelect={(v) => onPick(v as JenisCuti)}
+        onClose={() => setBukaPenting(false)}
+      />
     </View>
   );
 }

@@ -902,4 +902,19 @@ export const en: Record<Kunci, string> = {
     "GPS accuracy is too low ({m} m). Move to an open area and try again.",
   "loc.wfh": "Today is a WFH day: you can Clock In from anywhere.",
   "loc.keluarBebas": "You can Clock Out from anywhere.",
+  "lr.jenisCutiNama.Melahirkan": "Maternity leave",
+  "lr.jenisCutiNama.Menikah": "Marriage leave",
+  "lr.jenisCutiNama.MenikahkanAnak": "Child's marriage leave",
+  "lr.jenisCutiNama.KhitanBaptis": "Child's circumcision or baptism leave",
+  "lr.jenisCutiNama.IstriMelahirkan": "Spouse childbirth or miscarriage leave",
+  "lr.jenisCutiNama.KeluargaInti": "Immediate family bereavement leave",
+  "lr.jenisCutiNama.SerumahMeninggal": "Household member bereavement leave",
+  "fc.penting": "Special leave",
+  "fc.pilihPenting": "Type of special leave",
+  "fc.infoMelahirkan":
+    "Maternity leave up to {hari} calendar days (weekends and holidays included). Does not deduct annual leave.",
+  "fc.infoPenting":
+    "Up to {hari} days per request. Does not deduct annual leave. Provide supporting proof if HR asks.",
+  "fc.melebihiMaks": "Duration exceeds the {hari}-day limit for this type.",
+  "lr.nHariKalender": "{n} calendar days",
 };

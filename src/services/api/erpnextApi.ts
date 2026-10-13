@@ -1488,7 +1488,7 @@ export const erpnextApi: HrisApi = {
         buktiGagal: gagal || undefined,
       };
     }
-    const jenis = NAMA_JENIS[input.type];
+    const jenis = input.leaveType ?? NAMA_JENIS[input.type];
     if (!jenis) return mockApi.submitLeaveRequest(input);
 
     const approver = await this.getLeaveApprover(input.employeeId);

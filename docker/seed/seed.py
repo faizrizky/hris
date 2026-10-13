@@ -106,6 +106,17 @@ for dg in ["Finance Manager", "Finance Staff", "HR Staff"]:
 for lt in ["Annual Leave", "Sick Leave"]:
     if not exists("Leave Type", lt):
         make(dict(doctype="Leave Type", leave_type_name=lt, include_holiday=0, max_leaves_allowed=12))
+# Cuti khusus menurut UU 13/2003 (Pasal 82 dan 93 ayat 4). Tanpa alokasi: allow_negative + batas hari per pengajuan.
+# Jumlah hari bisa diubah HR di web (Leave Type). Maternity memakai hari kalender (termasuk libur).
+LEAVE_TYPES_KHUSUS = [
+    ("Maternity Leave", 90, 1), ("Marriage Leave", 3, 0), ("Child Marriage Leave", 2, 0),
+    ("Child Circumcision or Baptism Leave", 2, 0), ("Spouse Childbirth Leave", 2, 0),
+    ("Bereavement Leave - Immediate Family", 2, 0), ("Bereavement Leave - Household Member", 1, 0),
+]
+for _lt, _hari, _libur in LEAVE_TYPES_KHUSUS:
+    if not exists("Leave Type", _lt):
+        make(dict(doctype="Leave Type", leave_type_name=_lt, include_holiday=_libur, allow_negative=1,
+                  max_leaves_allowed=0, max_continuous_days_allowed=_hari))
 LP = "Standard Leave Policy"
 if not exists("Leave Policy", {"title": LP}):
     make(dict(doctype="Leave Policy", title=LP, leave_policy_details=[
@@ -1138,6 +1149,12 @@ TRANSLATIONS_ID = {
     "Designation": "Jabatan",
     # nama master data (efektif di tampilan Link bila doctype ditandai translated_doctype)
     "Annual Leave": "Cuti Tahunan", "Sick Leave": "Cuti Sakit",
+    "Maternity Leave": "Cuti Melahirkan", "Marriage Leave": "Cuti Menikah",
+    "Child Marriage Leave": "Izin Menikahkan Anak",
+    "Child Circumcision or Baptism Leave": "Izin Khitan atau Baptis Anak",
+    "Spouse Childbirth Leave": "Izin Istri Melahirkan atau Keguguran",
+    "Bereavement Leave - Immediate Family": "Izin Keluarga Inti Meninggal",
+    "Bereavement Leave - Household Member": "Izin Anggota Serumah Meninggal",
     "Finance Staff": "Staf Keuangan", "Finance Manager": "Manajer Keuangan", "HR Staff": "Staf HR",
     "Morning Shift": "Shift Pagi",
     "Basic Salary": "Gaji Pokok", "Transport Allowance": "Tunjangan Transport",
@@ -1164,6 +1181,7 @@ EVENT_SCRIPTS = {  # script berbasis event dokumen: nama_file -> (DocType, event
     "hris_notify_document_status": ("Employee Document", "After Save"),
     "hris_guard_document_upload": ("File", "Before Insert"),
     "hris_employee_tax_status": ("Employee", "Before Save"),
+    "hris_leave_rules": ("Leave Application", "Before Save"),
     "hris_shift_location_map": ("Shift Location", "Before Save"),
     "hris_salary_slip_pph21": ("Salary Slip", "Before Save"),
     "hris_announcement_publish": ("HR Announcement", "Before Save"),

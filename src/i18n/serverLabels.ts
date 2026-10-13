@@ -11,6 +11,13 @@ const ID = {
   leaveType: {
     "Annual Leave": "Cuti Tahunan",
     "Sick Leave": "Cuti Sakit",
+    "Maternity Leave": "Cuti Melahirkan",
+    "Marriage Leave": "Izin Menikah",
+    "Child Marriage Leave": "Izin Menikahkan Anak",
+    "Child Circumcision or Baptism Leave": "Izin Khitan atau Baptis Anak",
+    "Spouse Childbirth Leave": "Izin Istri Melahirkan atau Keguguran",
+    "Bereavement Leave - Immediate Family": "Izin Keluarga Inti Meninggal",
+    "Bereavement Leave - Household Member": "Izin Anggota Serumah Meninggal",
   },
   salaryComponent: {
     "Basic Salary": "Gaji Pokok",
