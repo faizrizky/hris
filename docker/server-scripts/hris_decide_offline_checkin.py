@@ -12,7 +12,7 @@ if decision != "approve" and decision != "reject":
 if not name or not frappe.db.exists("Employee Checkin", name):
     frappe.throw("Check-in not found")
 ci = frappe.get_doc("Employee Checkin", name)
-if not ci.custom_offline or ci.custom_review_status != "Needs Review":
+if ci.custom_review_status != "Needs Review":
     frappe.throw("This check-in is not waiting for review")
 is_hr = user == "Administrator" or len(
     frappe.get_all("Has Role", filters={"parent": user, "parenttype": "User",
@@ -29,16 +29,25 @@ if not allowed:
 if not allowed:
     frappe.throw("You are not the direct supervisor of this employee", frappe.PermissionError)
 if decision == "approve":
-    if not ci.custom_claimed_time:
+    # Alasan terkait jam butuh jam klaim; alasan geofence/GPS saja cukup disetujui (jam server diterima).
+    time_words = ["time unverified", "claimed time in the future", "queue older", "clock changed",
+                  "device time missing", "last server contact", "monthly offline quota"]
+    time_issue = False
+    for fl in (ci.custom_flags or "").split("; "):
+        for w in time_words:
+            if fl.startswith(w):
+                time_issue = True
+    claimed = str(ci.custom_claimed_time)[:19] if ci.custom_claimed_time else None
+    if time_issue and not claimed:
         frappe.throw("No claimed time to approve")
-    claimed = str(ci.custom_claimed_time)[:19]
-    if ci.attendance:
-        att = frappe.get_doc("Attendance", ci.attendance)
-        att.flags.ignore_permissions = True
-        if att.docstatus == 1:
-            att.cancel()
-        ci.reload()
-    ci.time = claimed
+    if claimed and claimed != str(ci.time)[:19]:
+        if ci.attendance:
+            att = frappe.get_doc("Attendance", ci.attendance)
+            att.flags.ignore_permissions = True
+            if att.docstatus == 1:
+                att.cancel()
+            ci.reload()
+        ci.time = claimed
     ci.custom_review_status = "Approved"
     ci.custom_reviewed_by = user
     ci.custom_reviewed_on = frappe.utils.now_datetime()
@@ -55,7 +64,7 @@ else:
 target = frappe.db.get_value("Employee", ci.employee, "user_id")
 if target:
     frappe.get_doc({"doctype": "Notification Log", "type": "Alert", "for_user": target,
-                    "subject": "Your offline check-in was " + word,
+                    "subject": "Your check-in was " + word,
                     "email_content": note or str(ci.log_type) + " at " + str(ci.time)[:16],
                     "document_type": "Employee Checkin", "document_name": name}).insert(ignore_permissions=True)
 frappe.response["message"] = {"name": name, "review_status": ci.custom_review_status, "time": str(ci.time)[:19],

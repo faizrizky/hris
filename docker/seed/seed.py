@@ -834,6 +834,58 @@ for cf in [
     if not frappe.db.exists("Custom Field", {"dt": "Employee Checkin", "fieldname": cf["fieldname"]}):
         make(dict(doctype="Custom Field", dt="Employee Checkin", **cf))
         frappe.clear_cache(doctype="Employee Checkin")
+# ---- Geofence dan validasi GPS ----
+if not frappe.db.exists("DocType", "Work Location"):
+    make(dict(
+        doctype="DocType", name="Work Location", module="HR", custom=1, autoname="field:location_name",
+        fields=[
+            dict(fieldname="location_name", label="Location Name", fieldtype="Data", reqd=1, unique=1, in_list_view=1),
+            dict(fieldname="active", label="Active", fieldtype="Check", default="1", in_list_view=1),
+            dict(fieldname="latitude", label="Latitude", fieldtype="Float", precision="9", reqd=1, in_list_view=1),
+            dict(fieldname="longitude", label="Longitude", fieldtype="Float", precision="9", reqd=1, in_list_view=1),
+            dict(fieldname="radius_m", label="Radius (meters)", fieldtype="Int", default="120", reqd=1, in_list_view=1),
+        ],
+        permissions=[dict(role="System Manager", read=1, write=1, create=1, delete=1),
+                     dict(role="HR Manager", read=1, write=1, create=1, delete=1),
+                     dict(role="HR User", read=1, write=1, create=1)]))
+    frappe.clear_cache()
+if not frappe.db.exists("Work Location", "Head Office - Jl. Gatot Subroto 42"):
+    make(dict(doctype="Work Location", location_name="Head Office - Jl. Gatot Subroto 42",
+              latitude=-6.23412, longitude=106.81674, radius_m=120, active=1))
+if not frappe.db.exists("DocType", "Geofence Settings"):
+    make(dict(
+        doctype="DocType", name="Geofence Settings", module="HR", custom=1, issingle=1,
+        fields=[
+            dict(fieldname="geofence_mode", label="Geofence Mode", fieldtype="Select", options="Off\nFlag\nBlock",
+                 default="Flag", description="Off: only record. Flag: accept but send to review. Block: reject."),
+            dict(fieldname="require_location", label="Require Location", fieldtype="Check", default="0"),
+            dict(fieldname="max_accuracy_m", label="Max GPS Accuracy (meters)", fieldtype="Int", default="100"),
+            dict(fieldname="gps_skew_tolerance_seconds", label="GPS Time Tolerance (seconds)", fieldtype="Int", default="300"),
+            dict(fieldname="block_mock_location", label="Flag Mock Locations", fieldtype="Check", default="1"),
+        ],
+        permissions=[dict(role="System Manager", read=1, write=1), dict(role="HR Manager", read=1, write=1)]))
+    frappe.clear_cache()
+    for _f, _v in (("geofence_mode", "Flag"), ("require_location", 0), ("max_accuracy_m", 100),
+                   ("gps_skew_tolerance_seconds", 300), ("block_mock_location", 1)):
+        frappe.db.set_single_value("Geofence Settings", _f, _v)
+for cf in [
+    dict(fieldname="custom_geo_status", label="Geofence Status", fieldtype="Select",
+         options="No Location\nInside\nOutside", default="No Location", permlevel=1, read_only=1, in_standard_filter=1,
+         insert_after="custom_flags"),
+    dict(fieldname="custom_work_location", label="Nearest Work Location", fieldtype="Data", permlevel=1, read_only=1,
+         insert_after="custom_geo_status"),
+    dict(fieldname="custom_distance_m", label="Distance (m)", fieldtype="Int", permlevel=1, read_only=1,
+         insert_after="custom_work_location"),
+    dict(fieldname="custom_gps_accuracy_m", label="GPS Accuracy (m)", fieldtype="Float", permlevel=1, read_only=1,
+         insert_after="custom_distance_m"),
+    dict(fieldname="custom_gps_skew_seconds", label="GPS Time Skew (seconds)", fieldtype="Int", permlevel=1, read_only=1,
+         insert_after="custom_gps_accuracy_m"),
+    dict(fieldname="custom_mocked", label="Mock Location", fieldtype="Check", permlevel=1, read_only=1,
+         insert_after="custom_gps_skew_seconds"),
+]:
+    if not frappe.db.exists("Custom Field", {"dt": "Employee Checkin", "fieldname": cf["fieldname"]}):
+        make(dict(doctype="Custom Field", dt="Employee Checkin", **cf))
+        frappe.clear_cache(doctype="Employee Checkin")
 frappe.db.commit()
 # Sidebar: "Offline Check-in Review" di bawah "Employee Checkin" (Shift and Attendance).
 if frappe.db.exists("Sidebar", "Shift & Attendance"):

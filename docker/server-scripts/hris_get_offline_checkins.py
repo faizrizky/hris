@@ -1,6 +1,7 @@
 # Server Script (type: API, method: hris_get_offline_checkins, allow_guest: 0)
 # GET ?status=Needs Review (default) | Approved | Rejected | all, ?scope=team (atasan: bawahan langsung).
-# HR User/Manager melihat semua; atasan hanya bawahan langsung; karyawan lain 403. Check-in offline saja.
+# HR User/Manager melihat semua; atasan hanya bawahan langsung; karyawan lain 403.
+# Memuat semua check-in yang ditandai (offline, geofence/GPS); filter status "all" = semua yang pernah ditandai.
 user = frappe.session.user
 is_hr = user == "Administrator" or len(
     frappe.get_all("Has Role", filters={"parent": user, "parenttype": "User",
@@ -16,7 +17,7 @@ if not is_hr and not team:
 status = frappe.form_dict.get("status") or "Needs Review"
 if status not in ("Needs Review", "Approved", "Rejected", "all"):
     frappe.throw("status must be Needs Review, Approved, Rejected or all")
-filters = {"custom_offline": 1}
+filters = {"custom_review_status": ["!=", "None"]}
 if status != "all":
     filters["custom_review_status"] = status
 if (not is_hr) or frappe.form_dict.get("scope") == "team":
@@ -26,7 +27,9 @@ result = []
 for c in frappe.get_all("Employee Checkin", filters=filters,
                         fields=["name", "employee", "employee_name", "log_type", "time", "custom_claimed_time",
                                 "custom_flags", "custom_review_status", "custom_clock_skew_seconds",
-                                "custom_queue_age_seconds", "custom_reviewed_by", "custom_reviewed_on",
+                                "custom_queue_age_seconds", "custom_reviewed_by", "custom_reviewed_on", "custom_offline",
+                                "custom_distance_m", "custom_geo_status", "custom_mocked",
+                                "custom_gps_accuracy_m", "custom_gps_skew_seconds", "custom_work_location",
                                 "custom_timezone"],
                         order_by="creation desc", limit_page_length=200):
     result.append({"name": c.name, "employee": c.employee, "employee_name": c.employee_name,
@@ -36,6 +39,10 @@ for c in frappe.get_all("Employee Checkin", filters=filters,
                    "flags": [x for x in (c.custom_flags or "").split("; ") if x],
                    "review_status": c.custom_review_status, "clock_skew_seconds": c.custom_clock_skew_seconds,
                    "queue_age_seconds": c.custom_queue_age_seconds, "timezone": c.custom_timezone,
-                   "reviewed_by": c.custom_reviewed_by,
+                   "reviewed_by": c.custom_reviewed_by, "offline": 1 if c.custom_offline else 0,
+                   "distance_m": c.custom_distance_m, "geo_status": c.custom_geo_status,
+                   "mocked": 1 if c.custom_mocked else 0, "gps_accuracy_m": c.custom_gps_accuracy_m,
+                   "gps_skew_seconds": c.custom_gps_skew_seconds, "work_location": c.custom_work_location,
+                   
                    "reviewed_on": str(c.custom_reviewed_on)[:19] if c.custom_reviewed_on else None})
 frappe.response["message"] = result

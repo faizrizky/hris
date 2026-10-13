@@ -10,6 +10,11 @@
 #   |device_ms - captured_ms| <= skew_tolerance_seconds, anchor_age <= max_anchor_age_hours,
 #   jumlah check-in offline bulan ini < max_per_month, urutan tidak mundur. Bersih -> time = captured_ms (zona kerja).
 #   Selain itu -> time = jam server saat diterima, review_status "Needs Review", alasan di flags.
+# Parameter OPSIONAL geofence/GPS: lat, lng, accuracy_m, gps_ms (epoch ms cap waktu fix GPS), mocked (0/1).
+#   Jarak dihitung ke "Work Location" aktif terdekat (pendekatan bidang datar, cukup untuk jarak ratusan meter).
+#   Mode di "Geofence Settings": Off (hanya simpan), Flag (default: diterima, review "Needs Review"), Block (417).
+#   Bersih bila jarak <= radius + min(akurasi, 50 m), akurasi <= max_accuracy_m, selisih waktu GPS <= toleransi,
+#   dan tidak mocked. Dinas luar aktif membebaskan syarat radius (jarak tetap disimpan).
 # Hasil: {"name","log_type","time","timezone","timezone_label","offline","review_status","flags":[...]}
 fd = frappe.form_dict
 log_type = (fd.get("log_type") or "").upper()
@@ -54,6 +59,9 @@ if not done:
         if offset[4:6] != "00":
             tz_label = tz_label + ":" + offset[4:6]
 
+    epoch0 = "1970-01-01 00:00:00"
+    now_s = frappe.utils.time_diff_in_seconds(str(frappe.utils.get_datetime_in_timezone("UTC"))[:19], epoch0)
+    cap_ms = 0.0
     offline = str(fd.get("offline") or "0") == "1"
     flags = []
     time_value = local_now
@@ -69,8 +77,6 @@ if not done:
         max_month = setting("max_per_month", 5)
         future_tol = setting("future_tolerance_seconds", 120)
         max_anchor_h = setting("max_anchor_age_hours", 72)
-        epoch0 = "1970-01-01 00:00:00"
-        now_s = frappe.utils.time_diff_in_seconds(str(frappe.utils.get_datetime_in_timezone("UTC"))[:19], epoch0)
         cap_ms = frappe.utils.flt(fd.get("captured_ms"))
         dev_ms = frappe.utils.flt(fd.get("device_ms"))
         trusted = str(fd.get("trusted") or "0") == "1"
@@ -114,15 +120,83 @@ if not done:
                 if not frappe.db.exists("Employee Checkin", {"employee": me[0].name, "time": time_value}):
                     break
                 time_value = str(frappe.utils.add_to_date(frappe.utils.get_datetime(time_value), seconds=1))[:19]
-    review = "Needs Review" if flags else "None"
+    # ---- Geofence dan validasi GPS (tidak mengubah penentuan jam di atas) ----
+    def gsetting(field, default):
+        v = frappe.db.get_single_value("Geofence Settings", field)
+        return v if v else default
+    mode = frappe.db.get_single_value("Geofence Settings", "geofence_mode") or "Flag"
+    geo_flags = []
+    geo_status = "No Location"
+    dist = 0
+    work_loc = None
+    gps_acc = frappe.utils.flt(fd.get("accuracy_m"))
+    gps_skew = 0
+    mocked = str(fd.get("mocked") or "0") == "1"
+    lat = 0
+    lng = 0
+    has_loc = fd.get("lat") not in (None, "") and fd.get("lng") not in (None, "")
+    if has_loc:
+        lat = frappe.utils.flt(fd.get("lat"))
+        lng = frappe.utils.flt(fd.get("lng"))
+        best_d = None
+        best_wl = None
+        for wl in frappe.get_all("Work Location", filters={"active": 1},
+                                 fields=["location_name", "latitude", "longitude", "radius_m"],
+                                 limit_page_length=100):
+            r = wl.latitude * 0.017453292519943295
+            cosr = 1 - r * r / 2 + r * r * r * r / 24 - r * r * r * r * r * r / 720
+            dx = (lng - wl.longitude) * 111320.0 * cosr
+            dy = (lat - wl.latitude) * 110574.0
+            d = (dx * dx + dy * dy) ** 0.5
+            if best_d is None or d < best_d:
+                best_d = d
+                best_wl = wl
+        if best_wl is not None:
+            dist = int(best_d)
+            work_loc = best_wl.location_name
+            tol = 0
+            if gps_acc > 0:
+                tol = gps_acc if gps_acc < 50 else 50
+            if best_d <= best_wl.radius_m + tol:
+                geo_status = "Inside"
+            else:
+                geo_status = "Outside"
+                if not trips:
+                    geo_flags.append("outside geofence (" + str(dist) + " m from " + str(work_loc) + ")")
+        if gps_acc > gsetting("max_accuracy_m", 100):
+            geo_flags.append("GPS accuracy too low (" + str(int(gps_acc)) + " m)")
+        gps_ms = frappe.utils.flt(fd.get("gps_ms"))
+        if gps_ms > 0:
+            ref_s = now_s
+            if offline and cap_ms > 0:
+                ref_s = cap_ms / 1000.0
+            gps_skew = abs(gps_ms / 1000.0 - ref_s)
+            if gps_skew > gsetting("gps_skew_tolerance_seconds", 300):
+                geo_flags.append("GPS time differs from device time (" + str(int(gps_skew)) + "s)")
+        if mocked and frappe.db.get_single_value("Geofence Settings", "block_mock_location") != 0:
+            geo_flags.append("location is mocked")
+    elif frappe.db.get_single_value("Geofence Settings", "require_location"):
+        geo_flags.append("no location provided")
+    if mode == "Off":
+        geo_flags = []
+    if geo_flags and mode == "Block":
+        frappe.throw("Check-in blocked: " + "; ".join(geo_flags))
+    all_flags = flags + geo_flags
+    if offline and not flags and not claimed:
+        claimed = time_value
+    review = "Needs Review" if all_flags else "None"
     doc = frappe.get_doc({"doctype": "Employee Checkin", "employee": me[0].name, "log_type": log_type,
                           "time": time_value, "device_id": "hris-mobile", "custom_timezone": tz,
                           "custom_offline": 1 if offline else 0, "custom_clock_skew_seconds": int(skew),
                           "custom_queue_age_seconds": int(age) if offline else 0, "custom_claimed_time": claimed,
-                          "custom_review_status": review, "custom_flags": "; ".join(flags),
+                          "custom_review_status": review, "custom_flags": "; ".join(all_flags),
+                          "latitude": lat if has_loc else None, "longitude": lng if has_loc else None,
+                          "custom_distance_m": dist, "custom_gps_accuracy_m": gps_acc,
+                          "custom_gps_skew_seconds": int(gps_skew), "custom_mocked": 1 if mocked else 0,
+                          "custom_geo_status": geo_status, "custom_work_location": work_loc,
                           "custom_client_id": client_id or None})
     doc.insert(ignore_permissions=True)
-    if flags:
+    if all_flags:
         recipients = []
         if me[0].reports_to:
             boss = frappe.db.get_value("Employee", me[0].reports_to, "user_id")
@@ -135,9 +209,10 @@ if not done:
         for u in recipients:
             if u != frappe.session.user:
                 frappe.get_doc({"doctype": "Notification Log", "type": "Alert", "for_user": u,
-                                "subject": "Offline check-in needs review: " + str(me[0].employee_name),
-                                "email_content": "; ".join(flags), "document_type": "Employee Checkin",
+                                "subject": ("Offline check-in needs review: " if offline else "Check-in needs review: ") + str(me[0].employee_name),
+                                "email_content": "; ".join(all_flags), "document_type": "Employee Checkin",
                                 "document_name": doc.name}).insert(ignore_permissions=True)
     frappe.response["message"] = {"name": doc.name, "log_type": log_type, "time": time_value, "timezone": tz,
                                   "timezone_label": tz_label, "offline": 1 if offline else 0,
-                                  "review_status": review, "flags": flags}
+                                  "review_status": review, "flags": all_flags,
+                                  "geo_status": geo_status, "distance_m": dist}

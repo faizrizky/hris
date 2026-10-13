@@ -1,0 +1,16 @@
+# Server Script (type: API, method: hris_get_work_locations, allow_guest: 0)
+# GET: lokasi kerja aktif beserta radius, dan aturan geofence yang berlaku. Dipakai aplikasi untuk
+# menampilkan jarak waktu nyata sebelum check-in. Dinas luar aktif tidak dibahas di sini (server yang memutuskan).
+me = frappe.get_all("Employee", filters={"user_id": frappe.session.user, "status": "Active"},
+                    fields=["name"], limit_page_length=1)
+if not me:
+    frappe.throw("This account is not linked to an active employee")
+locs = []
+for wl in frappe.get_all("Work Location", filters={"active": 1},
+                         fields=["name", "location_name", "latitude", "longitude", "radius_m"],
+                         limit_page_length=100):
+    locs.append({"name": wl.name, "location_name": wl.location_name, "latitude": wl.latitude,
+                 "longitude": wl.longitude, "radius_m": wl.radius_m})
+mode = frappe.db.get_single_value("Geofence Settings", "geofence_mode") or "Flag"
+acc = frappe.db.get_single_value("Geofence Settings", "max_accuracy_m") or 100
+frappe.response["message"] = {"locations": locs, "geofence_mode": mode, "max_accuracy_m": acc}
