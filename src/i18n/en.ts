@@ -942,4 +942,6 @@ export const en: Record<Kunci, string> = {
   "hari.fri": "Fri",
   "hari.sat": "Sat",
   "hari.sun": "Sun",
+  "login.server": "Server",
+  "login.alamatServer": "Server address",
 };

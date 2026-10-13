@@ -945,6 +945,8 @@ export const id = {
   "hari.fri": "Jum",
   "hari.sat": "Sab",
   "hari.sun": "Min",
+  "login.server": "Server",
+  "login.alamatServer": "Alamat server",
 } as const;
 
 export type Kunci = keyof typeof id;

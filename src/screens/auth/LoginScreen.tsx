@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import {
   KeyboardAvoidingView,
   Platform,
@@ -16,7 +16,11 @@ import { RadialGlow } from "@/components/RadialGlow";
 import { hrisApi } from "@/services/api";
 import { useSession } from "@/services/session";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { describeError } from "../../services/api/http";
+import {
+  alamatServer,
+  aturAlamatServer,
+  describeError,
+} from "../../services/api/http";
 import { useT } from "@/i18n";
 import { LanguagePicker } from "@/components/LanguagePicker";
 
@@ -32,11 +36,20 @@ export function LoginScreen() {
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
   const [error, setError] = useState<string | null>(null);
+  const [server, setServer] = useState(alamatServer());
+  const [bukaServer, setBukaServer] = useState(false);
+
+  // Alamat tersimpan dibaca asinkron; isi kolom setelah siap.
+  useEffect(() => {
+    const id = setTimeout(() => setServer(alamatServer()), 300);
+    return () => clearTimeout(id);
+  }, []);
 
   const handleLogin = async () => {
     setLoading(true);
     setError(null);
     try {
+      setServer(await aturAlamatServer(server));
       const employee = await hrisApi.login(email.trim(), password);
       setEmployee(employee);
     } catch (e) {
@@ -126,6 +139,27 @@ export function LoginScreen() {
               </View>
             </View>
           </View>
+
+          <Pressable onPress={() => setBukaServer((v) => !v)}>
+            <Text style={styles.serverToggle}>
+              {t("login.server")}: {server || "—"}
+            </Text>
+          </Pressable>
+          {bukaServer && (
+            <View style={[styles.fieldBox, { marginTop: 8 }]}>
+              <Text style={styles.fieldLabel}>{t("login.alamatServer")}</Text>
+              <TextInput
+                style={styles.fieldInput}
+                value={server}
+                onChangeText={setServer}
+                autoCapitalize="none"
+                autoCorrect={false}
+                keyboardType="url"
+                placeholder="http://192.168.1.43:8082"
+                placeholderTextColor={c.mutedLabel}
+              />
+            </View>
+          )}
 
           <View style={styles.rowBetween}>
             <Pressable
@@ -335,5 +369,11 @@ const makeStyles = (c: Palette) =>
       alignItems: "flex-end",
     },
     showToggle: { fontSize: 11.5, fontWeight: "600", color: c.accent2 },
+    serverToggle: {
+      fontSize: 11,
+      fontWeight: "600",
+      color: c.accent2,
+      marginTop: 12,
+    },
     errorText: { color: c.bad.ink, fontSize: 13, marginBottom: 10 },
   });

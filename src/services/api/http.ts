@@ -2,9 +2,37 @@
 // Auth memakai cookie `sid` yang dikelola cookie jar native (credentials: "include").
 
 import { tt } from "@/i18n";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { catatKontakServer } from "@/services/trustedTime";
 
-const BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL;
+// Alamat server bawaan dari build; pengguna bisa menggantinya di layar login
+// (disimpan di HP) supaya pindah IP/jaringan tidak perlu build ulang.
+export const ALAMAT_BAWAAN = process.env.EXPO_PUBLIC_API_BASE_URL ?? "";
+const KUNCI_ALAMAT = "hris.serverUrl";
+let BASE_URL = ALAMAT_BAWAAN;
+const siapAlamat = AsyncStorage.getItem(KUNCI_ALAMAT)
+  .then((v) => {
+    if (v) BASE_URL = v;
+  })
+  .catch(() => {});
+
+export function alamatServer(): string {
+  return BASE_URL;
+}
+
+// Kosong = kembali ke alamat bawaan build. Mengembalikan alamat yang dipakai.
+export async function aturAlamatServer(input: string): Promise<string> {
+  let url = input.trim().replace(/\/+$/, "");
+  if (url && !/^https?:\/\//i.test(url)) url = `http://${url}`;
+  BASE_URL = url || ALAMAT_BAWAAN;
+  try {
+    if (url) await AsyncStorage.setItem(KUNCI_ALAMAT, url);
+    else await AsyncStorage.removeItem(KUNCI_ALAMAT);
+  } catch {
+    // penyimpanan gagal: alamat tetap dipakai selama aplikasi terbuka
+  }
+  return BASE_URL;
+}
 const TIMEOUT_MS = 15_000;
 
 let onSessionExpired: (() => void) | null = null;
@@ -64,6 +92,7 @@ async function request<T>(
   params?: Params,
   formData?: FormData,
 ): Promise<T> {
+  await siapAlamat;
   if (!BASE_URL) {
     throw new ApiError(tt("err.noBase"), 0, null);
   }
@@ -143,6 +172,7 @@ export const upload = <T>(path: string, form: FormData) =>
 
 // Mengunduh berkas privat dengan sesi aplikasi (cookie yang sama dengan panggilan API).
 export async function unduhBerkas(path: string): Promise<Uint8Array> {
+  await siapAlamat;
   if (!BASE_URL) throw new ApiError(tt("err.noBase"), 0, null);
   let res: Response;
   try {
