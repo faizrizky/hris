@@ -53,12 +53,14 @@ import { describeError } from "@/services/api/http";
 import { useT, tt } from "@/i18n";
 import { useConfirm } from "@/components/ConfirmDialog";
 import { pilihBukti } from "@/utils/pilihBukti";
+import { WfhDetailCard, HARI_WFH } from "./WfhFormCards";
 import { kembali, keBeranda } from "@/navigation/kembali";
 
 const SEGMENTS = [
   { key: "cuti", label: "lr.cuti" },
   { key: "lembur", label: "lr.lembur" },
   { key: "dinas", label: "lr.dinas" },
+  { key: "wfh", label: "lr.wfh" },
 ] as const;
 
 export type FormKind = (typeof SEGMENTS)[number]["key"];
@@ -67,6 +69,7 @@ const FORM_META = {
   cuti: { title: "lr.judulCuti", subtitle: "Leave Application" },
   lembur: { title: "lr.judulLembur", subtitle: "Overtime Request" },
   dinas: { title: "lr.judulDinas", subtitle: "Travel Request" },
+  wfh: { title: "lr.judulWfh", subtitle: "WFH Schedule" },
 } as const;
 
 // Nama dokumen ERPNext tempat pengajuan tersimpan.
@@ -74,6 +77,7 @@ const DOC_NAMA: Record<FormKind, string> = {
   cuti: "Leave Application",
   lembur: "Overtime Request",
   dinas: "Travel Request",
+  wfh: "WFH Schedule",
 };
 
 // Setiap kali dibuka dari menu (+), daftar cuti, atau layar lembur, form dimulai
@@ -108,6 +112,8 @@ function LeaveRequestForm({ navigation, route }: any) {
   const [otEndRaw, setOtEndRaw] = useState(0);
   const [uraian, setUraian] = useState("");
   const [otFiles, setOtFiles] = useState<BuktiFile[]>([]);
+  const [wfhHari, setWfhHari] = useState<string[]>([]);
+  const [alasanWfh, setAlasanWfh] = useState("");
   const [cutiFiles, setCutiFiles] = useState<BuktiFile[]>([]);
   const [dest, setDest] = useState("");
   const [transport, setTransport] = useState<Transportasi | null>(null);
@@ -228,7 +234,13 @@ function LeaveRequestForm({ navigation, route }: any) {
                     ? t("lr.blokTransport")
                     : kind === "dinas" && buktiBiayaKurang
                       ? t("lr.blokBiaya", { n: buktiBiayaKurang })
-                      : "";
+                      : kind === "wfh" && wfhHari.length === 0
+                        ? t("lr.blokHariWfh")
+                        : kind === "wfh" && !alasanWfh.trim()
+                          ? t("lr.blokAlasanWfh")
+                          : kind === "wfh" && approver === null
+                            ? t("lr.blokApprover")
+                            : "";
 
   const bisaKirim = !blockMsg && !sending;
 
@@ -268,9 +280,11 @@ function LeaveRequestForm({ navigation, route }: any) {
             ? "lembur"
             : kind === "dinas"
               ? "dinas_luar"
-              : jenisCuti === "Sakit"
-                ? "sakit"
-                : "cuti",
+              : kind === "wfh"
+                ? "wfh"
+                : jenisCuti === "Sakit"
+                  ? "sakit"
+                  : "cuti",
         label:
           kind === "cuti"
             ? t("lr.labelCuti", { jenis: namaCuti(jenisCuti), n: hariKerja })
@@ -279,17 +293,22 @@ function LeaveRequestForm({ navigation, route }: any) {
                   durasi: durasiJam(otJam),
                   tgl: tanggalPendek(start!),
                 })
-              : t("lr.labelDinas", { n: hariPerjalanan }),
+              : kind === "wfh"
+                ? t("lr.labelWfh", { n: wfhHari.length })
+                : t("lr.labelDinas", { n: hariPerjalanan }),
         reason:
           kind === "cuti"
             ? alasan.trim()
             : kind === "lembur"
               ? uraian.trim()
-              : `${dest.trim()} · ${keperluan.trim()}`,
+              : kind === "wfh"
+                ? alasanWfh.trim()
+                : `${dest.trim()} · ${keperluan.trim()}`,
         delegateName:
           kind === "cuti" && delegasi ? delegasi.fullName : undefined,
         delegateId: kind === "cuti" && delegasi ? delegasi.id : undefined,
         leaveType: kind === "cuti" ? JENIS_SERVER[jenisCuti] : undefined,
+        wfhDays: kind === "wfh" ? wfhHari : undefined,
         overtimeEnd: kind === "lembur" ? jamMenit(otEnd) : undefined,
         attachments: (kind === "lembur"
           ? otFiles
@@ -370,6 +389,21 @@ function LeaveRequestForm({ navigation, route }: any) {
       ];
     }
 
+    if (kind === "wfh") {
+      return [
+        {
+          k: t("lr.rowTanggal"),
+          v: `${tanggalPendek(start)} – ${tanggalPendek(end)}`,
+        },
+        {
+          k: t("lr.rowHariWfh"),
+          v: HARI_WFH.filter((d) => wfhHari.includes(d))
+            .map((d) => t(`hari.${d}` as never))
+            .join(", "),
+        },
+      ];
+    }
+
     return [
       { k: t("lr.rowTujuan"), v: dest },
       {
@@ -396,9 +430,11 @@ function LeaveRequestForm({ navigation, route }: any) {
   const calTitle =
     kind === "dinas"
       ? t("lr.tglPerjalanan")
-      : kind === "lembur"
-        ? t("lr.tglLembur")
-        : t("lr.tglCuti");
+      : kind === "wfh"
+        ? t("lr.tglWfh")
+        : kind === "lembur"
+          ? t("lr.tglLembur")
+          : t("lr.tglCuti");
 
   const calHint = isSingle ? t("lr.hintSatu") : t("lr.hintRentang");
 
@@ -434,7 +470,7 @@ function LeaveRequestForm({ navigation, route }: any) {
         {
           label: t("lr.durasi"),
           value: range
-            ? kind === "dinas"
+            ? kind === "dinas" || kind === "wfh"
               ? t("lr.nHari", { n: hitungHari(start!, end!) })
               : jenisCuti === "Melahirkan" && kind === "cuti"
                 ? t("lr.nHariKalender", { n: hariKerja })
@@ -477,16 +513,14 @@ function LeaveRequestForm({ navigation, route }: any) {
               style={[
                 styles.segIndicator,
                 {
-                  width: (segW - 16) / 3,
+                  width: (segW - 16) / SEGMENTS.length,
                   transform: [
                     {
                       translateX: geser.interpolate({
-                        inputRange: [0, 1, 2],
-                        outputRange: [
-                          0,
-                          (segW - 16) / 3 + 4,
-                          ((segW - 16) / 3 + 4) * 2,
-                        ],
+                        inputRange: SEGMENTS.map((_, i) => i),
+                        outputRange: SEGMENTS.map(
+                          (_, i) => ((segW - 16) / SEGMENTS.length + 4) * i,
+                        ),
                       }),
                     },
                   ],
@@ -539,7 +573,9 @@ function LeaveRequestForm({ navigation, route }: any) {
                     ? "lr.terkirimCuti"
                     : kind === "lembur"
                       ? "lr.terkirimLembur"
-                      : "lr.terkirimDinas",
+                      : kind === "wfh"
+                        ? "lr.terkirimWfh"
+                        : "lr.terkirimDinas",
                 )}
                 waitingOn={langkahApproval[0]?.name ?? t("lr.approver")}
                 rows={buatDoneRows()}
@@ -612,6 +648,21 @@ function LeaveRequestForm({ navigation, route }: any) {
                       }
                     />
                   </>
+                )}
+
+                {kind === "wfh" && (
+                  <WfhDetailCard
+                    hari={wfhHari}
+                    onToggle={(d) =>
+                      setWfhHari((prev) =>
+                        prev.includes(d)
+                          ? prev.filter((x) => x !== d)
+                          : [...prev, d],
+                      )
+                    }
+                    alasan={alasanWfh}
+                    onChangeAlasan={setAlasanWfh}
+                  />
                 )}
 
                 {kind === "dinas" && (

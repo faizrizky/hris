@@ -66,6 +66,7 @@ export const LEAVE_TYPE_LABEL = labelBahasa<LeaveType>({
   lembur: "jenis.lembur",
   dinas_luar: "jenis.dinas",
   sakit: "jenis.sakit",
+  wfh: "jenis.wfh",
 });
 
 export const LEAVE_TYPE_TONE: Record<LeaveType, SemanticTone> = {
@@ -73,6 +74,7 @@ export const LEAVE_TYPE_TONE: Record<LeaveType, SemanticTone> = {
   lembur: "warn",
   dinas_luar: "info",
   sakit: "bad",
+  wfh: "info",
 };
 
 export const OVERTIME_STATUS_LABEL = labelBahasa<OvertimeStatus>({

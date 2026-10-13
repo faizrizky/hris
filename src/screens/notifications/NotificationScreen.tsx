@@ -90,6 +90,7 @@ export function NotificationScreen({ navigation }: any) {
       case "Leave Application":
       case "Overtime Request":
       case "Travel Request":
+      case "WFH Schedule":
       case "Attendance Request":
         if (menunggu) {
           navigation.navigate("Approval");

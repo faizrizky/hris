@@ -335,6 +335,7 @@ const STATUS_SERVER: Record<
 
 const ID_LEMBUR = /^OT-/;
 const ID_DINAS = /^HR-TRQ-/;
+const ID_WFH = /^WFH-/;
 
 const jamMenitServer = (m: number) =>
   `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`;
@@ -392,6 +393,43 @@ function bentukDinas(r: DinasRow, saya?: string): LeaveRequest {
   };
 }
 
+interface WfhRow {
+  name: string;
+  employee?: string;
+  employee_name?: string;
+  designation?: string | null;
+  from_date: string;
+  to_date: string;
+  days: string[];
+  reason: string;
+  status: "pending" | "approved" | "rejected";
+}
+
+function bentukWfh(r: WfhRow, saya?: string): LeaveRequest {
+  const st = STATUS_SERVER[r.status] ?? STATUS_SERVER.pending;
+  const nama = r.employee_name ?? saya ?? "—";
+  const hari = r.days.map((d) => tt(`hari.${d}` as never)).join(", ");
+  return {
+    id: r.name,
+    employeeId: r.employee ?? "",
+    employeeName: nama,
+    employeeInitials: inisial(nama),
+    employeeJobTitle: r.designation
+      ? terjemahkan("designation", r.designation)
+      : "",
+    type: "wfh",
+    label: tt("api.wfhLabel", { hari }),
+    reason: `${periodeCuti(r.from_date, r.to_date)} · ${r.reason}`,
+    delegateName: null,
+    stage: st.stage(),
+    quota: "—",
+    approverName: "",
+    approverInitials: "",
+    decision: st.decision,
+    createdAt: r.from_date,
+  };
+}
+
 const TRANSPORT_SERVER: Record<string, string> = {
   Pesawat: "Flight",
   Kereta: "Train",
@@ -424,6 +462,14 @@ async function ambilDinas(tim: boolean): Promise<LeaveRequest[]> {
     tim ? { scope: "team" } : undefined,
   );
   return res.message.map((r) => bentukDinas(r));
+}
+
+async function ambilWfh(tim: boolean): Promise<LeaveRequest[]> {
+  const res = await get<{ message: WfhRow[] }>(
+    "/api/method/hris_get_wfh",
+    tim ? { scope: "team" } : undefined,
+  );
+  return res.message.map((r) => bentukWfh(r));
 }
 
 const urutBaru = (a: LeaveRequest, b: LeaveRequest) =>
@@ -1425,12 +1471,13 @@ export const erpnextApi: HrisApi = {
         limit_page_length: 50,
       },
     );
-    const [lembur, dinas] = await Promise.all([
+    const [lembur, dinas, wfh] = await Promise.all([
       ambilLembur(false),
       ambilDinas(false),
+      ambilWfh(false),
     ]);
     const cuti = await lampiranCuti(res.data.map(bentukPengajuan));
-    return [...cuti, ...lembur, ...dinas].sort(urutBaru);
+    return [...cuti, ...lembur, ...dinas, ...wfh].sort(urutBaru);
   },
 
   // Pemanggil dikenali server dari sesinya, jadi employeeId tidak dikirim.
@@ -1483,6 +1530,18 @@ export const erpnextApi: HrisApi = {
         ...bentukLembur(res.message, input.employeeId),
         buktiGagal: gagal || undefined,
       };
+    }
+    if (input.type === "wfh") {
+      const res = await post<{ message: WfhRow }>(
+        "/api/method/hris_submit_wfh",
+        {
+          from_date: input.fromDate,
+          to_date: input.toDate,
+          days: (input.wfhDays ?? []).join(","),
+          reason: input.reason,
+        },
+      );
+      return bentukWfh(res.message, input.employeeId);
     }
     if (input.type === "dinas_luar") {
       const t = input.travel;
@@ -1551,16 +1610,18 @@ export const erpnextApi: HrisApi = {
   },
 
   async getPendingApprovals(): Promise<LeaveRequest[]> {
-    const [cuti, lembur, dinas] = await Promise.all([
+    const [cuti, lembur, dinas, wfh] = await Promise.all([
       ambilMenunggu(),
       ambilLembur(true),
       ambilDinas(true),
+      ambilWfh(true),
     ]);
     const menunggu = (r: LeaveRequest) => r.decision === null;
     return [
       ...cuti,
       ...lembur.filter(menunggu),
       ...dinas.filter(menunggu),
+      ...wfh.filter(menunggu),
     ].sort(urutBaru);
   },
 
@@ -1576,6 +1637,13 @@ export const erpnextApi: HrisApi = {
   // Satu PUT: status saja hanya mengubah draft dan tidak memotong saldo,
   // docstatus 1 yang membuat keputusannya final.
   async decideLeaveRequest(requestId, decision): Promise<LeaveRequest> {
+    if (ID_WFH.test(requestId)) {
+      const res = await post<{ message: WfhRow }>(
+        "/api/method/hris_decide_wfh",
+        { name: requestId, decision },
+      );
+      return bentukWfh(res.message);
+    }
     const lembur = ID_LEMBUR.test(requestId);
     if (lembur || ID_DINAS.test(requestId)) {
       const res = await post<{ message: LemburRow & DinasRow }>(

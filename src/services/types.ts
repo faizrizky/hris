@@ -88,7 +88,7 @@ export interface ClockState {
   pendingOffline?: boolean; // ada check-in yang masih menunggu dikirim
 }
 
-export type LeaveType = "cuti" | "lembur" | "dinas_luar" | "sakit";
+export type LeaveType = "cuti" | "lembur" | "dinas_luar" | "sakit" | "wfh";
 export type LeaveDecision = "approve" | "reject" | null;
 
 export interface LeaveRequest {
@@ -529,6 +529,7 @@ export interface HrisApi {
     delegateName?: string;
     leaveType?: string; // nama Leave Type ERPNext bila bukan Tahunan/Sakit
     overtimeEnd?: string; // lembur: "HH:MM"
+    wfhDays?: string[]; // wfh: mon..sun
     attachments?: BerkasLampiran[]; // lembur: bukti
     travel?: {
       destination: string;

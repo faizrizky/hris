@@ -62,6 +62,7 @@ except Exception: print("")' "$TMP/body")
   call "GET hris_get_notifications" "$auth" "$BASE/api/method/hris_get_notifications"
   call "GET hris_get_my_language" "$auth" "$BASE/api/method/hris_get_my_language"
   call "GET hris_get_travel_requests" "$auth" "$BASE/api/method/hris_get_travel_requests"
+  call "GET hris_get_wfh" "$auth" "$BASE/api/method/hris_get_wfh"
   call "GET hris_get_overtimes" "$auth" "$BASE/api/method/hris_get_overtimes"
   call "GET hris_get_my_documents" "$auth" "$BASE/api/method/hris_get_my_documents"
   call "GET hris_get_my_appraisal" "$auth" "$BASE/api/method/hris_get_my_appraisal"

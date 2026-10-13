@@ -923,6 +923,28 @@ export const id = {
   "lr.blokSurat":
     "Surat dokter belum diunggah (wajib untuk cuti sakit lebih dari 1 hari)",
   "fc.tambahDok": "Tambah dokumen lain",
+  "jenis.wfh": "WFH",
+  "lr.wfh": "WFH",
+  "lr.judulWfh": "Pengajuan WFH",
+  "lr.tglWfh": "Periode WFH",
+  "lr.terkirimWfh": "Pengajuan WFH terkirim",
+  "lr.labelWfh": "WFH · {n} hari/minggu",
+  "lr.blokHariWfh": "Pilih minimal satu hari WFH",
+  "lr.blokAlasanWfh": "Alasan belum diisi",
+  "lr.rowHariWfh": "Hari WFH",
+  "fc.hariWfh": "Hari WFH setiap minggu",
+  "fc.hariWfhInfo":
+    "Selama periode ini, hari yang dipilih boleh absen dari mana saja setelah disetujui atasan.",
+  "fc.alasanWfh": "Alasan",
+  "fc.alasanWfhContoh": "Contoh: renovasi rumah, jaga anak sakit",
+  "api.wfhLabel": "WFH · {hari}",
+  "hari.mon": "Sen",
+  "hari.tue": "Sel",
+  "hari.wed": "Rab",
+  "hari.thu": "Kam",
+  "hari.fri": "Jum",
+  "hari.sat": "Sab",
+  "hari.sun": "Min",
 } as const;
 
 export type Kunci = keyof typeof id;
