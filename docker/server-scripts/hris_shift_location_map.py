@@ -23,6 +23,8 @@ if lat is not None and lng is not None:
     if rad:
         doc.checkin_radius = int(rad)
 elif doc.latitude and doc.longitude:
+    pt = [doc.longitude, doc.latitude]
     doc.geolocation = json.dumps({"type": "FeatureCollection", "features": [
-        {"type": "Feature", "properties": {},
-         "geometry": {"type": "Point", "coordinates": [doc.longitude, doc.latitude]}}]})
+        {"type": "Feature", "properties": {"point_type": "circle", "radius": doc.checkin_radius or 100},
+         "geometry": {"type": "Point", "coordinates": pt}},
+        {"type": "Feature", "properties": {}, "geometry": {"type": "Point", "coordinates": pt}}]})

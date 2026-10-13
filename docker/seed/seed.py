@@ -841,9 +841,11 @@ _HO = "Head Office - Jl. Gatot Subroto 42"
 if not frappe.db.exists("Shift Location", _HO):
     _sl = frappe.get_doc(dict(doctype="Shift Location", location_name=_HO, checkin_radius=120,
                               latitude=-6.23412, longitude=106.81674))
+    _pt = [106.81674, -6.23412]
     _sl.geolocation = json.dumps({"type": "FeatureCollection", "features": [
-        {"type": "Feature", "properties": {},
-         "geometry": {"type": "Point", "coordinates": [106.81674, -6.23412]}}]})
+        {"type": "Feature", "properties": {"point_type": "circle", "radius": 120},
+         "geometry": {"type": "Point", "coordinates": _pt}},
+        {"type": "Feature", "properties": {}, "geometry": {"type": "Point", "coordinates": _pt}}]})
     _sl.insert(ignore_permissions=True)
     log("Shift Location dibuat: " + _HO)
 if frappe.db.exists("DocType", "Work Location"):
@@ -856,14 +858,111 @@ if frappe.db.exists("DocType", "Work Location"):
 # padahal menyalakannya memaksa lokasi pada SEMUA check-in (termasuk Clock Out/WFH). Client Script ini menampilkannya
 # kembali; peta dipakai langsung dan disinkronkan ke koordinat oleh Server Script hris_shift_location_map.
 _CS = "Shift Location - show map"
-_JS = """frappe.ui.form.on("Shift Location", {
+_JS = r"""// Shift Location: cari tempat, peta hanya zoom, koordinat otomatis.
+// hrms menyembunyikan radius/koordinat/peta kecuali "Allow Geolocation Tracking" menyala; di sini ditampilkan
+// kembali tanpa menyalakannya (itu memaksa lokasi pada semua check-in).
+const STYLE_ID = "shift-location-map-style";
+function pasangGaya() {
+	if (document.getElementById(STYLE_ID)) return;
+	const el = document.createElement("style");
+	el.id = STYLE_ID;
+	// Hanya tombol + dan - yang tersisa di peta.
+	el.textContent = `
+		[data-fieldname="geolocation"] .leaflet-draw,
+		[data-fieldname="geolocation"] .leaflet-control-layers,
+		[data-fieldname="geolocation"] .leaflet-control-locate,
+		[data-fieldname="geolocation"] .leaflet-control-container .leaflet-top.leaflet-left .leaflet-bar:not(.leaflet-control-zoom),
+		[data-fieldname="geolocation"] .leaflet-top.leaflet-right .leaflet-control { display: none !important; }
+		.form-column:has([data-fieldname="search_location"]) { flex: 0 0 100%; max-width: 100%; width: 100%; }
+		.shift-location-results { list-style: none; margin: 4px 0 0; padding: 0; border: 1px solid var(--border-color);
+			border-radius: 8px; background: var(--control-bg, #fff); max-height: 240px; overflow-y: auto; }
+		.shift-location-results li { padding: 8px 12px; cursor: pointer; font-size: var(--text-md); }
+		.shift-location-results li:hover { background: var(--control-bg-on-gray, #f3f3f3); }
+		.shift-location-results li.empty { cursor: default; color: var(--text-muted); }`;
+	document.head.appendChild(el);
+}
+
+function geojson(lat, lng, radius) {
+	const point = [lng, lat];
+	return JSON.stringify({
+		type: "FeatureCollection",
+		features: [
+			{ type: "Feature", properties: { point_type: "circle", radius: radius || 100 },
+			  geometry: { type: "Point", coordinates: point } },
+			{ type: "Feature", properties: {}, geometry: { type: "Point", coordinates: point } },
+		],
+	});
+}
+
+async function terapkan(frm, lat, lng) {
+	await frm.set_value("latitude", lat);
+	await frm.set_value("longitude", lng);
+	await frm.set_value("geolocation", geojson(lat, lng, frm.doc.checkin_radius));
+	const map = frm.fields_dict.geolocation && frm.fields_dict.geolocation.map;
+	if (map) setTimeout(() => map.setView([lat, lng], 17), 150);
+}
+
+function pasangPencarian(frm) {
+	const ctl = frm.fields_dict.search_location;
+	if (!ctl || !ctl.$input || ctl._pencarianTerpasang) return;
+	ctl._pencarianTerpasang = true;
+	const $daftar = $('<ul class="shift-location-results" style="display:none"></ul>').appendTo(ctl.$wrapper);
+	let timer = null;
+	let urut = 0;
+
+	async function cari() {
+		const q = (ctl.$input.val() || "").trim();
+		if (q.length < 3) { $daftar.hide(); return; }
+		const saya = ++urut;
+		let hasil = [];
+		try {
+			const r = await fetch("https://nominatim.openstreetmap.org/search?format=json&limit=6&accept-language=id&q=" + encodeURIComponent(q));
+			hasil = await r.json();
+		} catch (e) {
+			hasil = null;
+		}
+		if (saya !== urut) return;
+		$daftar.empty();
+		if (hasil === null) {
+			$daftar.append('<li class="empty">' + __("Could not reach the search service. Check your internet connection.") + "</li>");
+		} else if (!hasil.length) {
+			$daftar.append('<li class="empty">' + __("No places found") + "</li>");
+		} else {
+			hasil.forEach((h) => {
+				$("<li></li>").text(h.display_name).on("mousedown", async () => {
+					$daftar.hide();
+					ctl.$input.val(h.display_name);
+					await terapkan(frm, parseFloat(h.lat), parseFloat(h.lon));
+					if (!frm.doc.location_name || frm.doc.__islocal) frm.set_value("location_name", h.display_name.split(",")[0]);
+				}).appendTo($daftar);
+			});
+		}
+		$daftar.show();
+	}
+
+	ctl.$input.attr("placeholder", __("Type an address or place name, e.g. Gedung ICON+ Jakarta"));
+	ctl.$input.on("input", () => { clearTimeout(timer); timer = setTimeout(cari, 600); });
+	ctl.$input.on("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); clearTimeout(timer); cari(); } });
+	ctl.$input.on("blur", () => setTimeout(() => $daftar.hide(), 200));
+}
+
+frappe.ui.form.on("Shift Location", {
 	refresh: async (frm) => {
-		// hrms menyembunyikan field ini secara asinkron; tunggu lalu tampilkan lagi.
+		pasangGaya();
+		// hrms menyembunyikan field ini secara asinkron; tunggu lalu atur ulang.
 		await frappe.db.get_single_value("HR Settings", "allow_geolocation_tracking");
 		setTimeout(() => {
-			unhide_field(["checkin_radius", "latitude", "longitude", "geolocation"]);
+			unhide_field(["search_location", "checkin_radius", "latitude", "longitude", "geolocation"]);
+			hide_field("fetch_geolocation");
+			frm.set_df_property("latitude", "read_only", 1);
+			frm.set_df_property("longitude", "read_only", 1);
 			frm.refresh_fields();
+			pasangPencarian(frm);
 		}, 400);
+	},
+	checkin_radius: (frm) => {
+		if (frm.doc.latitude && frm.doc.longitude)
+			frm.set_value("geolocation", geojson(frm.doc.latitude, frm.doc.longitude, frm.doc.checkin_radius));
 	},
 });
 """
@@ -871,6 +970,17 @@ if not frappe.db.exists("Client Script", _CS):
     make(dict(doctype="Client Script", name=_CS, dt="Shift Location", view="Form", enabled=1, script=_JS))
 else:
     frappe.db.set_value("Client Script", _CS, {"script": _JS, "enabled": 1})
+# Kolom pencarian (Data biasa; hasilnya dirender Client Script) dan urutan: cari -> peta -> radius/koordinat.
+if not frappe.db.exists("Custom Field", {"dt": "Shift Location", "fieldname": "search_location"}):
+    make(dict(doctype="Custom Field", dt="Shift Location", fieldname="search_location", label="Search Place",
+              fieldtype="Data", insert_after="location_name", ignore_user_permissions=1, no_copy=1, print_hide=1,
+              description="Search an address or place, pick a result, and the map and coordinates follow."))
+    frappe.clear_cache(doctype="Shift Location")
+_order = ["location_name", "search_location", "geolocation", "section_break_xxli", "checkin_radius",
+          "column_break_dlgd", "latitude", "longitude", "fetch_geolocation"]
+frappe.make_property_setter({"doctype": "Shift Location", "doctype_or_field": "DocType", "property": "field_order",
+                             "value": json.dumps(_order), "property_type": "Data"})
+frappe.clear_cache(doctype="Shift Location")
 if not frappe.db.exists("DocType", "Geofence Settings"):
     make(dict(
         doctype="DocType", name="Geofence Settings", module="HR", custom=1, issingle=1,
