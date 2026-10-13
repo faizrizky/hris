@@ -23,7 +23,7 @@ wfh_fields = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"]
 today = frappe.utils.getdate(frappe.utils.get_datetime_in_timezone(frappe.utils.get_system_timezone()))
 wd = today.weekday()
 wfh_today = False
-for w in frappe.get_all("WFH Schedule", filters={"employee": me[0].name, "enabled": 1,
+for w in frappe.get_all("WFH Schedule", filters={"employee": me[0].name, "enabled": 1, "status": "Approved",
                                                  "from_date": ["<=", str(today)], "to_date": [">=", str(today)]},
                         fields=wfh_fields, limit_page_length=20):
     if w.get(wfh_fields[wd]):

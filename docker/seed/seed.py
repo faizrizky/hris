@@ -1053,6 +1053,21 @@ if not frappe.db.exists("DocType", "WFH Schedule"):
                      dict(role="HR Manager", read=1, write=1, create=1, delete=1),
                      dict(role="HR User", read=1, write=1, create=1)]))
     frappe.clear_cache()
+# WFH Schedule juga menjadi dokumen pengajuan karyawan: status Pending/Approved/Rejected (HR membuat langsung = Approved).
+for _f in [
+    dict(fieldname="status", label="Status", fieldtype="Select", options="Pending\nApproved\nRejected", default="Approved",
+         in_list_view=1, in_standard_filter=1, insert_after="to_date"),
+    dict(fieldname="requested_by_employee", label="Requested by Employee", fieldtype="Check", read_only=1, insert_after="enabled"),
+    dict(fieldname="decision_note", label="Decision Note", fieldtype="Small Text", insert_after="reason"),
+    dict(fieldname="decided_by", label="Decided By", fieldtype="Link", options="User", read_only=1, insert_after="decision_note"),
+]:
+    if not frappe.db.exists("DocField", {"parent": "WFH Schedule", "fieldname": _f["fieldname"]}):
+        _dt = frappe.get_doc("DocType", "WFH Schedule")
+        _dt.append("fields", _f)
+        _dt.save(ignore_permissions=True)
+        frappe.clear_cache(doctype="WFH Schedule")
+        log("WFH Schedule: field " + _f["fieldname"] + " ditambahkan")
+frappe.db.sql("update `tabWFH Schedule` set status = 'Approved' where status is null or status = ''")
 # Geofence: Clock In di luar area ditolak (Block), Clock Out bebas; sekali migrasi dari nilai awal (Flag).
 if frappe.db.get_single_value("Geofence Settings", "geofence_mode") == "Flag" and \
         not frappe.db.get_single_value("Geofence Settings", "require_location"):

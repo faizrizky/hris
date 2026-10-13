@@ -306,9 +306,9 @@
     "semantic_hash": ""
   },
   "src/screens/leave/CutiFormCards.tsx": {
-    "mtime": 1791916230.58169,
-    "seen": 1791916282.057441,
-    "ast_hash": "6c6032162b24c31ac19df66241243482",
+    "mtime": 1791916615.6614723,
+    "seen": 1791916641.057756,
+    "ast_hash": "de10543448309e48072baa3908e3826c",
     "semantic_hash": ""
   },
   "src/screens/leave/DinasBiayaCard.tsx": {
@@ -342,9 +342,9 @@
     "semantic_hash": ""
   },
   "src/screens/leave/LeaveRequestScreen.tsx": {
-    "mtime": 1791916264.522089,
-    "seen": 1791916282.057447,
-    "ast_hash": "23c892af6bd5e56c493fa8bc17379e2b",
+    "mtime": 1791916617.5534706,
+    "seen": 1791916641.0577621,
+    "ast_hash": "788bb21b09de5adcaa8d650d98184487",
     "semantic_hash": ""
   },
   "src/screens/leave/LemburFormCards.tsx": {
@@ -450,9 +450,9 @@
     "semantic_hash": ""
   },
   "src/services/api/erpnextApi.ts": {
-    "mtime": 1791916222.5525723,
-    "seen": 1791916282.057467,
-    "ast_hash": "9e6791c14da0077b90e77d941f151d65",
+    "mtime": 1791916617.955597,
+    "seen": 1791916641.057782,
+    "ast_hash": "355ebe5805eeee6c4062a36d57479da4",
     "semantic_hash": ""
   },
   "src/services/api/http.ts": {
@@ -546,9 +546,9 @@
     "semantic_hash": "2c4d5f4cafc97c42aa1f8168ebed4cc3"
   },
   "BACKLOG.md": {
-    "mtime": 1791914294.6808102,
-    "seen": 1791914300.143839,
-    "ast_hash": "4831d7a0f05eaa0866caf1fb570c544e",
+    "mtime": 1791916636.0129547,
+    "seen": 1791916641.057803,
+    "ast_hash": "8874bac54eba42476c1b743bc69896ed",
     "semantic_hash": ""
   },
   "README.md": {
@@ -870,15 +870,15 @@
     "semantic_hash": ""
   },
   "src/i18n/en.ts": {
-    "mtime": 1791916230.2169855,
-    "seen": 1791916282.0574179,
-    "ast_hash": "7d039f7e5d2baaa5d4bf445214a9129b",
+    "mtime": 1791916617.0981858,
+    "seen": 1791916641.057733,
+    "ast_hash": "46375430e9280cc67eb0f4a27c2f0df7",
     "semantic_hash": ""
   },
   "src/i18n/id.ts": {
-    "mtime": 1791916230.2402744,
-    "seen": 1791916282.057419,
-    "ast_hash": "87d6b35886694a6fefa6fd606e358c57",
+    "mtime": 1791916617.1221375,
+    "seen": 1791916641.0577338,
+    "ast_hash": "50e782b8463453165d386036f6bbad7b",
     "semantic_hash": ""
   },
   "src/i18n/index.tsx": {
