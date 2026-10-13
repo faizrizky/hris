@@ -1,10 +1,4 @@
 {
-  ".claude/settings.local.json": {
-    "mtime": 1791598865.6845033,
-    "seen": 1791648613.821395,
-    "ast_hash": "aace6d3b36f8807a5a2c8c542658624b",
-    "semantic_hash": "aace6d3b36f8807a5a2c8c542658624b"
-  },
   "App.tsx": {
     "mtime": 1791654843.8000593,
     "seen": 1791714819.0793111,
@@ -12,9 +6,9 @@
     "semantic_hash": ""
   },
   "app.json": {
-    "mtime": 1791762384.8851874,
-    "seen": 1791762455.718899,
-    "ast_hash": "790f2e947f69a80fe5fd4e2d31f6b8bb",
+    "mtime": 1791914210.8637164,
+    "seen": 1791914300.1436641,
+    "ast_hash": "1907d8824abf1ed1cd553f67bcc8ac93",
     "semantic_hash": ""
   },
   "babel.config.js": {
@@ -36,9 +30,9 @@
     "semantic_hash": "cb8007364835d00ff12ba23dfc5199e1"
   },
   "docker/seed/seed.py": {
-    "mtime": 1791780166.4852324,
-    "seen": 1791780430.5718899,
-    "ast_hash": "a05df089a1ff00762118084fed39cab8",
+    "mtime": 1791914127.2635431,
+    "seen": 1791914300.143669,
+    "ast_hash": "b8d27439b979d51f5a6738486f1368d2",
     "semantic_hash": ""
   },
   "docker/seed/seed.sh": {
@@ -48,9 +42,9 @@
     "semantic_hash": ""
   },
   "docker/seed/smoke.sh": {
-    "mtime": 1791780166.4860907,
-    "seen": 1791780430.5718951,
-    "ast_hash": "fca84a0ab6b39dfa30b6c846ea1cefcc",
+    "mtime": 1791914134.4280689,
+    "seen": 1791914300.143671,
+    "ast_hash": "89cf64e6742c42ee17ab89c11441fec7",
     "semantic_hash": ""
   },
   "docker/server-scripts/hris_get_attendance_history.py": {
@@ -102,9 +96,9 @@
     "semantic_hash": "b713dd66aa3ad59ed5098d7b9f8dc202"
   },
   "package.json": {
-    "mtime": 1791762358.4607608,
-    "seen": 1791762455.7189782,
-    "ast_hash": "d55cc27b3482c41bdabed7ca45ee4059",
+    "mtime": 1791914177.8856018,
+    "seen": 1791914300.1437418,
+    "ast_hash": "179da87d650bb213214a2e1cafea2c94",
     "semantic_hash": ""
   },
   "src/components/Card.tsx": {
@@ -276,9 +270,9 @@
     "semantic_hash": ""
   },
   "src/screens/attendance/ClockScreen.tsx": {
-    "mtime": 1791780254.7859616,
-    "seen": 1791780430.572253,
-    "ast_hash": "550ace59056a7cf5d6f3dc8529dcb061",
+    "mtime": 1791914241.2785425,
+    "seen": 1791914300.143782,
+    "ast_hash": "4597dc59b7d4270030fce475c522f81a",
     "semantic_hash": ""
   },
   "src/screens/attendance/FaceViewfinder.tsx": {
@@ -294,9 +288,9 @@
     "semantic_hash": ""
   },
   "src/screens/attendance/MapPreview.tsx": {
-    "mtime": 1791676440.5938272,
-    "seen": 1791714819.079405,
-    "ast_hash": "43e0a76dbea6fcc7c6637619ce1fb380",
+    "mtime": 1791914239.790166,
+    "seen": 1791914300.143785,
+    "ast_hash": "ae60f7e1d125ca60f681f4aac9ff6cae",
     "semantic_hash": ""
   },
   "src/screens/auth/LoginScreen.tsx": {
@@ -456,9 +450,9 @@
     "semantic_hash": ""
   },
   "src/services/api/erpnextApi.ts": {
-    "mtime": 1791780543.606252,
-    "seen": 1791780562.804704,
-    "ast_hash": "08a227d9309b62d0efbda909b41ec9a8",
+    "mtime": 1791914274.757608,
+    "seen": 1791914300.143818,
+    "ast_hash": "a8995be14df01c26c12a9222731e9bea",
     "semantic_hash": ""
   },
   "src/services/api/http.ts": {
@@ -474,9 +468,9 @@
     "semantic_hash": "20085c4949f48ec7cdc747100e5423c2"
   },
   "src/services/mock/mockApi.ts": {
-    "mtime": 1791780149.9266355,
-    "seen": 1791780430.572364,
-    "ast_hash": "ed593437dc47cd77e840e5b9750d1694",
+    "mtime": 1791914208.5367708,
+    "seen": 1791914300.14382,
+    "ast_hash": "285a0d4d96feadff048d52fa2eeafc6a",
     "semantic_hash": ""
   },
   "src/services/mock/mockData.ts": {
@@ -492,9 +486,9 @@
     "semantic_hash": ""
   },
   "src/services/types.ts": {
-    "mtime": 1791780149.9260092,
-    "seen": 1791780430.572374,
-    "ast_hash": "e3a47eaa4314b5d8a9b6c0a06a88d237",
+    "mtime": 1791914274.757153,
+    "seen": 1791914300.143826,
+    "ast_hash": "6a11ed78a298b5ed71f67a7bc37dcd46",
     "semantic_hash": ""
   },
   "src/theme/ThemeContext.tsx": {
@@ -552,9 +546,9 @@
     "semantic_hash": "2c4d5f4cafc97c42aa1f8168ebed4cc3"
   },
   "BACKLOG.md": {
-    "mtime": 1791780551.539722,
-    "seen": 1791780562.804734,
-    "ast_hash": "3a1c9e96df4cc9d91953b1a5bd011c38",
+    "mtime": 1791914294.6808102,
+    "seen": 1791914300.143839,
+    "ast_hash": "4831d7a0f05eaa0866caf1fb570c544e",
     "semantic_hash": ""
   },
   "README.md": {
@@ -594,9 +588,9 @@
     "semantic_hash": ""
   },
   "docker/server-scripts/hris_checkin.py": {
-    "mtime": 1791780225.5917914,
-    "seen": 1791780430.572038,
-    "ast_hash": "0a084a9719ad51a7e490950e10cbc697",
+    "mtime": 1791914114.5035055,
+    "seen": 1791914300.143679,
+    "ast_hash": "e3fd54f7b57ee9331bc719766a93174d",
     "semantic_hash": ""
   },
   "docker/server-scripts/hris_create_my_document.py": {
@@ -876,15 +870,15 @@
     "semantic_hash": ""
   },
   "src/i18n/en.ts": {
-    "mtime": 1791780319.913799,
-    "seen": 1791780430.5722308,
-    "ast_hash": "04f2c9e5b7203ff78da64d4a39e3bd0a",
+    "mtime": 1791914275.9460807,
+    "seen": 1791914300.143769,
+    "ast_hash": "e4b4ec19e7803a4ef689c95eec829dbe",
     "semantic_hash": ""
   },
   "src/i18n/id.ts": {
-    "mtime": 1791780315.4119213,
-    "seen": 1791780430.572232,
-    "ast_hash": "a52e47a16c227f6780bab6aa38714397",
+    "mtime": 1791914275.9687827,
+    "seen": 1791914300.1437702,
+    "ast_hash": "50c766e736061d2ebdd4e2f6792f833c",
     "semantic_hash": ""
   },
   "src/i18n/index.tsx": {
@@ -1044,15 +1038,15 @@
     "semantic_hash": ""
   },
   "docker/server-scripts/hris_decide_offline_checkin.py": {
-    "mtime": 1791780166.4159615,
-    "seen": 1791780430.572053,
-    "ast_hash": "d42400ed6c2f9a64c70c229cdb5fb6f8",
+    "mtime": 1791914114.5044036,
+    "seen": 1791914300.143683,
+    "ast_hash": "4654dd97629f9cdf882637df689a8e6d",
     "semantic_hash": ""
   },
   "docker/server-scripts/hris_get_offline_checkins.py": {
-    "mtime": 1791780166.4117558,
-    "seen": 1791780430.572109,
-    "ast_hash": "351dde8881e72b6b772db200144689fa",
+    "mtime": 1791914114.504138,
+    "seen": 1791914300.1437051,
+    "ast_hash": "2b2c545d4359e5d56aa7ea5c0c395553",
     "semantic_hash": ""
   },
   "docker/server-scripts/hris_get_offline_report.py": {
@@ -1092,21 +1086,33 @@
     "semantic_hash": ""
   },
   "src/screens/attendance/OfflineReviewScreen.tsx": {
-    "mtime": 1791780321.4674177,
-    "seen": 1791780430.572258,
-    "ast_hash": "38ae5d66ddd4b4f062d53d6ad012fb27",
+    "mtime": 1791914276.2085428,
+    "seen": 1791914300.143785,
+    "ast_hash": "88ef8c458616381939002fd2f99bbc15",
     "semantic_hash": ""
   },
   "src/services/offlineQueue.ts": {
-    "mtime": 1791780115.0568235,
-    "seen": 1791780430.5723672,
-    "ast_hash": "13e11d45d2012c1c0085e4f1bab67661",
+    "mtime": 1791914208.5371644,
+    "seen": 1791914300.1438222,
+    "ast_hash": "8a9b73901620d293356822df3008baf9",
     "semantic_hash": ""
   },
   "src/services/trustedTime.ts": {
     "mtime": 1791780115.053335,
     "seen": 1791780430.572373,
     "ast_hash": "3fc6052347fe306d4ff63085add06a22",
+    "semantic_hash": ""
+  },
+  "docker/server-scripts/hris_get_work_locations.py": {
+    "mtime": 1791914114.5045893,
+    "seen": 1791914300.1437151,
+    "ast_hash": "2e060534b6882c847271d995d7eb46c1",
+    "semantic_hash": ""
+  },
+  "src/hooks/useLokasiKerja.ts": {
+    "mtime": 1791914241.0430584,
+    "seen": 1791914300.143768,
+    "ast_hash": "b22fae93f4fc1b1467e086901c0d1fbf",
     "semantic_hash": ""
   }
 }

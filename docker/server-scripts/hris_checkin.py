@@ -12,7 +12,8 @@
 #   Selain itu -> time = jam server saat diterima, review_status "Needs Review", alasan di flags.
 # Parameter OPSIONAL geofence/GPS: lat, lng, accuracy_m, gps_ms (epoch ms cap waktu fix GPS), mocked (0/1).
 #   Jarak dihitung ke "Work Location" aktif terdekat (pendekatan bidang datar, cukup untuk jarak ratusan meter).
-#   Mode di "Geofence Settings": Off (hanya simpan), Flag (default: diterima, review "Needs Review"), Block (417).
+#   Mode di "Geofence Settings": Off (hanya simpan), Flag (diterima, review "Needs Review"), Block (default: Clock IN
+#   online yang melanggar ditolak 417; Clock OUT tidak pernah ditolak dan tidak dicek area; offline hanya ditandai).
 #   Bersih bila jarak <= radius + min(akurasi, 50 m), akurasi <= max_accuracy_m, selisih waktu GPS <= toleransi,
 #   dan tidak mocked. Dinas luar aktif membebaskan syarat radius (jarak tetap disimpan).
 # Hasil: {"name","log_type","time","timezone","timezone_label","offline","review_status","flags":[...]}
@@ -121,10 +122,24 @@ if not done:
                     break
                 time_value = str(frappe.utils.add_to_date(frappe.utils.get_datetime(time_value), seconds=1))[:19]
     # ---- Geofence dan validasi GPS (tidak mengubah penentuan jam di atas) ----
+    # Aturan: geofence hanya untuk Clock IN (Clock OUT bebas di mana saja). Clock IN online di luar area,
+    # tanpa lokasi (bila wajib), akurasi buruk, atau lokasi palsu DITOLAK pada mode Block. Check-in offline
+    # tidak bisa ditolak (sudah terjadi): diterima dan ditandai. Dinas luar aktif dan jadwal WFH hari itu
+    # membebaskan syarat area dan lokasi.
     def gsetting(field, default):
         v = frappe.db.get_single_value("Geofence Settings", field)
         return v if v else default
     mode = frappe.db.get_single_value("Geofence Settings", "geofence_mode") or "Flag"
+    wfh_fields = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"]
+    wd = frappe.utils.get_datetime(local_now).weekday()
+    wfh_today = False
+    for w in frappe.get_all("WFH Schedule", filters={"employee": me[0].name, "enabled": 1,
+                                                     "from_date": ["<=", local_now[:10]],
+                                                     "to_date": [">=", local_now[:10]]},
+                            fields=wfh_fields, limit_page_length=20):
+        if w.get(wfh_fields[wd]):
+            wfh_today = True
+    exempt = bool(trips) or wfh_today
     geo_flags = []
     geo_status = "No Location"
     dist = 0
@@ -161,7 +176,9 @@ if not done:
                 geo_status = "Inside"
             else:
                 geo_status = "Outside"
-                if not trips:
+                if wfh_today:
+                    geo_status = "WFH"
+                if log_type == "IN" and not exempt:
                     geo_flags.append("outside geofence (" + str(dist) + " m from " + str(work_loc) + ")")
         if gps_acc > gsetting("max_accuracy_m", 100):
             geo_flags.append("GPS accuracy too low (" + str(int(gps_acc)) + " m)")
@@ -175,12 +192,14 @@ if not done:
                 geo_flags.append("GPS time differs from device time (" + str(int(gps_skew)) + "s)")
         if mocked and frappe.db.get_single_value("Geofence Settings", "block_mock_location") != 0:
             geo_flags.append("location is mocked")
-    elif frappe.db.get_single_value("Geofence Settings", "require_location"):
+    elif wfh_today:
+        geo_status = "WFH"
+    elif log_type == "IN" and not exempt and frappe.db.get_single_value("Geofence Settings", "require_location"):
         geo_flags.append("no location provided")
     if mode == "Off":
         geo_flags = []
-    if geo_flags and mode == "Block":
-        frappe.throw("Check-in blocked: " + "; ".join(geo_flags))
+    if geo_flags and mode == "Block" and log_type == "IN" and not offline:
+        frappe.throw("Clock In blocked: " + "; ".join(geo_flags))
     all_flags = flags + geo_flags
     if offline and not flags and not claimed:
         claimed = time_value

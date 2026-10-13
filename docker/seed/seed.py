@@ -841,6 +841,8 @@ if not frappe.db.exists("DocType", "Work Location"):
         fields=[
             dict(fieldname="location_name", label="Location Name", fieldtype="Data", reqd=1, unique=1, in_list_view=1),
             dict(fieldname="active", label="Active", fieldtype="Check", default="1", in_list_view=1),
+            dict(fieldname="location_map", label="Pick Location on Map", fieldtype="Geolocation",
+                 description="Drop a marker (or draw a circle to set the radius). Latitude and longitude below follow the map."),
             dict(fieldname="latitude", label="Latitude", fieldtype="Float", precision="9", reqd=1, in_list_view=1),
             dict(fieldname="longitude", label="Longitude", fieldtype="Float", precision="9", reqd=1, in_list_view=1),
             dict(fieldname="radius_m", label="Radius (meters)", fieldtype="Int", default="120", reqd=1, in_list_view=1),
@@ -849,6 +851,14 @@ if not frappe.db.exists("DocType", "Work Location"):
                      dict(role="HR Manager", read=1, write=1, create=1, delete=1),
                      dict(role="HR User", read=1, write=1, create=1)]))
     frappe.clear_cache()
+if frappe.db.exists("DocType", "Work Location") and not frappe.db.exists("DocField", {"parent": "Work Location", "fieldname": "location_map"}):
+    _dt = frappe.get_doc("DocType", "Work Location")
+    _dt.append("fields", dict(fieldname="location_map", label="Pick Location on Map", fieldtype="Geolocation",
+                              description="Drop a marker (or draw a circle to set the radius). Latitude and longitude below follow the map."))
+    _dt.fields.insert(1, _dt.fields.pop())
+    _dt.save(ignore_permissions=True)
+    frappe.clear_cache()
+    log("Work Location: field peta ditambahkan")
 if not frappe.db.exists("Work Location", "Head Office - Jl. Gatot Subroto 42"):
     make(dict(doctype="Work Location", location_name="Head Office - Jl. Gatot Subroto 42",
               latitude=-6.23412, longitude=106.81674, radius_m=120, active=1))
@@ -886,6 +896,43 @@ for cf in [
     if not frappe.db.exists("Custom Field", {"dt": "Employee Checkin", "fieldname": cf["fieldname"]}):
         make(dict(doctype="Custom Field", dt="Employee Checkin", **cf))
         frappe.clear_cache(doctype="Employee Checkin")
+# Jadwal WFH: hari kerja dari rumah (bebas geofence). Diatur HR di web.
+if not frappe.db.exists("DocType", "WFH Schedule"):
+    make(dict(
+        doctype="DocType", name="WFH Schedule", module="HR", custom=1, naming_rule="Expression (old style)",
+        autoname="WFH-.YYYY.-.#####", track_changes=1,
+        fields=[
+            dict(fieldname="employee", label="Employee", fieldtype="Link", options="Employee", reqd=1, in_list_view=1),
+            dict(fieldname="employee_name", label="Employee Name", fieldtype="Data", fetch_from="employee.employee_name",
+                 read_only=1, in_list_view=1),
+            dict(fieldname="from_date", label="From Date", fieldtype="Date", reqd=1, in_list_view=1),
+            dict(fieldname="to_date", label="To Date", fieldtype="Date", reqd=1, in_list_view=1),
+            dict(fieldname="days_section", label="WFH Days", fieldtype="Section Break"),
+            dict(fieldname="mon", label="Monday", fieldtype="Check"),
+            dict(fieldname="tue", label="Tuesday", fieldtype="Check"),
+            dict(fieldname="wed", label="Wednesday", fieldtype="Check"),
+            dict(fieldname="thu", label="Thursday", fieldtype="Check"),
+            dict(fieldname="fri", label="Friday", fieldtype="Check"),
+            dict(fieldname="sat", label="Saturday", fieldtype="Check"),
+            dict(fieldname="sun", label="Sunday", fieldtype="Check"),
+            dict(fieldname="note_section", label="Note", fieldtype="Section Break"),
+            dict(fieldname="reason", label="Reason", fieldtype="Small Text"),
+            dict(fieldname="enabled", label="Enabled", fieldtype="Check", default="1", in_list_view=1),
+        ],
+        permissions=[dict(role="System Manager", read=1, write=1, create=1, delete=1),
+                     dict(role="HR Manager", read=1, write=1, create=1, delete=1),
+                     dict(role="HR User", read=1, write=1, create=1)]))
+    frappe.clear_cache()
+# Geofence: Clock In di luar area ditolak (Block), Clock Out bebas; sekali migrasi dari nilai awal (Flag).
+if frappe.db.get_single_value("Geofence Settings", "geofence_mode") == "Flag" and \
+        not frappe.db.get_single_value("Geofence Settings", "require_location"):
+    frappe.db.set_single_value("Geofence Settings", "geofence_mode", "Block")
+    frappe.db.set_single_value("Geofence Settings", "require_location", 1)
+    log("Geofence: mode Block dan lokasi wajib untuk Clock In")
+_gs = frappe.db.get_value("Custom Field", {"dt": "Employee Checkin", "fieldname": "custom_geo_status"}, ["name", "options"], as_dict=True)
+if _gs and "WFH" not in (_gs.options or ""):
+    frappe.db.set_value("Custom Field", _gs.name, "options", "No Location\nInside\nOutside\nWFH")
+    frappe.clear_cache(doctype="Employee Checkin")
 frappe.db.commit()
 # Sidebar: "Offline Check-in Review" di bawah "Employee Checkin" (Shift and Attendance).
 if frappe.db.exists("Sidebar", "Shift & Attendance"):
@@ -893,13 +940,25 @@ if frappe.db.exists("Sidebar", "Shift & Attendance"):
     add_site_sidebar_item("Shift and Attendance", dict(label="Offline Check-in Review", type="Link", link_type="DocType",
                                                         link_to="Employee Checkin", icon="clock", collapsible=1,
                                                         route_options='{"custom_review_status": "Needs Review"}'))
+    add_site_sidebar_item("Shift and Attendance", dict(label="WFH Schedule", type="Link", link_type="DocType",
+                                                        link_to="WFH Schedule", icon="calendar", collapsible=1))
     _arr = layer_arrangement("Shift and Attendance", None)
     _mine = [r for r in _arr if r.get("label") == "Offline Check-in Review"]
     _rest = [r for r in _arr if r not in _mine]
     _at = next((n for n, r in enumerate(_rest) if r.get("link_to") == "Employee Checkin" and r.get("label") == "Employee Checkin"), 0) + 1
-    _save_customization("Shift and Attendance", _rest[:_at] + _mine + _rest[_at:], None)
+    _wfh = [r for r in _rest if r.get("label") == "WFH Schedule"]
+    _rest = [r for r in _rest if r not in _wfh]
+    _at = next((n for n, r in enumerate(_rest) if r.get("link_to") == "Employee Checkin" and r.get("label") == "Employee Checkin"), 0) + 1
+    _ar = next((n for n, r in enumerate(_rest) if r.get("link_to") == "Attendance Request"), None)
+    _rest = _rest[:_at] + _mine + _rest[_at:]
+    if _ar is not None:
+        _ar = next((n for n, r in enumerate(_rest) if r.get("link_to") == "Attendance Request"), _ar)
+        _rest = _rest[:_ar + 1] + _wfh + _rest[_ar + 1:]
+    else:
+        _rest = _rest + _wfh
+    _save_customization("Shift and Attendance", _rest, None)
     frappe.db.commit()
-    log("sidebar: Offline Check-in Review di bawah Employee Checkin")
+    log("sidebar: Offline Check-in Review di bawah Employee Checkin, WFH Schedule di bawah Attendance Request")
     frappe.clear_cache()
 
 # Sinkronkan label Custom Field yang sudah ada ke bahasa Inggris (nama field tidak berubah).
@@ -986,6 +1045,7 @@ EVENT_SCRIPTS = {  # script berbasis event dokumen: nama_file -> (DocType, event
     "hris_notify_document_status": ("Employee Document", "After Save"),
     "hris_guard_document_upload": ("File", "Before Insert"),
     "hris_employee_tax_status": ("Employee", "Before Save"),
+    "hris_work_location_map": ("Work Location", "Before Save"),
     "hris_salary_slip_pph21": ("Salary Slip", "Before Save"),
     "hris_announcement_publish": ("HR Announcement", "Before Save"),
     "hris_notify_announcement": ("HR Announcement", "After Save"),
@@ -1166,4 +1226,9 @@ if not cur_key or os.environ.get("SEED_REGEN_KEYS") == "1":
     frappe.db.commit()
     print("SEED_API_KEY=" + frappe.db.get_value("User", rani_email, "api_key"))
     print("SEED_API_SECRET=" + res["api_secret"])
+# Peta diisi setelah Server Script terpasang (skrip sinkron membuat GeoJSON dari koordinat).
+for _wl in frappe.get_all("Work Location", filters={"location_map": ["is", "not set"]}, pluck="name"):
+    frappe.get_doc("Work Location", _wl).save(ignore_permissions=True)  # skrip sinkron mengisi peta dari koordinat
+    log(f"Work Location {_wl}: peta diisi dari koordinat")
+    frappe.db.commit()
 log("selesai")

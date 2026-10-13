@@ -12,5 +12,15 @@ for wl in frappe.get_all("Work Location", filters={"active": 1},
     locs.append({"name": wl.name, "location_name": wl.location_name, "latitude": wl.latitude,
                  "longitude": wl.longitude, "radius_m": wl.radius_m})
 mode = frappe.db.get_single_value("Geofence Settings", "geofence_mode") or "Flag"
+wfh_fields = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"]
+today = frappe.utils.getdate(frappe.utils.get_datetime_in_timezone(frappe.utils.get_system_timezone()))
+wd = today.weekday()
+wfh_today = False
+for w in frappe.get_all("WFH Schedule", filters={"employee": me[0].name, "enabled": 1,
+                                                 "from_date": ["<=", str(today)], "to_date": [">=", str(today)]},
+                        fields=wfh_fields, limit_page_length=20):
+    if w.get(wfh_fields[wd]):
+        wfh_today = True
 acc = frappe.db.get_single_value("Geofence Settings", "max_accuracy_m") or 100
-frappe.response["message"] = {"locations": locs, "geofence_mode": mode, "max_accuracy_m": acc}
+frappe.response["message"] = {"locations": locs, "geofence_mode": mode, "max_accuracy_m": acc, "wfh_today": wfh_today,
+                            "require_location": 1 if frappe.db.get_single_value("Geofence Settings", "require_location") else 0}
