@@ -28,7 +28,9 @@ export function ClockScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
   const [state, setState] = useState<ClockState | null>(null);
   const [step, setStep] = useState(0);
-  const { izin, fix, terdekat, ambilTerbaru } = useLokasiKerja(step < 2); // 0 = GPS, 1 = wajah, 2 = selesai
+  const { izin, fix, terdekat, aturan, ambilTerbaru } = useLokasiKerja(
+    step < 2,
+  ); // 0 = GPS, 1 = wajah, 2 = selesai
   const [loading, setLoading] = useState(false);
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
@@ -98,6 +100,25 @@ export function ClockScreen({ navigation }: any) {
 
   const aksi = state.clockedIn ? t("ab.clockOut") : t("ab.clockIn");
   const done = step === 2;
+
+  // Clock In hanya di area kerja (kecuali jadwal WFH atau dinas luar, yang server
+  // bebaskan); Clock Out bebas di mana saja. Server tetap yang memutuskan: ini
+  // mencegah ketukan yang pasti ditolak dan menjelaskan alasannya.
+  const masuk = !state.clockedIn;
+  const wfh = aturan?.wfhToday ?? false;
+  let alasanBlokir: string | null = null;
+  if (masuk && !done && aturan && aturan.mode === "Block" && !wfh) {
+    if (izin === "ditolak") {
+      alasanBlokir = t("loc.tanpa");
+    } else if (aturan.locations.length > 0) {
+      if (!fix) alasanBlokir = t("loc.mencari");
+      else if (fix.mocked) alasanBlokir = t("loc.mock");
+      else if (fix.accuracyM > aturan.maxAccuracyM)
+        alasanBlokir = t("loc.akurasiBuruk", { m: Math.round(fix.accuracyM) });
+      else if (terdekat && !terdekat.didalam)
+        alasanBlokir = t("loc.diluar", { m: terdekat.jarakM });
+    }
+  }
 
   const handleNext = async () => {
     if (done) {
@@ -200,31 +221,39 @@ export function ClockScreen({ navigation }: any) {
                         ? `${fix.lat.toFixed(5)}, ${fix.lng.toFixed(5)}`
                         : t("loc.mencari")}
                 </Text>
-                {izin !== "ditolak" && fix ? (
+                {wfh ? (
+                  <Text
+                    style={[
+                      styles.locationCoord,
+                      { color: c.ok.ink, fontWeight: "700" },
+                    ]}
+                  >
+                    {t("loc.wfh")}
+                  </Text>
+                ) : !masuk ? (
+                  <Text style={styles.locationCoord}>
+                    {t("loc.keluarBebas")}
+                  </Text>
+                ) : alasanBlokir ? (
                   <Text
                     style={[
                       styles.locationCoord,
                       {
-                        color: fix.mocked
-                          ? c.bad.ink
-                          : terdekat?.didalam
-                            ? c.ok.ink
-                            : c.warn.ink,
+                        color: fix?.mocked ? c.bad.ink : c.warn.ink,
                         fontWeight: "700",
                       },
                     ]}
                   >
-                    {fix.mocked
-                      ? t("loc.mock")
-                      : terdekat
-                        ? terdekat.didalam
-                          ? t("loc.didalam")
-                          : t("loc.diluar", { m: terdekat.jarakM })
-                        : ""}
+                    {alasanBlokir}
                   </Text>
-                ) : izin === "ditolak" ? (
-                  <Text style={[styles.locationCoord, { color: c.warn.ink }]}>
-                    {t("loc.tanpa")}
+                ) : fix && terdekat ? (
+                  <Text
+                    style={[
+                      styles.locationCoord,
+                      { color: c.ok.ink, fontWeight: "700" },
+                    ]}
+                  >
+                    {t("loc.didalam")}
                   </Text>
                 ) : null}
               </View>
@@ -303,10 +332,16 @@ export function ClockScreen({ navigation }: any) {
           <Pressable
             style={[
               styles.cta,
-              { backgroundColor: done ? c.ok.ink : c.accent },
+              {
+                backgroundColor: done
+                  ? c.ok.ink
+                  : alasanBlokir
+                    ? c.track
+                    : c.accent,
+              },
             ]}
             onPress={handleNext}
-            disabled={loading}
+            disabled={loading || !!alasanBlokir}
           >
             <Text style={styles.ctaText}>
               {loading ? t("umum.memproses") : ctaLabel}

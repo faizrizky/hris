@@ -14,8 +14,8 @@ import {
   LeaveType,
   Announcement,
   Appraisal,
+  AturanLokasi,
   LokasiCheckin,
-  WorkLocation,
   OfflineCheckin,
   ProfileChange,
   FeedbackForm,
@@ -1640,9 +1640,13 @@ export const erpnextApi: HrisApi = {
     return ambilStatusJam();
   },
 
-  async getWorkLocations(): Promise<WorkLocation[]> {
+  async getWorkLocations(): Promise<AturanLokasi> {
     const res = await get<{
       message: {
+        geofence_mode: AturanLokasi["mode"];
+        max_accuracy_m: number;
+        wfh_today: boolean;
+        require_location: number;
         locations: {
           name: string;
           location_name: string;
@@ -1652,13 +1656,20 @@ export const erpnextApi: HrisApi = {
         }[];
       };
     }>("/api/method/hris_get_work_locations");
-    return res.message.locations.map((l) => ({
-      name: l.name,
-      locationName: l.location_name,
-      latitude: l.latitude,
-      longitude: l.longitude,
-      radiusM: l.radius_m,
-    }));
+    const m = res.message;
+    return {
+      locations: m.locations.map((l) => ({
+        name: l.name,
+        locationName: l.location_name,
+        latitude: l.latitude,
+        longitude: l.longitude,
+        radiusM: l.radius_m,
+      })),
+      mode: m.geofence_mode,
+      maxAccuracyM: m.max_accuracy_m,
+      wfhToday: m.wfh_today,
+      requireLocation: m.require_location === 1,
+    };
   },
 
   async clockIn(

@@ -887,9 +887,10 @@ export const en: Record<Kunci, string> = {
   "loc.jarak": "{m} m from {lokasi} · accuracy {acc} m",
   "loc.didalam": "Inside the work area",
   "loc.diluar":
-    "Outside the work area ({m} m). Your check-in is still sent and flagged for your supervisor to review.",
-  "loc.tanpa": "Location unavailable. Your check-in is still sent and flagged.",
-  "loc.mock": "A mock location was detected. Your check-in will be flagged.",
+    "You are outside the work area ({m} m). Clock In is only possible inside the work area.",
+  "loc.tanpa":
+    "Location is unavailable. Enable location permission to Clock In.",
+  "loc.mock": "A mock location was detected. You cannot Clock In.",
   "loc.radius": "radius {m} m",
   "ofr.terima": "Accept check-in",
   "ofr.jarak": "{m} m from {lokasi}",
@@ -897,4 +898,8 @@ export const en: Record<Kunci, string> = {
   "ofr.akurasi": "GPS accuracy {m} m",
   "ofr.terimaJudul": "Accept this check-in?",
   "ofr.terimaPesan": "The check-in stays recorded at the server time.",
+  "loc.akurasiBuruk":
+    "GPS accuracy is too low ({m} m). Move to an open area and try again.",
+  "loc.wfh": "Today is a WFH day: you can Clock In from anywhere.",
+  "loc.keluarBebas": "You can Clock Out from anywhere.",
 };

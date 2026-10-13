@@ -70,6 +70,15 @@ export interface WorkLocation {
   radiusM: number;
 }
 
+// Aturan lokasi untuk presensi hari ini, dari server.
+export interface AturanLokasi {
+  locations: WorkLocation[];
+  mode: "Off" | "Flag" | "Block";
+  maxAccuracyM: number;
+  wfhToday: boolean; // jadwal WFH hari ini: bebas area
+  requireLocation: boolean;
+}
+
 export interface ClockState {
   clockedIn: boolean;
   lastCheckIn: string | null;
@@ -456,7 +465,7 @@ export interface HrisApi {
   getClockState(employeeId: string): Promise<ClockState>;
   clockIn(employeeId: string, lokasi?: LokasiCheckin): Promise<ClockState>;
   clockOut(employeeId: string, lokasi?: LokasiCheckin): Promise<ClockState>;
-  getWorkLocations(): Promise<WorkLocation[]>;
+  getWorkLocations(): Promise<AturanLokasi>;
   getAttendanceHistory(employeeId: string): Promise<AttendanceRecord[]>;
   // Riwayat karyawan lain, untuk atasan/HR (server membatasi hak aksesnya).
   getStaffAttendanceHistory(staffId: string): Promise<AttendanceRecord[]>;

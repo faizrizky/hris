@@ -96,7 +96,13 @@ export const mockApi: HrisApi = {
   },
 
   async getWorkLocations() {
-    return [];
+    return {
+      locations: [],
+      mode: "Off" as const,
+      maxAccuracyM: 100,
+      wfhToday: false,
+      requireLocation: false,
+    };
   },
 
   async clockIn(_employeeId: string): Promise<ClockState> {

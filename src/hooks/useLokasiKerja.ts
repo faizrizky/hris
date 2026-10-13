@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import * as Location from "expo-location";
 import { hrisApi } from "@/services/api";
-import { LokasiCheckin, WorkLocation } from "@/services/types";
+import { AturanLokasi, LokasiCheckin } from "@/services/types";
 
 export type IzinLokasi = "cek" | "ok" | "ditolak";
 
@@ -46,7 +46,7 @@ function keLokasi(l: Location.LocationObject): LokasiCheckin {
 export function useLokasiKerja(aktif: boolean) {
   const [izin, setIzin] = useState<IzinLokasi>("cek");
   const [fix, setFix] = useState<LokasiCheckin | null>(null);
-  const [lokasi, setLokasi] = useState<WorkLocation[]>([]);
+  const [aturan, setAturan] = useState<AturanLokasi | null>(null);
   const terakhir = useRef<LokasiCheckin | null>(null);
 
   useEffect(() => {
@@ -55,7 +55,7 @@ export function useLokasiKerja(aktif: boolean) {
     let langganan: Location.LocationSubscription | null = null;
     hrisApi
       .getWorkLocations()
-      .then((l) => !batal && setLokasi(l))
+      .then((l) => !batal && setAturan(l))
       .catch(() => {});
     (async () => {
       try {
@@ -106,7 +106,7 @@ export function useLokasiKerja(aktif: boolean) {
 
   let terdekat: TerdekatKerja | null = null;
   if (fix) {
-    for (const l of lokasi) {
+    for (const l of aturan?.locations ?? []) {
       const d = jarakMeter(fix.lat, fix.lng, l.latitude, l.longitude);
       if (!terdekat || d < terdekat.jarakM) {
         terdekat = {
@@ -119,5 +119,5 @@ export function useLokasiKerja(aktif: boolean) {
     }
   }
 
-  return { izin, fix, terdekat, ambilTerbaru };
+  return { izin, fix, terdekat, aturan, ambilTerbaru };
 }

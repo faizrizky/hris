@@ -890,9 +890,10 @@ export const id = {
   "loc.jarak": "{m} m dari {lokasi} · akurasi {acc} m",
   "loc.didalam": "Di dalam area kerja",
   "loc.diluar":
-    "Di luar area kerja ({m} m). Check-in tetap dikirim dan ditandai untuk ditinjau atasan.",
-  "loc.tanpa": "Lokasi belum tersedia. Check-in tetap dikirim dan ditandai.",
-  "loc.mock": "Terdeteksi lokasi palsu. Check-in akan ditandai.",
+    "Kamu di luar area kerja ({m} m). Clock In hanya bisa di dalam area kerja.",
+  "loc.tanpa":
+    "Lokasi belum tersedia. Aktifkan izin lokasi agar bisa Clock In.",
+  "loc.mock": "Terdeteksi lokasi palsu. Clock In tidak bisa dilakukan.",
   "loc.radius": "radius {m} m",
   "ofr.terima": "Terima check-in",
   "ofr.jarak": "{m} m dari {lokasi}",
@@ -900,6 +901,10 @@ export const id = {
   "ofr.akurasi": "Akurasi GPS {m} m",
   "ofr.terimaJudul": "Terima check-in ini?",
   "ofr.terimaPesan": "Check-in tetap tercatat pada jam server.",
+  "loc.akurasiBuruk":
+    "Akurasi GPS terlalu rendah ({m} m). Pindah ke area terbuka lalu coba lagi.",
+  "loc.wfh": "Hari ini jadwal WFH: Clock In bisa dari mana saja.",
+  "loc.keluarBebas": "Clock Out bisa dilakukan di mana saja.",
 } as const;
 
 export type Kunci = keyof typeof id;
