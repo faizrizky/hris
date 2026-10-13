@@ -6,13 +6,19 @@
     "orientation": "portrait",
     "userInterfaceStyle": "automatic",
     "scheme": "hrismobile",
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.falah.hrismobile"
     },
     "android": {
-      "package": "com.falah.hrismobile"
+      "package": "com.falah.hrismobile",
+      "permissions": [
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION"
+      ]
     },
     "plugins": [
       "expo-notifications",
@@ -31,6 +37,12 @@
           "locationWhenInUsePermission": "HRIS memakai lokasi untuk memastikan kamu berada di area kerja saat check-in."
         }
       ]
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "ce760ee8-916f-4df2-9369-6ac8dca689c4"
+      }
+    },
+    "owner": "faizrizky"
   }
 }
