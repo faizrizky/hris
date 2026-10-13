@@ -24,5 +24,6 @@ Tidak ada: seluruh method `HrisApi` sudah punya implementasi ERPNext. Dokumen Di
 - [ ] Push notification: butuh dev build + akun Apple Developer + `projectId` EAS di app.json (`extra.eas.projectId`). Server sudah siap (Push Settings → Dry Run diubah ke 0 untuk kirim sungguhan); pengiriman masih sinkron di request pembuat notifikasi (maks 8 detik)
 - [ ] Check-in offline: uji modul native `hris-clock` di build APK pertama (belum pernah dikompilasi), dan uji geofence/GPS di HP (izin lokasi, lokasi palsu, mode Block)
 - [ ] Verifikasi wajah Android (ML Kit): deteksi wajah dan liveness; pencocokan identitas butuh model embedding (belum diputuskan)
-- [ ] Jenis cuti Melahirkan dan Izin penting belum punya Leave Type
+- [ ] Lampiran bukti untuk pengajuan cuti (surat dokter, akta) belum terkirim ke ERPNext; tombol unggah di form cuti masih tampilan
+- [ ] Pengajuan WFH oleh karyawan dengan persetujuan atasan (kini jadwal WFH diatur HR di web)
 - [ ] Seed dari nol (`down -v`) belum diuji; seed baru perlu dijalankan di srv-vllm
