@@ -24,6 +24,12 @@
             "usesCleartextTraffic": true
           }
         }
+      ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "HRIS memakai lokasi untuk memastikan kamu berada di area kerja saat check-in."
+        }
       ]
     ]
   }

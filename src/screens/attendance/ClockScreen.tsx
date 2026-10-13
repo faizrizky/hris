@@ -19,6 +19,7 @@ import { Skeleton } from "@/components/Skeleton";
 import { describeError } from "@/services/api/http";
 import { ErrorState } from "@/components/ErrorState";
 import { useT } from "@/i18n";
+import { useLokasiKerja } from "@/hooks/useLokasiKerja";
 import { kembaliAtauBeranda, keBeranda } from "@/navigation/kembali";
 
 export function ClockScreen({ navigation }: any) {
@@ -26,7 +27,8 @@ export function ClockScreen({ navigation }: any) {
   const { employee } = useSession();
   const insets = useSafeAreaInsets();
   const [state, setState] = useState<ClockState | null>(null);
-  const [step, setStep] = useState(0); // 0 = GPS, 1 = wajah, 2 = selesai
+  const [step, setStep] = useState(0);
+  const { izin, fix, terdekat, ambilTerbaru } = useLokasiKerja(step < 2); // 0 = GPS, 1 = wajah, 2 = selesai
   const [loading, setLoading] = useState(false);
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
@@ -109,9 +111,10 @@ export function ClockScreen({ navigation }: any) {
     setLoading(true);
     setGalat(null);
     try {
+      const lokasi = await ambilTerbaru();
       const next = state.clockedIn
-        ? await hrisApi.clockOut(employee.id)
-        : await hrisApi.clockIn(employee.id);
+        ? await hrisApi.clockOut(employee.id, lokasi)
+        : await hrisApi.clockIn(employee.id, lokasi);
       setState(next);
       setStep(2);
     } catch (e) {
@@ -170,7 +173,12 @@ export function ClockScreen({ navigation }: any) {
 
         {step === 0 && (
           <View style={styles.panel}>
-            <MapPreview />
+            <MapPreview
+              badge={
+                terdekat ? t("loc.radius", { m: terdekat.radiusM }) : undefined
+              }
+              inside={terdekat?.didalam}
+            />
             <View style={styles.locationRow}>
               <View style={styles.locationIcon}>
                 <LineIcon d={ICON.location} color={c.info.ink} size={16} />
@@ -179,7 +187,46 @@ export function ClockScreen({ navigation }: any) {
                 <Text style={styles.locationName}>
                   {state.workLocation ?? t("ab.kantor")}
                 </Text>
-                <Text style={styles.locationCoord}>{t("ab.koordinat")}</Text>
+                <Text style={styles.locationCoord}>
+                  {izin === "ditolak"
+                    ? t("loc.izinDitolak")
+                    : fix && terdekat
+                      ? t("loc.jarak", {
+                          m: terdekat.jarakM,
+                          lokasi: terdekat.nama,
+                          acc: Math.round(fix.accuracyM),
+                        })
+                      : fix
+                        ? `${fix.lat.toFixed(5)}, ${fix.lng.toFixed(5)}`
+                        : t("loc.mencari")}
+                </Text>
+                {izin !== "ditolak" && fix ? (
+                  <Text
+                    style={[
+                      styles.locationCoord,
+                      {
+                        color: fix.mocked
+                          ? c.bad.ink
+                          : terdekat?.didalam
+                            ? c.ok.ink
+                            : c.warn.ink,
+                        fontWeight: "700",
+                      },
+                    ]}
+                  >
+                    {fix.mocked
+                      ? t("loc.mock")
+                      : terdekat
+                        ? terdekat.didalam
+                          ? t("loc.didalam")
+                          : t("loc.diluar", { m: terdekat.jarakM })
+                        : ""}
+                  </Text>
+                ) : izin === "ditolak" ? (
+                  <Text style={[styles.locationCoord, { color: c.warn.ink }]}>
+                    {t("loc.tanpa")}
+                  </Text>
+                ) : null}
               </View>
             </View>
           </View>

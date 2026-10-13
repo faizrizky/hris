@@ -8,7 +8,13 @@ import { useT } from "@/i18n";
 const MAP_H = 216;
 const CELL = 26;
 
-export function MapPreview() {
+export function MapPreview({
+  badge,
+  inside,
+}: {
+  badge?: string;
+  inside?: boolean;
+}) {
   const t = useT();
   const [width, setWidth] = useState(0);
   const [pulse] = useState(() => new Animated.Value(0));
@@ -97,7 +103,14 @@ export function MapPreview() {
       <View style={styles.pin} />
 
       <View style={styles.mapBadge}>
-        <Text style={styles.mapBadgeText}>{t("ab.radius")}</Text>
+        <Text
+          style={[
+            styles.mapBadgeText,
+            inside === false ? { color: c.warn.ink } : null,
+          ]}
+        >
+          {badge ?? t("ab.radius")}
+        </Text>
       </View>
     </View>
   );

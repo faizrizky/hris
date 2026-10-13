@@ -53,6 +53,23 @@ export interface OvertimeRecord {
   status: OvertimeStatus;
 }
 
+// Lokasi saat check-in; server menilai jarak, akurasi, dan keaslian lokasinya.
+export interface LokasiCheckin {
+  lat: number;
+  lng: number;
+  accuracyM: number;
+  gpsMs: number; // cap waktu fix GPS (epoch ms)
+  mocked: boolean;
+}
+
+export interface WorkLocation {
+  name: string;
+  locationName: string;
+  latitude: number;
+  longitude: number;
+  radiusM: number;
+}
+
 export interface ClockState {
   clockedIn: boolean;
   lastCheckIn: string | null;
@@ -322,6 +339,12 @@ export interface OfflineCheckin {
   status: OfflineReviewStatus;
   skewSeconds: number;
   queueAgeSeconds: number;
+  offline: boolean;
+  distanceM: number | null;
+  geoStatus: "No Location" | "Inside" | "Outside";
+  mocked: boolean;
+  gpsAccuracyM: number | null;
+  workLocation: string | null;
 }
 
 export type ChangeStatus = "Pending" | "Approved" | "Rejected";
@@ -431,8 +454,9 @@ export interface HrisApi {
   getCurrentEmployee(): Promise<Employee>;
   logout(): Promise<void>;
   getClockState(employeeId: string): Promise<ClockState>;
-  clockIn(employeeId: string): Promise<ClockState>;
-  clockOut(employeeId: string): Promise<ClockState>;
+  clockIn(employeeId: string, lokasi?: LokasiCheckin): Promise<ClockState>;
+  clockOut(employeeId: string, lokasi?: LokasiCheckin): Promise<ClockState>;
+  getWorkLocations(): Promise<WorkLocation[]>;
   getAttendanceHistory(employeeId: string): Promise<AttendanceRecord[]>;
   // Riwayat karyawan lain, untuk atasan/HR (server membatasi hak aksesnya).
   getStaffAttendanceHistory(staffId: string): Promise<AttendanceRecord[]>;

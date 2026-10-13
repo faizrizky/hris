@@ -871,11 +871,12 @@ export const id = {
   "ab.tersimpanOffline": "Tersimpan di HP, dikirim otomatis saat ada sinyal",
   "profil.antreanN": "{n} check-in offline menunggu kirim",
   "ab.menungguKirim": "Menunggu kirim",
-  "ofr.judul": "Check-in Offline",
-  "ofr.sub": "Ditandai server untuk ditinjau",
+  "ofr.judul": "Peninjauan Check-in",
+  "ofr.sub": "Ditandai server: jam atau lokasi mencurigakan",
   "ofr.perlu": "Perlu Ditinjau",
-  "ofr.kosongJudul": "Tidak ada check-in offline",
-  "ofr.kosongIsi": "Check-in offline yang ditandai server akan muncul di sini.",
+  "ofr.kosongJudul": "Tidak ada check-in untuk ditinjau",
+  "ofr.kosongIsi":
+    "Check-in yang ditandai server (offline, di luar area, atau lokasi palsu) muncul di sini.",
   "ofr.diklaim": "Jam diklaim",
   "ofr.tercatat": "Tercatat server",
   "ofr.selisihJam": "Jam HP berbeda {n} menit dari jam terpercaya",
@@ -883,6 +884,22 @@ export const id = {
   "ofr.setujuiJudul": "Pakai jam yang diklaim?",
   "ofr.setujuiPesan": "Check-in akan dicatat pada {jam} sesuai klaim karyawan.",
   "hm.aOffline": "Check-in Offline",
+  "loc.mencari": "Mencari lokasi…",
+  "loc.izinDitolak":
+    "Izin lokasi ditolak. Aktifkan di pengaturan agar jarak ke kantor terukur.",
+  "loc.jarak": "{m} m dari {lokasi} · akurasi {acc} m",
+  "loc.didalam": "Di dalam area kerja",
+  "loc.diluar":
+    "Di luar area kerja ({m} m). Check-in tetap dikirim dan ditandai untuk ditinjau atasan.",
+  "loc.tanpa": "Lokasi belum tersedia. Check-in tetap dikirim dan ditandai.",
+  "loc.mock": "Terdeteksi lokasi palsu. Check-in akan ditandai.",
+  "loc.radius": "radius {m} m",
+  "ofr.terima": "Terima check-in",
+  "ofr.jarak": "{m} m dari {lokasi}",
+  "ofr.lokasiPalsu": "Lokasi palsu terdeteksi",
+  "ofr.akurasi": "Akurasi GPS {m} m",
+  "ofr.terimaJudul": "Terima check-in ini?",
+  "ofr.terimaPesan": "Check-in tetap tercatat pada jam server.",
 } as const;
 
 export type Kunci = keyof typeof id;

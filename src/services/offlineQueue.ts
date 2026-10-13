@@ -12,6 +12,13 @@ export interface ItemAntrean {
   deviceMs: number; // jam dinding HP saat ditekan
   trusted: boolean;
   anchorAgeS: number;
+  lokasi?: {
+    lat: number;
+    lng: number;
+    accuracyM: number;
+    gpsMs: number;
+    mocked: boolean;
+  };
 }
 
 type Pendengar = (jumlah: number) => void;

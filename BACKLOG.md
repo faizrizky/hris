@@ -22,7 +22,7 @@ Tidak ada: seluruh method `HrisApi` sudah punya implementasi ERPNext. Dokumen Di
 
 - [ ] Uji di HP fisik: buka lampiran dari kartu approval (unduh dengan sesi lalu lembar berbagi), unggah bukti lembur/biaya dinas dan dokumen, jam menurut zona dinas (butuh dinas aktif di zona lain), riwayat absensi staf
 - [ ] Push notification: butuh dev build + akun Apple Developer + `projectId` EAS di app.json (`extra.eas.projectId`). Server sudah siap (Push Settings → Dry Run diubah ke 0 untuk kirim sungguhan); pengiriman masih sinkron di request pembuat notifikasi (maks 8 detik)
-- [ ] Check-in offline: uji modul native `hris-clock` di build APK pertama (belum pernah dikompilasi), lalu lapis 2 (jam GPS dan deteksi lokasi palsu) bersama geofence dan verifikasi wajah Android
-- [ ] Verifikasi wajah (ML Kit) dan geofence asli
+- [ ] Check-in offline: uji modul native `hris-clock` di build APK pertama (belum pernah dikompilasi), dan uji geofence/GPS di HP (izin lokasi, lokasi palsu, mode Block)
+- [ ] Verifikasi wajah Android (ML Kit): deteksi wajah dan liveness; pencocokan identitas butuh model embedding (belum diputuskan)
 - [ ] Jenis cuti Melahirkan dan Izin penting belum punya Leave Type
 - [ ] Seed dari nol (`down -v`) belum diuji; seed baru perlu dijalankan di srv-vllm

@@ -14,6 +14,8 @@ import {
   LeaveType,
   Announcement,
   Appraisal,
+  LokasiCheckin,
+  WorkLocation,
   OfflineCheckin,
   ProfileChange,
   FeedbackForm,
@@ -1056,6 +1058,15 @@ async function kirimItem(i: ItemAntrean, offline: boolean) {
   await post("/api/method/hris_checkin", {
     log_type: i.logType,
     client_id: i.clientId,
+    ...(i.lokasi
+      ? {
+          lat: i.lokasi.lat,
+          lng: i.lokasi.lng,
+          accuracy_m: Math.round(i.lokasi.accuracyM),
+          gps_ms: Math.round(i.lokasi.gpsMs),
+          mocked: i.lokasi.mocked ? 1 : 0,
+        }
+      : {}),
     ...(offline
       ? {
           offline: 1,
@@ -1068,7 +1079,11 @@ async function kirimItem(i: ItemAntrean, offline: boolean) {
   });
 }
 
-async function kirimCheckin(_employeeId: string, logType: "IN" | "OUT") {
+async function kirimCheckin(
+  _employeeId: string,
+  logType: "IN" | "OUT",
+  lokasi?: LokasiCheckin,
+) {
   const t = waktuTerpercaya();
   const item: ItemAntrean = {
     clientId: idKlien(),
@@ -1077,6 +1092,7 @@ async function kirimCheckin(_employeeId: string, logType: "IN" | "OUT") {
     deviceMs: Date.now(),
     trusted: t.trusted,
     anchorAgeS: t.anchorAgeS,
+    lokasi,
   };
   try {
     // Jam ditentukan server menurut zona kerja; client_id mencegah check-in
@@ -1582,6 +1598,12 @@ export const erpnextApi: HrisApi = {
         review_status: OfflineCheckin["status"];
         clock_skew_seconds: number | null;
         queue_age_seconds: number | null;
+        offline?: number;
+        distance_m?: number | null;
+        geo_status?: OfflineCheckin["geoStatus"];
+        mocked?: number;
+        gps_accuracy_m?: number | null;
+        work_location?: string | null;
       }[];
     }>("/api/method/hris_get_offline_checkins", { status, scope });
     return res.message.map((r) => ({
@@ -1597,6 +1619,12 @@ export const erpnextApi: HrisApi = {
       status: r.review_status,
       skewSeconds: r.clock_skew_seconds ?? 0,
       queueAgeSeconds: r.queue_age_seconds ?? 0,
+      offline: r.offline === 1,
+      distanceM: r.distance_m ?? null,
+      geoStatus: r.geo_status ?? "No Location",
+      mocked: r.mocked === 1,
+      gpsAccuracyM: r.gps_accuracy_m ?? null,
+      workLocation: r.work_location ?? null,
     }));
   },
 
@@ -1612,12 +1640,39 @@ export const erpnextApi: HrisApi = {
     return ambilStatusJam();
   },
 
-  async clockIn(employeeId: string): Promise<ClockState> {
-    return kirimCheckin(employeeId, "IN");
+  async getWorkLocations(): Promise<WorkLocation[]> {
+    const res = await get<{
+      message: {
+        locations: {
+          name: string;
+          location_name: string;
+          latitude: number;
+          longitude: number;
+          radius_m: number;
+        }[];
+      };
+    }>("/api/method/hris_get_work_locations");
+    return res.message.locations.map((l) => ({
+      name: l.name,
+      locationName: l.location_name,
+      latitude: l.latitude,
+      longitude: l.longitude,
+      radiusM: l.radius_m,
+    }));
   },
 
-  async clockOut(employeeId: string): Promise<ClockState> {
-    return kirimCheckin(employeeId, "OUT");
+  async clockIn(
+    employeeId: string,
+    lokasi?: LokasiCheckin,
+  ): Promise<ClockState> {
+    return kirimCheckin(employeeId, "IN", lokasi);
+  },
+
+  async clockOut(
+    employeeId: string,
+    lokasi?: LokasiCheckin,
+  ): Promise<ClockState> {
+    return kirimCheckin(employeeId, "OUT", lokasi);
   },
 
   async getAttendanceHistory(): Promise<AttendanceRecord[]> {

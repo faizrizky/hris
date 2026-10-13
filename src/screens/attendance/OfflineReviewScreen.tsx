@@ -66,8 +66,10 @@ export function OfflineReviewScreen({ navigation }: any) {
   ) => {
     if (decision === "approve") {
       const ya = await confirm({
-        title: t("ofr.setujuiJudul"),
-        message: t("ofr.setujuiPesan", { jam: waktu(x.claimedTime) }),
+        title: t(x.claimedTime ? "ofr.setujuiJudul" : "ofr.terimaJudul"),
+        message: x.claimedTime
+          ? t("ofr.setujuiPesan", { jam: waktu(x.claimedTime) })
+          : t("ofr.terimaPesan"),
         tone: "info",
         confirmText: t("pcr.setujui"),
         cancelText: t("umum.batal"),
@@ -180,10 +182,12 @@ export function OfflineReviewScreen({ navigation }: any) {
               </View>
 
               <View style={styles.box}>
-                <Text style={styles.row}>
-                  {t("ofr.diklaim")}:{" "}
-                  <Text style={styles.bold}>{waktu(x.claimedTime)}</Text>
-                </Text>
+                {x.claimedTime ? (
+                  <Text style={styles.row}>
+                    {t("ofr.diklaim")}:{" "}
+                    <Text style={styles.bold}>{waktu(x.claimedTime)}</Text>
+                  </Text>
+                ) : null}
                 <Text style={styles.row}>
                   {t("ofr.tercatat")}:{" "}
                   <Text style={styles.bold}>{waktu(x.time)}</Text>
@@ -194,6 +198,17 @@ export function OfflineReviewScreen({ navigation }: any) {
                       n: Math.round(Math.abs(x.skewSeconds) / 60),
                     })}
                   </Text>
+                ) : null}
+                {x.geoStatus === "Outside" && x.distanceM !== null ? (
+                  <Text style={styles.row}>
+                    {t("ofr.jarak", {
+                      m: x.distanceM,
+                      lokasi: x.workLocation ?? "—",
+                    })}
+                  </Text>
+                ) : null}
+                {x.mocked ? (
+                  <Text style={styles.flags}>{t("ofr.lokasiPalsu")}</Text>
                 ) : null}
                 {x.flags ? <Text style={styles.flags}>{x.flags}</Text> : null}
               </View>
@@ -209,7 +224,7 @@ export function OfflineReviewScreen({ navigation }: any) {
                   </Pressable>
                   <Pressable
                     style={styles.approveBtn}
-                    disabled={busy === x.id || !x.claimedTime}
+                    disabled={busy === x.id}
                     onPress={() => putuskan(x, "approve")}
                   >
                     <Text style={styles.approveText}>

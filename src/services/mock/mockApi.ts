@@ -95,6 +95,10 @@ export const mockApi: HrisApi = {
     return clockState;
   },
 
+  async getWorkLocations() {
+    return [];
+  },
+
   async clockIn(_employeeId: string): Promise<ClockState> {
     await delay();
     const now = new Date();

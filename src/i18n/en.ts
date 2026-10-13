@@ -867,11 +867,12 @@ export const en: Record<Kunci, string> = {
     "Saved on this phone, sent automatically when you are online",
   "profil.antreanN": "{n} offline check-in(s) waiting to send",
   "ab.menungguKirim": "Waiting to send",
-  "ofr.judul": "Offline Check-ins",
-  "ofr.sub": "Flagged by the server for review",
+  "ofr.judul": "Check-in Review",
+  "ofr.sub": "Flagged by the server: suspicious time or location",
   "ofr.perlu": "Needs Review",
-  "ofr.kosongJudul": "No offline check-ins",
-  "ofr.kosongIsi": "Offline check-ins flagged by the server will appear here.",
+  "ofr.kosongJudul": "No check-ins to review",
+  "ofr.kosongIsi":
+    "Check-ins flagged by the server (offline, outside the area, or mock location) appear here.",
   "ofr.diklaim": "Claimed time",
   "ofr.tercatat": "Recorded by server",
   "ofr.selisihJam": "Phone clock differs by {n} min from trusted time",
@@ -880,4 +881,20 @@ export const en: Record<Kunci, string> = {
   "ofr.setujuiPesan":
     "The check-in will be recorded at {jam} as the employee claimed.",
   "hm.aOffline": "Offline Check-ins",
+  "loc.mencari": "Finding your location…",
+  "loc.izinDitolak":
+    "Location permission denied. Enable it in settings so your distance to the office can be measured.",
+  "loc.jarak": "{m} m from {lokasi} · accuracy {acc} m",
+  "loc.didalam": "Inside the work area",
+  "loc.diluar":
+    "Outside the work area ({m} m). Your check-in is still sent and flagged for your supervisor to review.",
+  "loc.tanpa": "Location unavailable. Your check-in is still sent and flagged.",
+  "loc.mock": "A mock location was detected. Your check-in will be flagged.",
+  "loc.radius": "radius {m} m",
+  "ofr.terima": "Accept check-in",
+  "ofr.jarak": "{m} m from {lokasi}",
+  "ofr.lokasiPalsu": "Mock location detected",
+  "ofr.akurasi": "GPS accuracy {m} m",
+  "ofr.terimaJudul": "Accept this check-in?",
+  "ofr.terimaPesan": "The check-in stays recorded at the server time.",
 };
