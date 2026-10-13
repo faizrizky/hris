@@ -835,33 +835,23 @@ for cf in [
         make(dict(doctype="Custom Field", dt="Employee Checkin", **cf))
         frappe.clear_cache(doctype="Employee Checkin")
 # ---- Geofence dan validasi GPS ----
-if not frappe.db.exists("DocType", "Work Location"):
-    make(dict(
-        doctype="DocType", name="Work Location", module="HR", custom=1, autoname="field:location_name",
-        fields=[
-            dict(fieldname="location_name", label="Location Name", fieldtype="Data", reqd=1, unique=1, in_list_view=1),
-            dict(fieldname="active", label="Active", fieldtype="Check", default="1", in_list_view=1),
-            dict(fieldname="location_map", label="Pick Location on Map", fieldtype="Geolocation",
-                 description="Drop a marker (or draw a circle to set the radius). Latitude and longitude below follow the map."),
-            dict(fieldname="latitude", label="Latitude", fieldtype="Float", precision="9", reqd=1, in_list_view=1),
-            dict(fieldname="longitude", label="Longitude", fieldtype="Float", precision="9", reqd=1, in_list_view=1),
-            dict(fieldname="radius_m", label="Radius (meters)", fieldtype="Int", default="120", reqd=1, in_list_view=1),
-        ],
-        permissions=[dict(role="System Manager", read=1, write=1, create=1, delete=1),
-                     dict(role="HR Manager", read=1, write=1, create=1, delete=1),
-                     dict(role="HR User", read=1, write=1, create=1)]))
-    frappe.clear_cache()
-if frappe.db.exists("DocType", "Work Location") and not frappe.db.exists("DocField", {"parent": "Work Location", "fieldname": "location_map"}):
-    _dt = frappe.get_doc("DocType", "Work Location")
-    _dt.append("fields", dict(fieldname="location_map", label="Pick Location on Map", fieldtype="Geolocation",
-                              description="Drop a marker (or draw a circle to set the radius). Latitude and longitude below follow the map."))
-    _dt.fields.insert(1, _dt.fields.pop())
-    _dt.save(ignore_permissions=True)
-    frappe.clear_cache()
-    log("Work Location: field peta ditambahkan")
-if not frappe.db.exists("Work Location", "Head Office - Jl. Gatot Subroto 42"):
-    make(dict(doctype="Work Location", location_name="Head Office - Jl. Gatot Subroto 42",
-              latitude=-6.23412, longitude=106.81674, radius_m=120, active=1))
+# Lokasi kerja memakai "Shift Location" bawaan hrms (peta, radius check-in, penugasan lewat Shift Assignment).
+# Karyawan tanpa Shift Assignment berlokasi memakai semua Shift Location. Work Location buatan sebelumnya dihapus.
+_HO = "Head Office - Jl. Gatot Subroto 42"
+if not frappe.db.exists("Shift Location", _HO):
+    _sl = frappe.get_doc(dict(doctype="Shift Location", location_name=_HO, checkin_radius=120,
+                              latitude=-6.23412, longitude=106.81674))
+    _sl.geolocation = json.dumps({"type": "FeatureCollection", "features": [
+        {"type": "Feature", "properties": {},
+         "geometry": {"type": "Point", "coordinates": [106.81674, -6.23412]}}]})
+    _sl.insert(ignore_permissions=True)
+    log("Shift Location dibuat: " + _HO)
+if frappe.db.exists("DocType", "Work Location"):
+    for _n in frappe.get_all("Work Location", pluck="name"):
+        frappe.delete_doc("Work Location", _n, ignore_permissions=True, force=True)
+    frappe.delete_doc("DocType", "Work Location", ignore_permissions=True, force=True)
+    frappe.db.commit()
+    log("DocType Work Location dihapus (diganti Shift Location bawaan hrms)")
 if not frappe.db.exists("DocType", "Geofence Settings"):
     make(dict(
         doctype="DocType", name="Geofence Settings", module="HR", custom=1, issingle=1,
@@ -882,7 +872,7 @@ for cf in [
     dict(fieldname="custom_geo_status", label="Geofence Status", fieldtype="Select",
          options="No Location\nInside\nOutside", default="No Location", permlevel=1, read_only=1, in_standard_filter=1,
          insert_after="custom_flags"),
-    dict(fieldname="custom_work_location", label="Nearest Work Location", fieldtype="Data", permlevel=1, read_only=1,
+    dict(fieldname="custom_work_location", label="Nearest Shift Location", fieldtype="Data", permlevel=1, read_only=1,
          insert_after="custom_geo_status"),
     dict(fieldname="custom_distance_m", label="Distance (m)", fieldtype="Int", permlevel=1, read_only=1,
          insert_after="custom_work_location"),
@@ -1045,7 +1035,6 @@ EVENT_SCRIPTS = {  # script berbasis event dokumen: nama_file -> (DocType, event
     "hris_notify_document_status": ("Employee Document", "After Save"),
     "hris_guard_document_upload": ("File", "Before Insert"),
     "hris_employee_tax_status": ("Employee", "Before Save"),
-    "hris_work_location_map": ("Work Location", "Before Save"),
     "hris_salary_slip_pph21": ("Salary Slip", "Before Save"),
     "hris_announcement_publish": ("HR Announcement", "Before Save"),
     "hris_notify_announcement": ("HR Announcement", "After Save"),
@@ -1226,9 +1215,4 @@ if not cur_key or os.environ.get("SEED_REGEN_KEYS") == "1":
     frappe.db.commit()
     print("SEED_API_KEY=" + frappe.db.get_value("User", rani_email, "api_key"))
     print("SEED_API_SECRET=" + res["api_secret"])
-# Peta diisi setelah Server Script terpasang (skrip sinkron membuat GeoJSON dari koordinat).
-for _wl in frappe.get_all("Work Location", filters={"location_map": ["is", "not set"]}, pluck="name"):
-    frappe.get_doc("Work Location", _wl).save(ignore_permissions=True)  # skrip sinkron mengisi peta dari koordinat
-    log(f"Work Location {_wl}: peta diisi dari koordinat")
-    frappe.db.commit()
 log("selesai")

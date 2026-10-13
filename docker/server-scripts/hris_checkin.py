@@ -11,7 +11,7 @@
 #   jumlah check-in offline bulan ini < max_per_month, urutan tidak mundur. Bersih -> time = captured_ms (zona kerja).
 #   Selain itu -> time = jam server saat diterima, review_status "Needs Review", alasan di flags.
 # Parameter OPSIONAL geofence/GPS: lat, lng, accuracy_m, gps_ms (epoch ms cap waktu fix GPS), mocked (0/1).
-#   Jarak dihitung ke "Work Location" aktif terdekat (pendekatan bidang datar, cukup untuk jarak ratusan meter).
+#   Jarak dihitung ke "Shift Location" (hrms) terdekat (pendekatan bidang datar, cukup untuk jarak ratusan meter).
 #   Mode di "Geofence Settings": Off (hanya simpan), Flag (diterima, review "Needs Review"), Block (default: Clock IN
 #   online yang melanggar ditolak 417; Clock OUT tidak pernah ditolak dan tidak dicek area; offline hanya ditandai).
 #   Bersih bila jarak <= radius + min(akurasi, 50 m), akurasi <= max_accuracy_m, selisih waktu GPS <= toleransi,
@@ -130,6 +130,17 @@ if not done:
         v = frappe.db.get_single_value("Geofence Settings", field)
         return v if v else default
     mode = frappe.db.get_single_value("Geofence Settings", "geofence_mode") or "Flag"
+    def lokasi_kerja(emp, tgl):
+        # Lokasi dari Shift Assignment aktif; bila tidak ada yang berlokasi, semua Shift Location.
+        nama = frappe.get_all("Shift Assignment",
+                              filters={"employee": emp, "docstatus": 1, "status": "Active",
+                                       "shift_location": ["is", "set"], "start_date": ["<=", tgl]},
+                              or_filters=[["end_date", ">=", tgl], ["end_date", "is", "not set"]],
+                              pluck="shift_location", limit_page_length=20)
+        flt = {"name": ["in", nama]} if nama else {}
+        return frappe.get_all("Shift Location", filters=flt,
+                              fields=["name", "location_name", "latitude", "longitude", "checkin_radius"],
+                              limit_page_length=100)
     wfh_fields = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"]
     wd = frappe.utils.get_datetime(local_now).weekday()
     wfh_today = False
@@ -155,9 +166,7 @@ if not done:
         lng = frappe.utils.flt(fd.get("lng"))
         best_d = None
         best_wl = None
-        for wl in frappe.get_all("Work Location", filters={"active": 1},
-                                 fields=["location_name", "latitude", "longitude", "radius_m"],
-                                 limit_page_length=100):
+        for wl in lokasi_kerja(me[0].name, local_now[:10]):
             r = wl.latitude * 0.017453292519943295
             cosr = 1 - r * r / 2 + r * r * r * r / 24 - r * r * r * r * r * r / 720
             dx = (lng - wl.longitude) * 111320.0 * cosr
@@ -172,7 +181,7 @@ if not done:
             tol = 0
             if gps_acc > 0:
                 tol = gps_acc if gps_acc < 50 else 50
-            if best_d <= best_wl.radius_m + tol:
+            if best_d <= (best_wl.checkin_radius or 100) + tol:
                 geo_status = "Inside"
             else:
                 geo_status = "Outside"
