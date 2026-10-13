@@ -33,6 +33,13 @@ Dokumen Digital: 3 dokumen contoh; unggah PDF dan JPG (status Menunggu); .txt di
 Profil: Ubah Data (email salah ditolak), kontak darurat kedua, Ubah Password (syarat, salah password lama), Keamanan (perangkat aktif, keluar dari perangkat lain).
 Notifikasi: daftar, tandai dibaca, kategori terjemahan benar.
 
+## Fase 3b: Fitur lanjutan (rani, dewi, sari)
+Cuti khusus: pilih Melahirkan/Izin Penting (Menikah, Khitanan, dll.); jenis kelamin membatasi pilihan (Melahirkan hanya perempuan, istri melahirkan hanya laki-laki); Sakit lebih dari 1 hari wajib surat dokter; bukti cuti terlampir dan terbuka di kartu approval.
+Geofence (butuh izin lokasi): di luar radius Shift Location, Clock In ditolak; Clock Out boleh di mana saja; lokasi palsu terdeteksi; akurasi GPS buruk ditolak.
+WFH: rani ajukan di segmen WFH (rentang tanggal, hari per minggu, alasan); tumpang tindih ditolak; sebelum disetujui Clock In di luar radius tetap ditolak; dewi menyetujui di Approval lalu Clock In di luar radius lolos pada hari WFH; rani menerima notifikasi.
+Check-in offline: matikan data, Clock In masuk antrean; nyalakan, antrean terkirim; mundurkan jam HP, jam tercatat tetap dari jam tepercaya dan ditandai Perlu Ditinjau; atasan/HR meninjau di Peninjauan Check-in.
+Pengumuman dan data keluarga: pengumuman HR tampil dan notifikasi terbuka; permintaan ubah data (status pernikahan, anak) masuk ke HR untuk disetujui.
+
 ## Fase 4: Atasan (dewi)
 - Inbox Approval memuat cuti, lembur, dinas luar, koreksi dari rani (hasil Fase 3).
 - Ketuk nama lampiran: terunduh dan terbuka di lembar berbagi/pratinjau.
