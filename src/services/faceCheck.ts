@@ -7,6 +7,7 @@ import { requireOptionalNativeModule } from "expo";
 export interface HasilDeteksi {
   count: number;
   yaw: number; // derajat; tanda tergantung kamera depan, dipakai sebagai |yaw|
+  pitch: number; // derajat, atas-bawah
   eyesOpen: number; // 0..1, -1 bila tidak terbaca
   size: number; // lebar wajah / lebar foto
 }
@@ -14,6 +15,7 @@ export interface HasilDeteksi {
 interface HrisFaceNative {
   supported(): boolean;
   detect(uri: string): Promise<HasilDeteksi>;
+  embed(uri: string): Promise<number[] | null>;
 }
 
 const Native = requireOptionalNativeModule<HrisFaceNative>("HrisFace");
@@ -23,6 +25,14 @@ export const wajahDidukung = (): boolean => !!Native && Native.supported();
 
 export const deteksiWajah = (uri: string): Promise<HasilDeteksi> =>
   Native!.detect(uri);
+
+// Embedding 128 angka ternormalisasi, atau null bila tidak ada wajah di foto.
+export const embeddingWajah = (uri: string): Promise<number[] | null> =>
+  Native!.embed(uri);
+
+// Kemiripan cosine -1..1 (keduanya ternormalisasi = hasil kali titik).
+export const kemiripan = (a: number[], b: number[]): number =>
+  a.reduce((sum, v, i) => sum + v * b[i], 0);
 
 export type Tantangan = "kedip" | "toleh";
 

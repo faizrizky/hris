@@ -6,9 +6,9 @@
     "semantic_hash": ""
   },
   "app.json": {
-    "mtime": 1791917551.2215145,
-    "seen": 1791934562.5856588,
-    "ast_hash": "771ad1afdf04798addd9ae21678a94e1",
+    "mtime": 1791935580.1395285,
+    "seen": 1791935657.556869,
+    "ast_hash": "8c2c3bdc334f980e3b2544140c25a7c0",
     "semantic_hash": ""
   },
   "babel.config.js": {
@@ -96,9 +96,9 @@
     "semantic_hash": "b713dd66aa3ad59ed5098d7b9f8dc202"
   },
   "package.json": {
-    "mtime": 1791914177.8856018,
-    "seen": 1791914300.1437418,
-    "ast_hash": "179da87d650bb213214a2e1cafea2c94",
+    "mtime": 1791935569.728366,
+    "seen": 1791935657.556959,
+    "ast_hash": "e56405bfdfbc2d2bc94079ed9883b881",
     "semantic_hash": ""
   },
   "src/components/Card.tsx": {
@@ -270,16 +270,10 @@
     "semantic_hash": ""
   },
   "src/screens/attendance/ClockScreen.tsx": {
-    "mtime": 1791915182.930646,
-    "seen": 1791915218.5062149,
-    "ast_hash": "0d7dae81368bc4a5e63f5d31537ac53e",
+    "mtime": 1791935616.982382,
+    "seen": 1791935657.5569978,
+    "ast_hash": "0bc3c4d96aaca09e050822ed928f7f03",
     "semantic_hash": ""
-  },
-  "src/screens/attendance/FaceViewfinder.tsx": {
-    "mtime": 1790889776.3752272,
-    "seen": 1791648613.8214579,
-    "ast_hash": "759e79817e582ea9d95923927d804d3c",
-    "semantic_hash": "759e79817e582ea9d95923927d804d3c"
   },
   "src/screens/attendance/KoreksiCards.tsx": {
     "mtime": 1791676504.4592946,
@@ -870,15 +864,15 @@
     "semantic_hash": ""
   },
   "src/i18n/en.ts": {
-    "mtime": 1791934540.5458617,
-    "seen": 1791934562.5858061,
-    "ast_hash": "93986caf1f91c7df3243e7abaf5a63d5",
+    "mtime": 1791935618.2400463,
+    "seen": 1791935657.556986,
+    "ast_hash": "056d8b2ab488e8465bb27117ad7398dc",
     "semantic_hash": ""
   },
   "src/i18n/id.ts": {
-    "mtime": 1791934540.5455158,
-    "seen": 1791934562.5858078,
-    "ast_hash": "00c06a6fc62c2c496fac6e754c47a8da",
+    "mtime": 1791935618.2654119,
+    "seen": 1791935657.5569868,
+    "ast_hash": "f732dfd19b8d91979026be3bfefb90ac",
     "semantic_hash": ""
   },
   "src/i18n/index.tsx": {
@@ -1149,6 +1143,42 @@
     "mtime": 1791916972.7529385,
     "seen": 1791917038.005167,
     "ast_hash": "96cbd48311c81152ebed65464126801b",
+    "semantic_hash": ""
+  },
+  "modules/hris-face/android/build.gradle": {
+    "mtime": 1791935564.0021777,
+    "seen": 1791935657.5569549,
+    "ast_hash": "611b95924e273c5f6f7f4b5d615019ad",
+    "semantic_hash": ""
+  },
+  "modules/hris-face/android/src/main/java/expo/modules/hrisface/HrisFaceModule.kt": {
+    "mtime": 1791935564.0049412,
+    "seen": 1791935657.5569558,
+    "ast_hash": "cf821ce5d4ff6d44a5e6be4006e2e722",
+    "semantic_hash": ""
+  },
+  "modules/hris-face/expo-module.config.json": {
+    "mtime": 1791935563.9989793,
+    "seen": 1791935657.556957,
+    "ast_hash": "71a29f005b34d6a1e31824d971eaa6c6",
+    "semantic_hash": ""
+  },
+  "modules/hris-face/ios/HrisFaceModule.swift": {
+    "mtime": 1791935564.0101447,
+    "seen": 1791935657.556958,
+    "ast_hash": "a59dbf89366a52e791dbf788b37d4cf2",
+    "semantic_hash": ""
+  },
+  "src/screens/attendance/FaceCheck.tsx": {
+    "mtime": 1791935635.8942685,
+    "seen": 1791935657.556999,
+    "ast_hash": "90a164573057b9beaf22012bcc8d9a5c",
+    "semantic_hash": ""
+  },
+  "src/services/faceCheck.ts": {
+    "mtime": 1791935602.598274,
+    "seen": 1791935657.557038,
+    "ast_hash": "a5ae4b3a6ac1cb5f825c62c6a612bb4e",
     "semantic_hash": ""
   }
 }
