@@ -26,6 +26,7 @@ import { useConfirm } from "@/components/ConfirmDialog";
 import { EmptyState } from "@/components/EmptyState";
 import { kembali } from "@/navigation/kembali";
 import { simpanLampiran } from "@/utils/lampiran";
+import { jadikanJpeg } from "@/utils/jadikanJpeg";
 import { inisial } from "@/utils/ProfileCompleteness";
 import { useFotoProfil } from "@/hooks/useFotoProfil";
 import { embeddingWajah, wajahDidukung } from "@/services/faceCheck";
@@ -91,8 +92,12 @@ export function ProfilePhotoScreen({ navigation }: any) {
       cameraType: ImagePicker.CameraType.front,
     });
     if (r.canceled) return;
-    setBaru(r.assets[0]!.uri);
-    keTahap("tinjau");
+    try {
+      setBaru(await jadikanJpeg(r.assets[0]!.uri));
+      keTahap("tinjau");
+    } catch {
+      setGalat(t("pf.formatGagal"));
+    }
   };
 
   const ajukan = async () => {

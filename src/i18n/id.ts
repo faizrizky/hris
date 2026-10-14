@@ -1062,6 +1062,8 @@ export const id = {
   "pf.belumAdaFoto": "Belum ada foto profil",
   "pf.pilihSub":
     "Ambil foto baru dengan kamera depan atau pilih dari galeri. Foto akan ditinjau HR sebelum dipakai.",
+  "pf.formatGagal":
+    "Foto tidak bisa diproses. Coba foto lain atau ambil dengan kamera.",
 } as const;
 
 export type Kunci = keyof typeof id;

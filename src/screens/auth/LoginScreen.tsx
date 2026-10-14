@@ -1,7 +1,6 @@
 import React, { useState, useMemo, useEffect } from "react";
 import {
   KeyboardAvoidingView,
-  Platform,
   Pressable,
   StyleSheet,
   Text,
@@ -97,9 +96,7 @@ export function LoginScreen() {
       </View>
 
       {/* Sheet putih melengkung di bawah — form login beneran */}
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-      >
+      <KeyboardAvoidingView behavior="padding">
         <View style={[styles.sheet, { paddingBottom: 10 + insets.bottom }]}>
           <Text style={styles.sheetTitle}>{t("login.masukAkun")}</Text>
           <Text style={styles.sheetSubtitle}>{t("login.gunakanEmail")}</Text>

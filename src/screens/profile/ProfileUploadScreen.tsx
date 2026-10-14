@@ -2,7 +2,6 @@ import { useMemo, useState } from "react";
 import {
   Keyboard,
   KeyboardAvoidingView,
-  Platform,
   Pressable,
   StyleSheet,
   Text,
@@ -166,10 +165,7 @@ export function ProfileUploadScreen({ navigation }: any) {
         <Text style={styles.headerTitle}>{t("up.judul")}</Text>
       </View>
 
-      <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-      >
+      <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding">
         <ScrollView
           contentContainerStyle={styles.content}
           keyboardShouldPersistTaps="handled"

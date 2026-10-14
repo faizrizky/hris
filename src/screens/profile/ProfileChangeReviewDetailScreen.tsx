@@ -1,7 +1,6 @@
 import React, { useMemo, useState, useRef } from "react";
 import {
   KeyboardAvoidingView,
-  Platform,
   Pressable,
   StyleSheet,
   Text,
@@ -93,10 +92,7 @@ export function ProfileChangeReviewDetailScreen({ navigation, route }: any) {
         </View>
       </View>
 
-      <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-      >
+      <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding">
         <ScrollView contentContainerStyle={styles.content}>
           <View style={styles.card}>
             <Text style={styles.label}>{t("pcr.alasanKaryawan")}</Text>

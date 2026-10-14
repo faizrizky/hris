@@ -1,4 +1,6 @@
 import * as DocumentPicker from "expo-document-picker";
+import { File } from "expo-file-system";
+import { jadikanJpeg } from "@/utils/jadikanJpeg";
 import { MAKS_BYTE, ukuranFile } from "@/utils/file";
 
 export interface BuktiBerkas {
@@ -16,18 +18,29 @@ export type HasilPilih =
 // Memilih satu bukti (PDF/JPG/PNG, maks. 5 MB). Batas yang sama dijaga juga oleh server.
 export async function pilihBukti(): Promise<HasilPilih> {
   const r = await DocumentPicker.getDocumentAsync({
-    type: ["application/pdf", "image/jpeg", "image/png"],
+    type: ["application/pdf", "image/*"],
     copyToCacheDirectory: true,
   });
   if (r.canceled) return null;
   const a = r.assets[0];
-  if ((a.size ?? 0) > MAKS_BYTE) return { terlaluBesar: ukuranFile(a.size!) };
+  let uri = a.uri;
+  let name = a.name;
+  let mimeType = a.mimeType ?? "application/octet-stream";
+  let ukuran = a.size ?? 0;
+  // HEIC/WebP dan sejenisnya tidak diterima server: ubah ke JPEG di HP.
+  if (mimeType.startsWith("image/") && !/^image\/(jpeg|png)$/.test(mimeType)) {
+    uri = await jadikanJpeg(uri);
+    name = `${name.replace(/\.[^.]+$/, "")}.jpg`;
+    mimeType = "image/jpeg";
+    ukuran = new File(uri).size ?? 0;
+  }
+  if (ukuran > MAKS_BYTE) return { terlaluBesar: ukuranFile(ukuran) };
   return {
     berkas: {
-      name: a.name,
-      size: ukuranFile(a.size ?? 0),
-      uri: a.uri,
-      mimeType: a.mimeType ?? "application/octet-stream",
+      name,
+      size: ukuranFile(ukuran),
+      uri,
+      mimeType,
     },
   };
 }

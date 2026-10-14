@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useState, useRef } from "react";
 import {
   KeyboardAvoidingView,
-  Platform,
   Pressable,
   StyleSheet,
   Text,
@@ -164,10 +163,7 @@ export function AppraisalFeedbackScreen({ navigation, route }: any) {
   return (
     <View style={styles.container}>
       {header}
-      <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-      >
+      <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding">
         <ScrollView
           contentContainerStyle={styles.content}
           keyboardShouldPersistTaps="handled"

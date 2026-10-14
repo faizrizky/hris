@@ -1059,4 +1059,6 @@ export const en: Record<Kunci, string> = {
   "pf.belumAdaFoto": "No profile photo yet",
   "pf.pilihSub":
     "Take a new photo with the front camera or choose one from your gallery. HR reviews it before it is used.",
+  "pf.formatGagal":
+    "This photo could not be processed. Try another photo or use the camera.",
 };
