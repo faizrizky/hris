@@ -1,8 +1,7 @@
 # Server Script (type: API, method: hris_submit_face_enrollment, allow_guest: 0)
 # Ajukan pendaftaran wajah. POST: embeddings (JSON: daftar 1-12 vektor 128 angka dari lingkaran pendaftaran),
-# ktp_embedding, profile_embedding (JSON 128 angka). Syarat: KTP terverifikasi dan foto profil ada.
-# Server menghitung kemiripan (wajah vs KTP, wajah vs foto profil, foto profil vs KTP). Selfie diunggah terpisah ke
-# field "selfie" dokumen yang dikembalikan. Hasil: {"name","status":"Pending","score_ktp","score_profile"}
+# ktp_embedding, profile_embedding (JSON 128 angka), selfie_b64 (opsional, JPEG base64 untuk tinjauan HR). Syarat: KTP terverifikasi dan foto profil ada.
+# Server menghitung kemiripan (wajah vs KTP, wajah vs foto profil, foto profil vs KTP). Hasil: {"name","status":"Pending","score_ktp","score_profile"}
 # @include: _lib/face_lib.py
 fd = frappe.form_dict
 me = frappe.get_all("Employee", filters={"user_id": frappe.session.user, "status": "Active"},
@@ -33,6 +32,7 @@ doc = frappe.get_doc({"doctype": "Face Enrollment", "employee": emp, "status": "
                       "face_embeddings": json.dumps(vs), "ktp_embedding": json.dumps(ke), "profile_embedding": json.dumps(pe),
                       "score_ktp": fl_pct(cen, ke), "score_profile": fl_pct(cen, pe), "score_profile_ktp": fl_pct(pe, ke)})
 doc.insert(ignore_permissions=True)
+fl_attach("Face Enrollment", doc.name, "selfie", fd.get("selfie_b64"), "face-selfie.jpg")
 for u in fl_hr_users():
     fl_notify(u, "Face registration from " + me[0].employee_name + " needs review",
               "Match with ID card " + str(doc.score_ktp) + "%, with profile photo " + str(doc.score_profile) + "%.",

@@ -51,3 +51,18 @@ def fl_ktp(emp):
                                                      "document_name": ["like", "%KTP%"], "file": ["is", "set"]},
                        fields=["name", "file"], order_by="modified desc", limit_page_length=1)
     return r[0] if r else None
+
+# Menyimpan foto JPEG (base64) sebagai berkas privat dan menautkannya ke field dokumen. Karyawan tidak punya hak
+# langsung ke dokumen ini, jadi server yang menyimpannya (bukan upload_file dari aplikasi).
+def fl_attach(dt, name, field, b64, fname):
+    if not b64:
+        return None
+    if len(b64) > 7000000:
+        frappe.throw("The photo is larger than 5 MB")
+    if not b64.startswith("/9j/"):
+        frappe.throw("Only JPEG photos are accepted")
+    f = frappe.get_doc({"doctype": "File", "file_name": fname, "content": b64, "decode": 1, "is_private": 1,
+                        "attached_to_doctype": dt, "attached_to_name": name, "attached_to_field": field})
+    f.insert(ignore_permissions=True)
+    frappe.db.set_value(dt, name, field, f.file_url)
+    return f.file_url

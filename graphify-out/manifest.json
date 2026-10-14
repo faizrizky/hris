@@ -96,9 +96,9 @@
     "semantic_hash": "b713dd66aa3ad59ed5098d7b9f8dc202"
   },
   "package.json": {
-    "mtime": 1791935569.728366,
-    "seen": 1791935657.556959,
-    "ast_hash": "e56405bfdfbc2d2bc94079ed9883b881",
+    "mtime": 1791972668.7243507,
+    "seen": 1791972761.325123,
+    "ast_hash": "0a4bbf6bba19cd4948ac4a58b1e59a50",
     "semantic_hash": ""
   },
   "src/components/Card.tsx": {
@@ -258,9 +258,9 @@
     "semantic_hash": ""
   },
   "src/screens/attendance/AttendanceCorrectionScreen.tsx": {
-    "mtime": 1791715585.3633325,
-    "seen": 1791715636.605663,
-    "ast_hash": "80d78faa9530f05085c1e8aba65fef8f",
+    "mtime": 1791972736.0240986,
+    "seen": 1791972761.325161,
+    "ast_hash": "4f564a71feafc87f15de8c37411ac6b1",
     "semantic_hash": ""
   },
   "src/screens/attendance/AttendanceHistoryScreen.tsx": {
@@ -288,9 +288,9 @@
     "semantic_hash": ""
   },
   "src/screens/auth/LoginScreen.tsx": {
-    "mtime": 1791934540.5448854,
-    "seen": 1791934562.58583,
-    "ast_hash": "3b3d8c205b78a3c70a56eb7b603277a1",
+    "mtime": 1791972736.1236947,
+    "seen": 1791972761.3251681,
+    "ast_hash": "560d52ed5001c871f1f66c882b20905b",
     "semantic_hash": ""
   },
   "src/screens/home/HomeScreen.tsx": {
@@ -336,9 +336,9 @@
     "semantic_hash": ""
   },
   "src/screens/leave/LeaveRequestScreen.tsx": {
-    "mtime": 1791916978.2250078,
-    "seen": 1791917038.0051641,
-    "ast_hash": "083bb6a4da69ba1531ac24a61f30a016",
+    "mtime": 1791972736.4934633,
+    "seen": 1791972761.3251789,
+    "ast_hash": "af46dc067644e8957ab935fdcaa00b04",
     "semantic_hash": ""
   },
   "src/screens/leave/LemburFormCards.tsx": {
@@ -390,15 +390,15 @@
     "semantic_hash": ""
   },
   "src/screens/profile/ProfileEditScreen.tsx": {
-    "mtime": 1791762381.6865032,
-    "seen": 1791762455.719056,
-    "ast_hash": "8742c9b6b9ee2afdd4576a48713a6952",
+    "mtime": 1791972736.173936,
+    "seen": 1791972761.325193,
+    "ast_hash": "7738baaf9a56a80b4cce4ee56524c68d",
     "semantic_hash": ""
   },
   "src/screens/profile/ProfilePasswordScreen.tsx": {
-    "mtime": 1791715585.3670037,
-    "seen": 1791715636.6056929,
-    "ast_hash": "96b19a8e2669389a1892f14de5b222ed",
+    "mtime": 1791972736.2239769,
+    "seen": 1791972761.325194,
+    "ast_hash": "d98a2132591c73b6ea8f3c9cc4e8f6e6",
     "semantic_hash": ""
   },
   "src/screens/profile/ProfileScreen.tsx": {
@@ -414,9 +414,9 @@
     "semantic_hash": ""
   },
   "src/screens/profile/ProfileUploadScreen.tsx": {
-    "mtime": 1791715595.0462964,
-    "seen": 1791715636.605696,
-    "ast_hash": "7080b437482f0ec682dd3aa7607ef880",
+    "mtime": 1791972736.2727497,
+    "seen": 1791972761.325197,
+    "ast_hash": "952709b44f29d2539a476ebcdae49b59",
     "semantic_hash": ""
   },
   "src/screens/staff/StaffAttendanceScreen.tsx": {
@@ -864,15 +864,15 @@
     "semantic_hash": ""
   },
   "src/i18n/en.ts": {
-    "mtime": 1791951945.1121192,
-    "seen": 1791952044.85292,
-    "ast_hash": "d6387b9cac0b0e5d678a942c6d1d70d1",
+    "mtime": 1791972709.6641278,
+    "seen": 1791972761.325151,
+    "ast_hash": "14a38ba91191b7c0cd052c0427be037c",
     "semantic_hash": ""
   },
   "src/i18n/id.ts": {
-    "mtime": 1791951945.1476152,
-    "seen": 1791952044.852921,
-    "ast_hash": "e131cac6c65f991a66aab64eb20eb2bc",
+    "mtime": 1791972709.6899905,
+    "seen": 1791972761.325152,
+    "ast_hash": "f461d362338558c59558f13288e779e4",
     "semantic_hash": ""
   },
   "src/i18n/index.tsx": {
@@ -888,9 +888,9 @@
     "semantic_hash": ""
   },
   "src/screens/appraisal/AppraisalFeedbackScreen.tsx": {
-    "mtime": 1791715595.0456836,
-    "seen": 1791715636.6056588,
-    "ast_hash": "5090203e642cbeec5999ad9dbcca16dd",
+    "mtime": 1791972736.073647,
+    "seen": 1791972761.3251579,
+    "ast_hash": "46c990c8cd7a65482f5e1e4a4fd978ff",
     "semantic_hash": ""
   },
   "src/screens/appraisal/TimAppraisal.tsx": {
@@ -906,9 +906,9 @@
     "semantic_hash": ""
   },
   "src/screens/documents/DocumentReviewDetailScreen.tsx": {
-    "mtime": 1791715595.0469136,
-    "seen": 1791715636.605672,
-    "ast_hash": "1d62d1f4430c5f5012ad37042af21a2e",
+    "mtime": 1791972736.4435284,
+    "seen": 1791972761.3251698,
+    "ast_hash": "4b69e10716f8ea13d7f5bc012f9e6ccd",
     "semantic_hash": ""
   },
   "src/screens/documents/DocumentReviewScreen.tsx": {
@@ -918,9 +918,9 @@
     "semantic_hash": ""
   },
   "src/screens/documents/EmployeeDocumentDetailScreen.tsx": {
-    "mtime": 1791715595.046515,
-    "seen": 1791715636.605674,
-    "ast_hash": "c8197811a8bacfa7f1c546d952753d80",
+    "mtime": 1791972736.395786,
+    "seen": 1791972761.325172,
+    "ast_hash": "f803c07d7f10e44b8f26e7298177bc0e",
     "semantic_hash": ""
   },
   "src/screens/leave/LampiranList.tsx": {
@@ -936,9 +936,9 @@
     "semantic_hash": ""
   },
   "src/screens/profile/ProfileChangeReviewDetailScreen.tsx": {
-    "mtime": 1791715595.0467026,
-    "seen": 1791715636.605689,
-    "ast_hash": "3bdf5dcf315514c50734181b2cbd4b66",
+    "mtime": 1791972736.3478057,
+    "seen": 1791972761.325189,
+    "ast_hash": "aabc956e1c5667a9427b6e86a9cc1c3f",
     "semantic_hash": ""
   },
   "src/screens/profile/ProfileChangeReviewScreen.tsx": {
@@ -960,9 +960,9 @@
     "semantic_hash": ""
   },
   "src/utils/pilihBukti.ts": {
-    "mtime": 1791678373.2597668,
-    "seen": 1791714819.0794501,
-    "ast_hash": "4249e465efeb6aa57b36ca2162bce391",
+    "mtime": 1791972708.3959122,
+    "seen": 1791972761.3252218,
+    "ast_hash": "8f7735980e0743285a1ba845fe239d27",
     "semantic_hash": ""
   },
   "TESTING.md": {
@@ -1218,9 +1218,9 @@
     "semantic_hash": ""
   },
   "src/screens/profile/ProfilePhotoScreen.tsx": {
-    "mtime": 1791951985.9265962,
-    "seen": 1791952044.852965,
-    "ast_hash": "bcc4fe87f1796930e77ebddfcf6eee15",
+    "mtime": 1791972679.994895,
+    "seen": 1791972761.325194,
+    "ast_hash": "ce8fd609bddfd35eeaefbd9d2cdd28af",
     "semantic_hash": ""
   },
   "src/hooks/useFotoProfil.ts": {
@@ -1233,6 +1233,12 @@
     "mtime": 1791951945.998949,
     "seen": 1791952044.852958,
     "ast_hash": "ad1e3f35a2ae710652f6bf01f3d535b2",
+    "semantic_hash": ""
+  },
+  "src/utils/jadikanJpeg.ts": {
+    "mtime": 1791972679.9273949,
+    "seen": 1791972761.3252192,
+    "ast_hash": "13957ed1a0390325692e37bb89663351",
     "semantic_hash": ""
   }
 }

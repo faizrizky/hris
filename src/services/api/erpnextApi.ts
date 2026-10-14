@@ -1834,16 +1834,11 @@ export const erpnextApi: HrisApi = {
       embeddings: JSON.stringify(input.embeddings),
       ktp_embedding: JSON.stringify(input.ktpEmbedding),
       profile_embedding: JSON.stringify(input.profileEmbedding),
+      // Selfie hanya bahan tinjauan HR; dikirim bersama pengajuan (server yang menyimpan).
+      ...(input.selfie
+        ? { selfie_b64: await new FileFs(input.selfie.uri).base64() }
+        : {}),
     });
-    if (input.selfie) {
-      // Selfie hanya bahan tinjauan HR; gagal unggah tidak membatalkan pendaftaran.
-      await unggahBerkas(
-        input.selfie,
-        "Face Enrollment",
-        res.message.name,
-        "selfie",
-      ).catch(() => {});
-    }
     return {
       scoreKtp: res.message.score_ktp,
       scoreProfile: res.message.score_profile,
@@ -1863,16 +1858,12 @@ export const erpnextApi: HrisApi = {
       ...(input.ktpEmbedding
         ? { ktp_embedding: JSON.stringify(input.ktpEmbedding) }
         : {}),
-      ...(input.dryRun ? { dry_run: 1 } : {}),
+      ...(input.dryRun
+        ? { dry_run: 1 }
+        : input.photo
+          ? { photo_b64: await new FileFs(input.photo.uri).base64() }
+          : {}),
     });
-    if (!input.dryRun && input.photo && res.message.name) {
-      await unggahBerkas(
-        input.photo,
-        "Profile Change Request",
-        res.message.name,
-        "photo",
-      );
-    }
     return {
       scoreFace: res.message.score_face,
       scoreKtp: res.message.score_ktp,
