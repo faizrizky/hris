@@ -23,5 +23,5 @@ Tidak ada: seluruh method `HrisApi` sudah punya implementasi ERPNext. Dokumen Di
 - [ ] Uji di HP fisik: buka lampiran dari kartu approval (unduh dengan sesi lalu lembar berbagi), unggah bukti lembur/biaya dinas dan dokumen, jam menurut zona dinas (butuh dinas aktif di zona lain), riwayat absensi staf
 - [ ] Push notification: butuh dev build + akun Apple Developer + `projectId` EAS di app.json (`extra.eas.projectId`). Server sudah siap (Push Settings → Dry Run diubah ke 0 untuk kirim sungguhan); pengiriman masih sinkron di request pembuat notifikasi (maks 8 detik)
 - [ ] Check-in offline: uji modul native `hris-clock` di build APK pertama (belum pernah dikompilasi), dan uji geofence/GPS di HP (izin lokasi, lokasi palsu, mode Block)
-- [ ] Verifikasi wajah Android (ML Kit): deteksi wajah dan liveness; pencocokan identitas butuh model embedding (belum diputuskan)
+- [ ] Verifikasi wajah: uji di HP (liveness, pendaftaran lingkaran, embedding SFace) dan setel ambang di Face Settings; lisensi bobot SFace perlu ditinjau hukum sebelum rilis komersial; iOS (Vision) belum; pencocokan di server (kini embedding dikirim, server menghitung cosine)
 - [ ] Seed dari nol (`down -v`) belum diuji; seed baru perlu dijalankan di srv-vllm
