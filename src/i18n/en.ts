@@ -1052,4 +1052,11 @@ export const en: Record<Kunci, string> = {
   "pf.bukaKamera": "Open camera",
   "pf.ulang": "Retake",
   "pf.gantiKeBaru": "Will be replaced by the new photo once HR approves",
+  "pf.lewati": "Skip",
+  "pf.lanjut": "Next",
+  "pf.mulai": "Take photo now",
+  "pf.fotoSekarang": "Your current profile photo",
+  "pf.belumAdaFoto": "No profile photo yet",
+  "pf.pilihSub":
+    "Take a new photo with the front camera or choose one from your gallery. HR reviews it before it is used.",
 };

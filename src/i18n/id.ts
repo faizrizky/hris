@@ -1055,6 +1055,13 @@ export const id = {
   "pf.bukaKamera": "Buka kamera",
   "pf.ulang": "Ambil ulang",
   "pf.gantiKeBaru": "Akan diganti dengan foto baru setelah disetujui HR",
+  "pf.lewati": "Lewati",
+  "pf.lanjut": "Lanjut",
+  "pf.mulai": "Ambil foto sekarang",
+  "pf.fotoSekarang": "Foto profilmu saat ini",
+  "pf.belumAdaFoto": "Belum ada foto profil",
+  "pf.pilihSub":
+    "Ambil foto baru dengan kamera depan atau pilih dari galeri. Foto akan ditinjau HR sebelum dipakai.",
 } as const;
 
 export type Kunci = keyof typeof id;

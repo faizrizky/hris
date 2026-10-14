@@ -1,11 +1,20 @@
-import { useMemo, useState } from "react";
-import { Image, Pressable, StyleSheet, Text, View } from "react-native";
+import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  Animated,
+  Easing,
+  Image,
+  Pressable,
+  ScrollView as RNScrollView,
+  StyleSheet,
+  Text,
+  useWindowDimensions,
+  View,
+} from "react-native";
 import { RevealScrollView as ScrollView } from "@/components/Reveal";
 import * as ImagePicker from "expo-image-picker";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import Svg, { Circle, Ellipse, Line, Path, Rect } from "react-native-svg";
 
 import { Palette } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
@@ -20,16 +29,19 @@ import { simpanLampiran } from "@/utils/lampiran";
 import { inisial } from "@/utils/ProfileCompleteness";
 import { useFotoProfil } from "@/hooks/useFotoProfil";
 import { embeddingWajah, wajahDidukung } from "@/services/faceCheck";
+import { Kepala, type VarianKepala } from "./KepalaIlustrasi";
 
-const TIPS = [
-  { judul: "pf.t1", isi: "pf.t1Isi" },
-  { judul: "pf.t2", isi: "pf.t2Isi" },
-  { judul: "pf.t3", isi: "pf.t3Isi" },
-] as const;
+const SLIDES: { judul: string; isi: string; salah: VarianKepala }[] = [
+  { judul: "pf.t1", isi: "pf.t1Isi", salah: "gelap" },
+  { judul: "pf.t2", isi: "pf.t2Isi", salah: "menoleh" },
+  { judul: "pf.t3", isi: "pf.t3Isi", salah: "kacamata" },
+];
 
-type Tahap = "panduan" | "tinjau" | "selesai";
+const EASE = Easing.bezier(0.25, 0.1, 0.25, 1);
 
-// Ganti foto profil: panduan dulu, lalu ambil/pilih foto, tinjau, dan ajukan
+type Tahap = "panduan" | "pilih" | "tinjau" | "selesai";
+
+// Ganti foto profil: panduan (slide), pilih/ambil foto, tinjau, lalu ajukan
 // ke HR. Sebelum dikirim, kemiripannya dengan wajah terdaftar dihitung dan
 // karyawan diperingatkan bila rendah.
 export function ProfilePhotoScreen({ navigation }: any) {
@@ -44,6 +56,20 @@ export function ProfilePhotoScreen({ navigation }: any) {
   const [baru, setBaru] = useState<string | null>(null);
   const [sibuk, setSibuk] = useState(false);
   const [galat, setGalat] = useState<string | null>(null);
+
+  // Setiap ganti tahap, isi memudar masuk sambil naik sedikit.
+  const [muncul] = useState(() => new Animated.Value(1));
+  const keTahap = (next: Tahap) => {
+    setGalat(null);
+    setTahap(next);
+    muncul.setValue(0);
+    Animated.timing(muncul, {
+      toValue: 1,
+      duration: 320,
+      easing: EASE,
+      useNativeDriver: true,
+    }).start();
+  };
 
   const pilih = async (kamera: boolean) => {
     setGalat(null);
@@ -66,7 +92,7 @@ export function ProfilePhotoScreen({ navigation }: any) {
     });
     if (r.canceled) return;
     setBaru(r.assets[0]!.uri);
-    setTahap("tinjau");
+    keTahap("tinjau");
   };
 
   const ajukan = async () => {
@@ -111,7 +137,7 @@ export function ProfilePhotoScreen({ navigation }: any) {
         embedding: emb,
         ktpEmbedding: ktpEmb,
       });
-      setTahap("selesai");
+      keTahap("selesai");
     } catch (e) {
       setGalat(describeError(e));
     } finally {
@@ -119,178 +145,362 @@ export function ProfilePhotoScreen({ navigation }: any) {
     }
   };
 
+  const mundur = () => {
+    if (tahap === "tinjau") keTahap("pilih");
+    else if (tahap === "pilih") keTahap("panduan");
+    else kembali(navigation);
+  };
+
   const header = (
     <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
-      <Pressable
-        style={styles.backBtn}
-        onPress={() =>
-          tahap === "tinjau" ? setTahap("panduan") : kembali(navigation)
-        }
-      >
+      <Pressable style={styles.backBtn} onPress={mundur}>
         <Ionicons name="chevron-back" size={18} color={c.ink} />
       </Pressable>
       <View style={{ flex: 1, minWidth: 0 }}>
         <Text style={styles.headerTitle}>{t("pf.judul")}</Text>
         <Text style={styles.headerSub}>{t("pf.sub")}</Text>
       </View>
+      {tahap === "panduan" ? (
+        <Pressable onPress={() => keTahap("pilih")} hitSlop={10}>
+          <Text style={styles.skip}>{t("pf.lewati")}</Text>
+        </Pressable>
+      ) : null}
     </View>
   );
 
-  if (tahap === "selesai") {
-    return (
-      <View style={styles.container}>
-        {header}
-        <ScrollView contentContainerStyle={styles.content}>
-          <EmptyState
-            icon="M5 13l4 4L19 7"
-            title={t("pf.terkirimJudul")}
-            text={t("pf.terkirim")}
-          >
-            <Pressable
-              style={styles.kembaliBtn}
-              onPress={() => kembali(navigation)}
-            >
-              <Text style={styles.kembaliText}>{t("pf.kembali")}</Text>
-            </Pressable>
-          </EmptyState>
-        </ScrollView>
-      </View>
-    );
-  }
+  const gaya = {
+    flex: 1,
+    opacity: muncul,
+    transform: [
+      {
+        translateY: muncul.interpolate({
+          inputRange: [0, 1],
+          outputRange: [14, 0],
+        }),
+      },
+    ],
+  };
 
-  if (tahap === "tinjau" && baru) {
-    return (
-      <View style={styles.container}>
-        {header}
-        <ScrollView contentContainerStyle={styles.content}>
-          <View style={styles.card}>
-            <View style={styles.preview}>
-              <Image source={{ uri: baru }} style={styles.previewImg} />
-              <View style={styles.previewTag}>
-                <Text style={styles.previewTagText}>{t("pf.baru")}</Text>
-              </View>
-            </View>
-            <View style={styles.compareRow}>
-              <View style={styles.miniWrap}>
+  return (
+    <View style={styles.container}>
+      {header}
+      <Animated.View style={gaya}>
+        {tahap === "panduan" ? (
+          <Panduan
+            onSelesai={() => keTahap("pilih")}
+            styles={styles}
+            c={c}
+            bawah={insets.bottom}
+          />
+        ) : tahap === "pilih" ? (
+          <ScrollView contentContainerStyle={styles.content}>
+            <View style={[styles.card, { alignItems: "center" }]}>
+              <View style={styles.currentWrap}>
                 {sekarang ? (
-                  <Image source={{ uri: sekarang }} style={styles.mini} />
+                  <Image source={{ uri: sekarang }} style={styles.currentImg} />
                 ) : (
                   <LinearGradient
                     colors={[c.accent, c.accent2]}
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 1 }}
-                    style={styles.mini}
+                    style={styles.currentImg}
                   >
-                    <Text style={styles.miniText}>
+                    <Text style={styles.currentInitial}>
                       {inisial(employee?.fullName ?? "")}
                     </Text>
                   </LinearGradient>
                 )}
+                <View style={styles.camBadge}>
+                  <Ionicons name="camera" size={16} color="#fff" />
+                </View>
               </View>
-              <View style={{ flex: 1, minWidth: 0 }}>
-                <Text style={styles.compareTitle}>{t("pf.sekarang")}</Text>
-                <Text style={styles.compareSub}>{t("pf.gantiKeBaru")}</Text>
-              </View>
-            </View>
-          </View>
-
-          {galat || !wajahDidukung() ? (
-            <View style={styles.galatBox}>
-              <Ionicons name="alert-circle" size={17} color={c.bad.ink} />
-              <Text style={styles.galatText}>
-                {galat ?? t("face.tidakDidukung")}
+              <Text style={styles.pilihTitle}>
+                {sekarang ? t("pf.fotoSekarang") : t("pf.belumAdaFoto")}
               </Text>
+              <Text style={styles.pilihSub}>{t("pf.pilihSub")}</Text>
             </View>
-          ) : null}
 
-          <Tombol
-            label={sibuk ? t("umum.memproses") : t("pf.ajukan")}
-            onPress={ajukan}
-            disabled={sibuk || !wajahDidukung()}
-            styles={styles}
-            c={c}
-          />
-          <Pressable
-            style={styles.secondary}
-            onPress={() => setTahap("panduan")}
-            disabled={sibuk}
-          >
-            <Text style={styles.secondaryText}>{t("pf.ulang")}</Text>
-          </Pressable>
-        </ScrollView>
-      </View>
+            {galat ? <GalatBox teks={galat} styles={styles} c={c} /> : null}
+
+            <Tombol
+              label={t("pf.bukaKamera")}
+              icon="camera-outline"
+              onPress={() => pilih(true)}
+              styles={styles}
+              c={c}
+            />
+            <Pressable style={styles.secondary} onPress={() => pilih(false)}>
+              <Ionicons name="images-outline" size={17} color={c.accent} />
+              <Text style={styles.secondaryText}>{t("pf.galeri")}</Text>
+            </Pressable>
+          </ScrollView>
+        ) : tahap === "tinjau" && baru ? (
+          <ScrollView contentContainerStyle={styles.content}>
+            <View style={styles.card}>
+              <View style={styles.preview}>
+                <Image source={{ uri: baru }} style={styles.previewImg} />
+                <View style={styles.previewTag}>
+                  <Text style={styles.previewTagText}>{t("pf.baru")}</Text>
+                </View>
+              </View>
+              <View style={styles.compareRow}>
+                <View style={styles.miniWrap}>
+                  {sekarang ? (
+                    <Image source={{ uri: sekarang }} style={styles.mini} />
+                  ) : (
+                    <LinearGradient
+                      colors={[c.accent, c.accent2]}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 1 }}
+                      style={styles.mini}
+                    >
+                      <Text style={styles.miniText}>
+                        {inisial(employee?.fullName ?? "")}
+                      </Text>
+                    </LinearGradient>
+                  )}
+                </View>
+                <View style={{ flex: 1, minWidth: 0 }}>
+                  <Text style={styles.compareTitle}>{t("pf.sekarang")}</Text>
+                  <Text style={styles.compareSub}>{t("pf.gantiKeBaru")}</Text>
+                </View>
+              </View>
+            </View>
+
+            {galat || !wajahDidukung() ? (
+              <GalatBox
+                teks={galat ?? t("face.tidakDidukung")}
+                styles={styles}
+                c={c}
+              />
+            ) : null}
+
+            <Tombol
+              label={sibuk ? t("umum.memproses") : t("pf.ajukan")}
+              onPress={ajukan}
+              disabled={sibuk || !wajahDidukung()}
+              styles={styles}
+              c={c}
+            />
+            <Pressable
+              style={styles.secondary}
+              onPress={() => keTahap("pilih")}
+              disabled={sibuk}
+            >
+              <Text style={styles.secondaryText}>{t("pf.ulang")}</Text>
+            </Pressable>
+          </ScrollView>
+        ) : (
+          <ScrollView contentContainerStyle={styles.content}>
+            <EmptyState
+              icon="M5 13l4 4L19 7"
+              title={t("pf.terkirimJudul")}
+              text={t("pf.terkirim")}
+            >
+              <Pressable
+                style={styles.kembaliBtn}
+                onPress={() => kembali(navigation)}
+              >
+                <Text style={styles.kembaliText}>{t("pf.kembali")}</Text>
+              </Pressable>
+            </EmptyState>
+          </ScrollView>
+        )}
+      </Animated.View>
+    </View>
+  );
+}
+
+// Panduan foto bergaya onboarding: slide geser, titik penanda, tombol Lanjut.
+function Panduan({
+  onSelesai,
+  styles,
+  c,
+  bawah,
+}: {
+  onSelesai: () => void;
+  styles: ReturnType<typeof makeStyles>;
+  c: Palette;
+  bawah: number;
+}) {
+  const t = useT();
+  const { width } = useWindowDimensions();
+  const [geser] = useState(() => new Animated.Value(0));
+  const pager = useRef<RNScrollView>(null);
+  const [hal, setHal] = useState(0);
+  const terakhir = hal === SLIDES.length - 1;
+
+  // Ilustrasi slide pertama ikut "mengapung" pelan supaya halaman terasa hidup.
+  const [apung] = useState(() => new Animated.Value(0));
+  useEffect(() => {
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(apung, {
+          toValue: 1,
+          duration: 1800,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: true,
+        }),
+        Animated.timing(apung, {
+          toValue: 0,
+          duration: 1800,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: true,
+        }),
+      ]),
     );
-  }
+    loop.start();
+    return () => loop.stop();
+  }, [apung]);
+
+  const lanjut = () => {
+    if (terakhir) {
+      onSelesai();
+      return;
+    }
+    pager.current?.scrollTo({ x: (hal + 1) * width, animated: true });
+  };
 
   return (
-    <View style={styles.container}>
-      {header}
-      <ScrollView contentContainerStyle={styles.content}>
-        <View style={styles.intro}>
-          <Text style={styles.introTitle}>{t("pf.panduanJudul")}</Text>
-          <Text style={styles.introSub}>{t("pf.panduanSub")}</Text>
-        </View>
-
-        <View style={[styles.card, { alignItems: "center" }]}>
-          <IlustrasiSelfie c={c} />
-          <View style={styles.exampleRow}>
-            <Contoh
-              varian="benar"
-              label={t("pf.cBenar")}
-              c={c}
-              styles={styles}
-            />
-            <Contoh
-              varian="kacamata"
-              label={t("pf.cKacamata")}
-              c={c}
-              styles={styles}
-            />
-            <Contoh
-              varian="menoleh"
-              label={t("pf.cMenoleh")}
-              c={c}
-              styles={styles}
-            />
-          </View>
-        </View>
-
-        <View style={styles.card}>
-          {TIPS.map((tip, i) => (
-            <View
-              key={tip.judul}
-              style={[styles.tipRow, i > 0 && { marginTop: 16 }]}
-            >
-              <View style={styles.tipNum}>
-                <Text style={styles.tipNumText}>{i + 1}</Text>
-              </View>
-              <View style={{ flex: 1, minWidth: 0 }}>
-                <Text style={styles.tipTitle}>{t(tip.judul)}</Text>
-                <Text style={styles.tipText}>{t(tip.isi)}</Text>
-              </View>
+    <View style={{ flex: 1 }}>
+      <Animated.ScrollView
+        ref={pager as never}
+        horizontal
+        pagingEnabled
+        showsHorizontalScrollIndicator={false}
+        onScroll={Animated.event(
+          [{ nativeEvent: { contentOffset: { x: geser } } }],
+          { useNativeDriver: true },
+        )}
+        scrollEventThrottle={16}
+        onMomentumScrollEnd={(e) =>
+          setHal(Math.round(e.nativeEvent.contentOffset.x / width))
+        }
+      >
+        {SLIDES.map((s, i) => {
+          const masuk = geser.interpolate({
+            inputRange: [(i - 1) * width, i * width, (i + 1) * width],
+            outputRange: [0, 1, 0],
+            extrapolate: "clamp",
+          });
+          return (
+            <View key={s.judul} style={[styles.slide, { width }]}>
+              <Animated.View
+                style={[
+                  styles.stage,
+                  {
+                    opacity: masuk,
+                    transform: [
+                      {
+                        scale: masuk.interpolate({
+                          inputRange: [0, 1],
+                          outputRange: [0.9, 1],
+                        }),
+                      },
+                      {
+                        translateY: apung.interpolate({
+                          inputRange: [0, 1],
+                          outputRange: [0, -6],
+                        }),
+                      },
+                    ],
+                  },
+                ]}
+              >
+                <LinearGradient
+                  colors={[c.info.bg, c.bg]}
+                  start={{ x: 0.5, y: 0 }}
+                  end={{ x: 0.5, y: 1 }}
+                  style={StyleSheet.absoluteFill}
+                />
+                <View style={styles.exampleRow}>
+                  <Kepala varian="benar" ukuran={96} c={c} />
+                  <Tanda ok c={c} />
+                </View>
+                <View style={styles.exampleRow}>
+                  <Kepala varian={s.salah} ukuran={96} c={c} />
+                  <Tanda c={c} />
+                </View>
+              </Animated.View>
+              <Animated.Text style={[styles.slideTitle, { opacity: masuk }]}>
+                {t(s.judul as never)}
+              </Animated.Text>
+              <Animated.Text style={[styles.slideText, { opacity: masuk }]}>
+                {t(s.isi as never)}
+              </Animated.Text>
             </View>
-          ))}
+          );
+        })}
+      </Animated.ScrollView>
+
+      <View style={[styles.pagerBar, { paddingBottom: bawah + 110 }]}>
+        <View style={styles.dots}>
+          {SLIDES.map((s, i) => {
+            const aktif = geser.interpolate({
+              inputRange: [(i - 1) * width, i * width, (i + 1) * width],
+              outputRange: [0, 1, 0],
+              extrapolate: "clamp",
+            });
+            return (
+              <View key={s.judul} style={styles.dotSlot}>
+                <View style={styles.dot} />
+                <Animated.View
+                  style={[
+                    styles.dot,
+                    styles.dotOn,
+                    StyleSheet.absoluteFill,
+                    { opacity: aktif },
+                  ]}
+                />
+              </View>
+            );
+          })}
         </View>
-
-        {galat ? (
-          <View style={styles.galatBox}>
-            <Ionicons name="alert-circle" size={17} color={c.bad.ink} />
-            <Text style={styles.galatText}>{galat}</Text>
-          </View>
-        ) : null}
-
         <Tombol
-          label={t("pf.bukaKamera")}
-          icon="camera-outline"
-          onPress={() => pilih(true)}
+          label={terakhir ? t("pf.mulai") : t("pf.lanjut")}
+          icon={terakhir ? "camera-outline" : undefined}
+          onPress={lanjut}
           styles={styles}
           c={c}
         />
-        <Pressable style={styles.secondary} onPress={() => pilih(false)}>
-          <Ionicons name="images-outline" size={17} color={c.accent} />
-          <Text style={styles.secondaryText}>{t("pf.galeri")}</Text>
-        </Pressable>
-      </ScrollView>
+      </View>
+    </View>
+  );
+}
+
+function Tanda({ ok, c }: { ok?: boolean; c: Palette }) {
+  const warna = ok ? c.ok.ink : c.bad.ink;
+  return (
+    <View
+      style={{
+        width: 54,
+        height: 54,
+        borderRadius: 27,
+        borderWidth: 3,
+        borderColor: warna,
+        alignItems: "center",
+        justifyContent: "center",
+        backgroundColor: c.card,
+      }}
+    >
+      <Ionicons name={ok ? "checkmark" : "close"} size={28} color={warna} />
+    </View>
+  );
+}
+
+function GalatBox({
+  teks,
+  styles,
+  c,
+}: {
+  teks: string;
+  styles: ReturnType<typeof makeStyles>;
+  c: Palette;
+}) {
+  return (
+    <View style={styles.galatBox}>
+      <Ionicons name="alert-circle" size={17} color={c.bad.ink} />
+      <Text style={styles.galatText}>{teks}</Text>
     </View>
   );
 }
@@ -325,151 +535,6 @@ function Tombol({
   );
 }
 
-// Sosok sederhana untuk ilustrasi: kepala, rambut, bahu.
-function Sosok({
-  c,
-  ukuran,
-  geser = 0,
-  kacamata = false,
-}: {
-  c: Palette;
-  ukuran: number;
-  geser?: number;
-  kacamata?: boolean;
-}) {
-  const kulit = "#F2C9A8";
-  return (
-    <Svg width={ukuran} height={ukuran} viewBox="0 0 100 100">
-      <Circle cx={50} cy={50} r={48} fill={c.info.bg} />
-      <Path
-        d="M18 100 C20 74 34 66 50 66 C66 66 80 74 82 100 Z"
-        fill={c.accent}
-      />
-      <Ellipse cx={50 + geser} cy={44} rx={17} ry={20} fill={kulit} />
-      <Path
-        d={`M${33 + geser} 42 C${33 + geser} 24 ${67 + geser} 22 ${67 + geser} 40 C${60 + geser} 32 ${44 + geser} 33 ${33 + geser} 42 Z`}
-        fill="#3B2A20"
-      />
-      {kacamata ? (
-        <>
-          <Rect
-            x={38 + geser}
-            y={42}
-            width={10}
-            height={7}
-            rx={3}
-            fill="#111"
-          />
-          <Rect
-            x={52 + geser}
-            y={42}
-            width={10}
-            height={7}
-            rx={3}
-            fill="#111"
-          />
-          <Line
-            x1={48 + geser}
-            y1={45}
-            x2={52 + geser}
-            y2={45}
-            stroke="#111"
-            strokeWidth={1.5}
-          />
-        </>
-      ) : (
-        <>
-          <Circle cx={43 + geser} cy={46} r={1.8} fill="#3B2A20" />
-          <Circle cx={57 + geser} cy={46} r={1.8} fill="#3B2A20" />
-        </>
-      )}
-      <Path
-        d={`M${45 + geser} 55 Q${50 + geser} 58 ${55 + geser} 55`}
-        stroke="#A8664A"
-        strokeWidth={1.5}
-        fill="none"
-        strokeLinecap="round"
-      />
-    </Svg>
-  );
-}
-
-function IlustrasiSelfie({ c }: { c: Palette }) {
-  return (
-    <View
-      style={{
-        width: 170,
-        height: 170,
-        alignItems: "center",
-        justifyContent: "center",
-      }}
-    >
-      <Sosok c={c} ukuran={130} />
-      <Svg width={170} height={170} style={StyleSheet.absoluteFill}>
-        <Line
-          x1={85}
-          y1={4}
-          x2={85}
-          y2={166}
-          stroke={c.accent}
-          strokeWidth={1.5}
-          strokeDasharray="5 5"
-        />
-        <Line
-          x1={4}
-          y1={78}
-          x2={166}
-          y2={78}
-          stroke={c.accent}
-          strokeWidth={1.5}
-          strokeDasharray="5 5"
-        />
-      </Svg>
-    </View>
-  );
-}
-
-function Contoh({
-  varian,
-  label,
-  c,
-  styles,
-}: {
-  varian: "benar" | "kacamata" | "menoleh";
-  label: string;
-  c: Palette;
-  styles: ReturnType<typeof makeStyles>;
-}) {
-  const benar = varian === "benar";
-  return (
-    <View style={styles.example}>
-      <View>
-        <Sosok
-          c={c}
-          ukuran={58}
-          kacamata={varian === "kacamata"}
-          geser={varian === "menoleh" ? 9 : 0}
-        />
-        <View
-          style={[
-            styles.exampleBadge,
-            { backgroundColor: benar ? c.ok.ink : c.bad.ink },
-          ]}
-        >
-          <Ionicons
-            name={benar ? "checkmark" : "close"}
-            size={11}
-            color="#fff"
-          />
-        </View>
-      </View>
-      <Text style={styles.exampleText} numberOfLines={2}>
-        {label}
-      </Text>
-    </View>
-  );
-}
-
 const makeStyles = (c: Palette) =>
   StyleSheet.create({
     container: { flex: 1, backgroundColor: c.bg },
@@ -498,31 +563,49 @@ const makeStyles = (c: Palette) =>
       color: c.muted,
       marginTop: 2,
     },
+    skip: { fontSize: 13, fontWeight: "700", color: c.accent },
     // Ruang bawah untuk floating tab bar.
     content: { paddingHorizontal: 18, paddingTop: 16, paddingBottom: 140 },
 
-    intro: { alignItems: "center", paddingHorizontal: 12, marginBottom: 14 },
-    introTitle: {
-      fontSize: 18,
+    slide: { alignItems: "center", paddingHorizontal: 28, paddingTop: 24 },
+    stage: {
+      width: 270,
+      height: 270,
+      borderRadius: 135,
+      overflow: "hidden",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 6,
+    },
+    exampleRow: { flexDirection: "row", alignItems: "center", gap: 18 },
+    slideTitle: {
+      fontSize: 20,
       fontWeight: "800",
       color: c.ink,
       textAlign: "center",
+      marginTop: 26,
     },
-    introSub: {
-      fontSize: 12,
-      lineHeight: 18,
+    slideText: {
+      fontSize: 13,
+      lineHeight: 20,
       fontWeight: "500",
       color: c.muted,
       textAlign: "center",
-      marginTop: 6,
+      marginTop: 8,
+      maxWidth: 300,
     },
+    pagerBar: { paddingHorizontal: 18 },
+    dots: { flexDirection: "row", justifyContent: "center", gap: 8 },
+    dotSlot: { width: 8, height: 8 },
+    dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: c.track },
+    dotOn: { backgroundColor: c.accent },
 
     card: {
       backgroundColor: c.card,
       borderWidth: 1,
       borderColor: c.cardBorder,
       borderRadius: 22,
-      padding: 16,
+      padding: 18,
       marginBottom: 12,
       shadowColor: "#0F1720",
       shadowOffset: { width: 0, height: 4 },
@@ -531,51 +614,43 @@ const makeStyles = (c: Palette) =>
       elevation: 3,
     },
 
-    exampleRow: {
-      flexDirection: "row",
-      alignSelf: "stretch",
-      marginTop: 16,
-      paddingTop: 14,
-      borderTopWidth: 1,
-      borderTopColor: c.hair,
-    },
-    example: { flex: 1, alignItems: "center", gap: 8 },
-    exampleBadge: {
-      position: "absolute",
-      right: -2,
-      bottom: -2,
-      width: 20,
-      height: 20,
-      borderRadius: 10,
-      borderWidth: 2,
-      borderColor: c.card,
+    currentWrap: { width: 132, height: 132, marginTop: 4 },
+    currentImg: {
+      width: 132,
+      height: 132,
+      borderRadius: 66,
+      overflow: "hidden",
       alignItems: "center",
       justifyContent: "center",
     },
-    exampleText: {
-      fontSize: 10.5,
-      fontWeight: "600",
-      color: c.muted,
-      textAlign: "center",
-    },
-
-    tipRow: { flexDirection: "row", gap: 12 },
-    tipNum: {
-      width: 26,
-      height: 26,
-      borderRadius: 13,
+    currentInitial: { fontSize: 40, fontWeight: "800", color: "#fff" },
+    camBadge: {
+      position: "absolute",
+      right: 4,
+      bottom: 4,
+      width: 36,
+      height: 36,
+      borderRadius: 18,
+      borderWidth: 3,
+      borderColor: c.card,
       backgroundColor: c.accent,
       alignItems: "center",
       justifyContent: "center",
     },
-    tipNumText: { fontSize: 12, fontWeight: "800", color: "#fff" },
-    tipTitle: { fontSize: 13, fontWeight: "700", color: c.ink },
-    tipText: {
-      fontSize: 11.5,
-      lineHeight: 17,
+    pilihTitle: {
+      fontSize: 16,
+      fontWeight: "800",
+      color: c.ink,
+      marginTop: 16,
+      textAlign: "center",
+    },
+    pilihSub: {
+      fontSize: 12,
+      lineHeight: 18,
       fontWeight: "500",
       color: c.muted,
-      marginTop: 3,
+      marginTop: 6,
+      textAlign: "center",
     },
 
     preview: {

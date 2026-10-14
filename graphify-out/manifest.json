@@ -378,9 +378,9 @@
     "semantic_hash": ""
   },
   "src/screens/profile/ProfileDataScreen.tsx": {
-    "mtime": 1791950252.5060966,
-    "seen": 1791950275.833191,
-    "ast_hash": "487cc50472635de55de643ded34019a0",
+    "mtime": 1791951049.7619445,
+    "seen": 1791951272.035723,
+    "ast_hash": "4d0c283b5eca4868f040e23c90eddfc9",
     "semantic_hash": ""
   },
   "src/screens/profile/ProfileDocsScreen.tsx": {
@@ -402,9 +402,9 @@
     "semantic_hash": ""
   },
   "src/screens/profile/ProfileScreen.tsx": {
-    "mtime": 1791950234.3933663,
-    "seen": 1791950275.833198,
-    "ast_hash": "3a90ca60578c8f581b237334563beabb",
+    "mtime": 1791951215.1668408,
+    "seen": 1791951272.035727,
+    "ast_hash": "fd5b6d11c6e74e33b877c945ab808e8d",
     "semantic_hash": ""
   },
   "src/screens/profile/ProfileSecurityScreen.tsx": {
@@ -864,15 +864,15 @@
     "semantic_hash": ""
   },
   "src/i18n/en.ts": {
-    "mtime": 1791950233.6782444,
-    "seen": 1791950275.833138,
-    "ast_hash": "cfdff4dfd4f819d53267c747ad8dc11a",
+    "mtime": 1791951153.511383,
+    "seen": 1791951272.035681,
+    "ast_hash": "7c027fac06ee6b11b6c9c7f84f909bca",
     "semantic_hash": ""
   },
   "src/i18n/id.ts": {
-    "mtime": 1791950233.7114637,
-    "seen": 1791950275.833139,
-    "ast_hash": "a278e653b0136a8b40101e0254365850",
+    "mtime": 1791951153.5740166,
+    "seen": 1791951272.035682,
+    "ast_hash": "51cbc7983f79db6dccf9e75c72542131",
     "semantic_hash": ""
   },
   "src/i18n/index.tsx": {
@@ -1218,9 +1218,15 @@
     "semantic_hash": ""
   },
   "src/screens/profile/ProfilePhotoScreen.tsx": {
-    "mtime": 1791950234.3807583,
-    "seen": 1791950275.833197,
-    "ast_hash": "f707d7f30ae7f361cfc1e20cafec5850",
+    "mtime": 1791951154.9651227,
+    "seen": 1791951272.035726,
+    "ast_hash": "4914b20c8d5899dbe674772cfc9b5dc7",
+    "semantic_hash": ""
+  },
+  "src/hooks/useFotoProfil.ts": {
+    "mtime": 1791951049.6333578,
+    "seen": 1791951272.035676,
+    "ast_hash": "887e714e71dbd1ea7654f8fd4addcc59",
     "semantic_hash": ""
   }
 }
