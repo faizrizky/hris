@@ -1262,6 +1262,73 @@ for _f in [
         frappe.clear_cache(doctype="Profile Change Request")
 frappe.db.commit()
 
+_FCS = "Face Enrollment - review"
+_FJS = r"""// Face Enrollment: HR meninjau selfie, foto KTP, dan foto profil berdampingan dengan persentase kecocokan.
+const esc = (v) => frappe.utils.escape_html(v == null ? "" : String(v));
+function foto(url, label) {
+	const isi = url
+		? `<img src="${esc(url)}" style="width:100%;height:100%;object-fit:cover">`
+		: `<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--text-muted)">${__("No photo")}</div>`;
+	return `<div style="flex:1;min-width:150px;max-width:230px"><div style="aspect-ratio:3/4;border:1px solid var(--border-color);border-radius:12px;overflow:hidden;background:var(--control-bg)">${isi}</div><div style="text-align:center;margin-top:6px;font-weight:600">${esc(label)}</div></div>`;
+}
+function skor(label, nilai, min) {
+	if (nilai == null) return "";
+	const rendah = nilai < min;
+	const warna = rendah ? "var(--red-600)" : "var(--green-600)";
+	const tag = rendah ? __("Low match: check carefully") : __("OK");
+	return `<div style="padding:8px 12px;border:1px solid ${warna};border-radius:10px;margin:4px 0;color:${warna}"><b>${esc(label)}: ${nilai}%</b> <span style="margin-left:6px">${tag}</span> <span style="color:var(--text-muted);margin-left:6px">(${__("minimum")} ${min}%)</span></div>`;
+}
+frappe.ui.form.on("Face Enrollment", {
+	async refresh(frm) {
+		frm.disable_save();
+		if (frm.is_new()) return;
+		const d = frm.doc;
+		const [ktp, emp, minKtp, minProf] = await Promise.all([
+			d.ktp_document ? frappe.db.get_value("Employee Document", d.ktp_document, "file") : null,
+			frappe.db.get_value("Employee", d.employee, "image"),
+			frappe.db.get_single_value("Face Settings", "min_ktp"),
+			frappe.db.get_single_value("Face Settings", "min_profile"),
+		]);
+		const aman = d.score_profile != null && d.score_ktp != null;
+		const html =
+			`<div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:12px">` +
+			foto(d.selfie, __("Registration selfie")) +
+			foto(ktp && ktp.message && ktp.message.file, __("ID card (KTP)")) +
+			foto(emp && emp.message && emp.message.image, __("Profile photo")) +
+			`</div>` +
+			skor(__("Face vs ID card"), d.score_ktp, minKtp || 30) +
+			skor(__("Face vs profile photo"), d.score_profile, minProf || 36) +
+			skor(__("Profile photo vs ID card"), d.score_profile_ktp, minKtp || 30) +
+			(d.status === "Pending" && aman ? "" : "");
+		frm.fields_dict.review_html.$wrapper.html(html);
+		if (d.status === "Pending") {
+			frm.add_custom_button(__("Approve"), () => {
+				frappe.call({ method: "hris_decide_face_enrollment", args: { name: d.name, decision: "approve" } }).then(() => frm.reload_doc());
+			}, __("Decision"));
+			frm.add_custom_button(__("Reject"), () => {
+				frappe.prompt({ fieldname: "note", label: __("Reason"), fieldtype: "Small Text", reqd: 1 }, (v) => {
+					frappe.call({ method: "hris_decide_face_enrollment", args: { name: d.name, decision: "reject", note: v.note } }).then(() => frm.reload_doc());
+				}, __("Reject face registration"));
+			}, __("Decision"));
+		}
+	},
+});
+"""
+if not frappe.db.exists("Client Script", _FCS):
+    make(dict(doctype="Client Script", name=_FCS, dt="Face Enrollment", view="Form", enabled=1, script=_FJS))
+else:
+    frappe.db.set_value("Client Script", _FCS, {"script": _FJS, "enabled": 1})
+frappe.db.commit()
+
+# Sidebar Shift and Attendance: tautan peninjauan wajah dan pengaturannya (di bawah item yang sudah ada).
+if frappe.db.exists("Sidebar", "Shift and Attendance"):
+    from frappe.desk.doctype.custom_sidebar.custom_sidebar import add_site_sidebar_item
+    for _dt, _ic in (("Face Enrollment", "user"), ("Face Settings", "settings")):
+        add_site_sidebar_item("Shift and Attendance", dict(label=_dt, type="Link", link_type="DocType", link_to=_dt,
+                                                           icon=_ic, collapsible=1))
+    frappe.db.commit()
+    frappe.clear_cache()
+
 EVENT_SCRIPTS = {  # script berbasis event dokumen: nama_file -> (DocType, event)
     "hris_notify_leave_created": ("Leave Application", "After Insert"),
     "hris_notify_leave_decided": ("Leave Application", "After Save"),
