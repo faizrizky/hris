@@ -33,7 +33,7 @@ import { useT } from "@/i18n";
 import { ChangeSummary } from "@/screens/profile/ChangeSummary";
 import { terjemahkan } from "@/i18n/serverLabels";
 import { kembali } from "@/navigation/kembali";
-import { simpanLampiran } from "@/utils/lampiran";
+import { useFotoProfil } from "@/hooks/useFotoProfil";
 
 export function ProfileDataScreen({ navigation }: any) {
   const t = useT();
@@ -45,7 +45,7 @@ export function ProfileDataScreen({ navigation }: any) {
   const [profil, setProfil] = useState<PersonalProfile | null>(null);
   const [galat, setGalat] = useState<string | null>(null);
   const [permintaan, setPermintaan] = useState<ProfileChange[]>([]);
-  const [foto, setFoto] = useState<string | null>(null);
+  const foto = useFotoProfil();
 
   const muat = useCallback(() => {
     if (!employee) return;
@@ -63,14 +63,6 @@ export function ProfileDataScreen({ navigation }: any) {
         }
       })
       .catch((e) => setGalat(describeError(e)));
-    // Foto profil berkas privat: diunduh dengan sesi lalu ditampilkan dari cache.
-    hrisApi
-      .getFaceStatus()
-      .then((f) =>
-        f.profileUrl ? simpanLampiran(f.profileUrl, "profil") : null,
-      )
-      .then(setFoto)
-      .catch(() => setFoto(null));
   }, [employee]);
 
   useFocusEffect(muat);

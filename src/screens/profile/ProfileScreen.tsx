@@ -1,5 +1,13 @@
 import React, { useEffect, useState, useMemo, useRef } from "react";
-import { Pressable, StyleSheet, Switch, Text, View } from "react-native";
+import {
+  Animated,
+  Easing,
+  Pressable,
+  StyleSheet,
+  Switch,
+  Text,
+  View,
+} from "react-native";
 import { RevealScrollView as ScrollView } from "@/components/Reveal";
 import { LinearGradient } from "expo-linear-gradient";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -17,6 +25,7 @@ import { LeaveBalance } from "@/services/types";
 import { useConfirm } from "@/components/ConfirmDialog";
 import { useT } from "@/i18n";
 import { LanguagePicker } from "@/components/LanguagePicker";
+import { useFotoProfil } from "@/hooks/useFotoProfil";
 
 export function ProfileScreen({ navigation }: any) {
   const { employee, setEmployee } = useSession();
@@ -29,6 +38,16 @@ export function ProfileScreen({ navigation }: any) {
   const styles = useMemo(() => makeStyles(c), [c]);
   const confirm = useConfirm();
   const keluarRef = useRef<View>(null);
+  const foto = useFotoProfil();
+  // Foto memudar masuk sambil sedikit mengecil, selaras animasi halaman lain.
+  const [fotoMuncul] = useState(() => new Animated.Value(0));
+  const munculkanFoto = () =>
+    Animated.timing(fotoMuncul, {
+      toValue: 1,
+      duration: 520,
+      easing: Easing.bezier(0.25, 0.1, 0.25, 1),
+      useNativeDriver: true,
+    }).start();
 
   useEffect(() => {
     if (!employee) return;
@@ -46,28 +65,84 @@ export function ProfileScreen({ navigation }: any) {
 
   return (
     <View style={styles.container}>
-      <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
-        <RadialGlow size={240} color={c.glowHeader} top={-70} left={-30} />
-
-        <View style={styles.identityRow}>
+      {foto ? (
+        <View style={[styles.photoHero, { height: 340 + insets.top }]}>
+          <Animated.Image
+            source={{ uri: foto }}
+            onLoad={munculkanFoto}
+            style={[
+              StyleSheet.absoluteFill,
+              {
+                opacity: fotoMuncul,
+                transform: [
+                  {
+                    scale: fotoMuncul.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [1.06, 1],
+                    }),
+                  },
+                ],
+              },
+            ]}
+          />
           <LinearGradient
-            colors={[c.accent, c.accent2]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.avatar}
-          >
-            <Text style={styles.avatarText}>{employee.avatarInitials}</Text>
-          </LinearGradient>
-
-          <View style={{ flex: 1, minWidth: 0 }}>
-            <Text style={styles.name}>{employee.fullName}</Text>
-            <Text style={styles.role}>
-              {employee.jobTitle} · {employee.department}
-            </Text>
-            <Text style={styles.empId}>{employee.nik}</Text>
+            colors={["transparent", c.headerBg]}
+            locations={[0.35, 0.95]}
+            style={StyleSheet.absoluteFill}
+          />
+          <RadialGlow
+            size={260}
+            color={c.glowHeader}
+            bottom={-120}
+            left={-80}
+          />
+          <View style={styles.photoInfo}>
+            <View style={{ flex: 1, minWidth: 0 }}>
+              <Text style={styles.photoName} numberOfLines={2}>
+                {employee.fullName}
+              </Text>
+              <View style={styles.photoMeta}>
+                <Text style={styles.role} numberOfLines={1}>
+                  {employee.jobTitle} · {employee.department}
+                </Text>
+              </View>
+              <View style={styles.nikPill}>
+                <Text style={styles.nikPillText}>{employee.nik}</Text>
+              </View>
+            </View>
+            <Pressable
+              style={styles.roundBtn}
+              onPress={() => navigation.navigate("ProfilePhoto")}
+              hitSlop={6}
+            >
+              <Ionicons name="camera-outline" size={20} color="#fff" />
+            </Pressable>
           </View>
         </View>
-      </View>
+      ) : (
+        <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
+          <RadialGlow size={240} color={c.glowHeader} top={-70} left={-30} />
+
+          <View style={styles.identityRow}>
+            <LinearGradient
+              colors={[c.accent, c.accent2]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.avatar}
+            >
+              <Text style={styles.avatarText}>{employee.avatarInitials}</Text>
+            </LinearGradient>
+
+            <View style={{ flex: 1, minWidth: 0 }}>
+              <Text style={styles.name}>{employee.fullName}</Text>
+              <Text style={styles.role}>
+                {employee.jobTitle} · {employee.department}
+              </Text>
+              <Text style={styles.empId}>{employee.nik}</Text>
+            </View>
+          </View>
+        </View>
+      )}
 
       <ScrollView style={styles.body} contentContainerStyle={styles.content}>
         <View style={styles.statCard}>
@@ -262,6 +337,47 @@ const makeStyles = (c: Palette) =>
       borderBottomLeftRadius: 28,
       borderBottomRightRadius: 28,
       overflow: "hidden",
+    },
+    photoHero: {
+      backgroundColor: c.headerBg,
+      borderBottomLeftRadius: 28,
+      borderBottomRightRadius: 28,
+      overflow: "hidden",
+      justifyContent: "flex-end",
+    },
+    photoInfo: {
+      flexDirection: "row",
+      alignItems: "flex-end",
+      gap: 12,
+      paddingHorizontal: 20,
+      paddingBottom: 46,
+    },
+    photoName: {
+      fontSize: 26,
+      lineHeight: 31,
+      fontWeight: "800",
+      letterSpacing: -0.5,
+      color: "#fff",
+    },
+    photoMeta: { flexDirection: "row", alignItems: "center", gap: 8 },
+    nikPill: {
+      alignSelf: "flex-start",
+      marginTop: 10,
+      paddingHorizontal: 10,
+      paddingVertical: 5,
+      borderRadius: 999,
+      backgroundColor: c.onDark.pill,
+    },
+    nikPillText: { fontSize: 10.5, fontWeight: "700", color: c.accentLight },
+    roundBtn: {
+      width: 46,
+      height: 46,
+      borderRadius: 23,
+      backgroundColor: c.onDark.pill,
+      borderWidth: 1,
+      borderColor: "rgba(255,255,255,0.22)",
+      alignItems: "center",
+      justifyContent: "center",
     },
     identityRow: { flexDirection: "row", alignItems: "center", gap: 14 },
     avatar: {

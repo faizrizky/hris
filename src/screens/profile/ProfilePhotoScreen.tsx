@@ -1,10 +1,11 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Image, Pressable, StyleSheet, Text, View } from "react-native";
 import { RevealScrollView as ScrollView } from "@/components/Reveal";
 import * as ImagePicker from "expo-image-picker";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import Svg, { Circle, Ellipse, Line, Path, Rect } from "react-native-svg";
 
 import { Palette } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
@@ -17,13 +18,20 @@ import { EmptyState } from "@/components/EmptyState";
 import { kembali } from "@/navigation/kembali";
 import { simpanLampiran } from "@/utils/lampiran";
 import { inisial } from "@/utils/ProfileCompleteness";
+import { useFotoProfil } from "@/hooks/useFotoProfil";
 import { embeddingWajah, wajahDidukung } from "@/services/faceCheck";
-import type { FaceStatus } from "@/services/types";
 
-const PANDUAN = ["pf.p1", "pf.p2", "pf.p3"] as const;
+const TIPS = [
+  { judul: "pf.t1", isi: "pf.t1Isi" },
+  { judul: "pf.t2", isi: "pf.t2Isi" },
+  { judul: "pf.t3", isi: "pf.t3Isi" },
+] as const;
 
-// Ganti foto profil: diajukan ke HR. Sebelum dikirim, kemiripannya dengan wajah
-// terdaftar dihitung dan karyawan diperingatkan bila rendah.
+type Tahap = "panduan" | "tinjau" | "selesai";
+
+// Ganti foto profil: panduan dulu, lalu ambil/pilih foto, tinjau, dan ajukan
+// ke HR. Sebelum dikirim, kemiripannya dengan wajah terdaftar dihitung dan
+// karyawan diperingatkan bila rendah.
 export function ProfilePhotoScreen({ navigation }: any) {
   const t = useT();
   const confirm = useConfirm();
@@ -31,23 +39,11 @@ export function ProfilePhotoScreen({ navigation }: any) {
   const c = useTheme();
   const insets = useSafeAreaInsets();
   const styles = useMemo(() => makeStyles(c), [c]);
-  const [status, setStatus] = useState<FaceStatus | null>(null);
-  const [sekarang, setSekarang] = useState<string | null>(null);
+  const sekarang = useFotoProfil();
+  const [tahap, setTahap] = useState<Tahap>("panduan");
   const [baru, setBaru] = useState<string | null>(null);
   const [sibuk, setSibuk] = useState(false);
   const [galat, setGalat] = useState<string | null>(null);
-  const [selesai, setSelesai] = useState(false);
-
-  useEffect(() => {
-    hrisApi
-      .getFaceStatus()
-      .then(async (s) => {
-        setStatus(s);
-        if (s.profileUrl)
-          setSekarang(await simpanLampiran(s.profileUrl, "profil"));
-      })
-      .catch((e) => setGalat(describeError(e)));
-  }, []);
 
   const pilih = async (kamera: boolean) => {
     setGalat(null);
@@ -68,11 +64,13 @@ export function ProfilePhotoScreen({ navigation }: any) {
       aspect: [3, 4],
       cameraType: ImagePicker.CameraType.front,
     });
-    if (!r.canceled) setBaru(r.assets[0]!.uri);
+    if (r.canceled) return;
+    setBaru(r.assets[0]!.uri);
+    setTahap("tinjau");
   };
 
   const ajukan = async () => {
-    if (!baru || !status) return;
+    if (!baru) return;
     setSibuk(true);
     setGalat(null);
     try {
@@ -81,6 +79,7 @@ export function ProfilePhotoScreen({ navigation }: any) {
         setGalat(t("pf.tanpaWajah"));
         return;
       }
+      const status = await hrisApi.getFaceStatus();
       let ktpEmb: number[] | undefined;
       if (status.ktpUrl) {
         try {
@@ -112,7 +111,7 @@ export function ProfilePhotoScreen({ navigation }: any) {
         embedding: emb,
         ktpEmbedding: ktpEmb,
       });
-      setSelesai(true);
+      setTahap("selesai");
     } catch (e) {
       setGalat(describeError(e));
     } finally {
@@ -122,7 +121,12 @@ export function ProfilePhotoScreen({ navigation }: any) {
 
   const header = (
     <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
-      <Pressable style={styles.backBtn} onPress={() => kembali(navigation)}>
+      <Pressable
+        style={styles.backBtn}
+        onPress={() =>
+          tahap === "tinjau" ? setTahap("panduan") : kembali(navigation)
+        }
+      >
         <Ionicons name="chevron-back" size={18} color={c.ink} />
       </Pressable>
       <View style={{ flex: 1, minWidth: 0 }}>
@@ -132,153 +136,336 @@ export function ProfilePhotoScreen({ navigation }: any) {
     </View>
   );
 
-  if (selesai) {
+  if (tahap === "selesai") {
     return (
       <View style={styles.container}>
         {header}
-        <EmptyState
-          icon="M5 13l4 4L19 7"
-          title={t("pf.terkirimJudul")}
-          text={t("pf.terkirim")}
-        >
-          <Pressable
-            style={styles.kembaliBtn}
-            onPress={() => kembali(navigation)}
+        <ScrollView contentContainerStyle={styles.content}>
+          <EmptyState
+            icon="M5 13l4 4L19 7"
+            title={t("pf.terkirimJudul")}
+            text={t("pf.terkirim")}
           >
-            <Text style={styles.kembaliText}>{t("pf.kembali")}</Text>
-          </Pressable>
-        </EmptyState>
+            <Pressable
+              style={styles.kembaliBtn}
+              onPress={() => kembali(navigation)}
+            >
+              <Text style={styles.kembaliText}>{t("pf.kembali")}</Text>
+            </Pressable>
+          </EmptyState>
+        </ScrollView>
       </View>
     );
   }
 
-  const bisa = !!baru && !sibuk && wajahDidukung();
-  const nama = employee?.fullName ?? "";
+  if (tahap === "tinjau" && baru) {
+    return (
+      <View style={styles.container}>
+        {header}
+        <ScrollView contentContainerStyle={styles.content}>
+          <View style={styles.card}>
+            <View style={styles.preview}>
+              <Image source={{ uri: baru }} style={styles.previewImg} />
+              <View style={styles.previewTag}>
+                <Text style={styles.previewTagText}>{t("pf.baru")}</Text>
+              </View>
+            </View>
+            <View style={styles.compareRow}>
+              <View style={styles.miniWrap}>
+                {sekarang ? (
+                  <Image source={{ uri: sekarang }} style={styles.mini} />
+                ) : (
+                  <LinearGradient
+                    colors={[c.accent, c.accent2]}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    style={styles.mini}
+                  >
+                    <Text style={styles.miniText}>
+                      {inisial(employee?.fullName ?? "")}
+                    </Text>
+                  </LinearGradient>
+                )}
+              </View>
+              <View style={{ flex: 1, minWidth: 0 }}>
+                <Text style={styles.compareTitle}>{t("pf.sekarang")}</Text>
+                <Text style={styles.compareSub}>{t("pf.gantiKeBaru")}</Text>
+              </View>
+            </View>
+          </View>
+
+          {galat || !wajahDidukung() ? (
+            <View style={styles.galatBox}>
+              <Ionicons name="alert-circle" size={17} color={c.bad.ink} />
+              <Text style={styles.galatText}>
+                {galat ?? t("face.tidakDidukung")}
+              </Text>
+            </View>
+          ) : null}
+
+          <Tombol
+            label={sibuk ? t("umum.memproses") : t("pf.ajukan")}
+            onPress={ajukan}
+            disabled={sibuk || !wajahDidukung()}
+            styles={styles}
+            c={c}
+          />
+          <Pressable
+            style={styles.secondary}
+            onPress={() => setTahap("panduan")}
+            disabled={sibuk}
+          >
+            <Text style={styles.secondaryText}>{t("pf.ulang")}</Text>
+          </Pressable>
+        </ScrollView>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
       {header}
       <ScrollView contentContainerStyle={styles.content}>
-        <View style={styles.card}>
-          <View style={styles.compare}>
-            <Bingkai
-              uri={sekarang}
-              label={t("pf.sekarang")}
-              awal={inisial(nama)}
-              styles={styles}
+        <View style={styles.intro}>
+          <Text style={styles.introTitle}>{t("pf.panduanJudul")}</Text>
+          <Text style={styles.introSub}>{t("pf.panduanSub")}</Text>
+        </View>
+
+        <View style={[styles.card, { alignItems: "center" }]}>
+          <IlustrasiSelfie c={c} />
+          <View style={styles.exampleRow}>
+            <Contoh
+              varian="benar"
+              label={t("pf.cBenar")}
               c={c}
-            />
-            <View style={styles.arrow}>
-              <Ionicons name="arrow-forward" size={16} color={c.accent} />
-            </View>
-            <Bingkai
-              uri={baru}
-              label={t("pf.baru")}
-              aktif
               styles={styles}
-              c={c}
             />
-          </View>
-          <View style={styles.pilihRow}>
-            <Pressable style={styles.pilihBtn} onPress={() => pilih(true)}>
-              <View style={[styles.pilihIcon, { backgroundColor: c.info.bg }]}>
-                <Ionicons name="camera-outline" size={18} color={c.info.ink} />
-              </View>
-              <Text style={styles.pilihText}>{t("pf.kamera")}</Text>
-            </Pressable>
-            <Pressable style={styles.pilihBtn} onPress={() => pilih(false)}>
-              <View style={[styles.pilihIcon, { backgroundColor: c.ok.bg }]}>
-                <Ionicons name="images-outline" size={18} color={c.ok.ink} />
-              </View>
-              <Text style={styles.pilihText}>{t("pf.galeri")}</Text>
-            </Pressable>
+            <Contoh
+              varian="kacamata"
+              label={t("pf.cKacamata")}
+              c={c}
+              styles={styles}
+            />
+            <Contoh
+              varian="menoleh"
+              label={t("pf.cMenoleh")}
+              c={c}
+              styles={styles}
+            />
           </View>
         </View>
 
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>{t("pf.panduan")}</Text>
-          <View style={{ gap: 10, marginTop: 12 }}>
-            {PANDUAN.map((k) => (
-              <View key={k} style={styles.guideRow}>
-                <Ionicons name="checkmark-circle" size={17} color={c.ok.ink} />
-                <Text style={styles.guideText}>{t(k)}</Text>
+          {TIPS.map((tip, i) => (
+            <View
+              key={tip.judul}
+              style={[styles.tipRow, i > 0 && { marginTop: 16 }]}
+            >
+              <View style={styles.tipNum}>
+                <Text style={styles.tipNumText}>{i + 1}</Text>
               </View>
-            ))}
-          </View>
-          {status?.state === "active" || status?.state === "needs_reenroll" ? (
-            <View style={styles.note}>
-              <Text style={styles.noteText}>{t("pf.catatanWajah")}</Text>
+              <View style={{ flex: 1, minWidth: 0 }}>
+                <Text style={styles.tipTitle}>{t(tip.judul)}</Text>
+                <Text style={styles.tipText}>{t(tip.isi)}</Text>
+              </View>
             </View>
-          ) : null}
+          ))}
         </View>
-      </ScrollView>
 
-      <View style={[styles.actionBar, { paddingBottom: insets.bottom + 14 }]}>
-        <Text
-          style={[
-            styles.barText,
-            (galat || !wajahDidukung()) && { color: c.bad.ink },
-          ]}
-          numberOfLines={3}
-        >
-          {galat ??
-            (!wajahDidukung()
-              ? t("face.tidakDidukung")
-              : baru
-                ? t("pf.siap")
-                : t("pf.belumPilih"))}
-        </Text>
-        <Pressable onPress={ajukan} disabled={!bisa}>
-          <LinearGradient
-            colors={bisa ? [c.accent, c.accent2] : [c.track, c.track]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.submit}
-          >
-            <Text style={[styles.submitText, bisa && { color: "#fff" }]}>
-              {sibuk ? t("umum.memproses") : t("pf.ajukan")}
-            </Text>
-          </LinearGradient>
+        {galat ? (
+          <View style={styles.galatBox}>
+            <Ionicons name="alert-circle" size={17} color={c.bad.ink} />
+            <Text style={styles.galatText}>{galat}</Text>
+          </View>
+        ) : null}
+
+        <Tombol
+          label={t("pf.bukaKamera")}
+          icon="camera-outline"
+          onPress={() => pilih(true)}
+          styles={styles}
+          c={c}
+        />
+        <Pressable style={styles.secondary} onPress={() => pilih(false)}>
+          <Ionicons name="images-outline" size={17} color={c.accent} />
+          <Text style={styles.secondaryText}>{t("pf.galeri")}</Text>
         </Pressable>
-      </View>
+      </ScrollView>
     </View>
   );
 }
 
-function Bingkai({
-  uri,
+function Tombol({
   label,
-  awal,
-  aktif,
+  icon,
+  onPress,
+  disabled,
   styles,
   c,
 }: {
-  uri: string | null;
   label: string;
-  awal?: string;
-  aktif?: boolean;
+  icon?: keyof typeof Ionicons.glyphMap;
+  onPress: () => void;
+  disabled?: boolean;
   styles: ReturnType<typeof makeStyles>;
   c: Palette;
 }) {
   return (
-    <View style={{ flex: 1, alignItems: "center" }}>
-      <View style={[styles.frame, aktif && !uri && styles.frameKosong]}>
-        {uri ? (
-          <Image source={{ uri }} style={styles.foto} />
-        ) : awal ? (
-          <LinearGradient
-            colors={[c.accent, c.accent2]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.foto}
-          >
-            <Text style={styles.awal}>{awal}</Text>
-          </LinearGradient>
-        ) : (
-          <Ionicons name="add" size={28} color={c.mutedLabel} />
-        )}
+    <Pressable onPress={onPress} disabled={disabled} style={{ marginTop: 16 }}>
+      <LinearGradient
+        colors={disabled ? [c.track, c.track] : [c.accent, c.accent2]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.primary}
+      >
+        {icon ? <Ionicons name={icon} size={18} color="#fff" /> : null}
+        <Text style={styles.primaryText}>{label}</Text>
+      </LinearGradient>
+    </Pressable>
+  );
+}
+
+// Sosok sederhana untuk ilustrasi: kepala, rambut, bahu.
+function Sosok({
+  c,
+  ukuran,
+  geser = 0,
+  kacamata = false,
+}: {
+  c: Palette;
+  ukuran: number;
+  geser?: number;
+  kacamata?: boolean;
+}) {
+  const kulit = "#F2C9A8";
+  return (
+    <Svg width={ukuran} height={ukuran} viewBox="0 0 100 100">
+      <Circle cx={50} cy={50} r={48} fill={c.info.bg} />
+      <Path
+        d="M18 100 C20 74 34 66 50 66 C66 66 80 74 82 100 Z"
+        fill={c.accent}
+      />
+      <Ellipse cx={50 + geser} cy={44} rx={17} ry={20} fill={kulit} />
+      <Path
+        d={`M${33 + geser} 42 C${33 + geser} 24 ${67 + geser} 22 ${67 + geser} 40 C${60 + geser} 32 ${44 + geser} 33 ${33 + geser} 42 Z`}
+        fill="#3B2A20"
+      />
+      {kacamata ? (
+        <>
+          <Rect
+            x={38 + geser}
+            y={42}
+            width={10}
+            height={7}
+            rx={3}
+            fill="#111"
+          />
+          <Rect
+            x={52 + geser}
+            y={42}
+            width={10}
+            height={7}
+            rx={3}
+            fill="#111"
+          />
+          <Line
+            x1={48 + geser}
+            y1={45}
+            x2={52 + geser}
+            y2={45}
+            stroke="#111"
+            strokeWidth={1.5}
+          />
+        </>
+      ) : (
+        <>
+          <Circle cx={43 + geser} cy={46} r={1.8} fill="#3B2A20" />
+          <Circle cx={57 + geser} cy={46} r={1.8} fill="#3B2A20" />
+        </>
+      )}
+      <Path
+        d={`M${45 + geser} 55 Q${50 + geser} 58 ${55 + geser} 55`}
+        stroke="#A8664A"
+        strokeWidth={1.5}
+        fill="none"
+        strokeLinecap="round"
+      />
+    </Svg>
+  );
+}
+
+function IlustrasiSelfie({ c }: { c: Palette }) {
+  return (
+    <View
+      style={{
+        width: 170,
+        height: 170,
+        alignItems: "center",
+        justifyContent: "center",
+      }}
+    >
+      <Sosok c={c} ukuran={130} />
+      <Svg width={170} height={170} style={StyleSheet.absoluteFill}>
+        <Line
+          x1={85}
+          y1={4}
+          x2={85}
+          y2={166}
+          stroke={c.accent}
+          strokeWidth={1.5}
+          strokeDasharray="5 5"
+        />
+        <Line
+          x1={4}
+          y1={78}
+          x2={166}
+          y2={78}
+          stroke={c.accent}
+          strokeWidth={1.5}
+          strokeDasharray="5 5"
+        />
+      </Svg>
+    </View>
+  );
+}
+
+function Contoh({
+  varian,
+  label,
+  c,
+  styles,
+}: {
+  varian: "benar" | "kacamata" | "menoleh";
+  label: string;
+  c: Palette;
+  styles: ReturnType<typeof makeStyles>;
+}) {
+  const benar = varian === "benar";
+  return (
+    <View style={styles.example}>
+      <View>
+        <Sosok
+          c={c}
+          ukuran={58}
+          kacamata={varian === "kacamata"}
+          geser={varian === "menoleh" ? 9 : 0}
+        />
+        <View
+          style={[
+            styles.exampleBadge,
+            { backgroundColor: benar ? c.ok.ink : c.bad.ink },
+          ]}
+        >
+          <Ionicons
+            name={benar ? "checkmark" : "close"}
+            size={11}
+            color="#fff"
+          />
+        </View>
       </View>
-      <Text style={styles.frameLabel}>{label}</Text>
+      <Text style={styles.exampleText} numberOfLines={2}>
+        {label}
+      </Text>
     </View>
   );
 }
@@ -311,7 +498,24 @@ const makeStyles = (c: Palette) =>
       color: c.muted,
       marginTop: 2,
     },
-    content: { paddingHorizontal: 18, paddingTop: 16, paddingBottom: 40 },
+    // Ruang bawah untuk floating tab bar.
+    content: { paddingHorizontal: 18, paddingTop: 16, paddingBottom: 140 },
+
+    intro: { alignItems: "center", paddingHorizontal: 12, marginBottom: 14 },
+    introTitle: {
+      fontSize: 18,
+      fontWeight: "800",
+      color: c.ink,
+      textAlign: "center",
+    },
+    introSub: {
+      fontSize: 12,
+      lineHeight: 18,
+      fontWeight: "500",
+      color: c.muted,
+      textAlign: "center",
+      marginTop: 6,
+    },
 
     card: {
       backgroundColor: c.card,
@@ -326,107 +530,130 @@ const makeStyles = (c: Palette) =>
       shadowRadius: 16,
       elevation: 3,
     },
-    cardTitle: { fontSize: 13.5, fontWeight: "700", color: c.ink },
 
-    compare: { flexDirection: "row", alignItems: "center", gap: 10 },
-    arrow: {
-      width: 30,
-      height: 30,
-      borderRadius: 15,
-      backgroundColor: c.info.bg,
+    exampleRow: {
+      flexDirection: "row",
+      alignSelf: "stretch",
+      marginTop: 16,
+      paddingTop: 14,
+      borderTopWidth: 1,
+      borderTopColor: c.hair,
+    },
+    example: { flex: 1, alignItems: "center", gap: 8 },
+    exampleBadge: {
+      position: "absolute",
+      right: -2,
+      bottom: -2,
+      width: 20,
+      height: 20,
+      borderRadius: 10,
+      borderWidth: 2,
+      borderColor: c.card,
       alignItems: "center",
       justifyContent: "center",
-      marginBottom: 22,
     },
-    frame: {
+    exampleText: {
+      fontSize: 10.5,
+      fontWeight: "600",
+      color: c.muted,
+      textAlign: "center",
+    },
+
+    tipRow: { flexDirection: "row", gap: 12 },
+    tipNum: {
+      width: 26,
+      height: 26,
+      borderRadius: 13,
+      backgroundColor: c.accent,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    tipNumText: { fontSize: 12, fontWeight: "800", color: "#fff" },
+    tipTitle: { fontSize: 13, fontWeight: "700", color: c.ink },
+    tipText: {
+      fontSize: 11.5,
+      lineHeight: 17,
+      fontWeight: "500",
+      color: c.muted,
+      marginTop: 3,
+    },
+
+    preview: {
       width: "100%",
       aspectRatio: 3 / 4,
       borderRadius: 18,
       overflow: "hidden",
       backgroundColor: c.chip,
+    },
+    previewImg: { width: "100%", height: "100%" },
+    previewTag: {
+      position: "absolute",
+      top: 12,
+      left: 12,
+      paddingHorizontal: 10,
+      paddingVertical: 5,
+      borderRadius: 999,
+      backgroundColor: c.accent,
+    },
+    previewTagText: { fontSize: 10.5, fontWeight: "700", color: "#fff" },
+    compareRow: {
+      flexDirection: "row",
       alignItems: "center",
-      justifyContent: "center",
+      gap: 12,
+      marginTop: 14,
     },
-    frameKosong: {
-      borderWidth: 1.5,
-      borderStyle: "dashed",
-      borderColor: c.fieldBorder,
-      backgroundColor: c.card,
-    },
-    foto: {
+    miniWrap: { width: 44, height: 44, borderRadius: 22, overflow: "hidden" },
+    mini: {
       width: "100%",
       height: "100%",
       alignItems: "center",
       justifyContent: "center",
     },
-    awal: { fontSize: 30, fontWeight: "800", color: "#fff" },
-    frameLabel: {
-      fontSize: 11.5,
-      fontWeight: "600",
+    miniText: { fontSize: 14, fontWeight: "800", color: "#fff" },
+    compareTitle: { fontSize: 12.5, fontWeight: "700", color: c.ink },
+    compareSub: {
+      fontSize: 11,
+      fontWeight: "500",
       color: c.muted,
-      marginTop: 8,
+      marginTop: 2,
     },
 
-    pilihRow: { flexDirection: "row", gap: 10, marginTop: 16 },
-    pilihBtn: {
-      flex: 1,
+    galatBox: {
       flexDirection: "row",
-      alignItems: "center",
-      gap: 10,
-      paddingHorizontal: 12,
-      paddingVertical: 11,
+      gap: 8,
+      alignItems: "flex-start",
+      padding: 12,
       borderRadius: 14,
-      borderWidth: 1,
-      borderColor: c.fieldBorder,
+      backgroundColor: c.bad.bg,
     },
-    pilihIcon: {
-      width: 32,
-      height: 32,
-      borderRadius: 10,
-      alignItems: "center",
-      justifyContent: "center",
-    },
-    pilihText: { fontSize: 12.5, fontWeight: "600", color: c.ink },
-
-    guideRow: { flexDirection: "row", alignItems: "center", gap: 10 },
-    guideText: {
+    galatText: {
       flex: 1,
       fontSize: 12,
       lineHeight: 17,
-      fontWeight: "500",
-      color: c.ink,
-    },
-    note: {
-      marginTop: 14,
-      padding: 12,
-      borderRadius: 14,
-      backgroundColor: c.warn.bg,
-    },
-    noteText: {
-      fontSize: 11,
-      lineHeight: 16,
       fontWeight: "600",
-      color: c.warn.ink,
+      color: c.bad.ink,
     },
 
-    actionBar: {
+    primary: {
       flexDirection: "row",
-      alignItems: "center",
-      gap: 14,
-      backgroundColor: c.card,
-      borderTopWidth: 1,
-      borderTopColor: c.hair,
-      paddingHorizontal: 18,
-      paddingTop: 12,
-    },
-    barText: { flex: 1, fontSize: 11.5, fontWeight: "600", color: c.muted },
-    submit: {
-      paddingHorizontal: 20,
-      paddingVertical: 13,
+      gap: 8,
+      paddingVertical: 15,
       borderRadius: 16,
       alignItems: "center",
+      justifyContent: "center",
     },
-    submitText: { fontSize: 13, fontWeight: "700", color: c.mutedLabel },
+    primaryText: { fontSize: 14, fontWeight: "700", color: "#fff" },
+    secondary: {
+      flexDirection: "row",
+      gap: 8,
+      marginTop: 10,
+      paddingVertical: 14,
+      borderRadius: 16,
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: c.chip,
+    },
+    secondaryText: { fontSize: 13.5, fontWeight: "700", color: c.accent },
 
     kembaliBtn: {
       marginTop: 16,

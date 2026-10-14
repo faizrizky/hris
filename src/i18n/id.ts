@@ -1039,6 +1039,22 @@ export const id = {
   "pd.ubahFoto": "Ubah foto",
   "pd.fotoBelum": "Belum ada foto profil",
   "pd.fotoAda": "Dipakai juga sebagai pembanding wajah",
+  "pf.panduanJudul": "Ambil foto profil",
+  "pf.panduanSub":
+    "Foto ini juga dipakai HR sebagai pembanding wajahmu saat absen.",
+  "pf.cBenar": "Menghadap depan",
+  "pf.cKacamata": "Kacamata gelap",
+  "pf.cMenoleh": "Menoleh",
+  "pf.t1": "Cahaya terang",
+  "pf.t1Isi":
+    "Cari tempat yang terang dan latar polos, hindari cahaya dari belakang.",
+  "pf.t2": "Lihat lurus ke kamera",
+  "pf.t2Isi": "Pegang HP sejajar mata dan hadapkan wajah lurus ke kamera.",
+  "pf.t3": "Wajah terlihat jelas",
+  "pf.t3Isi": "Lepas masker, topi, dan kacamata gelap.",
+  "pf.bukaKamera": "Buka kamera",
+  "pf.ulang": "Ambil ulang",
+  "pf.gantiKeBaru": "Akan diganti dengan foto baru setelah disetujui HR",
 } as const;
 
 export type Kunci = keyof typeof id;

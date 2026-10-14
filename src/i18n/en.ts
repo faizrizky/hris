@@ -1036,4 +1036,20 @@ export const en: Record<Kunci, string> = {
   "pd.ubahFoto": "Change photo",
   "pd.fotoBelum": "No profile photo yet",
   "pd.fotoAda": "Also used as a face reference",
+  "pf.panduanJudul": "Take a profile photo",
+  "pf.panduanSub":
+    "HR also uses this photo as a reference for your face when you clock in.",
+  "pf.cBenar": "Facing front",
+  "pf.cKacamata": "Dark glasses",
+  "pf.cMenoleh": "Turned away",
+  "pf.t1": "Good lighting",
+  "pf.t1Isi":
+    "Find a bright spot with a plain background, avoid light from behind.",
+  "pf.t2": "Look straight",
+  "pf.t2Isi": "Hold your phone at eye level and look straight at the camera.",
+  "pf.t3": "Face clearly visible",
+  "pf.t3Isi": "Remove masks, hats, and dark glasses.",
+  "pf.bukaKamera": "Open camera",
+  "pf.ulang": "Retake",
+  "pf.gantiKeBaru": "Will be replaced by the new photo once HR approves",
 };
