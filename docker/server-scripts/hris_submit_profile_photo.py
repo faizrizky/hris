@@ -1,6 +1,6 @@
 # Server Script (type: API, method: hris_submit_profile_photo, allow_guest: 0)
 # Ajukan foto profil baru (Profile Change Request, diputuskan HR). POST: embedding (JSON 128 angka dari foto baru),
-# reason, photo_b64 (JPEG base64, wajib bila bukan dry_run), ktp_embedding (opsional), dry_run=1 (hanya hitung kemiripan, tanpa membuat permintaan). Server menghitung kemiripan foto baru dengan wajah terdaftar dan KTP. Foto diunggah terpisah ke field
+# reason, photo_b64 (JPEG base64, opsional: tanpanya foto diunggah lewat upload_file ke field photo), ktp_embedding (opsional), dry_run=1 (hanya hitung kemiripan, tanpa membuat permintaan). Server menghitung kemiripan foto baru dengan wajah terdaftar dan KTP. Foto diunggah terpisah ke field
 # "photo" dokumen yang dikembalikan. Hasil: {"name","status":"Pending","score_face","score_ktp","below_min": bool}
 # @include: _lib/face_lib.py
 fd = frappe.form_dict
@@ -24,8 +24,6 @@ if not ktp_emb and act and act.ktp_embedding:
 score_ktp = fl_pct(pe, ktp_emb)
 below = score_face is not None and score_face < fl_setting("min_profile", 36)
 msg = {"name": None, "status": "Preview", "score_face": score_face, "score_ktp": score_ktp, "below_min": bool(below)}
-if not fd.get("dry_run") and not fd.get("photo_b64"):
-    frappe.throw("The photo is missing")
 if not fd.get("dry_run"):
     for o in frappe.get_all("Profile Change Request", filters={"employee": emp, "status": "Pending"},
                             fields=["name", "proposed"], limit_page_length=20):

@@ -1320,6 +1320,41 @@ else:
     frappe.db.set_value("Client Script", _FCS, {"script": _FJS, "enabled": 1})
 frappe.db.commit()
 
+# Karyawan boleh mengunggah foto/selfie ke dokumen pengajuan MILIKNYA (upload_file butuh hak tulis), tetapi semua field lain
+# dikunci di permlevel 1 (hanya HR): status, skor kemiripan, embedding tidak bisa diubah lewat REST.
+for _dt, _attach in (("Profile Change Request", "photo"), ("Face Enrollment", "selfie")):
+    _meta = frappe.get_meta(_dt)
+    _changed = False
+    for _f in _meta.fields:
+        if _f.fieldname == _attach or _f.permlevel == 1:
+            continue
+        if _f.get("is_custom_field"):
+            frappe.db.set_value("Custom Field", {"dt": _dt, "fieldname": _f.fieldname}, "permlevel", 1)
+        else:
+            frappe.db.set_value("DocField", {"parent": _dt, "fieldname": _f.fieldname}, "permlevel", 1)
+        _changed = True
+    # Field lampiran yang dibuka untuk karyawan: tetap permlevel 0 (read_only di form tidak memengaruhi upload).
+    if _meta.get_field(_attach) and _meta.get_field(_attach).get("is_custom_field"):
+        frappe.db.set_value("Custom Field", {"dt": _dt, "fieldname": _attach}, "read_only", 0)
+    else:
+        frappe.db.set_value("DocField", {"parent": _dt, "fieldname": _attach}, "read_only", 0)
+    # Hak ditambahkan pada DocType itu sendiri (bukan Custom DocPerm: begitu ada satu Custom DocPerm, Frappe
+    # mengabaikan semua hak bawaan DocType, termasuk hak level 0 milik HR).
+    for _cdp in frappe.get_all("Custom DocPerm", filters={"parent": _dt}, pluck="name"):
+        frappe.delete_doc("Custom DocPerm", _cdp, ignore_permissions=True, force=True)
+    _doc = frappe.get_doc("DocType", _dt)
+    _ada = {(r.role, r.permlevel) for r in _doc.permissions}
+    for _role, _lvl, _extra in (("HR Manager", 1, dict(read=1, write=1)), ("HR User", 1, dict(read=1, write=1)),
+                                ("System Manager", 1, dict(read=1, write=1)),
+                                ("Employee", 0, dict(read=1, write=1, if_owner=1))):
+        if (_role, _lvl) not in _ada:
+            _doc.append("permissions", dict(role=_role, permlevel=_lvl, **_extra))
+    _doc.flags.ignore_permissions = True
+    _doc.save()
+    frappe.clear_cache(doctype=_dt)
+    log("permission " + _dt + ": karyawan hanya field lampiran miliknya")
+frappe.db.commit()
+
 # Sidebar Shift and Attendance: tautan peninjauan wajah dan pengaturannya (di bawah item yang sudah ada).
 if frappe.db.exists("Sidebar", "Shift and Attendance"):
     from frappe.desk.doctype.custom_sidebar.custom_sidebar import add_site_sidebar_item
