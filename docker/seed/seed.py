@@ -1188,6 +1188,80 @@ for _dt in ("Leave Type", "Designation", "Salary Component", "Shift Type", "Depa
 frappe.db.commit()
 frappe.clear_cache()
 
+# ---- Verifikasi wajah: pendaftaran wajah karyawan, dicocokkan dengan KTP dan foto profil, diputuskan HR ----
+# Embedding (128 angka, SFace) dihitung di HP; server hanya menyimpan vektor dan menghitung kemiripan cosine.
+if not frappe.db.exists("DocType", "Face Settings"):
+    make(dict(
+        doctype="DocType", name="Face Settings", module="HR", custom=1, issingle=1,
+        fields=[
+            dict(fieldname="min_ktp", label="Minimum Match with ID Card (%)", fieldtype="Int", default="30",
+                 description="Cosine similarity x100. Below this, HR sees a warning."),
+            dict(fieldname="min_profile", label="Minimum Match with Profile Photo (%)", fieldtype="Int", default="36",
+                 description="Below this, HR sees a warning; after a profile photo change the employee must re-register."),
+            dict(fieldname="min_checkin", label="Minimum Match at Clock In (%)", fieldtype="Int", default="36",
+                 description="Below this, the check-in is flagged Needs Review."),
+            dict(fieldname="reenroll_grace_days", label="Re-registration Grace (days)", fieldtype="Int", default="3"),
+            dict(fieldname="require_enrollment", label="Require Registered Face to Clock In", fieldtype="Check", default="0"),
+        ],
+        permissions=[dict(role="System Manager", read=1, write=1, create=1),
+                     dict(role="HR Manager", read=1, write=1, create=1)]))
+    frappe.clear_cache()
+if not frappe.db.sql("select 1 from tabSingles where doctype = 'Face Settings' limit 1"):
+    for _k, _v in (("min_ktp", 30), ("min_profile", 36), ("min_checkin", 36), ("reenroll_grace_days", 3),
+                   ("require_enrollment", 0)):
+        frappe.db.set_single_value("Face Settings", _k, _v)
+    log("Face Settings: nilai awal diisi")
+if not frappe.db.exists("DocType", "Face Enrollment"):
+    make(dict(
+        doctype="DocType", name="Face Enrollment", module="HR", custom=1, naming_rule="Expression (old style)",
+        autoname="FACE-.YYYY.-.#####", track_changes=1,
+        fields=[
+            dict(fieldname="employee", label="Employee", fieldtype="Link", options="Employee", reqd=1, in_list_view=1),
+            dict(fieldname="employee_name", label="Employee Name", fieldtype="Data", fetch_from="employee.employee_name",
+                 read_only=1, in_list_view=1),
+            dict(fieldname="status", label="Status", fieldtype="Select",
+                 options="Pending\nActive\nRejected\nSuperseded", default="Pending", in_list_view=1,
+                 in_standard_filter=1),
+            dict(fieldname="review_section", label="Review", fieldtype="Section Break"),
+            dict(fieldname="review_html", label="Review", fieldtype="HTML"),
+            dict(fieldname="scores_section", label="Match Scores", fieldtype="Section Break"),
+            dict(fieldname="score_ktp", label="Match with ID Card (%)", fieldtype="Float", read_only=1, in_list_view=1),
+            dict(fieldname="score_profile", label="Match with Profile Photo (%)", fieldtype="Float", read_only=1,
+                 in_list_view=1),
+            dict(fieldname="score_profile_ktp", label="Profile Photo vs ID Card (%)", fieldtype="Float", read_only=1),
+            dict(fieldname="data_section", label="Data", fieldtype="Section Break"),
+            dict(fieldname="ktp_document", label="ID Card Document", fieldtype="Link", options="Employee Document",
+                 read_only=1),
+            dict(fieldname="selfie", label="Registration Selfie", fieldtype="Attach Image", read_only=1),
+            dict(fieldname="face_embeddings", label="Face Embeddings (JSON)", fieldtype="Long Text", read_only=1,
+                 hidden=1),
+            dict(fieldname="ktp_embedding", label="ID Card Embedding (JSON)", fieldtype="Long Text", read_only=1,
+                 hidden=1),
+            dict(fieldname="profile_embedding", label="Profile Photo Embedding (JSON)", fieldtype="Long Text",
+                 read_only=1, hidden=1),
+            dict(fieldname="needs_reenroll", label="Needs Re-registration", fieldtype="Check", read_only=1),
+            dict(fieldname="grace_until", label="Re-registration Deadline", fieldtype="Date", read_only=1),
+            dict(fieldname="hr_note", label="HR Note", fieldtype="Small Text"),
+            dict(fieldname="decided_by", label="Decided By", fieldtype="Link", options="User", read_only=1),
+            dict(fieldname="decided_on", label="Decided On", fieldtype="Datetime", read_only=1),
+        ],
+        permissions=[dict(role="System Manager", read=1, write=1, create=1, delete=1),
+                     dict(role="HR Manager", read=1, write=1, create=1, delete=1),
+                     dict(role="HR User", read=1, write=1, create=1)]))
+    frappe.clear_cache()
+# Permintaan ganti foto profil memakai Profile Change Request: lampiran foto + kemiripannya.
+for _f in [
+    dict(fieldname="photo", label="Profile Photo", fieldtype="Attach Image", read_only=1),
+    dict(fieldname="photo_embedding", label="Profile Photo Embedding (JSON)", fieldtype="Long Text", read_only=1,
+         hidden=1),
+    dict(fieldname="photo_score_face", label="New Photo vs Registered Face (%)", fieldtype="Float", read_only=1),
+    dict(fieldname="photo_score_ktp", label="New Photo vs ID Card (%)", fieldtype="Float", read_only=1),
+]:
+    if not frappe.db.exists("Custom Field", {"dt": "Profile Change Request", "fieldname": _f["fieldname"]}):
+        make(dict(doctype="Custom Field", dt="Profile Change Request", **_f))
+        frappe.clear_cache(doctype="Profile Change Request")
+frappe.db.commit()
+
 EVENT_SCRIPTS = {  # script berbasis event dokumen: nama_file -> (DocType, event)
     "hris_notify_leave_created": ("Leave Application", "After Insert"),
     "hris_notify_leave_decided": ("Leave Application", "After Save"),

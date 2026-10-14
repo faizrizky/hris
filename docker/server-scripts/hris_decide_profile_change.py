@@ -8,6 +8,7 @@ is_hr = user == "Administrator" or len(
 ) > 0
 if not is_hr:
     frappe.throw("Only HR can decide profile changes", frappe.PermissionError)
+# @include: _lib/face_lib.py
 name = frappe.form_dict.get("name")
 decision = frappe.form_dict.get("decision")
 note = (frappe.form_dict.get("note") or "").strip()
@@ -38,6 +39,19 @@ if decision == "approve":
     ec_rows = prop.get("emergency_contacts")
     fam_rows = prop.get("family")
     # @include: _lib/profile_apply.py
+    if prop.get("photo") and req.photo:
+        # Foto profil baru berlaku. Bila tidak mirip lagi dengan wajah terdaftar, karyawan harus mendaftar ulang.
+        frappe.db.set_value("Employee", target_emp, "image", req.photo)
+        act = fl_active(target_emp)
+        if act:
+            upd = {"profile_embedding": req.photo_embedding}
+            if req.photo_score_face is not None and req.photo_score_face < fl_setting("min_profile", 36):
+                upd["needs_reenroll"] = 1
+                upd["grace_until"] = frappe.utils.add_days(frappe.utils.nowdate(), int(fl_setting("reenroll_grace_days", 3)))
+                fl_notify(requester_user, "Please register your face again",
+                          "Your new profile photo looks different from your registered face. Register again before "
+                          + str(upd["grace_until"]) + ".", "Face Enrollment", act.name)
+            frappe.db.set_value("Face Enrollment", act.name, upd)
 word = "approved" if decision == "approve" else "rejected"
 frappe.db.set_value("Profile Change Request", name,
                     {"status": "Approved" if decision == "approve" else "Rejected", "hr_note": note or None,

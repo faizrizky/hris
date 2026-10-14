@@ -209,7 +209,24 @@ if not done:
         geo_flags = []
     if geo_flags and mode == "Block" and log_type == "IN" and not offline:
         frappe.throw("Clock In blocked: " + "; ".join(geo_flags))
-    all_flags = flags + geo_flags
+    # @include: _lib/face_lib.py
+    face_flags = []
+    face_act = fl_active(me[0].name)
+    face_raw = fd.get("face_vec")
+    if face_act:
+        if face_act.needs_reenroll and face_act.grace_until and not offline \
+                and frappe.utils.getdate(frappe.utils.nowdate()) > frappe.utils.getdate(face_act.grace_until):
+            frappe.throw("Face re-registration is required before you can clock in or out")
+        fv = fl_parse(face_raw)
+        if not fv:
+            face_flags.append("face not verified")
+        else:
+            fpct = fl_pct(fl_centroid([fl_parse(x) for x in json.loads(face_act.face_embeddings)]), fv)
+            if fpct is None or fpct < fl_setting("min_checkin", 36):
+                face_flags.append("face mismatch (" + str(fpct) + "%)")
+    elif log_type == "IN" and not offline and fl_setting("require_enrollment", 0):
+        frappe.throw("Register your face first (Profile > Face registration)")
+    all_flags = flags + geo_flags + face_flags
     if offline and not flags and not claimed:
         claimed = time_value
     review = "Needs Review" if all_flags else "None"
