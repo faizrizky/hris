@@ -1,5 +1,12 @@
 import { useCallback, useMemo, useState } from "react";
-import { Linking, Pressable, StyleSheet, Text, View } from "react-native";
+import {
+  Image,
+  Linking,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 import { RevealScrollView as ScrollView } from "@/components/Reveal";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
@@ -26,6 +33,7 @@ import { useT } from "@/i18n";
 import { ChangeSummary } from "@/screens/profile/ChangeSummary";
 import { terjemahkan } from "@/i18n/serverLabels";
 import { kembali } from "@/navigation/kembali";
+import { simpanLampiran } from "@/utils/lampiran";
 
 export function ProfileDataScreen({ navigation }: any) {
   const t = useT();
@@ -37,6 +45,7 @@ export function ProfileDataScreen({ navigation }: any) {
   const [profil, setProfil] = useState<PersonalProfile | null>(null);
   const [galat, setGalat] = useState<string | null>(null);
   const [permintaan, setPermintaan] = useState<ProfileChange[]>([]);
+  const [foto, setFoto] = useState<string | null>(null);
 
   const muat = useCallback(() => {
     if (!employee) return;
@@ -54,6 +63,14 @@ export function ProfileDataScreen({ navigation }: any) {
         }
       })
       .catch((e) => setGalat(describeError(e)));
+    // Foto profil berkas privat: diunduh dengan sesi lalu ditampilkan dari cache.
+    hrisApi
+      .getFaceStatus()
+      .then((f) =>
+        f.profileUrl ? simpanLampiran(f.profileUrl, "profil") : null,
+      )
+      .then(setFoto)
+      .catch(() => setFoto(null));
   }, [employee]);
 
   useFocusEffect(muat);
@@ -155,11 +172,40 @@ export function ProfileDataScreen({ navigation }: any) {
       {header}
 
       <ScrollView contentContainerStyle={styles.content}>
+        <View style={[styles.card, styles.photoCard]}>
+          {foto ? (
+            <Image source={{ uri: foto }} style={styles.photo} />
+          ) : (
+            <LinearGradient
+              colors={[c.accent, c.accent2]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.photo}
+            >
+              <Text style={styles.photoInitial}>
+                {inisial(profil.fullName)}
+              </Text>
+            </LinearGradient>
+          )}
+          <View style={{ flex: 1, minWidth: 0 }}>
+            <Text style={styles.cardTitle}>{t("pd.fotoProfil")}</Text>
+            <Text style={styles.famMeta}>
+              {foto ? t("pd.fotoAda") : t("pd.fotoBelum")}
+            </Text>
+          </View>
+          <Pressable
+            style={styles.photoBtn}
+            onPress={() => navigation.navigate("ProfilePhoto")}
+          >
+            <Text style={styles.addBtnText}>{t("pd.ubahFoto")}</Text>
+          </Pressable>
+        </View>
+
         <LinearGradient
           colors={[c.accent, c.accent2]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
-          style={styles.hero}
+          style={[styles.hero, { marginTop: 12 }]}
         >
           <View style={styles.heroBlob} />
           <View style={styles.heroTop}>
@@ -396,6 +442,27 @@ const makeStyles = (c: Palette) =>
     content: { paddingHorizontal: 18, paddingTop: 16, paddingBottom: 130 },
 
     hero: { borderRadius: 22, padding: 18, overflow: "hidden" },
+    photoCard: {
+      marginTop: 0,
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 14,
+    },
+    photo: {
+      width: 60,
+      height: 60,
+      borderRadius: 30,
+      overflow: "hidden",
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    photoInitial: { fontSize: 19, fontWeight: "800", color: "#fff" },
+    photoBtn: {
+      paddingHorizontal: 13,
+      paddingVertical: 9,
+      borderRadius: 12,
+      backgroundColor: c.chip,
+    },
     heroBlob: {
       position: "absolute",
       right: -40,

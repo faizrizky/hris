@@ -16,7 +16,6 @@ import { useSession } from "@/services/session";
 import { LeaveBalance } from "@/services/types";
 import { useConfirm } from "@/components/ConfirmDialog";
 import { useT } from "@/i18n";
-import { useJumlahAntrean } from "@/hooks/useJumlahAntrean";
 import { LanguagePicker } from "@/components/LanguagePicker";
 
 export function ProfileScreen({ navigation }: any) {
@@ -26,7 +25,6 @@ export function ProfileScreen({ navigation }: any) {
   const [pushOn, setPushOn] = useState(true);
   const { mode, toggle } = useThemeMode();
   const t = useT();
-  const antrean = useJumlahAntrean();
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
   const confirm = useConfirm();
@@ -108,22 +106,6 @@ export function ProfileScreen({ navigation }: any) {
             onPress={() => navigation.navigate("ProfileDocs")}
           />
           <MenuRow
-            iconBg={c.info.bg}
-            ink={c.info.ink}
-            icon={ICON.user}
-            title={t("profil.foto")}
-            subtitle={t("profil.fotoSub")}
-            onPress={() => navigation.navigate("ProfilePhoto")}
-          />
-          <MenuRow
-            iconBg={c.purple.bg}
-            ink={c.purple.ink}
-            icon={ICON.shield}
-            title={t("profil.wajah")}
-            subtitle={t("profil.wajahSub")}
-            onPress={() => navigation.navigate("FaceEnroll")}
-          />
-          <MenuRow
             iconBg={c.warn.bg}
             ink={c.warn.ink}
             icon={ICON.bell}
@@ -174,32 +156,6 @@ export function ProfileScreen({ navigation }: any) {
             isLast
             onPress={() => navigation.navigate("ProfileSecurity")}
           />
-        </View>
-
-        <View style={styles.syncCard}>
-          <Text style={styles.syncTitle}>{t("profil.sinkron")}</Text>
-
-          <View style={styles.syncRow}>
-            <View style={[styles.dot, { backgroundColor: c.ok.ink }]} />
-            <Text style={styles.syncText}>{t("profil.tersinkron")}</Text>
-          </View>
-
-          {antrean > 0 ? (
-            <View style={[styles.syncRow, { marginTop: 9 }]}>
-              <View style={[styles.dot, { backgroundColor: c.warn.ink }]} />
-              <Text style={styles.syncText}>
-                {t("profil.antreanN", { n: antrean })}
-              </Text>
-              <Pressable
-                onPress={() =>
-                  void hrisApi.syncOfflineCheckins().catch(() => {})
-                }
-                hitSlop={8}
-              >
-                <Text style={styles.syncAction}>{t("umum.kirim")}</Text>
-              </Pressable>
-            </View>
-          ) : null}
         </View>
 
         <Pressable
@@ -386,31 +342,6 @@ const makeStyles = (c: Palette) =>
       color: c.muted,
       marginTop: 2,
     },
-
-    syncCard: {
-      backgroundColor: c.card,
-      borderWidth: 1,
-      borderColor: c.cardBorder,
-      borderRadius: 22,
-      marginTop: 12,
-      padding: 15,
-    },
-    syncTitle: { fontSize: 12.5, fontWeight: "700", color: c.ink },
-    syncRow: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: 9,
-      marginTop: 11,
-    },
-    dot: { width: 9, height: 9, borderRadius: 4.5 },
-    syncText: {
-      flex: 1,
-      fontSize: 11.5,
-      fontWeight: "500",
-      color: c.muted,
-    },
-    syncTime: { fontSize: 10, fontWeight: "500", color: c.mutedLabel },
-    syncAction: { fontSize: 10, fontWeight: "600", color: c.accent },
 
     logout: {
       marginTop: 12,

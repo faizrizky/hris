@@ -12,15 +12,28 @@ import { hrisApi } from "@/services/api";
 import { describeError } from "@/services/api/http";
 import { ErrorState } from "@/components/ErrorState";
 import { useSession } from "@/services/session";
-import { SecurityInfo, SecurityToggleKey } from "@/services/types";
+import {
+  FaceState,
+  FaceStatus,
+  SecurityInfo,
+  SecurityToggleKey,
+} from "@/services/types";
 import { RadialGlow } from "@/components/RadialGlow";
 import { LineIcon } from "@/components/LineIcon";
 import { ICON } from "@/constants/icons";
 import { Skeleton } from "@/components/Skeleton";
-import { desimal } from "@/utils/currency";
 import { tanggalPendekTahun } from "@/utils/date";
 import { useT } from "@/i18n";
 import { kembali } from "@/navigation/kembali";
+
+// Warna pil status wajah di atas kartu gelap.
+const PILL: Record<FaceState, { bg: string; ink: string }> = {
+  active: { bg: "rgba(74,222,128,0.14)", ink: "#4ADE80" },
+  pending: { bg: "rgba(251,191,36,0.16)", ink: "#FBBF24" },
+  needs_reenroll: { bg: "rgba(251,191,36,0.16)", ink: "#FBBF24" },
+  rejected: { bg: "rgba(248,113,113,0.16)", ink: "#F87171" },
+  none: { bg: "rgba(148,163,184,0.18)", ink: "#CBD5E1" },
+};
 
 export function ProfileSecurityScreen({ navigation }: any) {
   const t = useT();
@@ -33,6 +46,7 @@ export function ProfileSecurityScreen({ navigation }: any) {
 
   const [info, setInfo] = useState<SecurityInfo | null>(null);
   const [galat, setGalat] = useState<string | null>(null);
+  const [wajah, setWajah] = useState<FaceStatus | null>(null);
 
   const muat = useCallback(() => {
     if (!employee) return;
@@ -41,6 +55,10 @@ export function ProfileSecurityScreen({ navigation }: any) {
       .getSecurityInfo(employee.id)
       .then(setInfo)
       .catch((e) => setGalat(describeError(e)));
+    hrisApi
+      .getFaceStatus()
+      .then(setWajah)
+      .catch(() => setWajah(null));
   }, [employee]);
 
   useFocusEffect(muat);
@@ -128,7 +146,10 @@ export function ProfileSecurityScreen({ navigation }: any) {
       {header}
 
       <ScrollView contentContainerStyle={styles.content}>
-        <View style={styles.faceCard}>
+        <Pressable
+          style={styles.faceCard}
+          onPress={() => navigation.navigate("FaceEnroll")}
+        >
           <RadialGlow size={200} color={c.glowHeader} top={-60} right={-40} />
 
           <View style={styles.faceTop}>
@@ -142,39 +163,39 @@ export function ProfileSecurityScreen({ navigation }: any) {
             </LinearGradient>
 
             <View style={{ flex: 1, minWidth: 0 }}>
-              <Text style={styles.faceTitle}>{t("sec.faceAktif")}</Text>
+              <Text style={styles.faceTitle}>{t("profil.wajah")}</Text>
               <Text style={styles.faceSub}>
-                {t("sec.terdaftar", {
-                  a: tanggalPendekTahun(info.faceEnrolledAt),
-                  b: tanggalPendekTahun(info.faceUpdatedAt),
-                })}
+                {wajah ? t(`sec.wajahSub.${wajah.state}` as never) : "…"}
               </Text>
             </View>
+            <Ionicons name="chevron-forward" size={18} color={c.onDark.muted} />
           </View>
 
-          <View style={styles.facePills}>
-            <View
-              style={[
-                styles.pill,
-                { backgroundColor: "rgba(74,222,128,0.14)" },
-              ]}
-            >
-              <Text style={[styles.pillText, { color: "#4ADE80" }]}>
-                {t("sec.liveness", { x: info.livenessOk ? "✓" : "✗" })}
-              </Text>
+          {wajah ? (
+            <View style={styles.facePills}>
+              <View
+                style={[styles.pill, { backgroundColor: PILL[wajah.state].bg }]}
+              >
+                <Text
+                  style={[styles.pillText, { color: PILL[wajah.state].ink }]}
+                >
+                  {t(`sec.wajah.${wajah.state}` as never)}
+                </Text>
+              </View>
+              {wajah.state === "needs_reenroll" && wajah.graceUntil ? (
+                <View
+                  style={[styles.pill, { backgroundColor: PILL.pending.bg }]}
+                >
+                  <Text style={[styles.pillText, { color: PILL.pending.ink }]}>
+                    {t("sec.batas", {
+                      tgl: tanggalPendekTahun(wajah.graceUntil),
+                    })}
+                  </Text>
+                </View>
+              ) : null}
             </View>
-            <View
-              style={[
-                styles.pill,
-                { backgroundColor: "rgba(36,144,239,0.16)" },
-              ]}
-            >
-              <Text style={[styles.pillText, { color: c.accentLight }]}>
-                {t("sec.match", { x: desimal(info.matchScore) })}
-              </Text>
-            </View>
-          </View>
-        </View>
+          ) : null}
+        </Pressable>
 
         <View style={styles.listCard}>
           {info.toggles.map((t) => (
