@@ -1,6 +1,6 @@
 # Server Script (type: API, method: hris_submit_profile_photo, allow_guest: 0)
 # Ajukan foto profil baru (Profile Change Request, diputuskan HR). POST: embedding (JSON 128 angka dari foto baru),
-# reason, ktp_embedding (opsional). Server menghitung kemiripan foto baru dengan wajah terdaftar dan KTP. Foto diunggah terpisah ke field
+# reason, ktp_embedding (opsional), dry_run=1 (hanya hitung kemiripan, tanpa membuat permintaan). Server menghitung kemiripan foto baru dengan wajah terdaftar dan KTP. Foto diunggah terpisah ke field
 # "photo" dokumen yang dikembalikan. Hasil: {"name","status":"Pending","score_face","score_ktp","below_min": bool}
 # @include: _lib/face_lib.py
 fd = frappe.form_dict
@@ -23,18 +23,22 @@ if not ktp_emb and act and act.ktp_embedding:
     ktp_emb = fl_parse(act.ktp_embedding)
 score_ktp = fl_pct(pe, ktp_emb)
 below = score_face is not None and score_face < fl_setting("min_profile", 36)
-for o in frappe.get_all("Profile Change Request", filters={"employee": emp, "status": "Pending"},
-                        fields=["name", "proposed"], limit_page_length=20):
-    if "photo" in (o.proposed or ""):
-        frappe.db.set_value("Profile Change Request", o.name, "status", "Rejected")
-        frappe.db.set_value("Profile Change Request", o.name, "hr_note", "Superseded by a newer photo")
-doc = frappe.get_doc({"doctype": "Profile Change Request", "employee": emp, "status": "Pending", "reason": reason,
-                      "proposed": json.dumps({"photo": True}),
-                      "changes": json.dumps([{"field": "photo", "label": "Profile Photo", "current": "", "proposed": "New photo"}]),
-                      "photo_embedding": json.dumps(pe),
-                      "photo_score_face": score_face, "photo_score_ktp": score_ktp})
-doc.insert(ignore_permissions=True)
-for u in fl_hr_users():
-    fl_notify(u, "Profile photo change from " + me[0].employee_name, reason, "Profile Change Request", doc.name)
-frappe.response["message"] = {"name": doc.name, "status": "Pending", "score_face": score_face, "score_ktp": score_ktp,
-                              "below_min": bool(below)}
+msg = {"name": None, "status": "Preview", "score_face": score_face, "score_ktp": score_ktp, "below_min": bool(below)}
+if not fd.get("dry_run"):
+    for o in frappe.get_all("Profile Change Request", filters={"employee": emp, "status": "Pending"},
+                            fields=["name", "proposed"], limit_page_length=20):
+        if "photo" in (o.proposed or ""):
+            frappe.db.set_value("Profile Change Request", o.name, "status", "Rejected")
+            frappe.db.set_value("Profile Change Request", o.name, "hr_note", "Superseded by a newer photo")
+    doc = frappe.get_doc({"doctype": "Profile Change Request", "employee": emp, "status": "Pending", "reason": reason,
+                          "proposed": json.dumps({"photo": True}),
+                          "changes": json.dumps([{"field": "photo", "label": "Profile Photo", "current": "",
+                                                  "proposed": "New photo"}]),
+                          "photo_embedding": json.dumps(pe),
+                          "photo_score_face": score_face, "photo_score_ktp": score_ktp})
+    doc.insert(ignore_permissions=True)
+    for u in fl_hr_users():
+        fl_notify(u, "Profile photo change from " + me[0].employee_name, reason, "Profile Change Request", doc.name)
+    msg["name"] = doc.name
+    msg["status"] = "Pending"
+frappe.response["message"] = msg

@@ -12,6 +12,7 @@ export interface ItemAntrean {
   deviceMs: number; // jam dinding HP saat ditekan
   trusted: boolean;
   anchorAgeS: number;
+  faceVec?: number[]; // embedding wajah saat check-in; server mencocokkannya
   lokasi?: {
     lat: number;
     lng: number;

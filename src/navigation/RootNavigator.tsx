@@ -32,6 +32,8 @@ import { StaffListScreen } from "@/screens/staff/StaffListScreen";
 import { StaffDetailScreen } from "@/screens/staff/StaffDetailScreen";
 import { StaffAttendanceScreen } from "@/screens/staff/StaffAttendanceScreen";
 import { StaffHistoryScreen } from "@/screens/staff/StaffHistoryScreen";
+import { FaceEnrollScreen } from "@/screens/profile/FaceEnrollScreen";
+import { ProfilePhotoScreen } from "@/screens/profile/ProfilePhotoScreen";
 import { ProfileDataScreen } from "@/screens/profile/ProfileDataScreen";
 import { ProfileEditScreen } from "@/screens/profile/ProfileEditScreen";
 import { ProfileDocsScreen } from "@/screens/profile/ProfileDocsScreen";
@@ -220,6 +222,8 @@ function ProfileStack() {
       <Stack.Screen name="ProfileData" component={ProfileDataScreen} />
       <Stack.Screen name="ProfileEdit" component={ProfileEditScreen} />
       <Stack.Screen name="ProfileDocs" component={ProfileDocsScreen} />
+      <Stack.Screen name="FaceEnroll" component={FaceEnrollScreen} />
+      <Stack.Screen name="ProfilePhoto" component={ProfilePhotoScreen} />
       <Stack.Screen name="ProfileUpload" component={ProfileUploadScreen} />
       <Stack.Screen
         name="EmployeeDocumentDetail"

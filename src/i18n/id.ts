@@ -961,6 +961,58 @@ export const id = {
   "face.ulang": "Coba lagi",
   "face.chipLiveness": "Liveness ✓",
   "face.tidakDidukung": "Verifikasi wajah belum tersedia di perangkat ini.",
+  "fe.judul": "Pendaftaran Wajah",
+  "fe.tidakDidukung": "Belum tersedia di perangkat ini",
+  "fe.butuhKtp": "KTP belum terverifikasi",
+  "fe.butuhKtpPesan":
+    "Unggah KTP di Profil > Dokumen dan tunggu HR memverifikasinya sebelum mendaftarkan wajah.",
+  "fe.keDokumen": "Buka Dokumen",
+  "fe.butuhFoto": "Foto profil belum ada",
+  "fe.butuhFotoPesan":
+    "Pasang foto profil dulu (diajukan ke HR) sebelum mendaftarkan wajah.",
+  "fe.keFoto": "Ubah foto profil",
+  "fe.menunggu": "Menunggu persetujuan HR",
+  "fe.menungguPesan":
+    "Pendaftaran wajahmu sedang ditinjau HR. Kamu akan mendapat notifikasi setelah diputuskan.",
+  "fe.sudahAktif":
+    "Wajahmu sudah terdaftar. Daftar ulang hanya perlu bila diminta.",
+  "fe.perluDaftarUlang":
+    "Foto profilmu berubah dan wajah terdaftar perlu didaftarkan ulang sebelum {tgl}.",
+  "fe.ditolak": "Pendaftaran sebelumnya ditolak: {alasan}",
+  "fe.petunjuk":
+    "Posisikan wajah di dalam lingkaran, lepas masker dan kacamata gelap, lalu gerakkan kepala pelan-pelan hingga lingkaran penuh.",
+  "fe.putar": "Gerakkan kepala pelan-pelan melingkar",
+  "fe.mengirim": "Mengirim pendaftaran…",
+  "fe.habis": "Waktu habis. Coba lagi di tempat yang lebih terang.",
+  "fe.mulai": "Mulai daftar wajah",
+  "fe.daftarUlang": "Daftar ulang wajah",
+  "fe.ktpTanpaWajah":
+    "Wajah tidak terbaca di foto KTP. Unggah ulang KTP yang lebih jelas.",
+  "fe.profilTanpaWajah":
+    "Wajah tidak terbaca di foto profil. Ganti dengan foto yang lebih jelas.",
+  "pf.judul": "Foto Profil",
+  "pf.sekarang": "Sekarang",
+  "pf.baru": "Baru",
+  "pf.petunjuk":
+    "Gunakan foto wajah menghadap depan yang jelas. Perubahan foto diajukan ke HR.",
+  "pf.kamera": "Ambil foto",
+  "pf.galeri": "Pilih dari galeri",
+  "pf.ajukan": "Ajukan ke HR",
+  "pf.izin": "Izin diperlukan untuk memilih foto.",
+  "pf.tanpaWajah":
+    "Wajah tidak terbaca di foto ini. Pakai foto yang jelas dan menghadap depan.",
+  "pf.rendahJudul": "Foto kurang mirip",
+  "pf.rendahPesan":
+    "Foto ini kurang mirip dengan wajah yang terdaftar. Jika disetujui HR, kamu harus mendaftarkan ulang wajah.",
+  "pf.tetapAjukan": "Tetap ajukan",
+  "pf.pilihLain": "Pilih foto lain",
+  "pf.terkirim": "Pengajuan foto profil terkirim ke HR.",
+  "profil.wajah": "Pendaftaran wajah",
+  "profil.wajahSub": "Untuk verifikasi saat absen",
+  "profil.foto": "Foto profil",
+  "profil.fotoSub": "Ganti foto, diajukan ke HR",
+  "fe.pengingatJudul": "Daftar ulang wajah",
+  "fe.nanti": "Nanti",
 } as const;
 
 export type Kunci = keyof typeof id;

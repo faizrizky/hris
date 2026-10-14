@@ -108,6 +108,22 @@ export function ProfileScreen({ navigation }: any) {
             onPress={() => navigation.navigate("ProfileDocs")}
           />
           <MenuRow
+            iconBg={c.info.bg}
+            ink={c.info.ink}
+            icon={ICON.user}
+            title={t("profil.foto")}
+            subtitle={t("profil.fotoSub")}
+            onPress={() => navigation.navigate("ProfilePhoto")}
+          />
+          <MenuRow
+            iconBg={c.purple.bg}
+            ink={c.purple.ink}
+            icon={ICON.shield}
+            title={t("profil.wajah")}
+            subtitle={t("profil.wajahSub")}
+            onPress={() => navigation.navigate("FaceEnroll")}
+          />
+          <MenuRow
             iconBg={c.warn.bg}
             ink={c.warn.ink}
             icon={ICON.bell}

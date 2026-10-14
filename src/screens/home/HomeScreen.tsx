@@ -28,9 +28,14 @@ import { Skeleton } from "@/components/Skeleton";
 import { describeError } from "@/services/api/http";
 import { ErrorState } from "@/components/ErrorState";
 import { EmptyState } from "@/components/EmptyState";
+import { useConfirm } from "@/components/ConfirmDialog";
+
+// Pengingat daftar ulang wajah muncul sekali per pembukaan aplikasi.
+let pengingatWajahTampil = false;
 
 export function HomeScreen() {
   const t = useT();
+  const confirm = useConfirm();
   const { employee } = useSession();
   const navigation = useNavigation<any>();
   const [notifications, setNotifications] = useState<FeedItem[] | null>(null);
@@ -70,7 +75,24 @@ export function HomeScreen() {
       .getNotificationInbox(employee.id)
       .then((n) => setBelumDibaca(n.filter((x) => !x.read).length))
       .catch(() => setBelumDibaca(0));
-  }, [employee]);
+    if (!pengingatWajahTampil) {
+      hrisApi
+        .getFaceStatus()
+        .then(async (f) => {
+          if (f.state !== "needs_reenroll" || pengingatWajahTampil) return;
+          pengingatWajahTampil = true;
+          const buka = await confirm({
+            title: t("fe.pengingatJudul"),
+            message: t("fe.perluDaftarUlang", { tgl: f.graceUntil ?? "-" }),
+            tone: "warn",
+            confirmText: t("fe.daftarUlang"),
+            cancelText: t("fe.nanti"),
+          });
+          if (buka) navigation.navigate("Profil", { screen: "FaceEnroll" });
+        })
+        .catch(() => {});
+    }
+  }, [employee, confirm, t, navigation]);
 
   useFocusEffect(muat);
 

@@ -77,6 +77,12 @@ export function NotificationScreen({ navigation }: any) {
       case "Employee Checkin":
         if (menunggu) navigation.navigate("OfflineReview");
         return;
+      case "Face Enrollment":
+        // HR meninjau di web; karyawan membuka layar pendaftaran wajahnya.
+        if (employee?.role !== "hr") {
+          navigation.navigate("Profil", { screen: "FaceEnroll" });
+        }
+        return;
       case "HR Announcement":
         navigation.navigate("Announcements", { id: n.documentName });
         return;

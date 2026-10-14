@@ -16,6 +16,7 @@ import {
   Appraisal,
   AturanLokasi,
   LokasiCheckin,
+  FaceStatus,
   OfflineCheckin,
   ProfileChange,
   FeedbackForm,
@@ -1135,6 +1136,7 @@ async function kirimItem(i: ItemAntrean, offline: boolean) {
   await post("/api/method/hris_checkin", {
     log_type: i.logType,
     client_id: i.clientId,
+    ...(i.faceVec ? { face_vec: JSON.stringify(i.faceVec) } : {}),
     ...(i.lokasi
       ? {
           lat: i.lokasi.lat,
@@ -1160,6 +1162,7 @@ async function kirimCheckin(
   _employeeId: string,
   logType: "IN" | "OUT",
   lokasi?: LokasiCheckin,
+  faceVec?: number[],
 ) {
   const t = waktuTerpercaya();
   const item: ItemAntrean = {
@@ -1169,6 +1172,7 @@ async function kirimCheckin(
     deviceMs: Date.now(),
     trusted: t.trusted,
     anchorAgeS: t.anchorAgeS,
+    faceVec,
     lokasi,
   };
   try {
@@ -1782,15 +1786,98 @@ export const erpnextApi: HrisApi = {
   async clockIn(
     employeeId: string,
     lokasi?: LokasiCheckin,
+    faceVec?: number[],
   ): Promise<ClockState> {
-    return kirimCheckin(employeeId, "IN", lokasi);
+    return kirimCheckin(employeeId, "IN", lokasi, faceVec);
   },
 
   async clockOut(
     employeeId: string,
     lokasi?: LokasiCheckin,
+    faceVec?: number[],
   ): Promise<ClockState> {
-    return kirimCheckin(employeeId, "OUT", lokasi);
+    return kirimCheckin(employeeId, "OUT", lokasi, faceVec);
+  },
+
+  async getFaceStatus(): Promise<FaceStatus> {
+    const res = await get<{
+      message: {
+        state: FaceStatus["state"];
+        grace_until: string | null;
+        note: string | null;
+        ktp_url: string | null;
+        profile_url: string | null;
+        min_ktp: number;
+        min_profile: number;
+        min_checkin: number;
+        require_enrollment: number;
+      };
+    }>("/api/method/hris_get_face_status");
+    const m = res.message;
+    return {
+      state: m.state,
+      graceUntil: m.grace_until,
+      note: m.note,
+      ktpUrl: m.ktp_url,
+      profileUrl: m.profile_url,
+      minKtp: m.min_ktp,
+      minProfile: m.min_profile,
+      minCheckin: m.min_checkin,
+      requireEnrollment: !!m.require_enrollment,
+    };
+  },
+
+  async submitFaceEnrollment(input) {
+    const res = await post<{
+      message: { name: string; score_ktp: number; score_profile: number };
+    }>("/api/method/hris_submit_face_enrollment", {
+      embeddings: JSON.stringify(input.embeddings),
+      ktp_embedding: JSON.stringify(input.ktpEmbedding),
+      profile_embedding: JSON.stringify(input.profileEmbedding),
+    });
+    if (input.selfie) {
+      // Selfie hanya bahan tinjauan HR; gagal unggah tidak membatalkan pendaftaran.
+      await unggahBerkas(
+        input.selfie,
+        "Face Enrollment",
+        res.message.name,
+        "selfie",
+      ).catch(() => {});
+    }
+    return {
+      scoreKtp: res.message.score_ktp,
+      scoreProfile: res.message.score_profile,
+    };
+  },
+
+  async submitProfilePhoto(input) {
+    const res = await post<{
+      message: {
+        name: string | null;
+        score_face: number | null;
+        score_ktp: number | null;
+        below_min: boolean;
+      };
+    }>("/api/method/hris_submit_profile_photo", {
+      embedding: JSON.stringify(input.embedding),
+      ...(input.ktpEmbedding
+        ? { ktp_embedding: JSON.stringify(input.ktpEmbedding) }
+        : {}),
+      ...(input.dryRun ? { dry_run: 1 } : {}),
+    });
+    if (!input.dryRun && input.photo && res.message.name) {
+      await unggahBerkas(
+        input.photo,
+        "Profile Change Request",
+        res.message.name,
+        "photo",
+      );
+    }
+    return {
+      scoreFace: res.message.score_face,
+      scoreKtp: res.message.score_ktp,
+      belowMin: res.message.below_min,
+    };
   },
 
   async getAttendanceHistory(): Promise<AttendanceRecord[]> {

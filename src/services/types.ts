@@ -53,6 +53,21 @@ export interface OvertimeRecord {
   status: OvertimeStatus;
 }
 
+export type FaceState =
+  "none" | "pending" | "active" | "needs_reenroll" | "rejected";
+
+export interface FaceStatus {
+  state: FaceState;
+  graceUntil: string | null; // YYYY-MM-DD, batas daftar ulang
+  note: string | null; // alasan penolakan HR
+  ktpUrl: string | null; // null = KTP belum terverifikasi
+  profileUrl: string | null; // null = belum ada foto profil
+  minKtp: number;
+  minProfile: number;
+  minCheckin: number;
+  requireEnrollment: boolean;
+}
+
 // Lokasi saat check-in; server menilai jarak, akurasi, dan keaslian lokasinya.
 export interface LokasiCheckin {
   lat: number;
@@ -463,8 +478,34 @@ export interface HrisApi {
   getCurrentEmployee(): Promise<Employee>;
   logout(): Promise<void>;
   getClockState(employeeId: string): Promise<ClockState>;
-  clockIn(employeeId: string, lokasi?: LokasiCheckin): Promise<ClockState>;
-  clockOut(employeeId: string, lokasi?: LokasiCheckin): Promise<ClockState>;
+  clockIn(
+    employeeId: string,
+    lokasi?: LokasiCheckin,
+    faceVec?: number[],
+  ): Promise<ClockState>;
+  clockOut(
+    employeeId: string,
+    lokasi?: LokasiCheckin,
+    faceVec?: number[],
+  ): Promise<ClockState>;
+  getFaceStatus(): Promise<FaceStatus>;
+  submitFaceEnrollment(input: {
+    embeddings: number[][];
+    ktpEmbedding: number[];
+    profileEmbedding: number[];
+    selfie?: BerkasLampiran;
+  }): Promise<{ scoreKtp: number; scoreProfile: number }>;
+  // dryRun: hanya menghitung kemiripan (untuk peringatan dini), tanpa mengajukan.
+  submitProfilePhoto(input: {
+    photo?: BerkasLampiran;
+    embedding: number[];
+    ktpEmbedding?: number[];
+    dryRun?: boolean;
+  }): Promise<{
+    scoreFace: number | null;
+    scoreKtp: number | null;
+    belowMin: boolean;
+  }>;
   getWorkLocations(): Promise<AturanLokasi>;
   getAttendanceHistory(employeeId: string): Promise<AttendanceRecord[]>;
   // Riwayat karyawan lain, untuk atasan/HR (server membatasi hak aksesnya).

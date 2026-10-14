@@ -34,7 +34,11 @@ export function ClockScreen({ navigation }: any) {
   ); // 0 = GPS, 1 = wajah, 2 = selesai
   const [loading, setLoading] = useState(false);
   const [faceLulus, setFaceLulus] = useState(false);
-  const onWajahLulus = useCallback(() => setFaceLulus(true), []);
+  const [faceVec, setFaceVec] = useState<number[] | null>(null);
+  const onWajahLulus = useCallback((v: number[] | null) => {
+    setFaceVec(v);
+    setFaceLulus(true);
+  }, []);
   // Perangkat tanpa modul wajah (iOS, Expo Go) melewati langkah ini.
   const faceOk = faceLulus || !wajahDidukung();
   const c = useTheme();
@@ -139,11 +143,12 @@ export function ClockScreen({ navigation }: any) {
     try {
       const lokasi = await ambilTerbaru();
       const next = state.clockedIn
-        ? await hrisApi.clockOut(employee.id, lokasi)
-        : await hrisApi.clockIn(employee.id, lokasi);
+        ? await hrisApi.clockOut(employee.id, lokasi, faceVec ?? undefined)
+        : await hrisApi.clockIn(employee.id, lokasi, faceVec ?? undefined);
       setState(next);
       setStep(2);
       setFaceLulus(false);
+      setFaceVec(null);
     } catch (e) {
       setGalat(describeError(e));
     } finally {

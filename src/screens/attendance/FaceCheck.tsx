@@ -7,6 +7,7 @@ import { useT } from "@/i18n";
 import {
   awalLiveness,
   deteksiWajah,
+  embeddingWajah,
   langkahLiveness,
   tantanganAcak,
   type StatusLiveness,
@@ -16,7 +17,11 @@ import {
 const BATAS_MS = 15_000;
 
 // Kamera depan + tantangan acak. onLulus dipanggil sekali saat liveness lolos.
-export function FaceCheck({ onLulus }: { onLulus: () => void }) {
+export function FaceCheck({
+  onLulus,
+}: {
+  onLulus: (vec: number[] | null) => void;
+}) {
   const t = useT();
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
@@ -33,6 +38,7 @@ export function FaceCheck({ onLulus }: { onLulus: () => void }) {
     if (!izin?.granted || !siapKamera) return;
     let batal = false;
     let s = awalLiveness;
+    let vec: number[] | null = null;
     const mulai = Date.now();
     (async () => {
       while (!batal) {
@@ -50,10 +56,12 @@ export function FaceCheck({ onLulus }: { onLulus: () => void }) {
           if (foto) {
             const d = await deteksiWajah(foto.uri);
             s = langkahLiveness(s, d, tantangan);
+            // Embedding diambil dari frame menghadap depan, sebelum tantangan.
+            if (s.siap && !vec) vec = await embeddingWajah(foto.uri);
             if (!batal) setStatus(s);
             if (s.lulus) {
               setLulus(true);
-              onLulus();
+              onLulus(vec);
               return;
             }
           }

@@ -958,4 +958,55 @@ export const en: Record<Kunci, string> = {
   "face.ulang": "Try again",
   "face.chipLiveness": "Liveness ✓",
   "face.tidakDidukung": "Face check is not available on this device.",
+  "fe.judul": "Face Registration",
+  "fe.tidakDidukung": "Not available on this device",
+  "fe.butuhKtp": "ID card not verified",
+  "fe.butuhKtpPesan":
+    "Upload your ID card (KTP) in Profile > Documents and wait for HR to verify it before registering your face.",
+  "fe.keDokumen": "Open Documents",
+  "fe.butuhFoto": "No profile photo yet",
+  "fe.butuhFotoPesan":
+    "Set a profile photo first (submitted to HR) before registering your face.",
+  "fe.keFoto": "Change profile photo",
+  "fe.menunggu": "Waiting for HR approval",
+  "fe.menungguPesan":
+    "Your face registration is being reviewed by HR. You will get a notification once it is decided.",
+  "fe.sudahAktif": "Your face is registered. Re-register only when asked.",
+  "fe.perluDaftarUlang":
+    "Your profile photo changed and your registered face must be registered again before {tgl}.",
+  "fe.ditolak": "Your previous registration was rejected: {alasan}",
+  "fe.petunjuk":
+    "Place your face inside the circle, remove masks and dark glasses, then slowly move your head until the circle is full.",
+  "fe.putar": "Slowly move your head in a circle",
+  "fe.mengirim": "Sending registration…",
+  "fe.habis": "Time is up. Try again in better light.",
+  "fe.mulai": "Start face registration",
+  "fe.daftarUlang": "Register face again",
+  "fe.ktpTanpaWajah":
+    "No face could be read on the ID card photo. Upload a clearer ID card.",
+  "fe.profilTanpaWajah":
+    "No face could be read on the profile photo. Replace it with a clearer photo.",
+  "pf.judul": "Profile Photo",
+  "pf.sekarang": "Current",
+  "pf.baru": "New",
+  "pf.petunjuk":
+    "Use a clear, front-facing photo of your face. Photo changes are submitted to HR.",
+  "pf.kamera": "Take photo",
+  "pf.galeri": "Choose from gallery",
+  "pf.ajukan": "Submit to HR",
+  "pf.izin": "Permission is required to pick a photo.",
+  "pf.tanpaWajah":
+    "No face could be read in this photo. Use a clear, front-facing one.",
+  "pf.rendahJudul": "Photo looks different",
+  "pf.rendahPesan":
+    "This photo does not look much like your registered face. If HR approves it, you will have to register your face again.",
+  "pf.tetapAjukan": "Submit anyway",
+  "pf.pilihLain": "Choose another photo",
+  "pf.terkirim": "Your profile photo request was sent to HR.",
+  "profil.wajah": "Face registration",
+  "profil.wajahSub": "For verification when clocking in",
+  "profil.foto": "Profile photo",
+  "profil.fotoSub": "Change photo, submitted to HR",
+  "fe.pengingatJudul": "Register your face again",
+  "fe.nanti": "Later",
 };

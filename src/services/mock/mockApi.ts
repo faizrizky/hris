@@ -105,6 +105,30 @@ export const mockApi: HrisApi = {
     };
   },
 
+  async getFaceStatus() {
+    return {
+      state: "none" as const,
+      graceUntil: null,
+      note: null,
+      ktpUrl: null,
+      profileUrl: null,
+      minKtp: 30,
+      minProfile: 36,
+      minCheckin: 36,
+      requireEnrollment: false,
+    };
+  },
+
+  async submitFaceEnrollment() {
+    await delay();
+    return { scoreKtp: 80, scoreProfile: 85 };
+  },
+
+  async submitProfilePhoto() {
+    await delay();
+    return { scoreFace: null, scoreKtp: null, belowMin: false };
+  },
+
   async clockIn(_employeeId: string): Promise<ClockState> {
     await delay();
     const now = new Date();
