@@ -38,7 +38,16 @@ import { LingkaranSamsung, TICKS } from "./LingkaranSamsung";
 const YAW_MIN = 11;
 const PITCH_MIN = 7;
 const CUKUP = Math.round(TICKS * 0.92); // sisa celah kecil diisi otomatis
-const KEDIP_MIN = 2; // liveness saat pendaftaran: jumlah kedipan minimal
+// Liveness saat pendaftaran: setelah cincin penuh, aplikasi memberi dua perintah acak yang baru muncul saat itu
+// (kedip / toleh kiri / toleh kanan). Foto atau video rekaman tidak bisa tahu perintahnya lebih dulu.
+type Tantangan = "kedip" | "kiri" | "kanan";
+const SEMUA_TANTANGAN: Tantangan[] = ["kedip", "kiri", "kanan"];
+const JUMLAH_TANTANGAN = 2;
+const BATAS_TANTANGAN_MS = 10_000;
+const acakTantangan = (): Tantangan[] =>
+  [...SEMUA_TANTANGAN]
+    .sort(() => Math.random() - 0.5)
+    .slice(0, JUMLAH_TANTANGAN);
 const SEKTOR = 8; // satu sampel wajah per seperdelapan lingkaran
 const BATAS_MS = 90_000;
 const EASE = Easing.bezier(0.25, 0.1, 0.25, 1);
@@ -78,7 +87,10 @@ export function FaceEnrollScreen({ navigation }: any) {
   const [galat, setGalat] = useState<string | null>(null);
   const [selfie, setSelfie] = useState<string | null>(null);
   const [adaWajah, setAdaWajah] = useState(false);
-  const [kedip, setKedip] = useState(0);
+  const [tantangan, setTantangan] = useState<{
+    jenis: Tantangan;
+    ke: number;
+  } | null>(null);
   const [peringatan, setPeringatan] = useState<string | null>(null);
   const [putaran, setPutaran] = useState(0);
   // Embedding KTP dan foto profil dihitung SEBELUM pemindaian, supaya foto yang tidak berisi wajah
@@ -180,10 +192,13 @@ export function FaceEnrollScreen({ navigation }: any) {
     const mulai = Date.now();
     const sampel: number[][] = [];
     const nyala = new Set<number>();
-    // Liveness saat mendaftar: wajib terdeteksi berkedip (mata tertutup lalu terbuka lagi) sedikitnya
-    // KEDIP_MIN kali. Foto atau layar tidak pernah berkedip, jadi tidak bisa menyelesaikan pendaftaran.
+    // Liveness saat mendaftar: perintah acak setelah cincin penuh (lihat Tantangan di atas); foto diam
+    // atau video rekaman tidak bisa tahu perintahnya lebih dulu.
     let matiTertutup = false;
-    let kedip = 0;
+    let kedip = 0; // jumlah kedipan sejak perintah aktif dimulai
+    let urutan: Tantangan[] = [];
+    let langkah = 0;
+    let mulaiLangkah = 0;
     const sektor = new Set<number>();
     let sebelumnya: number | null = null;
     let pusat: number[] | null = null;
@@ -230,7 +245,6 @@ export function FaceEnrollScreen({ navigation }: any) {
             else if (matiTertutup && d.eyesOpen > 0.6) {
               matiTertutup = false;
               kedip += 1;
-              setKedip(kedip);
             }
           }
           if (!pusat) {
@@ -276,21 +290,49 @@ export function FaceEnrollScreen({ navigation }: any) {
           } else {
             sebelumnya = null;
           }
-          if (nyala.size >= CUKUP && kedip < KEDIP_MIN) {
-            // Lingkaran penuh tetapi liveness belum terbukti: beri tahu, jangan selesai.
-            setPeringatan(t("fe.livenessKurang", { n: kedip, min: KEDIP_MIN }));
-          } else if (kedip < KEDIP_MIN && Date.now() - mulai > 14_000) {
-            setPeringatan(t("fe.kedipDulu", { n: kedip, min: KEDIP_MIN }));
-          } else {
-            setPeringatan(null);
-          }
-          if (nyala.size >= CUKUP && kedip >= KEDIP_MIN) {
-            for (let i = 0; i < TICKS; i++) nyala.add(i);
-            setTerisi([...nyala]);
-            hasil.current = sampel;
-            await new Promise((r) => setTimeout(r, 500));
-            if (!batal) setFase("lengkap");
-            return;
+          if (nyala.size >= CUKUP) {
+            if (urutan.length === 0) {
+              urutan = acakTantangan();
+              langkah = 0;
+              kedip = 0;
+              matiTertutup = false;
+              mulaiLangkah = Date.now();
+              setPeringatan(null);
+              setTantangan({ jenis: urutan[0]!, ke: 1 });
+            } else if (Date.now() - mulaiLangkah > BATAS_TANTANGAN_MS) {
+              // Perintah tidak dipenuhi: beri tahu, lalu perintah baru yang acak lagi.
+              urutan = acakTantangan();
+              langkah = 0;
+              kedip = 0;
+              mulaiLangkah = Date.now();
+              setPeringatan(t("fe.tantGagal"));
+              setTantangan({ jenis: urutan[0]!, ke: 1 });
+            } else {
+              const j = urutan[langkah]!;
+              const ok =
+                j === "kedip"
+                  ? kedip >= 1
+                  : j === "kiri"
+                    ? kanan <= -1
+                    : kanan >= 1;
+              if (ok) {
+                langkah += 1;
+                kedip = 0;
+                matiTertutup = false;
+                mulaiLangkah = Date.now();
+                setPeringatan(null);
+                if (langkah >= urutan.length) {
+                  for (let i = 0; i < TICKS; i++) nyala.add(i);
+                  setTerisi([...nyala]);
+                  setTantangan(null);
+                  hasil.current = sampel;
+                  await new Promise((r) => setTimeout(r, 500));
+                  if (!batal) setFase("lengkap");
+                  return;
+                }
+                setTantangan({ jenis: urutan[langkah]!, ke: langkah + 1 });
+              }
+            }
           }
         } catch {
           // frame gagal: lanjut ke frame berikutnya sampai waktu habis
@@ -326,7 +368,7 @@ export function FaceEnrollScreen({ navigation }: any) {
       setFase("intro");
       return;
     }
-    setKedip(0);
+    setTantangan(null);
     setPeringatan(null);
     setTerisi([]);
     setSelfie(null);
@@ -548,12 +590,16 @@ export function FaceEnrollScreen({ navigation }: any) {
           {peringatan && fase === "pindai" ? (
             <Text style={styles.peringatan}>{peringatan}</Text>
           ) : null}
-          {fase === "pindai" ? (
-            <Text style={styles.petunjuk}>
-              {t("fe.kedipStatus", {
-                n: Math.min(kedip, KEDIP_MIN),
-                min: KEDIP_MIN,
-              })}
+          {fase === "pindai" && tantangan ? (
+            <Text style={styles.perintah}>
+              {t(
+                tantangan.jenis === "kedip"
+                  ? "fe.tantKedip"
+                  : tantangan.jenis === "kiri"
+                    ? "fe.tantKiri"
+                    : "fe.tantKanan",
+              )}
+              {` (${tantangan.ke}/${JUMLAH_TANTANGAN})`}
             </Text>
           ) : null}
           <View style={{ flex: 1 }} />
@@ -683,6 +729,13 @@ const makeStyles = (c: Palette) =>
       bottom: 0,
       alignItems: "center",
       paddingHorizontal: 32,
+    },
+    perintah: {
+      color: PUTIH,
+      fontSize: 18,
+      fontWeight: "700",
+      textAlign: "center",
+      marginTop: 8,
     },
     peringatan: {
       fontSize: 13,

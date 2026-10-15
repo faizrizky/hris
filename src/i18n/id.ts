@@ -1013,6 +1013,10 @@ export const id = {
   "profil.fotoSub": "Ganti foto, diajukan ke HR",
   "fe.pengingatJudul": "Daftar ulang wajah",
   "fe.nanti": "Nanti",
+  "fe.tantKedip": "Kedipkan mata",
+  "fe.tantKiri": "Tolehkan kepala ke kiri",
+  "fe.tantKanan": "Tolehkan kepala ke kanan",
+  "fe.tantGagal": "Gerakan belum terdeteksi. Ikuti perintah baru ini.",
   "dv.judul": "Perangkat belum disetujui",
   "dv.menunggu":
     "Ini perangkat baru. Absen dari HP ini baru bisa setelah HR menyetujuinya. Kamu akan menerima notifikasi begitu disetujui.",
@@ -1120,11 +1124,6 @@ export const id = {
   "hm.aKoreksi": "Koreksi Absensi",
   "cr.wfh": "Ajukan WFH",
   "login.usernameIsi": "Masukkan username",
-  "fe.kedipStatus": "Kedipan terdeteksi: {n}/{min}",
-  "fe.kedipDulu":
-    "Kedipkan matamu pelan-pelan agar terbukti kamu orang asli ({n}/{min}).",
-  "fe.livenessKurang":
-    "Lingkaran sudah penuh, tetapi kedipan belum terdeteksi ({n}/{min}). Kedipkan matamu, dan jangan memakai foto atau layar.",
 } as const;
 
 export type Kunci = keyof typeof id;

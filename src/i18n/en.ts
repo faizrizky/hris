@@ -1009,6 +1009,10 @@ export const en: Record<Kunci, string> = {
   "profil.fotoSub": "Change photo, submitted to HR",
   "fe.pengingatJudul": "Register your face again",
   "fe.nanti": "Later",
+  "fe.tantKedip": "Blink your eyes",
+  "fe.tantKiri": "Turn your head to the left",
+  "fe.tantKanan": "Turn your head to the right",
+  "fe.tantGagal": "Movement not detected. Follow this new instruction.",
   "dv.judul": "Device not approved",
   "dv.menunggu":
     "This is a new device. You can clock in from this phone only after HR approves it. You will be notified once it is approved.",
@@ -1115,8 +1119,4 @@ export const en: Record<Kunci, string> = {
   "hm.aKoreksi": "Attendance Correction",
   "cr.wfh": "Request WFH",
   "login.usernameIsi": "Enter your username",
-  "fe.kedipStatus": "Blinks detected: {n}/{min}",
-  "fe.kedipDulu": "Blink slowly to prove you are a real person ({n}/{min}).",
-  "fe.livenessKurang":
-    "The circle is full, but blinks were not detected ({n}/{min}). Blink your eyes, and do not use a photo or a screen.",
 };
