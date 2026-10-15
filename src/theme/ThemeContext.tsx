@@ -5,7 +5,6 @@ import React, {
   useMemo,
   useState,
 } from "react";
-import { Appearance } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import { darkColors, lightColors, Palette } from "@/theme/colors";
@@ -23,11 +22,8 @@ interface Ctx {
 const ThemeCtx = createContext<Ctx | null>(null);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  // Nilai awal dari setelan sistem supaya render pertama sudah masuk akal,
-  // lalu ditimpa pilihan user begitu terbaca dari penyimpanan.
-  const [mode, setModeState] = useState<Mode>(() =>
-    Appearance.getColorScheme() === "dark" ? "dark" : "light",
-  );
+  // Bawaan selalu terang (bukan mengikuti sistem); pilihan user yang tersimpan menimpanya.
+  const [mode, setModeState] = useState<Mode>("light");
 
   useEffect(() => {
     AsyncStorage.getItem(KEY)

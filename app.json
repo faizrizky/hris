@@ -4,7 +4,7 @@
     "slug": "hris-mobile",
     "version": "0.1.0",
     "orientation": "portrait",
-    "userInterfaceStyle": "automatic",
+    "userInterfaceStyle": "light",
     "scheme": "hrismobile",
     "assetBundlePatterns": [
       "**/*"
@@ -18,7 +18,11 @@
       "permissions": [
         "android.permission.ACCESS_COARSE_LOCATION",
         "android.permission.ACCESS_FINE_LOCATION"
-      ]
+      ],
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#1F7FDB"
+      }
     },
     "plugins": [
       "expo-notifications",
@@ -46,13 +50,18 @@
           "cameraPermission": "HRIS memakai kamera depan untuk memastikan kamu hadir saat check-in. Foto tidak disimpan.",
           "recordAudioAndroid": false
         }
-      ]
+      ],
+      "expo-splash-screen"
     ],
     "extra": {
       "eas": {
         "projectId": "ce760ee8-916f-4df2-9369-6ac8dca689c4"
       }
     },
-    "owner": "faizrizky"
+    "owner": "faizrizky",
+    "icon": "./assets/icon.png",
+    "web": {
+      "favicon": "./assets/favicon.png"
+    }
   }
 }

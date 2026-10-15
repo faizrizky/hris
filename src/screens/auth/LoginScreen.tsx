@@ -22,10 +22,11 @@ import {
 } from "../../services/api/http";
 import { useT } from "@/i18n";
 import { LanguagePicker } from "@/components/LanguagePicker";
+import { LogoHris } from "@/components/LogoHris";
 
 export function LoginScreen() {
   const { setEmployee } = useSession();
-  const [email, setEmail] = useState("ess@falah.co");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
@@ -78,14 +79,9 @@ export function LoginScreen() {
 
       {/* Hero — logo, headline, subtext, nempel ke bawah area gelap */}
       <View style={styles.hero}>
-        <LinearGradient
-          colors={[c.accent, c.accent2]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={styles.iconBadge}
-        >
-          <View style={styles.iconBadgeMark} />
-        </LinearGradient>
+        <View style={styles.iconBadge}>
+          <LogoHris size={52} />
+        </View>
 
         <Text style={styles.headline}>
           {t("login.judul1")}
@@ -229,13 +225,6 @@ const makeStyles = (c: Palette) =>
       alignItems: "center",
       justifyContent: "center",
       marginBottom: 22,
-    },
-    iconBadgeMark: {
-      width: 18,
-      height: 18,
-      borderWidth: 3,
-      borderColor: "#fff",
-      borderRadius: 5,
     },
     headline: {
       fontSize: 33,
