@@ -101,6 +101,9 @@ export interface ClockState {
   timezoneLabel?: string; // "WIB", "WITA", "GMT+8", dari server
   workLocation?: string | null;
   pendingOffline?: boolean; // ada check-in yang masih menunggu dikirim
+  shiftName?: string | null; // shift kerja hari ini dari server
+  shiftStart?: string | null; // "08:00"
+  shiftEnd?: string | null; // "17:00"
 }
 
 export type LeaveType = "cuti" | "lembur" | "dinas_luar" | "sakit" | "wfh";

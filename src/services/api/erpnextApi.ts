@@ -1071,6 +1071,9 @@ interface ClockRes {
     last_check_out: string | null;
     timezone_label?: string | null;
     work_location?: string | null;
+    shift_name?: string | null;
+    shift_start?: string | null;
+    shift_end?: string | null;
   };
 }
 
@@ -1118,6 +1121,9 @@ async function ambilStatusJam(): Promise<ClockState> {
       lastCheckOut: r.message.last_check_out,
       timezoneLabel: r.message.timezone_label ?? undefined,
       workLocation: r.message.work_location ?? null,
+      shiftName: r.message.shift_name ?? null,
+      shiftStart: r.message.shift_start ?? null,
+      shiftEnd: r.message.shift_end ?? null,
     };
     statusTerakhir = status;
     return status;

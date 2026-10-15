@@ -12,6 +12,8 @@ import { hrisApi } from "@/services/api";
 import { useSession } from "@/services/session";
 import { LinearGradient } from "expo-linear-gradient";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
+import { MenuSheet, type ItemMenu } from "@/components/MenuSheet";
+import { infoShift, sapaanKaryawan } from "@/utils/sapaan";
 import { formatTanggalPanjang, formatJam } from "@/utils/date";
 import { useT, bahasaAktif } from "@/i18n";
 import {
@@ -36,6 +38,8 @@ let pengingatWajahTampil = false;
 export function HomeScreen() {
   const t = useT();
   const confirm = useConfirm();
+  const [now, setNow] = useState(() => new Date());
+  const [menuTerbuka, setMenuTerbuka] = useState(false);
   const { employee } = useSession();
   const navigation = useNavigation<any>();
   const [notifications, setNotifications] = useState<FeedItem[] | null>(null);
@@ -96,6 +100,21 @@ export function HomeScreen() {
 
   useFocusEffect(muat);
 
+  // Jam, sapaan, dan status absen diperbarui terus selagi Beranda terbuka (tanpa memunculkan skeleton).
+  useFocusEffect(
+    useCallback(() => {
+      if (!employee) return;
+      const id = setInterval(() => {
+        setNow(new Date());
+        hrisApi
+          .getClockState(employee.id)
+          .then(setClock)
+          .catch(() => {});
+      }, 20_000);
+      return () => clearInterval(id);
+    }, [employee]),
+  );
+
   if (!employee) return null;
 
   const greeting =
@@ -103,7 +122,7 @@ export function HomeScreen() {
       ? t("hm.sapaMss")
       : employee.role === "hr"
         ? t("hm.sapaHr")
-        : t("hm.sapaEss");
+        : sapaanKaryawan(clock, now);
 
   const greetingSub =
     employee.role === "mss"
@@ -114,7 +133,7 @@ export function HomeScreen() {
               n: employment.reduce((n, s) => n + s.count, 0),
             })
           : t("umum.memuat")
-        : t("hm.shift");
+        : infoShift(clock, clock?.workLocation ?? t("ab.kantor"));
 
   const feedTitle =
     employee.role === "mss"
@@ -136,9 +155,13 @@ export function HomeScreen() {
 
   const clockInTime = clock?.lastCheckIn ?? "--:--";
   const clockOutTime = clock?.lastCheckOut ?? "--:--";
-  const clockCta = clock?.clockedIn
-    ? t("hm.clockOut")
-    : t("hm.clockInSekarang");
+  const absensiSelesai =
+    !!clock && !clock.clockedIn && !!clock.lastCheckIn && !!clock.lastCheckOut;
+  const clockCta = absensiSelesai
+    ? t("hm.absensiSelesai")
+    : clock?.clockedIn
+      ? t("hm.clockOut")
+      : t("hm.clockInSekarang");
 
   const hadir = riwayat.filter((r) => r.status !== "izin").length;
   const kehadiran = riwayat.length
@@ -158,111 +181,92 @@ export function HomeScreen() {
     else navigation.navigate("LeaveList");
   };
 
-  const quickActions = [
+  // Seluruh menu milik akun ini. Tujuh pertama tampil di Beranda (dua baris, "Semua" di ujung kanan baris kedua);
+  // "Semua" membuka lembar berisi semuanya.
+  const mk = (
+    key: string,
+    label: string,
+    icon: string,
+    tone: "info" | "ok" | "warn" | "bad" | "purple",
+    onPress: () => void,
+  ): ItemMenu => ({
+    key,
+    label,
+    icon,
+    bg: c[tone].bg,
+    ink: c[tone].ink,
+    onPress,
+  });
+  const ajukan = (kind: "cuti" | "lembur" | "dinas" | "wfh") => () =>
+    navigation.navigate("LeaveRequest", { kind, n: Date.now() });
+  const semuaMenu: ItemMenu[] = [
     ...(canApprove
       ? [
-          {
-            label: t("hm.aApproval"),
-            icon: ICON.approval,
-            bg: c.warn.bg,
-            ink: c.warn.ink,
-            onPress: () => navigation.navigate("Approval"),
-          },
-          {
-            label: t("hm.aKaryawan"),
-            icon: ICON.user,
-            bg: c.purple.bg,
-            ink: c.purple.ink,
-            onPress: () => navigation.navigate("StaffList"),
-          },
-          {
-            label: t("hm.aOffline"),
-            icon: ICON.clock,
-            bg: c.warn.bg,
-            ink: c.warn.ink,
-            onPress: () => navigation.navigate("OfflineReview"),
-          },
-          ...(employee.role === "hr"
-            ? [
-                {
-                  label: t("hm.aVerifikasi"),
-                  icon: ICON.document,
-                  bg: c.info.bg,
-                  ink: c.info.ink,
-                  onPress: () => navigation.navigate("DocumentReview"),
-                },
-                {
-                  label: t("pcr.aksi"),
-                  icon: ICON.user,
-                  bg: c.purple.bg,
-                  ink: c.purple.ink,
-                  onPress: () => navigation.navigate("ProfileChangeReview"),
-                },
-              ]
-            : []),
+          mk("approval", t("hm.aApproval"), ICON.approval, "warn", () =>
+            navigation.navigate("Approval"),
+          ),
+          mk("karyawan", t("hm.aKaryawan"), ICON.user, "purple", () =>
+            navigation.navigate("StaffList"),
+          ),
         ]
       : []),
-    ...(employee?.role === "mss"
+    mk("presensi", t("cr.presensi"), ICON.clock, "info", () =>
+      navigation.navigate("Clock"),
+    ),
+    mk("ajukanCuti", t("cr.cuti"), ICON.leave, "info", ajukan("cuti")),
+    mk("ajukanLembur", t("cr.lembur"), ICON.overtime, "warn", ajukan("lembur")),
+    mk("dinas", t("cr.dinas"), ICON.briefcase, "purple", ajukan("dinas")),
+    mk("wfh", t("cr.wfh"), ICON.mobile, "ok", ajukan("wfh")),
+    mk("slip", t("hm.aSlip"), ICON.payslip, "ok", () =>
+      navigation.navigate("PayslipList"),
+    ),
+    mk("appraisal", t("hm.aAppraisal"), ICON.appraisal, "purple", () =>
+      navigation.navigate("Appraisal"),
+    ),
+    mk("riwayat", t("hm.aRiwayat"), ICON.attendanceRate, "info", () =>
+      navigation.navigate("History"),
+    ),
+    mk("koreksi", t("hm.aKoreksi"), ICON.fileCheck, "warn", () =>
+      navigation.navigate("AttendanceCorrection"),
+    ),
+    mk("daftarCuti", t("hm.aCuti"), ICON.calendar, "info", () =>
+      navigation.navigate("LeaveList"),
+    ),
+    mk("daftarLembur", t("hm.aLembur"), ICON.overtime, "warn", () =>
+      navigation.navigate("Overtime"),
+    ),
+    mk("pajak", t("hm.aPajak"), ICON.tax, "info", () =>
+      navigation.navigate("TaxDetail"),
+    ),
+    mk("pengumuman", t("hm.aPengumuman"), ICON.bell, "warn", () =>
+      navigation.navigate("Announcements"),
+    ),
+    ...(canApprove
       ? [
-          {
-            label: t("hm.aAbsensiTim"),
-            icon: ICON.attendanceRate,
-            bg: c.ok.bg,
-            ink: c.ok.ink,
-            onPress: () => navigation.navigate("StaffAttendance"),
-          },
+          mk("offline", t("hm.aOffline"), ICON.clock, "warn", () =>
+            navigation.navigate("OfflineReview"),
+          ),
         ]
       : []),
-    {
-      label: t("hm.aPengumuman"),
-      icon: ICON.bell,
-      bg: c.warn.bg,
-      ink: c.warn.ink,
-      onPress: () => navigation.navigate("Announcements"),
-    },
-    {
-      label: t("hm.aAbsensi"),
-      icon: ICON.clock,
-      bg: c.info.bg,
-      ink: c.info.ink,
-      onPress: () => navigation.navigate("Clock"),
-    },
-    {
-      label: t("hm.aCuti"),
-      icon: ICON.leave,
-      bg: c.info.bg,
-      ink: c.info.ink,
-      onPress: () => navigation.navigate("LeaveList"),
-    },
-    {
-      label: t("hm.aLembur"),
-      icon: ICON.overtime,
-      bg: c.warn.bg,
-      ink: c.warn.ink,
-      onPress: () => navigation.navigate("Overtime"),
-    },
-    {
-      label: t("hm.aSlip"),
-      icon: ICON.payslip,
-      bg: c.ok.bg,
-      ink: c.ok.ink,
-      onPress: () => navigation.navigate("PayslipList"),
-    },
-    {
-      label: t("hm.aAppraisal"),
-      icon: ICON.appraisal,
-      bg: c.purple.bg,
-      ink: c.purple.ink,
-      onPress: () => navigation.navigate("Appraisal"),
-    },
-    {
-      label: t("hm.aPajak"),
-      icon: ICON.tax,
-      bg: c.info.bg,
-      ink: c.info.ink,
-      onPress: () => navigation.navigate("TaxDetail"),
-    },
+    ...(employee.role === "mss"
+      ? [
+          mk("absensiTim", t("hm.aAbsensiTim"), ICON.attendanceRate, "ok", () =>
+            navigation.navigate("StaffAttendance"),
+          ),
+        ]
+      : []),
+    ...(employee.role === "hr"
+      ? [
+          mk("verifikasi", t("hm.aVerifikasi"), ICON.document, "info", () =>
+            navigation.navigate("DocumentReview"),
+          ),
+          mk("dataPribadi", t("pcr.aksi"), ICON.user, "purple", () =>
+            navigation.navigate("ProfileChangeReview"),
+          ),
+        ]
+      : []),
   ];
+  const menuBeranda = semuaMenu.slice(0, 7);
 
   return (
     <View style={styles.container}>
@@ -348,10 +352,22 @@ export function HomeScreen() {
             </View>
 
             <Pressable
-              style={styles.heroCta}
-              onPress={() => navigation.navigate("Clock")}
+              style={[styles.heroCta, absensiSelesai && styles.heroCtaSelesai]}
+              onPress={() =>
+                navigation.navigate(absensiSelesai ? "History" : "Clock")
+              }
             >
-              <Text style={styles.heroCtaText}>{clockCta}</Text>
+              {absensiSelesai ? (
+                <Ionicons name="checkmark-circle" size={16} color="#fff" />
+              ) : null}
+              <Text
+                style={[
+                  styles.heroCtaText,
+                  absensiSelesai && styles.heroCtaTextSelesai,
+                ]}
+              >
+                {clockCta}
+              </Text>
             </Pressable>
           </LinearGradient>
         </View>
@@ -394,13 +410,13 @@ export function HomeScreen() {
         </View>
         {employment && <EmploymentCard slices={employment} />}
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>{t("hm.aksiCepat")}</Text>
+          <Text style={styles.sectionTitle}>{t("hm.menu")}</Text>
         </View>
 
         <View style={styles.quickGrid}>
-          {quickActions.map((q) => (
+          {menuBeranda.map((q) => (
             <QuickAction
-              key={q.label}
+              key={q.key}
               iconBg={q.bg}
               ink={q.ink}
               icon={q.icon}
@@ -408,6 +424,13 @@ export function HomeScreen() {
               onPress={q.onPress}
             />
           ))}
+          <QuickAction
+            iconBg={c.chip}
+            ink={c.accent}
+            icon={ICON.dots}
+            label={t("hm.semua")}
+            onPress={() => setMenuTerbuka(true)}
+          />
         </View>
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>{feedTitle}</Text>
@@ -474,6 +497,11 @@ export function HomeScreen() {
           ))}
         </Card>
       </ScrollView>
+      <MenuSheet
+        visible={menuTerbuka}
+        onClose={() => setMenuTerbuka(false)}
+        items={semuaMenu}
+      />
     </View>
   );
 }
@@ -834,6 +862,14 @@ const makeStyles = (c: Palette) =>
       marginTop: 4,
     },
 
+    heroCtaSelesai: {
+      flexDirection: "row",
+      gap: 7,
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: "rgba(255,255,255,0.22)",
+    },
+    heroCtaTextSelesai: { color: "#FFFFFF" },
     quickGrid: { flexDirection: "row", flexWrap: "wrap", gap: 9 },
     quickIcon: {
       width: 32,

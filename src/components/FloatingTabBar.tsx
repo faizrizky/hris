@@ -1,7 +1,6 @@
 import { useTabBarHidden } from "@/navigation/tabBarVisibility";
-import { useState, useMemo } from "react";
+import { useMemo } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import type { BottomTabBarProps } from "@react-navigation/bottom-tabs";
 import { Palette } from "@/theme/colors";
@@ -9,7 +8,6 @@ import { useTheme } from "@/theme/ThemeContext";
 import { useSession } from "@/services/session";
 import { LineIcon } from "@/components/LineIcon";
 import { ICON } from "@/constants/icons";
-import { CreateSheet } from "@/components/CreateSheet";
 import { useT } from "@/i18n";
 import type { Kunci } from "@/i18n/id";
 import { getFocusedRouteNameFromRoute } from "@react-navigation/native";
@@ -58,7 +56,6 @@ export function FloatingTabBar({ state, navigation }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
   const { employee } = useSession();
   const t = useT();
-  const [sheet, setSheet] = useState(false);
   const currentRoute = state.routes[state.index].name;
   const active = state.routes[state.index] as any;
   const nested = active.state;
@@ -138,29 +135,8 @@ export function FloatingTabBar({ state, navigation }: BottomTabBarProps) {
       style={[styles.wrapper, { bottom: insets.bottom + 10 }]}
       pointerEvents="box-none"
     >
-      <View style={styles.fabWrap} pointerEvents="box-none">
-        <Pressable style={styles.fabShadow} onPress={() => setSheet(true)}>
-          <LinearGradient
-            colors={[c.accent, c.accent2]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.fab}
-          >
-            <View style={styles.plusH} />
-            <View style={styles.plusV} />
-          </LinearGradient>
-        </Pressable>
-      </View>
-
-      <CreateSheet
-        visible={sheet}
-        onClose={() => setSheet(false)}
-        navigation={navigation}
-      />
-
       <View style={styles.bar}>
         {left.map(renderTab)}
-        <View style={styles.fabGap} />
         {RIGHT.map(renderTab)}
       </View>
     </View>
@@ -197,44 +173,4 @@ const makeStyles = (c: Palette) =>
     tab: { flex: 1, alignItems: "center", gap: 5 },
     iconSlot: { height: 15, alignItems: "center", justifyContent: "center" },
     tabLabel: { fontSize: 9.5, fontWeight: "600" },
-    fabGap: { width: 58 },
-
-    fabWrap: {
-      position: "absolute",
-      top: 0,
-      left: 0,
-      right: 0,
-      alignItems: "center",
-      zIndex: 2,
-    },
-    fabShadow: {
-      borderRadius: 22,
-      shadowColor: c.accent2,
-      shadowOffset: { width: 0, height: 12 },
-      shadowOpacity: 0.45,
-      shadowRadius: 26,
-      elevation: 10,
-    },
-    fab: {
-      width: 58,
-      height: 58,
-      borderRadius: 22,
-      alignItems: "center",
-      justifyContent: "center",
-      overflow: "hidden",
-    },
-    plusH: {
-      position: "absolute",
-      width: 20,
-      height: 3,
-      borderRadius: 2,
-      backgroundColor: "#fff",
-    },
-    plusV: {
-      position: "absolute",
-      width: 3,
-      height: 20,
-      borderRadius: 2,
-      backgroundColor: "#fff",
-    },
   });

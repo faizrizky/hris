@@ -1,8 +1,9 @@
 # Server Script (type: API, method: hris_get_clock_state, allow_guest: 0)
 # Status clock in/out pemanggil berdasarkan Employee Checkin HARI INI (zona sistem Asia/Jakarta).
-# Hasil: {"clocked_in","last_check_in","last_check_out","timezone" (IANA),"timezone_label" (WIB/WITA/WIT/GMT+n),"work_location"}
+# Hasil: {"clocked_in","last_check_in","last_check_out","timezone" (IANA),"timezone_label" (WIB/WITA/WIT/GMT+n),"work_location",
+#   "shift_name","shift_start","shift_end" ("HH:MM", dari Shift Assignment aktif hari ini atau shift bawaan karyawan)}
 # Panggil: GET /api/method/hris_get_clock_state
-state = {"clocked_in": False, "last_check_in": None, "last_check_out": None, "timezone": None, "timezone_label": None, "work_location": None}
+state = {"shift_name": None, "shift_start": None, "shift_end": None, "clocked_in": False, "last_check_in": None, "last_check_out": None, "timezone": None, "timezone_label": None, "work_location": None}
 me = frappe.get_all(
     "Employee",
     filters={"user_id": frappe.session.user, "status": "Active"},
@@ -43,6 +44,28 @@ if me:
     state["work_location"] = work_location
     local_now = str(frappe.utils.get_datetime_in_timezone(tz))[:19]
     today = local_now[:10]
+
+    # --- shift kerja hari ini: Shift Assignment aktif (tanpa/dengan tanggal akhir), jika tidak ada shift bawaan ---
+    shift_type = None
+    sa = frappe.get_all("Shift Assignment", filters={"employee": me[0].name, "docstatus": 1, "status": "Active",
+                                                     "start_date": ["<=", today], "end_date": [">=", today]},
+                        fields=["shift_type"], order_by="start_date desc", limit_page_length=1)
+    if not sa:
+        sa = frappe.get_all("Shift Assignment", filters={"employee": me[0].name, "docstatus": 1, "status": "Active",
+                                                         "start_date": ["<=", today], "end_date": ["is", "not set"]},
+                            fields=["shift_type"], order_by="start_date desc", limit_page_length=1)
+    if sa:
+        shift_type = sa[0].shift_type
+    if not shift_type:
+        shift_type = frappe.db.get_value("Employee", me[0].name, "default_shift")
+    if shift_type:
+        st = frappe.db.get_value("Shift Type", shift_type, ["start_time", "end_time"], as_dict=True)
+        if st and st.start_time is not None and st.end_time is not None:
+            s0 = int(st.start_time.total_seconds())
+            s1 = int(st.end_time.total_seconds())
+            state["shift_name"] = shift_type
+            state["shift_start"] = str(s0 // 3600).zfill(2) + ":" + str((s0 % 3600) // 60).zfill(2)
+            state["shift_end"] = str(s1 // 3600).zfill(2) + ":" + str((s1 % 3600) // 60).zfill(2)
 
     logs = frappe.get_all(
         "Employee Checkin",
