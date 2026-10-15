@@ -85,7 +85,10 @@ export function FaceEnrollScreen({ navigation }: any) {
   // Animasi: kamera penuh -> lingkaran, bingkai sudut berdenyut, pita pemindai, cincin panduan berputar.
   const [bentuk] = useState(() => new Animated.Value(0));
   const [denyut] = useState(() => new Animated.Value(0));
-  const [sapu] = useState(() => new Animated.Value(0));
+  // Posisi pita biru mengikuti arah kepala (-1..1 dari tengah lingkaran).
+  const [posX] = useState(() => new Animated.Value(0));
+  const [posY] = useState(() => new Animated.Value(0));
+  const [kuat] = useState(() => new Animated.Value(0));
   const [putar] = useState(() => new Animated.Value(0));
   const [masuk] = useState(() => new Animated.Value(0));
 
@@ -135,18 +138,10 @@ export function FaceEnrollScreen({ navigation }: any) {
           }),
         ]),
       ),
-      Animated.loop(
-        Animated.timing(sapu, {
-          toValue: 1,
-          duration: 1800,
-          easing: Easing.inOut(Easing.ease),
-          useNativeDriver: true,
-        }),
-      ),
     ];
     loops.forEach((l) => l.start());
     return () => loops.forEach((l) => l.stop());
-  }, [putar, denyut, sapu]);
+  }, [putar, denyut]);
 
   // Setiap ganti tahap: isi memudar masuk; kamera berubah bentuk saat pemindaian dimulai.
   useEffect(() => {
@@ -167,6 +162,32 @@ export function FaceEnrollScreen({ navigation }: any) {
       }).start();
     }
   }, [fase, bentuk, masuk]);
+
+  const arahkanPita = useCallback(
+    (kanan: number, atas: number, ada: boolean) => {
+      const batasi = (v: number) => Math.max(-1.3, Math.min(1.3, v));
+      Animated.parallel([
+        Animated.timing(posX, {
+          toValue: ada ? batasi(kanan) : 0,
+          duration: 170,
+          easing: Easing.out(Easing.quad),
+          useNativeDriver: true,
+        }),
+        Animated.timing(posY, {
+          toValue: ada ? batasi(atas) : 0,
+          duration: 170,
+          easing: Easing.out(Easing.quad),
+          useNativeDriver: true,
+        }),
+        Animated.timing(kuat, {
+          toValue: ada ? 1 : 0,
+          duration: 200,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    },
+    [posX, posY, kuat],
+  );
 
   const kirim = async () => {
     setFase("kirim");
@@ -221,6 +242,7 @@ export function FaceEnrollScreen({ navigation }: any) {
           const d = await deteksiWajah(foto.uri);
           if (batal) return;
           if (d.count !== 1) {
+            arahkanPita(0, 0, false);
             sebelumnya = null;
             setPesan(t(d.count === 0 ? "face.tidakAda" : "face.banyak"));
             continue;
@@ -234,6 +256,7 @@ export function FaceEnrollScreen({ navigation }: any) {
           const kanan = -d.yaw / YAW_MIN;
           const atas = d.pitch / PITCH_MIN;
           const besar = Math.hypot(kanan, atas);
+          arahkanPita(kanan, atas, true);
           if (!pusat) {
             if (besar < 0.6 && (d.eyesOpen < 0 || d.eyesOpen >= 0.5)) {
               pusat = await embeddingWajah(foto.uri);
@@ -459,11 +482,14 @@ export function FaceEnrollScreen({ navigation }: any) {
                 style={[
                   styles.pitaH,
                   {
+                    width: D * 1.3,
+                    left: -D * 0.15,
+                    opacity: kuat,
                     transform: [
                       {
-                        translateY: sapu.interpolate({
-                          inputRange: [0, 0.5, 1],
-                          outputRange: [-40, D, -40],
+                        translateY: posY.interpolate({
+                          inputRange: [-1.3, 1.3],
+                          outputRange: [D * 0.3, -D * 0.3],
                         }),
                       },
                     ],
@@ -472,9 +498,9 @@ export function FaceEnrollScreen({ navigation }: any) {
               >
                 <LinearGradient
                   colors={[
-                    "rgba(120,230,255,0)",
-                    "rgba(120,230,255,0.45)",
-                    "rgba(120,230,255,0)",
+                    "rgba(110,225,255,0)",
+                    "rgba(110,225,255,0.55)",
+                    "rgba(110,225,255,0)",
                   ]}
                   style={StyleSheet.absoluteFill}
                 />
@@ -484,11 +510,14 @@ export function FaceEnrollScreen({ navigation }: any) {
                 style={[
                   styles.pitaV,
                   {
+                    height: D * 1.3,
+                    top: -D * 0.15,
+                    opacity: kuat,
                     transform: [
                       {
-                        translateX: sapu.interpolate({
-                          inputRange: [0, 0.5, 1],
-                          outputRange: [D, -40, D],
+                        translateX: posX.interpolate({
+                          inputRange: [-1.3, 1.3],
+                          outputRange: [-D * 0.3, D * 0.3],
                         }),
                       },
                     ],
@@ -499,9 +528,9 @@ export function FaceEnrollScreen({ navigation }: any) {
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 0 }}
                   colors={[
-                    "rgba(120,230,255,0)",
-                    "rgba(120,230,255,0.35)",
-                    "rgba(120,230,255,0)",
+                    "rgba(110,225,255,0)",
+                    "rgba(110,225,255,0.5)",
+                    "rgba(110,225,255,0)",
                   ]}
                   style={StyleSheet.absoluteFill}
                 />
@@ -829,18 +858,21 @@ const makeStyles = (c: Palette) =>
       borderBottomRightRadius: 22,
     },
 
+    // Pita dipusatkan lalu digeser mengikuti kepala (lihat arahkanPita).
     pitaH: {
       position: "absolute",
-      left: 0,
-      right: 0,
-      top: 0,
-      height: 40,
+      top: "50%",
+      marginTop: -22,
+      height: 44,
+      borderRadius: 22,
+      overflow: "hidden",
     },
     pitaV: {
       position: "absolute",
-      top: 0,
-      bottom: 0,
-      left: 0,
-      width: 40,
+      left: "50%",
+      marginLeft: -22,
+      width: 44,
+      borderRadius: 22,
+      overflow: "hidden",
     },
   });
