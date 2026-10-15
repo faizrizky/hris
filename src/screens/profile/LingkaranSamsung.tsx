@@ -12,8 +12,7 @@ export const TICKS = 60;
 const PUTIH = "rgba(255,255,255,0.92)";
 
 // Lingkaran pendaftaran: `anak` (pratinjau kamera) di dalam lingkaran, kaca bola di atasnya yang
-// menggelinding masuk saat dibuka, tetap tampak (bernapas pelan) selama wajah belum terdeteksi,
-// lalu memudar saat wajah ketemu.
+// menggelinding terus selama layar terbuka dan menipis (tidak hilang) saat wajah terdeteksi.
 export function LingkaranSamsung({
   D,
   terisi,
@@ -34,14 +33,18 @@ export function LingkaranSamsung({
   const [masuk] = useState(() => new Animated.Value(0));
   const [napas] = useState(() => new Animated.Value(0));
   const [pudar] = useState(() => new Animated.Value(1));
+  // Kaca menggelinding terus-menerus selama layar ini terbuka (bukan hanya di awal): dari tepi kiri
+  // melebar jadi bola penuh di tengah, lalu menyempit ke tepi kanan, dan mengulang.
   useEffect(() => {
-    Animated.timing(masuk, {
-      toValue: 1,
-      duration: 1500,
-      easing: Easing.inOut(Easing.cubic),
-      useNativeDriver: true,
-    }).start();
-    const loop = Animated.loop(
+    const putar = Animated.loop(
+      Animated.timing(masuk, {
+        toValue: 1,
+        duration: 2800,
+        easing: Easing.inOut(Easing.sin),
+        useNativeDriver: true,
+      }),
+    );
+    const bernapas = Animated.loop(
       Animated.sequence([
         Animated.timing(napas, {
           toValue: 1,
@@ -57,12 +60,17 @@ export function LingkaranSamsung({
         }),
       ]),
     );
-    loop.start();
-    return () => loop.stop();
+    putar.start();
+    bernapas.start();
+    return () => {
+      putar.stop();
+      bernapas.stop();
+    };
   }, [masuk, napas]);
   useEffect(() => {
     Animated.timing(pudar, {
-      toValue: adaWajah ? 0 : 1,
+      // Animasi tetap tampak saat wajah ketemu, hanya lebih tipis supaya wajah terlihat jelas.
+      toValue: adaWajah ? 0.38 : 1,
       duration: adaWajah ? 450 : 350,
       useNativeDriver: true,
     }).start();
@@ -70,14 +78,14 @@ export function LingkaranSamsung({
 
   const scaleX = Animated.multiply(
     masuk.interpolate({
-      inputRange: [0, 0.35, 0.6, 1],
-      outputRange: [0.08, 0.7, 0.28, 1],
+      inputRange: [0, 0.25, 0.5, 0.75, 1],
+      outputRange: [0.08, 0.7, 1, 0.7, 0.08],
     }),
     napas.interpolate({ inputRange: [0, 1], outputRange: [1, 0.95] }),
   );
   const geser = masuk.interpolate({
-    inputRange: [0, 0.35, 0.6, 1],
-    outputRange: [-D * 0.42, -D * 0.18, D * 0.2, 0],
+    inputRange: [0, 0.25, 0.5, 0.75, 1],
+    outputRange: [-D * 0.44, -D * 0.2, 0, D * 0.2, D * 0.44],
   });
 
   return (
