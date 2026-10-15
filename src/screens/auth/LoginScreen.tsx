@@ -105,8 +105,8 @@ export function LoginScreen() {
                 value={email}
                 onChangeText={setEmail}
                 autoCapitalize="none"
-                keyboardType="email-address"
-                placeholder="ess@falah.co"
+                autoCorrect={false}
+                placeholder={t("login.usernameIsi")}
                 placeholderTextColor={c.mutedLabel}
               />
             </View>

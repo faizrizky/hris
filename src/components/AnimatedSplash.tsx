@@ -337,10 +337,6 @@ export function AnimatedSplash({ onSelesai }: { onSelesai: () => void }) {
           ) : null}
         </Animated.View>
       ) : null}
-
-      <Animated.Text style={[styles.perusahaan, { opacity: tagline }]}>
-        PT Falah Inovasi Teknologi
-      </Animated.Text>
     </Animated.View>
   );
 }
@@ -437,12 +433,4 @@ const makeStyles = (c: Palette) =>
       backgroundColor: c.accent,
     },
     tombolText: { fontSize: 13, fontWeight: "700", color: "#fff" },
-    perusahaan: {
-      position: "absolute",
-      bottom: 44,
-      fontSize: 11,
-      fontWeight: "600",
-      letterSpacing: 1.2,
-      color: c.mutedLabel,
-    },
   });
