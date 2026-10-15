@@ -48,7 +48,10 @@ const PETUNJUK_MS = 8_000; // perintah belum terpenuhi selama ini: tampilkan pet
 const BATAS_PERINTAH_MS = 60_000; // waktu tambahan untuk perintah, terpisah dari waktu memutar cincin
 const acakTantangan = (): Tantangan[] =>
   Math.random() < 0.5 ? ["pejam", "toleh"] : ["toleh", "pejam"];
-const SEKTOR = 8; // satu sampel wajah per seperdelapan lingkaran
+const SAMPEL_MIN = 3; // sampel wajah menghadap depan (kualitas tinggi) yang dibutuhkan sebelum selesai
+const SAMPEL_MAKS = 6;
+const JEDA_SAMPEL_MS = 1200;
+const KUALITAS_SAMPEL = 0.7; // frame deteksi 0.25 cukup untuk posisi, tapi embedding butuh gambar lebih tajam
 const BATAS_MS = 90_000;
 const EASE = Easing.bezier(0.25, 0.1, 0.25, 1);
 
@@ -219,12 +222,20 @@ export function FaceEnrollScreen({ navigation }: any) {
     let mulaiLangkah = 0;
     let mulaiPerintah = 0;
     let netral = false; // pejam: mata terlihat terbuka; toleh: kepala di tengah, sejak perintah muncul
-    const sektor = new Set<number>();
+    let sampelTerakhir = 0;
     let sebelumnya: number | null = null;
     let pusat: number[] | null = null;
     const jarak = (x: number, y: number) => {
       const d = Math.abs(x - y) % TICKS;
       return Math.min(d, TICKS - d);
+    };
+    const ambilSampel = async () => {
+      const f = await kamera.current?.takePictureAsync({
+        quality: KUALITAS_SAMPEL,
+        skipProcessing: true,
+        shutterSound: false,
+      });
+      return f ? await embeddingWajah(f.uri) : null;
     };
     const tambah = (i: number) => nyala.add(((i % TICKS) + TICKS) % TICKS);
 
@@ -265,7 +276,7 @@ export function FaceEnrollScreen({ navigation }: any) {
           setAdaWajah(true);
           if (!pusat) {
             if (besar < 0.6 && (d.eyesOpen < 0 || d.eyesOpen >= 0.5)) {
-              pusat = await embeddingWajah(foto.uri);
+              pusat = await ambilSampel();
               if (pusat && !batal) {
                 sampel.push(pusat);
                 setSelfie(foto.uri);
@@ -297,14 +308,20 @@ export function FaceEnrollScreen({ navigation }: any) {
               if (kiri && kanan2) nyala.add(i);
             }
             setTerisi([...nyala]);
-            const s8 = Math.floor(idx / (TICKS / SEKTOR));
-            if (!sektor.has(s8)) {
-              sektor.add(s8);
-              const v = await embeddingWajah(foto.uri);
-              if (v) sampel.push(v);
-            }
           } else {
             sebelumnya = null;
+          }
+          // Sampel untuk pencocokan: hanya saat wajah menghadap depan dan mata terbuka, dari foto kualitas tinggi.
+          // Wajah miring atau frame berkualitas rendah menurunkan kemiripan orang yang sama.
+          if (
+            besar < 0.5 &&
+            (d.eyesOpen < 0 || d.eyesOpen >= 0.5) &&
+            sampel.length < SAMPEL_MAKS &&
+            Date.now() - sampelTerakhir > JEDA_SAMPEL_MS
+          ) {
+            sampelTerakhir = Date.now();
+            const v = await ambilSampel();
+            if (v) sampel.push(v);
           }
           if (nyala.size >= CUKUP) {
             if (urutan.length === 0) {
@@ -314,6 +331,18 @@ export function FaceEnrollScreen({ navigation }: any) {
               netral = false;
               setPeringatan(null);
               setTantangan({ jenis: urutan[0]!, ke: 1 });
+            } else if (langkah >= urutan.length) {
+              // Semua perintah beres; tinggal menunggu cukup sampel wajah menghadap depan.
+              setTantangan(null);
+              if (sampel.length >= SAMPEL_MIN) {
+                for (let i = 0; i < TICKS; i++) nyala.add(i);
+                setTerisi([...nyala]);
+                hasil.current = sampel;
+                await new Promise((r) => setTimeout(r, 500));
+                if (!batal) setFase("lengkap");
+                return;
+              }
+              setPeringatan(t("fe.hadapDepan"));
             } else {
               const j = urutan[langkah]!;
               let ok = false;
@@ -331,16 +360,9 @@ export function FaceEnrollScreen({ navigation }: any) {
                 mulaiLangkah = Date.now();
                 netral = false;
                 setPeringatan(null);
-                if (langkah >= urutan.length) {
-                  for (let i = 0; i < TICKS; i++) nyala.add(i);
-                  setTerisi([...nyala]);
-                  setTantangan(null);
-                  hasil.current = sampel;
-                  await new Promise((r) => setTimeout(r, 500));
-                  if (!batal) setFase("lengkap");
-                  return;
+                if (langkah < urutan.length) {
+                  setTantangan({ jenis: urutan[langkah]!, ke: langkah + 1 });
                 }
-                setTantangan({ jenis: urutan[langkah]!, ke: langkah + 1 });
               } else if (Date.now() - mulaiLangkah > PETUNJUK_MS) {
                 setPeringatan(
                   t(j === "pejam" ? "fe.petunjukPejam" : "fe.petunjukToleh"),

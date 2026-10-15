@@ -1018,6 +1018,7 @@ export const id = {
   "fe.petunjukPejam": "Pejamkan kedua mata sekitar satu detik, lalu buka lagi.",
   "fe.petunjukToleh":
     "Lihat lurus dulu, lalu tolehkan kepala pelan ke samping.",
+  "fe.hadapDepan": "Lihat lurus ke kamera sebentar.",
   "dv.judul": "Perangkat belum disetujui",
   "dv.menunggu":
     "Ini perangkat baru. Absen dari HP ini baru bisa setelah HR menyetujuinya. Kamu akan menerima notifikasi begitu disetujui.",

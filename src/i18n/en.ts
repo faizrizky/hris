@@ -1014,6 +1014,7 @@ export const en: Record<Kunci, string> = {
   "fe.petunjukPejam": "Close both eyes for about a second, then open them.",
   "fe.petunjukToleh":
     "Look straight first, then slowly turn your head to the side.",
+  "fe.hadapDepan": "Look straight at the camera for a moment.",
   "dv.judul": "Device not approved",
   "dv.menunggu":
     "This is a new device. You can clock in from this phone only after HR approves it. You will be notified once it is approved.",
