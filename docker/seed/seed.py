@@ -1458,6 +1458,56 @@ else:
     frappe.db.set_value("Client Script", _PCS, {"script": _PJS, "enabled": 1})
 frappe.db.commit()
 
+# Pembaruan aplikasi (APK) tanpa toko: HR/admin mengunggah APK dan mengisi versinya; aplikasi membaca lewat
+# hris_get_app_update dan mengunduh APK yang berstatus publik (aplikasi belum login saat memeriksa).
+if not frappe.db.exists("DocType", "App Update"):
+    make(dict(
+        doctype="DocType", name="App Update", module="HR", custom=1, issingle=1,
+        fields=[
+            dict(fieldname="version_code", label="Version Code", fieldtype="Int", reqd=1,
+                 description="Nomor build (Version code di EAS). Aplikasi dengan nomor lebih kecil wajib memperbarui."),
+            dict(fieldname="version_name", label="Version Name", fieldtype="Data", description="Mis. 0.3.0"),
+            dict(fieldname="apk_url", label="APK URL", fieldtype="Data",
+                 description="Alamat unduh APK (harus bisa dibuka tanpa login). Diisi otomatis oleh scripts/rilis-apk.sh."),
+            dict(fieldname="apk_size", label="APK Size (bytes)", fieldtype="Int",
+                 description="Dipakai aplikasi untuk memastikan unduhan utuh. 0 = tidak diperiksa."),
+            dict(fieldname="apk", label="APK File (optional)", fieldtype="Attach",
+                 description="Alternatif: unggah file PUBLIK. Batas unggah ERPNext (5 MB) biasanya terlalu kecil untuk APK."),
+            dict(fieldname="release_notes", label="Release Notes", fieldtype="Small Text"),
+            dict(fieldname="mandatory", label="Mandatory", fieldtype="Check", default="1",
+                 description="Wajib: aplikasi tidak bisa dipakai sebelum diperbarui."),
+        ],
+        permissions=[dict(role="System Manager", read=1, write=1, create=1),
+                     dict(role="HR Manager", read=1, write=1, create=1)]))
+    frappe.clear_cache()
+# Field tambahan App Update untuk instalasi yang doctype-nya sudah ada.
+_au = frappe.get_doc("DocType", "App Update")
+_ada = {f.fieldname for f in _au.fields}
+_baru = [d for d in (
+    dict(fieldname="apk_url", label="APK URL", fieldtype="Data", insert_after="version_name",
+         description="Alamat unduh APK (harus bisa dibuka tanpa login). Diisi otomatis oleh scripts/rilis-apk.sh."),
+    dict(fieldname="apk_size", label="APK Size (bytes)", fieldtype="Int", insert_after="apk_url",
+         description="Dipakai aplikasi untuk memastikan unduhan utuh. 0 = tidak diperiksa."),
+) if d["fieldname"] not in _ada]
+if _baru:
+    _rows = [f.as_dict() for f in _au.fields]
+    for d in _baru:
+        _i = next((n for n, f in enumerate(_rows) if f["fieldname"] == d["insert_after"]), len(_rows) - 1)
+        _rows.insert(_i + 1, d)
+    _au.set("fields", [])
+    for r in _rows:
+        r.pop("name", None); r.pop("idx", None)
+        _au.append("fields", r)
+    _au.flags.ignore_permissions = True
+    _au.save()
+    frappe.clear_cache(doctype="App Update")
+    log("App Update: field apk_url dan apk_size ditambahkan")
+if frappe.db.exists("Sidebar", "HR Setup"):
+    from frappe.desk.doctype.custom_sidebar.custom_sidebar import add_site_sidebar_item as _asi
+    _asi("HR Setup", dict(label="App Update", type="Link", link_type="DocType", link_to="App Update", icon="upload",
+                          collapsible=1))
+    frappe.db.commit()
+
 # Sidebar HR Setup: Profile Change Request, Face Enrollment, Face Settings. Sebelumnya Profile Change Request ada di Leaves
 # dan tautan wajah salah nama sidebar; yang salah tempat dibersihkan dari lapisan kustom Leaves / Shift and Attendance.
 if frappe.db.exists("Sidebar", "HR Setup"):
@@ -1523,6 +1573,7 @@ if frappe.db.exists("Sidebar", "Shift and Attendance"):
     frappe.db.commit()
     frappe.clear_cache()
 
+GUEST_SCRIPTS = {"hris_get_app_update"}  # API tanpa login (pemeriksa pembaruan sebelum masuk)
 EVENT_SCRIPTS = {  # script berbasis event dokumen: nama_file -> (DocType, event)
     "hris_notify_leave_created": ("Leave Application", "After Insert"),
     "hris_notify_leave_decided": ("Leave Application", "After Save"),
@@ -1557,7 +1608,7 @@ if os.path.isdir(SS_DIR):
             else:
                 _out.append(_ln)
         code = "\n".join(_out)
-        vals = dict(script_type="API", api_method=name, allow_guest=0, disabled=0, script=code)
+        vals = dict(script_type="API", api_method=name, allow_guest=1 if name in GUEST_SCRIPTS else 0, disabled=0, script=code)
         if name in EVENT_SCRIPTS:  # script berbasis event dokumen, bukan API
             vals = dict(script_type="DocType Event", reference_doctype=EVENT_SCRIPTS[name][0],
                         doctype_event=EVENT_SCRIPTS[name][1], disabled=0, script=code)

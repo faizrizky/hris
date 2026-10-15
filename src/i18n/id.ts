@@ -1086,6 +1086,13 @@ export const id = {
   "fe.lingkarFaceId": "Gerakkan kepala pelan-pelan untuk melengkapi lingkaran.",
   "fe.lanjutkan": "Lanjutkan",
   "fe.batal": "Batal",
+  "up.memeriksa": "Memeriksa pembaruan…",
+  "up.mengunduh": "Mengunduh versi {v} ({p}%)",
+  "up.siapPasang": "Ketuk Perbarui pada layar pemasangan.",
+  "up.galat": "Pembaruan gagal diunduh.",
+  "up.cobaLagi": "Coba lagi",
+  "up.pasangLagi": "Buka pemasang lagi",
+  "up.bukaToko": "Buka toko aplikasi",
 } as const;
 
 export type Kunci = keyof typeof id;

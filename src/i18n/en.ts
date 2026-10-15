@@ -1081,4 +1081,11 @@ export const en: Record<Kunci, string> = {
   "fe.lingkarFaceId": "Move your head slowly to complete the circle.",
   "fe.lanjutkan": "Continue",
   "fe.batal": "Cancel",
+  "up.memeriksa": "Checking for updates…",
+  "up.mengunduh": "Downloading version {v} ({p}%)",
+  "up.siapPasang": "Tap Update on the install screen.",
+  "up.galat": "The update could not be downloaded.",
+  "up.cobaLagi": "Try again",
+  "up.pasangLagi": "Open installer again",
+  "up.bukaToko": "Open the app store",
 };

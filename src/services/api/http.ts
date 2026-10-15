@@ -16,6 +16,12 @@ const siapAlamat = AsyncStorage.getItem(KUNCI_ALAMAT)
   })
   .catch(() => {});
 
+// Alamat server siap dipakai setelah alamat tersimpan (jika ada) selesai dibaca.
+export async function muatAlamatServer(): Promise<string> {
+  await siapAlamat;
+  return BASE_URL;
+}
+
 export function alamatServer(): string {
   return BASE_URL;
 }
