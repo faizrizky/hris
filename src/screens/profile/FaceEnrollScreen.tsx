@@ -28,7 +28,7 @@ const R_IN = 116;
 const R_OUT = 128;
 const BATAS_MS = 90_000;
 
-type Fase = "muat" | "siap" | "pindai" | "kirim" | "selesai";
+type Fase = "muat" | "siap" | "cek" | "pindai" | "kirim" | "selesai";
 
 // Pendaftaran wajah bergaya Face ID: garis di sekeliling lingkaran menyala
 // hijau sesuai arah kepala. Satu embedding disimpan per arah.
@@ -48,6 +48,9 @@ export function FaceEnrollScreen({ navigation }: any) {
   const [pesan, setPesan] = useState<string | null>(null);
   const [galat, setGalat] = useState<string | null>(null);
   const [putaran, setPutaran] = useState(0);
+  // Embedding KTP dan foto profil dihitung SEBELUM pemindaian, supaya foto yang tidak berisi wajah
+  // ketahuan sebelum karyawan memutar kepala.
+  const acuan = useRef<{ ktp: number[]; prof: number[] } | null>(null);
 
   useEffect(() => {
     hrisApi
@@ -150,20 +153,12 @@ export function FaceEnrollScreen({ navigation }: any) {
     dibatalkan: () => boolean,
   ) => {
     try {
-      if (!status?.ktpUrl || !status.profileUrl) throw new Error("syarat");
-      const [ktpUri, profUri] = await Promise.all([
-        simpanLampiran(status.ktpUrl, "ktp"),
-        simpanLampiran(status.profileUrl, "profil"),
-      ]);
-      const ktp = await embeddingWajah(ktpUri);
-      if (!ktp) throw new Error(t("fe.ktpTanpaWajah"));
-      const prof = await embeddingWajah(profUri);
-      if (!prof) throw new Error(t("fe.profilTanpaWajah"));
+      if (!acuan.current) throw new Error("syarat");
       if (dibatalkan()) return;
       await hrisApi.submitFaceEnrollment({
         embeddings: sampel,
-        ktpEmbedding: ktp,
-        profileEmbedding: prof,
+        ktpEmbedding: acuan.current.ktp,
+        profileEmbedding: acuan.current.prof,
         selfie: selfie
           ? { uri: selfie, name: "selfie.jpg", mimeType: "image/jpeg" }
           : undefined,
@@ -175,8 +170,25 @@ export function FaceEnrollScreen({ navigation }: any) {
     }
   };
 
-  const mulai = () => {
+  const mulai = async () => {
     setGalat(null);
+    setFase("cek");
+    try {
+      if (!status?.ktpUrl || !status.profileUrl) throw new Error("syarat");
+      const [ktpUri, profUri] = await Promise.all([
+        simpanLampiran(status.ktpUrl, "ktp"),
+        simpanLampiran(status.profileUrl, "profil"),
+      ]);
+      const ktp = await embeddingWajah(ktpUri);
+      if (!ktp) throw new Error(t("fe.ktpTanpaWajah"));
+      const prof = await embeddingWajah(profUri);
+      if (!prof) throw new Error(t("fe.profilTanpaWajah"));
+      acuan.current = { ktp, prof };
+    } catch (e) {
+      setGalat(e instanceof Error ? e.message : describeError(e));
+      setFase("siap");
+      return;
+    }
     setPesan(t("face.depan"));
     setTerisi(Array(TICKS).fill(false));
     setSiapKamera(false);
@@ -307,11 +319,13 @@ export function FaceEnrollScreen({ navigation }: any) {
         </View>
 
         <Text style={styles.pesan}>
-          {fase === "kirim"
-            ? t("fe.mengirim")
-            : scanning
-              ? (pesan ?? t("face.depan"))
-              : t("fe.petunjuk")}
+          {fase === "cek"
+            ? t("fe.memeriksa")
+            : fase === "kirim"
+              ? t("fe.mengirim")
+              : scanning
+                ? (pesan ?? t("face.depan"))
+                : t("fe.petunjuk")}
         </Text>
         {galat ? <Text style={styles.galat}>{galat}</Text> : null}
 
@@ -321,7 +335,11 @@ export function FaceEnrollScreen({ navigation }: any) {
               <Text style={styles.btnText}>{t("face.beriIzin")}</Text>
             </Pressable>
           ) : (
-            <Pressable style={styles.btn} onPress={mulai}>
+            <Pressable
+              style={[styles.btn, fase === "cek" && { opacity: 0.5 }]}
+              onPress={mulai}
+              disabled={fase === "cek"}
+            >
               <Text style={styles.btnText}>
                 {t(
                   status?.state === "active" ||

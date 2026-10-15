@@ -1066,6 +1066,7 @@ export const id = {
     "Foto tidak bisa diproses. Coba foto lain atau ambil dengan kamera.",
   "ap.dataMenunggu": "{n} perubahan data menunggu",
   "ap.dataSub": "Data pribadi dan foto profil. Ketuk untuk meninjau.",
+  "fe.memeriksa": "Memeriksa foto KTP dan foto profil…",
 } as const;
 
 export type Kunci = keyof typeof id;

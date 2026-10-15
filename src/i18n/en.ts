@@ -1063,4 +1063,5 @@ export const en: Record<Kunci, string> = {
     "This photo could not be processed. Try another photo or use the camera.",
   "ap.dataMenunggu": "{n} data changes waiting",
   "ap.dataSub": "Personal data and profile photos. Tap to review.",
+  "fe.memeriksa": "Checking the ID card and profile photos…",
 };
