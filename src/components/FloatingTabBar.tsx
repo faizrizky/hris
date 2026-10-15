@@ -1,5 +1,6 @@
 import { useTabBarHidden } from "@/navigation/tabBarVisibility";
 import { useMemo } from "react";
+import { LinearGradient } from "expo-linear-gradient";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import type { BottomTabBarProps } from "@react-navigation/bottom-tabs";
@@ -135,6 +136,20 @@ export function FloatingTabBar({ state, navigation }: BottomTabBarProps) {
       style={[styles.wrapper, { bottom: insets.bottom + 10 }]}
       pointerEvents="box-none"
     >
+      {/* Isi layar di bawah tab bar memudar ke warna latar (kaca buram), jadi teks tidak terbaca
+          menembus di sekitar bar. Melebar penuh sampai tepi layar dan bawah layar. */}
+      <LinearGradient
+        pointerEvents="none"
+        colors={[`${c.bg}00`, `${c.bg}D9`, `${c.bg}F2`, c.bg]}
+        locations={[0, 0.34, 0.6, 1]}
+        style={{
+          position: "absolute",
+          left: -16,
+          right: -16,
+          top: -4,
+          bottom: -(insets.bottom + 10),
+        }}
+      />
       <View style={styles.bar}>
         {left.map(renderTab)}
         {RIGHT.map(renderTab)}
