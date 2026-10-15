@@ -381,8 +381,8 @@ export function FaceEnrollScreen({ navigation }: any) {
   }
 
   // ---- Layar gelap ala Face ID ----
-  const D = Math.min(W * 0.74, 300); // diameter luar cincin
-  const atasLingkaran = insets.top + 90;
+  const D = Math.min(W * 0.66, 270); // diameter lingkaran kamera
+  const atasLingkaran = insets.top + 96;
   const munculkan = {
     opacity: masuk,
     transform: [
@@ -403,7 +403,7 @@ export function FaceEnrollScreen({ navigation }: any) {
     fase === "lengkap" || fase === "kirim"
       ? 100
       : Math.min(100, Math.round((terisi.length / TICKS) * 100));
-  const teksBawahTop = atasLingkaran + D + 12 + 18;
+  const teksBawahTop = atasLingkaran + D + 62;
 
   return (
     <View style={[styles.container, { backgroundColor: HITAM }]}>
@@ -414,14 +414,15 @@ export function FaceEnrollScreen({ navigation }: any) {
           pointerEvents="none"
           style={{
             position: "absolute",
-            left: (W - (D + 12)) / 2,
-            top: atasLingkaran - 6,
+            left: (W - (D + 80)) / 2,
+            top: atasLingkaran - 40,
             opacity: masuk,
           }}
         >
           <LingkaranSamsung
             D={D}
             terisi={terisi}
+            selesai={fase === "lengkap" || fase === "kirim"}
             adaWajah={adaWajah || fase === "lengkap" || fase === "kirim"}
             anak={
               <CameraView

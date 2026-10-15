@@ -1,74 +1,36 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { Animated, Easing, StyleSheet, View } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import Svg, { Circle, Path } from "react-native-svg";
+import Svg, { Circle } from "react-native-svg";
+import { CincinWajah } from "./CincinWajah";
 
 export const TICKS = 60;
 
-// Warna meniru layar pendaftaran wajah One UI (video referensi): cincin luar abu-abu keunguan tebal,
-// lingkaran putih tipis di dalamnya sebagai panduan wajah, kemajuan berupa busur hijau di cincin luar.
-const CINCIN = "#8C8AB8";
+// Cincin garis ala Face ID tetap di luar lingkaran (garis putih menyala hijau mengikuti arah kepala).
+// Di dalam lingkaran: lingkaran putih tipis sebagai panduan wajah dan kaca berbentuk bola di atas kamera,
+// meniru layar pendaftaran wajah One UI (video referensi).
 const PUTIH = "rgba(255,255,255,0.92)";
-const HIJAU = "#3DDC6E";
 
-const PathAnim = Animated.createAnimatedComponent(Path);
-const EASE = Easing.bezier(0.25, 0.1, 0.25, 1);
-
-function busur(cx: number, r: number, deg0: number, deg1: number) {
-  const rad = (d: number) => ((d - 90) * Math.PI) / 180;
-  const x0 = cx + r * Math.cos(rad(deg0));
-  const y0 = cx + r * Math.sin(rad(deg0));
-  const x1 = cx + r * Math.cos(rad(deg1));
-  const y1 = cx + r * Math.sin(rad(deg1));
-  return `M ${x0} ${y0} A ${r} ${r} 0 0 1 ${x1} ${y1}`;
-}
-
-// Lingkaran pendaftaran gaya Samsung. `anak` (pratinjau kamera) ditaruh di dalam cincin, dengan
-// kaca berbentuk bola di atasnya: berputar masuk saat dibuka, tetap tampak selama wajah belum
-// terdeteksi, lalu memudar saat wajah ketemu.
+// Lingkaran pendaftaran: `anak` (pratinjau kamera) di dalam lingkaran, kaca bola di atasnya yang
+// menggelinding masuk saat dibuka, tetap tampak (bernapas pelan) selama wajah belum terdeteksi,
+// lalu memudar saat wajah ketemu.
 export function LingkaranSamsung({
   D,
   terisi,
+  selesai,
   adaWajah,
   anak,
 }: {
-  D: number; // diameter luar cincin
-  terisi: number[]; // indeks busur (0..TICKS-1) yang sudah tercapai
+  D: number; // diameter lingkaran kamera
+  terisi: number[]; // indeks garis (0..TICKS-1) yang sudah tercapai
+  selesai: boolean;
   adaWajah: boolean;
   anak: React.ReactNode;
 }) {
-  const lebarCincin = 6;
-  const kanvas = D + 12;
+  const kanvas = D + 80; // ruang untuk cincin garis di luar lingkaran
   const cx = kanvas / 2;
-  const rLuar = D / 2 - lebarCincin / 2;
-  const rDalam = D / 2 - lebarCincin - 8;
-  const dKamera = (rDalam + 10) * 2; // pratinjau mengisi sampai tepi cincin dalam
+  const rDalam = (D / 2) * 0.82; // lingkaran putih tipis (panduan wajah)
 
-  const [nyala] = useState(() =>
-    Array.from({ length: TICKS }, () => new Animated.Value(0)),
-  );
-  const sudah = useRef(new Set<number>());
-  useEffect(() => {
-    if (terisi.length === 0 && sudah.current.size > 0) {
-      sudah.current.clear();
-      nyala.forEach((v) => v.setValue(0));
-      return;
-    }
-    terisi
-      .filter((i) => !sudah.current.has(i))
-      .forEach((i, k) => {
-        sudah.current.add(i);
-        Animated.timing(nyala[i]!, {
-          toValue: 1,
-          duration: 300,
-          delay: k * 16,
-          easing: EASE,
-          useNativeDriver: false,
-        }).start();
-      });
-  }, [terisi, nyala]);
-
-  // Kaca bola: masuk dengan menggelinding (lebar mengembang sambil bergeser), lalu "bernapas" pelan.
   const [masuk] = useState(() => new Animated.Value(0));
   const [napas] = useState(() => new Animated.Value(0));
   const [pudar] = useState(() => new Animated.Value(1));
@@ -115,19 +77,26 @@ export function LingkaranSamsung({
   );
   const geser = masuk.interpolate({
     inputRange: [0, 0.35, 0.6, 1],
-    outputRange: [-dKamera * 0.42, -dKamera * 0.18, dKamera * 0.2, 0],
+    outputRange: [-D * 0.42, -D * 0.18, D * 0.2, 0],
   });
 
   return (
     <View style={{ width: kanvas, height: kanvas }}>
+      <CincinWajah
+        size={kanvas}
+        rIn={D / 2 + 12}
+        terisi={terisi}
+        selesai={selesai}
+        rFoto={D / 2 + 3}
+      />
       <View
         style={{
           position: "absolute",
-          left: (kanvas - dKamera) / 2,
-          top: (kanvas - dKamera) / 2,
-          width: dKamera,
-          height: dKamera,
-          borderRadius: dKamera / 2,
+          left: (kanvas - D) / 2,
+          top: (kanvas - D) / 2,
+          width: D,
+          height: D,
+          borderRadius: D / 2,
           overflow: "hidden",
           backgroundColor: "#000",
         }}
@@ -154,7 +123,7 @@ export function LingkaranSamsung({
               style={[
                 StyleSheet.absoluteFill,
                 {
-                  borderRadius: dKamera / 2,
+                  borderRadius: D / 2,
                   borderWidth: 2,
                   borderColor: "rgba(235,240,255,0.55)",
                 },
@@ -163,9 +132,9 @@ export function LingkaranSamsung({
             <View
               style={{
                 position: "absolute",
-                top: dKamera * 0.03,
+                top: D * 0.03,
                 alignSelf: "center",
-                width: dKamera * 0.42,
+                width: D * 0.42,
                 height: 6,
                 borderRadius: 3,
                 backgroundColor: "rgba(255,255,255,0.55)",
@@ -181,29 +150,6 @@ export function LingkaranSamsung({
         style={StyleSheet.absoluteFill}
         pointerEvents="none"
       >
-        <Circle
-          cx={cx}
-          cy={cx}
-          r={rLuar}
-          stroke={CINCIN}
-          strokeWidth={lebarCincin}
-          fill="none"
-        />
-        {Array.from({ length: TICKS }, (_, i) => {
-          const a0 = (i * 360) / TICKS - 3;
-          const a1 = ((i + 1) * 360) / TICKS + 0.5;
-          return (
-            <PathAnim
-              key={i}
-              d={busur(cx, rLuar, a0, a1)}
-              stroke={HIJAU}
-              strokeWidth={lebarCincin + 1}
-              strokeLinecap="butt"
-              fill="none"
-              strokeOpacity={nyala[i]}
-            />
-          );
-        })}
         <Circle
           cx={cx}
           cy={cx}
