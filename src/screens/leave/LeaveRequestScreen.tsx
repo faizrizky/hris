@@ -512,13 +512,18 @@ function LeaveRequestForm({ navigation, route }: any) {
               style={[
                 styles.segIndicator,
                 {
-                  width: (segW - 16) / SEGMENTS.length,
+                  width:
+                    (segW - 8 - 4 * (SEGMENTS.length - 1)) / SEGMENTS.length,
                   transform: [
                     {
                       translateX: geser.interpolate({
                         inputRange: SEGMENTS.map((_, i) => i),
                         outputRange: SEGMENTS.map(
-                          (_, i) => ((segW - 16) / SEGMENTS.length + 4) * i,
+                          (_, i) =>
+                            ((segW - 8 - 4 * (SEGMENTS.length - 1)) /
+                              SEGMENTS.length +
+                              4) *
+                            i,
                         ),
                       }),
                     },
@@ -535,7 +540,12 @@ function LeaveRequestForm({ navigation, route }: any) {
                 onPress={() => gantiKind(s.key)}
                 style={styles.segBtn}
               >
-                <Text style={[styles.segText, on && styles.segTextOn]}>
+                <Text
+                  style={[styles.segText, on && styles.segTextOn]}
+                  numberOfLines={1}
+                  adjustsFontSizeToFit
+                  minimumFontScale={0.8}
+                >
                   {t(s.label)}
                 </Text>
               </Pressable>
@@ -791,10 +801,11 @@ const makeStyles = (c: Palette) =>
     },
     segBtn: {
       flex: 1,
-      paddingVertical: 9,
-      paddingHorizontal: 6,
+      height: 40,
+      paddingHorizontal: 4,
       borderRadius: 11,
       alignItems: "center",
+      justifyContent: "center",
     },
     segIndicator: {
       position: "absolute",
@@ -809,8 +820,13 @@ const makeStyles = (c: Palette) =>
       shadowRadius: 4,
       elevation: 2,
     },
-    segText: { fontSize: 12, fontWeight: "700", color: c.muted },
-    segTextOn: { color: c.ink },
+    segText: {
+      fontSize: 12.5,
+      fontWeight: "700",
+      color: c.muted,
+      textAlign: "center",
+    },
+    segTextOn: { color: c.accent },
 
     content: { paddingHorizontal: 18, paddingTop: 16, paddingBottom: 24 },
     placeholder: {

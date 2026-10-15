@@ -587,7 +587,9 @@ function QuickAction({
         <View style={[styles.quickIcon, { backgroundColor: iconBg }]}>
           <LineIcon d={icon} color={ink} size={17} />
         </View>
-        <Text style={styles.quickLabel}>{label}</Text>
+        <Text style={styles.quickLabel} numberOfLines={2}>
+          {label}
+        </Text>
       </Pressable>
     </Reveal>
   );
@@ -901,12 +903,14 @@ const makeStyles = (c: Palette) =>
       borderWidth: 1,
       borderColor: c.cardBorder,
       borderRadius: 16,
-      paddingVertical: 12,
+      height: 88,
+      paddingTop: 12,
       paddingHorizontal: 6,
       alignItems: "center",
       gap: 8,
     },
     quickLabel: {
+      height: 26, // dua baris tetap, jadi semua kartu menu sama tinggi
       fontSize: 10.5,
       lineHeight: 13,
       fontWeight: "600",

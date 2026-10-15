@@ -29,8 +29,13 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
   // tinggal bertanya "siapa saya"; hanya bila sesinya sudah kedaluwarsa pengguna kembali ke layar login.
   useEffect(() => {
     let batal = false;
-    hrisApi
-      .getCurrentEmployee()
+    // Batas waktu supaya server yang lambat/tidak terjangkau tidak menahan layar kosong.
+    Promise.race([
+      hrisApi.getCurrentEmployee(),
+      new Promise<never>((_, tolak) =>
+        setTimeout(() => tolak(new Error("timeout")), 6000),
+      ),
+    ])
       .then((e) => {
         if (!batal) setEmployee((sekarang) => sekarang ?? e);
       })

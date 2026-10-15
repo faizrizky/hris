@@ -1,4 +1,6 @@
 import React from "react";
+import { View } from "react-native";
+import { useTheme } from "@/theme/ThemeContext";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
@@ -288,10 +290,16 @@ function MainTabs() {
 
 export function RootNavigator() {
   const { employee, siap } = useSession();
+  const c = useTheme();
+
+  // Sesi tersimpan masih dipulihkan: tampilkan layar berlatar tema (bukan kosong/gelap) sebentar.
+  if (!siap) {
+    return <View style={{ flex: 1, backgroundColor: c.bg }} />;
+  }
 
   return (
     <NavigationContainer>
-      {!siap ? null : employee ? (
+      {employee ? (
         <MainTabs />
       ) : (
         <RevealScope>
