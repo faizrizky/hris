@@ -81,6 +81,10 @@ export const mockApi: HrisApi = {
     return currentEmployee;
   },
 
+  async registerDevice() {
+    return { status: "Approved" as const };
+  },
+
   async getCurrentEmployee(): Promise<Employee> {
     await delay(100);
     return currentEmployee;

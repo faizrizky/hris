@@ -493,6 +493,10 @@ export interface HrisApi {
     faceVec?: number[],
   ): Promise<ClockState>;
   getFaceStatus(): Promise<FaceStatus>;
+  // Mendaftarkan perangkat ini (pertama otomatis disetujui; berikutnya menunggu HR) dan mengembalikan statusnya.
+  registerDevice(): Promise<{
+    status: "Approved" | "Pending" | "Rejected" | "Unknown";
+  }>;
   submitFaceEnrollment(input: {
     embeddings: number[][];
     ktpEmbedding: number[];

@@ -1009,6 +1009,11 @@ export const en: Record<Kunci, string> = {
   "profil.fotoSub": "Change photo, submitted to HR",
   "fe.pengingatJudul": "Register your face again",
   "fe.nanti": "Later",
+  "dv.judul": "Device not approved",
+  "dv.menunggu":
+    "This is a new device. You can clock in from this phone only after HR approves it. You will be notified once it is approved.",
+  "dv.ditolak": "This device is not allowed to clock in. Contact HR if needed.",
+  "dv.ok": "Got it",
   "sec.wajah.active": "Active",
   "sec.wajah.pending": "Waiting for HR",
   "sec.wajah.needs_reenroll": "Re-register needed",

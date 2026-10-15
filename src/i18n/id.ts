@@ -1013,6 +1013,12 @@ export const id = {
   "profil.fotoSub": "Ganti foto, diajukan ke HR",
   "fe.pengingatJudul": "Daftar ulang wajah",
   "fe.nanti": "Nanti",
+  "dv.judul": "Perangkat belum disetujui",
+  "dv.menunggu":
+    "Ini perangkat baru. Absen dari HP ini baru bisa setelah HR menyetujuinya. Kamu akan menerima notifikasi begitu disetujui.",
+  "dv.ditolak":
+    "Perangkat ini tidak diizinkan untuk absen. Hubungi HR bila perlu.",
+  "dv.ok": "Mengerti",
   "sec.wajah.active": "Aktif",
   "sec.wajah.pending": "Menunggu HR",
   "sec.wajah.needs_reenroll": "Perlu daftar ulang",

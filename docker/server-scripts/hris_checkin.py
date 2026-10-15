@@ -121,6 +121,19 @@ if not done:
                 if not frappe.db.exists("Employee Checkin", {"employee": me[0].name, "time": time_value}):
                     break
                 time_value = str(frappe.utils.add_to_date(frappe.utils.get_datetime(time_value), seconds=1))[:19]
+    # @include: _lib/device_lib.py
+    dev_flags = []
+    dev_id = str(fd.get("device_id") or "").strip()[:140]
+    dev_status = dv_resolve(me[0].name, me[0].employee_name, dev_id, fd.get("device_name"), fd.get("platform"))
+    if dev_status != "Approved":
+        has_approved = frappe.db.exists("Registered Device", {"employee": me[0].name, "status": "Approved"})
+        if dev_status == "Unknown" and not has_approved:
+            pass  # belum ada perangkat terdaftar sama sekali: aplikasi lama masih diizinkan
+        elif log_type == "IN" and not offline:
+            frappe.db.commit()  # simpan perangkat Pending yang baru terdaftar sebelum menolak
+            frappe.throw("Clock In blocked: this device is " + ("not recognised" if dev_status == "Unknown" else "awaiting HR approval" if dev_status == "Pending" else "not allowed") + ". Ask HR to approve it.")
+        else:
+            dev_flags.append("device not approved (" + dev_status.lower() + ")")
     # ---- Geofence dan validasi GPS (tidak mengubah penentuan jam di atas) ----
     # Aturan: geofence hanya untuk Clock IN (Clock OUT bebas di mana saja). Clock IN online di luar area,
     # tanpa lokasi (bila wajib), akurasi buruk, atau lokasi palsu DITOLAK pada mode Block. Check-in offline
@@ -226,12 +239,12 @@ if not done:
                 face_flags.append("face mismatch (" + str(fpct) + "%)")
     elif log_type == "IN" and not offline and fl_setting("require_enrollment", 0):
         frappe.throw("Register your face first (Profile > Face registration)")
-    all_flags = flags + geo_flags + face_flags
+    all_flags = flags + geo_flags + face_flags + dev_flags
     if offline and not flags and not claimed:
         claimed = time_value
     review = "Needs Review" if all_flags else "None"
     doc = frappe.get_doc({"doctype": "Employee Checkin", "employee": me[0].name, "log_type": log_type,
-                          "time": time_value, "device_id": "hris-mobile", "custom_timezone": tz,
+                          "time": time_value, "device_id": dev_id or "hris-mobile", "custom_timezone": tz,
                           "custom_offline": 1 if offline else 0, "custom_clock_skew_seconds": int(skew),
                           "custom_queue_age_seconds": int(age) if offline else 0, "custom_claimed_time": claimed,
                           "custom_review_status": review, "custom_flags": "; ".join(all_flags),

@@ -58,6 +58,7 @@ import { ApiError, get, post, put, upload } from "./http";
 import { ukuranFile } from "../../utils/file";
 import { File as FileFs } from "expo-file-system";
 import { tokenPushSaatIni } from "../push";
+import { infoPerangkat } from "../device";
 import { waktuTerpercaya } from "../trustedTime";
 import {
   ItemAntrean,
@@ -1141,8 +1142,12 @@ const idKlien = () =>
   `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
 
 async function kirimItem(i: ItemAntrean, offline: boolean) {
+  const dev = await infoPerangkat();
   await post("/api/method/hris_checkin", {
     log_type: i.logType,
+    device_id: dev.id,
+    device_name: dev.nama,
+    platform: dev.platform,
     client_id: i.clientId,
     ...(i.faceVec ? { face_vec: JSON.stringify(i.faceVec) } : {}),
     ...(i.lokasi
@@ -1354,6 +1359,18 @@ export const erpnextApi: HrisApi = {
       await post("/api/method/logout").catch(() => {});
       throw e;
     }
+  },
+
+  async registerDevice() {
+    const dev = await infoPerangkat();
+    const r = await post<{
+      message: { status: "Approved" | "Pending" | "Rejected" | "Unknown" };
+    }>("/api/method/hris_register_device", {
+      device_id: dev.id,
+      device_name: dev.nama,
+      platform: dev.platform,
+    });
+    return { status: r.message.status };
   },
 
   async getCurrentEmployee(): Promise<Employee> {

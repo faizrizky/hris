@@ -640,6 +640,36 @@ if not frappe.db.exists("DocType", "Push Settings"):
     frappe.db.set_single_value("Push Settings", "dry_run", 1)  # nilai awal dev; ubah di web untuk kirim sungguhan
 frappe.db.commit()
 
+# Pengikatan perangkat: perangkat pertama otomatis Approved, berikutnya Pending sampai HR menyetujui.
+if not frappe.db.exists("DocType", "Registered Device"):
+    make(dict(
+        doctype="DocType", name="Registered Device", module="HR", custom=1, naming_rule="Expression (old style)",
+        autoname="DEV-.#####", track_changes=1,
+        fields=[
+            dict(fieldname="employee", label="Employee", fieldtype="Link", options="Employee", reqd=1, in_list_view=1,
+                 in_standard_filter=1),
+            dict(fieldname="employee_name", label="Employee Name", fieldtype="Data", fetch_from="employee.employee_name",
+                 read_only=1, in_list_view=1),
+            dict(fieldname="status", label="Status", fieldtype="Select", options="Pending\nApproved\nRejected",
+                 default="Pending", in_list_view=1, in_standard_filter=1),
+            dict(fieldname="device_name", label="Device Name", fieldtype="Data", in_list_view=1),
+            dict(fieldname="platform", label="Platform", fieldtype="Data"),
+            dict(fieldname="device_id", label="Device ID", fieldtype="Data", reqd=1),
+            dict(fieldname="registered_on", label="Registered On", fieldtype="Datetime", read_only=1),
+            dict(fieldname="last_seen", label="Last Seen", fieldtype="Datetime", read_only=1),
+            dict(fieldname="hr_note", label="HR Note", fieldtype="Small Text"),
+        ],
+        permissions=[dict(role="System Manager", read=1, write=1, create=1, delete=1),
+                     dict(role="HR Manager", read=1, write=1, create=1, delete=1),
+                     dict(role="HR User", read=1, write=1)]))
+    frappe.clear_cache()
+frappe.db.commit()
+if frappe.db.exists("Sidebar", "HR Setup"):
+    from frappe.desk.doctype.custom_sidebar.custom_sidebar import add_site_sidebar_item as _asd
+    _asd("HR Setup", dict(label="Registered Device", type="Link", link_type="DocType", link_to="Registered Device",
+                          icon="mobile", collapsible=1))
+    frappe.db.commit()
+
 # Bukti koreksi absensi: batasi role Employee pada Attendance Request ke dokumen miliknya (if_owner).
 if not any(p.role == "Employee" and p.permlevel == 0 and p.if_owner for p in frappe.get_meta("Attendance Request").permissions):
     update_permission_property("Attendance Request", "Employee", 0, "if_owner", 1)
@@ -1580,6 +1610,7 @@ EVENT_SCRIPTS = {  # script berbasis event dokumen: nama_file -> (DocType, event
     "hris_notify_payslip": ("Salary Slip", "After Submit"),
     "hris_notify_attendance_correction": ("Attendance Request", "After Submit"),
     "hris_notify_document_status": ("Employee Document", "After Save"),
+    "hris_notify_device": ("Registered Device", "After Save"),
     "hris_link_attachment": ("File", "After Insert"),
     "hris_guard_document_upload": ("File", "Before Insert"),
     "hris_employee_tax_status": ("Employee", "Before Save"),

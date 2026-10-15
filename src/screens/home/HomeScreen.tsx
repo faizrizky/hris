@@ -34,6 +34,7 @@ import { useConfirm } from "@/components/ConfirmDialog";
 
 // Pengingat daftar ulang wajah muncul sekali per pembukaan aplikasi.
 let pengingatWajahTampil = false;
+let pengingatPerangkatTampil = false;
 
 export function HomeScreen() {
   const t = useT();
@@ -79,6 +80,22 @@ export function HomeScreen() {
       .getNotificationInbox(employee.id)
       .then((n) => setBelumDibaca(n.filter((x) => !x.read).length))
       .catch(() => setBelumDibaca(0));
+    if (!pengingatPerangkatTampil) {
+      hrisApi
+        .registerDevice()
+        .then((d) => {
+          if (d.status !== "Pending" && d.status !== "Rejected") return;
+          pengingatPerangkatTampil = true;
+          confirm({
+            title: t("dv.judul"),
+            message: t(d.status === "Pending" ? "dv.menunggu" : "dv.ditolak"),
+            tone: "warn",
+            confirmText: t("dv.ok"),
+            cancelText: t("fe.nanti"),
+          });
+        })
+        .catch(() => {});
+    }
     if (!pengingatWajahTampil) {
       hrisApi
         .getFaceStatus()
