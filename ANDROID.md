@@ -23,3 +23,22 @@ Catatan:
 - Alamat server memakai `http://` (LAN). Pengaturan `usesCleartextTraffic` sudah diaktifkan lewat plugin `expo-build-properties` di app.json, jadi APK boleh memanggil http.
 - Ganti `EXPO_PUBLIC_API_BASE_URL` di `.env` ke alamat yang bisa dijangkau HP **sebelum** membangun APK; nilainya ikut tertanam saat build.
 - Build lokal tanpa EAS: `npx expo run:android` (perlu Android Studio dan SDK, HP tersambung USB dengan debugging aktif).
+
+
+## Memperbarui aplikasi tanpa build ulang (EAS Update)
+
+Perubahan yang hanya JavaScript, teks, animasi, atau gambar tidak perlu build baru:
+
+```bash
+./scripts/kirim-update.sh "pesan perubahan"
+```
+
+HP mengambilnya saat aplikasi dibuka (layar pembuka menampilkan "Memperbarui aplikasi…") lalu memuat ulang sendiri.
+
+- **Perlu build baru:** library native baru, modul `hris-clock` / `hris-face`, model wajah, izin, ikon, splash native,
+  atau pengaturan native di `app.json`. Rilis build itu lewat `./scripts/rilis-apk.sh <build-id>`.
+- **Runtime version = fingerprint proyek.** Update hanya diterima build yang runtime-nya sama, jadi perubahan native tidak
+  bisa membuat build lama crash karena paket JS yang tidak cocok.
+- **Kuota:** paket gratis EAS Update 1.000 pengguna aktif per bulan (terpisah dari jatah build).
+- **Build pertama dengan EAS Update:** HP yang berjalan di build lama (tanpa `expo-updates`) perlu memasang build baru sekali.
+- `.env` lokal ikut terbaca saat memaketkan (alamat server, `EXPO_PUBLIC_USE_ERPNEXT`), jadi kirim update dari folder proyek ini.
