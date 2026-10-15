@@ -199,6 +199,8 @@ export function FaceEnrollScreen({ navigation }: any) {
     let urutan: Tantangan[] = [];
     let langkah = 0;
     let mulaiLangkah = 0;
+    let netral = false; // kepala sudah kembali ke tengah setelah perintah muncul
+    let berturut = 0; // frame berturut-turut yang memenuhi arah perintah
     const sektor = new Set<number>();
     let sebelumnya: number | null = null;
     let pusat: number[] | null = null;
@@ -297,6 +299,8 @@ export function FaceEnrollScreen({ navigation }: any) {
               kedip = 0;
               matiTertutup = false;
               mulaiLangkah = Date.now();
+              netral = false;
+              berturut = 0;
               setPeringatan(null);
               setTantangan({ jenis: urutan[0]!, ke: 1 });
             } else if (Date.now() - mulaiLangkah > BATAS_TANTANGAN_MS) {
@@ -305,21 +309,26 @@ export function FaceEnrollScreen({ navigation }: any) {
               langkah = 0;
               kedip = 0;
               mulaiLangkah = Date.now();
+              netral = false;
+              berturut = 0;
               setPeringatan(t("fe.tantGagal"));
               setTantangan({ jenis: urutan[0]!, ke: 1 });
             } else {
               const j = urutan[langkah]!;
-              const ok =
-                j === "kedip"
-                  ? kedip >= 1
-                  : j === "kiri"
-                    ? kanan <= -1
-                    : kanan >= 1;
+              // Gerakan harus dimulai dari tengah setelah perintah muncul, lalu bertahan 2 frame ke arah
+              // yang diminta. Menoleh sembarang atau sudah menoleh sejak sebelum perintah tidak lolos.
+              if (Math.abs(kanan) < 0.45 && Math.abs(atas) < 0.9) netral = true;
+              const arah =
+                j === "kiri" ? kanan <= -1 : j === "kanan" ? kanan >= 1 : false;
+              berturut = netral && arah ? berturut + 1 : 0;
+              const ok = j === "kedip" ? kedip >= 1 : berturut >= 2;
               if (ok) {
                 langkah += 1;
                 kedip = 0;
                 matiTertutup = false;
                 mulaiLangkah = Date.now();
+                netral = false;
+                berturut = 0;
                 setPeringatan(null);
                 if (langkah >= urutan.length) {
                   for (let i = 0; i < TICKS; i++) nyala.add(i);
