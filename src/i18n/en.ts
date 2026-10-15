@@ -1009,10 +1009,11 @@ export const en: Record<Kunci, string> = {
   "profil.fotoSub": "Change photo, submitted to HR",
   "fe.pengingatJudul": "Register your face again",
   "fe.nanti": "Later",
-  "fe.tantKedip": "Blink your eyes",
-  "fe.tantKiri": "Turn your head to the left",
-  "fe.tantKanan": "Turn your head to the right",
-  "fe.tantGagal": "Movement not detected. Follow this new instruction.",
+  "fe.tantPejam": "Close your eyes for a moment",
+  "fe.tantToleh": "Turn your head left or right",
+  "fe.petunjukPejam": "Close both eyes for about a second, then open them.",
+  "fe.petunjukToleh":
+    "Look straight first, then slowly turn your head to the side.",
   "dv.judul": "Device not approved",
   "dv.menunggu":
     "This is a new device. You can clock in from this phone only after HR approves it. You will be notified once it is approved.",

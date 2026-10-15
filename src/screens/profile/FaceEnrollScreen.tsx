@@ -38,16 +38,16 @@ import { LingkaranSamsung, TICKS } from "./LingkaranSamsung";
 const YAW_MIN = 11;
 const PITCH_MIN = 7;
 const CUKUP = Math.round(TICKS * 0.92); // sisa celah kecil diisi otomatis
-// Liveness saat pendaftaran: setelah cincin penuh, aplikasi memberi dua perintah acak yang baru muncul saat itu
-// (kedip / toleh kiri / toleh kanan). Foto atau video rekaman tidak bisa tahu perintahnya lebih dulu.
-type Tantangan = "kedip" | "kiri" | "kanan";
-const SEMUA_TANTANGAN: Tantangan[] = ["kedip", "kiri", "kanan"];
+// Liveness saat pendaftaran: setelah cincin penuh, dua perintah dengan urutan acak yang baru muncul saat itu
+// (pejamkan mata, lalu/atau toleh ke samping). Foto atau video rekaman tidak tahu kapan dan apa perintahnya.
+// Kamera hanya beberapa frame per detik, jadi gerakannya dipilih yang bertahan lama (pejam, bukan kedip
+// sekejap) dan arah toleh bebas supaya tidak gagal karena salah sisi.
+type Tantangan = "pejam" | "toleh";
 const JUMLAH_TANTANGAN = 2;
-const BATAS_TANTANGAN_MS = 12_000;
+const PETUNJUK_MS = 8_000; // perintah belum terpenuhi selama ini: tampilkan petunjuk (tanpa mengulang)
+const BATAS_PERINTAH_MS = 60_000; // waktu tambahan untuk perintah, terpisah dari waktu memutar cincin
 const acakTantangan = (): Tantangan[] =>
-  [...SEMUA_TANTANGAN]
-    .sort(() => Math.random() - 0.5)
-    .slice(0, JUMLAH_TANTANGAN);
+  Math.random() < 0.5 ? ["pejam", "toleh"] : ["toleh", "pejam"];
 const SEKTOR = 8; // satu sampel wajah per seperdelapan lingkaran
 const BATAS_MS = 90_000;
 const EASE = Easing.bezier(0.25, 0.1, 0.25, 1);
@@ -82,6 +82,26 @@ export function FaceEnrollScreen({ navigation }: any) {
   const [status, setStatus] = useState<FaceStatus | null>(null);
   const [fase, setFase] = useState<Fase>("muat");
   const [siapKamera, setSiapKamera] = useState(false);
+  // Resolusi foto kecil (sekitar 640 px) membuat ambil foto + deteksi jauh lebih cepat; wajah tetap cukup
+  // besar untuk embedding 112x112.
+  const [ukuranFoto, setUkuranFoto] = useState<string | undefined>(undefined);
+  const siapkanKamera = async () => {
+    try {
+      const daftar =
+        (await kamera.current?.getAvailablePictureSizesAsync()) ?? [];
+      const lebar = (u: string) => {
+        const [a, b] = u.split("x").map(Number);
+        return Math.min(a || 0, b || 0);
+      };
+      const pilih = daftar
+        .filter((u) => /^\d+x\d+$/.test(u) && lebar(u) >= 480)
+        .sort((a, b) => lebar(a) - lebar(b))[0];
+      if (pilih) setUkuranFoto(pilih);
+    } catch {
+      // pakai ukuran bawaan
+    }
+    setSiapKamera(true);
+  };
   const [terisi, setTerisi] = useState<number[]>([]);
   const [pesan, setPesan] = useState<string | null>(null);
   const [galat, setGalat] = useState<string | null>(null);
@@ -194,13 +214,11 @@ export function FaceEnrollScreen({ navigation }: any) {
     const nyala = new Set<number>();
     // Liveness saat mendaftar: perintah acak setelah cincin penuh (lihat Tantangan di atas); foto diam
     // atau video rekaman tidak bisa tahu perintahnya lebih dulu.
-    let matiTertutup = false;
-    let kedip = 0; // jumlah kedipan sejak perintah aktif dimulai
     let urutan: Tantangan[] = [];
     let langkah = 0;
     let mulaiLangkah = 0;
-    let netral = false; // kepala sudah kembali ke tengah setelah perintah muncul
-    let berturut = 0; // frame berturut-turut yang memenuhi arah perintah
+    let mulaiPerintah = 0;
+    let netral = false; // pejam: mata terlihat terbuka; toleh: kepala di tengah, sejak perintah muncul
     const sektor = new Set<number>();
     let sebelumnya: number | null = null;
     let pusat: number[] | null = null;
@@ -212,7 +230,10 @@ export function FaceEnrollScreen({ navigation }: any) {
 
     (async () => {
       while (!batal) {
-        if (Date.now() - mulai > BATAS_MS) {
+        const batas = mulaiPerintah
+          ? mulaiPerintah + BATAS_PERINTAH_MS
+          : mulai + BATAS_MS;
+        if (Date.now() > batas) {
           setGalat(t("fe.habis"));
           setFase("intro");
           return;
@@ -242,13 +263,6 @@ export function FaceEnrollScreen({ navigation }: any) {
           const atas = d.pitch / PITCH_MIN;
           const besar = Math.hypot(kanan, atas);
           setAdaWajah(true);
-          if (d.eyesOpen >= 0) {
-            if (d.eyesOpen < 0.35) matiTertutup = true;
-            else if (matiTertutup && d.eyesOpen > 0.6) {
-              matiTertutup = false;
-              kedip += 1;
-            }
-          }
           if (!pusat) {
             if (besar < 0.6 && (d.eyesOpen < 0 || d.eyesOpen >= 0.5)) {
               pusat = await embeddingWajah(foto.uri);
@@ -296,43 +310,26 @@ export function FaceEnrollScreen({ navigation }: any) {
             if (urutan.length === 0) {
               urutan = acakTantangan();
               langkah = 0;
-              kedip = 0;
-              matiTertutup = false;
-              mulaiLangkah = Date.now();
+              mulaiLangkah = mulaiPerintah = Date.now();
               netral = false;
-              berturut = 0;
               setPeringatan(null);
-              setTantangan({ jenis: urutan[0]!, ke: 1 });
-            } else if (Date.now() - mulaiLangkah > BATAS_TANTANGAN_MS) {
-              // Perintah tidak dipenuhi: beri tahu, lalu perintah baru yang acak lagi.
-              urutan = acakTantangan();
-              langkah = 0;
-              kedip = 0;
-              mulaiLangkah = Date.now();
-              netral = false;
-              berturut = 0;
-              setPeringatan(t("fe.tantGagal"));
               setTantangan({ jenis: urutan[0]!, ke: 1 });
             } else {
               const j = urutan[langkah]!;
-              // Gerakan harus dimulai dari tengah setelah perintah muncul, lalu bertahan satu frame ke arah
-              // yang diminta. Menoleh sembarang atau sudah menoleh sejak sebelum perintah tidak lolos.
-              if (Math.abs(kanan) < 0.6 && Math.abs(atas) < 1) netral = true;
-              const arah =
-                j === "kiri"
-                  ? kanan <= -0.75
-                  : j === "kanan"
-                    ? kanan >= 0.75
-                    : false;
-              berturut = netral && arah ? berturut + 1 : 0;
-              const ok = j === "kedip" ? kedip >= 1 : berturut >= 1;
+              let ok = false;
+              if (j === "pejam") {
+                // Mata harus terlihat terbuka dulu setelah perintah muncul, lalu tertutup.
+                if (d.eyesOpen >= 0.5) netral = true;
+                ok = netral && d.eyesOpen >= 0 && d.eyesOpen < 0.45;
+              } else {
+                // Mulai dari tengah, lalu menoleh ke kiri atau kanan.
+                if (Math.abs(kanan) < 0.6) netral = true;
+                ok = netral && Math.abs(kanan) >= 0.75;
+              }
               if (ok) {
                 langkah += 1;
-                kedip = 0;
-                matiTertutup = false;
                 mulaiLangkah = Date.now();
                 netral = false;
-                berturut = 0;
                 setPeringatan(null);
                 if (langkah >= urutan.length) {
                   for (let i = 0; i < TICKS; i++) nyala.add(i);
@@ -344,6 +341,10 @@ export function FaceEnrollScreen({ navigation }: any) {
                   return;
                 }
                 setTantangan({ jenis: urutan[langkah]!, ke: langkah + 1 });
+              } else if (Date.now() - mulaiLangkah > PETUNJUK_MS) {
+                setPeringatan(
+                  t(j === "pejam" ? "fe.petunjukPejam" : "fe.petunjukToleh"),
+                );
               }
             }
           }
@@ -510,7 +511,8 @@ export function FaceEnrollScreen({ navigation }: any) {
                 style={StyleSheet.absoluteFill}
                 facing="front"
                 animateShutter={false}
-                onCameraReady={() => setSiapKamera(true)}
+                pictureSize={ukuranFoto}
+                onCameraReady={siapkanKamera}
               />
             }
           />
@@ -605,13 +607,7 @@ export function FaceEnrollScreen({ navigation }: any) {
           ) : null}
           {fase === "pindai" && tantangan ? (
             <Text style={styles.perintah}>
-              {t(
-                tantangan.jenis === "kedip"
-                  ? "fe.tantKedip"
-                  : tantangan.jenis === "kiri"
-                    ? "fe.tantKiri"
-                    : "fe.tantKanan",
-              )}
+              {t(tantangan.jenis === "pejam" ? "fe.tantPejam" : "fe.tantToleh")}
               {` (${tantangan.ke}/${JUMLAH_TANTANGAN})`}
             </Text>
           ) : null}

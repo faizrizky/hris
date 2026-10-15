@@ -1013,10 +1013,11 @@ export const id = {
   "profil.fotoSub": "Ganti foto, diajukan ke HR",
   "fe.pengingatJudul": "Daftar ulang wajah",
   "fe.nanti": "Nanti",
-  "fe.tantKedip": "Kedipkan mata",
-  "fe.tantKiri": "Tolehkan kepala ke kiri",
-  "fe.tantKanan": "Tolehkan kepala ke kanan",
-  "fe.tantGagal": "Gerakan belum terdeteksi. Ikuti perintah baru ini.",
+  "fe.tantPejam": "Pejamkan mata sebentar",
+  "fe.tantToleh": "Tolehkan kepala ke kiri atau kanan",
+  "fe.petunjukPejam": "Pejamkan kedua mata sekitar satu detik, lalu buka lagi.",
+  "fe.petunjukToleh":
+    "Lihat lurus dulu, lalu tolehkan kepala pelan ke samping.",
   "dv.judul": "Perangkat belum disetujui",
   "dv.menunggu":
     "Ini perangkat baru. Absen dari HP ini baru bisa setelah HR menyetujuinya. Kamu akan menerima notifikasi begitu disetujui.",
