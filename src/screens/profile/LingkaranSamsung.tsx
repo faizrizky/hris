@@ -49,6 +49,21 @@ function jalurIrisan(R: number, a1: number): string {
   return `M ${kiri.join(" L ")} L ${kanan.reverse().join(" L ")} Z`;
 }
 
+// Garis tepi tipis di sisi depan irisan (meridian pada a2): satu garis halus yang meruncing ke ujung.
+function jalurTepi(R: number, a1: number): string {
+  const a2 = a1 + IRISAN_DERAJAT;
+  if (a2 <= -90 || a1 >= 90) return "";
+  const N = 36;
+  const t: string[] = [];
+  for (let i = 0; i <= N; i++) {
+    const y = -R + (2 * R * i) / N;
+    const g = Math.sqrt(Math.max(0, 1 - (y / R) * (y / R)));
+    const x = R * Math.sin(rad(jepit(a2))) * g;
+    t.push(`${(R + x).toFixed(1)} ${(R + y).toFixed(1)}`);
+  }
+  return `M ${t.join(" L ")}`;
+}
+
 function KacaIrisan({
   D,
   rDalam,
@@ -88,6 +103,7 @@ function KacaIrisan({
     };
   }, []);
   const d = jalurIrisan(R, a1);
+  const tepi = jalurTepi(R, a1);
   return (
     <Animated.View
       pointerEvents="none"
@@ -131,9 +147,10 @@ function KacaIrisan({
           >
             <Rect x="0" y="0" width={2 * R} height={2 * R} fill="url(#pudar)" />
           </Mask>
-          <SvgGradient id="irisan" x1="0" y1="0" x2="0" y2="1">
-            <Stop offset="0" stopColor="rgb(196,210,228)" stopOpacity={0.78} />
-            <Stop offset="1" stopColor="rgb(104,124,156)" stopOpacity={0.5} />
+          <SvgGradient id="irisan" x1="0" y1="0" x2="1" y2="0">
+            <Stop offset="0" stopColor="rgb(150,170,200)" stopOpacity={0.06} />
+            <Stop offset="0.6" stopColor="rgb(176,194,220)" stopOpacity={0.4} />
+            <Stop offset="1" stopColor="rgb(214,226,244)" stopOpacity={0.62} />
           </SvgGradient>
         </Defs>
         {d ? (
@@ -141,11 +158,13 @@ function KacaIrisan({
             transform={`translate(${D / 2 - R} ${D / 2 - R}) rotate(${ARAH_SUDUT[lintasan]} ${R} ${R})`}
           >
             <G mask="url(#ujung)">
+              <Path d={d} fill="url(#irisan)" />
               <Path
-                d={d}
-                fill="url(#irisan)"
-                stroke="rgba(228,236,255,0.6)"
-                strokeWidth={1}
+                d={tepi}
+                fill="none"
+                stroke="rgba(240,245,255,0.9)"
+                strokeWidth={1.2}
+                strokeLinecap="round"
               />
               <Path d={d} fill="url(#titik)" />
             </G>
