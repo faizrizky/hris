@@ -869,7 +869,7 @@ if frappe.db.exists("DocType", "Work Location"):
 # padahal menyalakannya memaksa lokasi pada SEMUA check-in (termasuk Clock Out/WFH). Client Script ini menampilkannya
 # kembali; peta dipakai langsung dan disinkronkan ke koordinat oleh Server Script hris_shift_location_map.
 _CS = "Shift Location - show map"
-_JS = r"""// Shift Location: cari tempat, peta hanya zoom, koordinat otomatis.
+_JS = r"""// Shift Location: cari tempat, peta bisa digeser/diklik, pin bisa digeser, koordinat otomatis.
 // hrms menyembunyikan radius/koordinat/peta kecuali "Allow Geolocation Tracking" menyala; di sini ditampilkan
 // kembali tanpa menyalakannya (itu memaksa lokasi pada semua check-in).
 const STYLE_ID = "shift-location-map-style";
@@ -905,12 +905,52 @@ function geojson(lat, lng, radius) {
 	});
 }
 
-async function terapkan(frm, lat, lng) {
-	await frm.set_value("latitude", lat);
-	await frm.set_value("longitude", lng);
+// tanpaFit: titik dipindah lewat peta (klik/geser pin), jadi tampilan peta tidak boleh melompat.
+async function terapkan(frm, lat, lng, tanpaFit) {
+	const ctl = frm.fields_dict.geolocation;
+	if (tanpaFit && ctl) ctl._tahanFit = true;
+	await frm.set_value("latitude", parseFloat(lat.toFixed(6)));
+	await frm.set_value("longitude", parseFloat(lng.toFixed(6)));
 	await frm.set_value("geolocation", geojson(lat, lng, frm.doc.checkin_radius));
-	const map = frm.fields_dict.geolocation && frm.fields_dict.geolocation.map;
-	if (map) setTimeout(() => map.setView([lat, lng], 17), 150);
+	const map = ctl && ctl.map;
+	if (map && !tanpaFit) setTimeout(() => map.setView([lat, lng], 17), 150);
+}
+
+// Peta bisa digeser dan diperbesar, ketuk/klik peta memindahkan pin ke titik itu, dan pin bisa digeser;
+// lingkaran radius mengikuti. Dipasang ulang tiap data peta digambar ulang oleh Frappe.
+function pasangPin(frm) {
+	const ctl = frm.fields_dict.geolocation;
+	const map = ctl && ctl.map;
+	if (!map || typeof L === "undefined") return;
+	["dragging", "touchZoom", "scrollWheelZoom", "doubleClickZoom"].forEach((k) => map[k] && map[k].enable());
+	if (!ctl._petaTerpasang) {
+		ctl._petaTerpasang = true;
+		map.on("click", (e) => terapkan(frm, e.latlng.lat, e.latlng.lng, true));
+		const fitAsli = ctl.fit_and_recenter_map.bind(ctl);
+		ctl.fit_and_recenter_map = function () {
+			if (ctl._tahanFit) { ctl._tahanFit = false; return; }
+			fitAsli();
+		};
+		const gambarAsli = ctl.bind_leaflet_data.bind(ctl);
+		ctl.bind_leaflet_data = function (v) { gambarAsli(v); pasangPin(frm); };
+	}
+	let lingkaran = null;
+	const pin = [];
+	ctl.editableLayers && ctl.editableLayers.eachLayer((l) => {
+		if (l instanceof L.Circle) lingkaran = l;
+		else if (l instanceof L.Marker) pin.push(l);
+	});
+	pin.forEach((m) => {
+		m.dragging.enable();
+		m.on("drag", (e) => { if (lingkaran) lingkaran.setLatLng(e.target.getLatLng()); });
+		m.on("dragend", (e) => { const p = e.target.getLatLng(); terapkan(frm, p.lat, p.lng, true); });
+	});
+}
+
+function siapkanPeta(frm, coba) {
+	const ctl = frm.fields_dict.geolocation;
+	if (ctl && ctl.map) { pasangPin(frm); return; }
+	if ((coba || 0) < 25) setTimeout(() => siapkanPeta(frm, (coba || 0) + 1), 300);
 }
 
 function pasangPencarian(frm) {
@@ -967,8 +1007,11 @@ frappe.ui.form.on("Shift Location", {
 			hide_field("fetch_geolocation");
 			frm.set_df_property("latitude", "read_only", 1);
 			frm.set_df_property("longitude", "read_only", 1);
+			frm.set_df_property("geolocation", "description",
+				__("Drag the map, tap or click a spot to place the pin, or drag the pin. The circle is the check-in radius."));
 			frm.refresh_fields();
 			pasangPencarian(frm);
+			siapkanPeta(frm);
 		}, 400);
 	},
 	checkin_radius: (frm) => {
