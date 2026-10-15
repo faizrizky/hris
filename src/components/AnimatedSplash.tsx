@@ -349,7 +349,9 @@ const makeStyles = (c: Palette) =>
       alignItems: "center",
       justifyContent: "center",
     },
-    tengah: { alignItems: "center" },
+    // Grup digeser ke bawah setengah tinggi bagian di bawah logo, sehingga logo tepat di tengah layar
+    // dan menyambung mulus dari layar pembuka native (logo yang sama di titik yang sama).
+    tengah: { alignItems: "center", marginTop: 124 },
     logoWrap: {
       width: UKURAN,
       height: UKURAN,
@@ -397,7 +399,7 @@ const makeStyles = (c: Palette) =>
       left: 32,
       right: 32,
       top: "50%",
-      marginTop: 150,
+      marginTop: 215,
       alignItems: "center",
     },
     statusText: {

@@ -52,7 +52,19 @@
           "recordAudioAndroid": false
         }
       ],
-      "expo-splash-screen"
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 120,
+          "backgroundColor": "#FFFFFF",
+          "resizeMode": "contain",
+          "dark": {
+            "image": "./assets/splash-icon.png",
+            "backgroundColor": "#FFFFFF"
+          }
+        }
+      ]
     ],
     "extra": {
       "eas": {
