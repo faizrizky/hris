@@ -1,4 +1,5 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   Image,
   Linking,
@@ -46,6 +47,8 @@ export function ProfileDataScreen({ navigation }: any) {
   const [galat, setGalat] = useState<string | null>(null);
   const [permintaan, setPermintaan] = useState<ProfileChange[]>([]);
   const foto = useFotoProfil();
+  // Kartu kelengkapan 100% cukup dilihat sekali; setelah itu tidak ditampilkan lagi.
+  const [sudahLihat, setSudahLihat] = useState<boolean | null>(null);
 
   const muat = useCallback(() => {
     if (!employee) return;
@@ -70,6 +73,22 @@ export function ProfileDataScreen({ navigation }: any) {
   const kurang = profil ? kekurangan(profil.editable) : [];
   const persen = profil ? persenKelengkapan(profil.editable) : 0;
   const lengkap = kurang.length === 0;
+  const kunciLihat = `hris.pd.lengkapDilihat.${employee?.id ?? ""}`;
+  useEffect(() => {
+    if (!profil) return;
+    if (!lengkap) {
+      AsyncStorage.removeItem(kunciLihat).catch(() => {});
+      return;
+    }
+    AsyncStorage.getItem(kunciLihat)
+      .then((v) => {
+        setSudahLihat(v === "1");
+        if (v !== "1") AsyncStorage.setItem(kunciLihat, "1").catch(() => {});
+      })
+      .catch(() => setSudahLihat(false));
+  }, [profil, lengkap, kunciLihat]);
+  const tampilHero = !lengkap || sudahLihat === false;
+  const permintaanPending = permintaan.filter((p) => p.status === "Pending");
 
   const header = (
     <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
@@ -193,40 +212,42 @@ export function ProfileDataScreen({ navigation }: any) {
           </Pressable>
         </View>
 
-        <LinearGradient
-          colors={[c.accent, c.accent2]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={[styles.hero, { marginTop: 12 }]}
-        >
-          <View style={styles.heroBlob} />
-          <View style={styles.heroTop}>
-            <Text style={styles.heroLabel}>{t("pd.kelengkapan")}</Text>
-            <View style={styles.heroBadge}>
-              <Text style={styles.heroBadgeText}>
-                {lengkap
-                  ? t("pd.lengkap")
-                  : t("pd.perluN", { n: kurang.length })}
-              </Text>
+        {tampilHero ? (
+          <LinearGradient
+            colors={[c.accent, c.accent2]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={[styles.hero, { marginTop: 12 }]}
+          >
+            <View style={styles.heroBlob} />
+            <View style={styles.heroTop}>
+              <Text style={styles.heroLabel}>{t("pd.kelengkapan")}</Text>
+              <View style={styles.heroBadge}>
+                <Text style={styles.heroBadgeText}>
+                  {lengkap
+                    ? t("pd.lengkap")
+                    : t("pd.perluN", { n: kurang.length })}
+                </Text>
+              </View>
             </View>
-          </View>
 
-          <Text style={styles.heroPct}>{persen}%</Text>
+            <Text style={styles.heroPct}>{persen}%</Text>
 
-          <View style={styles.heroTrack}>
-            <View style={[styles.heroFill, { width: `${persen}%` }]} />
-          </View>
+            <View style={styles.heroTrack}>
+              <View style={[styles.heroFill, { width: `${persen}%` }]} />
+            </View>
 
-          <Text style={styles.heroNote}>
-            {lengkap
-              ? t("pd.noteLengkap")
-              : t("pd.noteKurang", {
-                  daftar: kurang
-                    .map((k) => k.judul.toLowerCase())
-                    .join(t("pe.dan")),
-                })}
-          </Text>
-        </LinearGradient>
+            <Text style={styles.heroNote}>
+              {lengkap
+                ? t("pd.noteLengkap")
+                : t("pd.noteKurang", {
+                    daftar: kurang
+                      .map((k) => k.judul.toLowerCase())
+                      .join(t("pe.dan")),
+                  })}
+            </Text>
+          </LinearGradient>
+        ) : null}
 
         {profil.pendingChange ? (
           <View style={styles.pendingBanner}>
@@ -234,26 +255,18 @@ export function ProfileDataScreen({ navigation }: any) {
           </View>
         ) : null}
 
-        {permintaan.length > 0 ? (
+        {permintaanPending.length > 0 ? (
           <View style={[styles.card, { marginTop: 12 }]}>
             <Text style={styles.cardTitle}>{t("pc.riwayat")}</Text>
             <View style={{ gap: 12, marginTop: 12 }}>
-              {permintaan.slice(0, 5).map((p) => (
+              {permintaanPending.slice(0, 5).map((p) => (
                 <ChangeSummary key={p.id} p={p} />
               ))}
             </View>
           </View>
         ) : null}
 
-        {lengkap ? (
-          <View style={styles.okBanner}>
-            <LineIcon d={ICON.attendanceRate} color={c.ok.ink} size={20} />
-            <View style={{ flex: 1, minWidth: 0 }}>
-              <Text style={styles.okTitle}>{t("pd.okTitle")}</Text>
-              <Text style={styles.okSub}>{t("pd.okSub")}</Text>
-            </View>
-          </View>
-        ) : (
+        {!lengkap ? (
           <View style={styles.card}>
             <Text style={styles.cardTitle}>{t("pd.belumLengkap")}</Text>
             <View style={{ gap: 10, marginTop: 12 }}>
@@ -273,11 +286,23 @@ export function ProfileDataScreen({ navigation }: any) {
               ))}
             </View>
           </View>
-        )}
+        ) : null}
 
-        {seksi.map((s) => (
+        {seksi.map((s, idx) => (
           <View key={s.title} style={[styles.card, { marginTop: 12 }]}>
-            <Text style={styles.cardTitle}>{s.title}</Text>
+            <View style={styles.cardHead}>
+              <Text style={styles.cardTitle}>{s.title}</Text>
+              {idx === 0 && lengkap ? (
+                <View style={styles.okPill}>
+                  <LineIcon
+                    d={ICON.attendanceRate}
+                    color={c.ok.ink}
+                    size={13}
+                  />
+                  <Text style={styles.okPillText}>{t("pd.okTitle")}</Text>
+                </View>
+              ) : null}
+            </View>
             <View style={{ gap: 12, marginTop: 14 }}>
               {s.rows.map(([k, v]) => (
                 <View key={k} style={styles.row}>
@@ -526,6 +551,16 @@ const makeStyles = (c: Palette) =>
     },
     cardTitle: { fontSize: 13.5, fontWeight: "700", color: c.ink },
 
+    okPill: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 5,
+      backgroundColor: c.ok.bg,
+      borderRadius: 999,
+      paddingHorizontal: 10,
+      paddingVertical: 5,
+    },
+    okPillText: { fontSize: 11, fontWeight: "700", color: c.ok.ink },
     okBanner: {
       flexDirection: "row",
       alignItems: "center",
