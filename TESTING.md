@@ -40,6 +40,17 @@ WFH: rani ajukan di segmen WFH (rentang tanggal, hari per minggu, alasan); tumpa
 Check-in offline: matikan data, Clock In masuk antrean; nyalakan, antrean terkirim; mundurkan jam HP, jam tercatat tetap dari jam tepercaya dan ditandai Perlu Ditinjau; atasan/HR meninjau di Peninjauan Check-in.
 Pengumuman dan data keluarga: pengumuman HR tampil dan notifikasi terbuka; permintaan ubah data (status pernikahan, anak) masuk ke HR untuk disetujui.
 
+## Fase 3c: Foto profil dan verifikasi wajah (rani, sari, dewi)
+Syarat: KTP rani berstatus Verified (Profil > Dokumen; di web ubah status Employee Document KTP). Foto KTP dan foto profil harus berisi wajah yang jelas.
+1. Foto profil: Profil > Data Pribadi > Ubah foto. Panduan tiga slide (Lanjut/Lewati), lalu Buka kamera atau galeri. Coba juga foto HEIC dari iPhone: harus tetap terproses. Tinjau foto lalu Ajukan ke HR. Foto kurang mirip memunculkan modal peringatan (hanya bila wajah sudah terdaftar).
+2. HR (sari) di web: Profile Change Request berisi foto dan dua skor kemiripan; setujui. Foto muncul sebagai hero di halaman Profil rani, dengan animasi memudar.
+3. Syarat daftar wajah: sebelum KTP terverifikasi atau foto profil ada, Keamanan > Pendaftaran wajah menampilkan pesan apa yang kurang dengan tombol ke Dokumen/Foto profil.
+4. Pendaftaran: Profil > Keamanan > kartu pendaftaran wajah. Putar kepala pelan hingga garis lingkaran hijau semua. Catat apakah garis menyala mulus atau patah-patah (kamera 2-3 frame per detik) dan apakah lingkaran bisa penuh. Hasilnya berstatus Menunggu HR.
+5. HR (sari) di web: Face Enrollment menampilkan selfie, KTP, foto profil berdampingan dengan tiga persentase dan peringatan merah di bawah ambang (Face Settings: 30/36/36). Catat angkanya untuk menyetel ambang. Setujui; rani menerima notifikasi.
+6. Absen dengan wajah: Clock In/Out menampilkan kamera depan dan tantangan acak (kedip atau toleh); coba dengan foto di HP lain (harus gagal), orang lain di depan kamera (harus ditandai Perlu Ditinjau di Peninjauan Check-in), dan wajah rani sendiri (lolos).
+7. Ganti foto profil dengan foto orang lain, HR menyetujui: rani wajib daftar ulang (kartu Keamanan berstatus Perlu daftar ulang, modal pengingat saat buka aplikasi, absen tetap jalan selama tenggang 3 hari).
+8. Keyboard di Android: buka form panjang (cuti, ubah data, alasan tolak) dan pastikan field tidak tertutup keyboard.
+
 ## Fase 4: Atasan (dewi)
 - Inbox Approval memuat cuti, lembur, dinas luar, koreksi dari rani (hasil Fase 3).
 - Ketuk nama lampiran: terunduh dan terbuka di lembar berbagi/pratinjau.
