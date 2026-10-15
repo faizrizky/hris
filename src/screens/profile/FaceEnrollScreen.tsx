@@ -10,7 +10,6 @@ import {
   View,
 } from "react-native";
 import { CameraView, useCameraPermissions } from "expo-camera";
-import { LinearGradient } from "expo-linear-gradient";
 import { StatusBar } from "expo-status-bar";
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
@@ -31,7 +30,8 @@ import {
   wajahDidukung,
 } from "@/services/faceCheck";
 import type { FaceStatus } from "@/services/types";
-import { CincinWajah, TICKS } from "./CincinWajah";
+import { CincinWajah } from "./CincinWajah";
+import { LingkaranSamsung, TICKS } from "./LingkaranSamsung";
 
 // Sudut kepala (derajat) yang dianggap "sampai" ke tepi lingkaran. Mendongak/menunduk lebih sulit
 // daripada menoleh, jadi ambangnya lebih kecil; arah diagonal memakai kombinasi keduanya (elips).
@@ -76,19 +76,15 @@ export function FaceEnrollScreen({ navigation }: any) {
   const [pesan, setPesan] = useState<string | null>(null);
   const [galat, setGalat] = useState<string | null>(null);
   const [selfie, setSelfie] = useState<string | null>(null);
+  const [adaWajah, setAdaWajah] = useState(false);
   const [putaran, setPutaran] = useState(0);
   // Embedding KTP dan foto profil dihitung SEBELUM pemindaian, supaya foto yang tidak berisi wajah
   // ketahuan sebelum karyawan memutar kepala.
   const acuan = useRef<{ ktp: number[]; prof: number[] } | null>(null);
   const hasil = useRef<number[][]>([]);
 
-  // Animasi: kamera penuh -> lingkaran, bingkai sudut berdenyut, pita pemindai, cincin panduan berputar.
-  const [bentuk] = useState(() => new Animated.Value(0));
+  // Animasi: cincin panduan di layar pembuka berputar; pemindaian memakai lingkaran gaya Samsung.
   const [denyut] = useState(() => new Animated.Value(0));
-  // Posisi pita biru mengikuti arah kepala (-1..1 dari tengah lingkaran).
-  const [posX] = useState(() => new Animated.Value(0));
-  const [posY] = useState(() => new Animated.Value(0));
-  const [kuat] = useState(() => new Animated.Value(0));
   const [putar] = useState(() => new Animated.Value(0));
   const [masuk] = useState(() => new Animated.Value(0));
 
@@ -152,42 +148,7 @@ export function FaceEnrollScreen({ navigation }: any) {
       easing: EASE,
       useNativeDriver: true,
     }).start();
-    if (fase === "posisi") bentuk.setValue(0);
-    if (fase === "pindai") {
-      Animated.timing(bentuk, {
-        toValue: 1,
-        duration: 650,
-        easing: EASE,
-        useNativeDriver: false,
-      }).start();
-    }
-  }, [fase, bentuk, masuk]);
-
-  const arahkanPita = useCallback(
-    (kanan: number, atas: number, ada: boolean) => {
-      const batasi = (v: number) => Math.max(-1.3, Math.min(1.3, v));
-      Animated.parallel([
-        Animated.timing(posX, {
-          toValue: ada ? batasi(kanan) : 0,
-          duration: 170,
-          easing: Easing.out(Easing.quad),
-          useNativeDriver: true,
-        }),
-        Animated.timing(posY, {
-          toValue: ada ? batasi(atas) : 0,
-          duration: 170,
-          easing: Easing.out(Easing.quad),
-          useNativeDriver: true,
-        }),
-        Animated.timing(kuat, {
-          toValue: ada ? 1 : 0,
-          duration: 200,
-          useNativeDriver: true,
-        }),
-      ]).start();
-    },
-    [posX, posY, kuat],
-  );
+  }, [fase, masuk]);
 
   const kirim = async () => {
     setFase("kirim");
@@ -242,7 +203,7 @@ export function FaceEnrollScreen({ navigation }: any) {
           const d = await deteksiWajah(foto.uri);
           if (batal) return;
           if (d.count !== 1) {
-            arahkanPita(0, 0, false);
+            setAdaWajah(false);
             sebelumnya = null;
             setPesan(t(d.count === 0 ? "face.tidakAda" : "face.banyak"));
             continue;
@@ -256,7 +217,7 @@ export function FaceEnrollScreen({ navigation }: any) {
           const kanan = -d.yaw / YAW_MIN;
           const atas = d.pitch / PITCH_MIN;
           const besar = Math.hypot(kanan, atas);
-          arahkanPita(kanan, atas, true);
+          setAdaWajah(true);
           if (!pusat) {
             if (besar < 0.6 && (d.eyesOpen < 0 || d.eyesOpen >= 0.5)) {
               pusat = await embeddingWajah(foto.uri);
@@ -420,32 +381,8 @@ export function FaceEnrollScreen({ navigation }: any) {
   }
 
   // ---- Layar gelap ala Face ID ----
-  const D = Math.min(W * 0.66, 270); // diameter foto dalam lingkaran
-  const RING = D + 72; // kanvas cincin
-  const atasLingkaran = insets.top + 96;
-  const tinggiPenuh = Math.round(W * 1.18);
-  const atasPenuh = insets.top + 52;
-  const kotak = {
-    position: "absolute" as const,
-    overflow: "hidden" as const,
-    left: bentuk.interpolate({
-      inputRange: [0, 1],
-      outputRange: [0, (W - D) / 2],
-    }),
-    top: bentuk.interpolate({
-      inputRange: [0, 1],
-      outputRange: [atasPenuh, atasLingkaran],
-    }),
-    width: bentuk.interpolate({ inputRange: [0, 1], outputRange: [W, D] }),
-    height: bentuk.interpolate({
-      inputRange: [0, 1],
-      outputRange: [tinggiPenuh, D],
-    }),
-    borderRadius: bentuk.interpolate({
-      inputRange: [0, 1],
-      outputRange: [0, D / 2],
-    }),
-  };
+  const D = Math.min(W * 0.74, 300); // diameter luar cincin
+  const atasLingkaran = insets.top + 90;
   const munculkan = {
     opacity: masuk,
     transform: [
@@ -458,141 +395,43 @@ export function FaceEnrollScreen({ navigation }: any) {
     ],
   };
   const kameraTampil =
-    fase === "posisi" || fase === "pindai" || fase === "lengkap";
-  const teksBawahTop =
-    fase === "posisi" ? atasPenuh + tinggiPenuh + 28 : atasLingkaran + D + 62;
+    fase === "posisi" ||
+    fase === "pindai" ||
+    fase === "lengkap" ||
+    fase === "kirim";
+  const persen =
+    fase === "lengkap" || fase === "kirim"
+      ? 100
+      : Math.min(100, Math.round((terisi.length / TICKS) * 100));
+  const teksBawahTop = atasLingkaran + D + 12 + 18;
 
   return (
     <View style={[styles.container, { backgroundColor: HITAM }]}>
       <StatusBar style="light" />
 
       {kameraTampil ? (
-        <Animated.View style={kotak}>
-          <CameraView
-            ref={kamera}
-            style={StyleSheet.absoluteFill}
-            facing="front"
-            animateShutter={false}
-            onCameraReady={() => setSiapKamera(true)}
-          />
-          {fase === "pindai" ? (
-            <>
-              <Animated.View
-                pointerEvents="none"
-                style={[
-                  styles.pitaH,
-                  {
-                    width: D * 1.3,
-                    left: -D * 0.15,
-                    opacity: kuat,
-                    transform: [
-                      {
-                        translateY: posY.interpolate({
-                          inputRange: [-1.3, 1.3],
-                          outputRange: [D * 0.3, -D * 0.3],
-                        }),
-                      },
-                    ],
-                  },
-                ]}
-              >
-                <LinearGradient
-                  colors={[
-                    "rgba(110,225,255,0)",
-                    "rgba(110,225,255,0.55)",
-                    "rgba(110,225,255,0)",
-                  ]}
-                  style={StyleSheet.absoluteFill}
-                />
-              </Animated.View>
-              <Animated.View
-                pointerEvents="none"
-                style={[
-                  styles.pitaV,
-                  {
-                    height: D * 1.3,
-                    top: -D * 0.15,
-                    opacity: kuat,
-                    transform: [
-                      {
-                        translateX: posX.interpolate({
-                          inputRange: [-1.3, 1.3],
-                          outputRange: [-D * 0.3, D * 0.3],
-                        }),
-                      },
-                    ],
-                  },
-                ]}
-              >
-                <LinearGradient
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 0 }}
-                  colors={[
-                    "rgba(110,225,255,0)",
-                    "rgba(110,225,255,0.5)",
-                    "rgba(110,225,255,0)",
-                  ]}
-                  style={StyleSheet.absoluteFill}
-                />
-              </Animated.View>
-            </>
-          ) : null}
-          {fase === "lengkap" && selfie ? (
-            <Animated.Image
-              source={{ uri: selfie }}
-              blurRadius={22}
-              style={[StyleSheet.absoluteFill, { opacity: masuk }]}
-            />
-          ) : null}
-        </Animated.View>
-      ) : null}
-
-      {fase === "posisi" ? (
-        <Animated.View
-          pointerEvents="none"
-          style={[
-            styles.bingkai,
-            {
-              width: W * 0.62,
-              height: W * 0.62,
-              left: W * 0.19,
-              top: atasPenuh + tinggiPenuh / 2 - W * 0.31,
-              transform: [
-                {
-                  scale: denyut.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: [1, 0.95],
-                  }),
-                },
-              ],
-            },
-          ]}
-        >
-          <View style={[styles.sudut, styles.sudutKiriAtas]} />
-          <View style={[styles.sudut, styles.sudutKananAtas]} />
-          <View style={[styles.sudut, styles.sudutKiriBawah]} />
-          <View style={[styles.sudut, styles.sudutKananBawah]} />
-        </Animated.View>
-      ) : null}
-
-      {fase === "pindai" || fase === "lengkap" || fase === "kirim" ? (
         <Animated.View
           pointerEvents="none"
           style={{
             position: "absolute",
-            width: RING,
-            height: RING,
-            left: (W - RING) / 2,
-            top: atasLingkaran - (RING - D) / 2,
-            opacity: bentuk,
+            left: (W - (D + 12)) / 2,
+            top: atasLingkaran - 6,
+            opacity: masuk,
           }}
         >
-          <CincinWajah
-            size={RING}
-            rIn={D / 2 + 12}
+          <LingkaranSamsung
+            D={D}
             terisi={terisi}
-            selesai={fase !== "pindai"}
-            rFoto={D / 2 + 3}
+            adaWajah={adaWajah || fase === "lengkap" || fase === "kirim"}
+            anak={
+              <CameraView
+                ref={kamera}
+                style={StyleSheet.absoluteFill}
+                facing="front"
+                animateShutter={false}
+                onCameraReady={() => setSiapKamera(true)}
+              />
+            }
           />
         </Animated.View>
       ) : null}
@@ -671,6 +510,7 @@ export function FaceEnrollScreen({ navigation }: any) {
             munculkan,
           ]}
         >
+          <Text style={styles.persen}>{persen}%</Text>
           <Text style={styles.instruksi}>
             {fase === "posisi"
               ? t("fe.posisi")
@@ -807,6 +647,13 @@ const makeStyles = (c: Palette) =>
       alignItems: "center",
       paddingHorizontal: 32,
     },
+    persen: {
+      fontSize: 34,
+      fontWeight: "400",
+      color: PUTIH,
+      textAlign: "center",
+      marginBottom: 6,
+    },
     instruksi: {
       fontSize: 18,
       lineHeight: 24,
@@ -820,59 +667,5 @@ const makeStyles = (c: Palette) =>
       color: REDUP,
       textAlign: "center",
       marginTop: 8,
-    },
-
-    bingkai: { position: "absolute" },
-    sudut: {
-      position: "absolute",
-      width: 46,
-      height: 46,
-      borderColor: PUTIH,
-    },
-    sudutKiriAtas: {
-      left: 0,
-      top: 0,
-      borderLeftWidth: 4,
-      borderTopWidth: 4,
-      borderTopLeftRadius: 22,
-    },
-    sudutKananAtas: {
-      right: 0,
-      top: 0,
-      borderRightWidth: 4,
-      borderTopWidth: 4,
-      borderTopRightRadius: 22,
-    },
-    sudutKiriBawah: {
-      left: 0,
-      bottom: 0,
-      borderLeftWidth: 4,
-      borderBottomWidth: 4,
-      borderBottomLeftRadius: 22,
-    },
-    sudutKananBawah: {
-      right: 0,
-      bottom: 0,
-      borderRightWidth: 4,
-      borderBottomWidth: 4,
-      borderBottomRightRadius: 22,
-    },
-
-    // Pita dipusatkan lalu digeser mengikuti kepala (lihat arahkanPita).
-    pitaH: {
-      position: "absolute",
-      top: "50%",
-      marginTop: -22,
-      height: 44,
-      borderRadius: 22,
-      overflow: "hidden",
-    },
-    pitaV: {
-      position: "absolute",
-      left: "50%",
-      marginLeft: -22,
-      width: 44,
-      borderRadius: 22,
-      overflow: "hidden",
     },
   });
