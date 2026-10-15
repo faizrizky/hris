@@ -27,7 +27,10 @@
         "expo-build-properties",
         {
           "android": {
-            "usesCleartextTraffic": true
+            "usesCleartextTraffic": true,
+            "enableProguardInReleaseBuilds": true,
+            "enableShrinkResourcesInReleaseBuilds": true,
+            "extraProguardRules": "-keep class ai.onnxruntime.** { *; }\n-keep class com.google.mlkit.** { *; }"
           }
         }
       ],

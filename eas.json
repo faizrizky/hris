@@ -8,7 +8,8 @@
       "developmentClient": true,
       "distribution": "internal",
       "android": {
-        "buildType": "apk"
+        "buildType": "apk",
+        "gradleCommand": ":app:assembleDebug -PreactNativeArchitectures=arm64-v8a"
       },
       "env": {
         "EXPO_PUBLIC_API_BASE_URL": "http://192.168.1.43:8082",
@@ -18,7 +19,8 @@
     "preview": {
       "distribution": "internal",
       "android": {
-        "buildType": "apk"
+        "buildType": "apk",
+        "gradleCommand": ":app:assembleRelease -PreactNativeArchitectures=arm64-v8a"
       },
       "env": {
         "EXPO_PUBLIC_API_BASE_URL": "http://192.168.1.43:8082",
