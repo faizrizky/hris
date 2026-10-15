@@ -7,7 +7,9 @@ import Svg, {
   G,
   LinearGradient as SvgGradient,
   Path,
+  Mask,
   Pattern,
+  Rect,
   Stop,
 } from "react-native-svg";
 import { CincinWajah } from "./CincinWajah";
@@ -119,7 +121,14 @@ function KacaIrisan({
             <Stop offset="0.72" stopColor="#fff" stopOpacity={0.55} />
             <Stop offset="1" stopColor="#fff" stopOpacity={0} />
           </SvgGradient>
-          <Mask id="ujung" x="0" y="0" width={2 * R} height={2 * R} maskUnits="userSpaceOnUse">
+          <Mask
+            id="ujung"
+            x="0"
+            y="0"
+            width={2 * R}
+            height={2 * R}
+            maskUnits="userSpaceOnUse"
+          >
             <Rect x="0" y="0" width={2 * R} height={2 * R} fill="url(#pudar)" />
           </Mask>
           <SvgGradient id="irisan" x1="0" y1="0" x2="0" y2="1">
