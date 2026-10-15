@@ -11,4 +11,15 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 PESAN="${1:?Pakai: $0 \"pesan perubahan\"}"
 npx tsc --noEmit
-npx eas-cli update --channel preview --environment preview --platform android --non-interactive --message "$PESAN"
+
+# Pengaman: bundel harus memakai server asli (bukan data contoh). Cache Metro yang basi pernah membuat update
+# terbit tanpa alamat server, sehingga aplikasi memakai data contoh. Variabel ada di EAS (environment preview).
+TMP=$(mktemp -d); trap 'rm -rf "$TMP"' EXIT
+npx eas-cli env:exec preview "npx expo export --clear --platform android --no-bytecode --no-minify --output-dir $TMP" --non-interactive >/dev/null 2>&1
+JS=$(ls "$TMP"/_expo/static/js/android/*.js | head -1)
+if ! grep -q "var hrisApi = _erpnextApi.erpnextApi" "$JS" || ! grep -q 'var ALAMAT_BAWAAN = "http' "$JS"; then
+  echo "BATAL: bundel tidak memuat alamat server / memakai data contoh. Periksa env EAS preview (eas env:list preview)."; exit 1
+fi
+echo "Bundel memakai server asli."
+
+npx eas-cli update --clear-cache --channel preview --environment preview --platform android --non-interactive --message "$PESAN"
