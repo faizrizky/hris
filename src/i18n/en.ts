@@ -1064,4 +1064,8 @@ export const en: Record<Kunci, string> = {
   "ap.dataMenunggu": "{n} data changes waiting",
   "ap.dataSub": "Personal data and profile photos. Tap to review.",
   "fe.memeriksa": "Checking the ID card and profile photos…",
+  "fe.blokBelum":
+    "Your face is not registered. Register your face before clocking in.",
+  "fe.blokMenunggu": "Your face registration is waiting for HR approval.",
+  "fe.daftarSekarang": "Register face now",
 };

@@ -1067,6 +1067,10 @@ export const id = {
   "ap.dataMenunggu": "{n} perubahan data menunggu",
   "ap.dataSub": "Data pribadi dan foto profil. Ketuk untuk meninjau.",
   "fe.memeriksa": "Memeriksa foto KTP dan foto profil…",
+  "fe.blokBelum":
+    "Wajah belum terdaftar. Daftarkan wajahmu dulu sebelum absen masuk.",
+  "fe.blokMenunggu": "Pendaftaran wajahmu menunggu persetujuan HR.",
+  "fe.daftarSekarang": "Daftar wajah sekarang",
 } as const;
 
 export type Kunci = keyof typeof id;

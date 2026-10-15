@@ -28,7 +28,7 @@ if not pe:
 cen = fl_centroid(vs)
 for o in frappe.get_all("Face Enrollment", filters={"employee": emp, "status": "Pending"}, fields=["name"], limit_page_length=20):
     frappe.db.set_value("Face Enrollment", o.name, "status", "Superseded")
-doc = frappe.get_doc({"doctype": "Face Enrollment", "employee": emp, "status": "Pending", "ktp_document": ktp.name,
+doc = frappe.get_doc({"doctype": "Face Enrollment", "employee": emp, "status": "Pending", "ktp_document": ktp["name"],
                       "face_embeddings": json.dumps(vs), "ktp_embedding": json.dumps(ke), "profile_embedding": json.dumps(pe),
                       "score_ktp": fl_pct(cen, ke), "score_profile": fl_pct(cen, pe), "score_profile_ktp": fl_pct(pe, ke)})
 doc.insert(ignore_permissions=True)

@@ -1244,14 +1244,14 @@ if not frappe.db.exists("DocType", "Face Settings"):
             dict(fieldname="min_checkin", label="Minimum Match at Clock In (%)", fieldtype="Int", default="36",
                  description="Below this, the check-in is flagged Needs Review."),
             dict(fieldname="reenroll_grace_days", label="Re-registration Grace (days)", fieldtype="Int", default="3"),
-            dict(fieldname="require_enrollment", label="Require Registered Face to Clock In", fieldtype="Check", default="0"),
+            dict(fieldname="require_enrollment", label="Require Registered Face to Clock In", fieldtype="Check", default="1"),
         ],
         permissions=[dict(role="System Manager", read=1, write=1, create=1),
                      dict(role="HR Manager", read=1, write=1, create=1)]))
     frappe.clear_cache()
 if not frappe.db.sql("select 1 from tabSingles where doctype = 'Face Settings' limit 1"):
     for _k, _v in (("min_ktp", 30), ("min_profile", 36), ("min_checkin", 36), ("reenroll_grace_days", 3),
-                   ("require_enrollment", 0)):
+                   ("require_enrollment", 1)):
         frappe.db.set_single_value("Face Settings", _k, _v)
     log("Face Settings: nilai awal diisi")
 if not frappe.db.exists("DocType", "Face Enrollment"):

@@ -21,6 +21,8 @@ import { describeError } from "@/services/api/http";
 import { ErrorState } from "@/components/ErrorState";
 import { useT } from "@/i18n";
 import { useLokasiKerja } from "@/hooks/useLokasiKerja";
+import { setTabBarHidden } from "@/navigation/tabBarVisibility";
+import type { FaceStatus } from "@/services/types";
 import { kembaliAtauBeranda, keBeranda } from "@/navigation/kembali";
 
 export function ClockScreen({ navigation }: any) {
@@ -34,6 +36,7 @@ export function ClockScreen({ navigation }: any) {
   ); // 0 = GPS, 1 = wajah, 2 = selesai
   const [loading, setLoading] = useState(false);
   const [faceLulus, setFaceLulus] = useState(false);
+  const [faceStatus, setFaceStatus] = useState<FaceStatus | null>(null);
   const [faceVec, setFaceVec] = useState<number[] | null>(null);
   const onWajahLulus = useCallback((v: number[] | null) => {
     setFaceVec(v);
@@ -53,9 +56,21 @@ export function ClockScreen({ navigation }: any) {
       .getClockState(employee.id)
       .then(setState)
       .catch((e) => setGalatMuat(describeError(e)));
+    hrisApi
+      .getFaceStatus()
+      .then(setFaceStatus)
+      .catch(() => setFaceStatus(null));
   }, [employee]);
 
   useFocusEffect(muat);
+
+  // Tab bar mengambang disembunyikan selama langkah verifikasi wajah.
+  useFocusEffect(
+    useCallback(() => {
+      setTabBarHidden(step === 1);
+      return () => setTabBarHidden(false);
+    }, [step]),
+  );
 
   if (!employee) return null;
 
@@ -129,6 +144,20 @@ export function ClockScreen({ navigation }: any) {
     }
   }
 
+  // Absen masuk mewajibkan wajah terdaftar dan disetujui HR (Face Settings > Require Registered Face).
+  // Absen keluar tidak diblokir.
+  const wajahBelum =
+    masuk &&
+    !done &&
+    !!faceStatus?.requireEnrollment &&
+    faceStatus.state !== "active" &&
+    faceStatus.state !== "needs_reenroll";
+  if (!alasanBlokir && wajahBelum) {
+    alasanBlokir = t(
+      faceStatus?.state === "pending" ? "fe.blokMenunggu" : "fe.blokBelum",
+    );
+  }
+
   const handleNext = async () => {
     if (done) {
       keBeranda(navigation);
@@ -196,6 +225,18 @@ export function ClockScreen({ navigation }: any) {
             ]}
           />
         </View>
+
+        {wajahBelum && faceStatus?.state !== "pending" ? (
+          <Pressable
+            style={styles.wajahBanner}
+            onPress={() =>
+              navigation.navigate("Profil", { screen: "FaceEnroll" })
+            }
+          >
+            <Text style={styles.wajahBannerText}>{t("fe.blokBelum")}</Text>
+            <Text style={styles.wajahBannerCta}>{t("fe.daftarSekarang")}</Text>
+          </Pressable>
+        ) : null}
 
         {state.pendingOffline && !done ? (
           <View style={styles.offlineBanner}>
@@ -399,6 +440,15 @@ function DoneMeta({ label, value }: { label: string; value: string }) {
 
 const makeStyles = (c: Palette) =>
   StyleSheet.create({
+    wajahBanner: {
+      backgroundColor: c.warn.bg,
+      borderRadius: 16,
+      padding: 14,
+      marginBottom: 12,
+      gap: 6,
+    },
+    wajahBannerText: { fontSize: 12.5, fontWeight: "700", color: c.warn.ink },
+    wajahBannerCta: { fontSize: 12, fontWeight: "800", color: c.accent },
     offlineBanner: {
       marginBottom: 12,
       padding: 13,

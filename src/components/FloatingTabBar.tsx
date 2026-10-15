@@ -1,3 +1,4 @@
+import { useTabBarHidden } from "@/navigation/tabBarVisibility";
 import { useState, useMemo } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
@@ -68,6 +69,7 @@ export function FloatingTabBar({ state, navigation }: BottomTabBarProps) {
     getFocusedRouteNameFromRoute(active);
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
+  const disembunyikan = useTabBarHidden();
 
   const left = [
     "Beranda",
@@ -88,7 +90,8 @@ export function FloatingTabBar({ state, navigation }: BottomTabBarProps) {
     "EmployeeDocumentDetail",
     "AppraisalFeedback",
   ];
-  if (nestedRoute && HIDE_ON.includes(nestedRoute)) return null;
+  if (disembunyikan || (nestedRoute && HIDE_ON.includes(nestedRoute)))
+    return null;
 
   const go = (routeName: string) => {
     const route = state.routes.find((r) => r.name === routeName);
