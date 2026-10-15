@@ -541,7 +541,9 @@ export function FaceEnrollScreen({ navigation }: any) {
             </Animated.View>
             <Ionicons name="happy-outline" size={78} color={PUTIH} />
           </View>
-          <Text style={styles.introJudul}>{t("fe.introJudul")}</Text>
+          {fase === "cek" ? null : (
+            <Text style={styles.introJudul}>{t("fe.introJudul")}</Text>
+          )}
           {fase === "cek" ? (
             <View style={styles.cekInfo}>
               <ActivityIndicator color={PUTIH} />
@@ -727,7 +729,7 @@ const makeStyles = (c: Palette) =>
       justifyContent: "center",
     },
     btnBiruText: { fontSize: 16, fontWeight: "600", color: PUTIH },
-    cekInfo: { alignItems: "center", gap: 12 },
+    cekInfo: { alignItems: "center", gap: 12, marginTop: 20 },
     cekRow: { flexDirection: "row", alignItems: "center", gap: 10 },
 
     teksBawah: {
