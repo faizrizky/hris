@@ -1027,6 +1027,7 @@ interface NotifRow {
   read: number;
   document_type?: string | null;
   document_name?: string | null;
+  document_status?: string | null;
   file_url?: string | null;
 }
 
@@ -1053,6 +1054,7 @@ function bentukNotifikasi(r: NotifRow): AppNotification {
     read: r.read === 1,
     documentType: r.document_type ?? null,
     documentName: r.document_name ?? null,
+    documentStatus: r.document_status ?? null,
     fileUrl: r.file_url ?? null,
   };
 }

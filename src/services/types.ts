@@ -273,6 +273,7 @@ export interface AppNotification {
   read: boolean;
   documentType?: string | null; // doctype ERPNext yang dirujuk, untuk dibuka saat diketuk
   documentName?: string | null;
+  documentStatus?: string | null; // Employee Document: status terkini, menentukan tab peninjauan
   fileUrl?: string | null; // Employee Document: berkas yang bisa dibuka (HR/pemilik)
 }
 

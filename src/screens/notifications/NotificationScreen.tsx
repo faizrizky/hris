@@ -69,7 +69,13 @@ export function NotificationScreen({ navigation }: any) {
       case "Employee Document":
         // HR meninjau di layar verifikasi; karyawan melihat daftar dokumennya.
         if (employee?.role === "hr" && n.tone === "warn") {
-          navigation.navigate("DocumentReview");
+          // Buka tab sesuai konteks: permintaan ubah dokumen -> "Perubahan", lainnya -> "Menunggu".
+          navigation.navigate("DocumentReview", {
+            status:
+              n.documentStatus === "Change Requested"
+                ? "Change Requested"
+                : "Pending",
+          });
         } else {
           navigation.navigate("Profil", { screen: "ProfileDocs" });
         }

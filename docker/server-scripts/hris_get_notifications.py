@@ -42,6 +42,9 @@ for r in rows:
             if f:
                 file_url = f[0].file_url
                 file_name = f[0].file_name
+    doc_status = None
+    if r.document_type == "Employee Document" and r.document_name:
+        doc_status = frappe.db.get_value("Employee Document", r.document_name, "status")
     result.append(
         {
             "name": r.name,
@@ -53,6 +56,7 @@ for r in rows:
             "read": 1 if r.read else 0,
             "document_type": r.document_type,
             "document_name": r.document_name,
+            "document_status": doc_status,
             "file_url": file_url,
             "file_name": file_name,
         }

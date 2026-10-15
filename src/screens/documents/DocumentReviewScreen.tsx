@@ -27,12 +27,19 @@ const FILTER: { key: ReviewStatus | "all"; label: Kunci }[] = [
 ];
 
 // HR: daftar Dokumen Digital karyawan yang perlu (atau sudah) diverifikasi.
-export function DocumentReviewScreen({ navigation }: any) {
+export function DocumentReviewScreen({ navigation, route }: any) {
   const t = useT();
   const insets = useSafeAreaInsets();
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
-  const [status, setStatus] = useState<ReviewStatus | "all">("Pending");
+  const awal: ReviewStatus | "all" = route?.params?.status ?? "Pending";
+  const [status, setStatus] = useState<ReviewStatus | "all">(awal);
+  // Dibuka lagi dari notifikasi lain saat layar sudah terpasang: ikuti konteks barunya.
+  const [awalLama, setAwalLama] = useState(awal);
+  if (awal !== awalLama) {
+    setAwalLama(awal);
+    setStatus(awal);
+  }
 
   const dok = useLoad(() => hrisApi.getDocumentsForReview(status), status);
   const items = dok.data ?? [];
