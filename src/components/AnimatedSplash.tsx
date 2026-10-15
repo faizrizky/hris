@@ -14,6 +14,7 @@ import { LogoHris } from "@/components/LogoHris";
 import { Palette } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
 import {
+  cekDanTerapkanOta,
   cekPembaruan,
   MODE_PEMBARUAN,
   unduhDanPasang,
@@ -26,7 +27,7 @@ const NAMA = "HRIS".split("");
 const UKURAN = 120;
 export const DURASI_SPLASH_MS = 2500;
 
-type Tahap = "animasi" | "cek" | "unduh" | "pasang" | "galat";
+type Tahap = "animasi" | "cek" | "ota" | "unduh" | "pasang" | "galat";
 
 // Layar pembuka beranimasi, menyambung dari layar pembuka native (logo yang sama
 // di tengah, latar putih): logo membesar dengan pegas, riak cahaya menyebar,
@@ -141,6 +142,8 @@ export function AnimatedSplash({ onSelesai }: { onSelesai: () => void }) {
       const baru = await cekPembaruan();
       if (batal) return;
       if (!baru || !baru.mandatory) {
+        // Tidak ada APK baru: cek paket JavaScript (EAS Update); bila ada, aplikasi dimuat ulang sendiri.
+        await cekDanTerapkanOta(() => setTahap("ota"));
         keluarSplash();
         return;
       }
@@ -157,16 +160,18 @@ export function AnimatedSplash({ onSelesai }: { onSelesai: () => void }) {
   const teksStatus =
     tahap === "cek"
       ? t("up.memeriksa")
-      : tahap === "unduh"
-        ? t("up.mengunduh", {
-            v: info?.versionName ?? "",
-            p: Math.round(progres * 100),
-          })
-        : tahap === "pasang"
-          ? t("up.siapPasang")
-          : tahap === "galat"
-            ? t("up.galat")
-            : "";
+      : tahap === "ota"
+        ? t("up.memperbarui")
+        : tahap === "unduh"
+          ? t("up.mengunduh", {
+              v: info?.versionName ?? "",
+              p: Math.round(progres * 100),
+            })
+          : tahap === "pasang"
+            ? t("up.siapPasang")
+            : tahap === "galat"
+              ? t("up.galat")
+              : "";
 
   return (
     <Animated.View

@@ -1088,4 +1088,5 @@ export const en: Record<Kunci, string> = {
   "up.cobaLagi": "Try again",
   "up.pasangLagi": "Open installer again",
   "up.bukaToko": "Open the app store",
+  "up.memperbarui": "Updating the app…",
 };

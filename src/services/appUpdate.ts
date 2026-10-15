@@ -7,6 +7,7 @@
 
 import { Linking, Platform } from "react-native";
 import * as Application from "expo-application";
+import * as Updates from "expo-updates";
 import * as FileSystem from "expo-file-system/legacy";
 import * as IntentLauncher from "expo-intent-launcher";
 import { muatAlamatServer } from "@/services/api/http";
@@ -103,4 +104,28 @@ export async function unduhDanPasang(
     flags: 1, // FLAG_GRANT_READ_URI_PERMISSION
     type: "application/vnd.android.package-archive",
   });
+}
+
+// ---- EAS Update (OTA): paket JavaScript baru tanpa build ulang ----
+// Dicek setelah pemeriksaan APK. Bila ada, paket diunduh lalu aplikasi dimuat ulang otomatis.
+// Tidak aktif di Expo Go / mode pengembangan.
+export async function cekDanTerapkanOta(
+  onTahap: (tahap: "unduh") => void,
+): Promise<boolean> {
+  if (__DEV__ || !Updates.isEnabled) return false;
+  try {
+    const cek = await Promise.race([
+      Updates.checkForUpdateAsync(),
+      new Promise<null>((r) => setTimeout(() => r(null), BATAS_CEK_MS)),
+    ]);
+    if (!cek || !cek.isAvailable) return false;
+    onTahap("unduh");
+    const hasil = await Updates.fetchUpdateAsync();
+    if (!hasil.isNew) return false;
+    await Updates.reloadAsync();
+    return true;
+  } catch {
+    // Gagal terhubung ke Expo tidak boleh menahan pengguna masuk.
+    return false;
+  }
 }

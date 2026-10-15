@@ -1093,6 +1093,7 @@ export const id = {
   "up.cobaLagi": "Coba lagi",
   "up.pasangLagi": "Buka pemasang lagi",
   "up.bukaToko": "Buka toko aplikasi",
+  "up.memperbarui": "Memperbarui aplikasi…",
 } as const;
 
 export type Kunci = keyof typeof id;
