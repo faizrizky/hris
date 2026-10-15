@@ -298,16 +298,30 @@ const makeStyles = (c: Palette) =>
     },
     cardTitle: { fontSize: 13.5, fontWeight: "700", color: c.ink },
 
-    chipWrap: { flexDirection: "row", flexWrap: "wrap", gap: 7, marginTop: 12 },
+    chipWrap: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      justifyContent: "space-between",
+      rowGap: 8,
+      marginTop: 12,
+    },
     chip: {
-      paddingHorizontal: 14,
-      paddingVertical: 9,
-      borderRadius: 999,
+      width: "48.5%", // dua kolom sama lebar, rapi di semua bahasa
+      height: 44,
+      paddingHorizontal: 10,
+      borderRadius: 14,
       borderWidth: 1,
       borderColor: c.fieldBorder,
+      alignItems: "center",
+      justifyContent: "center",
     },
     chipOn: { backgroundColor: c.accent, borderColor: c.accent },
-    chipText: { fontSize: 12, fontWeight: "600", color: c.ink },
+    chipText: {
+      fontSize: 12.5,
+      fontWeight: "600",
+      color: c.ink,
+      textAlign: "center",
+    },
     chipTextOn: { color: "#fff" },
 
     infoBox: {
