@@ -1,6 +1,6 @@
 # Backlog migrasi mock ke ERPNext
 
-Status per 2026-10-11. Sumber kebenaran: method di `HrisApi` ([src/services/types.ts](src/services/types.ts)) yang belum di-override `erpnextApi`.
+Status per 2026-10-16. Sumber kebenaran: method di `HrisApi` ([src/services/types.ts](src/services/types.ts)) yang belum di-override `erpnextApi`.
 
 ## Sudah asli
 
@@ -13,6 +13,10 @@ Status per 2026-10-11. Sumber kebenaran: method di `HrisApi` ([src/services/type
 - Dokumen Digital (unggah multipart, verifikasi HR) dan Appraisal
 - Profil, keamanan (password, perangkat aktif), notifikasi (Notification Log)
 - Semua layar sudah ID/EN mengikuti bahasa akun
+- Geofence (Shift Location, peta web bisa digeser/diklik), check-in offline dengan jam tepercaya, WFH oleh karyawan
+- Foto profil (diajukan ke HR), pendaftaran wajah (ML Kit + SFace, lingkaran Face ID, persetujuan HR di web), wajib wajah terdaftar untuk Clock In
+- Menu Beranda (Semua), sapaan sesuai shift, jam live, layar pembuka beranimasi
+- Pembaruan aplikasi: APK wajib lewat server (App Update + rilis-apk.sh) dan JavaScript lewat EAS Update (kirim-update.sh)
 
 ## Masih mock
 
@@ -20,8 +24,18 @@ Tidak ada: seluruh method `HrisApi` sudah punya implementasi ERPNext. Dokumen Di
 
 ## Berikutnya
 
-- [ ] Uji di HP fisik: buka lampiran dari kartu approval (unduh dengan sesi lalu lembar berbagi), unggah bukti lembur/biaya dinas dan dokumen, jam menurut zona dinas (butuh dinas aktif di zona lain), riwayat absensi staf
-- [ ] Push notification: butuh dev build + akun Apple Developer + `projectId` EAS di app.json (`extra.eas.projectId`). Server sudah siap (Push Settings → Dry Run diubah ke 0 untuk kirim sungguhan); pengiriman masih sinkron di request pembuat notifikasi (maks 8 detik)
-- [ ] Check-in offline: uji modul native `hris-clock` di build APK pertama (belum pernah dikompilasi), dan uji geofence/GPS di HP (izin lokasi, lokasi palsu, mode Block)
-- [ ] Verifikasi wajah: uji di HP (liveness, pendaftaran lingkaran, embedding SFace) dan setel ambang di Face Settings; lisensi bobot SFace perlu ditinjau hukum sebelum rilis komersial; iOS (Vision) belum; pencocokan di server (kini embedding dikirim, server menghitung cosine)
-- [ ] Seed dari nol (`down -v`) belum diuji; seed baru perlu dijalankan di srv-vllm
+Perlu kamu (uji atau keputusan):
+- [ ] Uji di HP dengan ceklis (halaman ceklis, fase 3b dan 3c di `TESTING.md`): verifikasi wajah, geofence/WFH, offline, pembaruan APK dan EAS Update; kumpulkan angka kemiripan wajah untuk menyetel ambang
+- [ ] Push notification: butuh akun Firebase (`google-services.json`) lalu Push Settings → Dry Run = 0
+- [ ] Putuskan ID paket `com.falah.hrismobile` sebelum rilis toko (mengubahnya = aplikasi baru)
+- [ ] Tinjauan hukum lisensi bobot SFace sebelum rilis komersial; persetujuan karyawan untuk data biometrik (UU PDP)
+- [ ] Rilis toko: Play Store (AAB, kebijakan privasi, keamanan data) dan App Store (akun Apple Developer); lalu `MODE_PEMBARUAN = "toko"`
+- [ ] Verifikasi tabel TER PPh 21 dengan PDF PMK 168/2023 (pemetaan kategori sudah cocok dengan DJP)
+
+Bisa dikerjakan:
+- [ ] Ikatan perangkat per akun (HP terdaftar, HP baru disetujui HR) untuk menutup titip absen dari HP lain
+- [ ] Server sungguhan: seed di srv-vllm, alamat tetap (domain + HTTPS), perbarui variabel env EAS `preview`, uji seed dari nol (`down -v`, perlu izin)
+- [ ] Perkecil APK (model wajah int8, sekitar 70 MB) setelah uji akurasi
+- [ ] Verifikasi wajah iOS (Vision); pencocokan wajah di server; layar peninjauan pendaftaran wajah di aplikasi untuk HR
+- [ ] Blur sungguhan di bawah tab bar (sekarang gradien pudar); uji performa di Android 11
+- [ ] Shift malam yang melewati tengah malam pada sapaan Beranda
