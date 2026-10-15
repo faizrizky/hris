@@ -1068,4 +1068,6 @@ export const en: Record<Kunci, string> = {
     "Your face is not registered. Register your face before clocking in.",
   "fe.blokMenunggu": "Your face registration is waiting for HR approval.",
   "fe.daftarSekarang": "Register face now",
+  "ap.dokMenunggu": "{n} documents waiting for verification",
+  "ap.dokSub": "New documents and change requests. Tap to review.",
 };

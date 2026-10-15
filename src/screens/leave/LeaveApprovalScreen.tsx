@@ -35,6 +35,7 @@ export function LeaveApprovalScreen({ navigation }: any) {
   const t = useT();
   const [galat, setGalat] = useState<string | null>(null);
   const [dataMenunggu, setDataMenunggu] = useState(0);
+  const [dokMenunggu, setDokMenunggu] = useState(0);
 
   const load = useCallback(() => {
     if (!employee) return;
@@ -49,6 +50,13 @@ export function LeaveApprovalScreen({ navigation }: any) {
         .getProfileChangesForReview("Pending")
         .then((l) => setDataMenunggu(l.length))
         .catch(() => setDataMenunggu(0));
+      // Dokumen baru dan permintaan ubah dokumen sama-sama menunggu keputusan HR.
+      Promise.all([
+        hrisApi.getDocumentsForReview("Pending"),
+        hrisApi.getDocumentsForReview("Change Requested"),
+      ])
+        .then(([a, b]) => setDokMenunggu(a.length + b.length))
+        .catch(() => setDokMenunggu(0));
     }
   }, [employee]);
 
@@ -142,22 +150,55 @@ export function LeaveApprovalScreen({ navigation }: any) {
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.content}
         ListHeaderComponent={
-          dataMenunggu > 0 ? (
-            <Pressable
-              style={styles.dataCard}
-              onPress={() => navigation.navigate("ProfileChangeReview")}
-            >
-              <View style={styles.dataIcon}>
-                <Ionicons name="person" size={18} color={c.purple.ink} />
-              </View>
-              <View style={{ flex: 1, minWidth: 0 }}>
-                <Text style={styles.dataTitle}>
-                  {t("ap.dataMenunggu", { n: dataMenunggu })}
-                </Text>
-                <Text style={styles.dataSub}>{t("ap.dataSub")}</Text>
-              </View>
-              <Ionicons name="chevron-forward" size={16} color={c.mutedLabel} />
-            </Pressable>
+          dataMenunggu + dokMenunggu > 0 ? (
+            <View>
+              {dokMenunggu > 0 ? (
+                <Pressable
+                  style={styles.dataCard}
+                  onPress={() => navigation.navigate("DocumentReview")}
+                >
+                  <View style={styles.dataIcon}>
+                    <Ionicons
+                      name="document-text"
+                      size={18}
+                      color={c.purple.ink}
+                    />
+                  </View>
+                  <View style={{ flex: 1, minWidth: 0 }}>
+                    <Text style={styles.dataTitle}>
+                      {t("ap.dokMenunggu", { n: dokMenunggu })}
+                    </Text>
+                    <Text style={styles.dataSub}>{t("ap.dokSub")}</Text>
+                  </View>
+                  <Ionicons
+                    name="chevron-forward"
+                    size={16}
+                    color={c.mutedLabel}
+                  />
+                </Pressable>
+              ) : null}
+              {dataMenunggu > 0 ? (
+                <Pressable
+                  style={styles.dataCard}
+                  onPress={() => navigation.navigate("ProfileChangeReview")}
+                >
+                  <View style={styles.dataIcon}>
+                    <Ionicons name="person" size={18} color={c.purple.ink} />
+                  </View>
+                  <View style={{ flex: 1, minWidth: 0 }}>
+                    <Text style={styles.dataTitle}>
+                      {t("ap.dataMenunggu", { n: dataMenunggu })}
+                    </Text>
+                    <Text style={styles.dataSub}>{t("ap.dataSub")}</Text>
+                  </View>
+                  <Ionicons
+                    name="chevron-forward"
+                    size={16}
+                    color={c.mutedLabel}
+                  />
+                </Pressable>
+              ) : null}
+            </View>
           ) : null
         }
         ListEmptyComponent={
@@ -165,7 +206,7 @@ export function LeaveApprovalScreen({ navigation }: any) {
             <ErrorState pesan={galat} onUlangi={load} />
           ) : memuat ? (
             <ApprovalCardSkeleton />
-          ) : (
+          ) : dataMenunggu + dokMenunggu > 0 ? null : (
             <EmptyState icon={ICON.approval} title={t("ap.kosong")} />
           )
         }

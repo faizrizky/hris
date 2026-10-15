@@ -1071,6 +1071,9 @@ export const id = {
     "Wajah belum terdaftar. Daftarkan wajahmu dulu sebelum absen masuk.",
   "fe.blokMenunggu": "Pendaftaran wajahmu menunggu persetujuan HR.",
   "fe.daftarSekarang": "Daftar wajah sekarang",
+  "ap.dokMenunggu": "{n} dokumen menunggu verifikasi",
+  "ap.dokSub":
+    "Dokumen baru dan permintaan ubah dokumen. Ketuk untuk meninjau.",
 } as const;
 
 export type Kunci = keyof typeof id;
