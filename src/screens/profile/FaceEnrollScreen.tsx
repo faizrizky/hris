@@ -43,7 +43,7 @@ const CUKUP = Math.round(TICKS * 0.92); // sisa celah kecil diisi otomatis
 type Tantangan = "kedip" | "kiri" | "kanan";
 const SEMUA_TANTANGAN: Tantangan[] = ["kedip", "kiri", "kanan"];
 const JUMLAH_TANTANGAN = 2;
-const BATAS_TANTANGAN_MS = 10_000;
+const BATAS_TANTANGAN_MS = 12_000;
 const acakTantangan = (): Tantangan[] =>
   [...SEMUA_TANTANGAN]
     .sort(() => Math.random() - 0.5)
@@ -315,13 +315,17 @@ export function FaceEnrollScreen({ navigation }: any) {
               setTantangan({ jenis: urutan[0]!, ke: 1 });
             } else {
               const j = urutan[langkah]!;
-              // Gerakan harus dimulai dari tengah setelah perintah muncul, lalu bertahan 2 frame ke arah
+              // Gerakan harus dimulai dari tengah setelah perintah muncul, lalu bertahan satu frame ke arah
               // yang diminta. Menoleh sembarang atau sudah menoleh sejak sebelum perintah tidak lolos.
-              if (Math.abs(kanan) < 0.45 && Math.abs(atas) < 0.9) netral = true;
+              if (Math.abs(kanan) < 0.6 && Math.abs(atas) < 1) netral = true;
               const arah =
-                j === "kiri" ? kanan <= -1 : j === "kanan" ? kanan >= 1 : false;
+                j === "kiri"
+                  ? kanan <= -0.75
+                  : j === "kanan"
+                    ? kanan >= 0.75
+                    : false;
               berturut = netral && arah ? berturut + 1 : 0;
-              const ok = j === "kedip" ? kedip >= 1 : berturut >= 2;
+              const ok = j === "kedip" ? kedip >= 1 : berturut >= 1;
               if (ok) {
                 langkah += 1;
                 kedip = 0;
