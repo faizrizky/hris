@@ -43,6 +43,9 @@ else
   APK_URL="/files/$NAMA_FILE"  # relatif: aplikasi memakai alamat servernya sendiri
   CODE=$(curl -s -o /dev/null -w "%{http_code}" -I "$BASE$APK_URL")
   [ "$CODE" = 200 ] || { echo "APK tidak bisa diunduh dari $BASE$APK_URL (HTTP $CODE)"; exit 1; }
+  # Simpan hanya APK terbaru dan satu sebelumnya (untuk kembali bila perlu); yang lebih lama dihapus agar disk tidak membengkak.
+  (cd docker && docker compose exec -T -u root backend sh -c \
+    'cd sites/hris.localhost/public/files && ls -t hris-*.apk 2>/dev/null | tail -n +3 | xargs -r rm -f -v' || true)
 fi
 
 echo "• Mengisi App Update"
