@@ -1077,7 +1077,15 @@ export const id = {
   "fe.putarN":
     "Putar kepala pelan ke arah garis yang masih abu-abu ({n}/{total})",
   "fe.lingkar": "Gerakkan kepala pelan-pelan membentuk lingkaran ({p}%)",
-  "fe.lengkap": "Pemindaian wajah selesai",
+  "fe.lengkap": "Pemindaian wajah selesai.",
+  "fe.introJudul": "Cara mendaftarkan wajah",
+  "fe.introIsi":
+    "Pertama, posisikan wajah di dalam bingkai kamera. Lalu gerakkan kepala membentuk lingkaran untuk menunjukkan semua sisi wajahmu.",
+  "fe.mulaiSingkat": "Mulai",
+  "fe.posisi": "Posisikan wajah di dalam bingkai.",
+  "fe.lingkarFaceId": "Gerakkan kepala pelan-pelan untuk melengkapi lingkaran.",
+  "fe.lanjutkan": "Lanjutkan",
+  "fe.batal": "Batal",
 } as const;
 
 export type Kunci = keyof typeof id;

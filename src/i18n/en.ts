@@ -1072,5 +1072,13 @@ export const en: Record<Kunci, string> = {
   "ap.dokSub": "New documents and change requests. Tap to review.",
   "fe.putarN": "Slowly turn your head toward the grey lines ({n}/{total})",
   "fe.lingkar": "Move your head slowly to complete the circle ({p}%)",
-  "fe.lengkap": "Face scan complete",
+  "fe.lengkap": "Face scan complete.",
+  "fe.introJudul": "How to register your face",
+  "fe.introIsi":
+    "First, position your face in the camera frame. Then move your head in a circle to show all the angles of your face.",
+  "fe.mulaiSingkat": "Get Started",
+  "fe.posisi": "Position your face within the frame.",
+  "fe.lingkarFaceId": "Move your head slowly to complete the circle.",
+  "fe.lanjutkan": "Continue",
+  "fe.batal": "Cancel",
 };
