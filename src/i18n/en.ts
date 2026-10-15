@@ -1061,4 +1061,6 @@ export const en: Record<Kunci, string> = {
     "Take a new photo with the front camera or choose one from your gallery. HR reviews it before it is used.",
   "pf.formatGagal":
     "This photo could not be processed. Try another photo or use the camera.",
+  "ap.dataMenunggu": "{n} data changes waiting",
+  "ap.dataSub": "Personal data and profile photos. Tap to review.",
 };

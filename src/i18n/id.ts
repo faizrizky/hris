@@ -1064,6 +1064,8 @@ export const id = {
     "Ambil foto baru dengan kamera depan atau pilih dari galeri. Foto akan ditinjau HR sebelum dipakai.",
   "pf.formatGagal":
     "Foto tidak bisa diproses. Coba foto lain atau ambil dengan kamera.",
+  "ap.dataMenunggu": "{n} perubahan data menunggu",
+  "ap.dataSub": "Data pribadi dan foto profil. Ketuk untuk meninjau.",
 } as const;
 
 export type Kunci = keyof typeof id;

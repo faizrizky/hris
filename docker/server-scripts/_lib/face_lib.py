@@ -31,9 +31,13 @@ def fl_setting(field, default):
     return default if v is None else v
 
 def fl_hr_users():
-    return [r.parent for r in frappe.get_all("Has Role", filters={"parenttype": "User", "role": ["in", ["HR User", "HR Manager"]]},
-                                              fields=["parent"], limit_page_length=200)
-            if r.parent not in ("Administrator", "Guest")]
+    # Satu pengguna bisa memegang HR User dan HR Manager sekaligus: jangan kirim notifikasi dobel.
+    out = []
+    for r in frappe.get_all("Has Role", filters={"parenttype": "User", "role": ["in", ["HR User", "HR Manager"]]},
+                            fields=["parent"], limit_page_length=200):
+        if r.parent not in ("Administrator", "Guest") and r.parent not in out:
+            out.append(r.parent)
+    return out
 
 def fl_notify(user, subject, body, doctype, name):
     if user:

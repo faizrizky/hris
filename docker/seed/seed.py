@@ -530,17 +530,17 @@ for _dt in ("Workspace", "Workspace Sidebar"):
         log(f"{_dt} HR Requests dihapus")
 if frappe.db.exists("Sidebar", "Leaves"):
     from frappe.desk.doctype.custom_sidebar.custom_sidebar import add_site_sidebar_item
-    for _dt, _ic in (("Overtime Request", "clock"), ("Travel Request", "briefcase"), ("Profile Change Request", "user")):
+    for _dt, _ic in (("Overtime Request", "clock"), ("Travel Request", "briefcase")):
         add_site_sidebar_item("Leaves", dict(label=_dt, type="Link", link_type="DocType", link_to=_dt,
                                              icon=_ic, collapsible=1))
     log("sidebar Leaves: tautan Overtime Request dan Travel Request")
     # Urutan: tepat di bawah Leave Application (secara bawaan item tambahan jatuh di paling bawah).
     from frappe.desk.doctype.custom_sidebar.custom_sidebar import _save_customization, layer_arrangement
     _arr = layer_arrangement("Leaves", None)
-    _mine = [r for r in _arr if r.get("link_to") in ("Overtime Request", "Travel Request", "Profile Change Request")]
+    _mine = [r for r in _arr if r.get("link_to") in ("Overtime Request", "Travel Request")]
     _rest = [r for r in _arr if r not in _mine]
     _at = next((n for n, r in enumerate(_rest) if r.get("link_to") == "Leave Application"), 0) + 1
-    _mine.sort(key=lambda r: ["Overtime Request", "Travel Request", "Profile Change Request"].index(r["link_to"]))
+    _mine.sort(key=lambda r: ["Overtime Request", "Travel Request"].index(r["link_to"]))
     _save_customization("Leaves", _rest[:_at] + _mine + _rest[_at:], None)
     log("sidebar Leaves: diurutkan di bawah Leave Application")
 frappe.db.commit()
@@ -1355,6 +1355,122 @@ for _dt, _attach in (("Profile Change Request", "photo"), ("Face Enrollment", "s
     log("permission " + _dt + ": karyawan hanya field lampiran miliknya")
 frappe.db.commit()
 
+# Tinjauan Profile Change Request di web: ringkasan perubahan atau foto + skor kemiripan, tombol Approve/Reject.
+if not frappe.db.exists("Custom Field", {"dt": "Profile Change Request", "fieldname": "review_html"}):
+    make(dict(doctype="Custom Field", dt="Profile Change Request", fieldname="review_html", label="Review",
+              fieldtype="HTML", insert_after="status"))
+    frappe.clear_cache(doctype="Profile Change Request")
+_PCS = "Profile Change Request - review"
+_PJS = r"""// Profile Change Request: HR meninjau permintaan (data atau foto) dan memutuskan dari form ini.
+const esc = (v) => frappe.utils.escape_html(v == null ? "" : String(v));
+function skor(label, nilai, min) {
+	if (nilai == null) return "";
+	const rendah = nilai < min;
+	const warna = rendah ? "var(--red-600)" : "var(--green-600)";
+	const tag = rendah ? __("Low match: check carefully") : __("OK");
+	return `<div style="padding:8px 12px;border:1px solid ${warna};border-radius:10px;margin:4px 0;color:${warna}"><b>${esc(label)}: ${nilai}%</b> <span style="margin-left:6px">${tag}</span> <span style="color:var(--text-muted);margin-left:6px">(${__("minimum")} ${min}%)</span></div>`;
+}
+frappe.ui.form.on("Profile Change Request", {
+	async refresh(frm) {
+		frm.disable_save();
+		if (frm.is_new()) return;
+		const d = frm.doc;
+		let html = "";
+		if (d.photo) {
+			const [minProf, minKtp] = await Promise.all([
+				frappe.db.get_single_value("Face Settings", "min_profile"),
+				frappe.db.get_single_value("Face Settings", "min_ktp"),
+			]);
+			html += `<div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:12px"><div style="width:200px"><div style="aspect-ratio:3/4;border:1px solid var(--border-color);border-radius:12px;overflow:hidden"><img src="${esc(d.photo)}" style="width:100%;height:100%;object-fit:cover"></div><div style="text-align:center;margin-top:6px;font-weight:600">${__("New profile photo")}</div></div><div style="flex:1;min-width:240px">` +
+				skor(__("New photo vs registered face"), d.photo_score_face, minProf || 36) +
+				skor(__("New photo vs ID card"), d.photo_score_ktp, minKtp || 30) +
+				(d.photo_score_face == null ? `<div style="color:var(--text-muted)">${__("No registered face yet, so there is nothing to compare with.")}</div>` : "") +
+				`</div></div>`;
+		}
+		let rows = [];
+		try { rows = JSON.parse(d.changes || "[]"); } catch (e) { rows = []; }
+		rows = rows.filter((r) => r.field !== "photo");
+		if (rows.length) {
+			html += `<table class="table table-bordered" style="margin:0"><thead><tr><th>${__("Field")}</th><th>${__("Current")}</th><th>${__("Proposed")}</th></tr></thead><tbody>` +
+				rows.map((r) => `<tr><td>${esc(r.label)}</td><td style="white-space:pre-line">${esc(r.current)}</td><td style="white-space:pre-line">${esc(r.proposed)}</td></tr>`).join("") +
+				`</tbody></table>`;
+		}
+		frm.fields_dict.review_html.$wrapper.html(html || `<div class="text-muted">${__("Nothing to review")}</div>`);
+		if (d.status === "Pending") {
+			frm.add_custom_button(__("Approve"), () => {
+				frappe.call({ method: "hris_decide_profile_change", args: { name: d.name, decision: "approve" } }).then(() => frm.reload_doc());
+			}, __("Decision"));
+			frm.add_custom_button(__("Reject"), () => {
+				frappe.prompt({ fieldname: "note", label: __("Reason"), fieldtype: "Small Text", reqd: 1 }, (v) => {
+					frappe.call({ method: "hris_decide_profile_change", args: { name: d.name, decision: "reject", note: v.note } }).then(() => frm.reload_doc());
+				}, __("Reject request"));
+			}, __("Decision"));
+		}
+	},
+});
+"""
+if not frappe.db.exists("Client Script", _PCS):
+    make(dict(doctype="Client Script", name=_PCS, dt="Profile Change Request", view="Form", enabled=1, script=_PJS))
+else:
+    frappe.db.set_value("Client Script", _PCS, {"script": _PJS, "enabled": 1})
+frappe.db.commit()
+
+# Sidebar HR Setup: Profile Change Request, Face Enrollment, Face Settings. Sebelumnya Profile Change Request ada di Leaves
+# dan tautan wajah salah nama sidebar; yang salah tempat dibersihkan dari lapisan kustom Leaves / Shift and Attendance.
+if frappe.db.exists("Sidebar", "HR Setup"):
+    from frappe.desk.doctype.custom_sidebar.custom_sidebar import (
+        add_site_sidebar_item, _save_customization, layer_arrangement)
+    _salah = {"Leaves": ("Profile Change Request",), "Shift and Attendance": ("Face Enrollment", "Face Settings")}
+    for _mod, _dts in _salah.items():
+        try:
+            _arr = layer_arrangement(_mod, None)
+        except Exception:
+            continue
+        _sisa = [r for r in _arr if r.get("link_to") not in _dts]
+        if len(_sisa) != len(_arr):
+            _save_customization(_mod, _sisa, None)
+            log("sidebar " + _mod + ": " + ", ".join(_dts) + " dipindahkan ke HR Setup")
+    for _dt, _ic in (("Profile Change Request", "user"), ("Face Enrollment", "user"), ("Face Settings", "settings")):
+        add_site_sidebar_item("HR Setup", dict(label=_dt, type="Link", link_type="DocType", link_to=_dt, icon=_ic,
+                                                collapsible=1))
+    frappe.db.commit()
+    frappe.clear_cache()
+
+# Karyawan boleh mengunggah foto/selfie ke dokumen pengajuan MILIKNYA (upload_file butuh hak tulis), tetapi semua field lain
+# dikunci di permlevel 1 (hanya HR): status, skor kemiripan, embedding tidak bisa diubah lewat REST.
+for _dt, _attach in (("Profile Change Request", "photo"), ("Face Enrollment", "selfie")):
+    _meta = frappe.get_meta(_dt)
+    _changed = False
+    for _f in _meta.fields:
+        if _f.fieldname == _attach or _f.permlevel == 1:
+            continue
+        if _f.get("is_custom_field"):
+            frappe.db.set_value("Custom Field", {"dt": _dt, "fieldname": _f.fieldname}, "permlevel", 1)
+        else:
+            frappe.db.set_value("DocField", {"parent": _dt, "fieldname": _f.fieldname}, "permlevel", 1)
+        _changed = True
+    # Field lampiran yang dibuka untuk karyawan: tetap permlevel 0 (read_only di form tidak memengaruhi upload).
+    if _meta.get_field(_attach) and _meta.get_field(_attach).get("is_custom_field"):
+        frappe.db.set_value("Custom Field", {"dt": _dt, "fieldname": _attach}, "read_only", 0)
+    else:
+        frappe.db.set_value("DocField", {"parent": _dt, "fieldname": _attach}, "read_only", 0)
+    # Hak ditambahkan pada DocType itu sendiri (bukan Custom DocPerm: begitu ada satu Custom DocPerm, Frappe
+    # mengabaikan semua hak bawaan DocType, termasuk hak level 0 milik HR).
+    for _cdp in frappe.get_all("Custom DocPerm", filters={"parent": _dt}, pluck="name"):
+        frappe.delete_doc("Custom DocPerm", _cdp, ignore_permissions=True, force=True)
+    _doc = frappe.get_doc("DocType", _dt)
+    _ada = {(r.role, r.permlevel) for r in _doc.permissions}
+    for _role, _lvl, _extra in (("HR Manager", 1, dict(read=1, write=1)), ("HR User", 1, dict(read=1, write=1)),
+                                ("System Manager", 1, dict(read=1, write=1)),
+                                ("Employee", 0, dict(read=1, write=1, if_owner=1))):
+        if (_role, _lvl) not in _ada:
+            _doc.append("permissions", dict(role=_role, permlevel=_lvl, **_extra))
+    _doc.flags.ignore_permissions = True
+    _doc.save()
+    frappe.clear_cache(doctype=_dt)
+    log("permission " + _dt + ": karyawan hanya field lampiran miliknya")
+frappe.db.commit()
+
 # Sidebar Shift and Attendance: tautan peninjauan wajah dan pengaturannya (di bawah item yang sudah ada).
 if frappe.db.exists("Sidebar", "Shift and Attendance"):
     from frappe.desk.doctype.custom_sidebar.custom_sidebar import add_site_sidebar_item
@@ -1370,6 +1486,7 @@ EVENT_SCRIPTS = {  # script berbasis event dokumen: nama_file -> (DocType, event
     "hris_notify_payslip": ("Salary Slip", "After Submit"),
     "hris_notify_attendance_correction": ("Attendance Request", "After Submit"),
     "hris_notify_document_status": ("Employee Document", "After Save"),
+    "hris_link_attachment": ("File", "After Insert"),
     "hris_guard_document_upload": ("File", "Before Insert"),
     "hris_employee_tax_status": ("Employee", "Before Save"),
     "hris_leave_rules": ("Leave Application", "Before Save"),

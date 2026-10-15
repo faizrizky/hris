@@ -34,6 +34,7 @@ export function LeaveApprovalScreen({ navigation }: any) {
   const pemicu = useRef<View>(null);
   const t = useT();
   const [galat, setGalat] = useState<string | null>(null);
+  const [dataMenunggu, setDataMenunggu] = useState(0);
 
   const load = useCallback(() => {
     if (!employee) return;
@@ -42,6 +43,13 @@ export function LeaveApprovalScreen({ navigation }: any) {
       .getPendingApprovals(employee.id)
       .then(setItems)
       .catch((e) => setGalat(describeError(e)));
+    // HR juga memutuskan permintaan perubahan data pribadi dan foto profil.
+    if (employee.role === "hr") {
+      hrisApi
+        .getProfileChangesForReview("Pending")
+        .then((l) => setDataMenunggu(l.length))
+        .catch(() => setDataMenunggu(0));
+    }
   }, [employee]);
 
   // Dimuat ulang tiap layar mendapat fokus, supaya pengajuan baru langsung masuk.
@@ -133,6 +141,25 @@ export function LeaveApprovalScreen({ navigation }: any) {
         data={items ?? []}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.content}
+        ListHeaderComponent={
+          dataMenunggu > 0 ? (
+            <Pressable
+              style={styles.dataCard}
+              onPress={() => navigation.navigate("ProfileChangeReview")}
+            >
+              <View style={styles.dataIcon}>
+                <Ionicons name="person" size={18} color={c.purple.ink} />
+              </View>
+              <View style={{ flex: 1, minWidth: 0 }}>
+                <Text style={styles.dataTitle}>
+                  {t("ap.dataMenunggu", { n: dataMenunggu })}
+                </Text>
+                <Text style={styles.dataSub}>{t("ap.dataSub")}</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={16} color={c.mutedLabel} />
+            </Pressable>
+          ) : null
+        }
         ListEmptyComponent={
           galat && items === null ? (
             <ErrorState pesan={galat} onUlangi={load} />
@@ -259,6 +286,28 @@ function ApprovalCardSkeleton() {
 
 const makeStyles = (c: Palette) =>
   StyleSheet.create({
+    dataCard: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 12,
+      backgroundColor: c.card,
+      borderWidth: 1,
+      borderColor: c.cardBorder,
+      borderRadius: 22,
+      padding: 14,
+      marginBottom: 12,
+    },
+    dataIcon: {
+      width: 40,
+      height: 40,
+      borderRadius: 14,
+      backgroundColor: c.purple.bg,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    dataTitle: { fontSize: 13, fontWeight: "700", color: c.ink },
+    dataSub: { fontSize: 11, fontWeight: "500", color: c.muted, marginTop: 2 },
+
     container: { flex: 1, backgroundColor: c.bg },
 
     header: {

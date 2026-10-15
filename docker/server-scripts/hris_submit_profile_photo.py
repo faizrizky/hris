@@ -38,7 +38,7 @@ if not fd.get("dry_run"):
                           "photo_score_face": score_face, "photo_score_ktp": score_ktp})
     doc.insert(ignore_permissions=True)
     for u in fl_hr_users():
-        fl_notify(u, "Profile photo change from " + me[0].employee_name, reason, "Profile Change Request", doc.name)
+        fl_notify(u, me[0].employee_name + " requested a profile photo change", reason, "Profile Change Request", doc.name)
     fl_attach("Profile Change Request", doc.name, "photo", fd.get("photo_b64"), "profile-photo.jpg")
     msg["name"] = doc.name
     msg["status"] = "Pending"
