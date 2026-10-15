@@ -6,6 +6,9 @@ import ai.onnxruntime.OrtSession
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.pdf.PdfRenderer
+import android.os.ParcelFileDescriptor
 import android.graphics.Matrix
 import android.graphics.Paint
 import android.media.ExifInterface
@@ -31,7 +34,7 @@ class HrisFaceModule : Module() {
         .setPerformanceMode(FaceDetectorOptions.PERFORMANCE_MODE_FAST)
         .setClassificationMode(FaceDetectorOptions.CLASSIFICATION_MODE_ALL)
         .setLandmarkMode(FaceDetectorOptions.LANDMARK_MODE_ALL)
-        .setMinFaceSize(0.15f)
+        .setMinFaceSize(0.04f)
         .build()
     )
   }
@@ -99,9 +102,37 @@ class HrisFaceModule : Module() {
     }
   }
 
+  // Halaman pertama PDF (mis. KTP hasil pindai) dirender ke bitmap putih, sisi terpanjang 2400 px
+  // supaya wajah kecil di halaman masih terbaca.
+  private fun renderPdf(path: String): Bitmap {
+    val fd = ParcelFileDescriptor.open(File(path), ParcelFileDescriptor.MODE_READ_ONLY)
+    PdfRenderer(fd).use { renderer ->
+      renderer.openPage(0).use { page ->
+        val scale = 2400f / maxOf(page.width, page.height)
+        val bmp = Bitmap.createBitmap(
+          (page.width * scale).toInt().coerceAtLeast(1),
+          (page.height * scale).toInt().coerceAtLeast(1),
+          Bitmap.Config.ARGB_8888
+        )
+        bmp.eraseColor(Color.WHITE)
+        page.render(bmp, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY)
+        return bmp
+      }
+    }
+  }
+
+  private fun adalahPdf(path: String): Boolean {
+    val f = File(path)
+    if (!f.exists()) return false
+    val kepala = ByteArray(4)
+    f.inputStream().use { it.read(kepala) }
+    return String(kepala, Charsets.ISO_8859_1) == "%PDF"
+  }
+
   // Foto dibaca dengan rotasi EXIF diterapkan dan sisi terpanjang <= 1280 px.
   private fun loadBitmap(uri: String): Bitmap {
     val path = Uri.parse(uri).path ?: uri
+    if (adalahPdf(path)) return renderPdf(path)
     val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
     BitmapFactory.decodeFile(path, bounds)
     var sample = 1
