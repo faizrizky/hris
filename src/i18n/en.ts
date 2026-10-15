@@ -1110,4 +1110,8 @@ export const en: Record<Kunci, string> = {
   "hm.aKoreksi": "Attendance Correction",
   "cr.wfh": "Request WFH",
   "login.usernameIsi": "Enter your username",
+  "fe.kedipStatus": "Blinks detected: {n}/{min}",
+  "fe.kedipDulu": "Blink slowly to prove you are a real person ({n}/{min}).",
+  "fe.livenessKurang":
+    "The circle is full, but blinks were not detected ({n}/{min}). Blink your eyes, and do not use a photo or a screen.",
 };

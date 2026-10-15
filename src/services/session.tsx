@@ -14,6 +14,7 @@ import { AppState } from "react-native";
 interface SessionContextValue {
   employee: Employee | null;
   setEmployee: (employee: Employee | null) => void;
+  siap: boolean; // false selama sesi tersimpan masih dipulihkan saat aplikasi dibuka
 }
 
 const SessionContext = createContext<SessionContextValue | undefined>(
@@ -22,6 +23,25 @@ const SessionContext = createContext<SessionContextValue | undefined>(
 
 export function SessionProvider({ children }: { children: React.ReactNode }) {
   const [employee, setEmployee] = useState<Employee | null>(null);
+  const [siap, setSiap] = useState(false);
+
+  // Sesi login hidup di cookie server, jadi aplikasi yang dibuka ulang (termasuk setelah pembaruan APK/OTA)
+  // tinggal bertanya "siapa saya"; hanya bila sesinya sudah kedaluwarsa pengguna kembali ke layar login.
+  useEffect(() => {
+    let batal = false;
+    hrisApi
+      .getCurrentEmployee()
+      .then((e) => {
+        if (!batal) setEmployee((sekarang) => sekarang ?? e);
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (!batal) setSiap(true);
+      });
+    return () => {
+      batal = true;
+    };
+  }, []);
 
   useEffect(() => {
     setSessionExpiredHandler(() => setEmployee(null));
@@ -73,7 +93,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
   }, [employeeId]);
 
   return (
-    <SessionContext.Provider value={{ employee, setEmployee }}>
+    <SessionContext.Provider value={{ employee, setEmployee, siap }}>
       {children}
     </SessionContext.Provider>
   );

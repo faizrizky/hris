@@ -38,6 +38,7 @@ import { LingkaranSamsung, TICKS } from "./LingkaranSamsung";
 const YAW_MIN = 11;
 const PITCH_MIN = 7;
 const CUKUP = Math.round(TICKS * 0.92); // sisa celah kecil diisi otomatis
+const KEDIP_MIN = 2; // liveness saat pendaftaran: jumlah kedipan minimal
 const SEKTOR = 8; // satu sampel wajah per seperdelapan lingkaran
 const BATAS_MS = 90_000;
 const EASE = Easing.bezier(0.25, 0.1, 0.25, 1);
@@ -77,6 +78,8 @@ export function FaceEnrollScreen({ navigation }: any) {
   const [galat, setGalat] = useState<string | null>(null);
   const [selfie, setSelfie] = useState<string | null>(null);
   const [adaWajah, setAdaWajah] = useState(false);
+  const [kedip, setKedip] = useState(0);
+  const [peringatan, setPeringatan] = useState<string | null>(null);
   const [putaran, setPutaran] = useState(0);
   // Embedding KTP dan foto profil dihitung SEBELUM pemindaian, supaya foto yang tidak berisi wajah
   // ketahuan sebelum karyawan memutar kepala.
@@ -177,6 +180,10 @@ export function FaceEnrollScreen({ navigation }: any) {
     const mulai = Date.now();
     const sampel: number[][] = [];
     const nyala = new Set<number>();
+    // Liveness saat mendaftar: wajib terdeteksi berkedip (mata tertutup lalu terbuka lagi) sedikitnya
+    // KEDIP_MIN kali. Foto atau layar tidak pernah berkedip, jadi tidak bisa menyelesaikan pendaftaran.
+    let matiTertutup = false;
+    let kedip = 0;
     const sektor = new Set<number>();
     let sebelumnya: number | null = null;
     let pusat: number[] | null = null;
@@ -218,6 +225,14 @@ export function FaceEnrollScreen({ navigation }: any) {
           const atas = d.pitch / PITCH_MIN;
           const besar = Math.hypot(kanan, atas);
           setAdaWajah(true);
+          if (d.eyesOpen >= 0) {
+            if (d.eyesOpen < 0.35) matiTertutup = true;
+            else if (matiTertutup && d.eyesOpen > 0.6) {
+              matiTertutup = false;
+              kedip += 1;
+              setKedip(kedip);
+            }
+          }
           if (!pusat) {
             if (besar < 0.6 && (d.eyesOpen < 0 || d.eyesOpen >= 0.5)) {
               pusat = await embeddingWajah(foto.uri);
@@ -261,7 +276,15 @@ export function FaceEnrollScreen({ navigation }: any) {
           } else {
             sebelumnya = null;
           }
-          if (nyala.size >= CUKUP) {
+          if (nyala.size >= CUKUP && kedip < KEDIP_MIN) {
+            // Lingkaran penuh tetapi liveness belum terbukti: beri tahu, jangan selesai.
+            setPeringatan(t("fe.livenessKurang", { n: kedip, min: KEDIP_MIN }));
+          } else if (kedip < KEDIP_MIN && Date.now() - mulai > 14_000) {
+            setPeringatan(t("fe.kedipDulu", { n: kedip, min: KEDIP_MIN }));
+          } else {
+            setPeringatan(null);
+          }
+          if (nyala.size >= CUKUP && kedip >= KEDIP_MIN) {
             for (let i = 0; i < TICKS; i++) nyala.add(i);
             setTerisi([...nyala]);
             hasil.current = sampel;
@@ -303,6 +326,8 @@ export function FaceEnrollScreen({ navigation }: any) {
       setFase("intro");
       return;
     }
+    setKedip(0);
+    setPeringatan(null);
     setTerisi([]);
     setSelfie(null);
     setPesan(null);
@@ -520,6 +545,17 @@ export function FaceEnrollScreen({ navigation }: any) {
                 : t("fe.lengkap")}
           </Text>
           {pesan && aktif ? <Text style={styles.petunjuk}>{pesan}</Text> : null}
+          {peringatan && fase === "pindai" ? (
+            <Text style={styles.peringatan}>{peringatan}</Text>
+          ) : null}
+          {fase === "pindai" ? (
+            <Text style={styles.petunjuk}>
+              {t("fe.kedipStatus", {
+                n: Math.min(kedip, KEDIP_MIN),
+                min: KEDIP_MIN,
+              })}
+            </Text>
+          ) : null}
           <View style={{ flex: 1 }} />
           {fase === "lengkap" || fase === "kirim" ? (
             <Pressable
@@ -647,6 +683,15 @@ const makeStyles = (c: Palette) =>
       bottom: 0,
       alignItems: "center",
       paddingHorizontal: 32,
+    },
+    peringatan: {
+      fontSize: 13,
+      lineHeight: 19,
+      fontWeight: "600",
+      color: "#FFD60A",
+      textAlign: "center",
+      marginTop: 10,
+      maxWidth: 300,
     },
     persen: {
       fontSize: 34,

@@ -23,6 +23,9 @@ import {
 import { useT } from "@/i18n";
 import { LanguagePicker } from "@/components/LanguagePicker";
 import { LogoHris } from "@/components/LogoHris";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
+const KUNCI_USERNAME = "hris.username";
 
 export function LoginScreen() {
   const { setEmployee } = useSession();
@@ -39,6 +42,16 @@ export function LoginScreen() {
   const [server, setServer] = useState(alamatServer());
   const [bukaServer, setBukaServer] = useState(false);
 
+  // "Ingat saya": username terakhir diisi otomatis (password tidak pernah disimpan). Tersimpan di
+  // penyimpanan aplikasi sehingga tetap ada setelah pembaruan.
+  useEffect(() => {
+    AsyncStorage.getItem(KUNCI_USERNAME)
+      .then((v) => {
+        if (v) setEmail(v);
+      })
+      .catch(() => {});
+  }, []);
+
   // Alamat tersimpan dibaca asinkron; isi kolom setelah siap.
   useEffect(() => {
     const id = setTimeout(() => setServer(alamatServer()), 300);
@@ -51,6 +64,13 @@ export function LoginScreen() {
     try {
       setServer(await aturAlamatServer(server));
       const employee = await hrisApi.login(email.trim(), password);
+      if (rememberMe) {
+        await AsyncStorage.setItem(KUNCI_USERNAME, email.trim()).catch(
+          () => {},
+        );
+      } else {
+        await AsyncStorage.removeItem(KUNCI_USERNAME).catch(() => {});
+      }
       setEmployee(employee);
     } catch (e) {
       setError(describeError(e));

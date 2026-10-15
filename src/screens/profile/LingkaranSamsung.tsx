@@ -4,8 +4,10 @@ import { LinearGradient } from "expo-linear-gradient";
 import Svg, {
   Circle,
   Defs,
+  G,
   LinearGradient as SvgGradient,
   Path,
+  Pattern,
   Stop,
 } from "react-native-svg";
 import { CincinWajah } from "./CincinWajah";
@@ -19,7 +21,8 @@ export const TICKS = 60;
 // bergeser melewati tengah sebagai lensa, lalu menyempit jadi sabit di tepi kanan, dan mengulang.
 const PUTIH = "rgba(255,255,255,0.92)";
 const IRISAN_DERAJAT = 55; // lebar irisan (selisih garis bujur)
-const LINTAS_MS = 1100; // satu lintasan kiri ke kanan
+const LINTAS_MS = 1100; // satu lintasan
+const ARAH_SUDUT = [0, 90, 180, 270]; // lintasan bergantian: kiri-kanan, atas-bawah, kanan-kiri, bawah-atas
 const JEDA_MS = 450;
 
 const rad = (d: number) => (d * Math.PI) / 180;
@@ -44,9 +47,19 @@ function jalurIrisan(R: number, a1: number): string {
   return `M ${kiri.join(" L ")} L ${kanan.reverse().join(" L ")} Z`;
 }
 
-function KacaIrisan({ D, redup }: { D: number; redup: Animated.Value }) {
-  const R = D / 2;
+function KacaIrisan({
+  D,
+  rDalam,
+  redup,
+}: {
+  D: number;
+  rDalam: number;
+  redup: Animated.Value;
+}) {
+  // Kaca hidup di dalam lingkaran putih tipis (panduan wajah), bukan di seluruh lingkaran kamera.
+  const R = rDalam;
   const [a1, setA1] = useState(-90 - IRISAN_DERAJAT);
+  const [lintasan, setLintasan] = useState(0);
   useEffect(() => {
     let raf = 0;
     let mati = false;
@@ -57,7 +70,9 @@ function KacaIrisan({ D, redup }: { D: number; redup: Animated.Value }) {
       const sekarang = Date.now();
       if (sekarang - terakhir >= 24) {
         terakhir = sekarang;
-        const t = (sekarang - t0) % (LINTAS_MS + JEDA_MS);
+        const siklus = LINTAS_MS + JEDA_MS;
+        const t = (sekarang - t0) % siklus;
+        setLintasan(Math.floor((sekarang - t0) / siklus) % ARAH_SUDUT.length);
         const f = Math.min(1, t / LINTAS_MS);
         const halus = 0.5 - 0.5 * Math.cos(Math.PI * f); // pelan di ujung, cepat di tengah
         setA1(-90 - IRISAN_DERAJAT + halus * (180 + IRISAN_DERAJAT));
@@ -89,18 +104,31 @@ function KacaIrisan({ D, redup }: { D: number; redup: Animated.Value }) {
       />
       <Svg width={D} height={D}>
         <Defs>
+          <Pattern
+            id="titik"
+            width="5"
+            height="5"
+            patternUnits="userSpaceOnUse"
+          >
+            <Circle cx="2.5" cy="2.5" r="1.1" fill="rgba(255,255,255,0.28)" />
+          </Pattern>
           <SvgGradient id="irisan" x1="0" y1="0" x2="0" y2="1">
             <Stop offset="0" stopColor="rgb(196,210,228)" stopOpacity={0.78} />
             <Stop offset="1" stopColor="rgb(104,124,156)" stopOpacity={0.5} />
           </SvgGradient>
         </Defs>
         {d ? (
-          <Path
-            d={d}
-            fill="url(#irisan)"
-            stroke="rgba(228,236,255,0.6)"
-            strokeWidth={1}
-          />
+          <G
+            transform={`translate(${D / 2 - R} ${D / 2 - R}) rotate(${ARAH_SUDUT[lintasan]} ${R} ${R})`}
+          >
+            <Path
+              d={d}
+              fill="url(#irisan)"
+              stroke="rgba(228,236,255,0.6)"
+              strokeWidth={1}
+            />
+            <Path d={d} fill="url(#titik)" />
+          </G>
         ) : null}
       </Svg>
     </Animated.View>
@@ -155,7 +183,7 @@ export function LingkaranSamsung({
         }}
       >
         {anak}
-        <KacaIrisan D={D} redup={redup} />
+        <KacaIrisan D={D} rDalam={rDalam} redup={redup} />
       </View>
 
       <Svg

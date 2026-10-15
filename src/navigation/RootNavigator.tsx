@@ -287,11 +287,11 @@ function MainTabs() {
 }
 
 export function RootNavigator() {
-  const { employee } = useSession();
+  const { employee, siap } = useSession();
 
   return (
     <NavigationContainer>
-      {employee ? (
+      {!siap ? null : employee ? (
         <MainTabs />
       ) : (
         <RevealScope>

@@ -1114,6 +1114,11 @@ export const id = {
   "hm.aKoreksi": "Koreksi Absensi",
   "cr.wfh": "Ajukan WFH",
   "login.usernameIsi": "Masukkan username",
+  "fe.kedipStatus": "Kedipan terdeteksi: {n}/{min}",
+  "fe.kedipDulu":
+    "Kedipkan matamu pelan-pelan agar terbukti kamu orang asli ({n}/{min}).",
+  "fe.livenessKurang":
+    "Lingkaran sudah penuh, tetapi kedipan belum terdeteksi ({n}/{min}). Kedipkan matamu, dan jangan memakai foto atau layar.",
 } as const;
 
 export type Kunci = keyof typeof id;

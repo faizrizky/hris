@@ -23,14 +23,27 @@ const titik = (hhmm: string) => hhmm.replace(":", ".");
 
 export function sapaanKaryawan(clock: ClockState | null, now: Date): string {
   const salam = tt(`hm.salam.${jenisSalam(now.getHours())}` as never);
-  const sekarang = now.getHours() * 60 + now.getMinutes();
+  let sekarang = now.getHours() * 60 + now.getMinutes();
   const mulai = menitDari(clock?.shiftStart);
-  const selesai = menitDari(clock?.shiftEnd);
+  let selesai = menitDari(clock?.shiftEnd);
+  // Shift malam yang melewati tengah malam (selesai lebih kecil dari mulai): selesai jatuh keesokan harinya.
+  if (mulai !== null && selesai !== null && selesai <= mulai)
+    selesai += 24 * 60;
   const p = {
     salam,
     mulai: clock?.shiftStart ? titik(clock.shiftStart) : "",
     selesai: clock?.shiftEnd ? titik(clock.shiftEnd) : "",
   };
+
+  // Dini hari saat shift malam kemarin masih berjalan: hitung jam sekarang sebagai lanjutan hari kemarin.
+  if (
+    mulai !== null &&
+    selesai !== null &&
+    selesai > 24 * 60 &&
+    sekarang < selesai - 24 * 60
+  ) {
+    sekarang += 24 * 60;
+  }
 
   if (!clock) return tt("hm.sapaEss", p as never);
   if (clock.lastCheckIn && clock.lastCheckOut && !clock.clockedIn) {
