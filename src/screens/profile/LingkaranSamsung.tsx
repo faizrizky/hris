@@ -112,6 +112,16 @@ function KacaIrisan({
           >
             <Circle cx="2.5" cy="2.5" r="1.1" fill="rgba(255,255,255,0.28)" />
           </Pattern>
+          <SvgGradient id="pudar" x1="0" y1="0" x2="0" y2="1">
+            <Stop offset="0" stopColor="#fff" stopOpacity={0} />
+            <Stop offset="0.28" stopColor="#fff" stopOpacity={0.55} />
+            <Stop offset="0.5" stopColor="#fff" stopOpacity={1} />
+            <Stop offset="0.72" stopColor="#fff" stopOpacity={0.55} />
+            <Stop offset="1" stopColor="#fff" stopOpacity={0} />
+          </SvgGradient>
+          <Mask id="ujung" x="0" y="0" width={2 * R} height={2 * R} maskUnits="userSpaceOnUse">
+            <Rect x="0" y="0" width={2 * R} height={2 * R} fill="url(#pudar)" />
+          </Mask>
           <SvgGradient id="irisan" x1="0" y1="0" x2="0" y2="1">
             <Stop offset="0" stopColor="rgb(196,210,228)" stopOpacity={0.78} />
             <Stop offset="1" stopColor="rgb(104,124,156)" stopOpacity={0.5} />
@@ -121,13 +131,15 @@ function KacaIrisan({
           <G
             transform={`translate(${D / 2 - R} ${D / 2 - R}) rotate(${ARAH_SUDUT[lintasan]} ${R} ${R})`}
           >
-            <Path
-              d={d}
-              fill="url(#irisan)"
-              stroke="rgba(228,236,255,0.6)"
-              strokeWidth={1}
-            />
-            <Path d={d} fill="url(#titik)" />
+            <G mask="url(#ujung)">
+              <Path
+                d={d}
+                fill="url(#irisan)"
+                stroke="rgba(228,236,255,0.6)"
+                strokeWidth={1}
+              />
+              <Path d={d} fill="url(#titik)" />
+            </G>
           </G>
         ) : null}
       </Svg>
