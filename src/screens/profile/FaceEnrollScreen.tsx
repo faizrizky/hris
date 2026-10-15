@@ -533,7 +533,14 @@ export function FaceEnrollScreen({ navigation }: any) {
             <Ionicons name="happy-outline" size={78} color={PUTIH} />
           </View>
           <Text style={styles.introJudul}>{t("fe.introJudul")}</Text>
-          <Text style={styles.introIsi}>{t("fe.introIsi")}</Text>
+          {fase === "cek" ? (
+            <View style={styles.cekInfo}>
+              <ActivityIndicator color={PUTIH} />
+              <Text style={styles.introIsi}>{t("fe.memeriksa")}</Text>
+            </View>
+          ) : (
+            <Text style={styles.introIsi}>{t("fe.introIsi")}</Text>
+          )}
           {status?.state === "active" ? (
             <Text style={styles.introStatus}>{t("fe.sudahAktif")}</Text>
           ) : status?.state === "needs_reenroll" ? (
@@ -547,17 +554,8 @@ export function FaceEnrollScreen({ navigation }: any) {
           ) : null}
           {galat ? <Text style={styles.galat}>{galat}</Text> : null}
           <View style={{ flex: 1 }} />
-          <Pressable
-            style={[styles.btnBiru, fase === "cek" && { opacity: 0.6 }]}
-            onPress={mulai}
-            disabled={fase === "cek"}
-          >
-            {fase === "cek" ? (
-              <View style={styles.cekRow}>
-                <ActivityIndicator color={PUTIH} />
-                <Text style={styles.btnBiruText}>{t("fe.memeriksa")}</Text>
-              </View>
-            ) : (
+          {fase === "cek" ? null : (
+            <Pressable style={styles.btnBiru} onPress={mulai}>
               <Text style={styles.btnBiruText}>
                 {t(
                   status?.state === "active" ||
@@ -566,8 +564,8 @@ export function FaceEnrollScreen({ navigation }: any) {
                     : "fe.mulaiSingkat",
                 )}
               </Text>
-            )}
-          </Pressable>
+            </Pressable>
+          )}
         </Animated.View>
       ) : (
         <Animated.View
@@ -720,6 +718,7 @@ const makeStyles = (c: Palette) =>
       justifyContent: "center",
     },
     btnBiruText: { fontSize: 16, fontWeight: "600", color: PUTIH },
+    cekInfo: { alignItems: "center", gap: 12 },
     cekRow: { flexDirection: "row", alignItems: "center", gap: 10 },
 
     teksBawah: {
