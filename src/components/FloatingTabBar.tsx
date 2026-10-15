@@ -89,6 +89,7 @@ export function FloatingTabBar({ state, navigation }: BottomTabBarProps) {
     "ProfileChangeReviewDetail",
     "EmployeeDocumentDetail",
     "AppraisalFeedback",
+    "FaceEnroll",
   ];
   if (disembunyikan || (nestedRoute && HIDE_ON.includes(nestedRoute)))
     return null;
