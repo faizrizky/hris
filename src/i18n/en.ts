@@ -1070,4 +1070,5 @@ export const en: Record<Kunci, string> = {
   "fe.daftarSekarang": "Register face now",
   "ap.dokMenunggu": "{n} documents waiting for verification",
   "ap.dokSub": "New documents and change requests. Tap to review.",
+  "fe.putarN": "Slowly turn your head toward the grey lines ({n}/{total})",
 };

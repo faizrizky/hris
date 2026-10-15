@@ -2,7 +2,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { RevealScrollView as ScrollView } from "@/components/Reveal";
 import { CameraView, useCameraPermissions } from "expo-camera";
-import Svg, { Line } from "react-native-svg";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -20,9 +19,12 @@ import {
   wajahDidukung,
 } from "@/services/faceCheck";
 import type { FaceStatus } from "@/services/types";
+import { CincinWajah, TICKS, type Arah } from "./CincinWajah";
 
-const TICKS = 48;
-const SECTORS = 8; // arah kepala yang harus terisi, selain menghadap depan
+// Ambang menoleh (derajat). Mendongak/menunduk lebih sulit daripada menoleh, jadi ambangnya lebih kecil.
+const YAW_MIN = 12;
+const PITCH_MIN = 7;
+const SEMUA_ARAH: Arah[] = ["kiri", "kanan", "atas", "bawah"];
 const SIZE = 264;
 const R_IN = 116;
 const R_OUT = 128;
@@ -42,9 +44,8 @@ export function FaceEnrollScreen({ navigation }: any) {
   const [status, setStatus] = useState<FaceStatus | null>(null);
   const [fase, setFase] = useState<Fase>("muat");
   const [siapKamera, setSiapKamera] = useState(false);
-  const [terisi, setTerisi] = useState<boolean[]>(() =>
-    Array(TICKS).fill(false),
-  );
+  const [arahSelesai, setArahSelesai] = useState<Arah[]>([]);
+  const [arahKini, setArahKini] = useState<number | null>(null);
   const [pesan, setPesan] = useState<string | null>(null);
   const [galat, setGalat] = useState<string | null>(null);
   const [putaran, setPutaran] = useState(0);
@@ -64,88 +65,6 @@ export function FaceEnrollScreen({ navigation }: any) {
         setFase("siap");
       });
   }, []);
-
-  // Pemindaian: ambil frame berkala, baca sudut kepala, nyalakan garis, simpan
-  // embedding saat arah baru tercapai.
-  useEffect(() => {
-    if (fase !== "pindai" || !siapKamera) return;
-    let batal = false;
-    const mulai = Date.now();
-    const sampel: number[][] = [];
-    const sektor = new Set<number>();
-    let pusat: number[] | null = null;
-    let selfie: string | null = null;
-    const nyala = Array(TICKS).fill(false) as boolean[];
-
-    (async () => {
-      while (!batal) {
-        if (Date.now() - mulai > BATAS_MS) {
-          setGalat(t("fe.habis"));
-          setFase("siap");
-          return;
-        }
-        try {
-          const foto = await kamera.current?.takePictureAsync({
-            quality: 0.4,
-            skipProcessing: true,
-            shutterSound: false,
-          });
-          if (batal || !foto) continue;
-          const d = await deteksiWajah(foto.uri);
-          if (batal) return;
-          if (d.count !== 1) {
-            setPesan(t(d.count === 0 ? "face.tidakAda" : "face.banyak"));
-            continue;
-          }
-          if (d.size < 0.25) {
-            setPesan(t("face.dekat"));
-            continue;
-          }
-          if (d.eyesOpen >= 0 && d.eyesOpen < 0.4) continue;
-          const besar = Math.hypot(d.yaw, d.pitch);
-          if (besar < 10) {
-            if (!pusat) {
-              pusat = await embeddingWajah(foto.uri);
-              if (pusat) {
-                sampel.push(pusat);
-                selfie = foto.uri;
-              }
-            }
-            setPesan(t(pusat ? "fe.putar" : "face.depan"));
-          } else if (pusat && besar >= 12) {
-            const derajat =
-              ((Math.atan2(-d.pitch, d.yaw) * 180) / Math.PI + 90 + 360) % 360;
-            const idx = Math.round(derajat / (360 / TICKS)) % TICKS;
-            for (let k = -2; k <= 2; k++) {
-              nyala[(idx + k + TICKS) % TICKS] = true;
-            }
-            setTerisi([...nyala]);
-            const s = Math.floor(idx / (TICKS / SECTORS));
-            if (!sektor.has(s)) {
-              const v = await embeddingWajah(foto.uri);
-              if (v) {
-                sektor.add(s);
-                sampel.push(v);
-              }
-            }
-            setPesan(t("fe.putar"));
-          }
-          if (pusat && sektor.size >= SECTORS - 1) {
-            setTerisi(Array(TICKS).fill(true));
-            setFase("kirim");
-            await kirim(sampel, selfie, () => batal);
-            return;
-          }
-        } catch {
-          // frame gagal: lanjut ke frame berikutnya sampai waktu habis
-        }
-      }
-    })();
-    return () => {
-      batal = true;
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fase, siapKamera, putaran]);
 
   const kirim = async (
     sampel: number[][],
@@ -170,6 +89,99 @@ export function FaceEnrollScreen({ navigation }: any) {
     }
   };
 
+  // Pemindaian: ambil frame berkala, baca sudut kepala, nyalakan garis, simpan
+  // embedding saat arah baru tercapai.
+  useEffect(() => {
+    if (fase !== "pindai" || !siapKamera) return;
+    let batal = false;
+    const mulai = Date.now();
+    const sampel: number[][] = [];
+    const selesai: Arah[] = [];
+    let pusat: number[] | null = null;
+    let selfie: string | null = null;
+
+    (async () => {
+      while (!batal) {
+        if (Date.now() - mulai > BATAS_MS) {
+          setGalat(t("fe.habis"));
+          setFase("siap");
+          return;
+        }
+        try {
+          const foto = await kamera.current?.takePictureAsync({
+            quality: 0.25,
+            skipProcessing: true,
+            shutterSound: false,
+          });
+          if (batal || !foto) continue;
+          const d = await deteksiWajah(foto.uri);
+          if (batal) return;
+          if (d.count !== 1) {
+            setArahKini(null);
+            setPesan(t(d.count === 0 ? "face.tidakAda" : "face.banyak"));
+            continue;
+          }
+          if (d.size < 0.15) {
+            setPesan(t("face.dekat"));
+            continue;
+          }
+          // Pratinjau kamera depan seperti cermin: menoleh ke kiri tampak di kiri layar.
+          const kanan = -d.yaw / YAW_MIN; // >0 = ke kanan layar
+          const atas = d.pitch / PITCH_MIN; // >0 = mendongak
+          const besar = Math.max(Math.abs(kanan), Math.abs(atas));
+          if (!pusat) {
+            if (besar < 0.8 && (d.eyesOpen < 0 || d.eyesOpen >= 0.5)) {
+              pusat = await embeddingWajah(foto.uri);
+              if (pusat) {
+                sampel.push(pusat);
+                selfie = foto.uri;
+              }
+            }
+            setPesan(t(pusat ? "fe.putarN" : "face.depan", { n: 0, total: 4 }));
+            continue;
+          }
+          const sudut = ((Math.atan2(kanan, atas) * 180) / Math.PI + 360) % 360;
+          setArahKini(
+            besar >= 0.35 ? Math.round(sudut / (360 / TICKS)) % TICKS : null,
+          );
+          if (besar >= 1) {
+            const arah: Arah =
+              Math.abs(kanan) >= Math.abs(atas)
+                ? kanan > 0
+                  ? "kanan"
+                  : "kiri"
+                : atas > 0
+                  ? "atas"
+                  : "bawah";
+            if (!selesai.includes(arah)) {
+              selesai.push(arah);
+              setArahSelesai([...selesai]);
+              const v = await embeddingWajah(foto.uri);
+              if (v) sampel.push(v);
+            }
+          }
+          setPesan(
+            t("fe.putarN", { n: selesai.length, total: SEMUA_ARAH.length }),
+          );
+          if (selesai.length >= SEMUA_ARAH.length) {
+            setArahKini(null);
+            await new Promise((r) => setTimeout(r, 700));
+            if (batal) return;
+            setFase("kirim");
+            await kirim(sampel, selfie, () => batal);
+            return;
+          }
+        } catch {
+          // frame gagal: lanjut ke frame berikutnya sampai waktu habis
+        }
+      }
+    })();
+    return () => {
+      batal = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fase, siapKamera, putaran]);
+
   const mulai = async () => {
     setGalat(null);
     setFase("cek");
@@ -190,7 +202,8 @@ export function FaceEnrollScreen({ navigation }: any) {
       return;
     }
     setPesan(t("face.depan"));
-    setTerisi(Array(TICKS).fill(false));
+    setArahSelesai([]);
+    setArahKini(null);
     setSiapKamera(false);
     setPutaran((n) => n + 1);
     setFase("pindai");
@@ -285,24 +298,14 @@ export function FaceEnrollScreen({ navigation }: any) {
         ) : null}
 
         <View style={styles.ringWrap}>
-          <Svg width={SIZE} height={SIZE} style={StyleSheet.absoluteFill}>
-            {Array.from({ length: TICKS }, (_, i) => {
-              const a = ((i * 360) / TICKS - 90) * (Math.PI / 180);
-              const cx = SIZE / 2;
-              return (
-                <Line
-                  key={i}
-                  x1={cx + R_IN * Math.cos(a)}
-                  y1={cx + R_IN * Math.sin(a)}
-                  x2={cx + R_OUT * Math.cos(a)}
-                  y2={cx + R_OUT * Math.sin(a)}
-                  stroke={terisi[i] ? c.ok.ink : c.track}
-                  strokeWidth={3}
-                  strokeLinecap="round"
-                />
-              );
-            })}
-          </Svg>
+          <CincinWajah
+            size={SIZE}
+            rIn={R_IN}
+            rOut={R_OUT}
+            selesai={arahSelesai}
+            kini={arahKini}
+            c={c}
+          />
           <View style={styles.cam}>
             {scanning && izin?.granted ? (
               <CameraView

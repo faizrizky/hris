@@ -1074,6 +1074,8 @@ export const id = {
   "ap.dokMenunggu": "{n} dokumen menunggu verifikasi",
   "ap.dokSub":
     "Dokumen baru dan permintaan ubah dokumen. Ketuk untuk meninjau.",
+  "fe.putarN":
+    "Putar kepala pelan ke arah garis yang masih abu-abu ({n}/{total})",
 } as const;
 
 export type Kunci = keyof typeof id;
