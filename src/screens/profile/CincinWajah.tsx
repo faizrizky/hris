@@ -3,67 +3,51 @@ import { Animated, Easing, StyleSheet } from "react-native";
 import Svg, { Line } from "react-native-svg";
 import { Palette } from "@/theme/colors";
 
-export type Arah = "atas" | "kanan" | "bawah" | "kiri";
-
 export const TICKS = 48;
-// Tiap arah memiliki 12 garis, berpusat di atas (0), kanan (12), bawah (24), kiri (36).
-const PUSAT: Record<Arah, number> = { atas: 0, kanan: 12, bawah: 24, kiri: 36 };
-const garisArah = (a: Arah) =>
-  Array.from({ length: 12 }, (_, k) => (PUSAT[a] - 6 + k + TICKS) % TICKS);
 
 const LineAnim = Animated.createAnimatedComponent(Line);
 const EASE = Easing.bezier(0.25, 0.1, 0.25, 1);
 
-// Cincin garis bergaya Face ID. Garis abu-abu menyala hijau satu per satu saat
-// sebuah arah tercapai; garis biru kecil menunjukkan arah kepala saat ini.
+// Cincin garis bergaya Face ID. Setiap garis menyala hijau (beranimasi) saat
+// kepala pernah mengarah ke sana; garis biru menunjukkan arah kepala saat ini.
 export function CincinWajah({
   size,
   rIn,
   rOut,
-  selesai,
+  terisi,
   kini,
   c,
 }: {
   size: number;
   rIn: number;
   rOut: number;
-  selesai: Arah[];
+  terisi: number[]; // indeks garis yang sudah tercapai
   kini: number | null; // indeks garis arah kepala saat ini, null bila belum menoleh
   c: Palette;
 }) {
   const [nyala] = useState(() =>
     Array.from({ length: TICKS }, () => new Animated.Value(0)),
   );
-  const sudah = useRef(new Set<Arah>());
+  const sudah = useRef(new Set<number>());
 
   useEffect(() => {
-    const baru = selesai.filter((a) => !sudah.current.has(a));
-    baru.forEach((a) => {
-      sudah.current.add(a);
-      // Menyala berurutan dari tengah arah ke kedua sisinya.
-      const jarak = (x: number) => {
-        let d = (((x - PUSAT[a]) % TICKS) + TICKS) % TICKS;
-        if (d > TICKS / 2) d -= TICKS;
-        return Math.abs(d);
-      };
-      const urut = garisArah(a).sort((x, y) => jarak(x) - jarak(y));
-      Animated.stagger(
-        28,
-        urut.map((i) =>
-          Animated.timing(nyala[i]!, {
-            toValue: 1,
-            duration: 260,
-            easing: EASE,
-            useNativeDriver: false,
-          }),
-        ),
-      ).start();
-    });
-    if (selesai.length === 0 && sudah.current.size > 0) {
+    if (terisi.length === 0 && sudah.current.size > 0) {
       sudah.current.clear();
       nyala.forEach((v) => v.setValue(0));
+      return;
     }
-  }, [selesai, nyala]);
+    const baru = terisi.filter((i) => !sudah.current.has(i));
+    baru.forEach((i, k) => {
+      sudah.current.add(i);
+      Animated.timing(nyala[i]!, {
+        toValue: 1,
+        duration: 260,
+        delay: k * 22,
+        easing: EASE,
+        useNativeDriver: false,
+      }).start();
+    });
+  }, [terisi, nyala]);
 
   const cx = size / 2;
   const dekat = (i: number) =>

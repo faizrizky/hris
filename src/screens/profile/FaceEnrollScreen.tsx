@@ -19,12 +19,14 @@ import {
   wajahDidukung,
 } from "@/services/faceCheck";
 import type { FaceStatus } from "@/services/types";
-import { CincinWajah, TICKS, type Arah } from "./CincinWajah";
+import { CincinWajah, TICKS } from "./CincinWajah";
 
-// Ambang menoleh (derajat). Mendongak/menunduk lebih sulit daripada menoleh, jadi ambangnya lebih kecil.
-const YAW_MIN = 12;
+// Sudut kepala (derajat) yang dianggap "sampai" ke tepi lingkaran. Mendongak/menunduk lebih sulit
+// daripada menoleh, jadi ambangnya lebih kecil; arah diagonal memakai kombinasi keduanya (elips).
+const YAW_MIN = 11;
 const PITCH_MIN = 7;
-const SEMUA_ARAH: Arah[] = ["kiri", "kanan", "atas", "bawah"];
+const CUKUP = 44; // garis yang harus menyala dari 48 (sisa celah kecil diisi otomatis)
+const SEKTOR = 8; // satu sampel wajah per seperdelapan lingkaran
 const SIZE = 264;
 const R_IN = 116;
 const R_OUT = 128;
@@ -44,7 +46,7 @@ export function FaceEnrollScreen({ navigation }: any) {
   const [status, setStatus] = useState<FaceStatus | null>(null);
   const [fase, setFase] = useState<Fase>("muat");
   const [siapKamera, setSiapKamera] = useState(false);
-  const [arahSelesai, setArahSelesai] = useState<Arah[]>([]);
+  const [terisi, setTerisi] = useState<number[]>([]);
   const [arahKini, setArahKini] = useState<number | null>(null);
   const [pesan, setPesan] = useState<string | null>(null);
   const [galat, setGalat] = useState<string | null>(null);
@@ -96,9 +98,16 @@ export function FaceEnrollScreen({ navigation }: any) {
     let batal = false;
     const mulai = Date.now();
     const sampel: number[][] = [];
-    const selesai: Arah[] = [];
+    const nyala = new Set<number>();
+    const sektor = new Set<number>();
+    let sebelumnya: number | null = null;
     let pusat: number[] | null = null;
     let selfie: string | null = null;
+    const jarak = (x: number, y: number) => {
+      const d = Math.abs(x - y) % TICKS;
+      return Math.min(d, TICKS - d);
+    };
+    const tambah = (i: number) => nyala.add(((i % TICKS) + TICKS) % TICKS);
 
     (async () => {
       while (!batal) {
@@ -118,6 +127,7 @@ export function FaceEnrollScreen({ navigation }: any) {
           if (batal) return;
           if (d.count !== 1) {
             setArahKini(null);
+            sebelumnya = null;
             setPesan(t(d.count === 0 ? "face.tidakAda" : "face.banyak"));
             continue;
           }
@@ -128,44 +138,60 @@ export function FaceEnrollScreen({ navigation }: any) {
           // Pratinjau kamera depan seperti cermin: menoleh ke kiri tampak di kiri layar.
           const kanan = -d.yaw / YAW_MIN; // >0 = ke kanan layar
           const atas = d.pitch / PITCH_MIN; // >0 = mendongak
-          const besar = Math.max(Math.abs(kanan), Math.abs(atas));
+          const besar = Math.hypot(kanan, atas);
           if (!pusat) {
-            if (besar < 0.8 && (d.eyesOpen < 0 || d.eyesOpen >= 0.5)) {
+            if (besar < 0.6 && (d.eyesOpen < 0 || d.eyesOpen >= 0.5)) {
               pusat = await embeddingWajah(foto.uri);
               if (pusat) {
                 sampel.push(pusat);
                 selfie = foto.uri;
               }
             }
-            setPesan(t(pusat ? "fe.putarN" : "face.depan", { n: 0, total: 4 }));
+            setPesan(t(pusat ? "fe.lingkar" : "face.depan", { p: 0 }));
             continue;
           }
           const sudut = ((Math.atan2(kanan, atas) * 180) / Math.PI + 360) % 360;
-          setArahKini(
-            besar >= 0.35 ? Math.round(sudut / (360 / TICKS)) % TICKS : null,
-          );
-          if (besar >= 1) {
-            const arah: Arah =
-              Math.abs(kanan) >= Math.abs(atas)
-                ? kanan > 0
-                  ? "kanan"
-                  : "kiri"
-                : atas > 0
-                  ? "atas"
-                  : "bawah";
-            if (!selesai.includes(arah)) {
-              selesai.push(arah);
-              setArahSelesai([...selesai]);
+          const idx = Math.round(sudut / (360 / TICKS)) % TICKS;
+          setArahKini(besar >= 0.35 ? idx : null);
+          if (besar >= 0.9) {
+            // Antar-frame, garis di antara arah sebelumnya dan sekarang ikut menyala, jadi gerakan
+            // melingkar yang pelan mengisi cincin tanpa celah meski kamera hanya beberapa frame/detik.
+            if (sebelumnya !== null && jarak(sebelumnya, idx) <= 10) {
+              const maju = (idx - sebelumnya + TICKS) % TICKS <= TICKS / 2;
+              const n = jarak(sebelumnya, idx);
+              for (let k = 0; k <= n; k++) tambah(sebelumnya + (maju ? k : -k));
+            }
+            for (let k = -2; k <= 2; k++) tambah(idx + k);
+            sebelumnya = idx;
+            // Celah satu-dua garis yang terapit garis menyala ikut diisi.
+            for (let i = 0; i < TICKS; i++) {
+              if (nyala.has(i)) continue;
+              const kiri =
+                nyala.has((i + TICKS - 1) % TICKS) ||
+                nyala.has((i + TICKS - 2) % TICKS);
+              const kanan2 =
+                nyala.has((i + 1) % TICKS) || nyala.has((i + 2) % TICKS);
+              if (kiri && kanan2) nyala.add(i);
+            }
+            setTerisi([...nyala]);
+            const s8 = Math.floor(idx / (TICKS / SEKTOR));
+            if (!sektor.has(s8)) {
+              sektor.add(s8);
               const v = await embeddingWajah(foto.uri);
               if (v) sampel.push(v);
             }
+          } else {
+            sebelumnya = null;
           }
           setPesan(
-            t("fe.putarN", { n: selesai.length, total: SEMUA_ARAH.length }),
+            t("fe.lingkar", { p: Math.round((nyala.size / TICKS) * 100) }),
           );
-          if (selesai.length >= SEMUA_ARAH.length) {
+          if (nyala.size >= CUKUP) {
+            for (let i = 0; i < TICKS; i++) nyala.add(i);
+            setTerisi([...nyala]);
             setArahKini(null);
-            await new Promise((r) => setTimeout(r, 700));
+            setPesan(t("fe.lengkap"));
+            await new Promise((r) => setTimeout(r, 900));
             if (batal) return;
             setFase("kirim");
             await kirim(sampel, selfie, () => batal);
@@ -202,7 +228,7 @@ export function FaceEnrollScreen({ navigation }: any) {
       return;
     }
     setPesan(t("face.depan"));
-    setArahSelesai([]);
+    setTerisi([]);
     setArahKini(null);
     setSiapKamera(false);
     setPutaran((n) => n + 1);
@@ -302,7 +328,7 @@ export function FaceEnrollScreen({ navigation }: any) {
             size={SIZE}
             rIn={R_IN}
             rOut={R_OUT}
-            selesai={arahSelesai}
+            terisi={terisi}
             kini={arahKini}
             c={c}
           />

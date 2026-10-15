@@ -1076,6 +1076,8 @@ export const id = {
     "Dokumen baru dan permintaan ubah dokumen. Ketuk untuk meninjau.",
   "fe.putarN":
     "Putar kepala pelan ke arah garis yang masih abu-abu ({n}/{total})",
+  "fe.lingkar": "Gerakkan kepala pelan-pelan membentuk lingkaran ({p}%)",
+  "fe.lengkap": "Pemindaian wajah selesai",
 } as const;
 
 export type Kunci = keyof typeof id;
