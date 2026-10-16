@@ -15,7 +15,7 @@ import { muatAlamatServer } from "@/services/api/http";
 
 export const MODE_PEMBARUAN: "unduh" | "toko" = "unduh";
 export const URL_TOKO = {
-  android: "https://play.google.com/store/apps/details?id=com.falah.hrismobile",
+  android: "https://play.google.com/store/apps/details?id=com.hrismobile",
   ios: "",
 };
 

@@ -12,7 +12,7 @@ Perlu akun Expo gratis (https://expo.dev).
 1. `npm i -g eas-cli` lalu `eas login`.
 2. Di folder proyek: `eas init` (mengisi `extra.eas.projectId` di app.json; ini yang dibutuhkan push).
 3. Push Android memerlukan Firebase (gratis):
-   - Buat proyek di https://console.firebase.google.com, tambahkan app Android dengan package `com.falah.hrismobile`.
+   - Buat proyek di https://console.firebase.google.com, tambahkan app Android dengan package `com.hrismobile`.
    - Unduh `google-services.json`, letakkan di root proyek, dan tambahkan di app.json: `"android": { "googleServicesFile": "./google-services.json" }`.
    - Unggah FCM credentials: `eas credentials` (Android → Push Notifications / FCM V1 service account key).
 4. Bangun APK: `eas build -p android --profile preview`. Hasilnya tautan unduh APK.

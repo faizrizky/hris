@@ -11,10 +11,10 @@
     ],
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.falah.hrismobile"
+      "bundleIdentifier": "com.hrismobile"
     },
     "android": {
-      "package": "com.falah.hrismobile",
+      "package": "com.hrismobile",
       "permissions": [
         "android.permission.ACCESS_COARSE_LOCATION",
         "android.permission.ACCESS_FINE_LOCATION",

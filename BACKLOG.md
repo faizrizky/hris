@@ -27,7 +27,7 @@ Tidak ada: seluruh method `HrisApi` sudah punya implementasi ERPNext. Dokumen Di
 Perlu kamu (uji atau keputusan):
 - [ ] Uji di HP dengan ceklis (halaman ceklis, fase 3b dan 3c di `TESTING.md`): verifikasi wajah, geofence/WFH, offline, pembaruan APK dan EAS Update; kumpulkan angka kemiripan wajah untuk menyetel ambang
 - [ ] Push notification: butuh akun Firebase (`google-services.json`) lalu Push Settings → Dry Run = 0
-- [ ] Putuskan ID paket `com.falah.hrismobile` sebelum rilis toko (mengubahnya = aplikasi baru)
+- [ ] Putuskan ID paket `com.hrismobile` sebelum rilis toko (mengubahnya = aplikasi baru)
 - [ ] Tinjauan hukum lisensi bobot SFace sebelum rilis komersial; persetujuan karyawan untuk data biometrik (UU PDP)
 - [ ] Rilis toko: Play Store (AAB, kebijakan privasi, keamanan data) dan App Store (akun Apple Developer); lalu `MODE_PEMBARUAN = "toko"`
 - [ ] Verifikasi tabel TER PPh 21 dengan PDF PMK 168/2023 (pemetaan kategori sudah cocok dengan DJP)
