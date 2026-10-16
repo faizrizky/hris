@@ -1267,7 +1267,7 @@ if not frappe.db.exists("DocType", "Face Settings"):
     make(dict(
         doctype="DocType", name="Face Settings", module="HR", custom=1, issingle=1,
         fields=[
-            dict(fieldname="min_ktp", label="Minimum Match with ID Card (%)", fieldtype="Int", default="30",
+            dict(fieldname="min_ktp", label="Minimum Match with ID Card (%)", fieldtype="Int", default="34",
                  description="Cosine similarity x100. Below this, HR sees a warning."),
             dict(fieldname="min_profile", label="Minimum Match with Profile Photo (%)", fieldtype="Int", default="36",
                  description="Below this, HR sees a warning; after a profile photo change the employee must re-register."),
@@ -1280,10 +1280,14 @@ if not frappe.db.exists("DocType", "Face Settings"):
                      dict(role="HR Manager", read=1, write=1, create=1)]))
     frappe.clear_cache()
 if not frappe.db.sql("select 1 from tabSingles where doctype = 'Face Settings' limit 1"):
-    for _k, _v in (("min_ktp", 30), ("min_profile", 36), ("min_checkin", 36), ("reenroll_grace_days", 3),
+    for _k, _v in (("min_ktp", 34), ("min_profile", 36), ("min_checkin", 36), ("reenroll_grace_days", 3),
                    ("require_enrollment", 1)):
         frappe.db.set_single_value("Face Settings", _k, _v)
     log("Face Settings: nilai awal diisi")
+# Ambang KTP 30 meloloskan ~0,4% orang asing pada uji LFW (2026-10-16); 34 setara ~0,1% untuk KTP buram.
+if frappe.db.get_single_value("Face Settings", "min_ktp") == 30:
+    frappe.db.set_single_value("Face Settings", "min_ktp", 34)
+    log("Face Settings: min_ktp 30 -> 34")
 if not frappe.db.exists("DocType", "Face Enrollment"):
     make(dict(
         doctype="DocType", name="Face Enrollment", module="HR", custom=1, naming_rule="Expression (old style)",

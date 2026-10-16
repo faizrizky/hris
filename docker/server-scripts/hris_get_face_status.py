@@ -27,5 +27,5 @@ ktp = fl_ktp(emp)
 frappe.response["message"] = {
     "state": state, "grace_until": grace, "note": note,
     "ktp_url": ktp["file"] if ktp else None, "profile_url": me[0].image or None,
-    "min_ktp": fl_setting("min_ktp", 30), "min_profile": fl_setting("min_profile", 36),
+    "min_ktp": fl_setting("min_ktp", 34), "min_profile": fl_setting("min_profile", 36),
     "min_checkin": fl_setting("min_checkin", 36), "require_enrollment": fl_setting("require_enrollment", 0)}
