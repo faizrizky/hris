@@ -42,3 +42,12 @@ HP mengambilnya saat aplikasi dibuka (layar pembuka menampilkan "Memperbarui apl
 - **Kuota:** paket gratis EAS Update 1.000 pengguna aktif per bulan (terpisah dari jatah build).
 - **Build pertama dengan EAS Update:** HP yang berjalan di build lama (tanpa `expo-updates`) perlu memasang build baru sekali.
 - `.env` lokal ikut terbaca saat memaketkan (alamat server, `EXPO_PUBLIC_USE_ERPNEXT`), jadi kirim update dari folder proyek ini.
+
+
+## Konfigurasi terkini (2026-10-16)
+- **ID paket:** `com.hrismobile` (sementara; mengubahnya = aplikasi baru, APK lama tidak bisa diperbarui ke versi baru).
+- **Firebase:** proyek `hris-2d0e4`; `google-services.json` ada di akar proyek (`android.googleServicesFile` di app.json). Kunci FCM V1 sudah diunggah ke EAS (profil `preview`, `com.hrismobile`). Mengganti ID paket: tambah app Android baru di Firebase, ganti `google-services.json`, unggah ulang kunci bila perlu, build ulang.
+- **Keystore:** dibuat EAS untuk `com.hrismobile` ("hris preview"). Jangan dihapus: pembaruan APK berikutnya harus ditandatangani kunci yang sama. Cadangan: `npx eas-cli credentials --platform android` > Download existing keystore.
+- **Uji push langsung:** `./scripts/tes-push.sh [email]`. Push dari server aktif bila Dry Run di Push Settings dimatikan.
+- **Modul native:** `hris-face` (ML Kit, SFace, anti-spoofing Minivision mode bayangan), `expo-local-authentication`, `expo-secure-store` (kunci otomatis dan login biometrik).
+- Perintah EAS di proyek ini memakai `npx eas-cli ...` (bukan `npx eas`).

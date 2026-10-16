@@ -119,6 +119,36 @@ Syarat: KTP rani berstatus Verified (Profil > Dokumen; di web ubah status Employ
 - [ ] Keyboard di Android tidak menutupi field (form cuti, ubah data, alasan tolak)
   > Catatan:
 
+## Fase 3d: Build baru (com.hrismobile): perangkat, kunci, biometrik, anti-spoofing, push
+Syarat: hapus APK lama (`com.falah.hrismobile`), pasang APK baru, login. HP harus punya sidik jari/wajah terdaftar.
+
+- [ ] Perangkat pertama rani otomatis disetujui; HP kedua (atau akun arman di HP lain): Clock In ditolak "menunggu persetujuan HR"; HR menyetujui di web (Registered Device), lalu Clock In lolos
+  > Catatan:
+- [ ] Daftar ulang wajah: tiga perintah acak muncul satu per satu (pejam, toleh, toleh sebaliknya); foto/video di layar HP lain tidak lolos
+  > Catatan:
+- [ ] Skor kemiripan di Face Enrollment (web): wajah vs foto profil di atas 80%, wajah vs KTP di atas 34%; selfie masih tampil setelah disetujui
+  > Catatan: (tulis angkanya)
+- [ ] Clock In/Out: tiga perintah liveness; judul "Clock In/Out berhasil" sesuai aksi, jam benar, status "Terlambat/Pulang awal/Tepat waktu" sesuai shift
+  > Catatan:
+- [ ] Anti-spoofing mode bayangan: setelah Clock In, di Employee Checkin (web) terisi "Anti-spoof Score (shadow)" dan skor per frame. Tidak ada absen yang ditolak karenanya
+  > Catatan: (tulis skor wajah asli; coba juga foto cetak/layar dan catat skornya)
+- [ ] Login biometrik: centang "Login biometrik" saat login; keluar; "Masuk dengan sidik jari / wajah" masuk tanpa mengetik password
+  > Catatan:
+- [ ] Belum ada biometrik terdaftar di HP: muncul pesan "Daftarkan dulu di Pengaturan HP", tidak crash
+  > Catatan:
+- [ ] Kunci otomatis (Profil > Keamanan): aktifkan, ke latar belakang lebih dari batas waktu lalu kembali: layar kunci muncul, sidik jari/wajah membuka; tombol "Keluar dari akun" berfungsi
+  > Catatan:
+- [ ] Kamera/galeri/pemilih berkas tidak memicu kunci saat dipakai (ambil foto profil, unggah dokumen)
+  > Catatan:
+- [ ] Ubah password: login biometrik lama dinonaktifkan (harus diaktifkan lagi dengan password baru)
+  > Catatan:
+- [ ] Push notification: login, izinkan notifikasi; Push Token terdaftar di web; jalankan `./scripts/tes-push.sh` (receipt "ok", notifikasi muncul di HP)
+  > Catatan:
+- [ ] Push sungguhan: matikan Dry Run (Push Settings), dewi menyetujui cuti rani; rani menerima push saat aplikasi di latar belakang
+  > Catatan:
+- [ ] Status dokumen (Profil > Dokumen): HR memverifikasi, layar karyawan berubah sendiri dalam beberapa detik
+  > Catatan:
+
 ## Fase 4: Atasan (dewi)
 - [ ] Inbox Approval memuat cuti, lembur, dinas luar, koreksi dari rani
   > Catatan:
@@ -165,8 +195,8 @@ Syarat: KTP rani berstatus Verified (Profil > Dokumen; di web ubah status Employ
 - [ ] Teks tidak terpotong di EN
   > Catatan:
 
-## Fase 9: Push notification (butuh Firebase, belum aktif)
-Prasyarat: Firebase dan `google-services.json`, `extra.eas.projectId` di app.json (sudah ada), perangkat fisik. Lewati fase ini sampai Firebase siap.
+## Fase 9: Push notification (Firebase sudah dikonfigurasi; lihat Fase 3d)
+Prasyarat: `google-services.json` (sudah di proyek), kunci FCM V1 di EAS (sudah), APK build baru, perangkat fisik.
 
 - [ ] Login: izin notifikasi diminta; token terdaftar (doctype Push Token di web)
   > Catatan:
