@@ -1645,6 +1645,115 @@ EVENT_SCRIPTS = {  # script berbasis event dokumen: nama_file -> (DocType, event
     "hris_push_on_notification": ("Notification Log", "After Insert"),
 }
 
+# 8z. Tata letak form (section berlabel dan 2-3 kolom) untuk DocType buatan sendiri --------
+# LAYOUT: doctype -> daftar section (label, [kolom1, kolom2, ...]); tiap kolom = daftar fieldname.
+# Field yang tidak tercantum (mis. field tersembunyi) dipindah ke akhir section terakhir. Idempoten.
+LAYOUT = {
+    "Overtime Request": [
+        ("Employee", [["employee"], ["employee_name"], ["status"]]),
+        ("Overtime Time", [["date", "is_holiday"], ["start_time", "end_time"], ["hours"]]),
+        ("Notes", [["note"]]),
+    ],
+    "Profile Change Request": [
+        ("Request", [["employee"], ["employee_name"], ["status"]]),
+        ("Review", [["review_html"]]),
+        ("Change Details", [["reason", "changes"], ["proposed"]]),
+        ("Profile Photo", [["photo"], ["photo_score_face"], ["photo_score_ktp"]]),
+        ("HR Decision", [["hr_note"], ["decided_by"], ["decided_on"]]),
+    ],
+    "Employee Document": [
+        ("Document", [["employee", "employee_name"], ["document_name", "category"], ["file", "expires_on"]]),
+        ("Verification", [["status", "verified_by"], ["rejection_reason"], ["change_reason"]]),
+    ],
+    "Push Token": [
+        ("Device", [["user", "token"], ["platform", "device_name", "last_seen"]]),
+    ],
+    "Push Settings": [
+        ("Push Notification", [["dry_run"]]),
+    ],
+    "Registered Device": [
+        ("Employee", [["employee"], ["employee_name"], ["status"]]),
+        ("Device", [["device_name"], ["platform"], ["device_id"]]),
+        ("Activity", [["registered_on"], ["last_seen"]]),
+        ("HR Note", [["hr_note"]]),
+    ],
+    "HR Announcement": [
+        ("Announcement", [["title"], ["priority"]]),
+        ("Audience", [["audience"], ["department"], ["expires_on"]]),
+        ("Publishing", [["published"], ["published_on"]]),
+        ("Content", [["content"]]),
+        ("Attachment", [["attachment"]]),
+    ],
+    "Attendance Offline Settings": [
+        ("Offline Check-in Limits", [["max_age_hours", "max_anchor_age_hours"],
+                                     ["skew_tolerance_seconds", "future_tolerance_seconds"], ["max_per_month"]]),
+    ],
+    "Geofence Settings": [
+        ("Mode", [["geofence_mode"], ["require_location"]]),
+        ("GPS Quality", [["max_accuracy_m"], ["gps_skew_tolerance_seconds"], ["block_mock_location"]]),
+    ],
+    "WFH Schedule": [
+        ("Employee", [["employee"], ["employee_name"], ["status"]]),
+        ("Period", [["from_date"], ["to_date"], ["enabled"]]),
+        ("WFH Days", [["mon", "tue", "wed"], ["thu", "fri"], ["sat", "sun"]]),
+        ("Reason", [["reason"], ["decision_note"]]),
+        ("Decision", [["requested_by_employee"], ["decided_by"]]),
+    ],
+    "Face Settings": [
+        ("Minimum Match Scores", [["min_ktp"], ["min_profile"], ["min_checkin"]]),
+        ("Registration Policy", [["reenroll_grace_days"], ["require_enrollment"]]),
+    ],
+    "Face Enrollment": [
+        ("Employee", [["employee"], ["employee_name"], ["status"]]),
+        ("Review", [["review_html"]]),
+        ("Match Scores", [["score_ktp"], ["score_profile"], ["score_profile_ktp"]]),
+        ("Registration", [["ktp_document"], ["selfie"]]),
+        ("Re-registration", [["needs_reenroll"], ["grace_until"]]),
+        ("HR Decision", [["hr_note"], ["decided_by"], ["decided_on"]]),
+    ],
+    "App Update": [
+        ("Version", [["version_code"], ["version_name"], ["mandatory"]]),
+        ("APK", [["apk"], ["apk_url"], ["apk_size"]]),
+        ("Release Notes", [["release_notes"]]),
+    ],
+}
+_BREAKS = ("Section Break", "Column Break", "Tab Break")
+for _dt, _secs in LAYOUT.items():
+    if not frappe.db.exists("DocType", _dt):
+        continue
+    _d = frappe.get_doc("DocType", _dt)
+    _data = [f for f in _d.fields if f.fieldtype not in _BREAKS]
+    _byname = {f.fieldname: f for f in _data}
+    _listed = {n for _l, cols in _secs for col in cols for n in col}
+    _extra = [f for f in _data if f.fieldname not in _listed]
+    _sig = []
+    _rows = []
+    for _i, (_label, _cols) in enumerate(_secs, start=1):
+        _members = [_byname[n] for col in _cols for n in col if n in _byname]
+        _pl = min([int(m.permlevel or 0) for m in _members] or [0])
+        _rows.append(dict(fieldtype="Section Break", fieldname=f"sb_{_i}", label=_label, permlevel=_pl))
+        _sig.append(f"sb_{_i}")
+        for _j, col in enumerate(_cols):
+            if _j > 0:
+                _rows.append(dict(fieldtype="Column Break", fieldname=f"cb_{_i}_{_j}", permlevel=_pl))
+                _sig.append(f"cb_{_i}_{_j}")
+            for n in col:
+                if n in _byname:
+                    _rows.append(_byname[n])
+                    _sig.append(n)
+        if _i == len(_secs):
+            for m in _extra:
+                _rows.append(m)
+                _sig.append(m.fieldname)
+    if [f.fieldname for f in _d.fields] == _sig:
+        continue
+    _d.set("fields", _rows)
+    _d.flags.ignore_permissions = True
+    _d.save()
+    frappe.clear_cache(doctype=_dt)
+    log(f"tata letak form: {_dt}")
+frappe.db.commit()
+
 # 9. Server Script (satu file .py per script, nama file = nama method API) ----------
 if os.path.isdir(SS_DIR):
     for fname in sorted(os.listdir(SS_DIR)):
