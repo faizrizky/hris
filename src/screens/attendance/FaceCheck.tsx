@@ -5,16 +5,18 @@ import { Palette } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
 import { useT } from "@/i18n";
 import {
-  awalLiveness,
+  awalUrutan,
+  BATAS_LANGKAH_MS,
   deteksiWajah,
   embeddingWajah,
-  langkahLiveness,
-  tantanganAcak,
-  type StatusLiveness,
-  type Tantangan,
+  langkahUrutan,
+  LANGKAH_TOTAL,
+  type StatusUrutan,
 } from "@/services/faceCheck";
 
-const BATAS_MS = 15_000;
+const BATAS_MS = 45_000; // seluruh sesi liveness (tiga perintah)
+const KUALITAS_DETEKSI = 0.3;
+const KUALITAS_SAMPEL = 0.7; // foto untuk embedding wajah: lebih tajam supaya pencocokan akurat
 
 // Kamera depan + tantangan acak. onLulus dipanggil sekali saat liveness lolos.
 export function FaceCheck({
@@ -29,35 +31,45 @@ export function FaceCheck({
   const kamera = useRef<CameraView>(null);
   const [siapKamera, setSiapKamera] = useState(false);
   const [putaran, setPutaran] = useState(0); // naik = ulang dari awal
-  const [tantangan, setTantangan] = useState<Tantangan>(tantanganAcak);
-  const [status, setStatus] = useState<StatusLiveness>(awalLiveness);
+  const [status, setStatus] = useState<StatusUrutan>(awalUrutan);
   const [waktuHabis, setWaktuHabis] = useState(false);
   const [lulus, setLulus] = useState(false);
 
   useEffect(() => {
     if (!izin?.granted || !siapKamera) return;
     let batal = false;
-    let s = awalLiveness;
+    let s = status;
     let vec: number[] | null = null;
     const mulai = Date.now();
     (async () => {
       while (!batal) {
-        if (Date.now() - mulai > BATAS_MS) {
+        const sekarang = Date.now();
+        if (
+          sekarang - mulai > BATAS_MS ||
+          (s.siap && sekarang - s.mulaiLangkah > BATAS_LANGKAH_MS)
+        ) {
           setWaktuHabis(true);
           return;
         }
         try {
           const foto = await kamera.current?.takePictureAsync({
-            quality: 0.3,
+            quality: KUALITAS_DETEKSI,
             skipProcessing: true,
             shutterSound: false,
           });
           if (batal) return;
           if (foto) {
             const d = await deteksiWajah(foto.uri);
-            s = langkahLiveness(s, d, tantangan);
-            // Embedding diambil dari frame menghadap depan, sebelum tantangan.
-            if (s.siap && !vec) vec = await embeddingWajah(foto.uri);
+            s = langkahUrutan(s, d, Date.now());
+            // Embedding dari foto kualitas tinggi saat menghadap depan, sebelum perintah pertama.
+            if (s.siap && !vec) {
+              const tajam = await kamera.current?.takePictureAsync({
+                quality: KUALITAS_SAMPEL,
+                skipProcessing: true,
+                shutterSound: false,
+              });
+              vec = await embeddingWajah((tajam ?? foto).uri);
+            }
             if (!batal) setStatus(s);
             if (s.lulus) {
               setLulus(true);
@@ -73,11 +85,11 @@ export function FaceCheck({
     return () => {
       batal = true;
     };
-  }, [izin?.granted, siapKamera, putaran, tantangan, onLulus]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [izin?.granted, siapKamera, putaran, onLulus]);
 
   const ulang = () => {
-    setTantangan(tantanganAcak());
-    setStatus(awalLiveness);
+    setStatus(awalUrutan());
     setWaktuHabis(false);
     setPutaran((n) => n + 1);
   };
@@ -98,9 +110,17 @@ export function FaceCheck({
     ? t("face.lulus")
     : waktuHabis
       ? t("face.habis")
-      : status.pesan === "tantangan"
-        ? t(tantangan === "kedip" ? "face.kedip" : "face.toleh")
-        : t(`face.${status.pesan}` as never);
+      : status.pesan === "tantangan" && status.siap
+        ? `${t("face.langkah", { n: Math.min(status.langkah + 1, LANGKAH_TOTAL), total: LANGKAH_TOTAL })}: ${t(
+            status.urutan[status.langkah] === "pejam"
+              ? "face.pejam"
+              : status.urutan[status.langkah] === "toleh"
+                ? "face.toleh1"
+                : "face.toleh2",
+          )}`
+        : t(
+            `face.${status.pesan === "tantangan" ? "depan" : status.pesan}` as never,
+          );
 
   return (
     <View style={{ alignItems: "center" }}>

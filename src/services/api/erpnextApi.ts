@@ -1075,6 +1075,8 @@ interface ClockRes {
     shift_name?: string | null;
     shift_start?: string | null;
     shift_end?: string | null;
+    late_grace_min?: number;
+    early_grace_min?: number;
   };
 }
 
@@ -1110,6 +1112,11 @@ async function statusDariAntrean(): Promise<ClockState | null> {
     timezoneLabel: statusTerakhir?.timezoneLabel,
     workLocation: statusTerakhir?.workLocation ?? null,
     pendingOffline: true,
+    shiftName: statusTerakhir?.shiftName ?? null,
+    shiftStart: statusTerakhir?.shiftStart ?? null,
+    shiftEnd: statusTerakhir?.shiftEnd ?? null,
+    lateGraceMin: statusTerakhir?.lateGraceMin,
+    earlyGraceMin: statusTerakhir?.earlyGraceMin,
   };
 }
 
@@ -1125,6 +1132,8 @@ async function ambilStatusJam(): Promise<ClockState> {
       shiftName: r.message.shift_name ?? null,
       shiftStart: r.message.shift_start ?? null,
       shiftEnd: r.message.shift_end ?? null,
+      lateGraceMin: r.message.late_grace_min ?? 0,
+      earlyGraceMin: r.message.early_grace_min ?? 0,
     };
     statusTerakhir = status;
     return status;

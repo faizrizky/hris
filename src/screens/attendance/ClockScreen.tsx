@@ -1,4 +1,5 @@
 import React, { useCallback, useState, useMemo } from "react";
+import { statusPresensi } from "@/utils/statusPresensi";
 import { useFocusEffect } from "@react-navigation/native";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { RevealScrollView as ScrollView } from "@/components/Reveal";
@@ -31,6 +32,8 @@ export function ClockScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
   const [state, setState] = useState<ClockState | null>(null);
   const [step, setStep] = useState(0);
+  // Aksi yang baru dilakukan; status clockedIn berbalik sesudah berhasil, jadi layar selesai memakai ini.
+  const [aksiSelesai, setAksiSelesai] = useState<"IN" | "OUT" | null>(null);
   const { izin, fix, terdekat, aturan, ambilTerbaru } = useLokasiKerja(
     step < 2,
   ); // 0 = GPS, 1 = wajah, 2 = selesai
@@ -122,8 +125,13 @@ export function ClockScreen({ navigation }: any) {
     );
   }
 
-  const aksi = state.clockedIn ? t("ab.clockOut") : t("ab.clockIn");
   const done = step === 2;
+  const aksiIni: "IN" | "OUT" = done
+    ? (aksiSelesai ?? "IN")
+    : state.clockedIn
+      ? "OUT"
+      : "IN";
+  const aksi = aksiIni === "OUT" ? t("ab.clockOut") : t("ab.clockIn");
 
   // Clock In hanya di area kerja (kecuali jadwal WFH atau dinas luar, yang server
   // bebaskan); Clock Out bebas di mana saja. Server tetap yang memutuskan: ini
@@ -171,10 +179,12 @@ export function ClockScreen({ navigation }: any) {
     setGalat(null);
     try {
       const lokasi = await ambilTerbaru();
+      const dilakukan: "IN" | "OUT" = state.clockedIn ? "OUT" : "IN";
       const next = state.clockedIn
         ? await hrisApi.clockOut(employee.id, lokasi, faceVec ?? undefined)
         : await hrisApi.clockIn(employee.id, lokasi, faceVec ?? undefined);
       setState(next);
+      setAksiSelesai(dilakukan);
       setStep(2);
       setFaceLulus(false);
       setFaceVec(null);
@@ -191,7 +201,15 @@ export function ClockScreen({ navigation }: any) {
       ? t("ab.lanjutWajah")
       : t("ab.konfirmasi", { aksi });
 
-  const jam = state.clockedIn ? state.lastCheckIn : state.lastCheckOut;
+  const jam = aksiIni === "IN" ? state.lastCheckIn : state.lastCheckOut;
+  const hasil = statusPresensi(aksiIni, jam, state);
+  const labelStatus = state.pendingOffline
+    ? t("ab.menungguKirim")
+    : hasil.jenis === "terlambat"
+      ? t("ab.terlambat", { menit: hasil.menit })
+      : hasil.jenis === "pulangAwal"
+        ? t("ab.pulangAwal", { menit: hasil.menit })
+        : t("ab.tepat");
 
   return (
     <View style={styles.container}>
@@ -360,13 +378,11 @@ export function ClockScreen({ navigation }: any) {
 
               <View style={styles.doneMeta}>
                 <DoneMeta label={t("ab.metode")} value="Face + GPS" />
+                <DoneMeta label={t("ab.status")} value={labelStatus} />
                 <DoneMeta
-                  label={t("ab.status")}
-                  value={
-                    state.pendingOffline ? t("ab.menungguKirim") : t("ab.tepat")
-                  }
+                  label={t("ab.shift")}
+                  value={state.shiftName ?? t("ab.reguler")}
                 />
-                <DoneMeta label={t("ab.shift")} value={t("ab.reguler")} />
               </View>
             </LinearGradient>
 

@@ -104,6 +104,8 @@ export interface ClockState {
   shiftName?: string | null; // shift kerja hari ini dari server
   shiftStart?: string | null; // "08:00"
   shiftEnd?: string | null; // "17:00"
+  lateGraceMin?: number; // toleransi terlambat (menit) dari Shift Type
+  earlyGraceMin?: number; // toleransi pulang awal (menit)
 }
 
 export type LeaveType = "cuti" | "lembur" | "dinas_luar" | "sakit" | "wfh";

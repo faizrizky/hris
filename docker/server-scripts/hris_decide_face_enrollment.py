@@ -1,6 +1,7 @@
 # Server Script (type: API, method: hris_decide_face_enrollment, allow_guest: 0)
 # POST: name, decision (approve | reject), note (wajib bila reject). Hanya HR; bukan pendaftaran milik sendiri.
-# approve: pendaftaran Active menjadi Superseded, ini menjadi Active; selfie dihapus. reject: selfie dihapus.
+# approve: pendaftaran Active lama menjadi Superseded (selfie lamanya dihapus), ini menjadi Active dan selfienya DISIMPAN
+# sebagai bukti selama pendaftaran Active. reject: selfie dihapus.
 # @include: _lib/face_lib.py
 user = frappe.session.user
 if user != "Administrator" and not (user in fl_hr_users()):
@@ -22,15 +23,20 @@ if target == user and user != "Administrator":
 if decision == "reject" and not note:
     frappe.throw("A note is required when rejecting")
 if decision == "approve":
-    for o in frappe.get_all("Face Enrollment", filters={"employee": doc.employee, "status": "Active"}, fields=["name"],
-                            limit_page_length=20):
-        frappe.db.set_value("Face Enrollment", o.name, "status", "Superseded")
+    for o in frappe.get_all("Face Enrollment", filters={"employee": doc.employee, "status": "Active"},
+                            fields=["name", "selfie"], limit_page_length=20):
+        frappe.db.set_value("Face Enrollment", o.name, {"status": "Superseded", "selfie": None})
+        if o.selfie:
+            for f in frappe.get_all("File", filters={"file_url": o.selfie, "attached_to_name": o.name}, fields=["name"],
+                                    limit_page_length=5):
+                frappe.delete_doc("File", f.name, ignore_permissions=True, force=True)
 selfie = doc.selfie
-frappe.db.set_value("Face Enrollment", name, {"status": "Active" if decision == "approve" else "Rejected",
-                                              "hr_note": note or None, "decided_by": user,
-                                              "decided_on": frappe.utils.now_datetime(), "needs_reenroll": 0,
-                                              "grace_until": None, "selfie": None})
-if selfie:
+vals = {"status": "Active" if decision == "approve" else "Rejected", "hr_note": note or None, "decided_by": user,
+        "decided_on": frappe.utils.now_datetime(), "needs_reenroll": 0, "grace_until": None}
+if decision == "reject":
+    vals["selfie"] = None
+frappe.db.set_value("Face Enrollment", name, vals)
+if selfie and decision == "reject":
     for f in frappe.get_all("File", filters={"file_url": selfie, "attached_to_name": name}, fields=["name"], limit_page_length=5):
         frappe.delete_doc("File", f.name, ignore_permissions=True, force=True)
 word = "approved" if decision == "approve" else "rejected"

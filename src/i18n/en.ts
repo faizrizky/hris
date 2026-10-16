@@ -324,6 +324,8 @@ export const en: Record<Kunci, string> = {
   "ab.status": "Status",
   "ab.shift": "Shift",
   "ab.tepat": "On time",
+  "ab.terlambat": "Late {menit} min",
+  "ab.pulangAwal": "Left early {menit} min",
   "ab.reguler": "Regular",
   "ab.tersinkron": "Synced to the server",
   "ab.riwayat": "View attendance history",
@@ -1015,6 +1017,10 @@ export const en: Record<Kunci, string> = {
   "fe.petunjukToleh":
     "Look straight first, then slowly turn your head to the side.",
   "fe.hadapDepan": "Look straight at the camera for a moment.",
+  "face.langkah": "Step {n} of {total}",
+  "face.pejam": "Face forward, then close your eyes for a moment",
+  "face.toleh1": "Turn your head to one side",
+  "face.toleh2": "Now turn to the opposite side",
   "dv.judul": "Device not approved",
   "dv.menunggu":
     "This is a new device. You can clock in from this phone only after HR approves it. You will be notified once it is approved.",

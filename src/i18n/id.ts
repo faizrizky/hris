@@ -332,6 +332,8 @@ export const id = {
   "ab.status": "Status",
   "ab.shift": "Shift",
   "ab.tepat": "Tepat waktu",
+  "ab.terlambat": "Terlambat {menit} mnt",
+  "ab.pulangAwal": "Pulang awal {menit} mnt",
   "ab.reguler": "Reguler",
   "ab.tersinkron": "Tersinkron ke server",
   "ab.riwayat": "Lihat riwayat absensi",
@@ -1019,6 +1021,10 @@ export const id = {
   "fe.petunjukToleh":
     "Lihat lurus dulu, lalu tolehkan kepala pelan ke samping.",
   "fe.hadapDepan": "Lihat lurus ke kamera sebentar.",
+  "face.langkah": "Langkah {n} dari {total}",
+  "face.pejam": "Hadap depan, lalu pejamkan mata sebentar",
+  "face.toleh1": "Tolehkan kepala ke satu sisi",
+  "face.toleh2": "Sekarang tolehkan ke sisi sebaliknya",
   "dv.judul": "Perangkat belum disetujui",
   "dv.menunggu":
     "Ini perangkat baru. Absen dari HP ini baru bisa setelah HR menyetujuinya. Kamu akan menerima notifikasi begitu disetujui.",

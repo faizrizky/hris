@@ -3,7 +3,7 @@
 # Hasil: {"clocked_in","last_check_in","last_check_out","timezone" (IANA),"timezone_label" (WIB/WITA/WIT/GMT+n),"work_location",
 #   "shift_name","shift_start","shift_end" ("HH:MM", dari Shift Assignment aktif hari ini atau shift bawaan karyawan)}
 # Panggil: GET /api/method/hris_get_clock_state
-state = {"shift_name": None, "shift_start": None, "shift_end": None, "clocked_in": False, "last_check_in": None, "last_check_out": None, "timezone": None, "timezone_label": None, "work_location": None}
+state = {"shift_name": None, "shift_start": None, "shift_end": None, "late_grace_min": 0, "early_grace_min": 0, "clocked_in": False, "last_check_in": None, "last_check_out": None, "timezone": None, "timezone_label": None, "work_location": None}
 me = frappe.get_all(
     "Employee",
     filters={"user_id": frappe.session.user, "status": "Active"},
@@ -59,11 +59,14 @@ if me:
     if not shift_type:
         shift_type = frappe.db.get_value("Employee", me[0].name, "default_shift")
     if shift_type:
-        st = frappe.db.get_value("Shift Type", shift_type, ["start_time", "end_time"], as_dict=True)
+        st = frappe.db.get_value("Shift Type", shift_type, ["start_time", "end_time", "late_entry_grace_period",
+                                                            "early_exit_grace_period"], as_dict=True)
         if st and st.start_time is not None and st.end_time is not None:
             s0 = int(st.start_time.total_seconds())
             s1 = int(st.end_time.total_seconds())
             state["shift_name"] = shift_type
+            state["late_grace_min"] = int(st.late_entry_grace_period or 0)
+            state["early_grace_min"] = int(st.early_exit_grace_period or 0)
             state["shift_start"] = str(s0 // 3600).zfill(2) + ":" + str((s0 % 3600) // 60).zfill(2)
             state["shift_end"] = str(s1 // 3600).zfill(2) + ":" + str((s1 % 3600) // 60).zfill(2)
 

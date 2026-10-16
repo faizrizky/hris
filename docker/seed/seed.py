@@ -1648,22 +1648,24 @@ EVENT_SCRIPTS = {  # script berbasis event dokumen: nama_file -> (DocType, event
 # 8z. Tata letak form (section berlabel dan 2-3 kolom) untuk DocType buatan sendiri --------
 # LAYOUT: doctype -> daftar section (label, [kolom1, kolom2, ...]); tiap kolom = daftar fieldname.
 # Field yang tidak tercantum (mis. field tersembunyi) dipindah ke akhir section terakhir. Idempoten.
+# Aturan: field yang terisi otomatis / hanya-baca / bersyarat (employee_name, decided_by, published_on, department, ...)
+# ditumpuk di kolom yang sama dengan field utamanya, bukan di kolom sendiri, supaya tidak ada kolom kosong saat belum terisi.
 LAYOUT = {
     "Overtime Request": [
-        ("Employee", [["employee"], ["employee_name"], ["status"]]),
-        ("Overtime Time", [["date", "is_holiday"], ["start_time", "end_time"], ["hours"]]),
+        ("Employee", [["employee", "employee_name"], ["status"]]),
+        ("Overtime Time", [["date", "is_holiday"], ["start_time", "end_time", "hours"]]),
         ("Notes", [["note"]]),
     ],
     "Profile Change Request": [
-        ("Request", [["employee"], ["employee_name"], ["status"]]),
+        ("Request", [["employee", "employee_name"], ["status"]]),
         ("Review", [["review_html"]]),
         ("Change Details", [["reason", "changes"], ["proposed"]]),
-        ("Profile Photo", [["photo"], ["photo_score_face"], ["photo_score_ktp"]]),
+        ("Profile Photo", [["photo"], ["photo_score_face", "photo_score_ktp"]]),
         ("HR Decision", [["hr_note"], ["decided_by", "decided_on"]]),
     ],
     "Employee Document": [
         ("Document", [["employee", "employee_name"], ["document_name", "category"], ["file", "expires_on"]]),
-        ("Verification", [["status", "verified_by"], ["rejection_reason"], ["change_reason"]]),
+        ("Verification", [["status", "verified_by"], ["rejection_reason", "change_reason"]]),
     ],
     "Push Token": [
         ("Device", [["user", "token"], ["platform", "device_name", "last_seen"]]),
@@ -1672,15 +1674,13 @@ LAYOUT = {
         ("Push Notification", [["dry_run"]]),
     ],
     "Registered Device": [
-        ("Employee", [["employee"], ["employee_name"], ["status"]]),
-        ("Device", [["device_name"], ["platform"], ["device_id"]]),
-        ("Activity", [["registered_on"], ["last_seen"]]),
-        ("HR Note", [["hr_note"]]),
+        ("Employee", [["employee", "employee_name"], ["status"]]),
+        ("Device", [["device_name", "platform"], ["device_id"]]),
+        ("Activity and Notes", [["registered_on", "last_seen"], ["hr_note"]]),
     ],
     "HR Announcement": [
         ("Announcement", [["title"], ["priority"]]),
-        ("Audience", [["audience"], ["department"], ["expires_on"]]),
-        ("Publishing", [["published"], ["published_on"]]),
+        ("Audience and Publishing", [["audience", "department"], ["published", "published_on"], ["expires_on"]]),
         ("Content", [["content"]]),
         ("Attachment", [["attachment"]]),
     ],
@@ -1693,22 +1693,22 @@ LAYOUT = {
         ("GPS Quality", [["max_accuracy_m"], ["gps_skew_tolerance_seconds"], ["block_mock_location"]]),
     ],
     "WFH Schedule": [
-        ("Employee", [["employee"], ["employee_name"], ["status"]]),
+        ("Employee", [["employee", "employee_name"], ["status"]]),
         ("Period", [["from_date"], ["to_date"], ["enabled"]]),
         ("WFH Days", [["mon", "tue", "wed"], ["thu", "fri"], ["sat", "sun"]]),
         ("Reason", [["reason"], ["decision_note"]]),
-        ("Decision", [["requested_by_employee"], ["decided_by"]]),
+        ("Decision", [["requested_by_employee", "decided_by"]]),
     ],
     "Face Settings": [
         ("Minimum Match Scores", [["min_ktp"], ["min_profile"], ["min_checkin"]]),
         ("Registration Policy", [["reenroll_grace_days"], ["require_enrollment"]]),
     ],
     "Face Enrollment": [
-        ("Employee", [["employee"], ["employee_name"], ["status"]]),
+        ("Employee", [["employee", "employee_name"], ["status"]]),
         ("Review", [["review_html"]]),
         ("Match Scores", [["score_ktp"], ["score_profile"], ["score_profile_ktp"]]),
         ("Registration", [["ktp_document"], ["selfie"]]),
-        ("Re-registration", [["needs_reenroll"], ["grace_until"]]),
+        ("Re-registration", [["needs_reenroll", "grace_until"]]),
         ("HR Decision", [["hr_note"], ["decided_by", "decided_on"]]),
     ],
     "App Update": [
