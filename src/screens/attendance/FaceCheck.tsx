@@ -4,25 +4,29 @@ import { CameraView, useCameraPermissions } from "expo-camera";
 import { Palette } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
 import { useT } from "@/i18n";
+import type { SpoofRingkas } from "@/services/types";
 import {
   awalUrutan,
   BATAS_LANGKAH_MS,
   deteksiWajah,
   embeddingWajah,
+  skorSpoof,
+  spoofTersedia,
   langkahUrutan,
   LANGKAH_TOTAL,
   type StatusUrutan,
 } from "@/services/faceCheck";
 
 const BATAS_MS = 45_000; // seluruh sesi liveness (tiga perintah)
-const KUALITAS_DETEKSI = 0.3;
+// Anti-spoofing membaca tekstur halus, jadi frame dibuat lebih tajam saat model tersedia.
+const KUALITAS_DETEKSI = spoofTersedia() ? 0.6 : 0.3;
 const KUALITAS_SAMPEL = 0.7; // foto untuk embedding wajah: lebih tajam supaya pencocokan akurat
 
 // Kamera depan + tantangan acak. onLulus dipanggil sekali saat liveness lolos.
 export function FaceCheck({
   onLulus,
 }: {
-  onLulus: (vec: number[] | null) => void;
+  onLulus: (vec: number[] | null, spoof?: SpoofRingkas) => void;
 }) {
   const t = useT();
   const c = useTheme();
@@ -40,6 +44,7 @@ export function FaceCheck({
     let batal = false;
     let s = status;
     let vec: number[] | null = null;
+    const skorFrame: number[] = [];
     const mulai = Date.now();
     (async () => {
       while (!batal) {
@@ -61,6 +66,11 @@ export function FaceCheck({
           if (foto) {
             const d = await deteksiWajah(foto.uri);
             s = langkahUrutan(s, d, Date.now());
+            // Mode bayangan: skor anti-spoofing tiap frame selama perintah berjalan, hanya dicatat.
+            if (s.siap && d.count === 1 && skorFrame.length < 40) {
+              const k = await skorSpoof(foto.uri);
+              if (k !== null) skorFrame.push(Math.round(k * 100) / 100);
+            }
             // Embedding dari foto kualitas tinggi saat menghadap depan, sebelum perintah pertama.
             if (s.siap && !vec) {
               const tajam = await kamera.current?.takePictureAsync({
@@ -73,7 +83,20 @@ export function FaceCheck({
             if (!batal) setStatus(s);
             if (s.lulus) {
               setLulus(true);
-              onLulus(vec);
+              onLulus(
+                vec,
+                skorFrame.length
+                  ? {
+                      mean:
+                        Math.round(
+                          (skorFrame.reduce((a, b) => a + b, 0) /
+                            skorFrame.length) *
+                            1000,
+                        ) / 1000,
+                      scores: skorFrame,
+                    }
+                  : undefined,
+              );
               return;
             }
           }

@@ -23,7 +23,7 @@ import { ErrorState } from "@/components/ErrorState";
 import { useT } from "@/i18n";
 import { useLokasiKerja } from "@/hooks/useLokasiKerja";
 import { setTabBarHidden } from "@/navigation/tabBarVisibility";
-import type { FaceStatus } from "@/services/types";
+import type { FaceStatus, SpoofRingkas } from "@/services/types";
 import { kembaliAtauBeranda, keBeranda } from "@/navigation/kembali";
 
 export function ClockScreen({ navigation }: any) {
@@ -41,8 +41,10 @@ export function ClockScreen({ navigation }: any) {
   const [faceLulus, setFaceLulus] = useState(false);
   const [faceStatus, setFaceStatus] = useState<FaceStatus | null>(null);
   const [faceVec, setFaceVec] = useState<number[] | null>(null);
-  const onWajahLulus = useCallback((v: number[] | null) => {
+  const [spoof, setSpoof] = useState<SpoofRingkas | null>(null);
+  const onWajahLulus = useCallback((v: number[] | null, sp?: SpoofRingkas) => {
     setFaceVec(v);
+    setSpoof(sp ?? null);
     setFaceLulus(true);
   }, []);
   // Perangkat tanpa modul wajah (iOS, Expo Go) melewati langkah ini.
@@ -181,13 +183,24 @@ export function ClockScreen({ navigation }: any) {
       const lokasi = await ambilTerbaru();
       const dilakukan: "IN" | "OUT" = state.clockedIn ? "OUT" : "IN";
       const next = state.clockedIn
-        ? await hrisApi.clockOut(employee.id, lokasi, faceVec ?? undefined)
-        : await hrisApi.clockIn(employee.id, lokasi, faceVec ?? undefined);
+        ? await hrisApi.clockOut(
+            employee.id,
+            lokasi,
+            faceVec ?? undefined,
+            spoof ?? undefined,
+          )
+        : await hrisApi.clockIn(
+            employee.id,
+            lokasi,
+            faceVec ?? undefined,
+            spoof ?? undefined,
+          );
       setState(next);
       setAksiSelesai(dilakukan);
       setStep(2);
       setFaceLulus(false);
       setFaceVec(null);
+      setSpoof(null);
     } catch (e) {
       setGalat(describeError(e));
     } finally {

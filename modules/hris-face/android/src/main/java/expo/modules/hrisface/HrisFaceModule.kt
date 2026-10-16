@@ -45,6 +45,15 @@ class HrisFaceModule : Module() {
     env.createSession(bytes, OrtSession.SessionOptions())
   }
 
+  // Anti-spoofing (mode bayangan): MiniFASNet dari Minivision (Apache-2.0), dua skala potongan (2.7 dan 4.0) pada
+  // 80x80, masukan BGR 0..255. Skor = rata-rata peluang kelas "asli" kedua model (0..1). Hanya dicatat, tidak memblokir.
+  private val spoofSessions: List<Pair<Float, OrtSession>> by lazy {
+    listOf(2.7f to SPOOF_V2, 4.0f to SPOOF_V1SE).map { (skala, nama) ->
+      val bytes = appContext.reactContext!!.assets.open(nama).use { it.readBytes() }
+      skala to env.createSession(bytes, OrtSession.SessionOptions())
+    }
+  }
+
   override fun definition() = ModuleDefinition {
     Name("HrisFace")
 
@@ -76,6 +85,29 @@ class HrisFaceModule : Module() {
       }
     }
 
+    // Skor anti-spoofing 0..1 (makin tinggi makin dianggap wajah asli) untuk wajah terbesar, atau null bila tidak ada.
+    AsyncFunction("spoof") { uri: String, promise: Promise ->
+      try {
+        val bmp = loadBitmap(uri)
+        detector.process(InputImage.fromBitmap(bmp, 0))
+          .addOnSuccessListener { faces ->
+            val f = faces.maxByOrNull { it.boundingBox.width() }
+            if (f == null) {
+              promise.resolve(null)
+              return@addOnSuccessListener
+            }
+            try {
+              promise.resolve(skorSpoof(bmp, f.boundingBox))
+            } catch (e: Exception) {
+              promise.reject("E_SPOOF", e.message ?: "gagal", e)
+            }
+          }
+          .addOnFailureListener { e -> promise.reject("E_SPOOF", e.message ?: "gagal", e) }
+      } catch (e: Exception) {
+        promise.reject("E_SPOOF", e.message ?: "gagal", e)
+      }
+    }
+
     // Embedding 128 angka (sudah dinormalisasi L2) untuk wajah terbesar di foto,
     // atau null bila tidak ada wajah. Cosine antar embedding = hasil kali titik.
     AsyncFunction("embed") { uri: String, promise: Promise ->
@@ -100,6 +132,63 @@ class HrisFaceModule : Module() {
         promise.reject("E_EMBED", e.message ?: "gagal", e)
       }
     }
+  }
+
+  // Kotak potong ala Minivision (CropImage._get_new_box): perbesar kotak wajah `skala` kali di sekitar pusatnya,
+  // geser bila keluar gambar, lalu ubah ke 80x80.
+  private fun potongSpoof(bmp: Bitmap, box: android.graphics.Rect, skalaAwal: Float): Bitmap {
+    val srcW = bmp.width
+    val srcH = bmp.height
+    val bw = box.width().toFloat().coerceAtLeast(1f)
+    val bh = box.height().toFloat().coerceAtLeast(1f)
+    val skala = minOf((srcH - 1) / bh, minOf((srcW - 1) / bw, skalaAwal))
+    val nw = bw * skala
+    val nh = bh * skala
+    val cx = box.left + bw / 2
+    val cy = box.top + bh / 2
+    var x1 = cx - nw / 2
+    var y1 = cy - nh / 2
+    var x2 = cx + nw / 2
+    var y2 = cy + nh / 2
+    if (x1 < 0) { x2 -= x1; x1 = 0f }
+    if (y1 < 0) { y2 -= y1; y1 = 0f }
+    if (x2 > srcW - 1) { x1 -= x2 - srcW + 1; x2 = (srcW - 1).toFloat() }
+    if (y2 > srcH - 1) { y1 -= y2 - srcH + 1; y2 = (srcH - 1).toFloat() }
+    val left = x1.toInt().coerceIn(0, srcW - 1)
+    val top = y1.toInt().coerceIn(0, srcH - 1)
+    val w = (x2.toInt() - left + 1).coerceIn(1, srcW - left)
+    val h = (y2.toInt() - top + 1).coerceIn(1, srcH - top)
+    return Bitmap.createScaledBitmap(Bitmap.createBitmap(bmp, left, top, w, h), SPOOF_INPUT, SPOOF_INPUT, true)
+  }
+
+  private fun skorSpoof(bmp: Bitmap, box: android.graphics.Rect): Double {
+    var jumlah = 0.0
+    for ((skala, sesi) in spoofSessions) {
+      val patch = potongSpoof(bmp, box, skala)
+      val px = IntArray(SPOOF_INPUT * SPOOF_INPUT)
+      patch.getPixels(px, 0, SPOOF_INPUT, 0, 0, SPOOF_INPUT, SPOOF_INPUT)
+      val plane = SPOOF_INPUT * SPOOF_INPUT
+      val data = FloatArray(3 * plane)
+      for (i in px.indices) {
+        val p = px[i]
+        data[i] = (p and 0xFF).toFloat()                // B
+        data[plane + i] = ((p shr 8) and 0xFF).toFloat() // G
+        data[2 * plane + i] = ((p shr 16) and 0xFF).toFloat() // R
+      }
+      OnnxTensor.createTensor(
+        env, FloatBuffer.wrap(data), longArrayOf(1, 3, SPOOF_INPUT.toLong(), SPOOF_INPUT.toLong())
+      ).use { input ->
+        sesi.run(mapOf(sesi.inputNames.first() to input)).use { hasil ->
+          @Suppress("UNCHECKED_CAST")
+          val logit = (hasil[0].value as Array<FloatArray>)[0]
+          val maks = logit.max()
+          var jml = 0.0
+          val e = DoubleArray(logit.size) { Math.exp((logit[it] - maks).toDouble()).also { v -> jml += v } }
+          jumlah += e[1] / jml
+        }
+      }
+    }
+    return jumlah / spoofSessions.size
   }
 
   // Halaman pertama PDF (mis. KTP hasil pindai) dirender ke bitmap putih, sisi terpanjang 2400 px
@@ -224,6 +313,9 @@ class HrisFaceModule : Module() {
   companion object {
     private const val MODEL_ASSET = "face_recognition_sface_2021dec.onnx"
     private const val INPUT = 112
+    private const val SPOOF_INPUT = 80
+    private const val SPOOF_V2 = "2.7_80x80_MiniFASNetV2.onnx"
+    private const val SPOOF_V1SE = "4_0_0_80x80_MiniFASNetV1SE.onnx"
     private val TEMPLATE = floatArrayOf(
       38.2946f, 51.6963f, 73.5318f, 51.5014f, 56.0252f, 71.7366f, 41.5493f, 92.3655f, 70.7299f, 92.2041f
     )

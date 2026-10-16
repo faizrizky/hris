@@ -16,6 +16,7 @@ interface HrisFaceNative {
   supported(): boolean;
   detect(uri: string): Promise<HasilDeteksi>;
   embed(uri: string): Promise<number[] | null>;
+  spoof?(uri: string): Promise<number | null>; // hanya ada di build baru (Android)
 }
 
 const Native = requireOptionalNativeModule<HrisFaceNative>("HrisFace");
@@ -25,6 +26,16 @@ export const wajahDidukung = (): boolean => !!Native && Native.supported();
 
 export const deteksiWajah = (uri: string): Promise<HasilDeteksi> =>
   Native!.detect(uri);
+
+// Skor anti-spoofing 0..1 (makin tinggi makin asli), atau null bila tidak tersedia / tidak ada wajah.
+export const spoofTersedia = (): boolean => !!Native && !!Native.spoof;
+export const skorSpoof = async (uri: string): Promise<number | null> => {
+  try {
+    return Native?.spoof ? await Native.spoof(uri) : null;
+  } catch {
+    return null;
+  }
+};
 
 // Embedding 128 angka ternormalisasi, atau null bila tidak ada wajah di foto.
 export const embeddingWajah = (uri: string): Promise<number[] | null> =>

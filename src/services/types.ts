@@ -94,6 +94,12 @@ export interface AturanLokasi {
   requireLocation: boolean;
 }
 
+// Ringkasan skor anti-spoofing (mode bayangan) selama liveness; hanya dicatat server.
+export interface SpoofRingkas {
+  mean: number;
+  scores: number[]; // skor per frame (0..1), maksimal 40
+}
+
 export interface ClockState {
   clockedIn: boolean;
   lastCheckIn: string | null;
@@ -488,11 +494,13 @@ export interface HrisApi {
     employeeId: string,
     lokasi?: LokasiCheckin,
     faceVec?: number[],
+    spoof?: SpoofRingkas,
   ): Promise<ClockState>;
   clockOut(
     employeeId: string,
     lokasi?: LokasiCheckin,
     faceVec?: number[],
+    spoof?: SpoofRingkas,
   ): Promise<ClockState>;
   getFaceStatus(): Promise<FaceStatus>;
   // Mendaftarkan perangkat ini (pertama otomatis disetujui; berikutnya menunggu HR) dan mengembalikan statusnya.

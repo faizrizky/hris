@@ -1159,6 +1159,12 @@ async function kirimItem(i: ItemAntrean, offline: boolean) {
     platform: dev.platform,
     client_id: i.clientId,
     ...(i.faceVec ? { face_vec: JSON.stringify(i.faceVec) } : {}),
+    ...(i.spoof
+      ? {
+          spoof_mean: i.spoof.mean,
+          spoof_scores: JSON.stringify(i.spoof.scores),
+        }
+      : {}),
     ...(i.lokasi
       ? {
           lat: i.lokasi.lat,
@@ -1185,6 +1191,7 @@ async function kirimCheckin(
   logType: "IN" | "OUT",
   lokasi?: LokasiCheckin,
   faceVec?: number[],
+  spoof?: { mean: number; scores: number[] },
 ) {
   const t = waktuTerpercaya();
   const item: ItemAntrean = {
@@ -1195,6 +1202,7 @@ async function kirimCheckin(
     trusted: t.trusted,
     anchorAgeS: t.anchorAgeS,
     faceVec,
+    spoof,
     lokasi,
   };
   try {
@@ -1821,16 +1829,18 @@ export const erpnextApi: HrisApi = {
     employeeId: string,
     lokasi?: LokasiCheckin,
     faceVec?: number[],
+    spoof?: { mean: number; scores: number[] },
   ): Promise<ClockState> {
-    return kirimCheckin(employeeId, "IN", lokasi, faceVec);
+    return kirimCheckin(employeeId, "IN", lokasi, faceVec, spoof);
   },
 
   async clockOut(
     employeeId: string,
     lokasi?: LokasiCheckin,
     faceVec?: number[],
+    spoof?: { mean: number; scores: number[] },
   ): Promise<ClockState> {
-    return kirimCheckin(employeeId, "OUT", lokasi, faceVec);
+    return kirimCheckin(employeeId, "OUT", lokasi, faceVec, spoof);
   },
 
   async getFaceStatus(): Promise<FaceStatus> {

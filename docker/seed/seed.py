@@ -877,6 +877,11 @@ for cf in [
          insert_after="custom_flags"),
     dict(fieldname="custom_reviewed_on", label="Reviewed On", fieldtype="Datetime", permlevel=1, read_only=1,
          insert_after="custom_reviewed_by"),
+    # Anti-spoofing mode bayangan: skor model di HP hanya dicatat untuk analisis, tidak memengaruhi keputusan.
+    dict(fieldname="custom_spoof_mean", label="Anti-spoof Score (shadow)", fieldtype="Float", precision="3", permlevel=1,
+         read_only=1, insert_after="custom_reviewed_on"),
+    dict(fieldname="custom_spoof_scores", label="Anti-spoof Frame Scores", fieldtype="Small Text", permlevel=1,
+         read_only=1, insert_after="custom_spoof_mean"),
 ]:
     if not frappe.db.exists("Custom Field", {"dt": "Employee Checkin", "fieldname": cf["fieldname"]}):
         make(dict(doctype="Custom Field", dt="Employee Checkin", **cf))

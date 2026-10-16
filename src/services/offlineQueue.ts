@@ -13,6 +13,7 @@ export interface ItemAntrean {
   trusted: boolean;
   anchorAgeS: number;
   faceVec?: number[]; // embedding wajah saat check-in; server mencocokkannya
+  spoof?: { mean: number; scores: number[] }; // skor anti-spoofing (mode bayangan)
   lokasi?: {
     lat: number;
     lng: number;

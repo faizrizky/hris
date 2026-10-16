@@ -243,6 +243,11 @@ if not done:
     if offline and not flags and not claimed:
         claimed = time_value
     review = "Needs Review" if all_flags else "None"
+    # Anti-spoofing MODE BAYANGAN: skor model di HP (rata-rata dan skor per frame) hanya dicatat; tidak memengaruhi
+    # keputusan, status review, maupun flags.
+    spoof_mean = fd.get("spoof_mean")
+    spoof_mean = frappe.utils.flt(spoof_mean) if spoof_mean not in (None, "") else None
+    spoof_scores = str(fd.get("spoof_scores") or "")[:600] or None
     doc = frappe.get_doc({"doctype": "Employee Checkin", "employee": me[0].name, "log_type": log_type,
                           "time": time_value, "device_id": dev_id or "hris-mobile", "custom_timezone": tz,
                           "custom_offline": 1 if offline else 0, "custom_clock_skew_seconds": int(skew),
@@ -252,7 +257,8 @@ if not done:
                           "custom_distance_m": dist, "custom_gps_accuracy_m": gps_acc,
                           "custom_gps_skew_seconds": int(gps_skew), "custom_mocked": 1 if mocked else 0,
                           "custom_geo_status": geo_status, "custom_work_location": work_loc,
-                          "custom_client_id": client_id or None})
+                          "custom_client_id": client_id or None,
+                          "custom_spoof_mean": spoof_mean, "custom_spoof_scores": spoof_scores})
     doc.insert(ignore_permissions=True)
     if all_flags:
         recipients = []
