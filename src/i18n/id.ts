@@ -1065,6 +1065,10 @@ export const id = {
   "bio.password": "Password",
   "bio.aktifkan": "Aktifkan",
   "bio.pwSalah": "Akun atau password salah.",
+  "sec.keamananAkun": "Keamanan akun",
+  "sec.grupBiometrik": "Biometrik dan kunci",
+  "sec.grupAkun": "Password dan verifikasi",
+  "bio.gagalSimpan": "Gagal menyimpan di perangkat ini: {pesan}",
   "dv.judul": "Perangkat belum disetujui",
   "dv.menunggu":
     "Ini perangkat baru. Absen dari HP ini baru bisa setelah HR menyetujuinya. Kamu akan menerima notifikasi begitu disetujui.",

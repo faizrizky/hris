@@ -29,7 +29,7 @@ import { useConfirm } from "@/components/ConfirmDialog";
 import { Palette } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
 import { hrisApi } from "@/services/api";
-import { describeError } from "@/services/api/http";
+import { ApiError, describeError } from "@/services/api/http";
 import { ErrorState } from "@/components/ErrorState";
 import { useSession } from "@/services/session";
 import {
@@ -128,7 +128,11 @@ export function ProfileSecurityScreen({ navigation }: any) {
       setDialogBio(false);
       setPwBio("");
     } catch (e) {
-      setGalatBio(describeError(e));
+      setGalatBio(
+        e instanceof ApiError
+          ? describeError(e)
+          : t("bio.gagalSimpan", { pesan: (e as Error)?.message ?? "" }),
+      );
     } finally {
       setProsesBio(false);
     }
@@ -284,43 +288,27 @@ export function ProfileSecurityScreen({ navigation }: any) {
           ) : null}
         </Pressable>
 
-        <View style={styles.listCard}>
-          {info.toggles.map((t) => (
-            <View key={t.key} style={styles.listRow}>
-              <View style={{ flex: 1, minWidth: 0 }}>
-                <Text style={styles.rowTitle}>{t.title}</Text>
-                <Text style={styles.rowSub}>{t.subtitle}</Text>
-              </View>
-              <Switch
-                value={t.enabled}
-                onValueChange={(v) => ubahToggle(t.key, v)}
-                trackColor={{ false: c.track, true: c.accent }}
-                thumbColor="#fff"
-              />
-            </View>
-          ))}
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>{t("sec.keamananAkun")}</Text>
 
-          <Pressable
-            style={[styles.listRow, styles.lastRow]}
-            onPress={() => navigation.navigate("ProfilePassword")}
-          >
+          <Text style={styles.grupLabel}>{t("sec.grupBiometrik")}</Text>
+          <View style={styles.baris}>
             <View style={{ flex: 1, minWidth: 0 }}>
-              <Text style={styles.rowTitle}>{t("sec.ubahPw")}</Text>
+              <Text style={styles.rowTitle}>
+                {t("bio.loginBio", { nama: namaBio })}
+              </Text>
               <Text style={styles.rowSub}>
-                {info.passwordChangedDaysAgo === 0
-                  ? t("sec.baruSaja")
-                  : t("sec.terakhir", { n: info.passwordChangedDaysAgo })}
+                {loginBio ? t("bio.loginBioAktif") : t("bio.loginBioMati")}
               </Text>
             </View>
-            <Ionicons name="chevron-forward" size={16} color={c.mutedLabel} />
-          </Pressable>
-        </View>
-
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>{t("bio.judul")}</Text>
-          <View
-            style={[styles.listRow, { paddingHorizontal: 0, marginTop: 6 }]}
-          >
+            <Switch
+              value={loginBio}
+              onValueChange={ubahLoginBio}
+              trackColor={{ false: c.track, true: c.accent }}
+              thumbColor="#fff"
+            />
+          </View>
+          <View style={styles.baris}>
             <View style={{ flex: 1, minWidth: 0 }}>
               <Text style={styles.rowTitle}>{t("bio.kunciOtomatis")}</Text>
               <Text style={styles.rowSub}>
@@ -335,7 +323,7 @@ export function ProfileSecurityScreen({ navigation }: any) {
             />
           </View>
           {kunci.pengaturan.aktif ? (
-            <View style={{ marginTop: 4 }}>
+            <View style={{ paddingVertical: 8 }}>
               <Text style={styles.rowSub}>{t("bio.timeout")}</Text>
               <View style={{ flexDirection: "row", gap: 8, marginTop: 8 }}>
                 {PILIHAN_TIMEOUT.map(([ms, label]) => {
@@ -371,27 +359,7 @@ export function ProfileSecurityScreen({ navigation }: any) {
               </View>
             </View>
           ) : null}
-          <View
-            style={[styles.listRow, { paddingHorizontal: 0, marginTop: 12 }]}
-          >
-            <View style={{ flex: 1, minWidth: 0 }}>
-              <Text style={styles.rowTitle}>
-                {t("bio.loginBio", { nama: namaBio })}
-              </Text>
-              <Text style={styles.rowSub}>
-                {loginBio ? t("bio.loginBioAktif") : t("bio.loginBioMati")}
-              </Text>
-            </View>
-            <Switch
-              value={loginBio}
-              onValueChange={ubahLoginBio}
-              trackColor={{ false: c.track, true: c.accent }}
-              thumbColor="#fff"
-            />
-          </View>
-          <View
-            style={[styles.listRow, { paddingHorizontal: 0, marginTop: 12 }]}
-          >
+          <View style={styles.baris}>
             <View style={{ flex: 1, minWidth: 0 }}>
               <Text style={styles.rowTitle}>{t("bio.presensi")}</Text>
               <Text style={styles.rowSub}>{t("bio.presensiSub")}</Text>
@@ -416,6 +384,44 @@ export function ProfileSecurityScreen({ navigation }: any) {
               {pesanBio}
             </Text>
           ) : null}
+
+          <Text style={[styles.grupLabel, { marginTop: 18 }]}>
+            {t("sec.grupAkun")}
+          </Text>
+          <Pressable
+            style={styles.baris}
+            onPress={() => navigation.navigate("ProfilePassword")}
+          >
+            <View style={{ flex: 1, minWidth: 0 }}>
+              <Text style={styles.rowTitle}>{t("sec.ubahPw")}</Text>
+              <Text style={styles.rowSub}>
+                {info.passwordChangedDaysAgo === 0
+                  ? t("sec.baruSaja")
+                  : t("sec.terakhir", { n: info.passwordChangedDaysAgo })}
+              </Text>
+            </View>
+            <Ionicons name="chevron-forward" size={16} color={c.mutedLabel} />
+          </Pressable>
+          {info.toggles.map((tg, i) => (
+            <View
+              key={tg.key}
+              style={[
+                styles.baris,
+                i === info.toggles.length - 1 && styles.barisAkhir,
+              ]}
+            >
+              <View style={{ flex: 1, minWidth: 0 }}>
+                <Text style={styles.rowTitle}>{tg.title}</Text>
+                <Text style={styles.rowSub}>{tg.subtitle}</Text>
+              </View>
+              <Switch
+                value={tg.enabled}
+                onValueChange={(v) => ubahToggle(tg.key, v)}
+                trackColor={{ false: c.track, true: c.accent }}
+                thumbColor="#fff"
+              />
+            </View>
+          ))}
         </View>
 
         <View style={styles.card}>
@@ -627,6 +633,24 @@ const makeStyles = (c: Palette) =>
       marginTop: 3,
     },
 
+    grupLabel: {
+      fontSize: 10.5,
+      fontWeight: "700",
+      letterSpacing: 0.6,
+      textTransform: "uppercase",
+      color: c.muted,
+      marginTop: 14,
+      marginBottom: 2,
+    },
+    baris: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 12,
+      paddingVertical: 12,
+      borderBottomWidth: 1,
+      borderBottomColor: c.hair,
+    },
+    barisAkhir: { borderBottomWidth: 0 },
     modalLatar: {
       flex: 1,
       backgroundColor: "rgba(0,0,0,0.5)",

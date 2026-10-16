@@ -68,25 +68,38 @@ export async function autentikasi(
 export const adaLoginBiometrik = async (): Promise<boolean> =>
   (await AsyncStorage.getItem(K_BIO_AKTIF).catch(() => null)) === "1";
 
+const K_GATE = "hris.bio.gate"; // "1": kredensial disimpan tanpa kunci terikat biometrik, dijaga verifikasi di aplikasi
+
 export async function simpanKredensial(user: string, password: string) {
-  await SecureStore.setItemAsync(
-    K_KRED,
-    JSON.stringify({ u: user, p: password }),
-    {
+  const nilai = JSON.stringify({ u: user, p: password });
+  try {
+    await SecureStore.setItemAsync(K_KRED, nilai, {
       requireAuthentication: true,
-    },
-  );
+    });
+    await AsyncStorage.removeItem(K_GATE);
+  } catch {
+    // Sebagian perangkat gagal membuat kunci Keystore yang terikat biometrik. Cadangannya: simpan terenkripsi biasa
+    // (Keystore) dan jaga pembacaannya dengan verifikasi biometrik di aplikasi.
+    await SecureStore.setItemAsync(K_KRED, nilai);
+    await AsyncStorage.setItem(K_GATE, "1");
+  }
   await AsyncStorage.setItem(K_BIO_AKTIF, "1");
 }
 
 export async function bacaKredensial(
   pesan: string,
+  batal = "Batal",
 ): Promise<{ u: string; p: string } | null> {
   try {
-    const raw = await SecureStore.getItemAsync(K_KRED, {
-      requireAuthentication: true,
-      authenticationPrompt: pesan,
-    });
+    const dijagaAplikasi =
+      (await AsyncStorage.getItem(K_GATE).catch(() => null)) === "1";
+    if (dijagaAplikasi && !(await autentikasi(pesan, batal))) return null;
+    const raw = await SecureStore.getItemAsync(
+      K_KRED,
+      dijagaAplikasi
+        ? undefined
+        : { requireAuthentication: true, authenticationPrompt: pesan },
+    );
     return raw ? (JSON.parse(raw) as { u: string; p: string }) : null;
   } catch {
     return null;
@@ -96,6 +109,7 @@ export async function bacaKredensial(
 export async function hapusKredensial() {
   await SecureStore.deleteItemAsync(K_KRED).catch(() => {});
   await AsyncStorage.removeItem(K_BIO_AKTIF).catch(() => {});
+  await AsyncStorage.removeItem(K_GATE).catch(() => {});
 }
 
 // ---- Kunci otomatis ----

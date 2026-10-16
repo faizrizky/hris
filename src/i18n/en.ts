@@ -1061,6 +1061,10 @@ export const en: Record<Kunci, string> = {
   "bio.password": "Password",
   "bio.aktifkan": "Turn on",
   "bio.pwSalah": "Wrong account or password.",
+  "sec.keamananAkun": "Account security",
+  "sec.grupBiometrik": "Biometrics and lock",
+  "sec.grupAkun": "Password and verification",
+  "bio.gagalSimpan": "Could not save on this device: {pesan}",
   "dv.judul": "Device not approved",
   "dv.menunggu":
     "This is a new device. You can clock in from this phone only after HR approves it. You will be notified once it is approved.",

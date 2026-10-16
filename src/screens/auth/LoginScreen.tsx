@@ -77,7 +77,7 @@ export function LoginScreen() {
     if (k === "tidakAda") return setError(t("bio.tidakAda"));
     if (k === "belumDaftar") return setError(t("bio.belumDaftar"));
     if (!(await adaLoginBiometrik())) return setError(t("bio.belumAktif"));
-    const kred = await bacaKredensial(t("bio.pesanLogin"));
+    const kred = await bacaKredensial(t("bio.pesanLogin"), t("kunci.batal"));
     if (!kred) return; // dibatalkan atau gagal verifikasi
     setLoading(true);
     try {
