@@ -11,6 +11,15 @@ import { muatJangkar } from "./trustedTime";
 import { jumlahAntrean } from "./offlineQueue";
 import { AppState } from "react-native";
 
+// Keluar akun yang tidak bisa tersangkut: permintaan ke server dibatasi 3 detik; layar login tetap tampil
+// walau server lambat / tidak terjangkau (cookie sesi akan kedaluwarsa di server).
+export async function keluarAman(): Promise<void> {
+  await Promise.race([
+    hrisApi.logout().catch(() => {}),
+    new Promise<void>((r) => setTimeout(r, 3000)),
+  ]);
+}
+
 interface SessionContextValue {
   employee: Employee | null;
   setEmployee: (employee: Employee | null) => void;

@@ -20,7 +20,7 @@ import { Palette } from "@/theme/colors";
 import { useTheme, useThemeMode } from "@/theme/ThemeContext";
 import { tahunSejak } from "@/utils/date";
 import { hrisApi } from "@/services/api";
-import { useSession } from "@/services/session";
+import { keluarAman, useSession } from "@/services/session";
 import { LeaveBalance } from "@/services/types";
 import { useConfirm } from "@/components/ConfirmDialog";
 import { useT } from "@/i18n";
@@ -250,7 +250,7 @@ export function ProfileScreen({ navigation }: any) {
               fromRadius: 22,
             });
             if (!ya) return;
-            await hrisApi.logout().catch(() => {});
+            await keluarAman();
             setEmployee(null);
           }}
         >

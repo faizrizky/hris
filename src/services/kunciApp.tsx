@@ -10,8 +10,7 @@ import React, {
 import { AppState, Pressable, StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { hrisApi } from "@/services/api";
-import { useSession } from "@/services/session";
+import { keluarAman, useSession } from "@/services/session";
 import { useTheme } from "@/theme/ThemeContext";
 import { useT } from "@/i18n";
 import {
@@ -112,7 +111,7 @@ export function KunciProvider({ children }: { children: React.ReactNode }) {
             setSudahBuka(true);
           }}
           onKeluar={async () => {
-            await hrisApi.logout().catch(() => {});
+            await keluarAman();
             setKunciLatar(false);
             setSudahBuka(true);
             setEmployee(null);

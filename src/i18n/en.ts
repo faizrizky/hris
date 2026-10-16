@@ -75,7 +75,7 @@ export const en: Record<Kunci, string> = {
   "login.memproses": "Processing...",
   "login.masuk": "Sign in",
   "login.atau": "or",
-  "login.faceId": "Sign in with fingerprint / face",
+  "login.faceId": "Sign in with {nama}",
 
   "notif.hariIni": "Today",
   "notif.kemarin": "Yesterday",
@@ -1028,29 +1028,39 @@ export const en: Record<Kunci, string> = {
   "kunci.keluar": "Sign out",
   "kunci.prompt": "Unlock HRIS",
   "kunci.batal": "Cancel",
-  "bio.judul": "Lock and biometric login",
+  "bio.judul": "Sign-in and app lock",
   "bio.kunciOtomatis": "Auto-lock",
   "bio.kunciSub":
-    "Ask for a fingerprint or face when the app opens and after returning from the background.",
+    "Ask for {nama} when the app opens and after returning from the background.",
   "bio.timeout": "Lock after being in the background",
   "bio.segera": "Immediately",
   "bio.satuMenit": "1 minute",
   "bio.limaMenit": "5 minutes",
-  "bio.loginBio": "Biometric login",
+  "bio.loginBio": "Sign in with {nama}",
   "bio.loginBioAktif": "On. Sign in without typing your password.",
-  "bio.loginBioMati":
-    'Turn it on with the "Biometric login" checkbox on the sign-in screen.',
   "bio.matikan": "Turn off",
   "bio.belumDaftar":
     "No fingerprint or face is registered on this phone. Register one in the phone Settings first.",
   "bio.tidakAda": "This phone does not support biometrics.",
   "bio.konfirmasi": "Confirm to turn on the lock",
-  "bio.centang": "Biometric login",
   "bio.pesanLogin": "Sign in to HRIS",
-  "bio.belumAktif":
-    'Biometric login is not on yet. Sign in with your password and tick "Biometric login".',
   "bio.gagalMasuk":
     "Biometric login failed. Sign in with your password and turn it on again.",
+  "bio.loginBioMati":
+    "Sign in without typing your password. Needs your password once to turn on.",
+  "bio.belumAktif":
+    "Biometric sign-in is not on yet. Sign in with your password, then turn it on in Profile > Security.",
+  "bio.presensi": "Face verification for attendance",
+  "bio.presensiSub":
+    "Required when clocking in and out: face camera and random movements.",
+  "bio.wajib": "Required",
+  "bio.pwJudul": "Turn on sign-in with {nama}",
+  "bio.pwSub":
+    "Enter your account and password once. The password is stored encrypted on this phone and opens only with {nama}.",
+  "bio.akun": "Email / username",
+  "bio.password": "Password",
+  "bio.aktifkan": "Turn on",
+  "bio.pwSalah": "Wrong account or password.",
   "dv.judul": "Device not approved",
   "dv.menunggu":
     "This is a new device. You can clock in from this phone only after HR approves it. You will be notified once it is approved.",

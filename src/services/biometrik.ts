@@ -1,3 +1,4 @@
+import { Platform } from "react-native";
 import * as LocalAuthentication from "expo-local-authentication";
 import * as SecureStore from "expo-secure-store";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -35,6 +36,16 @@ export async function jenisBiometrik(): Promise<
     // jatuh ke umum
   }
   return "umum";
+}
+
+// Nama yang ditampilkan ke pengguna sesuai perangkat: iPhone "Face ID"/"Touch ID"; Android "sidik jari", "pemindai
+// wajah", atau "sidik jari / wajah" (Android tidak punya merek "Face ID").
+export async function namaBiometrik(): Promise<string> {
+  const j = await jenisBiometrik();
+  if (Platform.OS === "ios") return j === "sidikJari" ? "Touch ID" : "Face ID";
+  if (j === "sidikJari") return "sidik jari";
+  if (j === "wajah") return "pemindai wajah";
+  return "sidik jari / wajah";
 }
 
 export async function autentikasi(

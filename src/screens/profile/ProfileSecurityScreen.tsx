@@ -1,5 +1,15 @@
 import { useCallback, useMemo, useRef, useState } from "react";
-import { Pressable, StyleSheet, Switch, Text, View } from "react-native";
+import {
+  ActivityIndicator,
+  Modal,
+  Pressable,
+  StyleSheet,
+  Switch,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { RevealScrollView as ScrollView } from "@/components/Reveal";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
@@ -9,6 +19,8 @@ import {
   autentikasi,
   hapusKredensial,
   kesiapanBiometrik,
+  namaBiometrik,
+  simpanKredensial,
   type KesiapanBiometrik,
 } from "@/services/biometrik";
 import { useKunci } from "@/services/kunciApp";
@@ -59,6 +71,12 @@ export function ProfileSecurityScreen({ navigation }: any) {
   const [bio, setBio] = useState<KesiapanBiometrik>("siap");
   const [loginBio, setLoginBio] = useState(false);
   const [pesanBio, setPesanBio] = useState<string | null>(null);
+  const [namaBio, setNamaBio] = useState("sidik jari / wajah");
+  const [dialogBio, setDialogBio] = useState(false);
+  const [akunBio, setAkunBio] = useState("");
+  const [pwBio, setPwBio] = useState("");
+  const [galatBio, setGalatBio] = useState<string | null>(null);
+  const [prosesBio, setProsesBio] = useState(false);
 
   const muat = useCallback(() => {
     if (!employee) return;
@@ -77,9 +95,44 @@ export function ProfileSecurityScreen({ navigation }: any) {
   useFocusEffect(
     useCallback(() => {
       kesiapanBiometrik().then(setBio);
+      namaBiometrik().then(setNamaBio);
       adaLoginBiometrik().then(setLoginBio);
     }, []),
   );
+
+  // Login biometrik perlu password satu kali (disimpan terenkripsi di HP, terbuka hanya dengan biometrik).
+  const ubahLoginBio = async (nyala: boolean) => {
+    setPesanBio(null);
+    if (!nyala) {
+      await hapusKredensial();
+      setLoginBio(false);
+      return;
+    }
+    if (bio === "tidakAda") return setPesanBio(t("bio.tidakAda"));
+    if (bio === "belumDaftar") return setPesanBio(t("bio.belumDaftar"));
+    setAkunBio(
+      (await AsyncStorage.getItem("hris.username").catch(() => null)) ?? "",
+    );
+    setPwBio("");
+    setGalatBio(null);
+    setDialogBio(true);
+  };
+  const aktifkanLoginBio = async () => {
+    setProsesBio(true);
+    setGalatBio(null);
+    try {
+      await hrisApi.login(akunBio.trim(), pwBio); // memastikan akun dan password benar
+      kunci.abaikanLatar(15_000);
+      await simpanKredensial(akunBio.trim(), pwBio);
+      setLoginBio(true);
+      setDialogBio(false);
+      setPwBio("");
+    } catch (e) {
+      setGalatBio(describeError(e));
+    } finally {
+      setProsesBio(false);
+    }
+  };
 
   const ubahKunci = async (nyala: boolean) => {
     setPesanBio(null);
@@ -270,7 +323,9 @@ export function ProfileSecurityScreen({ navigation }: any) {
           >
             <View style={{ flex: 1, minWidth: 0 }}>
               <Text style={styles.rowTitle}>{t("bio.kunciOtomatis")}</Text>
-              <Text style={styles.rowSub}>{t("bio.kunciSub")}</Text>
+              <Text style={styles.rowSub}>
+                {t("bio.kunciSub", { nama: namaBio })}
+              </Text>
             </View>
             <Switch
               value={kunci.pengaturan.aktif}
@@ -320,25 +375,41 @@ export function ProfileSecurityScreen({ navigation }: any) {
             style={[styles.listRow, { paddingHorizontal: 0, marginTop: 12 }]}
           >
             <View style={{ flex: 1, minWidth: 0 }}>
-              <Text style={styles.rowTitle}>{t("bio.loginBio")}</Text>
+              <Text style={styles.rowTitle}>
+                {t("bio.loginBio", { nama: namaBio })}
+              </Text>
               <Text style={styles.rowSub}>
                 {loginBio ? t("bio.loginBioAktif") : t("bio.loginBioMati")}
               </Text>
             </View>
-            {loginBio ? (
-              <Pressable
-                onPress={async () => {
-                  await hapusKredensial();
-                  setLoginBio(false);
-                }}
+            <Switch
+              value={loginBio}
+              onValueChange={ubahLoginBio}
+              trackColor={{ false: c.track, true: c.accent }}
+              thumbColor="#fff"
+            />
+          </View>
+          <View
+            style={[styles.listRow, { paddingHorizontal: 0, marginTop: 12 }]}
+          >
+            <View style={{ flex: 1, minWidth: 0 }}>
+              <Text style={styles.rowTitle}>{t("bio.presensi")}</Text>
+              <Text style={styles.rowSub}>{t("bio.presensiSub")}</Text>
+            </View>
+            <View
+              style={{
+                backgroundColor: c.ok.bg,
+                borderRadius: 999,
+                paddingHorizontal: 10,
+                paddingVertical: 4,
+              }}
+            >
+              <Text
+                style={{ fontSize: 11, fontWeight: "700", color: c.ok.ink }}
               >
-                <Text
-                  style={{ fontSize: 13, fontWeight: "700", color: c.accent }}
-                >
-                  {t("bio.matikan")}
-                </Text>
-              </Pressable>
-            ) : null}
+                {t("bio.wajib")}
+              </Text>
+            </View>
           </View>
           {pesanBio ? (
             <Text style={[styles.rowSub, { color: c.bad.ink, marginTop: 8 }]}>
@@ -401,6 +472,77 @@ export function ProfileSecurityScreen({ navigation }: any) {
           </View>
         )}
       </ScrollView>
+
+      <Modal
+        visible={dialogBio}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setDialogBio(false)}
+      >
+        <View style={styles.modalLatar}>
+          <View style={styles.modalKartu}>
+            <Text style={styles.cardTitle}>
+              {t("bio.pwJudul", { nama: namaBio })}
+            </Text>
+            <Text style={[styles.rowSub, { marginTop: 6 }]}>
+              {t("bio.pwSub", { nama: namaBio })}
+            </Text>
+            <TextInput
+              style={styles.modalInput}
+              value={akunBio}
+              onChangeText={setAkunBio}
+              placeholder={t("bio.akun")}
+              placeholderTextColor={c.mutedLabel}
+              autoCapitalize="none"
+              autoCorrect={false}
+            />
+            <TextInput
+              style={styles.modalInput}
+              value={pwBio}
+              onChangeText={setPwBio}
+              placeholder={t("bio.password")}
+              placeholderTextColor={c.mutedLabel}
+              secureTextEntry
+              autoCapitalize="none"
+            />
+            {galatBio ? (
+              <Text style={[styles.rowSub, { color: c.bad.ink, marginTop: 8 }]}>
+                {galatBio}
+              </Text>
+            ) : null}
+            <View style={{ flexDirection: "row", gap: 10, marginTop: 16 }}>
+              <Pressable
+                style={[styles.modalTombol, { backgroundColor: c.chip }]}
+                onPress={() => setDialogBio(false)}
+                disabled={prosesBio}
+              >
+                <Text style={{ fontWeight: "700", color: c.ink }}>
+                  {t("kunci.batal")}
+                </Text>
+              </Pressable>
+              <Pressable
+                style={[
+                  styles.modalTombol,
+                  {
+                    backgroundColor: c.accent,
+                    opacity: akunBio && pwBio ? 1 : 0.5,
+                  },
+                ]}
+                onPress={aktifkanLoginBio}
+                disabled={prosesBio || !akunBio || !pwBio}
+              >
+                {prosesBio ? (
+                  <ActivityIndicator color="#fff" />
+                ) : (
+                  <Text style={{ fontWeight: "700", color: "#fff" }}>
+                    {t("bio.aktifkan")}
+                  </Text>
+                )}
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -485,6 +627,37 @@ const makeStyles = (c: Palette) =>
       marginTop: 3,
     },
 
+    modalLatar: {
+      flex: 1,
+      backgroundColor: "rgba(0,0,0,0.5)",
+      alignItems: "center",
+      justifyContent: "center",
+      padding: 24,
+    },
+    modalKartu: {
+      width: "100%",
+      maxWidth: 380,
+      backgroundColor: c.card,
+      borderRadius: 22,
+      padding: 20,
+    },
+    modalInput: {
+      marginTop: 12,
+      borderWidth: 1,
+      borderColor: c.fieldBorder,
+      borderRadius: 14,
+      paddingHorizontal: 14,
+      paddingVertical: 12,
+      fontSize: 14,
+      color: c.ink,
+    },
+    modalTombol: {
+      flex: 1,
+      alignItems: "center",
+      justifyContent: "center",
+      borderRadius: 14,
+      paddingVertical: 13,
+    },
     card: {
       backgroundColor: c.card,
       borderWidth: 1,

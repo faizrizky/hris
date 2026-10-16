@@ -29,7 +29,7 @@ import {
   bacaKredensial,
   hapusKredensial,
   kesiapanBiometrik,
-  simpanKredensial,
+  namaBiometrik,
 } from "@/services/biometrik";
 
 const KUNCI_USERNAME = "hris.username";
@@ -40,8 +40,7 @@ export function LoginScreen() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
-  const [pakaiBio, setPakaiBio] = useState(false);
-  const [bioSiap, setBioSiap] = useState(false);
+  const [namaBio, setNamaBio] = useState("sidik jari / wajah");
   const [showPassword, setShowPassword] = useState(false);
   const insets = useSafeAreaInsets();
   const t = useT();
@@ -63,7 +62,7 @@ export function LoginScreen() {
 
   // Biometrik hanya ditawarkan bila perangkat ini sudah punya sidik jari / wajah terdaftar.
   useEffect(() => {
-    kesiapanBiometrik().then((k) => setBioSiap(k === "siap"));
+    namaBiometrik().then(setNamaBio);
   }, []);
 
   // Alamat tersimpan dibaca asinkron; isi kolom setelah siap.
@@ -99,9 +98,7 @@ export function LoginScreen() {
     try {
       setServer(await aturAlamatServer(server));
       const employee = await hrisApi.login(email.trim(), password);
-      if (pakaiBio && bioSiap) {
-        await simpanKredensial(email.trim(), password).catch(() => {});
-      }
+
       if (rememberMe) {
         await AsyncStorage.setItem(KUNCI_USERNAME, email.trim()).catch(
           () => {},
@@ -227,20 +224,6 @@ export function LoginScreen() {
             <Text style={styles.forgotLabel}>{t("login.lupa")}</Text>
           </View>
 
-          {bioSiap ? (
-            <Pressable
-              style={[styles.rememberRow, { marginTop: 10 }]}
-              onPress={() => setPakaiBio((v) => !v)}
-            >
-              <View style={[styles.checkbox, pakaiBio && styles.checkboxOn]}>
-                {pakaiBio && (
-                  <Ionicons name="checkmark" size={11} color="#fff" />
-                )}
-              </View>
-              <Text style={styles.rememberLabel}>{t("bio.centang")}</Text>
-            </Pressable>
-          ) : null}
-
           <Text style={styles.hint}>
             {error && <Text style={styles.errorText}>{error}</Text>}
           </Text>
@@ -272,7 +255,9 @@ export function LoginScreen() {
             <View style={styles.faceIdIcon}>
               <View style={styles.faceIdIconInner} />
             </View>
-            <Text style={styles.faceIdLabel}>{t("login.faceId")}</Text>
+            <Text style={styles.faceIdLabel}>
+              {t("login.faceId", { nama: namaBio })}
+            </Text>
           </Pressable>
         </View>
       </KeyboardAvoidingView>

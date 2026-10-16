@@ -764,24 +764,6 @@ export const MOCK_SECURITY: SecurityInfo = {
   passwordChangedDaysAgo: 92,
   toggles: [
     {
-      key: "face",
-      title: "Login dengan Face ID",
-      subtitle: "Masuk ke aplikasi tanpa mengetik password",
-      enabled: true,
-    },
-    {
-      key: "presence",
-      title: "Face ID untuk presensi",
-      subtitle: "Wajib verifikasi wajah saat clock in dan clock out",
-      enabled: true,
-    },
-    {
-      key: "lock",
-      title: "Kunci otomatis",
-      subtitle: "Kunci aplikasi setelah 1 menit tidak aktif",
-      enabled: false,
-    },
-    {
       key: "twofa",
       title: "Verifikasi 2 langkah",
       subtitle: "Kode OTP dikirim ke email saat login di perangkat baru",
