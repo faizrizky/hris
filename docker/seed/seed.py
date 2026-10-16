@@ -1659,7 +1659,7 @@ LAYOUT = {
         ("Review", [["review_html"]]),
         ("Change Details", [["reason", "changes"], ["proposed"]]),
         ("Profile Photo", [["photo"], ["photo_score_face"], ["photo_score_ktp"]]),
-        ("HR Decision", [["hr_note"], ["decided_by"], ["decided_on"]]),
+        ("HR Decision", [["hr_note"], ["decided_by", "decided_on"]]),
     ],
     "Employee Document": [
         ("Document", [["employee", "employee_name"], ["document_name", "category"], ["file", "expires_on"]]),
@@ -1709,7 +1709,7 @@ LAYOUT = {
         ("Match Scores", [["score_ktp"], ["score_profile"], ["score_profile_ktp"]]),
         ("Registration", [["ktp_document"], ["selfie"]]),
         ("Re-registration", [["needs_reenroll"], ["grace_until"]]),
-        ("HR Decision", [["hr_note"], ["decided_by"], ["decided_on"]]),
+        ("HR Decision", [["hr_note"], ["decided_by", "decided_on"]]),
     ],
     "App Update": [
         ("Version", [["version_code"], ["version_name"], ["mandatory"]]),
@@ -1745,9 +1745,12 @@ for _dt, _secs in LAYOUT.items():
             for m in _extra:
                 _rows.append(m)
                 _sig.append(m.fieldname)
-    if [f.fieldname for f in _d.fields] == _sig:
+    _idxs = [f.idx for f in _d.fields]
+    if [f.fieldname for f in _d.fields] == _sig and _idxs == list(range(1, len(_idxs) + 1)):
         continue
     _d.set("fields", _rows)
+    for _n, _f in enumerate(_d.fields, start=1):  # nomor urut harus berurutan tanpa duplikat
+        _f.idx = _n
     _d.flags.ignore_permissions = True
     _d.save()
     frappe.clear_cache(doctype=_dt)
