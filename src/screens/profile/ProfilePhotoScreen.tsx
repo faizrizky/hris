@@ -370,6 +370,7 @@ function Panduan({
     <View style={{ flex: 1 }}>
       <Animated.ScrollView
         ref={pager as never}
+        style={{ flex: 1 }}
         horizontal
         pagingEnabled
         showsHorizontalScrollIndicator={false}
@@ -438,7 +439,7 @@ function Panduan({
         })}
       </Animated.ScrollView>
 
-      <View style={[styles.pagerBar, { paddingBottom: bawah + 110 }]}>
+      <View style={[styles.pagerBar, { paddingBottom: bawah + 20 }]}>
         <View style={styles.dots}>
           {SLIDES.map((s, i) => {
             const aktif = geser.interpolate({
@@ -569,8 +570,7 @@ const makeStyles = (c: Palette) =>
       marginTop: 2,
     },
     skip: { fontSize: 13, fontWeight: "700", color: c.accent },
-    // Ruang bawah untuk floating tab bar.
-    content: { paddingHorizontal: 18, paddingTop: 16, paddingBottom: 140 },
+    content: { paddingHorizontal: 18, paddingTop: 16, paddingBottom: 40 },
 
     slide: { alignItems: "center", paddingHorizontal: 28, paddingTop: 24 },
     stage: {
@@ -599,7 +599,11 @@ const makeStyles = (c: Palette) =>
       marginTop: 8,
       maxWidth: 300,
     },
-    pagerBar: { paddingHorizontal: 18 },
+    pagerBar: {
+      paddingHorizontal: 18,
+      paddingTop: 12,
+      backgroundColor: c.bg,
+    },
     dots: { flexDirection: "row", justifyContent: "center", gap: 8 },
     dotSlot: { width: 8, height: 8 },
     dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: c.track },
