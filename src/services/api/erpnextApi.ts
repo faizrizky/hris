@@ -964,7 +964,11 @@ function namaBrowser(ua: string): string {
   return os ? `${browser} · ${os}` : browser;
 }
 
-function bentukPerangkat(s: SesiRow, jumlah = 1): ActiveDevice {
+function bentukPerangkat(
+  s: SesiRow,
+  jumlah = 1,
+  sessionIds: string[] = [s.id],
+): ActiveDevice {
   const ua = s.user_agent ?? "";
   const mobile = /expo|cfnetwork|okhttp|dalvik/i.test(ua);
   const waktu = s.last_updated ? s.last_updated.slice(0, 16) : "";
@@ -980,6 +984,7 @@ function bentukPerangkat(s: SesiRow, jumlah = 1): ActiveDevice {
       .join(" · "),
     kind: mobile ? "mobile" : "web",
     current: s.current,
+    sessionIds,
   };
 }
 
@@ -1003,7 +1008,11 @@ async function ambilPerangkat(): Promise<ActiveDevice[]> {
         [...daftar].sort((a, b) =>
           (b.last_updated ?? "").localeCompare(a.last_updated ?? ""),
         )[0]!;
-      return bentukPerangkat(wakil, daftar.length);
+      return bentukPerangkat(
+        wakil,
+        daftar.length,
+        daftar.map((x) => x.id),
+      );
     })
     .sort((a, b) => Number(b.current) - Number(a.current));
 }
@@ -2223,8 +2232,13 @@ export const erpnextApi: HrisApi = {
     return ambilInfoKeamanan(employeeId);
   },
 
-  async logoutOtherDevices(employeeId: string): Promise<SecurityInfo> {
-    await post("/api/method/hris_logout_other_sessions");
+  async logoutDevice(
+    employeeId: string,
+    sessionIds: string[],
+  ): Promise<SecurityInfo> {
+    await post("/api/method/hris_logout_sessions", {
+      ids: JSON.stringify(sessionIds),
+    });
     return ambilInfoKeamanan(employeeId);
   },
 

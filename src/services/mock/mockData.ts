@@ -777,6 +777,7 @@ export const MOCK_SECURITY: SecurityInfo = {
       meta: "Jakarta · aktif sekarang",
       kind: "mobile",
       current: true,
+      sessionIds: ["dev1"],
     },
     {
       id: "dev2",
@@ -784,6 +785,7 @@ export const MOCK_SECURITY: SecurityInfo = {
       meta: "Jakarta · 2 jam lalu",
       kind: "web",
       current: false,
+      sessionIds: ["dev2"],
     },
   ],
 };

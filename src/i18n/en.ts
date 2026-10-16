@@ -1071,6 +1071,12 @@ export const en: Record<Kunci, string> = {
   "bio.masterSub":
     "Sign in without typing your password and auto-lock the app with {nama}. Both turn on and off together.",
   "bio.masterAktif": "On: sign-in and auto-lock use {nama}.",
+  "bio.kunciButuhBiometrik":
+    "Turn on Biometrics first. Auto-lock follows biometrics.",
+  "sec.keluarkan": "Sign out",
+  "sec.keluarkanJudul": "Sign this device out?",
+  "sec.keluarkanPesan":
+    "{nama} will be signed out of your account and must sign in again.",
   "dv.judul": "Device not approved",
   "dv.menunggu":
     "This is a new device. You can clock in from this phone only after HR approves it. You will be notified once it is approved.",

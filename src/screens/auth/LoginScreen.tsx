@@ -116,6 +116,8 @@ export function LoginScreen() {
 
   return (
     <View style={styles.container}>
+      {/* Pengisi warna kartu di bagian bawah: saat papan ketik naik/turun, area di bawah kartu tidak tampak hitam. */}
+      <View style={styles.pengisiBawah} />
       <RadialGlow size={340} color={c.glowTop} top={-120} right={-90} />
       <RadialGlow size={320} color={c.glowBottom} bottom={-140} left={-110} />
 
@@ -268,6 +270,14 @@ export function LoginScreen() {
 const makeStyles = (c: Palette) =>
   StyleSheet.create({
     container: { flex: 1, backgroundColor: c.headerBg },
+    pengisiBawah: {
+      position: "absolute",
+      left: 0,
+      right: 0,
+      bottom: 0,
+      height: "38%",
+      backgroundColor: c.card,
+    },
     hero: {
       flex: 1,
       overflow: "hidden",

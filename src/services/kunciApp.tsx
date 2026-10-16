@@ -14,6 +14,7 @@ import { keluarAman, useSession } from "@/services/session";
 import { useTheme } from "@/theme/ThemeContext";
 import { useT } from "@/i18n";
 import {
+  adaLoginBiometrik,
   autentikasi,
   bacaKunci,
   jenisBiometrik,
@@ -53,7 +54,12 @@ export function KunciProvider({ children }: { children: React.ReactNode }) {
   const latarSejak = useRef<number | null>(null);
 
   useEffect(() => {
-    bacaKunci().then((p) => {
+    bacaKunci().then(async (p) => {
+      // Kunci otomatis terikat biometrik: tanpa login biometrik aktif, kunci dimatikan (data lama yang tidak konsisten).
+      if (p.aktif && !(await adaLoginBiometrik())) {
+        p = { ...p, aktif: false };
+        simpanKunci(p);
+      }
       setPengaturan(p);
       setDimuat(true);
     });

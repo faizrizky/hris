@@ -1075,6 +1075,11 @@ export const id = {
   "bio.masterSub":
     "Masuk tanpa mengetik password dan kunci aplikasi otomatis dengan {nama}. Keduanya aktif dan mati bersamaan.",
   "bio.masterAktif": "Aktif: login dan kunci otomatis memakai {nama}.",
+  "bio.kunciButuhBiometrik":
+    "Aktifkan Biometrik dulu. Kunci otomatis mengikuti biometrik.",
+  "sec.keluarkan": "Keluarkan",
+  "sec.keluarkanJudul": "Keluarkan perangkat ini?",
+  "sec.keluarkanPesan": "{nama} akan keluar dari akunmu dan harus login lagi.",
   "dv.judul": "Perangkat belum disetujui",
   "dv.menunggu":
     "Ini perangkat baru. Absen dari HP ini baru bisa setelah HR menyetujuinya. Kamu akan menerima notifikasi begitu disetujui.",

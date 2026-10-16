@@ -454,11 +454,16 @@ export const mockApi: HrisApi = {
     return security;
   },
 
-  async logoutOtherDevices(_employeeId: string): Promise<SecurityInfo> {
+  async logoutDevice(
+    _employeeId: string,
+    sessionIds: string[],
+  ): Promise<SecurityInfo> {
     await delay(300);
     security = {
       ...security,
-      devices: security.devices.filter((d) => d.current),
+      devices: security.devices.filter(
+        (d) => d.current || !d.sessionIds.some((i) => sessionIds.includes(i)),
+      ),
     };
     return security;
   },

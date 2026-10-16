@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Modal,
@@ -37,6 +37,7 @@ import {
   FaceStatus,
   SecurityInfo,
   SecurityToggleKey,
+  ActiveDevice,
 } from "@/services/types";
 import { RadialGlow } from "@/components/RadialGlow";
 import { LineIcon } from "@/components/LineIcon";
@@ -62,7 +63,6 @@ export function ProfileSecurityScreen({ navigation }: any) {
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
   const confirm = useConfirm();
-  const keluarLainRef = useRef<View>(null);
 
   const [info, setInfo] = useState<SecurityInfo | null>(null);
   const [galat, setGalat] = useState<string | null>(null);
@@ -100,8 +100,8 @@ export function ProfileSecurityScreen({ navigation }: any) {
     }, []),
   );
 
-  // Satu pengalih biometrik: login tanpa password dan kunci otomatis aktif/mati bersamaan.
-  const biometrikAktif = loginBio || kunci.pengaturan.aktif;
+  // Dua pengalih yang saling mengikat: Biometrik (login tanpa password) dan Kunci otomatis. Kunci otomatis hanya bisa
+  // dinyalakan saat Biometrik aktif, dan mematikan Biometrik otomatis mematikan Kunci otomatis.
   const ubahBiometrik = async (nyala: boolean) => {
     setPesanBio(null);
     if (!nyala) {
@@ -129,11 +129,6 @@ export function ProfileSecurityScreen({ navigation }: any) {
       kunci.abaikanLatar(15_000);
       await simpanKredensial(akunBio.trim(), pwBio);
       setLoginBio(true);
-      kunci.ubah({
-        ...kunci.pengaturan,
-        aktif: true,
-        timeoutMs: kunci.pengaturan.timeoutMs,
-      });
       setDialogBio(false);
       setPwBio("");
     } catch (e) {
@@ -147,6 +142,11 @@ export function ProfileSecurityScreen({ navigation }: any) {
     }
   };
 
+  const ubahKunci = (nyala: boolean) => {
+    setPesanBio(null);
+    if (nyala && !loginBio) return setPesanBio(t("bio.kunciButuhBiometrik"));
+    kunci.ubah({ ...kunci.pengaturan, aktif: nyala });
+  };
   const PILIHAN_TIMEOUT: [number, string][] = [
     [0, t("bio.segera")],
     [60_000, t("bio.satuMenit")],
@@ -171,25 +171,20 @@ export function ProfileSecurityScreen({ navigation }: any) {
       .catch(gagalAksi);
   };
 
-  const keluarkanLain = async () => {
-    if (!employee || !info) return;
-    const lain = info.devices.filter((d) => !d.current);
+  const keluarkanPerangkat = async (d: ActiveDevice) => {
+    if (!employee) return;
     const ya = await confirm({
-      title: t("sec.keluarLainJudul"),
-      message: t("sec.keluarLainPesan", {
-        daftar: lain.map((d) => d.name).join(", "),
-      }),
+      title: t("sec.keluarkanJudul"),
+      message: t("sec.keluarkanPesan", { nama: d.name }),
       tone: "bad",
-      confirmText: t("sec.ya"),
+      confirmText: t("sec.keluarkan"),
       cancelText: t("umum.batal"),
-      from: keluarLainRef,
-      fromColor: c.bad.bg,
-      fromTextColor: c.bad.ink,
-      fromLabel: t("sec.keluarLain"),
-      fromRadius: 22,
     });
     if (ya) {
-      hrisApi.logoutOtherDevices(employee.id).then(setInfo).catch(gagalAksi);
+      hrisApi
+        .logoutDevice(employee.id, d.sessionIds)
+        .then(setInfo)
+        .catch(gagalAksi);
     }
   };
 
@@ -228,8 +223,6 @@ export function ProfileSecurityScreen({ navigation }: any) {
       </View>
     );
   }
-
-  const adaLain = info.devices.some((d) => !d.current);
 
   return (
     <View style={styles.container}>
@@ -294,22 +287,37 @@ export function ProfileSecurityScreen({ navigation }: any) {
           <View style={styles.baris}>
             <View style={{ flex: 1, minWidth: 0 }}>
               <Text style={styles.rowTitle}>
-                {t("bio.master", { nama: namaBio })}
+                {t("bio.loginBio", { nama: namaBio })}
               </Text>
               <Text style={styles.rowSub}>
-                {biometrikAktif
-                  ? t("bio.masterAktif", { nama: namaBio })
-                  : t("bio.masterSub", { nama: namaBio })}
+                {loginBio ? t("bio.loginBioAktif") : t("bio.loginBioMati")}
               </Text>
             </View>
             <Switch
-              value={biometrikAktif}
+              value={loginBio}
               onValueChange={ubahBiometrik}
               trackColor={{ false: c.track, true: c.accent }}
               thumbColor="#fff"
             />
           </View>
-          {biometrikAktif ? (
+          <View style={[styles.baris, !loginBio && { opacity: 0.45 }]}>
+            <View style={{ flex: 1, minWidth: 0 }}>
+              <Text style={styles.rowTitle}>{t("bio.kunciOtomatis")}</Text>
+              <Text style={styles.rowSub}>
+                {loginBio
+                  ? t("bio.kunciSub", { nama: namaBio })
+                  : t("bio.kunciButuhBiometrik")}
+              </Text>
+            </View>
+            <Switch
+              value={loginBio && kunci.pengaturan.aktif}
+              onValueChange={ubahKunci}
+              disabled={!loginBio}
+              trackColor={{ false: c.track, true: c.accent }}
+              thumbColor="#fff"
+            />
+          </View>
+          {loginBio && kunci.pengaturan.aktif ? (
             <View style={{ paddingVertical: 8 }}>
               <Text style={styles.rowSub}>{t("bio.timeout")}</Text>
               <View style={{ flexDirection: "row", gap: 8, marginTop: 8 }}>
@@ -346,26 +354,6 @@ export function ProfileSecurityScreen({ navigation }: any) {
               </View>
             </View>
           ) : null}
-          <View style={styles.baris}>
-            <View style={{ flex: 1, minWidth: 0 }}>
-              <Text style={styles.rowTitle}>{t("bio.presensi")}</Text>
-              <Text style={styles.rowSub}>{t("bio.presensiSub")}</Text>
-            </View>
-            <View
-              style={{
-                backgroundColor: c.ok.bg,
-                borderRadius: 999,
-                paddingHorizontal: 10,
-                paddingVertical: 4,
-              }}
-            >
-              <Text
-                style={{ fontSize: 11, fontWeight: "700", color: c.ok.ink }}
-              >
-                {t("bio.wajib")}
-              </Text>
-            </View>
-          </View>
           {pesanBio ? (
             <Text style={[styles.rowSub, { color: c.bad.ink, marginTop: 8 }]}>
               {pesanBio}
@@ -427,6 +415,17 @@ export function ProfileSecurityScreen({ navigation }: any) {
                   <Text style={styles.devName}>{d.name}</Text>
                   <Text style={styles.devMeta}>{d.meta}</Text>
                 </View>
+                {!d.current ? (
+                  <Pressable
+                    onPress={() => keluarkanPerangkat(d)}
+                    hitSlop={8}
+                    style={styles.devKeluar}
+                  >
+                    <Text style={styles.devKeluarText}>
+                      {t("sec.keluarkan")}
+                    </Text>
+                  </Pressable>
+                ) : null}
                 <View
                   style={[
                     styles.devTag,
@@ -450,20 +449,6 @@ export function ProfileSecurityScreen({ navigation }: any) {
             ))}
           </View>
         </View>
-
-        {adaLain ? (
-          <Pressable
-            ref={keluarLainRef}
-            style={styles.dangerBtn}
-            onPress={keluarkanLain}
-          >
-            <Text style={styles.dangerText}>{t("sec.keluarLain")}</Text>
-          </Pressable>
-        ) : (
-          <View style={styles.okBanner}>
-            <Text style={styles.okText}>{t("sec.semuaKeluar")}</Text>
-          </View>
-        )}
       </ScrollView>
 
       <Modal
@@ -703,6 +688,15 @@ const makeStyles = (c: Palette) =>
     devTag: { paddingHorizontal: 9, paddingVertical: 4, borderRadius: 8 },
     devTagText: { fontSize: 10, fontWeight: "700" },
 
+    devKeluar: {
+      borderWidth: 1,
+      borderColor: c.bad.ink,
+      borderRadius: 999,
+      paddingHorizontal: 11,
+      paddingVertical: 5,
+      marginRight: 6,
+    },
+    devKeluarText: { fontSize: 11, fontWeight: "700", color: c.bad.ink },
     dangerBtn: {
       marginTop: 12,
       paddingVertical: 14,

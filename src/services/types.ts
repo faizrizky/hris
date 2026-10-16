@@ -459,6 +459,7 @@ export interface ActiveDevice {
   meta: string;
   kind: "mobile" | "web";
   current: boolean;
+  sessionIds: string[]; // id sesi server yang termasuk perangkat ini (untuk dikeluarkan)
 }
 
 export interface SecurityInfo {
@@ -678,7 +679,8 @@ export interface HrisApi {
     key: SecurityToggleKey,
     enabled: boolean,
   ): Promise<SecurityInfo>;
-  logoutOtherDevices(employeeId: string): Promise<SecurityInfo>;
+  // Mengeluarkan satu perangkat (semua sesinya); sesi saat ini tidak bisa.
+  logoutDevice(employeeId: string, sessionIds: string[]): Promise<SecurityInfo>;
   changePassword(
     employeeId: string,
     current: string,
