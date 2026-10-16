@@ -30,7 +30,9 @@ for o in frappe.get_all("Face Enrollment", filters={"employee": emp, "status": "
     frappe.db.set_value("Face Enrollment", o.name, "status", "Superseded")
 doc = frappe.get_doc({"doctype": "Face Enrollment", "employee": emp, "status": "Pending", "ktp_document": ktp["name"],
                       "face_embeddings": json.dumps(vs), "ktp_embedding": json.dumps(ke), "profile_embedding": json.dumps(pe),
-                      "score_ktp": fl_pct(cen, ke), "score_profile": fl_pct(cen, pe), "score_profile_ktp": fl_pct(pe, ke)})
+                      "score_ktp": fl_pct(cen, ke), "score_profile": fl_pct(cen, pe), "score_profile_ktp": fl_pct(pe, ke),
+                      "custom_spoof_mean": (frappe.utils.flt(fd.get("spoof_mean")) if fd.get("spoof_mean") not in (None, "") else None),
+                      "custom_spoof_scores": (str(fd.get("spoof_scores") or "")[:600] or None)})
 doc.insert(ignore_permissions=True)
 fl_attach("Face Enrollment", doc.name, "selfie", fd.get("selfie_b64"), "face-selfie.jpg")
 for u in fl_hr_users():

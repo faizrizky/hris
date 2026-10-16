@@ -26,7 +26,7 @@ export const en: Record<Kunci, string> = {
   "profil.modeGelapIkuti": "Follows your choice",
   "profil.bahasa": "Language",
   "profil.bahasaSub": "Indonesia or English",
-  "profil.keamanan": "Security & Face ID",
+  "profil.keamanan": "Security & Biometrics",
   "profil.keamananSub": "Biometrics, change password",
   "profil.sinkron": "Sync status",
   "profil.tersinkron": "Synced with the server",
@@ -547,7 +547,7 @@ export const en: Record<Kunci, string> = {
   "pe.hubungan": "Relationship",
   "pe.kelengkapanSetelah": "Completeness after saving",
   "pe.simpan": "Save changes",
-  "sec.judul": "Security & Face ID",
+  "sec.judul": "Security & Biometrics",
   "sec.keluarLainJudul": "Sign out of other devices?",
   "sec.keluarLainPesan":
     "{daftar} will be asked to sign in again. This device stays signed in.",
@@ -1025,7 +1025,7 @@ export const en: Record<Kunci, string> = {
   "kunci.sub": "Unlock with a fingerprint or face registered on this phone.",
   "kunci.gagal": "Not successful. Try again or sign out.",
   "kunci.buka": "Unlock",
-  "kunci.keluar": "Sign out",
+  "kunci.keluar": "Sign out and use password",
   "kunci.prompt": "Unlock HRIS",
   "kunci.batal": "Cancel",
   "bio.judul": "Sign-in and app lock",
@@ -1065,6 +1065,12 @@ export const en: Record<Kunci, string> = {
   "sec.grupBiometrik": "Biometrics and lock",
   "sec.grupAkun": "Password and verification",
   "bio.gagalSimpan": "Could not save on this device: {pesan}",
+  "fe.bukanAsli":
+    "Your face was not recognised as a live face. Face the camera directly (not a photo or a screen), with enough light.",
+  "bio.master": "Biometrics ({nama})",
+  "bio.masterSub":
+    "Sign in without typing your password and auto-lock the app with {nama}. Both turn on and off together.",
+  "bio.masterAktif": "On: sign-in and auto-lock use {nama}.",
   "dv.judul": "Device not approved",
   "dv.menunggu":
     "This is a new device. You can clock in from this phone only after HR approves it. You will be notified once it is approved.",

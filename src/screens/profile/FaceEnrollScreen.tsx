@@ -27,9 +27,11 @@ import { simpanLampiran } from "@/utils/lampiran";
 import {
   deteksiWajah,
   embeddingWajah,
+  skorSpoof,
+  spoofTersedia,
   wajahDidukung,
 } from "@/services/faceCheck";
-import type { FaceStatus } from "@/services/types";
+import type { FaceStatus, SpoofRingkas } from "@/services/types";
 import { CincinWajah } from "./CincinWajah";
 import { LingkaranSamsung, TICKS } from "./LingkaranSamsung";
 
@@ -50,6 +52,16 @@ const acakTantangan = (): Tantangan[] =>
   Math.random() < 0.5 ? ["pejam", "toleh"] : ["toleh", "pejam"];
 const SAMPEL_MIN = 3; // sampel wajah menghadap depan (kualitas tinggi) yang dibutuhkan sebelum selesai
 const SAMPEL_MAKS = 6;
+// Anti-spoofing (Minivision): dari foto kualitas tinggi saat menghadap depan. Foto/video di layar menghasilkan skor
+// rendah di sebagian besar frame, jadi keputusan memakai median beberapa frame, bukan satu frame.
+const SPOOF_MIN_SAMPEL = 4;
+const SPOOF_AMBANG = 0.5;
+const SPOOF_JENDELA = 8;
+const median = (v: number[]) => {
+  const s = [...v].sort((a, b) => a - b);
+  const m = Math.floor(s.length / 2);
+  return s.length % 2 ? s[m]! : (s[m - 1]! + s[m]!) / 2;
+};
 const JEDA_SAMPEL_MS = 1200;
 const KUALITAS_SAMPEL = 0.7; // frame deteksi 0.25 cukup untuk posisi, tapi embedding butuh gambar lebih tajam
 const BATAS_MS = 90_000;
@@ -120,6 +132,7 @@ export function FaceEnrollScreen({ navigation }: any) {
   // ketahuan sebelum karyawan memutar kepala.
   const acuan = useRef<{ ktp: number[]; prof: number[] } | null>(null);
   const hasil = useRef<number[][]>([]);
+  const spoofHasil = useRef<SpoofRingkas | undefined>(undefined);
 
   // Animasi: cincin panduan di layar pembuka berputar; pemindaian memakai lingkaran gaya Samsung.
   const [denyut] = useState(() => new Animated.Value(0));
@@ -199,6 +212,7 @@ export function FaceEnrollScreen({ navigation }: any) {
         selfie: selfie
           ? { uri: selfie, name: "selfie.jpg", mimeType: "image/jpeg" }
           : undefined,
+        spoof: spoofHasil.current,
       });
       setFase("selesai");
     } catch (e) {
@@ -229,13 +243,25 @@ export function FaceEnrollScreen({ navigation }: any) {
       const d = Math.abs(x - y) % TICKS;
       return Math.min(d, TICKS - d);
     };
+    const skorJendela: number[] = [];
+    const spoofLulus = () =>
+      !spoofTersedia() ||
+      (skorJendela.length >= SPOOF_MIN_SAMPEL &&
+        median(skorJendela) >= SPOOF_AMBANG);
     const ambilSampel = async () => {
       const f = await kamera.current?.takePictureAsync({
         quality: KUALITAS_SAMPEL,
         skipProcessing: true,
         shutterSound: false,
       });
-      return f ? await embeddingWajah(f.uri) : null;
+      if (!f) return null;
+      const vec = await embeddingWajah(f.uri);
+      const k = spoofTersedia() ? await skorSpoof(f.uri) : null;
+      if (k !== null) {
+        skorJendela.push(Math.round(k * 100) / 100);
+        if (skorJendela.length > SPOOF_JENDELA) skorJendela.shift();
+      }
+      return vec;
     };
     const tambah = (i: number) => nyala.add(((i % TICKS) + TICKS) % TICKS);
 
@@ -316,12 +342,12 @@ export function FaceEnrollScreen({ navigation }: any) {
           if (
             besar < 0.5 &&
             (d.eyesOpen < 0 || d.eyesOpen >= 0.5) &&
-            sampel.length < SAMPEL_MAKS &&
+            (sampel.length < SAMPEL_MAKS || !spoofLulus()) &&
             Date.now() - sampelTerakhir > JEDA_SAMPEL_MS
           ) {
             sampelTerakhir = Date.now();
             const v = await ambilSampel();
-            if (v) sampel.push(v);
+            if (v && sampel.length < SAMPEL_MAKS) sampel.push(v);
           }
           if (nyala.size >= CUKUP) {
             if (urutan.length === 0) {
@@ -334,15 +360,32 @@ export function FaceEnrollScreen({ navigation }: any) {
             } else if (langkah >= urutan.length) {
               // Semua perintah beres; tinggal menunggu cukup sampel wajah menghadap depan.
               setTantangan(null);
-              if (sampel.length >= SAMPEL_MIN) {
+              if (sampel.length >= SAMPEL_MIN && spoofLulus()) {
                 for (let i = 0; i < TICKS; i++) nyala.add(i);
                 setTerisi([...nyala]);
                 hasil.current = sampel;
+                spoofHasil.current = skorJendela.length
+                  ? {
+                      mean:
+                        Math.round(
+                          (skorJendela.reduce((a, b) => a + b, 0) /
+                            skorJendela.length) *
+                            1000,
+                        ) / 1000,
+                      scores: [...skorJendela],
+                    }
+                  : undefined;
                 await new Promise((r) => setTimeout(r, 500));
                 if (!batal) setFase("lengkap");
                 return;
               }
-              setPeringatan(t("fe.hadapDepan"));
+              setPeringatan(
+                t(
+                  sampel.length >= SAMPEL_MIN && !spoofLulus()
+                    ? "fe.bukanAsli"
+                    : "fe.hadapDepan",
+                ),
+              );
             } else {
               const j = urutan[langkah]!;
               let ok = false;
@@ -410,6 +453,7 @@ export function FaceEnrollScreen({ navigation }: any) {
     setSelfie(null);
     setPesan(null);
     hasil.current = [];
+    spoofHasil.current = undefined;
     setSiapKamera(false);
     setPutaran((n) => n + 1);
     setFase("posisi");

@@ -512,6 +512,7 @@ export interface HrisApi {
     ktpEmbedding: number[];
     profileEmbedding: number[];
     selfie?: BerkasLampiran;
+    spoof?: SpoofRingkas;
   }): Promise<{ scoreKtp: number; scoreProfile: number }>;
   // dryRun: hanya menghitung kemiripan (untuk peringatan dini), tanpa mengajukan.
   submitProfilePhoto(input: {

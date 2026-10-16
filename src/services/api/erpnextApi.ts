@@ -1882,6 +1882,12 @@ export const erpnextApi: HrisApi = {
       ...(input.selfie
         ? { selfie_b64: await new FileFs(input.selfie.uri).base64() }
         : {}),
+      ...(input.spoof
+        ? {
+            spoof_mean: input.spoof.mean,
+            spoof_scores: JSON.stringify(input.spoof.scores),
+          }
+        : {}),
     });
     return {
       scoreKtp: res.message.score_ktp,

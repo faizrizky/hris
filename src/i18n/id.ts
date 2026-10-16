@@ -30,7 +30,7 @@ export const id = {
   "profil.modeGelapIkuti": "Mengikuti pilihanmu",
   "profil.bahasa": "Bahasa",
   "profil.bahasaSub": "Indonesia atau English",
-  "profil.keamanan": "Keamanan & Face ID",
+  "profil.keamanan": "Keamanan & Biometrik",
   "profil.keamananSub": "Biometrik, ubah password",
   "profil.sinkron": "Status sinkronisasi",
   "profil.tersinkron": "Tersinkron dengan server",
@@ -554,7 +554,7 @@ export const id = {
   "pe.hubungan": "Hubungan",
   "pe.kelengkapanSetelah": "Kelengkapan setelah disimpan",
   "pe.simpan": "Simpan perubahan",
-  "sec.judul": "Keamanan & Face ID",
+  "sec.judul": "Keamanan & Biometrik",
   "sec.keluarLainJudul": "Keluar dari perangkat lain?",
   "sec.keluarLainPesan":
     "{daftar} akan diminta login ulang. Perangkat ini tetap masuk.",
@@ -1029,7 +1029,7 @@ export const id = {
   "kunci.sub": "Buka dengan sidik jari atau wajah yang terdaftar di HP ini.",
   "kunci.gagal": "Belum berhasil. Coba lagi atau keluar dari akun.",
   "kunci.buka": "Buka kunci",
-  "kunci.keluar": "Keluar dari akun",
+  "kunci.keluar": "Keluar, masuk dengan password",
   "kunci.prompt": "Buka HRIS",
   "kunci.batal": "Batal",
   "bio.judul": "Login dan kunci aplikasi",
@@ -1069,6 +1069,12 @@ export const id = {
   "sec.grupBiometrik": "Biometrik dan kunci",
   "sec.grupAkun": "Password dan verifikasi",
   "bio.gagalSimpan": "Gagal menyimpan di perangkat ini: {pesan}",
+  "fe.bukanAsli":
+    "Wajah belum terbaca sebagai wajah asli. Hadapkan wajah langsung ke kamera (bukan foto atau layar), dengan cahaya cukup.",
+  "bio.master": "Biometrik ({nama})",
+  "bio.masterSub":
+    "Masuk tanpa mengetik password dan kunci aplikasi otomatis dengan {nama}. Keduanya aktif dan mati bersamaan.",
+  "bio.masterAktif": "Aktif: login dan kunci otomatis memakai {nama}.",
   "dv.judul": "Perangkat belum disetujui",
   "dv.menunggu":
     "Ini perangkat baru. Absen dari HP ini baru bisa setelah HR menyetujuinya. Kamu akan menerima notifikasi begitu disetujui.",

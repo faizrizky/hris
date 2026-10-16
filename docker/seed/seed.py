@@ -213,6 +213,16 @@ frappe.db.set_value("Employee", emp["dewi"], "leave_approver", mail["sari"])
 frappe.db.set_value("Employee", emp["sari"], "leave_approver", mail["dewi"])
 frappe.db.commit()
 
+# Sesi login: tanpa batas, sesi lama menumpuk (tiap login membuat satu) dan "Keluar dari perangkat lain" gagal kena batas laju.
+# Batasi 3 sesi aktif per pengguna (HP, HP kedua, web); login berikutnya otomatis mengeluarkan yang terlama.
+if not frappe.db.get_single_value("System Settings", "deny_multiple_sessions"):
+    frappe.db.set_single_value("System Settings", "deny_multiple_sessions", 1)
+    log("System Settings: deny_multiple_sessions = 1")
+for _em in [v[0] for v in USERS.values()]:
+    if frappe.db.get_value("User", _em, "simultaneous_sessions") != 3:
+        frappe.db.set_value("User", _em, "simultaneous_sessions", 3)
+frappe.db.commit()
+
 # 5b. Data profil untuk direktori karyawan (menimpa nilai, jadi idempoten)
 PROFILE = {  # key: (nomor, reports_to key, employment_type, contract_end)
     "rani": ("EMP-0001", "dewi", "Full-time", None),
@@ -1350,6 +1360,18 @@ for _f in [
         frappe.clear_cache(doctype="Profile Change Request")
 frappe.db.commit()
 
+# Skor anti-spoofing saat pendaftaran wajah (dicatat untuk tinjauan HR).
+for _f in [
+    dict(fieldname="custom_spoof_mean", label="Anti-spoof Score", fieldtype="Float", precision="3", permlevel=1,
+         read_only=1, insert_after="score_profile_ktp"),
+    dict(fieldname="custom_spoof_scores", label="Anti-spoof Frame Scores", fieldtype="Small Text", permlevel=1,
+         read_only=1, insert_after="custom_spoof_mean"),
+]:
+    if not frappe.db.exists("Custom Field", {"dt": "Face Enrollment", "fieldname": _f["fieldname"]}):
+        make(dict(doctype="Custom Field", dt="Face Enrollment", **_f))
+        frappe.clear_cache(doctype="Face Enrollment")
+frappe.db.commit()
+
 _FCS = "Face Enrollment - review"
 _FJS = r"""// Face Enrollment: HR meninjau selfie, foto KTP, dan foto profil berdampingan dengan persentase kecocokan.
 const esc = (v) => frappe.utils.escape_html(v == null ? "" : String(v));
@@ -1712,6 +1734,7 @@ LAYOUT = {
         ("Employee", [["employee", "employee_name"], ["status"]]),
         ("Review", [["review_html"]]),
         ("Match Scores", [["score_ktp"], ["score_profile"], ["score_profile_ktp"]]),
+        ("Anti-spoofing", [["custom_spoof_mean"], ["custom_spoof_scores"]]),
         ("Registration", [["ktp_document"], ["selfie"]]),
         ("Re-registration", [["needs_reenroll", "grace_until"]]),
         ("HR Decision", [["hr_note"], ["decided_by", "decided_on"]]),

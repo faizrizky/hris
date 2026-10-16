@@ -100,22 +100,26 @@ export function ProfileSecurityScreen({ navigation }: any) {
     }, []),
   );
 
-  // Login biometrik perlu password satu kali (disimpan terenkripsi di HP, terbuka hanya dengan biometrik).
-  const ubahLoginBio = async (nyala: boolean) => {
+  // Satu pengalih biometrik: login tanpa password dan kunci otomatis aktif/mati bersamaan.
+  const biometrikAktif = loginBio || kunci.pengaturan.aktif;
+  const ubahBiometrik = async (nyala: boolean) => {
     setPesanBio(null);
     if (!nyala) {
       await hapusKredensial();
       setLoginBio(false);
+      kunci.ubah({ ...kunci.pengaturan, aktif: false });
       return;
     }
     if (bio === "tidakAda") return setPesanBio(t("bio.tidakAda"));
     if (bio === "belumDaftar") return setPesanBio(t("bio.belumDaftar"));
+    kunci.abaikanLatar(15_000);
+    if (!(await autentikasi(t("bio.konfirmasi"), t("kunci.batal")))) return;
     setAkunBio(
       (await AsyncStorage.getItem("hris.username").catch(() => null)) ?? "",
     );
     setPwBio("");
     setGalatBio(null);
-    setDialogBio(true);
+    setDialogBio(true); // password diminta satu kali untuk login biometrik
   };
   const aktifkanLoginBio = async () => {
     setProsesBio(true);
@@ -125,6 +129,11 @@ export function ProfileSecurityScreen({ navigation }: any) {
       kunci.abaikanLatar(15_000);
       await simpanKredensial(akunBio.trim(), pwBio);
       setLoginBio(true);
+      kunci.ubah({
+        ...kunci.pengaturan,
+        aktif: true,
+        timeoutMs: kunci.pengaturan.timeoutMs,
+      });
       setDialogBio(false);
       setPwBio("");
     } catch (e) {
@@ -138,16 +147,6 @@ export function ProfileSecurityScreen({ navigation }: any) {
     }
   };
 
-  const ubahKunci = async (nyala: boolean) => {
-    setPesanBio(null);
-    if (nyala) {
-      if (bio === "tidakAda") return setPesanBio(t("bio.tidakAda"));
-      if (bio === "belumDaftar") return setPesanBio(t("bio.belumDaftar"));
-      kunci.abaikanLatar(15_000);
-      if (!(await autentikasi(t("bio.konfirmasi"), t("kunci.batal")))) return;
-    }
-    kunci.ubah({ ...kunci.pengaturan, aktif: nyala });
-  };
   const PILIHAN_TIMEOUT: [number, string][] = [
     [0, t("bio.segera")],
     [60_000, t("bio.satuMenit")],
@@ -295,34 +294,22 @@ export function ProfileSecurityScreen({ navigation }: any) {
           <View style={styles.baris}>
             <View style={{ flex: 1, minWidth: 0 }}>
               <Text style={styles.rowTitle}>
-                {t("bio.loginBio", { nama: namaBio })}
+                {t("bio.master", { nama: namaBio })}
               </Text>
               <Text style={styles.rowSub}>
-                {loginBio ? t("bio.loginBioAktif") : t("bio.loginBioMati")}
+                {biometrikAktif
+                  ? t("bio.masterAktif", { nama: namaBio })
+                  : t("bio.masterSub", { nama: namaBio })}
               </Text>
             </View>
             <Switch
-              value={loginBio}
-              onValueChange={ubahLoginBio}
+              value={biometrikAktif}
+              onValueChange={ubahBiometrik}
               trackColor={{ false: c.track, true: c.accent }}
               thumbColor="#fff"
             />
           </View>
-          <View style={styles.baris}>
-            <View style={{ flex: 1, minWidth: 0 }}>
-              <Text style={styles.rowTitle}>{t("bio.kunciOtomatis")}</Text>
-              <Text style={styles.rowSub}>
-                {t("bio.kunciSub", { nama: namaBio })}
-              </Text>
-            </View>
-            <Switch
-              value={kunci.pengaturan.aktif}
-              onValueChange={ubahKunci}
-              trackColor={{ false: c.track, true: c.accent }}
-              thumbColor="#fff"
-            />
-          </View>
-          {kunci.pengaturan.aktif ? (
+          {biometrikAktif ? (
             <View style={{ paddingVertical: 8 }}>
               <Text style={styles.rowSub}>{t("bio.timeout")}</Text>
               <View style={{ flexDirection: "row", gap: 8, marginTop: 8 }}>
