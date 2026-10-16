@@ -51,3 +51,5 @@ HP mengambilnya saat aplikasi dibuka (layar pembuka menampilkan "Memperbarui apl
 - **Uji push langsung:** `./scripts/tes-push.sh [email]`. Push dari server aktif bila Dry Run di Push Settings dimatikan.
 - **Modul native:** `hris-face` (ML Kit, SFace, anti-spoofing Minivision mode bayangan), `expo-local-authentication`, `expo-secure-store` (kunci otomatis dan login biometrik).
 - Perintah EAS di proyek ini memakai `npx eas-cli ...` (bukan `npx eas`).
+
+- **Setelah mengganti ID paket,** isi ulang App Update (`./scripts/rilis-apk.sh <build-id>`), karena Version Code di server bisa lebih besar dari build baru dan membuat aplikasi baru meminta "pembaruan" ke APK paket lama (hasilnya terpasang dua aplikasi).
