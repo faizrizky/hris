@@ -1478,9 +1478,9 @@ frappe.ui.form.on("Profile Change Request", {
 				frappe.db.get_single_value("Face Settings", "min_ktp"),
 			]);
 			html += `<div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:12px"><div style="width:200px"><div style="aspect-ratio:3/4;border:1px solid var(--border-color);border-radius:12px;overflow:hidden"><img src="${esc(d.photo)}" style="width:100%;height:100%;object-fit:cover"></div><div style="text-align:center;margin-top:6px;font-weight:600">${__("New profile photo")}</div></div><div style="flex:1;min-width:240px">` +
-				skor(__("New photo vs registered face"), d.photo_score_face, minProf || 36) +
+				skor(__("New photo vs registered face"), d.photo_score_face || null, minProf || 36) +
 				skor(__("New photo vs ID card"), d.photo_score_ktp, minKtp || 30) +
-				(d.photo_score_face == null ? `<div style="color:var(--text-muted)">${__("No registered face yet, so there is nothing to compare with.")}</div>` : "") +
+				(!d.photo_score_face ? `<div style="color:var(--text-muted)">${__("No registered face yet, so there is nothing to compare with.")}</div>` : "") +
 				`</div></div>`;
 		}
 		let rows = [];
@@ -1724,29 +1724,43 @@ for _dt, _secs in LAYOUT.items():
     _d = frappe.get_doc("DocType", _dt)
     _data = [f for f in _d.fields if f.fieldtype not in _BREAKS]
     _byname = {f.fieldname: f for f in _data}
+    # Custom Field (dibuat bagian lain di seed) tidak ikut urutan DocType: posisinya diatur lewat insert_after.
+    _cust = {c.fieldname: c for c in frappe.get_all("Custom Field", filters={"dt": _dt},
+                                                     fields=["name", "fieldname", "permlevel", "insert_after"])}
     _listed = {n for _l, cols in _secs for col in cols for n in col}
-    _extra = [f for f in _data if f.fieldname not in _listed]
+    _extra = [f.fieldname for f in _data if f.fieldname not in _listed] + \
+             [n for n in _cust if n not in _listed]
     _sig = []
     _rows = []
+    _prev = [None]
+    def _taruh(n):
+        _sig.append(n)
+        if n in _byname:
+            _rows.append(_byname[n])
+        elif n in _cust and _cust[n].insert_after != _prev[0]:
+            frappe.db.set_value("Custom Field", _cust[n].name, "insert_after", _prev[0], update_modified=False)
+        _prev[0] = n
     for _i, (_label, _cols) in enumerate(_secs, start=1):
-        _members = [_byname[n] for col in _cols for n in col if n in _byname]
-        _pl = min([int(m.permlevel or 0) for m in _members] or [0])
+        _members = [n for col in _cols for n in col if n in _byname or n in _cust]
+        _pl = min([int((_byname[n].permlevel if n in _byname else _cust[n].permlevel) or 0) for n in _members] or [0])
         _rows.append(dict(fieldtype="Section Break", fieldname=f"sb_{_i}", label=_label, permlevel=_pl))
         _sig.append(f"sb_{_i}")
+        _prev[0] = f"sb_{_i}"
         for _j, col in enumerate(_cols):
             if _j > 0:
                 _rows.append(dict(fieldtype="Column Break", fieldname=f"cb_{_i}_{_j}", permlevel=_pl))
                 _sig.append(f"cb_{_i}_{_j}")
+                _prev[0] = f"cb_{_i}_{_j}"
             for n in col:
-                if n in _byname:
-                    _rows.append(_byname[n])
-                    _sig.append(n)
+                if n in _byname or n in _cust:
+                    _taruh(n)
         if _i == len(_secs):
-            for m in _extra:
-                _rows.append(m)
-                _sig.append(m.fieldname)
+            for n in _extra:
+                _taruh(n)
     _idxs = [f.idx for f in _d.fields]
-    if [f.fieldname for f in _d.fields] == _sig and _idxs == list(range(1, len(_idxs) + 1)):
+    _std_sig = [n for n in _sig if n not in _cust]
+    if [f.fieldname for f in _d.fields] == _std_sig and _idxs == list(range(1, len(_idxs) + 1)):
+        frappe.clear_cache(doctype=_dt)
         continue
     _d.set("fields", _rows)
     for _n, _f in enumerate(_d.fields, start=1):  # nomor urut harus berurutan tanpa duplikat
