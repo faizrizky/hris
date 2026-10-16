@@ -8,6 +8,7 @@ import { StatusBadge } from "@/components/StatusBadge";
 import { RadialGlow } from "@/components/RadialGlow";
 import { Palette } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
+import { usePollingAktif } from "@/hooks/usePollingAktif";
 import { hrisApi } from "@/services/api";
 import { useSession } from "@/services/session";
 import { LinearGradient } from "expo-linear-gradient";
@@ -117,20 +118,16 @@ export function HomeScreen() {
 
   useFocusEffect(muat);
 
-  // Jam, sapaan, dan status absen diperbarui terus selagi Beranda terbuka (tanpa memunculkan skeleton).
-  useFocusEffect(
-    useCallback(() => {
-      if (!employee) return;
-      const id = setInterval(() => {
-        setNow(new Date());
-        hrisApi
-          .getClockState(employee.id)
-          .then(setClock)
-          .catch(() => {});
-      }, 20_000);
-      return () => clearInterval(id);
-    }, [employee]),
-  );
+  // Jam, sapaan, dan status absen diperbarui selagi Beranda terbuka dan aplikasi di depan (berhenti di latar belakang).
+  const segarkanJam = useCallback(() => {
+    if (!employee) return;
+    setNow(new Date());
+    hrisApi
+      .getClockState(employee.id)
+      .then(setClock)
+      .catch(() => {});
+  }, [employee]);
+  usePollingAktif(segarkanJam, 20_000, !!employee);
 
   if (!employee) return null;
 

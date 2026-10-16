@@ -12,6 +12,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useFocusEffect } from "@react-navigation/native";
 import { useSession } from "@/services/session";
+import { usePollingAktif } from "@/hooks/usePollingAktif";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Palette } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
@@ -58,12 +59,12 @@ export function EmployeeDocumentDetailScreen({ navigation, route }: any) {
       })
       .catch(() => {});
   }, [employee, doc.id]);
-  useFocusEffect(
-    useCallback(() => {
-      segarkan();
-      const id = setInterval(segarkan, 8000);
-      return () => clearInterval(id);
-    }, [segarkan]),
+  useFocusEffect(segarkan);
+  // Polling hanya selagi status belum final (menunggu / diminta ubah) dan layar aktif di depan.
+  usePollingAktif(
+    segarkan,
+    20_000,
+    doc.status === "pending" || doc.status === "changeRequested",
   );
 
   const terverifikasi = doc.status === "verified" || doc.status === "expiring";

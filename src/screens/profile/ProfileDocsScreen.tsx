@@ -20,6 +20,7 @@ import {
   DOC_STATUS_TONE,
 } from "@/constants/statusLabels";
 import { useT } from "@/i18n";
+import { usePollingAktif } from "@/hooks/usePollingAktif";
 import { EmptyState } from "@/components/EmptyState";
 import { ICON } from "@/constants/icons";
 import { kembali } from "@/navigation/kembali";
@@ -49,19 +50,22 @@ export function ProfileDocsScreen({ navigation }: any) {
       .catch((e) => setGalat(describeError(e)));
   }, [employee]);
 
+  const muatDiam = useCallback(() => {
+    if (!employee) return;
+    hrisApi
+      .getDocuments(employee.id)
+      .then(setDocs)
+      .catch(() => {});
+  }, [employee]);
+
   useFocusEffect(muat);
-  // Status dokumen bisa berubah oleh HR kapan saja: muat ulang diam-diam selagi layar terbuka.
-  useFocusEffect(
-    useCallback(() => {
-      if (!employee) return;
-      const id = setInterval(() => {
-        hrisApi
-          .getDocuments(employee.id)
-          .then(setDocs)
-          .catch(() => {});
-      }, 8000);
-      return () => clearInterval(id);
-    }, [employee]),
+  // Status dokumen bisa berubah oleh HR: muat ulang diam-diam, hanya bila ada dokumen yang belum final.
+  usePollingAktif(
+    muatDiam,
+    20_000,
+    (docs ?? []).some(
+      (d) => d.status === "pending" || d.status === "changeRequested",
+    ),
   );
 
   const items = docs ?? [];
