@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "199963828161",
+    "project_id": "hris-2d0e4",
+    "storage_bucket": "hris-2d0e4.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:199963828161:android:39635aa9c2807aa354d940",
+        "android_client_info": {
+          "package_name": "com.hrismobile"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBs2GanWxdSywvkbkgPHkey_3kQfTMASgI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
