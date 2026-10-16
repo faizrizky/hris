@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import {
   KeyboardAvoidingView,
   Pressable,
@@ -10,6 +10,8 @@ import {
 import { RevealScrollView as ScrollView } from "@/components/Reveal";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
+import { useFocusEffect } from "@react-navigation/native";
+import { useSession } from "@/services/session";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Palette } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
@@ -32,7 +34,9 @@ import { kembali } from "@/navigation/kembali";
 // diubah langsung; yang bisa dilakukan adalah mengajukan perubahan dengan alasan.
 // Dokumen yang menunggu atau ditolak boleh langsung diganti berkasnya.
 export function EmployeeDocumentDetailScreen({ navigation, route }: any) {
-  const doc: EmployeeDocument = route.params.doc;
+  const { employee } = useSession();
+  // Salinan dari layar sebelumnya; diperbarui berkala supaya status yang diubah HR langsung tampil.
+  const [doc, setDoc] = useState<EmployeeDocument>(route.params.doc);
   const t = useT();
   const insets = useSafeAreaInsets();
   const c = useTheme();
@@ -43,6 +47,24 @@ export function EmployeeDocumentDetailScreen({ navigation, route }: any) {
   const [alasan, setAlasan] = useState("");
   const [sending, setSending] = useState(false);
   const [galat, setGalat] = useState<string | null>(null);
+
+  const segarkan = useCallback(() => {
+    if (!employee) return;
+    hrisApi
+      .getDocuments(employee.id)
+      .then((list) => {
+        const baru = list.find((x) => x.id === doc.id);
+        if (baru) setDoc(baru);
+      })
+      .catch(() => {});
+  }, [employee, doc.id]);
+  useFocusEffect(
+    useCallback(() => {
+      segarkan();
+      const id = setInterval(segarkan, 8000);
+      return () => clearInterval(id);
+    }, [segarkan]),
+  );
 
   const terverifikasi = doc.status === "verified" || doc.status === "expiring";
   const bisaGanti = doc.status === "pending" || doc.status === "rejected";

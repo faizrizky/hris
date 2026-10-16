@@ -150,6 +150,7 @@ EMPLOYEES = [  # (key, first, last, gender, dept, designation)
     ("budi", "Budi", "Santoso", "Male", "Finance", "Finance Staff"),
     ("dewi", "Dewi", "Kusuma", "Female", "Finance", "Finance Manager"),
     ("sari", "Sari", "Wulandari", "Female", "People Operations", "HR Staff"),
+    ("arman", "Arman", "Test", "Male", "Finance", "Finance Staff"),    # akun uji teman (role sama dengan rani)
     ("agus", "Agus", "Pratama", "Male", "Finance", "Finance Staff"),   # tanpa user login
     ("maya", "Maya", "Lestari", "Female", "People Operations", "HR Staff"),     # tanpa user login
 ]
@@ -168,9 +169,11 @@ PW = {
     "rani": os.environ.get("USER_PASSWORD"),
     "dewi": os.environ.get("MSS_USER_PASSWORD"),
     "sari": os.environ.get("HR_USER_PASSWORD"),
+    "arman": os.environ.get("ARMAN_USER_PASSWORD"),
 }
 USERS = {  # key: (email, first_name, roles)
     "rani": (os.environ.get("USER_EMAIL", "rani.test@example.com"), "Rani", ["Employee"]),
+    "arman": (os.environ.get("ARMAN_USER_EMAIL", "arman.test@example.com"), "Arman", ["Employee"]),
     "dewi": (os.environ.get("MSS_USER_EMAIL", "mss.test@example.com"), "Dewi", ["Employee", "Leave Approver"]),
     "sari": (os.environ.get("HR_USER_EMAIL", "hr.test@example.com"), "Sari",
              ["Employee", "HR User", "HR Manager", "Leave Approver"]),
@@ -205,6 +208,7 @@ ensure_roles()
 mail = {k: v[0] for k, v in USERS.items()}
 frappe.db.set_value("Employee", emp["rani"], "leave_approver", mail["dewi"])
 frappe.db.set_value("Employee", emp["budi"], "leave_approver", mail["sari"])
+frappe.db.set_value("Employee", emp["arman"], "leave_approver", mail["dewi"])
 frappe.db.set_value("Employee", emp["dewi"], "leave_approver", mail["sari"])
 frappe.db.set_value("Employee", emp["sari"], "leave_approver", mail["dewi"])
 frappe.db.commit()
@@ -213,6 +217,7 @@ frappe.db.commit()
 PROFILE = {  # key: (nomor, reports_to key, employment_type, contract_end)
     "rani": ("EMP-0001", "dewi", "Full-time", None),
     "budi": ("EMP-0002", "dewi", "Contract", f"{Y+1}-05-31"),
+    "arman": ("EMP-0007", "dewi", "Full-time", None),
     "dewi": ("EMP-0003", "sari", "Full-time", None),
     "sari": ("EMP-0004", None, "Full-time", None),
     "agus": ("EMP-0005", "dewi", "Full-time", None),
@@ -230,7 +235,7 @@ for i, (key, (no, boss, et, ce)) in enumerate(PROFILE.items(), start=1):
 frappe.db.commit()
 
 # 6. User Permission: ESS/MSS hanya melihat Employee dirinya sendiri --------
-for key in ("rani", "dewi"):
+for key in ("rani", "arman", "dewi"):
     if not exists("User Permission", {"user": mail[key], "allow": "Employee", "for_value": emp[key]}):
         make(dict(doctype="User Permission", user=mail[key], allow="Employee",
                   for_value=emp[key], apply_to_all_doctypes=1))
@@ -291,9 +296,9 @@ if _payroll_fields_created:
     log("nilai awal pengaturan gaji diisi")
 
 # 8. Payroll: komponen, struktur gaji, slip gaji Juli-September -------------------------
-BANK = {"rani": "1234567801", "budi": "1234567802", "dewi": "1234567803",
+BANK = {"arman": "1234567807", "rani": "1234567801", "budi": "1234567802", "dewi": "1234567803",
         "sari": "1234567804", "agus": "1234567805", "maya": "1234567806"}
-BASE = {"rani": 7500000, "budi": 6500000, "dewi": 12000000, "sari": 11000000,
+BASE = {"arman": 7500000, "rani": 7500000, "budi": 6500000, "dewi": 12000000, "sari": 11000000,
         "agus": 6000000, "maya": 6500000}
 STRUCT = "Standard Salary Structure"
 COMPONENTS = [  # (nama, abbr, tipe, formula, remove_if_zero)
@@ -438,6 +443,7 @@ PERSONAL = {  # key: (alamat, kontak darurat 1 (nama, hubungan, telp), kontak da
     "budi": ("Jl. Kenanga No. 5, Depok", ("Hartono", "Father", "0813-1111-0002"), None),
     "dewi": ("Jl. Anggrek No. 8, Bekasi", ("Bagus Kusuma", "Spouse", "0813-1111-0003"), ("Ratna Kusuma", "Mother", "0813-2222-0003")),
     "sari": ("Jl. Mawar No. 3, Tangerang", ("Wulan", "Sibling", "0813-1111-0004"), None),
+    "arman": ("Jl. Merpati No. 7, Jakarta Barat", ("Keluarga Arman", "Mother", "0813-1111-0007"), None),
     "agus": ("Jl. Cempaka No. 21, Bogor", ("Pratama Sr", "Father", "0813-1111-0005"), None),
     "maya": ("Jl. Dahlia No. 9, Jakarta Timur", ("Lestari", "Mother", "0813-1111-0006"), None),
 }

@@ -50,6 +50,19 @@ export function ProfileDocsScreen({ navigation }: any) {
   }, [employee]);
 
   useFocusEffect(muat);
+  // Status dokumen bisa berubah oleh HR kapan saja: muat ulang diam-diam selagi layar terbuka.
+  useFocusEffect(
+    useCallback(() => {
+      if (!employee) return;
+      const id = setInterval(() => {
+        hrisApi
+          .getDocuments(employee.id)
+          .then(setDocs)
+          .catch(() => {});
+      }, 8000);
+      return () => clearInterval(id);
+    }, [employee]),
+  );
 
   const items = docs ?? [];
   const loading = docs === null && !galat;
