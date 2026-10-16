@@ -15,6 +15,7 @@ interface SessionContextValue {
   employee: Employee | null;
   setEmployee: (employee: Employee | null) => void;
   siap: boolean; // false selama sesi tersimpan masih dipulihkan saat aplikasi dibuka
+  dipulihkan: boolean; // true bila pengguna masuk lewat sesi tersimpan (bukan mengetik login)
 }
 
 const SessionContext = createContext<SessionContextValue | undefined>(
@@ -24,6 +25,7 @@ const SessionContext = createContext<SessionContextValue | undefined>(
 export function SessionProvider({ children }: { children: React.ReactNode }) {
   const [employee, setEmployee] = useState<Employee | null>(null);
   const [siap, setSiap] = useState(false);
+  const [dipulihkan, setDipulihkan] = useState(false);
 
   // Sesi login hidup di cookie server, jadi aplikasi yang dibuka ulang (termasuk setelah pembaruan APK/OTA)
   // tinggal bertanya "siapa saya"; hanya bila sesinya sudah kedaluwarsa pengguna kembali ke layar login.
@@ -37,7 +39,9 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
       ),
     ])
       .then((e) => {
-        if (!batal) setEmployee((sekarang) => sekarang ?? e);
+        if (batal) return;
+        setEmployee((sekarang) => sekarang ?? e);
+        setDipulihkan(true);
       })
       .catch(() => {})
       .finally(() => {
@@ -98,7 +102,9 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
   }, [employeeId]);
 
   return (
-    <SessionContext.Provider value={{ employee, setEmployee, siap }}>
+    <SessionContext.Provider
+      value={{ employee, setEmployee, siap, dipulihkan }}
+    >
       {children}
     </SessionContext.Provider>
   );

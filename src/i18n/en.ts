@@ -75,7 +75,7 @@ export const en: Record<Kunci, string> = {
   "login.memproses": "Processing...",
   "login.masuk": "Sign in",
   "login.atau": "or",
-  "login.faceId": "Sign in with Face ID",
+  "login.faceId": "Sign in with fingerprint / face",
 
   "notif.hariIni": "Today",
   "notif.kemarin": "Yesterday",
@@ -1021,6 +1021,36 @@ export const en: Record<Kunci, string> = {
   "face.pejam": "Face forward, then close your eyes for a moment",
   "face.toleh1": "Turn your head to one side",
   "face.toleh2": "Now turn to the opposite side",
+  "kunci.judul": "App locked",
+  "kunci.sub": "Unlock with a fingerprint or face registered on this phone.",
+  "kunci.gagal": "Not successful. Try again or sign out.",
+  "kunci.buka": "Unlock",
+  "kunci.keluar": "Sign out",
+  "kunci.prompt": "Unlock HRIS",
+  "kunci.batal": "Cancel",
+  "bio.judul": "Lock and biometric login",
+  "bio.kunciOtomatis": "Auto-lock",
+  "bio.kunciSub":
+    "Ask for a fingerprint or face when the app opens and after returning from the background.",
+  "bio.timeout": "Lock after being in the background",
+  "bio.segera": "Immediately",
+  "bio.satuMenit": "1 minute",
+  "bio.limaMenit": "5 minutes",
+  "bio.loginBio": "Biometric login",
+  "bio.loginBioAktif": "On. Sign in without typing your password.",
+  "bio.loginBioMati":
+    'Turn it on with the "Biometric login" checkbox on the sign-in screen.',
+  "bio.matikan": "Turn off",
+  "bio.belumDaftar":
+    "No fingerprint or face is registered on this phone. Register one in the phone Settings first.",
+  "bio.tidakAda": "This phone does not support biometrics.",
+  "bio.konfirmasi": "Confirm to turn on the lock",
+  "bio.centang": "Biometric login",
+  "bio.pesanLogin": "Sign in to HRIS",
+  "bio.belumAktif":
+    'Biometric login is not on yet. Sign in with your password and tick "Biometric login".',
+  "bio.gagalMasuk":
+    "Biometric login failed. Sign in with your password and turn it on again.",
   "dv.judul": "Device not approved",
   "dv.menunggu":
     "This is a new device. You can clock in from this phone only after HR approves it. You will be notified once it is approved.",

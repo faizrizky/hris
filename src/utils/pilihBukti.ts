@@ -1,3 +1,4 @@
+import { tahanKunci } from "@/services/biometrik";
 import * as DocumentPicker from "expo-document-picker";
 import { File } from "expo-file-system";
 import { jadikanJpeg } from "@/utils/jadikanJpeg";
@@ -17,6 +18,7 @@ export type HasilPilih =
 
 // Memilih satu bukti (PDF/JPG/PNG, maks. 5 MB). Batas yang sama dijaga juga oleh server.
 export async function pilihBukti(): Promise<HasilPilih> {
+  tahanKunci();
   const r = await DocumentPicker.getDocumentAsync({
     type: ["application/pdf", "image/*"],
     copyToCacheDirectory: true,

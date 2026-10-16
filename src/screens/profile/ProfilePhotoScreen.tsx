@@ -1,3 +1,4 @@
+import { tahanKunci } from "@/services/biometrik";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Animated,
@@ -81,6 +82,7 @@ export function ProfilePhotoScreen({ navigation }: any) {
       setGalat(t("pf.izin"));
       return;
     }
+    tahanKunci();
     const buka = kamera
       ? ImagePicker.launchCameraAsync
       : ImagePicker.launchImageLibraryAsync;

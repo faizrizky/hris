@@ -1,3 +1,4 @@
+import { tahanKunci } from "@/services/biometrik";
 // Pembaruan aplikasi tanpa toko (sementara, Android): APK diunggah ke server, aplikasi memeriksa versi
 // saat dibuka, mengunduhnya dengan progres, lalu membuka pemasang Android. Pemasangan tidak bisa senyap:
 // Android selalu meminta pengguna mengetuk "Perbarui".
@@ -99,6 +100,7 @@ export async function unduhDanPasang(
   }
   onProgres(1);
   const uri = await FileSystem.getContentUriAsync(tujuan);
+  tahanKunci();
   await IntentLauncher.startActivityAsync("android.intent.action.VIEW", {
     data: uri,
     flags: 1, // FLAG_GRANT_READ_URI_PERMISSION

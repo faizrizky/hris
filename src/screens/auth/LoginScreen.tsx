@@ -24,6 +24,13 @@ import { useT } from "@/i18n";
 import { LanguagePicker } from "@/components/LanguagePicker";
 import { LogoHris } from "@/components/LogoHris";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import {
+  adaLoginBiometrik,
+  bacaKredensial,
+  hapusKredensial,
+  kesiapanBiometrik,
+  simpanKredensial,
+} from "@/services/biometrik";
 
 const KUNCI_USERNAME = "hris.username";
 
@@ -33,6 +40,8 @@ export function LoginScreen() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
+  const [pakaiBio, setPakaiBio] = useState(false);
+  const [bioSiap, setBioSiap] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const insets = useSafeAreaInsets();
   const t = useT();
@@ -52,11 +61,37 @@ export function LoginScreen() {
       .catch(() => {});
   }, []);
 
+  // Biometrik hanya ditawarkan bila perangkat ini sudah punya sidik jari / wajah terdaftar.
+  useEffect(() => {
+    kesiapanBiometrik().then((k) => setBioSiap(k === "siap"));
+  }, []);
+
   // Alamat tersimpan dibaca asinkron; isi kolom setelah siap.
   useEffect(() => {
     const id = setTimeout(() => setServer(alamatServer()), 300);
     return () => clearTimeout(id);
   }, []);
+
+  const masukDenganBiometrik = async () => {
+    setError(null);
+    const k = await kesiapanBiometrik();
+    if (k === "tidakAda") return setError(t("bio.tidakAda"));
+    if (k === "belumDaftar") return setError(t("bio.belumDaftar"));
+    if (!(await adaLoginBiometrik())) return setError(t("bio.belumAktif"));
+    const kred = await bacaKredensial(t("bio.pesanLogin"));
+    if (!kred) return; // dibatalkan atau gagal verifikasi
+    setLoading(true);
+    try {
+      setServer(await aturAlamatServer(server));
+      const employee = await hrisApi.login(kred.u, kred.p);
+      setEmployee(employee);
+    } catch {
+      await hapusKredensial(); // password berubah atau sesi tidak valid: aktifkan lagi dengan password
+      setError(t("bio.gagalMasuk"));
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleLogin = async () => {
     setLoading(true);
@@ -64,6 +99,9 @@ export function LoginScreen() {
     try {
       setServer(await aturAlamatServer(server));
       const employee = await hrisApi.login(email.trim(), password);
+      if (pakaiBio && bioSiap) {
+        await simpanKredensial(email.trim(), password).catch(() => {});
+      }
       if (rememberMe) {
         await AsyncStorage.setItem(KUNCI_USERNAME, email.trim()).catch(
           () => {},
@@ -189,6 +227,20 @@ export function LoginScreen() {
             <Text style={styles.forgotLabel}>{t("login.lupa")}</Text>
           </View>
 
+          {bioSiap ? (
+            <Pressable
+              style={[styles.rememberRow, { marginTop: 10 }]}
+              onPress={() => setPakaiBio((v) => !v)}
+            >
+              <View style={[styles.checkbox, pakaiBio && styles.checkboxOn]}>
+                {pakaiBio && (
+                  <Ionicons name="checkmark" size={11} color="#fff" />
+                )}
+              </View>
+              <Text style={styles.rememberLabel}>{t("bio.centang")}</Text>
+            </Pressable>
+          ) : null}
+
           <Text style={styles.hint}>
             {error && <Text style={styles.errorText}>{error}</Text>}
           </Text>
@@ -214,7 +266,7 @@ export function LoginScreen() {
 
           <Pressable
             style={styles.faceIdButton}
-            onPress={handleLogin}
+            onPress={masukDenganBiometrik}
             disabled={loading}
           >
             <View style={styles.faceIdIcon}>

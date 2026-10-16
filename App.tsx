@@ -3,6 +3,7 @@ import { StatusBar } from "expo-status-bar";
 import * as SplashScreen from "expo-splash-screen";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { SessionProvider } from "@/services/session";
+import { KunciProvider } from "@/services/kunciApp";
 import { RootNavigator } from "@/navigation/RootNavigator";
 import { ThemeProvider } from "@/theme/ThemeContext";
 import { ConfirmProvider } from "@/components/ConfirmDialog";
@@ -20,8 +21,10 @@ export default function App() {
         <LanguageProvider>
           <ConfirmProvider>
             <SessionProvider>
-              <RootNavigator />
-              <StatusBar style="auto" />
+              <KunciProvider>
+                <RootNavigator />
+                <StatusBar style="auto" />
+              </KunciProvider>
               {splashSelesai ? null : (
                 <AnimatedSplash onSelesai={() => setSplashSelesai(true)} />
               )}

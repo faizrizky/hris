@@ -81,7 +81,7 @@ export const id = {
   "login.memproses": "Memproses...",
   "login.masuk": "Masuk",
   "login.atau": "atau",
-  "login.faceId": "Masuk dengan Face ID",
+  "login.faceId": "Masuk dengan sidik jari / wajah",
 
   "notif.hariIni": "Hari ini",
   "notif.kemarin": "Kemarin",
@@ -1025,6 +1025,36 @@ export const id = {
   "face.pejam": "Hadap depan, lalu pejamkan mata sebentar",
   "face.toleh1": "Tolehkan kepala ke satu sisi",
   "face.toleh2": "Sekarang tolehkan ke sisi sebaliknya",
+  "kunci.judul": "Aplikasi terkunci",
+  "kunci.sub": "Buka dengan sidik jari atau wajah yang terdaftar di HP ini.",
+  "kunci.gagal": "Belum berhasil. Coba lagi atau keluar dari akun.",
+  "kunci.buka": "Buka kunci",
+  "kunci.keluar": "Keluar dari akun",
+  "kunci.prompt": "Buka HRIS",
+  "kunci.batal": "Batal",
+  "bio.judul": "Kunci dan login biometrik",
+  "bio.kunciOtomatis": "Kunci otomatis",
+  "bio.kunciSub":
+    "Minta sidik jari atau wajah saat aplikasi dibuka dan setelah dari latar belakang.",
+  "bio.timeout": "Kunci setelah di latar belakang",
+  "bio.segera": "Segera",
+  "bio.satuMenit": "1 menit",
+  "bio.limaMenit": "5 menit",
+  "bio.loginBio": "Login biometrik",
+  "bio.loginBioAktif": "Aktif. Masuk tanpa mengetik password.",
+  "bio.loginBioMati":
+    'Aktifkan lewat centang "Login biometrik" di layar login.',
+  "bio.matikan": "Matikan",
+  "bio.belumDaftar":
+    "Belum ada sidik jari atau wajah terdaftar di HP ini. Daftarkan dulu di Pengaturan HP.",
+  "bio.tidakAda": "HP ini tidak mendukung biometrik.",
+  "bio.konfirmasi": "Konfirmasi untuk mengaktifkan kunci",
+  "bio.centang": "Login biometrik",
+  "bio.pesanLogin": "Masuk ke HRIS",
+  "bio.belumAktif":
+    'Login biometrik belum diaktifkan. Masuk dengan password dan centang "Login biometrik".',
+  "bio.gagalMasuk":
+    "Login biometrik gagal. Masuk dengan password lalu aktifkan lagi.",
   "dv.judul": "Perangkat belum disetujui",
   "dv.menunggu":
     "Ini perangkat baru. Absen dari HP ini baru bisa setelah HR menyetujuinya. Kamu akan menerima notifikasi begitu disetujui.",

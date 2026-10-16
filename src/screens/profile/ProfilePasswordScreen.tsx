@@ -27,6 +27,7 @@ import {
 import { useT } from "@/i18n";
 import { useConfirm } from "@/components/ConfirmDialog";
 import { kembali } from "@/navigation/kembali";
+import { hapusKredensial } from "@/services/biometrik";
 
 export function ProfilePasswordScreen({ navigation }: any) {
   const t = useT();
@@ -66,6 +67,7 @@ export function ProfilePasswordScreen({ navigation }: any) {
     setGalat(null);
     try {
       await hrisApi.changePassword(employee.id, lama, baru);
+      await hapusKredensial(); // login biometrik memakai password lama; aktifkan lagi dengan password baru
       setSelesai(true);
     } catch (e) {
       // Frappe menghapus sesi bila password lama salah (cookie sid dikosongkan),

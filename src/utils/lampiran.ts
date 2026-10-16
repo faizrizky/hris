@@ -1,3 +1,4 @@
+import { tahanKunci } from "@/services/biometrik";
 import * as Sharing from "expo-sharing";
 import { File, Paths } from "expo-file-system";
 import { unduhBerkas } from "@/services/api/http";
@@ -26,6 +27,7 @@ export async function bukaLampiran(
 ): Promise<boolean> {
   const uri = await simpanLampiran(url, nama);
   if (!(await Sharing.isAvailableAsync())) return false;
+  tahanKunci();
   await Sharing.shareAsync(uri);
   return true;
 }

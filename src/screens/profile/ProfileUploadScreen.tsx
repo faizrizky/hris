@@ -1,3 +1,4 @@
+import { tahanKunci } from "@/services/biometrik";
 import { useMemo, useState } from "react";
 import {
   Keyboard,
@@ -87,6 +88,7 @@ export function ProfileUploadScreen({ navigation }: any) {
   };
 
   const pilihFile = async () => {
+    tahanKunci();
     const r = await DocumentPicker.getDocumentAsync({
       type: ["application/pdf", "image/jpeg", "image/png"],
       copyToCacheDirectory: true,
@@ -114,6 +116,7 @@ export function ProfileUploadScreen({ navigation }: any) {
       });
       return;
     }
+    tahanKunci();
     const r = await ImagePicker.launchCameraAsync({ quality: 0.7 });
     if (r.canceled) return;
     const a = r.assets[0];

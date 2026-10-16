@@ -70,6 +70,13 @@
             "backgroundColor": "#FFFFFF"
           }
         }
+      ],
+      "expo-secure-store",
+      [
+        "expo-local-authentication",
+        {
+          "faceIDPermission": "Izinkan $(PRODUCT_NAME) memakai Face ID untuk membuka aplikasi dan masuk."
+        }
       ]
     ],
     "extra": {

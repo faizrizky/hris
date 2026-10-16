@@ -4,6 +4,14 @@ import { RevealScrollView as ScrollView } from "@/components/Reveal";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
+import {
+  adaLoginBiometrik,
+  autentikasi,
+  hapusKredensial,
+  kesiapanBiometrik,
+  type KesiapanBiometrik,
+} from "@/services/biometrik";
+import { useKunci } from "@/services/kunciApp";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useConfirm } from "@/components/ConfirmDialog";
 import { Palette } from "@/theme/colors";
@@ -47,6 +55,10 @@ export function ProfileSecurityScreen({ navigation }: any) {
   const [info, setInfo] = useState<SecurityInfo | null>(null);
   const [galat, setGalat] = useState<string | null>(null);
   const [wajah, setWajah] = useState<FaceStatus | null>(null);
+  const kunci = useKunci();
+  const [bio, setBio] = useState<KesiapanBiometrik>("siap");
+  const [loginBio, setLoginBio] = useState(false);
+  const [pesanBio, setPesanBio] = useState<string | null>(null);
 
   const muat = useCallback(() => {
     if (!employee) return;
@@ -62,6 +74,28 @@ export function ProfileSecurityScreen({ navigation }: any) {
   }, [employee]);
 
   useFocusEffect(muat);
+  useFocusEffect(
+    useCallback(() => {
+      kesiapanBiometrik().then(setBio);
+      adaLoginBiometrik().then(setLoginBio);
+    }, []),
+  );
+
+  const ubahKunci = async (nyala: boolean) => {
+    setPesanBio(null);
+    if (nyala) {
+      if (bio === "tidakAda") return setPesanBio(t("bio.tidakAda"));
+      if (bio === "belumDaftar") return setPesanBio(t("bio.belumDaftar"));
+      kunci.abaikanLatar(15_000);
+      if (!(await autentikasi(t("bio.konfirmasi"), t("kunci.batal")))) return;
+    }
+    kunci.ubah({ ...kunci.pengaturan, aktif: nyala });
+  };
+  const PILIHAN_TIMEOUT: [number, string][] = [
+    [0, t("bio.segera")],
+    [60_000, t("bio.satuMenit")],
+    [300_000, t("bio.limaMenit")],
+  ];
 
   const gagalAksi = (e: unknown) => {
     void confirm({
@@ -227,6 +261,90 @@ export function ProfileSecurityScreen({ navigation }: any) {
             </View>
             <Ionicons name="chevron-forward" size={16} color={c.mutedLabel} />
           </Pressable>
+        </View>
+
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>{t("bio.judul")}</Text>
+          <View
+            style={[styles.listRow, { paddingHorizontal: 0, marginTop: 6 }]}
+          >
+            <View style={{ flex: 1, minWidth: 0 }}>
+              <Text style={styles.rowTitle}>{t("bio.kunciOtomatis")}</Text>
+              <Text style={styles.rowSub}>{t("bio.kunciSub")}</Text>
+            </View>
+            <Switch
+              value={kunci.pengaturan.aktif}
+              onValueChange={ubahKunci}
+              trackColor={{ false: c.track, true: c.accent }}
+              thumbColor="#fff"
+            />
+          </View>
+          {kunci.pengaturan.aktif ? (
+            <View style={{ marginTop: 4 }}>
+              <Text style={styles.rowSub}>{t("bio.timeout")}</Text>
+              <View style={{ flexDirection: "row", gap: 8, marginTop: 8 }}>
+                {PILIHAN_TIMEOUT.map(([ms, label]) => {
+                  const on = kunci.pengaturan.timeoutMs === ms;
+                  return (
+                    <Pressable
+                      key={ms}
+                      onPress={() =>
+                        kunci.ubah({ ...kunci.pengaturan, timeoutMs: ms })
+                      }
+                      style={{
+                        flex: 1,
+                        alignItems: "center",
+                        paddingVertical: 10,
+                        borderRadius: 12,
+                        borderWidth: 1,
+                        borderColor: on ? c.accent : c.fieldBorder,
+                        backgroundColor: on ? c.accent : "transparent",
+                      }}
+                    >
+                      <Text
+                        style={{
+                          fontSize: 12.5,
+                          fontWeight: "600",
+                          color: on ? "#fff" : c.ink,
+                        }}
+                      >
+                        {label}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            </View>
+          ) : null}
+          <View
+            style={[styles.listRow, { paddingHorizontal: 0, marginTop: 12 }]}
+          >
+            <View style={{ flex: 1, minWidth: 0 }}>
+              <Text style={styles.rowTitle}>{t("bio.loginBio")}</Text>
+              <Text style={styles.rowSub}>
+                {loginBio ? t("bio.loginBioAktif") : t("bio.loginBioMati")}
+              </Text>
+            </View>
+            {loginBio ? (
+              <Pressable
+                onPress={async () => {
+                  await hapusKredensial();
+                  setLoginBio(false);
+                }}
+              >
+                <Text
+                  style={{ fontSize: 13, fontWeight: "700", color: c.accent }}
+                >
+                  {t("bio.matikan")}
+                </Text>
+              </Pressable>
+            ) : null}
+          </View>
+          {pesanBio ? (
+            <Text style={[styles.rowSub, { color: c.bad.ink, marginTop: 8 }]}>
+              {pesanBio}
+            </Text>
+          ) : null}
         </View>
 
         <View style={styles.card}>
