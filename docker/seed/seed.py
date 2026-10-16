@@ -1349,10 +1349,14 @@ _FCS = "Face Enrollment - review"
 _FJS = r"""// Face Enrollment: HR meninjau selfie, foto KTP, dan foto profil berdampingan dengan persentase kecocokan.
 const esc = (v) => frappe.utils.escape_html(v == null ? "" : String(v));
 function foto(url, label) {
-	const isi = url
+	// KTP sering berupa PDF: tampilkan halaman pertamanya langsung lewat penampil PDF peramban (tanpa konversi).
+	const pdf = url && /\.pdf($|\?)/i.test(url);
+	const isi = pdf
+		? `<object data="${esc(url)}#toolbar=0&navpanes=0&scrollbar=0&view=Fit" type="application/pdf" style="width:100%;height:100%;border:0"><a href="${esc(url)}" target="_blank">${__("Open PDF")}</a></object>`
+		: url
 		? `<img src="${esc(url)}" style="width:100%;height:100%;object-fit:cover">`
 		: `<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--text-muted)">${__("No photo")}</div>`;
-	return `<div style="flex:1;min-width:150px;max-width:230px"><div style="aspect-ratio:3/4;border:1px solid var(--border-color);border-radius:12px;overflow:hidden;background:var(--control-bg)">${isi}</div><div style="text-align:center;margin-top:6px;font-weight:600">${esc(label)}</div></div>`;
+	return `<div style="flex:1;min-width:150px;max-width:230px"><div style="aspect-ratio:3/4;border:1px solid var(--border-color);border-radius:12px;overflow:hidden;background:var(--control-bg)">${isi}</div><div style="text-align:center;margin-top:6px;font-weight:600">${esc(label)}${url ? ` <a href="${esc(url)}" target="_blank" style="font-weight:400;font-size:12px">(${__("open")})</a>` : ""}</div></div>`;
 }
 function skor(label, nilai, min) {
 	if (nilai == null) return "";
@@ -1372,11 +1376,20 @@ frappe.ui.form.on("Face Enrollment", {
 			frappe.db.get_single_value("Face Settings", "min_ktp"),
 			frappe.db.get_single_value("Face Settings", "min_profile"),
 		]);
+		// Berkas KTP bisa hanya terlampir (kolom file kosong): ambil lampiran terbaru dokumen itu.
+		let ktpUrl = ktp && ktp.message && ktp.message.file;
+		if (!ktpUrl && d.ktp_document) {
+			const f = await frappe.db.get_list("File", {
+				filters: { attached_to_doctype: "Employee Document", attached_to_name: d.ktp_document },
+				fields: ["file_url"], order_by: "creation desc", limit: 1,
+			});
+			ktpUrl = f && f[0] && f[0].file_url;
+		}
 		const aman = d.score_profile != null && d.score_ktp != null;
 		const html =
 			`<div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:12px">` +
 			foto(d.selfie, __("Registration selfie")) +
-			foto(ktp && ktp.message && ktp.message.file, __("ID card (KTP)")) +
+			foto(ktpUrl, __("ID card (KTP)")) +
 			foto(emp && emp.message && emp.message.image, __("Profile photo")) +
 			`</div>` +
 			skor(__("Face vs ID card"), d.score_ktp, minKtp || 30) +
