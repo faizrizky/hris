@@ -1,4 +1,5 @@
 import type { ClockState } from "@/services/types";
+import { tt } from "@/i18n";
 
 const menit = (hhmm: string | null | undefined): number | null => {
   const m = /^(\d{1,2}):(\d{2})/.exec(hhmm ?? "");
@@ -38,4 +39,15 @@ export function statusPresensi(
   return awal > (s.earlyGraceMin ?? 0)
     ? { jenis: "pulangAwal", menit: awal }
     : { jenis: "tepat" };
+}
+
+// Durasi ringkas tanpa detik: di bawah 60 menit "45 mnt"; mulai 60 menit "9 jam 10 mnt" (menit 0 dihilangkan).
+export function formatDurasi(totalMenit: number): string {
+  const m = Math.max(0, Math.round(totalMenit));
+  if (m < 60) return `${m} ${tt("dur.mnt")}`;
+  const j = Math.floor(m / 60);
+  const sisa = m % 60;
+  return sisa === 0
+    ? `${j} ${tt("dur.jam")}`
+    : `${j} ${tt("dur.jam")} ${sisa} ${tt("dur.mnt")}`;
 }

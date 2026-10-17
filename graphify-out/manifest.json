@@ -264,9 +264,9 @@
     "semantic_hash": ""
   },
   "src/screens/attendance/ClockScreen.tsx": {
-    "mtime": 1792135732.4488943,
-    "seen": 1792158747.431104,
-    "ast_hash": "1cb1944772dd4fa9f693746fcd839d1f",
+    "mtime": 1792232188.1703959,
+    "seen": 1792232279.881057,
+    "ast_hash": "3c7fad6639ccb13af00b2d2729e6126d",
     "semantic_hash": ""
   },
   "src/screens/attendance/KoreksiCards.tsx": {
@@ -330,9 +330,9 @@
     "semantic_hash": ""
   },
   "src/screens/leave/LeaveRequestScreen.tsx": {
-    "mtime": 1792086846.157646,
-    "seen": 1792158747.4311192,
-    "ast_hash": "2a7d4a065eebfdc79727799db22ae8fb",
+    "mtime": 1792232211.8520126,
+    "seen": 1792232279.881078,
+    "ast_hash": "bdd1b3faf001518616822b06c491479d",
     "semantic_hash": ""
   },
   "src/screens/leave/LemburFormCards.tsx": {
@@ -438,9 +438,9 @@
     "semantic_hash": ""
   },
   "src/services/api/erpnextApi.ts": {
-    "mtime": 1792198313.1068716,
-    "seen": 1792198493.7179809,
-    "ast_hash": "14a7f6228dc561d129b3cae9356dfae8",
+    "mtime": 1792232211.8527172,
+    "seen": 1792232279.88111,
+    "ast_hash": "47de7cee91160a5d6ff88366753c5d0b",
     "semantic_hash": ""
   },
   "src/services/api/http.ts": {
@@ -576,9 +576,9 @@
     "semantic_hash": ""
   },
   "docker/server-scripts/hris_checkin.py": {
-    "mtime": 1792135725.9483664,
-    "seen": 1792158747.430974,
-    "ast_hash": "bba25b111bcdfae4c8a5e438e4f4a648",
+    "mtime": 1792232211.8496408,
+    "seen": 1792232279.880896,
+    "ast_hash": "38e7f0f96e6a01c80768d08bf4b83da5",
     "semantic_hash": ""
   },
   "docker/server-scripts/hris_create_my_document.py": {
@@ -852,15 +852,15 @@
     "semantic_hash": ""
   },
   "src/i18n/en.ts": {
-    "mtime": 1792198359.9040956,
-    "seen": 1792198493.7179441,
-    "ast_hash": "be0be9017d83363ba4d001e051e58d87",
+    "mtime": 1792232213.6202884,
+    "seen": 1792232279.881042,
+    "ast_hash": "102d620df9cd118cab78847093a2ba52",
     "semantic_hash": ""
   },
   "src/i18n/id.ts": {
-    "mtime": 1792198359.903887,
-    "seen": 1792198493.717945,
-    "ast_hash": "890c85d9db89f6ef8e66e73542ef0a2b",
+    "mtime": 1792232213.6483767,
+    "seen": 1792232279.881043,
+    "ast_hash": "72ecd20c4ab8008657cf25db0e9aa639",
     "semantic_hash": ""
   },
   "src/i18n/index.tsx": {
@@ -1086,9 +1086,9 @@
     "semantic_hash": ""
   },
   "docker/server-scripts/hris_get_work_locations.py": {
-    "mtime": 1791916773.9337907,
-    "seen": 1791917038.005078,
-    "ast_hash": "2f050d30e505b96d216b99a10105a991",
+    "mtime": 1792232211.8502166,
+    "seen": 1792232279.88095,
+    "ast_hash": "4f341075e0918588d3ec4a1c7b27e12c",
     "semantic_hash": ""
   },
   "src/hooks/useLokasiKerja.ts": {
@@ -1122,9 +1122,9 @@
     "semantic_hash": ""
   },
   "docker/server-scripts/hris_submit_wfh.py": {
-    "mtime": 1791916773.8420184,
-    "seen": 1791917038.005099,
-    "ast_hash": "c4b9fed7974e60ccc322b571022b45b4",
+    "mtime": 1792232211.8508909,
+    "seen": 1792232279.880983,
+    "ast_hash": "e61d117557e8708be25d09cc2b0af6b8",
     "semantic_hash": ""
   },
   "src/screens/leave/WfhFormCards.tsx": {
@@ -1158,9 +1158,9 @@
     "semantic_hash": ""
   },
   "src/screens/attendance/FaceCheck.tsx": {
-    "mtime": 1792135725.9520211,
-    "seen": 1792158747.431104,
-    "ast_hash": "9d4e7d1bc4296b3aa475b6de4cb1d7df",
+    "mtime": 1792232213.8351197,
+    "seen": 1792232279.8810592,
+    "ast_hash": "20125aebf6faffe1ee24db2908f9129e",
     "semantic_hash": ""
   },
   "src/services/faceCheck.ts": {
@@ -1356,9 +1356,9 @@
     "semantic_hash": ""
   },
   "src/utils/statusPresensi.ts": {
-    "mtime": 1792198421.8360114,
-    "seen": 1792198493.717998,
-    "ast_hash": "ae75b0510c1b798e9fe61a07a1c97709",
+    "mtime": 1792232188.1692107,
+    "seen": 1792232279.881143,
+    "ast_hash": "da356fa1ed7d2585baa9b1a82a21703e",
     "semantic_hash": ""
   },
   "GAP-KANTORKU.md": {

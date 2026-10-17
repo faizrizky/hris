@@ -20,6 +20,12 @@ import {
 const BATAS_MS = 45_000; // seluruh sesi liveness (tiga perintah)
 // Anti-spoofing membaca tekstur halus, jadi frame dibuat lebih tajam saat model tersedia.
 const KUALITAS_DETEKSI = spoofTersedia() ? 0.6 : 0.3;
+// Verifikasi hanya dengan anti-spoofing (tanpa perintah gerak): beberapa frame menghadap depan dinilai model, keputusan
+// memakai median supaya satu frame buruk tidak menggagalkan wajah asli dan satu frame bagus tidak meloloskan foto/layar.
+const SPOOF_MIN_FRAME = 5;
+const SPOOF_MAKS_FRAME = 12;
+const SPOOF_AMBANG = 0.6;
+const SPOOF_BATAS_MS = 25_000;
 const KUALITAS_SAMPEL = 0.7; // foto untuk embedding wajah: lebih tajam supaya pencocokan akurat
 
 // Kamera depan + tantangan acak. onLulus dipanggil sekali saat liveness lolos.
@@ -38,6 +44,8 @@ export function FaceCheck({
   const [status, setStatus] = useState<StatusUrutan>(awalUrutan);
   const [waktuHabis, setWaktuHabis] = useState(false);
   const [lulus, setLulus] = useState(false);
+  const [bukanAsli, setBukanAsli] = useState(false);
+  const [pesanSpoof, setPesanSpoof] = useState<string>("face.spoofCek");
 
   useEffect(() => {
     if (!izin?.granted || !siapKamera) return;
@@ -46,6 +54,81 @@ export function FaceCheck({
     let vec: number[] | null = null;
     const skorFrame: number[] = [];
     const mulai = Date.now();
+    if (spoofTersedia()) {
+      // Hanya anti-spoofing: tanpa kedip/toleh.
+      (async () => {
+        const skor: number[] = [];
+        const median = (v: number[]) => {
+          const x = [...v].sort((a, b) => a - b);
+          const m = Math.floor(x.length / 2);
+          return x.length % 2 ? x[m]! : (x[m - 1]! + x[m]!) / 2;
+        };
+        while (!batal) {
+          if (Date.now() - mulai > SPOOF_BATAS_MS) {
+            setWaktuHabis(true);
+            return;
+          }
+          try {
+            const foto = await kamera.current?.takePictureAsync({
+              quality: KUALITAS_DETEKSI,
+              skipProcessing: true,
+              shutterSound: false,
+            });
+            if (batal || !foto) continue;
+            const d = await deteksiWajah(foto.uri);
+            if (batal) return;
+            if (d.count !== 1 || d.size < 0.25 || Math.abs(d.yaw) > 20) {
+              setPesanSpoof(
+                d.count === 0
+                  ? "face.tidakAda"
+                  : d.count > 1
+                    ? "face.banyak"
+                    : d.size < 0.25
+                      ? "face.dekat"
+                      : "face.depan",
+              );
+              continue;
+            }
+            setPesanSpoof("face.spoofCek");
+            const k = await skorSpoof(foto.uri);
+            if (k !== null) skor.push(Math.round(k * 100) / 100);
+            // Embedding dari foto kualitas tinggi pada frame menghadap depan pertama.
+            if (!vec) {
+              const tajam = await kamera.current?.takePictureAsync({
+                quality: KUALITAS_SAMPEL,
+                skipProcessing: true,
+                shutterSound: false,
+              });
+              vec = await embeddingWajah((tajam ?? foto).uri);
+            }
+            if (skor.length >= SPOOF_MIN_FRAME) {
+              const jendela = skor.slice(-8);
+              if (median(jendela) >= SPOOF_AMBANG) {
+                setLulus(true);
+                onLulus(vec, {
+                  mean:
+                    Math.round(
+                      (jendela.reduce((a, b) => a + b, 0) / jendela.length) *
+                        1000,
+                    ) / 1000,
+                  scores: skor.slice(0, 40),
+                });
+                return;
+              }
+              if (skor.length >= SPOOF_MAKS_FRAME) {
+                setBukanAsli(true);
+                return;
+              }
+            }
+          } catch {
+            // frame gagal: coba lagi sampai waktu habis
+          }
+        }
+      })();
+      return () => {
+        batal = true;
+      };
+    }
     (async () => {
       while (!batal) {
         const sekarang = Date.now();
@@ -114,6 +197,8 @@ export function FaceCheck({
   const ulang = () => {
     setStatus(awalUrutan());
     setWaktuHabis(false);
+    setBukanAsli(false);
+    setPesanSpoof("face.spoofCek");
     setPutaran((n) => n + 1);
   };
 
@@ -131,19 +216,23 @@ export function FaceCheck({
 
   const instruksi = lulus
     ? t("face.lulus")
-    : waktuHabis
-      ? t("face.habis")
-      : status.pesan === "tantangan" && status.siap
-        ? `${t("face.langkah", { n: Math.min(status.langkah + 1, LANGKAH_TOTAL), total: LANGKAH_TOTAL })}: ${t(
-            status.urutan[status.langkah] === "pejam"
-              ? "face.pejam"
-              : status.urutan[status.langkah] === "toleh"
-                ? "face.toleh1"
-                : "face.toleh2",
-          )}`
-        : t(
-            `face.${status.pesan === "tantangan" ? "depan" : status.pesan}` as never,
-          );
+    : bukanAsli
+      ? t("face.bukanAsli")
+      : waktuHabis
+        ? t("face.habis")
+        : spoofTersedia()
+          ? t(pesanSpoof as never)
+          : status.pesan === "tantangan" && status.siap
+            ? `${t("face.langkah", { n: Math.min(status.langkah + 1, LANGKAH_TOTAL), total: LANGKAH_TOTAL })}: ${t(
+                status.urutan[status.langkah] === "pejam"
+                  ? "face.pejam"
+                  : status.urutan[status.langkah] === "toleh"
+                    ? "face.toleh1"
+                    : "face.toleh2",
+              )}`
+            : t(
+                `face.${status.pesan === "tantangan" ? "depan" : status.pesan}` as never,
+              );
 
   return (
     <View style={{ alignItems: "center" }}>
@@ -160,12 +249,12 @@ export function FaceCheck({
         style={[
           styles.pesan,
           lulus && { color: c.ok.ink },
-          waktuHabis && { color: c.bad.ink },
+          (waktuHabis || bukanAsli) && { color: c.bad.ink },
         ]}
       >
         {instruksi}
       </Text>
-      {waktuHabis && (
+      {(waktuHabis || bukanAsli) && (
         <Pressable style={styles.tombol} onPress={ulang}>
           <Text style={styles.tombolText}>{t("face.ulang")}</Text>
         </Pressable>

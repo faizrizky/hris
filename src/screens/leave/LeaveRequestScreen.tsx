@@ -233,13 +233,11 @@ function LeaveRequestForm({ navigation, route }: any) {
                     ? t("lr.blokTransport")
                     : kind === "dinas" && buktiBiayaKurang
                       ? t("lr.blokBiaya", { n: buktiBiayaKurang })
-                      : kind === "wfh" && wfhHari.length === 0
-                        ? t("lr.blokHariWfh")
-                        : kind === "wfh" && !alasanWfh.trim()
-                          ? t("lr.blokAlasanWfh")
-                          : kind === "wfh" && approver === null
-                            ? t("lr.blokApprover")
-                            : "";
+                      : kind === "wfh" && !alasanWfh.trim()
+                        ? t("lr.blokAlasanWfh")
+                        : kind === "wfh" && approver === null
+                          ? t("lr.blokApprover")
+                          : "";
 
   const bisaKirim = !blockMsg && !sending;
 
@@ -293,7 +291,9 @@ function LeaveRequestForm({ navigation, route }: any) {
                   tgl: tanggalPendek(start!),
                 })
               : kind === "wfh"
-                ? t("lr.labelWfh", { n: wfhHari.length })
+                ? wfhHari.length === 0
+                  ? t("lr.labelWfhSemua")
+                  : t("lr.labelWfh", { n: wfhHari.length })
                 : t("lr.labelDinas", { n: hariPerjalanan }),
         reason:
           kind === "cuti"
@@ -396,9 +396,12 @@ function LeaveRequestForm({ navigation, route }: any) {
         },
         {
           k: t("lr.rowHariWfh"),
-          v: HARI_WFH.filter((d) => wfhHari.includes(d))
-            .map((d) => t(`hari.${d}` as never))
-            .join(", "),
+          v:
+            wfhHari.length === 0
+              ? t("lr.semuaHariWfh")
+              : HARI_WFH.filter((d) => wfhHari.includes(d))
+                  .map((d) => t(`hari.${d}` as never))
+                  .join(", "),
         },
       ];
     }

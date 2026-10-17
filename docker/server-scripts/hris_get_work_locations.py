@@ -26,7 +26,8 @@ wfh_today = False
 for w in frappe.get_all("WFH Schedule", filters={"employee": me[0].name, "enabled": 1, "status": "Approved",
                                                  "from_date": ["<=", str(today)], "to_date": [">=", str(today)]},
                         fields=wfh_fields, limit_page_length=20):
-    if w.get(wfh_fields[wd]):
+    # Tanpa hari yang dicentang = berlaku di semua tanggal dalam rentang.
+    if w.get(wfh_fields[wd]) or not any([w.get(f) for f in wfh_fields]):
         wfh_today = True
 acc = frappe.db.get_single_value("Geofence Settings", "max_accuracy_m") or 100
 frappe.response["message"] = {"locations": locs, "geofence_mode": mode, "max_accuracy_m": acc, "wfh_today": wfh_today,

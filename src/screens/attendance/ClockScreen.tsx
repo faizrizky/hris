@@ -1,5 +1,5 @@
 import React, { useCallback, useState, useMemo } from "react";
-import { statusPresensi } from "@/utils/statusPresensi";
+import { formatDurasi, statusPresensi } from "@/utils/statusPresensi";
 import { useFocusEffect } from "@react-navigation/native";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { RevealScrollView as ScrollView } from "@/components/Reveal";
@@ -219,9 +219,9 @@ export function ClockScreen({ navigation }: any) {
   const labelStatus = state.pendingOffline
     ? t("ab.menungguKirim")
     : hasil.jenis === "terlambat"
-      ? t("ab.terlambat", { menit: hasil.menit })
+      ? t("ab.terlambat", { durasi: formatDurasi(hasil.menit) })
       : hasil.jenis === "pulangAwal"
-        ? t("ab.pulangAwal", { menit: hasil.menit })
+        ? t("ab.pulangAwal", { durasi: formatDurasi(hasil.menit) })
         : t("ab.tepat");
 
   return (
@@ -460,9 +460,13 @@ function DoneMeta({ label, value }: { label: string; value: string }) {
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
   return (
-    <View>
-      <Text style={styles.doneMetaLabel}>{label}</Text>
-      <Text style={styles.doneMetaValue}>{value}</Text>
+    <View style={styles.doneMetaItem}>
+      <Text style={styles.doneMetaLabel} numberOfLines={1}>
+        {label}
+      </Text>
+      <Text style={styles.doneMetaValue} numberOfLines={2}>
+        {value}
+      </Text>
     </View>
   );
 }
@@ -586,8 +590,10 @@ const makeStyles = (c: Palette) =>
       color: c.onDark.ink,
       marginTop: 5,
     },
+    doneMetaItem: { flex: 1, minWidth: 0 },
     doneMeta: {
       flexDirection: "row",
+      gap: 12,
       justifyContent: "space-between",
       alignSelf: "stretch",
       marginTop: 16,

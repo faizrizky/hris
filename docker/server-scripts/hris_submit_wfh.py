@@ -1,6 +1,8 @@
 # Server Script (type: API, method: hris_submit_wfh, allow_guest: 0)
 # Ajukan jadwal WFH (doctype WFH Schedule, status Pending sampai diputuskan atasan).
-# POST: from_date, to_date (YYYY-MM-DD), days (mis. "mon,wed,fri"), reason.
+# POST: from_date, to_date (YYYY-MM-DD), days (OPSIONAL, mis. "mon,wed,fri"), reason.
+# days kosong = WFH di SEMUA tanggal dalam rentang (satu hari saja: from_date = to_date); days terisi = hanya hari-hari itu
+# yang berulang tiap minggu dalam rentang.
 # Hasil: {"name","from_date","to_date","days":["mon",...],"reason","status":"pending"}
 fd = frappe.form_dict
 from_date = fd.get("from_date")
@@ -24,16 +26,20 @@ if frappe.utils.getdate(from_date) < frappe.utils.getdate(frappe.utils.nowdate()
     frappe.throw("WFH cannot start in the past")
 if frappe.utils.date_diff(to_date, from_date) > 92:
     frappe.throw("A WFH request can span at most 3 months")
-if not days:
-    frappe.throw("Choose at least one WFH day")
 if not reason:
     frappe.throw("A reason is required")
+# Bentrok bila ada tanggal yang sama-sama dicakup pengajuan lama dan baru (daftar hari kosong = semua hari).
 for o in frappe.get_all("WFH Schedule", filters={"employee": me[0].name, "status": ["in", ["Pending", "Approved"]],
                                                  "enabled": 1, "from_date": ["<=", to_date],
                                                  "to_date": [">=", from_date]},
-                        fields=days, limit_page_length=20):
-    for d in days:
-        if o.get(d):
+                        fields=["from_date", "to_date"] + valid, limit_page_length=20):
+    lama = [d for d in valid if o.get(d)]
+    mulai = max(frappe.utils.getdate(from_date), frappe.utils.getdate(o.from_date))
+    akhir = min(frappe.utils.getdate(to_date), frappe.utils.getdate(o.to_date))
+    n = frappe.utils.date_diff(akhir, mulai)
+    for i in range(n + 1):
+        nm = valid[frappe.utils.add_days(mulai, i).weekday()]
+        if (not days or nm in days) and (not lama or nm in lama):
             frappe.throw("You already have a WFH schedule that overlaps these dates")
 vals = {"doctype": "WFH Schedule", "employee": me[0].name, "from_date": from_date, "to_date": to_date,
         "reason": reason, "enabled": 1, "status": "Pending", "requested_by_employee": 1}
@@ -45,7 +51,7 @@ boss = frappe.db.get_value("Employee", me[0].reports_to, "user_id") if me[0].rep
 if boss:
     frappe.get_doc({"doctype": "Notification Log", "type": "Alert", "for_user": boss,
                     "subject": "WFH request from " + str(me[0].employee_name) + " is waiting for your approval",
-                    "email_content": from_date + " to " + to_date + ": " + ", ".join(days),
+                    "email_content": from_date + " to " + to_date + ": " + (", ".join(days) if days else "all days"),
                     "document_type": "WFH Schedule", "document_name": doc.name}).insert(ignore_permissions=True)
     share = frappe.get_doc({"doctype": "DocShare", "user": boss, "share_doctype": "WFH Schedule",
                             "share_name": doc.name, "read": 1})

@@ -161,7 +161,8 @@ if not done:
                                                      "from_date": ["<=", local_now[:10]],
                                                      "to_date": [">=", local_now[:10]]},
                             fields=wfh_fields, limit_page_length=20):
-        if w.get(wfh_fields[wd]):
+        # Tanpa hari yang dicentang = berlaku di semua tanggal dalam rentang (mis. pengajuan 1 hari saja).
+        if w.get(wfh_fields[wd]) or not any([w.get(f) for f in wfh_fields]):
             wfh_today = True
     exempt = bool(trips) or wfh_today
     geo_flags = []
@@ -239,12 +240,16 @@ if not done:
                 face_flags.append("face mismatch (" + str(fpct) + "%)")
     elif log_type == "IN" and not offline and fl_setting("require_enrollment", 0):
         frappe.throw("Register your face first (Profile > Face registration)")
-    all_flags = flags + geo_flags + face_flags + dev_flags
+    spoof_flags = []
+    _sm = fd.get("spoof_mean")
+    if _sm not in (None, "") and frappe.utils.flt(_sm) < 0.5:
+        spoof_flags.append("anti-spoofing score low (" + str(frappe.utils.flt(_sm)) + "): possible photo/screen")
+    all_flags = flags + geo_flags + face_flags + dev_flags + spoof_flags
     if offline and not flags and not claimed:
         claimed = time_value
     review = "Needs Review" if all_flags else "None"
-    # Anti-spoofing MODE BAYANGAN: skor model di HP (rata-rata dan skor per frame) hanya dicatat; tidak memengaruhi
-    # keputusan, status review, maupun flags.
+    # Anti-spoofing: skor model di HP (rata-rata dan skor per frame) dicatat. HP menolak lebih dulu bila median skor
+    # rendah; skor rata-rata < 0.5 yang tetap sampai ke server menandai absen "Perlu Ditinjau" (tidak memblokir).
     spoof_mean = fd.get("spoof_mean")
     spoof_mean = frappe.utils.flt(spoof_mean) if spoof_mean not in (None, "") else None
     spoof_scores = str(fd.get("spoof_scores") or "")[:600] or None

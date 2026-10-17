@@ -420,7 +420,7 @@ function bentukWfh(r: WfhRow, saya?: string): LeaveRequest {
       ? terjemahkan("designation", r.designation)
       : "",
     type: "wfh",
-    label: tt("api.wfhLabel", { hari }),
+    label: hari ? tt("api.wfhLabel", { hari }) : tt("api.wfhLabelSemua"),
     reason: `${periodeCuti(r.from_date, r.to_date)} · ${r.reason}`,
     delegateName: null,
     stage: st.stage(),
