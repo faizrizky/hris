@@ -10,9 +10,13 @@ export type HasilStatus =
   | { jenis: "terlambat"; menit: number }
   | { jenis: "pulangAwal"; menit: number };
 
+// Selisih menit pada jam dinding, dinormalisasi ke rentang -12 jam sampai +12 jam (agar 00:10 vs 22:00 berselisih 130 menit).
+const selisih = (a: number, b: number) =>
+  ((((a - b) % 1440) + 2160) % 1440) - 720;
+
 // Status presensi dibandingkan dengan shift hari itu (toleransi dari Shift Type di server).
 // Clock In setelah jam mulai + toleransi = terlambat; Clock Out sebelum jam selesai - toleransi = pulang lebih awal.
-// Shift lintas tengah malam tidak dinilai (jam di hari berbeda), jadi dianggap tepat.
+// Shift yang melewati tengah malam (selesai <= mulai) dinilai dengan selisih jam dinding dalam batas 12 jam.
 export function statusPresensi(
   aksi: "IN" | "OUT",
   jam: string | null,
@@ -21,16 +25,17 @@ export function statusPresensi(
   const j = menit(jam);
   const mulai = menit(s.shiftStart);
   const selesai = menit(s.shiftEnd);
-  if (j === null || mulai === null || selesai === null || selesai <= mulai)
+  if (j === null || mulai === null || selesai === null)
     return { jenis: "tepat" };
+  const malam = selesai <= mulai;
   if (aksi === "IN") {
-    const lewat = j - (mulai + (s.lateGraceMin ?? 0));
-    return lewat > 0
-      ? { jenis: "terlambat", menit: j - mulai }
+    const telat = malam ? selisih(j, mulai) : j - mulai;
+    return telat > (s.lateGraceMin ?? 0)
+      ? { jenis: "terlambat", menit: telat }
       : { jenis: "tepat" };
   }
-  const awal = selesai - (s.earlyGraceMin ?? 0) - j;
-  return awal > 0
-    ? { jenis: "pulangAwal", menit: selesai - j }
+  const awal = malam ? selisih(selesai, j) : selesai - j;
+  return awal > (s.earlyGraceMin ?? 0)
+    ? { jenis: "pulangAwal", menit: awal }
     : { jenis: "tepat" };
 }

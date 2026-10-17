@@ -277,6 +277,9 @@ export function HomeScreen() {
           mk("dataPribadi", t("pcr.aksi"), ICON.user, "purple", () =>
             navigation.navigate("ProfileChangeReview"),
           ),
+          mk("wajah", t("hm.aWajah"), ICON.shield, "ok", () =>
+            navigation.navigate("FaceReview"),
+          ),
         ]
       : []),
   ];

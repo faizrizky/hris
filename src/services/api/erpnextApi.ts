@@ -1880,6 +1880,49 @@ export const erpnextApi: HrisApi = {
     };
   },
 
+  async getFaceEnrollmentsForReview() {
+    const r = await get<{
+      message: {
+        name: string;
+        employee: string;
+        employee_name: string;
+        created: string;
+        score_ktp: number | null;
+        score_profile: number | null;
+        score_profile_ktp: number | null;
+        spoof_mean: number | null;
+        selfie_url: string | null;
+        profile_url: string | null;
+        ktp_url: string | null;
+        min_ktp: number;
+        min_profile: number;
+      }[];
+    }>("/api/method/hris_get_face_enrollments_for_review");
+    return r.message.map((x) => ({
+      name: x.name,
+      employee: x.employee,
+      employeeName: x.employee_name,
+      created: x.created,
+      scoreKtp: x.score_ktp,
+      scoreProfile: x.score_profile,
+      scoreProfileKtp: x.score_profile_ktp,
+      spoofMean: x.spoof_mean,
+      selfieUrl: x.selfie_url,
+      profileUrl: x.profile_url,
+      ktpUrl: x.ktp_url,
+      minKtp: x.min_ktp,
+      minProfile: x.min_profile,
+    }));
+  },
+
+  async decideFaceEnrollment(name, decision, note) {
+    await post("/api/method/hris_decide_face_enrollment", {
+      name,
+      decision,
+      ...(note ? { note } : {}),
+    });
+  },
+
   async submitFaceEnrollment(input) {
     const res = await post<{
       message: { name: string; score_ktp: number; score_profile: number };

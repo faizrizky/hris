@@ -1,6 +1,6 @@
 # Backlog migrasi mock ke ERPNext
 
-Status per 2026-10-17. Sumber kebenaran: method di `HrisApi` ([src/services/types.ts](src/services/types.ts)) yang belum di-override `erpnextApi`.
+Status per 2026-10-17 (diperbarui setelah item "bisa dikerjakan" dikerjakan). Sumber kebenaran: method di `HrisApi` ([src/services/types.ts](src/services/types.ts)) yang belum di-override `erpnextApi`.
 
 ## Sudah asli
 
@@ -15,6 +15,8 @@ Status per 2026-10-17. Sumber kebenaran: method di `HrisApi` ([src/services/type
 - **Ikatan perangkat:** Registered Device (perangkat pertama otomatis, berikutnya menunggu HR), Clock In diblokir di perangkat belum disetujui
 - **Keamanan:** login biometrik (sidik jari/wajah terdaftar di HP; nama menyesuaikan Android/iOS), kunci otomatis terikat biometrik, keluarkan perangkat satu per satu, batas 3 sesi aktif
 - Pembaruan aplikasi: APK wajib lewat server (`rilis-apk.sh` setelah tiap build) dan JavaScript lewat EAS Update (`kirim-update.sh`); proyek EAS di akun `gshins-team`
+- **HR di aplikasi:** menu "Verifikasi wajah" (selfie, KTP, foto profil, skor, anti-spoofing; setujui atau tolak dengan alasan)
+- Status presensi benar untuk shift lintas tengah malam; Clock In/Out memakai frame kualitas lebih tinggi; HR bisa mengganti perangkat karyawan (centang "Replace Previous Devices" saat menyetujui perangkat baru)
 - Tata letak form web (section berlabel, kolom) untuk semua DocType buatan sendiri
 - Push notification: Firebase (`hris-2d0e4`), kunci FCM V1 dan keystore di EAS, `scripts/tes-push.sh`
 
@@ -34,13 +36,9 @@ Perlu kamu (uji atau keputusan):
 - [ ] Verifikasi tabel TER PPh 21 dengan PDF PMK 168/2023
 
 Bisa dikerjakan:
-- [ ] **Verifikasi wajah di server** (embedding dihitung server dari foto, bukan vektor dari HP): menutup celah vektor palsu lewat API. Butuh container embedding (FastAPI + onnxruntime); AuraFace diuji lebih baik pada KTP bagus tetapi 260 MB dan lebih buruk pada KTP buram, jadi SFace tetap kecuali ada data uji sungguhan
+- [ ] **Verifikasi wajah di server** (ditunda sesuai permintaan) (embedding dihitung server dari foto, bukan vektor dari HP): menutup celah vektor palsu lewat API. Butuh container embedding (FastAPI + onnxruntime); AuraFace diuji lebih baik pada KTP bagus tetapi 260 MB dan lebih buruk pada KTP buram, jadi SFace tetap kecuali ada data uji sungguhan
 - [ ] Anti-spoofing: setelah data mode bayangan terkumpul (1 sampai 2 minggu), tentukan ambang dan jadikan penanda "Perlu Ditinjau" atau penjaga di Clock In/Out; tambahkan uji dengan kamera depan HP karyawan
 - [ ] Pemindaian wajah lebih cepat seperti Face ID: baca aliran video (vision-camera + frame processor ML Kit) menggantikan foto satu per satu; butuh build baru
-- [ ] Clock In/Out: sisi Android memakai foto kualitas lebih rendah di layar wajah; selaraskan dengan pendaftaran
-- [ ] Status presensi untuk shift lintas tengah malam (Clock Out dibandingkan jam selesai hari berikutnya)
-- [ ] Layar peninjauan pendaftaran wajah di aplikasi untuk HR (sekarang hanya di web)
-- [ ] Verifikasi wajah dan biometrik iOS (Vision, Face ID); butuh akun Apple Developer
-- [ ] Blur sungguhan di bawah tab bar (`expo-blur` sudah terpasang; sekarang gradien pudar); uji performa di Android 11
-- [ ] Server sungguhan: seed di srv-vllm, alamat tetap (domain + HTTPS), perbarui variabel env EAS `preview`, uji seed dari nol (`down -v`, perlu izin)
-- [ ] Perangkat: Android ID berubah bila keystore berubah (dianggap perangkat baru); tambahkan alur HR memindahkan perangkat bila karyawan ganti HP
+- [ ] Verifikasi wajah dan biometrik iOS (Vision, Face ID); ditunda; butuh akun Apple Developer
+- [ ] Blur sungguhan di bawah tab bar: di Android `expo-blur` butuh `BlurTargetView` yang membungkus seluruh konten layar, perubahan arsitektur yang harus diuji performanya di perangkat (Android 11); sekarang gradien pudar
+- [ ] (ditunda sesuai permintaan) Server sungguhan: seed di srv-vllm, alamat tetap (domain + HTTPS), perbarui variabel env EAS `preview`, uji seed dari nol (`down -v`, perlu izin)

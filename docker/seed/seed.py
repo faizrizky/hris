@@ -1360,6 +1360,14 @@ for _f in [
         frappe.clear_cache(doctype="Profile Change Request")
 frappe.db.commit()
 
+# Registered Device: centang "ganti perangkat lama" saat HR menyetujui perangkat baru (karyawan ganti HP).
+if not frappe.db.exists("Custom Field", {"dt": "Registered Device", "fieldname": "replace_previous"}):
+    make(dict(doctype="Custom Field", dt="Registered Device", fieldname="replace_previous",
+              label="Replace Previous Devices", fieldtype="Check", default="0", insert_after="status",
+              description="When approving this device, revoke the employee's other approved devices (e.g. new phone)."))
+    frappe.clear_cache(doctype="Registered Device")
+frappe.db.commit()
+
 # Skor anti-spoofing saat pendaftaran wajah (dicatat untuk tinjauan HR).
 for _f in [
     dict(fieldname="custom_spoof_mean", label="Anti-spoof Score", fieldtype="Float", precision="3", permlevel=1,
@@ -1701,7 +1709,7 @@ LAYOUT = {
         ("Push Notification", [["dry_run"]]),
     ],
     "Registered Device": [
-        ("Employee", [["employee", "employee_name"], ["status"]]),
+        ("Employee", [["employee", "employee_name"], ["status", "replace_previous"]]),
         ("Device", [["device_name", "platform"], ["device_id"]]),
         ("Activity and Notes", [["registered_on", "last_seen"], ["hr_note"]]),
     ],

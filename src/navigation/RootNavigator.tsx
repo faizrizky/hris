@@ -21,6 +21,7 @@ import { ProfileChangeReviewDetailScreen } from "@/screens/profile/ProfileChange
 import { AnnouncementsScreen } from "@/screens/announcements/AnnouncementsScreen";
 import { OfflineReviewScreen } from "@/screens/attendance/OfflineReviewScreen";
 import { DocumentReviewScreen } from "@/screens/documents/DocumentReviewScreen";
+import { FaceReviewScreen } from "@/screens/profile/FaceReviewScreen";
 import { DocumentReviewDetailScreen } from "@/screens/documents/DocumentReviewDetailScreen";
 import { LeaveApprovalScreen } from "@/screens/leave/LeaveApprovalScreen";
 import { OvertimeScreen } from "@/screens/leave/OvertimeScreen";
@@ -199,6 +200,7 @@ function HomeStack() {
         component={AppraisalFeedbackScreen}
       />
       <Stack.Screen name="DocumentReview" component={DocumentReviewScreen} />
+      <Stack.Screen name="FaceReview" component={FaceReviewScreen} />
       <Stack.Screen
         name="ProfileChangeReview"
         component={ProfileChangeReviewScreen}

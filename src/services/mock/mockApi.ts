@@ -123,6 +123,15 @@ export const mockApi: HrisApi = {
     };
   },
 
+  async getFaceEnrollmentsForReview() {
+    await delay();
+    return [];
+  },
+
+  async decideFaceEnrollment() {
+    await delay();
+  },
+
   async submitFaceEnrollment() {
     await delay();
     return { scoreKtp: 80, scoreProfile: 85 };

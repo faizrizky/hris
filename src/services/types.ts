@@ -100,6 +100,23 @@ export interface SpoofRingkas {
   scores: number[]; // skor per frame (0..1), maksimal 40
 }
 
+// HR: satu pendaftaran wajah yang menunggu ditinjau.
+export interface FaceReview {
+  name: string;
+  employee: string;
+  employeeName: string;
+  created: string;
+  scoreKtp: number | null;
+  scoreProfile: number | null;
+  scoreProfileKtp: number | null;
+  spoofMean: number | null; // skor anti-spoofing saat mendaftar (0..1), bila ada
+  selfieUrl: string | null;
+  profileUrl: string | null;
+  ktpUrl: string | null;
+  minKtp: number;
+  minProfile: number;
+}
+
 export interface ClockState {
   clockedIn: boolean;
   lastCheckIn: string | null;
@@ -504,6 +521,13 @@ export interface HrisApi {
     spoof?: SpoofRingkas,
   ): Promise<ClockState>;
   getFaceStatus(): Promise<FaceStatus>;
+  // HR: daftar pendaftaran wajah yang menunggu, dan keputusan (alasan wajib bila ditolak).
+  getFaceEnrollmentsForReview(): Promise<FaceReview[]>;
+  decideFaceEnrollment(
+    name: string,
+    decision: "approve" | "reject",
+    note?: string,
+  ): Promise<void>;
   // Mendaftarkan perangkat ini (pertama otomatis disetujui; berikutnya menunggu HR) dan mengembalikan statusnya.
   registerDevice(): Promise<{
     status: "Approved" | "Pending" | "Rejected" | "Unknown";
