@@ -97,10 +97,13 @@ export function FloatingTabBar({ state, navigation }: BottomTabBarProps) {
   const [lebar, setLebar] = useState(0);
   const slot = lebar / urutan.length;
 
-  // Satu nilai `prog` untuk perpindahan: tiap pindah tab naik 1 (seg.n -> seg.n+1),
-  // jadi tidak pernah di-reset dan tidak ada kedipan antar-render.
-  const [seg, setSeg] = useState({ dari: idx, ke: idx, n: 0 });
-  const [prog] = useState(() => new Animated.Value(1));
+  // Tiap tab punya nilai keaktifannya sendiri (0..1) dan gelembung punya posisi
+  // kontinu. Semuanya selalu menuju keadaan akhir dari posisi terakhirnya, jadi
+  // pindah tab beruntun dengan cepat tidak meninggalkan ikon setengah jalan.
+  const [aktifV] = useState(() =>
+    urutan.map((_, i) => new Animated.Value(i === idx ? 1 : 0)),
+  );
+  const [pos] = useState(() => new Animated.Value(Math.max(idx, 0)));
   const [dip] = useState(() => new Animated.Value(0));
   const [tampil] = useState(() => new Animated.Value(0));
   const sudahMasuk = useRef(false);
@@ -119,44 +122,42 @@ export function FloatingTabBar({ state, navigation }: BottomTabBarProps) {
       }).start();
       return;
     }
-    if (idx === seg.ke) return;
-    if (idx < 0 || seg.ke < 0) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- segmen animasi harus bergeser bersamaan dengan memulai animasinya
-      setSeg({ dari: idx, ke: idx, n: seg.n });
-      prog.setValue(seg.n + 1);
-      Animated.timing(tampil, {
-        toValue: idx >= 0 ? 1 : 0,
-        duration: 260,
-        useNativeDriver: true,
-      }).start();
-      return;
-    }
-    const n = seg.n + 1;
-    setSeg({ dari: seg.ke, ke: idx, n });
-    dip.setValue(0);
-    Animated.parallel([
-      Animated.timing(prog, {
-        toValue: n + 1,
+    Animated.timing(tampil, {
+      toValue: idx >= 0 ? 1 : 0,
+      duration: 220,
+      useNativeDriver: true,
+    }).start();
+    const ease = Easing.bezier(0.45, 0, 0.2, 1);
+    aktifV.forEach((v, i) =>
+      Animated.timing(v, {
+        toValue: i === idx ? 1 : 0,
         duration: DURASI,
-        easing: Easing.bezier(0.45, 0, 0.2, 1),
+        easing: ease,
+        useNativeDriver: true,
+      }).start(),
+    );
+    if (idx < 0) return;
+    Animated.timing(pos, {
+      toValue: idx,
+      duration: DURASI,
+      easing: ease,
+      useNativeDriver: true,
+    }).start();
+    Animated.sequence([
+      Animated.timing(dip, {
+        toValue: 1,
+        duration: 190,
+        easing: Easing.in(Easing.quad),
         useNativeDriver: true,
       }),
-      Animated.sequence([
-        Animated.timing(dip, {
-          toValue: 1,
-          duration: 190,
-          easing: Easing.in(Easing.quad),
-          useNativeDriver: true,
-        }),
-        Animated.timing(dip, {
-          toValue: 0,
-          duration: 270,
-          easing: Easing.out(Easing.back(1.5)),
-          useNativeDriver: true,
-        }),
-      ]),
+      Animated.timing(dip, {
+        toValue: 0,
+        duration: 270,
+        easing: Easing.out(Easing.back(1.5)),
+        useNativeDriver: true,
+      }),
     ]).start();
-  }, [idx, lebar, seg, prog, dip, tampil]);
+  }, [idx, lebar, aktifV, pos, dip, tampil]);
 
   const HIDE_ON = [
     "LeaveRequest",
@@ -190,13 +191,10 @@ export function FloatingTabBar({ state, navigation }: BottomTabBarProps) {
     }
   };
 
-  const { dari, ke, n } = seg;
-  const masuk = [n, n + 1];
-  const pusat = (i: number) => i * slot + slot / 2;
-  const geser = (i: number) => (i < 0 ? 0 : pusat(i) - RING_BOX / 2);
-  const bubbleX = prog.interpolate({
-    inputRange: masuk,
-    outputRange: [geser(dari), geser(ke)],
+  const pusat = (i: number) => i * slot + slot / 2 - RING_BOX / 2;
+  const bubbleX = pos.interpolate({
+    inputRange: urutan.map((_, i) => i),
+    outputRange: urutan.map((_, i) => pusat(i)),
     extrapolate: "clamp",
   });
   const bubbleY = Animated.add(
@@ -204,80 +202,31 @@ export function FloatingTabBar({ state, navigation }: BottomTabBarProps) {
     tampil.interpolate({ inputRange: [0, 1], outputRange: [20, 0] }),
   );
 
-  // Ikon di slot bar: ikon yang baru dipilih naik masuk ke gelembung (hilang
-  // dari slot), ikon lama turun kembali ke slotnya.
-  const ikonBar = (i: number) => {
-    if (dari === ke) {
-      return {
-        opacity: i === ke ? 0 : 1,
-        translateY: 0 as number | Animated.AnimatedInterpolation<number>,
-      };
-    }
-    if (i === ke) {
-      return {
-        opacity: prog.interpolate({
-          inputRange: [n, n + 0.3],
-          outputRange: [1, 0],
-          extrapolate: "clamp",
-        }),
-        translateY: prog.interpolate({
-          inputRange: [n, n + 0.3],
-          outputRange: [0, -14],
-          extrapolate: "clamp",
-        }),
-      };
-    }
-    if (i === dari) {
-      return {
-        opacity: prog.interpolate({
-          inputRange: [n + 0.3, n + 0.6],
-          outputRange: [0, 1],
-          extrapolate: "clamp",
-        }),
-        translateY: prog.interpolate({
-          inputRange: [n + 0.3, n + 0.6],
-          outputRange: [-14, 0],
-          extrapolate: "clamp",
-        }),
-      };
-    }
-    return { opacity: 1, translateY: 0 };
-  };
+  // Ikon di slot bar: saat tab menjadi aktif ikonnya naik masuk ke gelembung
+  // (hilang dari slot); saat tidak aktif lagi ia turun kembali ke slotnya.
+  const ikonBar = (i: number) => ({
+    opacity: aktifV[i]!.interpolate({
+      inputRange: [0, 0.2, 0.5, 1],
+      outputRange: [1, 1, 0, 0],
+    }),
+    translateY: aktifV[i]!.interpolate({
+      inputRange: [0, 0.2, 0.5, 1],
+      outputRange: [0, 0, -14, -14],
+    }),
+  });
 
-  // Ikon di dalam gelembung: kosong saat gelembung di titik terendah, lalu
-  // ikon tujuan naik dari bawah masuk ke gelembung.
-  const ikonGelembung = (i: number) => {
-    if (dari === ke) return { opacity: i === ke ? 1 : 0, translateY: 0 };
-    if (i === ke) {
-      return {
-        opacity: prog.interpolate({
-          inputRange: [n + 0.5, n + 0.72],
-          outputRange: [0, 1],
-          extrapolate: "clamp",
-        }),
-        translateY: prog.interpolate({
-          inputRange: [n + 0.5, n + 0.8],
-          outputRange: [16, 0],
-          extrapolate: "clamp",
-        }),
-      };
-    }
-    if (i === dari) {
-      return {
-        opacity: prog.interpolate({
-          inputRange: [n, n + 0.3],
-          outputRange: [1, 0],
-          extrapolate: "clamp",
-        }),
-        translateY: prog.interpolate({
-          inputRange: [n, n + 0.3],
-          outputRange: [0, 16],
-          extrapolate: "clamp",
-        }),
-      };
-    }
-    return { opacity: 0, translateY: 0 };
-  };
+  // Ikon di dalam gelembung: kosong saat gelembung di titik terendah (tab lama
+  // dan baru sama-sama sekitar 0,5), lalu ikon tujuan naik dari bawah.
+  const ikonGelembung = (i: number) => ({
+    opacity: aktifV[i]!.interpolate({
+      inputRange: [0, 0.5, 0.75, 1],
+      outputRange: [0, 0, 1, 1],
+    }),
+    translateY: aktifV[i]!.interpolate({
+      inputRange: [0, 0.5, 0.85, 1],
+      outputRange: [16, 16, 0, 0],
+    }),
+  });
 
   const renderTab = (routeName: string, i: number) => {
     const aktif = idx === i;
