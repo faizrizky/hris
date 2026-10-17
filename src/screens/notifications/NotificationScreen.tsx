@@ -1,4 +1,4 @@
-import { useCallback, useState, useMemo } from "react";
+import { useCallback, useEffect, useState, useMemo } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { RevealScrollView as ScrollView } from "@/components/Reveal";
 import { Ionicons } from "@expo/vector-icons";
@@ -16,6 +16,7 @@ import { ICON } from "@/constants/icons";
 import { Skeleton } from "@/components/Skeleton";
 import { useT } from "@/i18n";
 import { EmptyState } from "@/components/EmptyState";
+import { setBelumDibaca } from "@/navigation/notifBadge";
 import { kembaliAtauBeranda } from "@/navigation/kembali";
 
 const ICON_KATEGORI: Record<NotifCategory, string> = {
@@ -48,6 +49,10 @@ export function NotificationScreen({ navigation }: any) {
   useFocusEffect(muat);
 
   const belumDibaca = items === null ? 0 : items.filter((n) => !n.read).length;
+
+  useEffect(() => {
+    if (items !== null) setBelumDibaca(belumDibaca);
+  }, [items, belumDibaca]);
 
   const tandai = (ids?: string[]) => {
     if (!employee) return;

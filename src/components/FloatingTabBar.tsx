@@ -1,3 +1,5 @@
+import { hrisApi } from "@/services/api";
+import { setBelumDibaca, useBelumDibaca } from "@/navigation/notifBadge";
 import { useTabBarHidden } from "@/navigation/tabBarVisibility";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { LinearGradient } from "expo-linear-gradient";
@@ -68,6 +70,17 @@ export function FloatingTabBar({ state, navigation }: BottomTabBarProps) {
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
   const disembunyikan = useTabBarHidden();
+  const belumDibaca = useBelumDibaca();
+  const employeeId = employee?.id;
+
+  // Muat jumlah belum dibaca saat bar tampil dan tiap pindah tab.
+  useEffect(() => {
+    if (!employeeId) return;
+    hrisApi
+      .getNotificationInbox(employeeId)
+      .then((n) => setBelumDibaca(n.filter((x) => !x.read).length))
+      .catch(() => {});
+  }, [employeeId, state.index]);
 
   const urutan = [
     "Beranda",
@@ -283,6 +296,9 @@ export function FloatingTabBar({ state, navigation }: BottomTabBarProps) {
           ]}
         >
           <Ionicons name={IKON[routeName]!} size={22} color={c.mutedLabel} />
+          {routeName === "Notifikasi" && belumDibaca > 0 && (
+            <View style={styles.titik} />
+          )}
         </Animated.View>
         <Text
           style={[styles.tabLabel, { color: warna }]}
@@ -398,6 +414,17 @@ const makeStyles = (c: Palette) =>
       backgroundColor: c.accent,
       overflow: "hidden",
       shadowColor: c.accent,
+    },
+    titik: {
+      position: "absolute",
+      top: 0,
+      right: -1,
+      width: 8,
+      height: 8,
+      borderRadius: 4,
+      backgroundColor: "#F97316",
+      borderWidth: 1.5,
+      borderColor: c.card,
     },
     center: { alignItems: "center", justifyContent: "center" },
   });
