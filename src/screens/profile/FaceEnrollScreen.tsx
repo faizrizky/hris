@@ -15,7 +15,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { Palette } from "@/theme/colors";
+import { Palette, tombolUtama } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
 import { hrisApi } from "@/services/api";
 import { describeError } from "@/services/api/http";
@@ -787,6 +787,7 @@ const makeStyles = (c: Palette) =>
       maxWidth: 320,
     },
     btnBiru: {
+      ...tombolUtama(c),
       alignSelf: "stretch",
       height: 52,
       borderRadius: 14,

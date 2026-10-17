@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { CameraView, useCameraPermissions } from "expo-camera";
-import { Palette } from "@/theme/colors";
+import { Palette, tombolUtama } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
 import { useT } from "@/i18n";
 import { hrisApi } from "@/services/api";
@@ -299,6 +299,7 @@ const makeStyles = (c: Palette) =>
       paddingHorizontal: 12,
     },
     tombol: {
+      ...tombolUtama(c),
       marginTop: 12,
       paddingHorizontal: 18,
       paddingVertical: 9,

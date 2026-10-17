@@ -6,7 +6,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Skeleton } from "@/components/Skeleton";
-import { Palette } from "@/theme/colors";
+import { Palette, tombolUtama } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
 import { LEAVE_TYPE_LABEL, LEAVE_TYPE_TONE } from "@/constants/statusLabels";
 import { hrisApi } from "@/services/api";
@@ -374,6 +374,7 @@ const makeStyles = (c: Palette) =>
       marginTop: 2,
     },
     approveAll: {
+      ...tombolUtama(c),
       paddingHorizontal: 14,
       paddingVertical: 9,
       borderRadius: 999,
@@ -443,6 +444,7 @@ const makeStyles = (c: Palette) =>
     },
     rejectText: { fontSize: 12.5, fontWeight: "700", color: c.bad.ink },
     approveBtn: {
+      ...tombolUtama(c),
       flex: 2,
       paddingVertical: 12,
       borderRadius: 13,

@@ -17,7 +17,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { Palette, tombolSekunder } from "@/theme/colors";
+import { Palette, tombolSekunder, tombolUtama } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
 import { hrisApi } from "@/services/api";
 import { describeError } from "@/services/api/http";
@@ -721,6 +721,7 @@ const makeStyles = (c: Palette) =>
     },
 
     primary: {
+      ...tombolUtama(c),
       flexDirection: "row",
       gap: 8,
       paddingVertical: 15,

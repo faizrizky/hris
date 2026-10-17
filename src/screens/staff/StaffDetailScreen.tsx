@@ -3,7 +3,7 @@ import { Linking, Pressable, StyleSheet, Text, View } from "react-native";
 import { RevealScrollView as ScrollView } from "@/components/Reveal";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Palette, tombolSekunder } from "@/theme/colors";
+import { Palette, tombolSekunder, tombolUtama } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
 import { hrisApi } from "@/services/api";
 import { describeError } from "@/services/api/http";
@@ -444,6 +444,7 @@ const makeStyles = (c: Palette) =>
     },
     secondaryText: { fontSize: 12.5, fontWeight: "700", color: c.btnSoftInk },
     primaryBtn: {
+      ...tombolUtama(c),
       flex: 1,
       paddingVertical: 14,
       borderRadius: 22,

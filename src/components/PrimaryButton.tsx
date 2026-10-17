@@ -1,6 +1,7 @@
 import React from "react";
 import { ActivityIndicator, Pressable, StyleSheet, Text } from "react-native";
 import { useTheme } from "@/theme/ThemeContext";
+import { tombolSekunder, tombolUtama } from "@/theme/colors";
 
 interface Props {
   label: string;
@@ -21,7 +22,7 @@ export function PrimaryButton({
       ? c.accent
       : variant === "danger"
         ? c.bad.ink
-        : "transparent";
+        : c.card;
   const textColor = variant === "outline" ? c.accent : "#fff";
 
   return (
@@ -30,11 +31,10 @@ export function PrimaryButton({
       disabled={loading}
       style={[
         styles.button,
-        {
-          backgroundColor: bg,
-          borderWidth: variant === "outline" ? 1 : 0,
-          borderColor: c.accent,
-        },
+        variant === "outline"
+          ? { ...tombolSekunder(c), borderColor: c.accent }
+          : { ...tombolUtama(c), backgroundColor: bg },
+        variant === "danger" && { shadowColor: c.bad.ink },
       ]}
     >
       {loading ? (

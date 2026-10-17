@@ -14,7 +14,7 @@ import { useFocusEffect } from "@react-navigation/native";
 import { useSession } from "@/services/session";
 import { usePollingAktif } from "@/hooks/usePollingAktif";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Palette, tombolSekunder } from "@/theme/colors";
+import { Palette, tombolSekunder, tombolUtama } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
 import { hrisApi } from "@/services/api";
 import { describeError } from "@/services/api/http";
@@ -400,6 +400,11 @@ const makeStyles = (c: Palette) =>
       alignItems: "center",
     },
     secondaryText: { fontSize: 13, fontWeight: "700", color: c.btnSoftInk },
-    primaryBtn: { paddingVertical: 14, borderRadius: 14, alignItems: "center" },
+    primaryBtn: {
+      ...tombolUtama(c),
+      paddingVertical: 14,
+      borderRadius: 14,
+      alignItems: "center",
+    },
     primaryText: { fontSize: 13, fontWeight: "700", color: "#fff" },
   });

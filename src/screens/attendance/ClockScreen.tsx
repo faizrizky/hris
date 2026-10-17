@@ -636,6 +636,8 @@ const makeStyles = (c: Palette) =>
 
     actions: { marginTop: 14, gap: 9 },
     cta: {
+      borderWidth: 1,
+      borderColor: "rgba(255,255,255,0.3)",
       paddingVertical: 15,
       borderRadius: 16,
       alignItems: "center",

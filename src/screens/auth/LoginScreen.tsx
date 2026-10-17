@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
-import { Palette } from "@/theme/colors";
+import { Palette, tombolUtama } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
 import { RadialGlow } from "@/components/RadialGlow";
 import { hrisApi } from "@/services/api";
@@ -380,6 +380,7 @@ const makeStyles = (c: Palette) =>
     hint: { fontSize: 11, color: c.muted, marginTop: 10, lineHeight: 15 },
 
     submitButton: {
+      ...tombolUtama(c),
       marginTop: 18,
       paddingVertical: 15,
       borderRadius: 16,

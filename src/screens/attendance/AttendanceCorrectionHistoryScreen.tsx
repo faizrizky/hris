@@ -5,7 +5,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useLoad } from "@/hooks/useLoad";
 import { ErrorState } from "@/components/ErrorState";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Palette } from "@/theme/colors";
+import { Palette, tombolUtama } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
 import { hrisApi } from "@/services/api";
 import { useSession } from "@/services/session";
@@ -308,6 +308,7 @@ const makeStyles = (c: Palette) =>
     },
     headerTitle: { fontSize: 15, fontWeight: "700", color: c.ink },
     addBtn: {
+      ...tombolUtama(c),
       flexDirection: "row",
       alignItems: "center",
       gap: 6,
@@ -465,6 +466,7 @@ const makeStyles = (c: Palette) =>
       marginTop: 6,
     },
     emptyBtn: {
+      ...tombolUtama(c),
       paddingHorizontal: 20,
       paddingVertical: 11,
       borderRadius: 14,

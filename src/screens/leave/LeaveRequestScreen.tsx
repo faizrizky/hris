@@ -35,7 +35,7 @@ import { useSession } from "@/services/session";
 import { LeaveBalance, Colleague, LeaveApprover } from "@/services/types";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import { Palette } from "@/theme/colors";
+import { Palette, tombolUtama } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
 import { DatePickerCard, FooterItem } from "@/components/DatePickerCard";
 import {
@@ -854,6 +854,7 @@ const makeStyles = (c: Palette) =>
     sumSub: { fontSize: 10.5, fontWeight: "600", color: c.muted },
     sumTop: { fontSize: 16, fontWeight: "800", color: c.ink, marginTop: 3 },
     submitBtn: {
+      ...tombolUtama(c),
       paddingHorizontal: 22,
       paddingVertical: 14,
       borderRadius: 16,

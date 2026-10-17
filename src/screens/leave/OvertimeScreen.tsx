@@ -5,7 +5,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Palette } from "@/theme/colors";
+import { Palette, tombolUtama } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
 import { hrisApi } from "@/services/api";
 import { describeError } from "@/services/api/http";
@@ -305,6 +305,7 @@ const makeStyles = (c: Palette) =>
     payValue: { fontSize: 11.5, fontWeight: "700", color: c.ink },
 
     cta: {
+      ...tombolUtama(c),
       borderRadius: 22,
       paddingVertical: 15,
       alignItems: "center",

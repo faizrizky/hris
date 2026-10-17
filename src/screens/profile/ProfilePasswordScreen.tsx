@@ -12,7 +12,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { Palette } from "@/theme/colors";
+import { Palette, tombolUtama } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
 import { hrisApi } from "@/services/api";
 import { ApiError, describeError } from "@/services/api/http";
@@ -391,6 +391,7 @@ const makeStyles = (c: Palette) =>
       textAlign: "center",
     },
     primaryBtn: {
+      ...tombolUtama(c),
       marginTop: 12,
       paddingVertical: 14,
       borderRadius: 22,
@@ -410,6 +411,11 @@ const makeStyles = (c: Palette) =>
       paddingTop: 12,
     },
     barLabel: { fontSize: 11, fontWeight: "600", color: c.muted },
-    saveBtn: { paddingHorizontal: 22, paddingVertical: 14, borderRadius: 16 },
+    saveBtn: {
+      ...tombolUtama(c),
+      paddingHorizontal: 22,
+      paddingVertical: 14,
+      borderRadius: 16,
+    },
     saveText: { fontSize: 13.5, fontWeight: "700", color: c.mutedLabel },
   });

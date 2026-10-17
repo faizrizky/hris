@@ -3,7 +3,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { RevealScrollView as ScrollView } from "@/components/Reveal";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Palette } from "@/theme/colors";
+import { Palette, tombolUtama } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
 import { hrisApi } from "@/services/api";
 import { describeError } from "@/services/api/http";
@@ -335,6 +335,7 @@ const makeStyles = (c: Palette) =>
     },
     rejectText: { fontSize: 12.5, fontWeight: "700", color: c.bad.ink },
     approveBtn: {
+      ...tombolUtama(c),
       flex: 2,
       paddingVertical: 12,
       borderRadius: 13,

@@ -11,7 +11,7 @@ import { RevealScrollView as ScrollView } from "@/components/Reveal";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Palette, tombolSekunder } from "@/theme/colors";
+import { Palette, tombolSekunder, tombolUtama } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
 import { hrisApi } from "@/services/api";
 import { describeError } from "@/services/api/http";
@@ -250,6 +250,11 @@ const makeStyles = (c: Palette) =>
       alignItems: "center",
     },
     rejectText: { fontSize: 13, fontWeight: "700", color: c.bad.ink },
-    approveBtn: { paddingVertical: 14, borderRadius: 14, alignItems: "center" },
+    approveBtn: {
+      ...tombolUtama(c),
+      paddingVertical: 14,
+      borderRadius: 14,
+      alignItems: "center",
+    },
     approveText: { fontSize: 13, fontWeight: "700", color: "#fff" },
   });

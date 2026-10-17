@@ -11,7 +11,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { gabungAlasan } from "@/utils/Correction";
-import { Palette } from "@/theme/colors";
+import { Palette, tombolUtama } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
 import { hrisApi } from "@/services/api";
 import { useSession } from "@/services/session";
@@ -362,6 +362,11 @@ const makeStyles = (c: Palette) =>
       color: c.ink,
       marginTop: 3,
     },
-    submitBtn: { paddingHorizontal: 22, paddingVertical: 14, borderRadius: 16 },
+    submitBtn: {
+      ...tombolUtama(c),
+      paddingHorizontal: 22,
+      paddingVertical: 14,
+      borderRadius: 16,
+    },
     submitText: { fontSize: 13.5, fontWeight: "700", color: c.mutedLabel },
   });

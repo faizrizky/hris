@@ -2,7 +2,7 @@ import React, { useMemo } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
-import { Palette, tombolSekunder } from "@/theme/colors";
+import { Palette, tombolSekunder, tombolUtama } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
 import { useT } from "@/i18n";
 
@@ -208,6 +208,7 @@ const makeStyles = (c: Palette) =>
     },
     secondaryText: { fontSize: 12.5, fontWeight: "700", color: c.btnSoftInk },
     primaryBtn: {
+      ...tombolUtama(c),
       flex: 1,
       paddingVertical: 14,
       borderRadius: 22,

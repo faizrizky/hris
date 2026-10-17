@@ -141,3 +141,16 @@ export const tombolSekunder = (c: Palette) =>
     shadowRadius: 8,
     elevation: 2,
   }) as const;
+
+// Gaya tombol utama (berlatar warna): garis tepi terang tipis + bayangan
+// berwarna aksen. Latar tombolnya tetap diatur di tempat masing-masing.
+export const tombolUtama = (c: Palette) =>
+  ({
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.3)",
+    shadowColor: c.accent,
+    shadowOffset: { width: 0, height: 5 },
+    shadowOpacity: 0.28,
+    shadowRadius: 10,
+    elevation: 4,
+  }) as const;

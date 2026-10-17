@@ -14,7 +14,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { Palette } from "@/theme/colors";
+import { Palette, tombolUtama } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
 import { hrisApi } from "@/services/api";
 import { describeError } from "@/services/api/http";
@@ -771,6 +771,11 @@ const makeStyles = (c: Palette) =>
       color: c.ink,
       marginTop: 3,
     },
-    saveBtn: { paddingHorizontal: 22, paddingVertical: 14, borderRadius: 16 },
+    saveBtn: {
+      ...tombolUtama(c),
+      paddingHorizontal: 22,
+      paddingVertical: 14,
+      borderRadius: 16,
+    },
     saveText: { fontSize: 13.5, fontWeight: "700", color: c.mutedLabel },
   });
