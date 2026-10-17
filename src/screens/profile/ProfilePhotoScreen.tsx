@@ -737,9 +737,11 @@ const makeStyles = (c: Palette) =>
       borderRadius: 16,
       alignItems: "center",
       justifyContent: "center",
-      backgroundColor: c.chip,
+      backgroundColor: c.btnSoft,
+      borderWidth: 1.5,
+      borderColor: c.btnSoftBorder,
     },
-    secondaryText: { fontSize: 13.5, fontWeight: "700", color: c.accent },
+    secondaryText: { fontSize: 13.5, fontWeight: "700", color: c.btnSoftInk },
 
     kembaliBtn: {
       marginTop: 16,

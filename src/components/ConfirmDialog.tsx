@@ -267,13 +267,15 @@ function ConfirmDialog({
                 left: cardX + PAD,
                 top: btnY,
                 width: btnW,
-                backgroundColor: c.chip,
+                backgroundColor: c.btnSoft,
+                borderWidth: 1.5,
+                borderColor: c.btnSoftBorder,
                 opacity: morph ? cancelA : 1,
               },
             ]}
           >
             <Pressable style={styles.isiTombol} onPress={() => tutup(false)}>
-              <Text style={[styles.labelTombol, { color: c.ink }]}>
+              <Text style={[styles.labelTombol, { color: c.btnSoftInk }]}>
                 {cancelText}
               </Text>
             </Pressable>

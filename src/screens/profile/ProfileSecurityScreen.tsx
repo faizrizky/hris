@@ -490,11 +490,18 @@ export function ProfileSecurityScreen({ navigation }: any) {
             ) : null}
             <View style={{ flexDirection: "row", gap: 10, marginTop: 16 }}>
               <Pressable
-                style={[styles.modalTombol, { backgroundColor: c.chip }]}
+                style={[
+                  styles.modalTombol,
+                  {
+                    backgroundColor: c.btnSoft,
+                    borderWidth: 1.5,
+                    borderColor: c.btnSoftBorder,
+                  },
+                ]}
                 onPress={() => setDialogBio(false)}
                 disabled={prosesBio}
               >
-                <Text style={{ fontWeight: "700", color: c.ink }}>
+                <Text style={{ fontWeight: "700", color: c.btnSoftInk }}>
                   {t("kunci.batal")}
                 </Text>
               </Pressable>

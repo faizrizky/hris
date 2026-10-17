@@ -649,10 +649,12 @@ const makeStyles = (c: Palette) =>
     secondary: {
       paddingVertical: 13,
       borderRadius: 16,
-      backgroundColor: c.chip,
+      backgroundColor: c.btnSoft,
+      borderWidth: 1.5,
+      borderColor: c.btnSoftBorder,
       alignItems: "center",
     },
-    secondaryText: { fontSize: 13, fontWeight: "600", color: c.ink },
+    secondaryText: { fontSize: 13, fontWeight: "600", color: c.btnSoftInk },
     galat: {
       fontSize: 12.5,
       fontWeight: "600",

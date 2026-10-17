@@ -439,10 +439,16 @@ const makeStyles = (c: Palette) =>
       flex: 1,
       paddingVertical: 11,
       borderRadius: 13,
-      backgroundColor: c.chip,
+      backgroundColor: c.btnSoft,
+      borderWidth: 1.5,
+      borderColor: c.btnSoftBorder,
       alignItems: "center",
     },
-    secondarySmallText: { fontSize: 12, fontWeight: "700", color: c.ink },
+    secondarySmallText: {
+      fontSize: 12,
+      fontWeight: "700",
+      color: c.btnSoftInk,
+    },
 
     fileBox: {
       flexDirection: "row",

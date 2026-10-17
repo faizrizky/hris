@@ -141,10 +141,17 @@ export function FaceReviewScreen({ navigation }: any) {
             {galat ? <Text style={styles.galat}>{galat}</Text> : null}
             <View style={{ flexDirection: "row", gap: 10, marginTop: 14 }}>
               <Pressable
-                style={[styles.tombol, { backgroundColor: c.chip }]}
+                style={[
+                  styles.tombol,
+                  {
+                    backgroundColor: c.btnSoft,
+                    borderWidth: 1.5,
+                    borderColor: c.btnSoftBorder,
+                  },
+                ]}
                 onPress={() => setTolak(null)}
               >
-                <Text style={[styles.tombolText, { color: c.ink }]}>
+                <Text style={[styles.tombolText, { color: c.btnSoftInk }]}>
                   {t("umum.batal")}
                 </Text>
               </Pressable>
@@ -232,7 +239,14 @@ function Kartu({
       </View>
       <View style={{ flexDirection: "row", gap: 10, marginTop: 14 }}>
         <Pressable
-          style={[styles.tombol, { backgroundColor: c.chip }]}
+          style={[
+            styles.tombol,
+            {
+              backgroundColor: c.bad.bg,
+              borderWidth: 1.5,
+              borderColor: c.bad.ink,
+            },
+          ]}
           onPress={onTolak}
           disabled={sibuk}
         >

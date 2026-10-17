@@ -15,6 +15,10 @@ export const lightColors = {
   mutedLabel: "#94A3B8",
 
   chip: "#F1F5F9",
+  // Tombol sekunder (bukan aksi utama): tinta biru di atas latar biru muda berbingkai, supaya jelas terbaca sebagai tombol.
+  btnSoft: "#E7F1FD",
+  btnSoftBorder: "rgba(36,144,239,0.45)",
+  btnSoftInk: "#1B6FC9",
   track: "#E2E8F0",
   unread: "#F2F8FF",
 
@@ -82,6 +86,9 @@ export const darkColors: Palette = {
   mutedLabel: "rgba(255,255,255,0.4)",
 
   chip: "rgba(255,255,255,0.07)",
+  btnSoft: "rgba(36,144,239,0.16)",
+  btnSoftBorder: "rgba(127,188,247,0.45)",
+  btnSoftInk: "#7FBCF7",
   track: "rgba(255,255,255,0.14)",
   unread: "#1B2B3D",
 
