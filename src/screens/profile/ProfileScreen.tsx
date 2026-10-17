@@ -144,119 +144,129 @@ export function ProfileScreen({ navigation }: any) {
         </View>
       )}
 
-      <ScrollView style={styles.body} contentContainerStyle={styles.content}>
-        <View style={styles.statCard}>
-          <Stat
-            value={`${tahunSejak(employee.joinDate)} ${t("profil.th")}`}
-            label={t("profil.masaKerja")}
-          />
-          <View style={styles.statDivider} />
-          <Stat
-            value={`${cuti?.remaining ?? "–"}`}
-            label={t("profil.sisaCuti")}
-            memuat={balances === null}
-          />
-          <View style={styles.statDivider} />
-          <Stat
-            value={employee.kpiScore.toFixed(1).replace(".", ",")}
-            label={t("profil.skorKpi")}
-          />
-        </View>
+      <View style={styles.body}>
+        <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.content}>
+          <View style={styles.statCard}>
+            <Stat
+              value={`${tahunSejak(employee.joinDate)} ${t("profil.th")}`}
+              label={t("profil.masaKerja")}
+            />
+            <View style={styles.statDivider} />
+            <Stat
+              value={`${cuti?.remaining ?? "–"}`}
+              label={t("profil.sisaCuti")}
+              memuat={balances === null}
+            />
+            <View style={styles.statDivider} />
+            <Stat
+              value={employee.kpiScore.toFixed(1).replace(".", ",")}
+              label={t("profil.skorKpi")}
+            />
+          </View>
 
-        <View style={styles.menuCard}>
-          <MenuRow
-            iconBg={c.info.bg}
-            ink={c.info.ink}
-            icon={ICON.user}
-            title={t("profil.dataPribadi")}
-            subtitle={t("profil.dataPribadiSub")}
-            onPress={() => navigation.navigate("ProfileData")}
-          />
-          <MenuRow
-            iconBg={c.ok.bg}
-            ink={c.ok.ink}
-            icon={ICON.document}
-            title={t("profil.dokumen")}
-            subtitle={t("profil.dokumenSub")}
-            onPress={() => navigation.navigate("ProfileDocs")}
-          />
-          <MenuRow
-            iconBg={c.warn.bg}
-            ink={c.warn.ink}
-            icon={ICON.bell}
-            title={t("profil.push")}
-            subtitle={t("profil.pushSub")}
-            trailing={
-              <Switch
-                value={pushOn}
-                onValueChange={setPushOn}
-                trackColor={{ false: c.track, true: c.accent }}
-                thumbColor="#fff"
-              />
-            }
-          />
-          <MenuRow
-            iconBg={c.info.bg}
-            ink={c.info.ink}
-            icon={ICON.shield}
-            title={t("profil.modeGelap")}
-            subtitle={
-              mode === "dark"
-                ? t("profil.modeGelapAktif")
-                : t("profil.modeGelapIkuti")
-            }
-            trailing={
-              <Switch
-                value={mode === "dark"}
-                onValueChange={toggle}
-                trackColor={{ false: c.track, true: c.accent }}
-                thumbColor="#fff"
-              />
-            }
-          />
-          <MenuRow
-            iconBg={c.ok.bg}
-            ink={c.ok.ink}
-            icon={ICON.document}
-            title={t("profil.bahasa")}
-            subtitle={t("profil.bahasaSub")}
-            trailing={<LanguagePicker />}
-          />
-          <MenuRow
-            iconBg={c.purple.bg}
-            ink={c.purple.ink}
-            icon={ICON.shield}
-            title={t("profil.keamanan")}
-            subtitle={t("profil.keamananSub")}
-            isLast
-            onPress={() => navigation.navigate("ProfileSecurity")}
-          />
-        </View>
+          <View style={styles.menuCard}>
+            <MenuRow
+              iconBg={c.info.bg}
+              ink={c.info.ink}
+              icon={ICON.user}
+              title={t("profil.dataPribadi")}
+              subtitle={t("profil.dataPribadiSub")}
+              onPress={() => navigation.navigate("ProfileData")}
+            />
+            <MenuRow
+              iconBg={c.ok.bg}
+              ink={c.ok.ink}
+              icon={ICON.document}
+              title={t("profil.dokumen")}
+              subtitle={t("profil.dokumenSub")}
+              onPress={() => navigation.navigate("ProfileDocs")}
+            />
+            <MenuRow
+              iconBg={c.warn.bg}
+              ink={c.warn.ink}
+              icon={ICON.bell}
+              title={t("profil.push")}
+              subtitle={t("profil.pushSub")}
+              trailing={
+                <Switch
+                  value={pushOn}
+                  onValueChange={setPushOn}
+                  trackColor={{ false: c.track, true: c.accent }}
+                  thumbColor="#fff"
+                />
+              }
+            />
+            <MenuRow
+              iconBg={c.info.bg}
+              ink={c.info.ink}
+              icon={ICON.shield}
+              title={t("profil.modeGelap")}
+              subtitle={
+                mode === "dark"
+                  ? t("profil.modeGelapAktif")
+                  : t("profil.modeGelapIkuti")
+              }
+              trailing={
+                <Switch
+                  value={mode === "dark"}
+                  onValueChange={toggle}
+                  trackColor={{ false: c.track, true: c.accent }}
+                  thumbColor="#fff"
+                />
+              }
+            />
+            <MenuRow
+              iconBg={c.ok.bg}
+              ink={c.ok.ink}
+              icon={ICON.document}
+              title={t("profil.bahasa")}
+              subtitle={t("profil.bahasaSub")}
+              trailing={<LanguagePicker />}
+            />
+            <MenuRow
+              iconBg={c.purple.bg}
+              ink={c.purple.ink}
+              icon={ICON.shield}
+              title={t("profil.keamanan")}
+              subtitle={t("profil.keamananSub")}
+              isLast
+              onPress={() => navigation.navigate("ProfileSecurity")}
+            />
+          </View>
 
-        <Pressable
-          ref={keluarRef}
-          style={styles.logout}
-          onPress={async () => {
-            const ya = await confirm({
-              title: t("profil.keluarJudul"),
-              message: t("profil.keluarPesan"),
-              tone: "bad",
-              confirmText: t("umum.keluar"),
-              cancelText: t("umum.batal"),
-              from: keluarRef,
-              fromColor: c.bad.bg,
-              fromTextColor: c.bad.ink,
-              fromLabel: t("umum.keluar"),
-              fromRadius: 22,
-            });
-            if (!ya) return;
-            await keluarAman();
-            setEmployee(null);
-          }}
-        >
-          <Text style={styles.logoutText}>{t("umum.keluar")}</Text>
-        </Pressable>
-      </ScrollView>
+          <Pressable
+            ref={keluarRef}
+            style={styles.logout}
+            onPress={async () => {
+              const ya = await confirm({
+                title: t("profil.keluarJudul"),
+                message: t("profil.keluarPesan"),
+                tone: "bad",
+                confirmText: t("umum.keluar"),
+                cancelText: t("umum.batal"),
+                from: keluarRef,
+                fromColor: c.bad.bg,
+                fromTextColor: c.bad.ink,
+                fromLabel: t("umum.keluar"),
+                fromRadius: 22,
+              });
+              if (!ya) return;
+              await keluarAman();
+              setEmployee(null);
+            }}
+          >
+            <Text style={styles.logoutText}>{t("umum.keluar")}</Text>
+          </Pressable>
+        </ScrollView>
+        {/* Isi yang bergulir memudar masuk ke warna kepala halaman, jadi tepi
+          potongnya tidak terlihat sebagai garis keras di atas foto. */}
+        <LinearGradient
+          pointerEvents="none"
+          colors={[c.headerBg, `${c.headerBg}99`, `${c.headerBg}00`]}
+          locations={[0, 0.45, 1]}
+          style={styles.pudar}
+        />
+      </View>
     </View>
   );
 }
@@ -403,6 +413,7 @@ const makeStyles = (c: Palette) =>
     },
 
     body: { flex: 1, marginTop: -28 },
+    pudar: { position: "absolute", top: 0, left: 0, right: 0, height: 34 },
     content: { paddingHorizontal: 18, paddingBottom: 170 },
 
     statCard: {
