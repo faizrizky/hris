@@ -771,7 +771,10 @@ if not frappe.db.exists("DocType", "PPh21 TER Rate"):
                      dict(role="HR Manager", read=1, write=1, create=1, delete=1),
                      dict(role="HR User", read=1)]))
     frappe.clear_cache()
-# Tabel TER (PMK 168/2023 Lampiran, tarif bulanan atas penghasilan bruto). Format: (batas atas, tarif %), None = tanpa batas.
+# Tabel TER bulanan kategori A/B/C. Sumber hukum: Lampiran huruf A, B, C PP 58/2023 (PMK 168/2023 adalah aturan pelaksananya).
+# Diverifikasi baris demi baris dengan salinan resmi https://peraturan.bpk.go.id/Details/274247 pada 2026-10-17 (44/40/41 baris).
+# Kategori: A = TK/0, TK/1, K/0; B = TK/2, TK/3, K/1, K/2; C = K/3 (PP 58/2023 Pasal 2 ayat 4).
+# Format: (batas atas, tarif %), None = tanpa batas.
 TER_TABLES = {
     "A": [(5400000, 0), (5650000, 0.25), (5950000, 0.5), (6300000, 0.75), (6750000, 1), (7500000, 1.25), (8550000, 1.5),
           (9650000, 1.75), (10050000, 2), (10350000, 2.25), (10700000, 2.5), (11050000, 3), (11600000, 3.5), (12500000, 4),

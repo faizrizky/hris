@@ -8,7 +8,7 @@ Status per 2026-10-17. Sumber kebenaran: method di `HrisApi` ([src/services/type
 - Cuti, Lembur, Dinas Luar, WFH: kirim, daftar, approval; saldo cuti; zona waktu dinas
 - Absensi: jam dari server menurut zona kerja, status Terlambat/Pulang awal/Tepat waktu sesuai shift, riwayat, koreksi, geofence, check-in offline dengan jam tepercaya
 - Karyawan, ringkasan kepegawaian, absensi tim, Beranda (menu Semua, sapaan sesuai shift termasuk shift malam, jam live)
-- Slip gaji, PPh21/BPJS; Dokumen Digital (status berubah sendiri saat HR memverifikasi) dan Appraisal
+- Slip gaji, PPh21/BPJS (tabel TER kategori A, B, C dan pemetaan kategori PTKP **diverifikasi baris demi baris** terhadap salinan resmi PP 58/2023 dari peraturan.bpk.go.id pada 2026-10-17: A 44 baris, B 40, C 41, semua cocok; Desember memakai tarif Pasal 17 UU PPh); Dokumen Digital (status berubah sendiri saat HR memverifikasi) dan Appraisal
 - Profil, foto profil (diajukan ke HR), notifikasi, bahasa ID/EN
 - **Wajah:** pendaftaran (ML Kit + SFace fp32, tiga perintah liveness acak, sampel kualitas tinggi), persetujuan HR di web (tiga foto, KTP PDF ikut tampil, skor, selfie disimpan selama Active), ambang `min_ktp` 34, wajib wajah terdaftar untuk Clock In, liveness Clock In/Out tiga perintah acak
 - **Anti-spoofing (Minivision MiniFASNet, ONNX):** mode bayangan di Clock In/Out (skor dicatat di Employee Checkin); di pendaftaran wajah sudah menolak bila median skor < 0,5
@@ -35,7 +35,6 @@ Perlu kamu (uji atau keputusan):
 - [ ] Verifikasi 2 langkah di Keamanan masih data contoh: putuskan dibuat sungguhan (OTP email) atau dihapus
 - [ ] Kebijakan sesi: sekarang maksimal 3 sesi aktif per pengguna (System Settings > Deny Multiple Sessions, User > Simultaneous Sessions); sesuaikan bila terlalu ketat. Keluarkan perangkat dibatasi 10 kali per jam per IP klien oleh Frappe
 - [ ] Rilis toko: Play Store (AAB, kebijakan privasi, keamanan data) dan App Store (akun Apple Developer); lalu `MODE_PEMBARUAN = "toko"`
-- [ ] Verifikasi tabel TER PPh 21 dengan PDF PMK 168/2023
 
 Bisa dikerjakan (setelah data uji terkumpul atau bersama build berikutnya):
 - [ ] Anti-spoofing: setelah data mode bayangan terkumpul (1 sampai 2 minggu), tentukan ambang dan jadikan penanda "Perlu Ditinjau" atau penjaga di Clock In/Out; tambahkan uji dengan kamera depan HP karyawan dan foto cetak/layar sungguhan

@@ -1,7 +1,7 @@
 # Graph Report - HRIS  (2026-10-17)
 
 ## Corpus Check
-- 230 files · ~149,779 words
+- 230 files · ~150,072 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 8 file(s) not represented in the graph (top: .onnx 3, (none) 2, .podspec 2)
 
@@ -11,7 +11,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `91236cb7`
+- Built from commit: `61331fb2`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
