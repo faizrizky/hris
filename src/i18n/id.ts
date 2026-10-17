@@ -12,6 +12,7 @@ export const id = {
   "tab.absensi": "Absensi",
   "tab.absensiKry": "Absensi Kry",
   "tab.approval": "Approval",
+  "tab.notifikasi": "Notifikasi",
   "tab.payroll": "Payroll",
   "tab.profil": "Profil",
 

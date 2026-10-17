@@ -162,9 +162,10 @@ function PayrollStack() {
   );
 }
 
-function HomeStack() {
+function HomeStack({ awal = "HomeMain" }: { awal?: string } = {}) {
   return (
     <Stack.Navigator
+      initialRouteName={awal}
       screenLayout={revealLayout}
       screenOptions={{ headerShown: false, animation: "none" }}
     >
@@ -217,6 +218,12 @@ function HomeStack() {
   );
 }
 
+// Tab Notifikasi memakai kumpulan layar yang sama dengan Beranda (tujuan ketuk
+// notifikasi ada di sana), hanya layar awalnya yang beda.
+function NotifStack() {
+  return <HomeStack awal="Notifications" />;
+}
+
 function ProfileStack() {
   return (
     <Stack.Navigator
@@ -254,6 +261,11 @@ function MainTabs() {
       <Tab.Screen
         name="Absensi"
         component={AttendanceStack}
+        options={{ headerShown: false }}
+      />
+      <Tab.Screen
+        name="Notifikasi"
+        component={NotifStack}
         options={{ headerShown: false }}
       />
       {employee?.role === "hr" && (

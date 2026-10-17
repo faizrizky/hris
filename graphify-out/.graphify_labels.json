@@ -1,7 +1,6 @@
 {
   "1": "HrisClockModule.swift",
   "2": "index.tsx",
-  "5": "CutiFormCards.tsx",
   "6": "mockApi.ts",
   "7": "HrisApi",
   "8": "erpnextApi.ts",
@@ -34,7 +33,6 @@
   "37": "hris_get_my_roles.py",
   "38": "hris_get_staff_directory.py",
   "39": "Ceklis uji di HP",
-  "41": "tt",
   "42": "hris_submit_profile_change.py",
   "43": "hris_get_attendance_corrections.py",
   "44": "hris_get_overtimes.py",
@@ -101,7 +99,6 @@
   "106": "hris_shift_location_map.py",
   "107": "hris_submit_wfh.py",
   "108": "offlineQueue.ts",
-  "112": "ProfilePhotoScreen.tsx",
   "113": "face_lib.py",
   "115": "Web (admin/HR)",
   "117": "hris_decide_face_enrollment.py",

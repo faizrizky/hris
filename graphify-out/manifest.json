@@ -144,9 +144,9 @@
     "semantic_hash": ""
   },
   "src/components/FloatingTabBar.tsx": {
-    "mtime": 1792130963.7755978,
-    "seen": 1792158747.431069,
-    "ast_hash": "546d8dc392f9c08329bf19a1348b74f2",
+    "mtime": 1792234748.8634398,
+    "seen": 1792234768.238077,
+    "ast_hash": "2bfe17f6360d3b2cc8e4596d09e3b8f6",
     "semantic_hash": ""
   },
   "src/components/GlassPill.tsx": {
@@ -234,9 +234,9 @@
     "semantic_hash": ""
   },
   "src/navigation/RootNavigator.tsx": {
-    "mtime": 1792198359.9031768,
-    "seen": 1792198493.7179468,
-    "ast_hash": "02e1929a662e76bc4f7d86e3fcc18a2e",
+    "mtime": 1792234651.5454361,
+    "seen": 1792234768.2381089,
+    "ast_hash": "4cc99330f4aef9077ecc74572d543e04",
     "semantic_hash": ""
   },
   "src/screens/appraisal/AppraisalScreen.tsx": {
@@ -348,9 +348,9 @@
     "semantic_hash": ""
   },
   "src/screens/notifications/NotificationScreen.tsx": {
-    "mtime": 1792056563.250636,
-    "seen": 1792158747.431123,
-    "ast_hash": "c63c123a211bdb4f2639e654398c092b",
+    "mtime": 1792234719.9454706,
+    "seen": 1792234768.238145,
+    "ast_hash": "e887ea9f06072c8eca9315bbcafbccfe",
     "semantic_hash": ""
   },
   "src/screens/payroll/PayslipCards.tsx": {
@@ -852,15 +852,15 @@
     "semantic_hash": ""
   },
   "src/i18n/en.ts": {
-    "mtime": 1792232213.6202884,
-    "seen": 1792232279.881042,
-    "ast_hash": "102d620df9cd118cab78847093a2ba52",
+    "mtime": 1792234718.8102477,
+    "seen": 1792234768.238104,
+    "ast_hash": "3c3b8bc6b6490e528aaf5736e989b8a9",
     "semantic_hash": ""
   },
   "src/i18n/id.ts": {
-    "mtime": 1792232213.6483767,
-    "seen": 1792232279.881043,
-    "ast_hash": "72ecd20c4ab8008657cf25db0e9aa639",
+    "mtime": 1792234718.8096511,
+    "seen": 1792234768.238105,
+    "ast_hash": "30a0fee733a72d5088dc82749c30a141",
     "semantic_hash": ""
   },
   "src/i18n/index.tsx": {
