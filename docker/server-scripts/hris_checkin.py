@@ -241,9 +241,9 @@ if not done:
     elif log_type == "IN" and not offline and fl_setting("require_enrollment", 0):
         frappe.throw("Register your face first (Profile > Face registration)")
     spoof_flags = []
-    _sm = fd.get("spoof_mean")
-    if _sm not in (None, "") and frappe.utils.flt(_sm) < 0.5:
-        spoof_flags.append("anti-spoofing score low (" + str(frappe.utils.flt(_sm)) + "): possible photo/screen")
+    spoof_m = fd.get("spoof_mean")
+    if spoof_m not in (None, "") and frappe.utils.flt(spoof_m) < 0.5:
+        spoof_flags.append("anti-spoofing score low (" + str(frappe.utils.flt(spoof_m)) + "): possible photo/screen")
     all_flags = flags + geo_flags + face_flags + dev_flags + spoof_flags
     if offline and not flags and not claimed:
         claimed = time_value
