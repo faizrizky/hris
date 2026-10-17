@@ -1,41 +1,46 @@
 # Backlog migrasi mock ke ERPNext
 
-Status per 2026-10-16. Sumber kebenaran: method di `HrisApi` ([src/services/types.ts](src/services/types.ts)) yang belum di-override `erpnextApi`.
+Status per 2026-10-17. Sumber kebenaran: method di `HrisApi` ([src/services/types.ts](src/services/types.ts)) yang belum di-override `erpnextApi`.
 
 ## Sudah asli
 
-- Login, logout, role, sesi kedaluwarsa, bahasa mengikuti akun ERPNext (`hris_get_my_language`)
-- Cuti: saldo, daftar, kirim, approval (satu PUT `status` + `docstatus:1`)
-- Lembur (`hris_*_overtime`), Dinas Luar (`hris_*_travel_request`), dan WFH (`hris_*_wfh`, pilih hari per minggu; hanya yang disetujui atasan membebaskan geofence): kirim, daftar, approval
-- Absensi: status jam, check-in/out dengan jam dari server menurut zona waktu (`hris_checkin`), riwayat, koreksi
-- Karyawan, ringkasan kepegawaian, absensi tim, Beranda (feed, statistik)
-- Slip gaji, PPh21/BPJS
-- Dokumen Digital (unggah multipart, verifikasi HR) dan Appraisal
-- Profil, keamanan (password, perangkat aktif), notifikasi (Notification Log)
-- Semua layar sudah ID/EN mengikuti bahasa akun
-- Geofence (Shift Location, peta web bisa digeser/diklik), check-in offline dengan jam tepercaya, WFH oleh karyawan
-- Foto profil (diajukan ke HR), pendaftaran wajah (ML Kit + SFace, lingkaran Face ID, persetujuan HR di web), wajib wajah terdaftar untuk Clock In
-- Menu Beranda (Semua), sapaan sesuai shift, jam live, layar pembuka beranimasi
-- Pembaruan aplikasi: APK wajib lewat server (App Update + rilis-apk.sh) dan JavaScript lewat EAS Update (kirim-update.sh)
+- Login, logout, role, sesi kedaluwarsa (layar login memberi tahu bila dikeluarkan dari luar), bahasa mengikuti akun ERPNext
+- Cuti, Lembur, Dinas Luar, WFH: kirim, daftar, approval; saldo cuti; zona waktu dinas
+- Absensi: jam dari server menurut zona kerja, status Terlambat/Pulang awal/Tepat waktu sesuai shift, riwayat, koreksi, geofence, check-in offline dengan jam tepercaya
+- Karyawan, ringkasan kepegawaian, absensi tim, Beranda (menu Semua, sapaan sesuai shift termasuk shift malam, jam live)
+- Slip gaji, PPh21/BPJS; Dokumen Digital (status berubah sendiri saat HR memverifikasi) dan Appraisal
+- Profil, foto profil (diajukan ke HR), notifikasi, bahasa ID/EN
+- **Wajah:** pendaftaran (ML Kit + SFace fp32, tiga perintah liveness acak, sampel kualitas tinggi), persetujuan HR di web (tiga foto, KTP PDF ikut tampil, skor, selfie disimpan selama Active), ambang `min_ktp` 34, wajib wajah terdaftar untuk Clock In, liveness Clock In/Out tiga perintah acak
+- **Anti-spoofing (Minivision MiniFASNet, ONNX):** mode bayangan di Clock In/Out (skor dicatat di Employee Checkin); di pendaftaran wajah sudah menolak bila median skor < 0,5
+- **Ikatan perangkat:** Registered Device (perangkat pertama otomatis, berikutnya menunggu HR), Clock In diblokir di perangkat belum disetujui
+- **Keamanan:** login biometrik (sidik jari/wajah terdaftar di HP; nama menyesuaikan Android/iOS), kunci otomatis terikat biometrik, keluarkan perangkat satu per satu, batas 3 sesi aktif
+- Pembaruan aplikasi: APK wajib lewat server (`rilis-apk.sh` setelah tiap build) dan JavaScript lewat EAS Update (`kirim-update.sh`); proyek EAS di akun `gshins-team`
+- Tata letak form web (section berlabel, kolom) untuk semua DocType buatan sendiri
+- Push notification: Firebase (`hris-2d0e4`), kunci FCM V1 dan keystore di EAS, `scripts/tes-push.sh`
 
 ## Masih mock
 
-Tidak ada: seluruh method `HrisApi` sudah punya implementasi ERPNext. Dokumen Digital (`hris_*_my_document` + `upload_file`) dan Appraisal (`hris_get_my_appraisal`) baru tersambung dan belum diuji di perangkat.
+- Toggle "Verifikasi 2 langkah" di Profil > Keamanan masih data contoh (tidak berfungsi). Putuskan: dibuat sungguhan (OTP email) atau dihapus.
 
 ## Berikutnya
 
 Perlu kamu (uji atau keputusan):
-- [ ] Uji di HP dengan ceklis (halaman ceklis, fase 3b dan 3c di `TESTING.md`): verifikasi wajah, geofence/WFH, offline, pembaruan APK dan EAS Update; kumpulkan angka kemiripan wajah untuk menyetel ambang
-- [ ] Push notification: butuh akun Firebase (`google-services.json`) lalu Push Settings → Dry Run = 0
-- [ ] Putuskan ID paket `com.hrismobile` sebelum rilis toko (mengubahnya = aplikasi baru)
-- [ ] Tinjauan hukum lisensi bobot SFace sebelum rilis komersial; persetujuan karyawan untuk data biometrik (UU PDP)
+- [ ] Uji APK baru `com.hrismobile` dengan ceklis Fase 3d di `TESTING.md` (perangkat, liveness, anti-spoofing bayangan, biometrik, kunci otomatis, push); catat skor anti-spoofing wajah asli di HP karyawan untuk menyetel ambang (0,5 di pendaftaran)
+- [ ] Push sungguhan: matikan Dry Run di Push Settings lalu uji dengan persetujuan cuti
+- [ ] Kuota build EAS gratis habis per bulan (15 build Android). Putuskan paket berbayar atau pindah ke akun organisasi perusahaan; unduh dan cadangkan keystore (`npx eas-cli credentials`)
+- [ ] Putuskan nama dan ID paket final (sekarang `com.hrismobile`; mengubahnya = aplikasi baru, isi ulang App Update dengan `rilis-apk.sh`)
+- [ ] Tinjauan hukum sebelum rilis komersial: lisensi bobot SFace dan data latihnya; Minivision (tanyakan data latih dan izin komersial ke Minivision); ML Kit; **jangan pakai SuriAI** (dilatih di CelebA-Spoof, non-komersial); persetujuan karyawan untuk data biometrik (UU PDP) dan retensi selfie
 - [ ] Rilis toko: Play Store (AAB, kebijakan privasi, keamanan data) dan App Store (akun Apple Developer); lalu `MODE_PEMBARUAN = "toko"`
-- [ ] Verifikasi tabel TER PPh 21 dengan PDF PMK 168/2023 (pemetaan kategori sudah cocok dengan DJP)
+- [ ] Verifikasi tabel TER PPh 21 dengan PDF PMK 168/2023
 
 Bisa dikerjakan:
-- [ ] Ikatan perangkat per akun (HP terdaftar, HP baru disetujui HR) untuk menutup titip absen dari HP lain
+- [ ] **Verifikasi wajah di server** (embedding dihitung server dari foto, bukan vektor dari HP): menutup celah vektor palsu lewat API. Butuh container embedding (FastAPI + onnxruntime); AuraFace diuji lebih baik pada KTP bagus tetapi 260 MB dan lebih buruk pada KTP buram, jadi SFace tetap kecuali ada data uji sungguhan
+- [ ] Anti-spoofing: setelah data mode bayangan terkumpul (1 sampai 2 minggu), tentukan ambang dan jadikan penanda "Perlu Ditinjau" atau penjaga di Clock In/Out; tambahkan uji dengan kamera depan HP karyawan
+- [ ] Pemindaian wajah lebih cepat seperti Face ID: baca aliran video (vision-camera + frame processor ML Kit) menggantikan foto satu per satu; butuh build baru
+- [ ] Clock In/Out: sisi Android memakai foto kualitas lebih rendah di layar wajah; selaraskan dengan pendaftaran
+- [ ] Status presensi untuk shift lintas tengah malam (Clock Out dibandingkan jam selesai hari berikutnya)
+- [ ] Layar peninjauan pendaftaran wajah di aplikasi untuk HR (sekarang hanya di web)
+- [ ] Verifikasi wajah dan biometrik iOS (Vision, Face ID); butuh akun Apple Developer
+- [ ] Blur sungguhan di bawah tab bar (`expo-blur` sudah terpasang; sekarang gradien pudar); uji performa di Android 11
 - [ ] Server sungguhan: seed di srv-vllm, alamat tetap (domain + HTTPS), perbarui variabel env EAS `preview`, uji seed dari nol (`down -v`, perlu izin)
-- [ ] Perkecil APK (model wajah int8, sekitar 70 MB) setelah uji akurasi
-- [ ] Verifikasi wajah iOS (Vision); pencocokan wajah di server; layar peninjauan pendaftaran wajah di aplikasi untuk HR
-- [ ] Blur sungguhan di bawah tab bar (sekarang gradien pudar); uji performa di Android 11
-- [ ] Shift malam yang melewati tengah malam pada sapaan Beranda
+- [ ] Perangkat: Android ID berubah bila keystore berubah (dianggap perangkat baru); tambahkan alur HR memindahkan perangkat bila karyawan ganti HP

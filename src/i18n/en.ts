@@ -1077,6 +1077,9 @@ export const en: Record<Kunci, string> = {
   "sec.keluarkanJudul": "Sign this device out?",
   "sec.keluarkanPesan":
     "{nama} will be signed out of your account and must sign in again.",
+  "login.sesiJudul": "Session ended",
+  "login.sesiPesan":
+    "This device has been signed out of your account. The session may have expired, you signed in on another device (3-device limit), or this device was signed out from Security. Sign in again to continue.",
   "dv.judul": "Device not approved",
   "dv.menunggu":
     "This is a new device. You can clock in from this phone only after HR approves it. You will be notified once it is approved.",

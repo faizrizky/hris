@@ -1080,6 +1080,9 @@ export const id = {
   "sec.keluarkan": "Keluarkan",
   "sec.keluarkanJudul": "Keluarkan perangkat ini?",
   "sec.keluarkanPesan": "{nama} akan keluar dari akunmu dan harus login lagi.",
+  "login.sesiJudul": "Sesi berakhir",
+  "login.sesiPesan":
+    "Perangkat ini sudah keluar dari akunmu. Penyebabnya bisa sesi habis, kamu login di perangkat lain (batas 3 perangkat), atau perangkat ini dikeluarkan lewat Keamanan. Masuk lagi untuk melanjutkan.",
   "dv.judul": "Perangkat belum disetujui",
   "dv.menunggu":
     "Ini perangkat baru. Absen dari HP ini baru bisa setelah HR menyetujuinya. Kamu akan menerima notifikasi begitu disetujui.",

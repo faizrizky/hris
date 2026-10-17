@@ -1,6 +1,7 @@
-import React from "react";
-import { View } from "react-native";
+import React, { useEffect } from "react";
+import { BackHandler, View } from "react-native";
 import { useTheme } from "@/theme/ThemeContext";
+import { tandaiKembali } from "@/navigation/kembali";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
@@ -291,6 +292,16 @@ function MainTabs() {
 export function RootNavigator() {
   const { employee, siap } = useSession();
   const c = useTheme();
+
+  // Tombol kembali Android (fisik/gestur sistem) tidak lewat `kembali()`, sehingga halaman tujuan tidak memutar animasi
+  // masuknya dan terasa kasar. Tandai dulu, lalu biarkan penanganan bawaan melakukan kembali.
+  useEffect(() => {
+    const sub = BackHandler.addEventListener("hardwareBackPress", () => {
+      tandaiKembali();
+      return false;
+    });
+    return () => sub.remove();
+  }, []);
 
   // Sesi tersimpan masih dipulihkan: tampilkan layar berlatar tema (bukan kosong/gelap) sebentar.
   if (!siap) {

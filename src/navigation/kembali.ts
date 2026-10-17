@@ -5,17 +5,23 @@
 // memberi tanda: halaman sebelumnya sudah terlihat selama gesture, jadi memutar
 // ulang animasinya terasa seperti dimuat ulang (lihat RevealScope).
 
-let lewatTombol = false;
+// Tanda berlaku singkat: tombol kembali Android yang tidak jadi kembali (mis. di akar) tidak boleh "menempel" ke
+// perpindahan halaman berikutnya.
+let lewatTombolSampai = 0;
+
+export function tandaiKembali() {
+  lewatTombolSampai = Date.now() + 1200;
+}
 
 export function kembali(navigation: any) {
-  lewatTombol = true;
+  tandaiKembali();
   navigation.goBack();
 }
 
 /** Dibaca sekali oleh halaman yang mendapat fokus kembali. */
 export function ambilTandaKembali(): boolean {
-  const v = lewatTombol;
-  lewatTombol = false;
+  const v = Date.now() <= lewatTombolSampai;
+  lewatTombolSampai = 0;
   return v;
 }
 
@@ -30,7 +36,7 @@ export function kembaliAtauBeranda(navigation: any) {
 export function keBeranda(navigation: any) {
   const nama: string[] = navigation.getState()?.routeNames ?? [];
   if (nama.includes("HomeMain")) {
-    lewatTombol = true;
+    tandaiKembali();
     navigation.popToTop();
   } else {
     navigation.getParent()?.navigate("Beranda");

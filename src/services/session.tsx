@@ -13,7 +13,10 @@ import { AppState } from "react-native";
 
 // Keluar akun yang tidak bisa tersangkut: permintaan ke server dibatasi 3 detik; layar login tetap tampil
 // walau server lambat / tidak terjangkau (cookie sesi akan kedaluwarsa di server).
+let keluarSengajaSampai = 0;
+
 export async function keluarAman(): Promise<void> {
+  keluarSengajaSampai = Date.now() + 8000; // sesi yang mati karena keluar sengaja bukan "dikeluarkan paksa"
   await Promise.race([
     hrisApi.logout().catch(() => {}),
     new Promise<void>((r) => setTimeout(r, 3000)),
@@ -25,6 +28,8 @@ interface SessionContextValue {
   setEmployee: (employee: Employee | null) => void;
   siap: boolean; // false selama sesi tersimpan masih dipulihkan saat aplikasi dibuka
   dipulihkan: boolean; // true bila pengguna masuk lewat sesi tersimpan (bukan mengetik login)
+  pesanLogin: "sesiBerakhir" | null; // alasan kembali ke layar login (ditampilkan sekali di layar login)
+  bersihkanPesanLogin: () => void;
 }
 
 const SessionContext = createContext<SessionContextValue | undefined>(
@@ -35,6 +40,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
   const [employee, setEmployee] = useState<Employee | null>(null);
   const [siap, setSiap] = useState(false);
   const [dipulihkan, setDipulihkan] = useState(false);
+  const [pesanLogin, setPesanLogin] = useState<"sesiBerakhir" | null>(null);
 
   // Sesi login hidup di cookie server, jadi aplikasi yang dibuka ulang (termasuk setelah pembaruan APK/OTA)
   // tinggal bertanya "siapa saya"; hanya bila sesinya sudah kedaluwarsa pengguna kembali ke layar login.
@@ -62,7 +68,11 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
-    setSessionExpiredHandler(() => setEmployee(null));
+    setSessionExpiredHandler(() => {
+      // Dikeluarkan dari luar (sesi habis, login di perangkat lain, dikeluarkan lewat Keamanan): beri tahu pengguna.
+      if (Date.now() > keluarSengajaSampai) setPesanLogin("sesiBerakhir");
+      setEmployee(null);
+    });
     return () => setSessionExpiredHandler(null);
   }, []);
 
@@ -112,7 +122,14 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <SessionContext.Provider
-      value={{ employee, setEmployee, siap, dipulihkan }}
+      value={{
+        employee,
+        setEmployee,
+        siap,
+        dipulihkan,
+        pesanLogin,
+        bersihkanPesanLogin: () => setPesanLogin(null),
+      }}
     >
       {children}
     </SessionContext.Provider>

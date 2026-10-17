@@ -23,6 +23,7 @@ import {
 import { useT } from "@/i18n";
 import { LanguagePicker } from "@/components/LanguagePicker";
 import { LogoHris } from "@/components/LogoHris";
+import { useConfirm } from "@/components/ConfirmDialog";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   adaLoginBiometrik,
@@ -35,7 +36,8 @@ import {
 const KUNCI_USERNAME = "hris.username";
 
 export function LoginScreen() {
-  const { setEmployee } = useSession();
+  const { setEmployee, pesanLogin, bersihkanPesanLogin } = useSession();
+  const confirm = useConfirm();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -59,6 +61,19 @@ export function LoginScreen() {
       })
       .catch(() => {});
   }, []);
+
+  // Dikeluarkan dari luar (sesi berakhir / login di perangkat lain / dikeluarkan lewat Keamanan): beri tahu sekali.
+  useEffect(() => {
+    if (!pesanLogin) return;
+    void confirm({
+      title: t("login.sesiJudul"),
+      message: t("login.sesiPesan"),
+      tone: "warn",
+      confirmText: t("umum.mengerti"),
+      cancelText: null,
+    }).then(bersihkanPesanLogin);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pesanLogin]);
 
   // Biometrik hanya ditawarkan bila perangkat ini sudah punya sidik jari / wajah terdaftar.
   useEffect(() => {
