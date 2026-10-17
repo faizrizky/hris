@@ -521,6 +521,12 @@ export interface HrisApi {
     spoof?: SpoofRingkas,
   ): Promise<ClockState>;
   getFaceStatus(): Promise<FaceStatus>;
+  // Mencatat percobaan verifikasi wajah (skor saja) untuk penyetelan ambang; gagal dicatat tidak boleh mengganggu absen.
+  logFaceCheck(input: {
+    logType: "IN" | "OUT";
+    outcome: "Passed" | "Rejected" | "Timeout";
+    scores: number[];
+  }): Promise<void>;
   // HR: daftar pendaftaran wajah yang menunggu, dan keputusan (alasan wajib bila ditolak).
   getFaceEnrollmentsForReview(): Promise<FaceReview[]>;
   decideFaceEnrollment(

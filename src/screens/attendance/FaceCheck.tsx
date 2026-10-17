@@ -4,6 +4,7 @@ import { CameraView, useCameraPermissions } from "expo-camera";
 import { Palette } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
 import { useT } from "@/i18n";
+import { hrisApi } from "@/services/api";
 import type { SpoofRingkas } from "@/services/types";
 import {
   awalUrutan,
@@ -22,17 +23,19 @@ const BATAS_MS = 45_000; // seluruh sesi liveness (tiga perintah)
 const KUALITAS_DETEKSI = spoofTersedia() ? 0.6 : 0.3;
 // Verifikasi hanya dengan anti-spoofing (tanpa perintah gerak): beberapa frame menghadap depan dinilai model, keputusan
 // memakai median supaya satu frame buruk tidak menggagalkan wajah asli dan satu frame bagus tidak meloloskan foto/layar.
-const SPOOF_MIN_FRAME = 5;
-const SPOOF_MAKS_FRAME = 12;
+const SPOOF_BERUNTUN = 6; // lolos bila 6 frame BERUNTUN sama-sama di atas ambang (video di layar jarang konsisten)
+const SPOOF_MAKS_FRAME = 16;
 const SPOOF_AMBANG = 0.6;
-const SPOOF_BATAS_MS = 25_000;
+const SPOOF_BATAS_MS = 30_000;
 const KUALITAS_SAMPEL = 0.7; // foto untuk embedding wajah: lebih tajam supaya pencocokan akurat
 
 // Kamera depan + tantangan acak. onLulus dipanggil sekali saat liveness lolos.
 export function FaceCheck({
   onLulus,
+  aksi,
 }: {
   onLulus: (vec: number[] | null, spoof?: SpoofRingkas) => void;
+  aksi: "IN" | "OUT";
 }) {
   const t = useT();
   const c = useTheme();
@@ -58,13 +61,24 @@ export function FaceCheck({
       // Hanya anti-spoofing: tanpa kedip/toleh.
       (async () => {
         const skor: number[] = [];
-        const median = (v: number[]) => {
-          const x = [...v].sort((a, b) => a - b);
-          const m = Math.floor(x.length / 2);
-          return x.length % 2 ? x[m]! : (x[m - 1]! + x[m]!) / 2;
+        const catat = (hasil: "Passed" | "Rejected" | "Timeout") => {
+          hrisApi
+            .logFaceCheck({
+              logType: aksi,
+              outcome: hasil,
+              scores: skor.slice(0, 40),
+            })
+            .catch(() => {});
+        };
+        const beruntun = () => {
+          let n = 0;
+          for (let i = skor.length - 1; i >= 0 && skor[i]! >= SPOOF_AMBANG; i--)
+            n++;
+          return n;
         };
         while (!batal) {
           if (Date.now() - mulai > SPOOF_BATAS_MS) {
+            catat("Timeout");
             setWaktuHabis(true);
             return;
           }
@@ -101,24 +115,24 @@ export function FaceCheck({
               });
               vec = await embeddingWajah((tajam ?? foto).uri);
             }
-            if (skor.length >= SPOOF_MIN_FRAME) {
-              const jendela = skor.slice(-8);
-              if (median(jendela) >= SPOOF_AMBANG) {
-                setLulus(true);
-                onLulus(vec, {
-                  mean:
-                    Math.round(
-                      (jendela.reduce((a, b) => a + b, 0) / jendela.length) *
-                        1000,
-                    ) / 1000,
-                  scores: skor.slice(0, 40),
-                });
-                return;
-              }
-              if (skor.length >= SPOOF_MAKS_FRAME) {
-                setBukanAsli(true);
-                return;
-              }
+            if (beruntun() >= SPOOF_BERUNTUN) {
+              const jendela = skor.slice(-SPOOF_BERUNTUN);
+              catat("Passed");
+              setLulus(true);
+              onLulus(vec, {
+                mean:
+                  Math.round(
+                    (jendela.reduce((a, b) => a + b, 0) / jendela.length) *
+                      1000,
+                  ) / 1000,
+                scores: skor.slice(0, 40),
+              });
+              return;
+            }
+            if (skor.length >= SPOOF_MAKS_FRAME) {
+              catat("Rejected");
+              setBukanAsli(true);
+              return;
             }
           } catch {
             // frame gagal: coba lagi sampai waktu habis

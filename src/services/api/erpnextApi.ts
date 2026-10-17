@@ -1880,6 +1880,14 @@ export const erpnextApi: HrisApi = {
     };
   },
 
+  async logFaceCheck(input) {
+    await post("/api/method/hris_log_face_check", {
+      log_type: input.logType,
+      outcome: input.outcome,
+      scores: JSON.stringify(input.scores),
+    });
+  },
+
   async getFaceEnrollmentsForReview() {
     const r = await get<{
       message: {

@@ -349,7 +349,10 @@ export function ClockScreen({ navigation }: any) {
             <Text style={styles.faceTitle}>{t("ab.faceTitle")}</Text>
             <Text style={styles.faceSub}>{t("ab.faceSub")}</Text>
             {wajahDidukung() ? (
-              <FaceCheck onLulus={onWajahLulus} />
+              <FaceCheck
+                onLulus={onWajahLulus}
+                aksi={state.clockedIn ? "OUT" : "IN"}
+              />
             ) : (
               <Text style={styles.faceSub}>{t("face.tidakDidukung")}</Text>
             )}

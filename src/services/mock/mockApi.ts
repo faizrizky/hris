@@ -123,6 +123,10 @@ export const mockApi: HrisApi = {
     };
   },
 
+  async logFaceCheck() {
+    await delay(10);
+  },
+
   async getFaceEnrollmentsForReview() {
     await delay();
     return [];

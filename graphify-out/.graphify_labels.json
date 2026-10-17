@@ -1,5 +1,4 @@
 {
-  "0": "AttendanceCorrectionScreen.tsx",
   "1": "HrisClockModule.swift",
   "2": "index.tsx",
   "5": "CutiFormCards.tsx",
@@ -35,7 +34,6 @@
   "37": "hris_get_my_roles.py",
   "38": "hris_get_staff_directory.py",
   "39": "Ceklis uji di HP",
-  "40": "types.ts",
   "41": "tt",
   "42": "hris_submit_profile_change.py",
   "43": "hris_get_attendance_corrections.py",
@@ -103,16 +101,13 @@
   "106": "hris_shift_location_map.py",
   "107": "hris_submit_wfh.py",
   "108": "offlineQueue.ts",
-  "111": "ProfileSecurityScreen.tsx",
   "112": "ProfilePhotoScreen.tsx",
   "113": "face_lib.py",
-  "114": "App.tsx",
   "115": "Web (admin/HR)",
   "117": "hris_decide_face_enrollment.py",
   "118": "hris_get_face_status.py",
   "119": "hris_submit_face_enrollment.py",
   "120": "hris_submit_profile_photo.py",
-  "121": "AnimatedSplash.tsx",
   "123": "docker_credentials_local",
   "125": "device_lib.py",
   "126": "kirim-update.sh",
@@ -120,7 +115,5 @@
   "128": "hris_link_attachment.py",
   "129": "hris_notify_device.py",
   "130": "hris_register_device.py",
-  "131": "hris_logout_sessions.py",
-  "132": "LoginScreen.tsx",
-  "134": "ProfilePasswordScreen.tsx"
+  "131": "hris_logout_sessions.py"
 }

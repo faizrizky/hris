@@ -1371,6 +1371,36 @@ if not frappe.db.exists("Custom Field", {"dt": "Registered Device", "fieldname":
     frappe.clear_cache(doctype="Registered Device")
 frappe.db.commit()
 
+# Percobaan verifikasi wajah saat Clock In/Out (lolos maupun ditolak), hanya skor anti-spoofing, tanpa foto. Dipakai HR/pengembang
+# untuk menyetel ambang dari data nyata.
+if not frappe.db.exists("DocType", "Face Check Attempt"):
+    make(dict(
+        doctype="DocType", name="Face Check Attempt", module="HR", custom=1, naming_rule="Expression (old style)",
+        autoname="FCA-.YYYY.-.#####",
+        fields=[
+            dict(fieldname="employee", label="Employee", fieldtype="Link", options="Employee", reqd=1, in_list_view=1,
+                 in_standard_filter=1),
+            dict(fieldname="employee_name", label="Employee Name", fieldtype="Data", fetch_from="employee.employee_name",
+                 read_only=1, in_list_view=1),
+            dict(fieldname="log_type", label="Log Type", fieldtype="Select", options="IN\nOUT", in_list_view=1),
+            dict(fieldname="outcome", label="Outcome", fieldtype="Select", options="Passed\nRejected\nTimeout",
+                 in_list_view=1, in_standard_filter=1),
+            dict(fieldname="mean_score", label="Mean Score", fieldtype="Float", precision="3", in_list_view=1),
+            dict(fieldname="min_score", label="Min Score", fieldtype="Float", precision="3"),
+            dict(fieldname="frames", label="Frames", fieldtype="Int"),
+            dict(fieldname="scores", label="Frame Scores", fieldtype="Small Text"),
+        ],
+        permissions=[dict(role="System Manager", read=1, write=1, create=1, delete=1),
+                     dict(role="HR Manager", read=1, delete=1),
+                     dict(role="HR User", read=1)]))
+    frappe.clear_cache()
+frappe.db.commit()
+if frappe.db.exists("Sidebar", "HR Setup"):
+    from frappe.desk.doctype.custom_sidebar.custom_sidebar import add_site_sidebar_item as _asf
+    _asf("HR Setup", dict(label="Face Check Attempt", type="Link", link_type="DocType", link_to="Face Check Attempt",
+                          icon="user", collapsible=1))
+    frappe.db.commit()
+
 # Skor anti-spoofing saat pendaftaran wajah (dicatat untuk tinjauan HR).
 for _f in [
     dict(fieldname="custom_spoof_mean", label="Anti-spoof Score", fieldtype="Float", precision="3", permlevel=1,
@@ -1749,6 +1779,10 @@ LAYOUT = {
         ("Registration", [["ktp_document"], ["selfie"]]),
         ("Re-registration", [["needs_reenroll", "grace_until"]]),
         ("HR Decision", [["hr_note"], ["decided_by", "decided_on"]]),
+    ],
+    "Face Check Attempt": [
+        ("Attempt", [["employee", "employee_name"], ["log_type", "outcome"], ["mean_score", "min_score", "frames"]]),
+        ("Scores", [["scores"]]),
     ],
     "App Update": [
         ("Version", [["version_code"], ["version_name"], ["mandatory"]]),
