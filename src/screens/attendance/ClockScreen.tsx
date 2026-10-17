@@ -6,7 +6,7 @@ import { RevealScrollView as ScrollView } from "@/components/Reveal";
 import { LinearGradient } from "expo-linear-gradient";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import { Palette } from "@/theme/colors";
+import { Palette, tombolSekunder } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
 import { LineIcon } from "@/components/LineIcon";
 import { ICON } from "@/constants/icons";
@@ -649,9 +649,7 @@ const makeStyles = (c: Palette) =>
     secondary: {
       paddingVertical: 13,
       borderRadius: 16,
-      backgroundColor: c.btnSoft,
-      borderWidth: 1.5,
-      borderColor: c.btnSoftBorder,
+      ...tombolSekunder(c),
       alignItems: "center",
     },
     secondaryText: { fontSize: 13, fontWeight: "600", color: c.btnSoftInk },

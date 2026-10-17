@@ -26,7 +26,7 @@ import {
 import { useKunci } from "@/services/kunciApp";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useConfirm } from "@/components/ConfirmDialog";
-import { Palette } from "@/theme/colors";
+import { Palette, tombolSekunder } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
 import { hrisApi } from "@/services/api";
 import { ApiError, describeError } from "@/services/api/http";
@@ -493,9 +493,7 @@ export function ProfileSecurityScreen({ navigation }: any) {
                 style={[
                   styles.modalTombol,
                   {
-                    backgroundColor: c.btnSoft,
-                    borderWidth: 1.5,
-                    borderColor: c.btnSoftBorder,
+                    ...tombolSekunder(c),
                   },
                 ]}
                 onPress={() => setDialogBio(false)}

@@ -17,7 +17,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { Palette } from "@/theme/colors";
+import { Palette, tombolSekunder } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
 import { hrisApi } from "@/services/api";
 import { describeError } from "@/services/api/http";
@@ -737,9 +737,7 @@ const makeStyles = (c: Palette) =>
       borderRadius: 16,
       alignItems: "center",
       justifyContent: "center",
-      backgroundColor: c.btnSoft,
-      borderWidth: 1.5,
-      borderColor: c.btnSoftBorder,
+      ...tombolSekunder(c),
     },
     secondaryText: { fontSize: 13.5, fontWeight: "700", color: c.btnSoftInk },
 

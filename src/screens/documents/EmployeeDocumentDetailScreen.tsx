@@ -14,7 +14,7 @@ import { useFocusEffect } from "@react-navigation/native";
 import { useSession } from "@/services/session";
 import { usePollingAktif } from "@/hooks/usePollingAktif";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Palette } from "@/theme/colors";
+import { Palette, tombolSekunder } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
 import { hrisApi } from "@/services/api";
 import { describeError } from "@/services/api/http";
@@ -396,9 +396,7 @@ const makeStyles = (c: Palette) =>
       flex: 1,
       paddingVertical: 14,
       borderRadius: 14,
-      backgroundColor: c.btnSoft,
-      borderWidth: 1.5,
-      borderColor: c.btnSoftBorder,
+      ...tombolSekunder(c),
       alignItems: "center",
     },
     secondaryText: { fontSize: 13, fontWeight: "700", color: c.btnSoftInk },

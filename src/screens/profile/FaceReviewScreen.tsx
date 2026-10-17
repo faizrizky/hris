@@ -12,7 +12,7 @@ import {
 import { RevealScrollView as ScrollView } from "@/components/Reveal";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Palette } from "@/theme/colors";
+import { Palette, tombolSekunder } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
 import { hrisApi } from "@/services/api";
 import { describeError } from "@/services/api/http";
@@ -144,9 +144,7 @@ export function FaceReviewScreen({ navigation }: any) {
                 style={[
                   styles.tombol,
                   {
-                    backgroundColor: c.btnSoft,
-                    borderWidth: 1.5,
-                    borderColor: c.btnSoftBorder,
+                    ...tombolSekunder(c),
                   },
                 ]}
                 onPress={() => setTolak(null)}

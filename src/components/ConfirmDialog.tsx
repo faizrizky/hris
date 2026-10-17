@@ -19,7 +19,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import { Palette, SemanticTone } from "@/theme/colors";
+import { Palette, SemanticTone, tombolSekunder } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
 import { tt } from "@/i18n";
 
@@ -267,9 +267,7 @@ function ConfirmDialog({
                 left: cardX + PAD,
                 top: btnY,
                 width: btnW,
-                backgroundColor: c.btnSoft,
-                borderWidth: 1.5,
-                borderColor: c.btnSoftBorder,
+                ...tombolSekunder(c),
                 opacity: morph ? cancelA : 1,
               },
             ]}

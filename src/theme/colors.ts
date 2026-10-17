@@ -15,9 +15,7 @@ export const lightColors = {
   mutedLabel: "#94A3B8",
 
   chip: "#F1F5F9",
-  // Tombol sekunder (bukan aksi utama): permukaan lebih terang dari latar halaman + bingkai jelas, supaya tidak menyatu dengan latar.
-  btnSoft: "#FFFFFF",
-  btnSoftBorder: "rgba(15,23,32,0.16)",
+  // Tinta tombol sekunder (gayanya: lihat tombolSekunder di bawah).
   btnSoftInk: "#0F1720",
   track: "#E2E8F0",
   unread: "#F2F8FF",
@@ -86,8 +84,6 @@ export const darkColors: Palette = {
   mutedLabel: "rgba(255,255,255,0.4)",
 
   chip: "rgba(255,255,255,0.07)",
-  btnSoft: "#1F2B38",
-  btnSoftBorder: "rgba(255,255,255,0.2)",
   btnSoftInk: "#E8EEF5",
   track: "rgba(255,255,255,0.14)",
   unread: "#1B2B3D",
@@ -131,3 +127,17 @@ export const darkColors: Palette = {
 export type Palette = typeof lightColors;
 
 export type SemanticTone = "ok" | "warn" | "info" | "bad";
+
+// Gaya tombol sekunder: kartu putih berbingkai tipis dengan bayangan lembut,
+// sama seperti kartu menu di Beranda.
+export const tombolSekunder = (c: Palette) =>
+  ({
+    backgroundColor: c.card,
+    borderWidth: 1,
+    borderColor: c.fieldBorder,
+    shadowColor: "#0F1720",
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.07,
+    shadowRadius: 8,
+    elevation: 2,
+  }) as const;

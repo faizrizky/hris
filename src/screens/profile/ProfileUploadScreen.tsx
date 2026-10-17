@@ -15,7 +15,7 @@ import * as ImagePicker from "expo-image-picker";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { Palette } from "@/theme/colors";
+import { Palette, tombolSekunder } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
 import { hrisApi } from "@/services/api";
 import { describeError } from "@/services/api/http";
@@ -439,9 +439,7 @@ const makeStyles = (c: Palette) =>
       flex: 1,
       paddingVertical: 11,
       borderRadius: 13,
-      backgroundColor: c.btnSoft,
-      borderWidth: 1.5,
-      borderColor: c.btnSoftBorder,
+      ...tombolSekunder(c),
       alignItems: "center",
     },
     secondarySmallText: {
