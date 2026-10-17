@@ -223,7 +223,7 @@ export function HomeScreen() {
             "warn",
             () => navigation.navigate("Approval"),
           ),
-          mk("karyawan", t("hm.aKaryawan"), "people-outline", "purple", () =>
+          mk("karyawan", t("hm.aKaryawan"), "people-outline", "info", () =>
             navigation.navigate("StaffList"),
           ),
         ]
@@ -236,33 +236,33 @@ export function HomeScreen() {
       "ajukanLembur",
       t("cr.lembur"),
       "moon-outline",
-      "warn",
+      "info",
       ajukan("lembur"),
     ),
-    mk("dinas", t("cr.dinas"), "briefcase-outline", "purple", ajukan("dinas")),
-    mk("wfh", t("cr.wfh"), "laptop-outline", "ok", ajukan("wfh")),
-    mk("slip", t("hm.aSlip"), "wallet-outline", "ok", () =>
+    mk("dinas", t("cr.dinas"), "briefcase-outline", "info", ajukan("dinas")),
+    mk("wfh", t("cr.wfh"), "laptop-outline", "info", ajukan("wfh")),
+    mk("slip", t("hm.aSlip"), "wallet-outline", "info", () =>
       navigation.navigate("PayslipList"),
     ),
-    mk("appraisal", t("hm.aAppraisal"), "star-outline", "purple", () =>
+    mk("appraisal", t("hm.aAppraisal"), "star-outline", "info", () =>
       navigation.navigate("Appraisal"),
     ),
     mk("riwayat", t("hm.aRiwayat"), "time-outline", "info", () =>
       navigation.navigate("History"),
     ),
-    mk("koreksi", t("hm.aKoreksi"), "create-outline", "warn", () =>
+    mk("koreksi", t("hm.aKoreksi"), "create-outline", "info", () =>
       navigation.navigate("AttendanceCorrection"),
     ),
     mk("daftarCuti", t("hm.aCuti"), "calendar-number-outline", "info", () =>
       navigation.navigate("LeaveList"),
     ),
-    mk("daftarLembur", t("hm.aLembur"), "hourglass-outline", "warn", () =>
+    mk("daftarLembur", t("hm.aLembur"), "hourglass-outline", "info", () =>
       navigation.navigate("Overtime"),
     ),
     mk("pajak", t("hm.aPajak"), "receipt-outline", "info", () =>
       navigation.navigate("TaxDetail"),
     ),
-    mk("pengumuman", t("hm.aPengumuman"), "megaphone-outline", "warn", () =>
+    mk("pengumuman", t("hm.aPengumuman"), "megaphone-outline", "info", () =>
       navigation.navigate("Announcements"),
     ),
     ...(canApprove
@@ -278,7 +278,7 @@ export function HomeScreen() {
             "absensiTim",
             t("hm.aAbsensiTim"),
             "people-circle-outline",
-            "ok",
+            "info",
             () => navigation.navigate("StaffAttendance"),
           ),
         ]
@@ -289,17 +289,17 @@ export function HomeScreen() {
             "verifikasi",
             t("hm.aVerifikasi"),
             "document-text-outline",
-            "info",
+            "warn",
             () => navigation.navigate("DocumentReview"),
           ),
           mk(
             "dataPribadi",
             t("pcr.aksi"),
             "person-circle-outline",
-            "purple",
+            "warn",
             () => navigation.navigate("ProfileChangeReview"),
           ),
-          mk("wajah", t("hm.aWajah"), "scan-outline", "ok", () =>
+          mk("wajah", t("hm.aWajah"), "scan-outline", "warn", () =>
             navigation.navigate("FaceReview"),
           ),
         ]
