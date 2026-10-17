@@ -376,8 +376,8 @@ const makeStyles = (c: Palette) =>
       shadowRadius: 24,
       elevation: 12,
     },
-    tab: { flex: 1, alignItems: "center", justifyContent: "flex-end", gap: 4 },
-    iconSlot: { height: 24, alignItems: "center", justifyContent: "center" },
+    tab: { flex: 1, alignItems: "center", justifyContent: "flex-end", gap: 1 },
+    iconSlot: { height: 22, alignItems: "center", justifyContent: "center" },
     tabLabel: { fontSize: 10, fontWeight: "600" },
     // Cincin berwarna latar halaman: membentuk takik di tepi atas bar.
     ring: {

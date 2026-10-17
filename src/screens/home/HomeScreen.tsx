@@ -303,7 +303,7 @@ export function HomeScreen() {
           </View>
           <Pressable
             style={styles.notifButton}
-            onPress={() => navigation.navigate("Notifications")}
+            onPress={() => navigation.getParent()?.navigate("Notifikasi")}
           >
             <Ionicons
               name="notifications-outline"
