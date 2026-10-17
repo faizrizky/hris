@@ -65,197 +65,198 @@ export function ProfileScreen({ navigation }: any) {
 
   return (
     <View style={styles.container}>
-      {foto ? (
-        <View style={[styles.photoHero, { height: 340 + insets.top }]}>
-          <Animated.Image
-            source={{ uri: foto }}
-            onLoad={munculkanFoto}
-            style={[
-              StyleSheet.absoluteFill,
-              {
-                opacity: fotoMuncul,
-                transform: [
-                  {
-                    scale: fotoMuncul.interpolate({
-                      inputRange: [0, 1],
-                      outputRange: [1.06, 1],
-                    }),
-                  },
-                ],
-              },
-            ]}
-          />
-          <LinearGradient
-            colors={["transparent", c.headerBg]}
-            locations={[0.35, 0.95]}
-            style={StyleSheet.absoluteFill}
-          />
-          <RadialGlow
-            size={260}
-            color={c.glowHeader}
-            bottom={-120}
-            left={-80}
-          />
-          <View style={styles.photoInfo}>
-            <View style={{ flex: 1, minWidth: 0 }}>
-              <Text style={styles.photoName} numberOfLines={2}>
-                {employee.fullName}
-              </Text>
-              <View style={styles.photoMeta}>
-                <Text style={styles.role} numberOfLines={1}>
+      <ScrollView style={styles.body} contentContainerStyle={styles.content}>
+        {foto ? (
+          <View style={[styles.photoHero, { height: 340 + insets.top }]}>
+            <Animated.Image
+              source={{ uri: foto }}
+              onLoad={munculkanFoto}
+              style={[
+                StyleSheet.absoluteFill,
+                {
+                  opacity: fotoMuncul,
+                  transform: [
+                    {
+                      scale: fotoMuncul.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: [1.06, 1],
+                      }),
+                    },
+                  ],
+                },
+              ]}
+            />
+            <LinearGradient
+              colors={["transparent", c.headerBg]}
+              locations={[0.35, 0.95]}
+              style={StyleSheet.absoluteFill}
+            />
+            <RadialGlow
+              size={260}
+              color={c.glowHeader}
+              bottom={-120}
+              left={-80}
+            />
+            <View style={styles.photoInfo}>
+              <View style={{ flex: 1, minWidth: 0 }}>
+                <Text style={styles.photoName} numberOfLines={2}>
+                  {employee.fullName}
+                </Text>
+                <View style={styles.photoMeta}>
+                  <Text style={styles.role} numberOfLines={1}>
+                    {employee.jobTitle} · {employee.department}
+                  </Text>
+                </View>
+                <View style={styles.nikPill}>
+                  <Text style={styles.nikPillText}>{employee.nik}</Text>
+                </View>
+              </View>
+              <Pressable
+                style={styles.roundBtn}
+                onPress={() => navigation.navigate("ProfilePhoto")}
+                hitSlop={6}
+              >
+                <Ionicons name="camera-outline" size={20} color="#fff" />
+              </Pressable>
+            </View>
+          </View>
+        ) : (
+          <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
+            <RadialGlow size={240} color={c.glowHeader} top={-70} left={-30} />
+
+            <View style={styles.identityRow}>
+              <LinearGradient
+                colors={[c.accent, c.accent2]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.avatar}
+              >
+                <Text style={styles.avatarText}>{employee.avatarInitials}</Text>
+              </LinearGradient>
+
+              <View style={{ flex: 1, minWidth: 0 }}>
+                <Text style={styles.name}>{employee.fullName}</Text>
+                <Text style={styles.role}>
                   {employee.jobTitle} · {employee.department}
                 </Text>
-              </View>
-              <View style={styles.nikPill}>
-                <Text style={styles.nikPillText}>{employee.nik}</Text>
+                <Text style={styles.empId}>{employee.nik}</Text>
               </View>
             </View>
-            <Pressable
-              style={styles.roundBtn}
-              onPress={() => navigation.navigate("ProfilePhoto")}
-              hitSlop={6}
-            >
-              <Ionicons name="camera-outline" size={20} color="#fff" />
-            </Pressable>
           </View>
-        </View>
-      ) : (
-        <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
-          <RadialGlow size={240} color={c.glowHeader} top={-70} left={-30} />
-
-          <View style={styles.identityRow}>
-            <LinearGradient
-              colors={[c.accent, c.accent2]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.avatar}
-            >
-              <Text style={styles.avatarText}>{employee.avatarInitials}</Text>
-            </LinearGradient>
-
-            <View style={{ flex: 1, minWidth: 0 }}>
-              <Text style={styles.name}>{employee.fullName}</Text>
-              <Text style={styles.role}>
-                {employee.jobTitle} · {employee.department}
-              </Text>
-              <Text style={styles.empId}>{employee.nik}</Text>
-            </View>
+        )}
+        <View style={styles.isi}>
+          <View style={styles.statCard}>
+            <Stat
+              value={`${tahunSejak(employee.joinDate)} ${t("profil.th")}`}
+              label={t("profil.masaKerja")}
+            />
+            <View style={styles.statDivider} />
+            <Stat
+              value={`${cuti?.remaining ?? "–"}`}
+              label={t("profil.sisaCuti")}
+              memuat={balances === null}
+            />
+            <View style={styles.statDivider} />
+            <Stat
+              value={employee.kpiScore.toFixed(1).replace(".", ",")}
+              label={t("profil.skorKpi")}
+            />
           </View>
-        </View>
-      )}
 
-      <ScrollView style={styles.body} contentContainerStyle={styles.content}>
-        <View style={styles.statCard}>
-          <Stat
-            value={`${tahunSejak(employee.joinDate)} ${t("profil.th")}`}
-            label={t("profil.masaKerja")}
-          />
-          <View style={styles.statDivider} />
-          <Stat
-            value={`${cuti?.remaining ?? "–"}`}
-            label={t("profil.sisaCuti")}
-            memuat={balances === null}
-          />
-          <View style={styles.statDivider} />
-          <Stat
-            value={employee.kpiScore.toFixed(1).replace(".", ",")}
-            label={t("profil.skorKpi")}
-          />
-        </View>
+          <View style={styles.menuCard}>
+            <MenuRow
+              iconBg={c.info.bg}
+              ink={c.info.ink}
+              icon={ICON.user}
+              title={t("profil.dataPribadi")}
+              subtitle={t("profil.dataPribadiSub")}
+              onPress={() => navigation.navigate("ProfileData")}
+            />
+            <MenuRow
+              iconBg={c.ok.bg}
+              ink={c.ok.ink}
+              icon={ICON.document}
+              title={t("profil.dokumen")}
+              subtitle={t("profil.dokumenSub")}
+              onPress={() => navigation.navigate("ProfileDocs")}
+            />
+            <MenuRow
+              iconBg={c.warn.bg}
+              ink={c.warn.ink}
+              icon={ICON.bell}
+              title={t("profil.push")}
+              subtitle={t("profil.pushSub")}
+              trailing={
+                <Switch
+                  value={pushOn}
+                  onValueChange={setPushOn}
+                  trackColor={{ false: c.track, true: c.accent }}
+                  thumbColor="#fff"
+                />
+              }
+            />
+            <MenuRow
+              iconBg={c.info.bg}
+              ink={c.info.ink}
+              icon={ICON.shield}
+              title={t("profil.modeGelap")}
+              subtitle={
+                mode === "dark"
+                  ? t("profil.modeGelapAktif")
+                  : t("profil.modeGelapIkuti")
+              }
+              trailing={
+                <Switch
+                  value={mode === "dark"}
+                  onValueChange={toggle}
+                  trackColor={{ false: c.track, true: c.accent }}
+                  thumbColor="#fff"
+                />
+              }
+            />
+            <MenuRow
+              iconBg={c.ok.bg}
+              ink={c.ok.ink}
+              icon={ICON.document}
+              title={t("profil.bahasa")}
+              subtitle={t("profil.bahasaSub")}
+              trailing={<LanguagePicker />}
+            />
+            <MenuRow
+              iconBg={c.purple.bg}
+              ink={c.purple.ink}
+              icon={ICON.shield}
+              title={t("profil.keamanan")}
+              subtitle={t("profil.keamananSub")}
+              isLast
+              onPress={() => navigation.navigate("ProfileSecurity")}
+            />
+          </View>
 
-        <View style={styles.menuCard}>
-          <MenuRow
-            iconBg={c.info.bg}
-            ink={c.info.ink}
-            icon={ICON.user}
-            title={t("profil.dataPribadi")}
-            subtitle={t("profil.dataPribadiSub")}
-            onPress={() => navigation.navigate("ProfileData")}
-          />
-          <MenuRow
-            iconBg={c.ok.bg}
-            ink={c.ok.ink}
-            icon={ICON.document}
-            title={t("profil.dokumen")}
-            subtitle={t("profil.dokumenSub")}
-            onPress={() => navigation.navigate("ProfileDocs")}
-          />
-          <MenuRow
-            iconBg={c.warn.bg}
-            ink={c.warn.ink}
-            icon={ICON.bell}
-            title={t("profil.push")}
-            subtitle={t("profil.pushSub")}
-            trailing={
-              <Switch
-                value={pushOn}
-                onValueChange={setPushOn}
-                trackColor={{ false: c.track, true: c.accent }}
-                thumbColor="#fff"
-              />
-            }
-          />
-          <MenuRow
-            iconBg={c.info.bg}
-            ink={c.info.ink}
-            icon={ICON.shield}
-            title={t("profil.modeGelap")}
-            subtitle={
-              mode === "dark"
-                ? t("profil.modeGelapAktif")
-                : t("profil.modeGelapIkuti")
-            }
-            trailing={
-              <Switch
-                value={mode === "dark"}
-                onValueChange={toggle}
-                trackColor={{ false: c.track, true: c.accent }}
-                thumbColor="#fff"
-              />
-            }
-          />
-          <MenuRow
-            iconBg={c.ok.bg}
-            ink={c.ok.ink}
-            icon={ICON.document}
-            title={t("profil.bahasa")}
-            subtitle={t("profil.bahasaSub")}
-            trailing={<LanguagePicker />}
-          />
-          <MenuRow
-            iconBg={c.purple.bg}
-            ink={c.purple.ink}
-            icon={ICON.shield}
-            title={t("profil.keamanan")}
-            subtitle={t("profil.keamananSub")}
-            isLast
-            onPress={() => navigation.navigate("ProfileSecurity")}
-          />
+          <Pressable
+            ref={keluarRef}
+            style={styles.logout}
+            onPress={async () => {
+              const ya = await confirm({
+                title: t("profil.keluarJudul"),
+                message: t("profil.keluarPesan"),
+                tone: "bad",
+                confirmText: t("umum.keluar"),
+                cancelText: t("umum.batal"),
+                from: keluarRef,
+                fromColor: c.bad.bg,
+                fromTextColor: c.bad.ink,
+                fromLabel: t("umum.keluar"),
+                fromRadius: 22,
+              });
+              if (!ya) return;
+              await keluarAman();
+              setEmployee(null);
+            }}
+          >
+            <Text style={styles.logoutText}>{t("umum.keluar")}</Text>
+          </Pressable>
         </View>
-
-        <Pressable
-          ref={keluarRef}
-          style={styles.logout}
-          onPress={async () => {
-            const ya = await confirm({
-              title: t("profil.keluarJudul"),
-              message: t("profil.keluarPesan"),
-              tone: "bad",
-              confirmText: t("umum.keluar"),
-              cancelText: t("umum.batal"),
-              from: keluarRef,
-              fromColor: c.bad.bg,
-              fromTextColor: c.bad.ink,
-              fromLabel: t("umum.keluar"),
-              fromRadius: 22,
-            });
-            if (!ya) return;
-            await keluarAman();
-            setEmployee(null);
-          }}
-        >
-          <Text style={styles.logoutText}>{t("umum.keluar")}</Text>
-        </Pressable>
       </ScrollView>
     </View>
   );
@@ -402,8 +403,11 @@ const makeStyles = (c: Palette) =>
       marginTop: 6,
     },
 
-    body: { flex: 1, marginTop: -28 },
-    content: { paddingHorizontal: 18, paddingBottom: 170 },
+    body: { flex: 1 },
+    content: { paddingBottom: 170 },
+    // Kartu pertama menimpa tepi bawah kepala halaman; keduanya bergulir bersama,
+    // jadi tidak ada garis potong di atas foto.
+    isi: { paddingHorizontal: 18, marginTop: -28 },
 
     statCard: {
       flexDirection: "row",
