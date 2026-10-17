@@ -1395,11 +1395,6 @@ if not frappe.db.exists("DocType", "Face Check Attempt"):
                      dict(role="HR User", read=1)]))
     frappe.clear_cache()
 frappe.db.commit()
-if frappe.db.exists("Sidebar", "HR Setup"):
-    from frappe.desk.doctype.custom_sidebar.custom_sidebar import add_site_sidebar_item as _asf
-    _asf("HR Setup", dict(label="Face Check Attempt", type="Link", link_type="DocType", link_to="Face Check Attempt",
-                          icon="user", collapsible=1))
-    frappe.db.commit()
 
 # Skor anti-spoofing saat pendaftaran wajah (dicatat untuk tinjauan HR).
 for _f in [
@@ -1644,11 +1639,31 @@ if frappe.db.exists("Sidebar", "HR Setup"):
         if len(_sisa) != len(_arr):
             _save_customization(_mod, _sisa, None)
             log("sidebar " + _mod + ": " + ", ".join(_dts) + " dipindahkan ke HR Setup")
-    for _dt, _ic in (("Profile Change Request", "user"), ("Face Enrollment", "user"), ("Face Settings", "settings")):
+    for _dt, _ic in (("Profile Change Request", "user"),):
         add_site_sidebar_item("HR Setup", dict(label=_dt, type="Link", link_type="DocType", link_to=_dt, icon=_ic,
                                                 collapsible=1))
     frappe.db.commit()
     frappe.clear_cache()
+    # Semua yang berhubungan dengan wajah dikelompokkan dalam satu bagian "Face Verification" (bisa dilipat, seperti
+    # "Masters"): Face Enrollment, Face Check Attempt, Face Settings. Idempoten.
+    _FACE = ("Face Enrollment", "Face Check Attempt", "Face Settings")
+    _arr = layer_arrangement("HR Setup", None)
+    _ada = any(r.get("label") == "Face Verification" and r.get("type") == "Section Break" for r in _arr)
+    _anak = [r.get("link_to") for r in _arr if r.get("child") and r.get("link_to") in _FACE]
+    if not _ada or sorted(_anak) != sorted(_FACE):
+        _baru = [r for r in _arr if r.get("link_to") not in _FACE and not (
+            r.get("label") == "Face Verification" and r.get("type") == "Section Break")]
+        # added=1: baris milik lapisan situs ini (tanpa itu dianggap rujukan ke item dasar yang tidak ada, lalu dibuang).
+        _grup = [dict(label="Face Verification", type="Section Break", icon="scan-face", collapsible=1, child=0,
+                      indent=1, added=1)]
+        for _dt in _FACE:
+            _grup.append(dict(label=_dt, type="Link", link_type="DocType", link_to=_dt, collapsible=1, child=1,
+                              indent=0, added=1))
+        _pos = next((i + 1 for i, r in enumerate(_baru) if r.get("link_to") == "Profile Change Request"), len(_baru))
+        _save_customization("HR Setup", _baru[:_pos] + _grup + _baru[_pos:], None)
+        frappe.db.commit()
+        frappe.clear_cache()
+        log("sidebar HR Setup: bagian Face Verification (Face Enrollment, Face Check Attempt, Face Settings)")
 
 # Karyawan boleh mengunggah foto/selfie ke dokumen pengajuan MILIKNYA (upload_file butuh hak tulis), tetapi semua field lain
 # dikunci di permlevel 1 (hanya HR): status, skor kemiripan, embedding tidak bisa diubah lewat REST.
@@ -1684,15 +1699,6 @@ for _dt, _attach in (("Profile Change Request", "photo"), ("Face Enrollment", "s
     frappe.clear_cache(doctype=_dt)
     log("permission " + _dt + ": karyawan hanya field lampiran miliknya")
 frappe.db.commit()
-
-# Sidebar Shift and Attendance: tautan peninjauan wajah dan pengaturannya (di bawah item yang sudah ada).
-if frappe.db.exists("Sidebar", "Shift and Attendance"):
-    from frappe.desk.doctype.custom_sidebar.custom_sidebar import add_site_sidebar_item
-    for _dt, _ic in (("Face Enrollment", "user"), ("Face Settings", "settings")):
-        add_site_sidebar_item("Shift and Attendance", dict(label=_dt, type="Link", link_type="DocType", link_to=_dt,
-                                                           icon=_ic, collapsible=1))
-    frappe.db.commit()
-    frappe.clear_cache()
 
 GUEST_SCRIPTS = {"hris_get_app_update"}  # API tanpa login (pemeriksa pembaruan sebelum masuk)
 EVENT_SCRIPTS = {  # script berbasis event dokumen: nama_file -> (DocType, event)
