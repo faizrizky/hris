@@ -3,6 +3,7 @@
 # (layar pembuka: "Memperbarui aplikasi…") lalu memuat ulang sendiri.
 #
 # Pakai:  ./scripts/kirim-update.sh "pesan perubahan"
+#         PUSH=1 ./scripts/kirim-update.sh "pesan"   # sekalian kirim push "pembaruan tersedia" (bawaan: tidak)
 #
 # Hanya untuk perubahan JavaScript, teks, animasi, dan gambar. Perubahan native (library native, modul hris-clock /
 # hris-face, izin, ikon, splash native, pengaturan native di app.json) butuh build baru; update untuk build yang
@@ -23,3 +24,7 @@ fi
 echo "Bundel memakai server asli."
 
 npx eas-cli update --clear-cache --channel preview --environment preview --platform android --non-interactive --message "$PESAN"
+
+if [ "${PUSH:-0}" = 1 ]; then
+  ./scripts/push-rilis.sh "Pembaruan HRIS tersedia" "$PESAN" || echo "  (push gagal, update tetap terbit)"
+fi

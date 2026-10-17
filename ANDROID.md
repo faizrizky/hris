@@ -53,3 +53,8 @@ HP mengambilnya saat aplikasi dibuka (layar pembuka menampilkan "Memperbarui apl
 - Perintah EAS di proyek ini memakai `npx eas-cli ...` (bukan `npx eas`).
 
 - **Setelah mengganti ID paket,** isi ulang App Update (`./scripts/rilis-apk.sh <build-id>`), karena Version Code di server bisa lebih besar dari build baru dan membuat aplikasi baru meminta "pembaruan" ke APK paket lama (hasilnya terpasang dua aplikasi).
+
+## Push pengumuman pembaruan
+- `scripts/rilis-apk.sh` otomatis memanggil `scripts/push-rilis.sh` di akhir (push "Versi X tersedia" ke semua Push Token). Lewati dengan `NO_PUSH=1`.
+- OTA (`kirim-update.sh`) tidak mengirim push secara bawaan, supaya pengguna tidak jenuh; tambahkan `PUSH=1` bila perlu.
+- Push Expo/FCM gratis tanpa tarif per pesan; kuota EAS dilihat dengan `npx eas-cli account:usage gshins-team`.

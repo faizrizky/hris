@@ -57,3 +57,6 @@ for kv in "version_code=$KODE" "version_name=$NAMA" "apk_url=$APK_URL" "apk_size
 done
 echo "• Hasil yang dibaca aplikasi:"
 curl -fsS "$BASE/api/method/hris_get_app_update"; echo
+
+echo "• Mengumumkan lewat push"
+./scripts/push-rilis.sh "Versi $NAMA tersedia" "${CATATAN:-Buka aplikasi untuk memperbarui.}" || echo "  (push gagal, pembaruan tetap terbit)"
