@@ -206,6 +206,13 @@ export function HomeScreen() {
   });
   const ajukan = (kind: "cuti" | "lembur" | "dinas" | "wfh") => () =>
     navigation.navigate("LeaveRequest", { kind, n: Date.now() });
+  // Tujuan yang sudah jadi tab di bar bawah tidak diulang di menu. Tab kedua
+  // bergantung peran: Absensi (karyawan), Approval (mss), Absensi Kry (hr).
+  const sudahDiTab = new Set([
+    "slip",
+    ...(employee.role === "mss" ? ["approval"] : []),
+    ...(employee.role === "mss" || employee.role === "hr" ? [] : ["presensi"]),
+  ]);
   const semuaMenu: ItemMenu[] = [
     ...(canApprove
       ? [
@@ -275,7 +282,7 @@ export function HomeScreen() {
           ),
         ]
       : []),
-  ];
+  ].filter((m) => !sudahDiTab.has(m.key));
   const menuBeranda = semuaMenu.slice(0, 7);
 
   return (
