@@ -53,7 +53,6 @@ export function HomeScreen() {
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
   const [galat, setGalat] = useState<string | null>(null);
-  const [belumDibaca, setBelumDibaca] = useState(0);
 
   // Dimuat ulang setiap Beranda mendapat fokus, supaya hasil persetujuan atau
   // pengajuan di tab lain langsung tampil saat kembali ke sini.
@@ -75,12 +74,6 @@ export function HomeScreen() {
         setEmployment(komposisi);
       })
       .catch((e) => setGalat(describeError(e)));
-    // Titik merah di lonceng hanya bila masih ada notifikasi belum dibaca.
-    // Dimuat terpisah supaya kegagalannya tidak menggagalkan Beranda.
-    hrisApi
-      .getNotificationInbox(employee.id)
-      .then((n) => setBelumDibaca(n.filter((x) => !x.read).length))
-      .catch(() => setBelumDibaca(0));
     if (!pengingatPerangkatTampil) {
       hrisApi
         .registerDevice()
@@ -301,17 +294,6 @@ export function HomeScreen() {
               {employee.jobTitle} · {employee.department}
             </Text>
           </View>
-          <Pressable
-            style={styles.notifButton}
-            onPress={() => navigation.getParent()?.navigate("Notifikasi")}
-          >
-            <Ionicons
-              name="notifications-outline"
-              size={18}
-              color={c.onDark.ink}
-            />
-            {belumDibaca > 0 && <View style={styles.notifDot} />}
-          </Pressable>
         </View>
         <Text style={styles.greeting}>{greeting}</Text>
         <Text style={styles.greetingSub}>{greetingSub}</Text>
@@ -672,25 +654,6 @@ const makeStyles = (c: Palette) =>
       fontWeight: "500",
       color: c.onDark.muted,
       marginTop: 2,
-    },
-    notifButton: {
-      width: 38,
-      height: 38,
-      borderRadius: 12,
-      backgroundColor: c.onDark.surface,
-      alignItems: "center",
-      justifyContent: "center",
-    },
-    notifDot: {
-      position: "absolute",
-      top: 8,
-      right: 9,
-      width: 7,
-      height: 7,
-      borderRadius: 3.5,
-      backgroundColor: "#F97316",
-      borderWidth: 1.5,
-      borderColor: c.headerBg,
     },
     greeting: {
       fontSize: 17,
