@@ -309,13 +309,17 @@ export function RootNavigator() {
 
   // Tombol kembali Android (fisik/gestur sistem) tidak lewat `kembali()`, sehingga halaman tujuan tidak memutar animasi
   // masuknya dan terasa kasar. Tandai dulu, lalu biarkan penanganan bawaan melakukan kembali.
+  // Pendengar BackHandler dipanggil dari yang TERAKHIR didaftarkan, dan NavigationContainer
+  // baru terpasang setelah `siap`; jadi pendengar ini harus didaftarkan sesudahnya (bukan saat
+  // mount pertama), kalau tidak penanganan bawaan jalan lebih dulu dan tanda tidak pernah terpasang.
   useEffect(() => {
+    if (!siap) return;
     const sub = BackHandler.addEventListener("hardwareBackPress", () => {
       tandaiKembali();
       return false;
     });
     return () => sub.remove();
-  }, []);
+  }, [siap]);
 
   // Sesi tersimpan masih dipulihkan: tampilkan layar berlatar tema (bukan kosong/gelap) sebentar.
   if (!siap) {
