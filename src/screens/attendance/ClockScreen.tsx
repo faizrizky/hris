@@ -518,7 +518,7 @@ const makeStyles = (c: Palette) =>
     },
     onlineText: { fontSize: 10.5, fontWeight: "600", color: c.ok.ink },
 
-    content: { paddingHorizontal: 18, paddingTop: 6, paddingBottom: 120 },
+    content: { paddingHorizontal: 18, paddingTop: 6, paddingBottom: 160 },
     steps: { flexDirection: "row", gap: 7, marginBottom: 14 },
     stepBar: { flex: 1, height: 3, borderRadius: 2 },
 

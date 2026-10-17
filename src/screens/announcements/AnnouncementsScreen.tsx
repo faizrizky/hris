@@ -167,7 +167,7 @@ const makeStyles = (c: Palette) =>
       color: c.muted,
       marginTop: 2,
     },
-    list: { paddingHorizontal: 18, paddingBottom: 130 },
+    list: { paddingHorizontal: 18, paddingBottom: 170 },
     card: {
       marginBottom: 10,
       borderRadius: 20,

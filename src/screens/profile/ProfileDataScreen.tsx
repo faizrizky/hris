@@ -456,7 +456,7 @@ const makeStyles = (c: Palette) =>
     },
     editText: { fontSize: 11.5, fontWeight: "600", color: "#fff" },
 
-    content: { paddingHorizontal: 18, paddingTop: 16, paddingBottom: 130 },
+    content: { paddingHorizontal: 18, paddingTop: 16, paddingBottom: 170 },
 
     hero: { borderRadius: 22, padding: 18, overflow: "hidden" },
     photoCard: {

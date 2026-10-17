@@ -381,7 +381,7 @@ const makeStyles = (c: Palette) =>
     },
     approveAllText: { fontSize: 11.5, fontWeight: "600", color: "#fff" },
 
-    content: { paddingHorizontal: 18, paddingTop: 4, paddingBottom: 130 },
+    content: { paddingHorizontal: 18, paddingTop: 4, paddingBottom: 170 },
     empty: { fontSize: 13, color: c.muted, marginHorizontal: 2 },
 
     card: {

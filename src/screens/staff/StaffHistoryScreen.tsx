@@ -199,7 +199,7 @@ const makeStyles = (c: Palette) =>
       marginTop: 2,
     },
 
-    content: { paddingHorizontal: 18, paddingTop: 4, paddingBottom: 130 },
+    content: { paddingHorizontal: 18, paddingTop: 4, paddingBottom: 170 },
 
     recapCard: {
       flexDirection: "row",

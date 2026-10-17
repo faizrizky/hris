@@ -265,7 +265,7 @@ const makeStyles = (c: Palette) =>
     },
     markAll: { fontSize: 11.5, fontWeight: "600", color: c.accent },
 
-    content: { paddingHorizontal: 18, paddingTop: 14, paddingBottom: 130 },
+    content: { paddingHorizontal: 18, paddingTop: 14, paddingBottom: 170 },
 
     groupLabel: {
       fontSize: 11,

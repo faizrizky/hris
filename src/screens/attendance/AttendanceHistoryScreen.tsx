@@ -253,7 +253,7 @@ const makeStyles = (c: Palette) =>
     chipText: { fontSize: 12, fontWeight: "600", color: c.muted },
     chipTextOn: { color: "#fff" },
 
-    list: { paddingHorizontal: 18, paddingBottom: 130 },
+    list: { paddingHorizontal: 18, paddingBottom: 170 },
 
     recapCard: {
       flexDirection: "row",

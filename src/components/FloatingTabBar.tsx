@@ -1,5 +1,6 @@
 import { hrisApi } from "@/services/api";
 import { setBelumDibaca, useBelumDibaca } from "@/navigation/notifBadge";
+import { tandaiKembali } from "@/navigation/kembali";
 import { useTabBarHidden } from "@/navigation/tabBarVisibility";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { LinearGradient } from "expo-linear-gradient";
@@ -180,6 +181,9 @@ export function FloatingTabBar({ state, navigation }: BottomTabBarProps) {
     if (!route) return;
 
     const isFocused = state.routes[state.index].key === route.key;
+    // Menekan tab yang sedang aktif saat ada halaman bertumpuk di atasnya
+    // mengembalikan ke akar tab; tandai agar akar itu memutar animasi masuknya.
+    if (isFocused && (nested?.index ?? 0) > 0) tandaiKembali();
     const event = navigation.emit({
       type: "tabPress",
       target: route.key,

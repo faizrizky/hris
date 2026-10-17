@@ -122,7 +122,7 @@ const makeStyles = (c: Palette) =>
       justifyContent: "center",
     },
     headerTitle: { fontSize: 15, fontWeight: "700", color: c.ink },
-    content: { paddingHorizontal: 18, paddingTop: 12, paddingBottom: 130 },
+    content: { paddingHorizontal: 18, paddingTop: 12, paddingBottom: 170 },
     row: {
       marginBottom: 10,
       flexDirection: "row",

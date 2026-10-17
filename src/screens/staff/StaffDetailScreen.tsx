@@ -341,7 +341,7 @@ const makeStyles = (c: Palette) =>
     body: { flex: 1, marginTop: -28 },
     content: {
       paddingHorizontal: 18,
-      paddingBottom: 130,
+      paddingBottom: 170,
     },
 
     statCard: {

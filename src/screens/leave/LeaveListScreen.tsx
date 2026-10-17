@@ -286,7 +286,7 @@ const makeStyles = (c: Palette) =>
     },
     headerTitle: { fontSize: 15, fontWeight: "700", color: c.ink },
 
-    content: { paddingHorizontal: 18, paddingTop: 16, paddingBottom: 130 },
+    content: { paddingHorizontal: 18, paddingTop: 16, paddingBottom: 170 },
 
     heroShadow: {
       borderRadius: 22,

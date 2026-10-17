@@ -159,7 +159,7 @@ const makeStyles = (c: Palette) =>
       color: c.ink,
     },
 
-    content: { paddingHorizontal: 18, paddingTop: 16, paddingBottom: 130 },
+    content: { paddingHorizontal: 18, paddingTop: 16, paddingBottom: 170 },
 
     skelHero: { backgroundColor: c.statBg, borderRadius: 22, padding: 18 },
     skelCard: {

@@ -342,7 +342,7 @@ const makeStyles = (c: Palette) =>
       color: c.muted,
       marginTop: 2,
     },
-    list: { paddingHorizontal: 18, paddingBottom: 140, gap: 12 },
+    list: { paddingHorizontal: 18, paddingBottom: 180, gap: 12 },
     kartu: {
       backgroundColor: c.card,
       borderWidth: 1,

@@ -699,7 +699,7 @@ const makeStyles = (c: Palette) =>
       marginTop: 4,
     },
 
-    content: { padding: 18, paddingTop: 16, paddingBottom: 120 },
+    content: { padding: 18, paddingTop: 16, paddingBottom: 160 },
     empCard: { marginTop: 12 },
     empHead: {
       flexDirection: "row",
