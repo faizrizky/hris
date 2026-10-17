@@ -28,11 +28,19 @@ msgs = [{"to": r["token"], "title": "Tes notifikasi HRIS", "body": "Kalau ini mu
          "sound": "default", "channelId": "default", "data": {"tes": True}} for r in rows]
 def post(url, body):
     req = urllib.request.Request(url, json.dumps(body).encode(), {"Content-Type": "application/json", "Accept": "application/json"})
-    return json.load(urllib.request.urlopen(req, timeout=30))
-res = post("https://exp.host/--/api/v2/push/send", msgs).get("data", [])
+    try:
+        return json.load(urllib.request.urlopen(req, timeout=30))
+    except urllib.error.HTTPError as e:
+        return {"error": f"HTTP {e.code}: {e.read().decode()[:200]}"}
+# Satu permintaan per token: satu batch dengan token dari beberapa proyek Expo ditolak seluruhnya (400).
 ids = []
-for r, t in zip(rows, res):
-    print(f"  kirim ke {r['user']}: {t.get('status')}" + (f" ({t.get('message')})" if t.get("message") else ""))
+for r, m in zip(rows, msgs):
+    res = post("https://exp.host/--/api/v2/push/send", [m])
+    if res.get("error"):
+        print(f"  kirim ke {r['user']} ({r.get('device_name')}): GAGAL {res['error']}")
+        continue
+    t = (res.get("data") or [{}])[0]
+    print(f"  kirim ke {r['user']} ({r.get('device_name')}): {t.get('status')}" + (f" ({t.get('message')})" if t.get("message") else ""))
     if t.get("id"): ids.append(t["id"])
 if ids:
     time.sleep(8)
@@ -40,6 +48,6 @@ if ids:
     for k, v in rc.items():
         det = (v.get("details") or {}).get("error")
         print(f"  receipt {k[:8]}…: {v.get('status')}" + (f" - {det or v.get('message')}" if v.get("status") != "ok" else ""))
-    print("Receipt 'ok' artinya FCM menerima. InvalidCredentials = kunci FCM V1 belum terpasang. DeviceNotRegistered = token kedaluwarsa.")
+    print("Receipt 'ok' artinya FCM menerima. InvalidCredentials = kunci FCM V1 belum terpasang. DeviceNotRegistered = token kedaluwarsa (aplikasi lama dihapus).")
 PY
 rm -f "$JAR.tokens"
