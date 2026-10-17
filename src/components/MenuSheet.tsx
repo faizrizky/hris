@@ -11,7 +11,7 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { LineIcon } from "@/components/LineIcon";
+import { Ionicons } from "@expo/vector-icons";
 import { Palette } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
 import { useT } from "@/i18n";
@@ -19,7 +19,7 @@ import { useT } from "@/i18n";
 export interface ItemMenu {
   key: string;
   label: string;
-  icon: string;
+  icon: keyof typeof Ionicons.glyphMap;
   bg: string;
   ink: string;
   onPress: () => void;
@@ -108,7 +108,7 @@ export function MenuSheet({
               onPress={() => tutup(it.onPress)}
             >
               <View style={[styles.ikon, { backgroundColor: it.bg }]}>
-                <LineIcon d={it.icon} color={it.ink} size={22} />
+                <Ionicons name={it.icon} size={24} color={it.ink} />
               </View>
               <Text style={styles.label} numberOfLines={2}>
                 {it.label}

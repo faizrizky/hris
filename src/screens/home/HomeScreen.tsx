@@ -193,7 +193,7 @@ export function HomeScreen() {
   const mk = (
     key: string,
     label: string,
-    icon: string,
+    icon: keyof typeof Ionicons.glyphMap,
     tone: "info" | "ok" | "warn" | "bad" | "purple",
     onPress: () => void,
   ): ItemMenu => ({
@@ -216,68 +216,90 @@ export function HomeScreen() {
   const semuaMenu: ItemMenu[] = [
     ...(canApprove
       ? [
-          mk("approval", t("hm.aApproval"), ICON.approval, "warn", () =>
-            navigation.navigate("Approval"),
+          mk(
+            "approval",
+            t("hm.aApproval"),
+            "checkmark-done-outline",
+            "warn",
+            () => navigation.navigate("Approval"),
           ),
-          mk("karyawan", t("hm.aKaryawan"), ICON.user, "purple", () =>
+          mk("karyawan", t("hm.aKaryawan"), "people-outline", "purple", () =>
             navigation.navigate("StaffList"),
           ),
         ]
       : []),
-    mk("presensi", t("cr.presensi"), ICON.clock, "info", () =>
+    mk("presensi", t("cr.presensi"), "finger-print-outline", "info", () =>
       navigation.navigate("Clock"),
     ),
-    mk("ajukanCuti", t("cr.cuti"), ICON.leave, "info", ajukan("cuti")),
-    mk("ajukanLembur", t("cr.lembur"), ICON.overtime, "warn", ajukan("lembur")),
-    mk("dinas", t("cr.dinas"), ICON.briefcase, "purple", ajukan("dinas")),
-    mk("wfh", t("cr.wfh"), ICON.mobile, "ok", ajukan("wfh")),
-    mk("slip", t("hm.aSlip"), ICON.payslip, "ok", () =>
+    mk("ajukanCuti", t("cr.cuti"), "calendar-outline", "info", ajukan("cuti")),
+    mk(
+      "ajukanLembur",
+      t("cr.lembur"),
+      "moon-outline",
+      "warn",
+      ajukan("lembur"),
+    ),
+    mk("dinas", t("cr.dinas"), "briefcase-outline", "purple", ajukan("dinas")),
+    mk("wfh", t("cr.wfh"), "laptop-outline", "ok", ajukan("wfh")),
+    mk("slip", t("hm.aSlip"), "wallet-outline", "ok", () =>
       navigation.navigate("PayslipList"),
     ),
-    mk("appraisal", t("hm.aAppraisal"), ICON.appraisal, "purple", () =>
+    mk("appraisal", t("hm.aAppraisal"), "star-outline", "purple", () =>
       navigation.navigate("Appraisal"),
     ),
-    mk("riwayat", t("hm.aRiwayat"), ICON.attendanceRate, "info", () =>
+    mk("riwayat", t("hm.aRiwayat"), "time-outline", "info", () =>
       navigation.navigate("History"),
     ),
-    mk("koreksi", t("hm.aKoreksi"), ICON.fileCheck, "warn", () =>
+    mk("koreksi", t("hm.aKoreksi"), "create-outline", "warn", () =>
       navigation.navigate("AttendanceCorrection"),
     ),
-    mk("daftarCuti", t("hm.aCuti"), ICON.calendar, "info", () =>
+    mk("daftarCuti", t("hm.aCuti"), "calendar-number-outline", "info", () =>
       navigation.navigate("LeaveList"),
     ),
-    mk("daftarLembur", t("hm.aLembur"), ICON.overtime, "warn", () =>
+    mk("daftarLembur", t("hm.aLembur"), "hourglass-outline", "warn", () =>
       navigation.navigate("Overtime"),
     ),
-    mk("pajak", t("hm.aPajak"), ICON.tax, "info", () =>
+    mk("pajak", t("hm.aPajak"), "receipt-outline", "info", () =>
       navigation.navigate("TaxDetail"),
     ),
-    mk("pengumuman", t("hm.aPengumuman"), ICON.bell, "warn", () =>
+    mk("pengumuman", t("hm.aPengumuman"), "megaphone-outline", "warn", () =>
       navigation.navigate("Announcements"),
     ),
     ...(canApprove
       ? [
-          mk("offline", t("hm.aOffline"), ICON.clock, "warn", () =>
+          mk("offline", t("hm.aOffline"), "cloud-offline-outline", "warn", () =>
             navigation.navigate("OfflineReview"),
           ),
         ]
       : []),
     ...(employee.role === "mss"
       ? [
-          mk("absensiTim", t("hm.aAbsensiTim"), ICON.attendanceRate, "ok", () =>
-            navigation.navigate("StaffAttendance"),
+          mk(
+            "absensiTim",
+            t("hm.aAbsensiTim"),
+            "people-circle-outline",
+            "ok",
+            () => navigation.navigate("StaffAttendance"),
           ),
         ]
       : []),
     ...(employee.role === "hr"
       ? [
-          mk("verifikasi", t("hm.aVerifikasi"), ICON.document, "info", () =>
-            navigation.navigate("DocumentReview"),
+          mk(
+            "verifikasi",
+            t("hm.aVerifikasi"),
+            "document-text-outline",
+            "info",
+            () => navigation.navigate("DocumentReview"),
           ),
-          mk("dataPribadi", t("pcr.aksi"), ICON.user, "purple", () =>
-            navigation.navigate("ProfileChangeReview"),
+          mk(
+            "dataPribadi",
+            t("pcr.aksi"),
+            "person-circle-outline",
+            "purple",
+            () => navigation.navigate("ProfileChangeReview"),
           ),
-          mk("wajah", t("hm.aWajah"), ICON.shield, "ok", () =>
+          mk("wajah", t("hm.aWajah"), "scan-outline", "ok", () =>
             navigation.navigate("FaceReview"),
           ),
         ]
@@ -433,7 +455,7 @@ export function HomeScreen() {
           <QuickAction
             iconBg={c.chip}
             ink={c.accent}
-            icon={ICON.dots}
+            icon="grid-outline"
             label={t("hm.semua")}
             onPress={() => setMenuTerbuka(true)}
           />
@@ -563,7 +585,7 @@ function QuickAction({
 }: {
   iconBg: string;
   ink: string;
-  icon: string;
+  icon: keyof typeof Ionicons.glyphMap;
   label: string;
   onPress?: () => void;
 }) {
@@ -574,7 +596,7 @@ function QuickAction({
     <Reveal style={styles.quickCell}>
       <Pressable style={styles.quickCard} onPress={onPress}>
         <View style={[styles.quickIcon, { backgroundColor: iconBg }]}>
-          <LineIcon d={icon} color={ink} size={17} />
+          <Ionicons name={icon} size={20} color={ink} />
         </View>
         <Text style={styles.quickLabel} numberOfLines={2}>
           {label}
