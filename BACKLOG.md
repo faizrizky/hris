@@ -1,6 +1,6 @@
 # Backlog migrasi mock ke ERPNext
 
-Status per 2026-10-17 (diperbarui setelah item "bisa dikerjakan" dikerjakan). Sumber kebenaran: method di `HrisApi` ([src/services/types.ts](src/services/types.ts)) yang belum di-override `erpnextApi`.
+Status per 2026-10-17. Sumber kebenaran: method di `HrisApi` ([src/services/types.ts](src/services/types.ts)) yang belum di-override `erpnextApi`.
 
 ## Sudah asli
 
@@ -27,18 +27,27 @@ Status per 2026-10-17 (diperbarui setelah item "bisa dikerjakan" dikerjakan). Su
 ## Berikutnya
 
 Perlu kamu (uji atau keputusan):
-- [ ] Uji APK baru `com.hrismobile` dengan ceklis Fase 3d di `TESTING.md` (perangkat, liveness, anti-spoofing bayangan, biometrik, kunci otomatis, push); catat skor anti-spoofing wajah asli di HP karyawan untuk menyetel ambang (0,5 di pendaftaran)
-- [ ] Push sungguhan: matikan Dry Run di Push Settings lalu uji dengan persetujuan cuti
-- [ ] Kuota build EAS gratis habis per bulan (15 build Android). Putuskan paket berbayar atau pindah ke akun organisasi perusahaan; unduh dan cadangkan keystore (`npx eas-cli credentials`)
-- [ ] Putuskan nama dan ID paket final (sekarang `com.hrismobile`; mengubahnya = aplikasi baru, isi ulang App Update dengan `rilis-apk.sh`)
-- [ ] Tinjauan hukum sebelum rilis komersial: lisensi bobot SFace dan data latihnya; Minivision (tanyakan data latih dan izin komersial ke Minivision); ML Kit; **jangan pakai SuriAI** (dilatih di CelebA-Spoof, non-komersial); persetujuan karyawan untuk data biometrik (UU PDP) dan retensi selfie
+- [ ] Uji APK `com.hrismobile` (build `fab3e71d`) dengan ceklis Fase 3d di `TESTING.md`: perangkat, daftar ulang wajah, liveness, anti-spoofing bayangan, biometrik dan kunci otomatis, keluarkan perangkat, push. Catat skor anti-spoofing wajah asli di HP karyawan; bila wajah asli sering ditolak saat mendaftar, ambang 0,5 (`SPOOF_AMBANG` di `FaceEnrollScreen.tsx`) perlu digeser
+- [ ] Push sungguhan: matikan Dry Run di Push Settings lalu uji dengan persetujuan cuti; `./scripts/tes-push.sh` untuk uji langsung
+- [ ] Kuota build EAS gratis: 15 build Android per bulan per akun (akun `gshins-team`). Putuskan paket berbayar atau akun organisasi perusahaan; unduh dan cadangkan keystore (`npx eas-cli credentials`). Setiap build baru: jalankan `./scripts/rilis-apk.sh <build-id>` supaya server tahu versi terbaru
+- [ ] Putuskan nama dan ID paket final (sekarang `com.hrismobile`; mengubahnya = aplikasi baru, App Update harus diisi ulang, Firebase tambah app Android baru). Repositori ini memuat `google-services.json`: jaga tetap privat
+- [ ] Tinjauan hukum sebelum rilis komersial: lisensi bobot SFace dan data latihnya; Minivision (tanyakan data latih dan izin komersial ke Minivision); ML Kit; **jangan pakai SuriAI** (dilatih di CelebA-Spoof, non-komersial); persetujuan karyawan untuk data biometrik (UU PDP), retensi selfie (disimpan selama pendaftaran Active)
+- [ ] Verifikasi 2 langkah di Keamanan masih data contoh: putuskan dibuat sungguhan (OTP email) atau dihapus
+- [ ] Kebijakan sesi: sekarang maksimal 3 sesi aktif per pengguna (System Settings > Deny Multiple Sessions, User > Simultaneous Sessions); sesuaikan bila terlalu ketat. Keluarkan perangkat dibatasi 10 kali per jam per IP klien oleh Frappe
 - [ ] Rilis toko: Play Store (AAB, kebijakan privasi, keamanan data) dan App Store (akun Apple Developer); lalu `MODE_PEMBARUAN = "toko"`
 - [ ] Verifikasi tabel TER PPh 21 dengan PDF PMK 168/2023
 
-Bisa dikerjakan:
-- [ ] **Verifikasi wajah di server** (ditunda sesuai permintaan) (embedding dihitung server dari foto, bukan vektor dari HP): menutup celah vektor palsu lewat API. Butuh container embedding (FastAPI + onnxruntime); AuraFace diuji lebih baik pada KTP bagus tetapi 260 MB dan lebih buruk pada KTP buram, jadi SFace tetap kecuali ada data uji sungguhan
-- [ ] Anti-spoofing: setelah data mode bayangan terkumpul (1 sampai 2 minggu), tentukan ambang dan jadikan penanda "Perlu Ditinjau" atau penjaga di Clock In/Out; tambahkan uji dengan kamera depan HP karyawan
+Bisa dikerjakan (setelah data uji terkumpul atau bersama build berikutnya):
+- [ ] Anti-spoofing: setelah data mode bayangan terkumpul (1 sampai 2 minggu), tentukan ambang dan jadikan penanda "Perlu Ditinjau" atau penjaga di Clock In/Out; tambahkan uji dengan kamera depan HP karyawan dan foto cetak/layar sungguhan
 - [ ] Pemindaian wajah lebih cepat seperti Face ID: baca aliran video (vision-camera + frame processor ML Kit) menggantikan foto satu per satu; butuh build baru
-- [ ] Verifikasi wajah dan biometrik iOS (Vision, Face ID); ditunda; butuh akun Apple Developer
-- [ ] Blur sungguhan di bawah tab bar: di Android `expo-blur` butuh `BlurTargetView` yang membungkus seluruh konten layar, perubahan arsitektur yang harus diuji performanya di perangkat (Android 11); sekarang gradien pudar
-- [ ] (ditunda sesuai permintaan) Server sungguhan: seed di srv-vllm, alamat tetap (domain + HTTPS), perbarui variabel env EAS `preview`, uji seed dari nol (`down -v`, perlu izin)
+- [ ] Blur sungguhan di bawah tab bar: di Android `expo-blur` butuh `BlurTargetView` yang membungkus seluruh konten layar; perubahan arsitektur yang harus diuji performanya di perangkat (Android 11). Sekarang gradien pudar
+
+Ditunda atas permintaan:
+- [ ] Verifikasi wajah di server: embedding dihitung server dari foto, bukan vektor dari HP, untuk menutup celah vektor palsu lewat API. Butuh container embedding (FastAPI + onnxruntime); AuraFace lebih baik pada KTP bagus tetapi 260 MB dan lebih buruk pada KTP buram, jadi SFace tetap kecuali ada data uji sungguhan
+- [ ] Server sungguhan: seed di srv-vllm, alamat tetap (domain + HTTPS), perbarui variabel env EAS `preview`, uji seed dari nol (`down -v`, perlu izin)
+- [ ] iOS: verifikasi wajah (Vision) dan Face ID; butuh akun Apple Developer dan build iOS
+
+Catatan operasional:
+- Server lokal butuh Docker Desktop menyala; setelah mengubah `docker/server-scripts` atau `docker/seed` jalankan `./docker/seed/seed.sh`
+- Perubahan JavaScript: `./scripts/kirim-update.sh "pesan"` (tanpa build); perubahan native, izin, model, ikon: build baru atas perintahmu, lalu `rilis-apk.sh`
+- Graf kode: `graphify update .`; cek graf lebih dulu sebelum mengubah kode (skill `/graphify` sudah terpasang)
