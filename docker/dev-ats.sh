@@ -29,7 +29,6 @@ echo "[dev-ats] Memastikan hris_ats ada di sites/apps.txt..."
 docker compose exec -T backend bash -c '
   if ! grep -Fxq "hris_ats" sites/apps.txt 2>/dev/null; then
     echo "hris_ats" >> sites/apps.txt
-    sort -u -o sites/apps.txt sites/apps.txt
   fi
 '
 
