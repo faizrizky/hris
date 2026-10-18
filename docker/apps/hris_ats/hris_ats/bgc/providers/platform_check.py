@@ -4,18 +4,25 @@
 """Pengecekan akun profil publik pada platform media sosial/profesional.
 Hanya memeriksa username dan URL profil publik yang dinyatakan kandidat/HR.
 DILARANG memeriksa keterdaftaran akun melalui email atau nomor telepon (UU PDP & ToS).
+Menggunakan bgc/fetch.py dan menolak scraping untuk domain Instagram, Facebook, TikTok, dan LinkedIn.
 """
 
 from __future__ import annotations
 
-import urllib.request
-import urllib.error
 from typing import Any
+from hris_ats.bgc.fetch import FetchConfig, FetchResult, is_forbidden_domain
 from hris_ats.bgc.providers.base import BaseProvider
 
 
 class PlatformCheckProvider(BaseProvider):
 	name: str = "PlatformCheckProvider"
+
+	def __init__(
+		self,
+		config: FetchConfig | None = None,
+		rate_limit_per_minute: int = 30,
+	):
+		super().__init__(config=config, rate_limit_per_minute=rate_limit_per_minute)
 
 	def check_single_account(
 		self,
@@ -30,45 +37,65 @@ class PlatformCheckProvider(BaseProvider):
 		clean_user = username.strip().lstrip("@")
 		profile_url = url_template.replace("{username}", clean_user) if url_template else ""
 
-		if is_mock or not profile_url:
-			# Lingkungan mock/offline: akun dianggap ada jika username valid
-			return {
-				"exists": 1 if bool(clean_user) else 0,
-				"profile_url": profile_url,
-				"post_access": "API" if platform_name in ("GitHub", "YouTube", "Reddit", "Mastodon") else "Manual review only",
-			}
-
-		self._wait_for_rate_limit()
-
-		try:
-			req = urllib.request.Request(
-				profile_url,
-				headers={"User-Agent": self.user_agent},
-				method="HEAD" if check_method == "Status code" else "GET",
-			)
-			with urllib.request.urlopen(req, timeout=5) as response:
-				status_code = response.getcode()
-				if check_method == "Status code":
-					exists = 1 if str(status_code) == str(check_value or "200") else 0
-				elif check_method == "Body contains":
-					body = response.read(10000).decode("utf-8", errors="ignore")
-					exists = 1 if (check_value and check_value in body) else 0
-				elif check_method == "Body not contains":
-					body = response.read(10000).decode("utf-8", errors="ignore")
-					exists = 1 if (check_value and check_value not in body) else 0
-				else:
-					exists = 1 if status_code == 200 else 0
-		except urllib.error.HTTPError as e:
-			exists = 1 if check_method == "Status code" and str(e.code) == str(check_value) else 0
-		except Exception:
-			exists = 0
-
 		post_access = "Manual review only"
 		if platform_name in ("GitHub", "YouTube", "Reddit", "Mastodon"):
 			post_access = "API"
 
-		return {
-			"exists": exists,
-			"profile_url": profile_url,
-			"post_access": post_access,
-		}
+		# Domain terlarang (Instagram, Facebook, TikTok, LinkedIn) tidak pernah diambil halamannya
+		if is_forbidden_domain(profile_url) or platform_name in ("Instagram", "Facebook", "TikTok", "LinkedIn"):
+			return {
+				"exists": 1 if bool(clean_user) else 0,
+				"profile_url": profile_url,
+				"post_access": "Manual review only",
+				"mode_used": "",
+				"robots_ignored": False,
+				"body": "",
+				"page": None,
+			}
+
+		if is_mock or not profile_url:
+			return {
+				"exists": 1 if bool(clean_user) else 0,
+				"profile_url": profile_url,
+				"post_access": post_access,
+				"mode_used": "mock",
+				"robots_ignored": False,
+				"body": "",
+				"page": None,
+			}
+
+		method = "HEAD" if check_method == "Status code" else "GET"
+		try:
+			fetch_res = self.fetch(profile_url, method=method)
+			status_code = fetch_res.status
+			body = fetch_res.body or ""
+
+			if check_method == "Status code":
+				exists = 1 if str(status_code) == str(check_value or "200") else 0
+			elif check_method == "Body contains":
+				exists = 1 if (check_value and check_value in body) else 0
+			elif check_method == "Body not contains":
+				exists = 1 if (check_value and check_value not in body) else 0
+			else:
+				exists = 1 if status_code == 200 else 0
+
+			return {
+				"exists": exists,
+				"profile_url": profile_url,
+				"post_access": post_access,
+				"mode_used": fetch_res.mode_used,
+				"robots_ignored": fetch_res.robots_ignored,
+				"body": body,
+				"page": fetch_res.page,
+			}
+
+		except Exception:
+			return {
+				"exists": 0,
+				"profile_url": profile_url,
+				"post_access": post_access,
+				"mode_used": "",
+				"robots_ignored": False,
+				"body": "",
+				"page": None,
+			}

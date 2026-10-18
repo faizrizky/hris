@@ -4,6 +4,7 @@
 """Runner eksekusi background job pemeriksaan Background Check per sumber yang disetujui.
 Menghormati consent_scope kandidat, memperbarui source_runs dan publish_realtime,
 serta menjalankan analisis risiko dan ringkasan otomatis pada akhir proses.
+Mendukung pemilihan provider live vs mock melalui Background Check Settings (mock_provider).
 """
 
 from __future__ import annotations
@@ -14,17 +15,18 @@ from typing import Any
 
 import frappe
 from frappe import _
-from frappe.utils import now_datetime, nowdate, add_days
+from frappe.utils import add_days, now_datetime, nowdate
 
-from hris_ats.bgc.providers.base import FindingData
-from hris_ats.bgc.providers.mock import MockProvider
-from hris_ats.bgc.providers.platform_check import PlatformCheckProvider
-from hris_ats.bgc.providers.court_ma import CourtMAProvider
-from hris_ats.bgc.providers.web_search import WebSearchProvider
-from hris_ats.bgc.providers.posts import PostsProvider
 from hris_ats.bgc.analysis.posts import analyze_posts
 from hris_ats.bgc.analysis.risk import calculate_risk_level
 from hris_ats.bgc.analysis.summary import generate_automated_summary
+from hris_ats.bgc.fetch import FetchConfig, get_fetch_config_from_settings
+from hris_ats.bgc.providers.base import FindingData
+from hris_ats.bgc.providers.court_ma import CourtMAProvider
+from hris_ats.bgc.providers.mock import MockProvider
+from hris_ats.bgc.providers.platform_check import PlatformCheckProvider
+from hris_ats.bgc.providers.posts import PostsProvider
+from hris_ats.bgc.providers.web_search import WebSearchProvider
 
 
 def run_all_sources(bgc_name: str) -> None:
@@ -38,7 +40,7 @@ def run_all_sources(bgc_name: str) -> None:
 	if bgc.consent_status != "Granted":
 		frappe.log_error(
 			title="BGC Aborted: No Consent",
-			message=f"Pemeriksaan dibatalkan untuk {bgc.name} karena consent_status adalah '{bgc.consent_status}' (wajib 'Granted')."
+			message=f"Pemeriksaan dibatalkan untuk {bgc.name} karena consent_status adalah '{bgc.consent_status}' (wajib 'Granted').",
 		)
 		return
 
@@ -48,6 +50,8 @@ def run_all_sources(bgc_name: str) -> None:
 	settings = frappe.get_single("Background Check Settings")
 	retention_days = settings.retention_days or 90
 	min_confidence = settings.min_match_confidence or 50
+	is_mock = bool(settings.mock_provider)
+	fetch_config = get_fetch_config_from_settings()
 
 	# Ambil daftar leksikon aktif
 	lexicon_records = frappe.get_all(
@@ -111,7 +115,10 @@ def run_all_sources(bgc_name: str) -> None:
 		try:
 			if source_name == "Platform":
 				# Cek akun publik yang dinyatakan
-				p_provider = PlatformCheckProvider()
+				p_provider = PlatformCheckProvider(config=fetch_config)
+				modes_used: set[str] = set()
+				robots_ignored_count = 0
+
 				for acc in bgc.accounts:
 					plat_doc = frappe.get_doc("Background Check Platform", acc.platform) if frappe.db.exists("Background Check Platform", acc.platform) else None
 					url_tmpl = plat_doc.profile_url_template if plat_doc else ""
@@ -124,76 +131,113 @@ def run_all_sources(bgc_name: str) -> None:
 						url_template=url_tmpl,
 						check_method=chk_method,
 						check_value=chk_val,
-						is_mock=True,
+						is_mock=is_mock,
 					)
 					acc.profile_url = res["profile_url"]
 					acc.exists = res["exists"]
 					acc.post_access = res["post_access"]
+					if res.get("mode_used"):
+						modes_used.add(res["mode_used"])
+					if res.get("robots_ignored"):
+						robots_ignored_count += 1
 
 				run_row.items_found = len(bgc.accounts)
+				run_row.fetch_mode_used = ", ".join(sorted(modes_used)) if modes_used else ("mock" if is_mock else "company")
+				run_row.robots_ignored_count = robots_ignored_count
 				run_row.status = "Done"
 
 			elif source_name == "Article":
-				candidate_data["source"] = "Article"
-				provider = WebSearchProvider()
-				findings = provider.run(candidate_data)
-				_save_findings(bgc.name, findings)
-				run_row.items_found = len(findings)
-				run_row.status = "Done"
+				if is_mock:
+					candidate_data["source"] = "Article"
+					provider = WebSearchProvider()
+					findings = provider.run(candidate_data)
+					_save_findings(bgc.name, findings)
+					run_row.items_found = len(findings)
+					run_row.fetch_mode_used = "mock"
+					run_row.robots_ignored_count = 0
+					run_row.status = "Done"
+				else:
+					# Bila mock_provider=0 dan belum dikonfigurasi, tandai Skipped
+					run_row.status = "Skipped"
+					run_row.error = _("Penyedia pencarian belum dikonfigurasi.")
+					run_row.items_found = 0
+					run_row.fetch_mode_used = ""
+					run_row.robots_ignored_count = 0
 
 			elif source_name == "File":
-				candidate_data["source"] = "File"
-				provider = WebSearchProvider()
-				findings = provider.run(candidate_data)
-				_save_findings(bgc.name, findings)
-				run_row.items_found = len(findings)
-				run_row.status = "Done"
+				if is_mock:
+					candidate_data["source"] = "File"
+					provider = WebSearchProvider()
+					findings = provider.run(candidate_data)
+					_save_findings(bgc.name, findings)
+					run_row.items_found = len(findings)
+					run_row.fetch_mode_used = "mock"
+					run_row.robots_ignored_count = 0
+					run_row.status = "Done"
+				else:
+					run_row.status = "Skipped"
+					run_row.error = _("Penyedia pencarian belum dikonfigurasi.")
+					run_row.items_found = 0
+					run_row.fetch_mode_used = ""
+					run_row.robots_ignored_count = 0
 
 			elif source_name == "Case history":
 				candidate_data["source"] = "Case history"
-				provider = CourtMAProvider()
-				findings = provider.run(candidate_data)
+				settings_dict = {"max_results_per_source": settings.max_results_per_source or 50}
+				provider = CourtMAProvider(config=fetch_config, is_mock=is_mock)
+				findings = provider.run(candidate_data, settings=settings_dict)
 				_save_findings(bgc.name, findings)
 				run_row.items_found = len(findings)
+				run_row.fetch_mode_used = "mock" if is_mock else (provider.last_mode_used or "company+robots")
+				run_row.robots_ignored_count = 0 if is_mock else provider.last_robots_ignored_count
 				run_row.status = "Done"
 
 			elif source_name == "Posts":
-				p_provider = PostsProvider()
-				all_fetched_posts = []
-				for acc in bgc.accounts:
-					if acc.post_access == "API":
-						acc_posts = p_provider.fetch_posts(acc.platform, acc.username)
-						all_fetched_posts.extend(acc_posts)
+				if is_mock:
+					p_provider = PostsProvider()
+					all_fetched_posts = []
+					for acc in bgc.accounts:
+						if acc.post_access == "API":
+							acc_posts = p_provider.fetch_posts(acc.platform, acc.username)
+							all_fetched_posts.extend(acc_posts)
 
-				if all_fetched_posts:
-					p_analysis = analyze_posts(
-						posts=all_fetched_posts,
-						required_skills=required_skills,
-						preferred_skills=preferred_skills,
-						lexicon_items=lexicon_records,
-					)
-					politeness_score = p_analysis["politeness_score"]
-					total_posts_analyzed = p_analysis["total_posts"]
-					risk_posts = p_analysis["risk_posts"]
-					risk_posts_count = len(risk_posts)
+					if all_fetched_posts:
+						p_analysis = analyze_posts(
+							posts=all_fetched_posts,
+							required_skills=required_skills,
+							preferred_skills=preferred_skills,
+							lexicon_items=lexicon_records,
+						)
+						politeness_score = p_analysis["politeness_score"]
+						total_posts_analyzed = p_analysis["total_posts"]
+						risk_posts = p_analysis["risk_posts"]
+						risk_posts_count = len(risk_posts)
 
-					# Simpan post berisiko sebagai Finding
-					post_findings = []
-					for rp in risk_posts:
-						post_findings.append(FindingData(
-							finding_type="Post",
-							title="Post Publik Terindikasi Berisiko",
-							snippet=rp["text"],
-							url=rp.get("url") or "",
-							severity=rp.get("severity") or "Sedang",
-							category="Berisiko",
-							risk_flags=rp.get("risk_flags") or "",
-							match_confidence=100,
-						))
-					_save_findings(bgc.name, post_findings)
+						# Simpan post berisiko sebagai Finding
+						post_findings = []
+						for rp in risk_posts:
+							post_findings.append(FindingData(
+								finding_type="Post",
+								title="Post Publik Terindikasi Berisiko",
+								snippet=rp["text"],
+								url=rp.get("url") or "",
+								severity=rp.get("severity") or "Sedang",
+								category="Berisiko",
+								risk_flags=rp.get("risk_flags") or "",
+								match_confidence=100,
+							))
+						_save_findings(bgc.name, post_findings)
 
-				run_row.items_found = total_posts_analyzed
-				run_row.status = "Done"
+					run_row.items_found = total_posts_analyzed
+					run_row.fetch_mode_used = "mock"
+					run_row.robots_ignored_count = 0
+					run_row.status = "Done"
+				else:
+					run_row.status = "Skipped"
+					run_row.error = _("Kredensial API media sosial belum dikonfigurasi.")
+					run_row.items_found = 0
+					run_row.fetch_mode_used = ""
+					run_row.robots_ignored_count = 0
 
 			run_row.finished_on = now_datetime()
 

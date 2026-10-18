@@ -153,7 +153,37 @@
 </div>
 
 <div class="section">
-	<div class="section-title">2. Kesimpulan & Ringkasan Evaluasi HR</div>
+	<div class="section-title">2. Status Sumber Data & Jejak Audit Pengambilan Halaman</div>
+	<table class="findings-table">
+		<thead>
+			<tr>
+				<th style="width: 25%;">Sumber</th>
+				<th style="width: 15%;">Status</th>
+				<th style="width: 25%;">Mode Pengambilan</th>
+				<th style="width: 15%;">Jumlah Temuan</th>
+				<th style="width: 20%;">Robots.txt Diabaikan</th>
+			</tr>
+		</thead>
+		<tbody>
+			{% for sr in doc.source_runs %}
+			<tr>
+				<td><strong>{{ sr.source }}</strong></td>
+				<td>
+					<span class="badge {% if sr.status == 'Done' %}badge-success{% elif sr.status == 'Failed' %}badge-danger{% elif sr.status == 'Skipped' %}badge-secondary{% else %}badge-warning{% endif %}">
+						{{ sr.status }}
+					</span>
+				</td>
+				<td>{{ sr.fetch_mode_used or '-' }}</td>
+				<td>{{ sr.items_found }}</td>
+				<td>{{ sr.robots_ignored_count or 0 }}</td>
+			</tr>
+			{% endfor %}
+		</tbody>
+	</table>
+</div>
+
+<div class="section">
+	<div class="section-title">3. Kesimpulan & Ringkasan Evaluasi HR</div>
 	<div style="background-color: #f7fafc; border: 1px solid #e2e8f0; border-radius: 4px; padding: 12px; margin-bottom: 12px;">
 		<p style="margin: 0 0 8px 0; font-size: 13px; line-height: 1.6;">
 			{{ doc.summary_hr or doc.summary_auto or "Pemeriksaan selesai tanpa temuan khusus." }}
@@ -171,7 +201,7 @@
 </div>
 
 <div class="section">
-	<div class="section-title">3. Temuan Terverifikasi Relevan</div>
+	<div class="section-title">4. Temuan Terverifikasi Relevan</div>
 	<p style="font-size: 11px; color: #718096; margin-top: -6px; margin-bottom: 8px;">
 		Sesuai kepatuhan UU PDP dan prinsip akurasi, hanya temuan yang telah diverifikasi sebagai <strong>Relevan</strong> oleh HR yang dicantumkan dalam laporan ini.
 	</p>

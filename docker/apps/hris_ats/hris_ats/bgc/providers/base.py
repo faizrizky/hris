@@ -10,7 +10,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
-from hris_ats.bgc.fetch import FetchConfig, FetchResult, fetch, get_fetch_config_from_settings
+from hris_ats.bgc import fetch as bgc_fetch
+from hris_ats.bgc.fetch import FetchConfig, FetchResult, get_fetch_config_from_settings
 
 
 @dataclass
@@ -70,7 +71,7 @@ class BaseProvider:
 
 	def fetch(self, url: str, *, method: str = "GET", **kwargs) -> FetchResult:
 		"""Mengambil halaman web menggunakan lapisan terpusat bgc/fetch.py."""
-		return fetch(url, config=self.config, method=method, **kwargs)
+		return bgc_fetch.fetch(url, config=self.config, method=method, **kwargs)
 
 	def run(self, candidate_data: dict[str, Any], settings: dict[str, Any] | None = None) -> list[FindingData]:
 		raise NotImplementedError("Subclasses must implement run()")

@@ -85,8 +85,8 @@ class FetchResult:
 	status: int
 	body: str
 	mode_used: str  # "company+robots", "company", "browser+robots", "browser", "stealth+robots", "stealth"
-	robots_ignored: bool
-	from_cache: bool
+	robots_ignored: bool = False
+	from_cache: bool = False
 	page: Any | None = None
 
 

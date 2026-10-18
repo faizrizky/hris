@@ -117,3 +117,119 @@ class TestBackgroundCheckRunner(FrappeTestCase):
 		self.assertIn("prestasi", bgc.summary_auto)
 		# Perkara Info tidak masuk hitungan risiko
 		self.assertIn("catatan perkara", bgc.summary_auto)
+
+	def test_runner_live_mode_with_mocked_network(self):
+		"""Pengujian runner saat mock_provider = 0:
+		Platform dan Case history berjalan live lewat fetch.py (jaringan di-mock),
+		Article, File, dan Posts menjadi Skipped dengan alasan yang jelas,
+		dan fetch_mode_used serta robots_ignored_count tercatat pada source_runs.
+		"""
+		import os
+		from unittest.mock import patch
+		from scrapling.parser import Adaptor
+		from hris_ats.bgc.fetch import FetchResult
+
+		# 1. Pastikan mock_provider = 0 di Settings
+		settings = frappe.get_doc("Background Check Settings")
+		old_mock = settings.mock_provider
+		settings.mock_provider = 0
+		settings.save()
+
+		try:
+			res = initiate_background_check(self.applicant.name)
+			bgc_name = res["name"]
+			token = res["token"]
+
+			accounts = [
+				{"platform": "GitHub", "username": "ronaldrichard"},
+				{"platform": "LinkedIn", "username": "ronaldrichard"},
+				{"platform": "Instagram", "username": "ronaldrichard"},
+			]
+			submit_candidate_consent(
+				token=token,
+				granted_sources=["Platform", "Article", "File", "Case history", "Posts"],
+				accounts=accounts,
+			)
+
+			fixtures_dir = os.path.join(
+				os.path.dirname(__file__),
+				"fixtures",
+				"court_ma",
+			)
+			with open(os.path.join(fixtures_dir, "search_page_1.html"), "r", encoding="utf-8") as f:
+				search_html = f.read()
+			with open(os.path.join(fixtures_dir, "detail_case_1.html"), "r", encoding="utf-8") as f:
+				detail_html = f.read()
+
+			def fake_fetch(url, *args, **kwargs):
+				if "github.com" in url:
+					return FetchResult(
+						url=url,
+						status=200,
+						body="github profile",
+						mode_used="company+robots",
+						robots_ignored=False,
+						from_cache=False,
+					)
+				elif "pencarian" in url:
+					return FetchResult(
+						url=url,
+						status=200,
+						body=search_html,
+						mode_used="company+robots",
+						robots_ignored=False,
+						from_cache=False,
+						page=Adaptor(search_html),
+					)
+				elif "putusan" in url:
+					return FetchResult(
+						url=url,
+						status=200,
+						body=detail_html,
+						mode_used="company+robots",
+						robots_ignored=False,
+						from_cache=False,
+						page=Adaptor(detail_html),
+					)
+				return FetchResult(url=url, status=404, body="", mode_used="company+robots", robots_ignored=False, from_cache=False)
+
+			with patch("hris_ats.bgc.fetch.fetch", side_effect=fake_fetch):
+				run_all_sources(bgc_name)
+
+			bgc = frappe.get_doc("Background Check", bgc_name)
+			self.assertEqual(bgc.status, "Done")
+
+			# Periksa source_runs
+			runs_by_source = {sr.source: sr for sr in bgc.source_runs}
+
+			# Platform -> Done
+			p_run = runs_by_source["Platform"]
+			self.assertEqual(p_run.status, "Done")
+			self.assertIn("company+robots", p_run.fetch_mode_used)
+
+			# Case history -> Done
+			c_run = runs_by_source["Case history"]
+			self.assertEqual(c_run.status, "Done")
+			self.assertEqual(c_run.fetch_mode_used, "company+robots")
+			self.assertGreaterEqual(c_run.items_found, 1)
+
+			# Article -> Skipped
+			a_run = runs_by_source["Article"]
+			self.assertEqual(a_run.status, "Skipped")
+			self.assertIn("Penyedia pencarian belum dikonfigurasi", a_run.error)
+
+			# File -> Skipped
+			f_run = runs_by_source["File"]
+			self.assertEqual(f_run.status, "Skipped")
+			self.assertIn("Penyedia pencarian belum dikonfigurasi", f_run.error)
+
+			# Posts -> Skipped
+			post_run = runs_by_source["Posts"]
+			self.assertEqual(post_run.status, "Skipped")
+			self.assertIn("Kredensial API media sosial belum dikonfigurasi", post_run.error)
+
+		finally:
+			settings.reload()
+			settings.mock_provider = old_mock
+			settings.save()
+
