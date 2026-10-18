@@ -1,0 +1,84 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2026-10-18 00:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "platform",
+  "username",
+  "profile_url",
+  "declared_by",
+  "exists",
+  "last_active",
+  "post_access"
+ ],
+ "fields": [
+  {
+   "fieldname": "platform",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Platform",
+   "options": "Background Check Platform",
+   "reqd": 1
+  },
+  {
+   "fieldname": "username",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Username",
+   "reqd": 1
+  },
+  {
+   "fieldname": "profile_url",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Profile URL",
+   "read_only": 1
+  },
+  {
+   "default": "Candidate",
+   "fieldname": "declared_by",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Declared By",
+   "options": "Candidate\nHR"
+  },
+  {
+   "default": "0",
+   "fieldname": "exists",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Exists",
+   "read_only": 1
+  },
+  {
+   "fieldname": "last_active",
+   "fieldtype": "Datetime",
+   "in_list_view": 1,
+   "label": "Last Active",
+   "read_only": 1
+  },
+  {
+   "default": "Manual review only",
+   "fieldname": "post_access",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Post Access",
+   "options": "API\nManual review only\nNot supported",
+   "read_only": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2026-10-18 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "HRIS ATS",
+ "name": "Background Check Account",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

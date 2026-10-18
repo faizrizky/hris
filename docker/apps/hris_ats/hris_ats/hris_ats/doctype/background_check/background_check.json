@@ -1,0 +1,335 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "naming_series:",
+ "creation": "2026-10-18 00:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "naming_series",
+  "job_applicant",
+  "full_name",
+  "email",
+  "phone",
+  "column_break_applicant",
+  "status",
+  "risk_level_auto",
+  "risk_level_final",
+  "purge_after",
+  "section_break_consent",
+  "consent_status",
+  "consent_method",
+  "consent_at",
+  "consent_ip",
+  "column_break_consent",
+  "consent_text_version",
+  "consent_file",
+  "consent_token",
+  "consent_token_expires_at",
+  "section_break_scope",
+  "consent_scope",
+  "section_break_identity",
+  "name_variants",
+  "context_terms",
+  "section_break_accounts",
+  "accounts",
+  "section_break_source_runs",
+  "source_runs",
+  "section_break_summary",
+  "summary_auto",
+  "summary_hr",
+  "hr_conclusion",
+  "section_break_skck",
+  "skck_file",
+  "skck_status",
+  "column_break_skck",
+  "skck_number",
+  "skck_valid_until",
+  "section_break_audit",
+  "reviewed_by",
+  "reviewed_on"
+ ],
+ "fields": [
+  {
+   "default": "BGC-.YYYY.-.#####",
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "label": "Series",
+   "options": "BGC-.YYYY.-.#####",
+   "reqd": 1
+  },
+  {
+   "fieldname": "job_applicant",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Job Applicant",
+   "options": "Job Applicant"
+  },
+  {
+   "fieldname": "full_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Full Name",
+   "reqd": 1
+  },
+  {
+   "fieldname": "email",
+   "fieldtype": "Data",
+   "label": "Email"
+  },
+  {
+   "fieldname": "phone",
+   "fieldtype": "Data",
+   "label": "Phone (+62)"
+  },
+  {
+   "fieldname": "column_break_applicant",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "Waiting Consent",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Status",
+   "options": "Waiting Consent\nQueued\nCrawling\nDone\nFailed"
+  },
+  {
+   "fieldname": "risk_level_auto",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Indicated Risk Level",
+   "options": "\nRendah\nSedang\nTinggi\nPerlu verifikasi",
+   "read_only": 1
+  },
+  {
+   "fieldname": "risk_level_final",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Final Risk Level",
+   "options": "\nRendah\nSedang\nTinggi\nPerlu verifikasi"
+  },
+  {
+   "fieldname": "purge_after",
+   "fieldtype": "Date",
+   "label": "Purge Raw Findings After",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_consent",
+   "fieldtype": "Section Break",
+   "label": "Candidate Consent (UU PDP Compliance)"
+  },
+  {
+   "default": "Pending",
+   "fieldname": "consent_status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Consent Status",
+   "options": "Pending\nGranted\nDeclined\nWithdrawn"
+  },
+  {
+   "default": "Web form",
+   "fieldname": "consent_method",
+   "fieldtype": "Select",
+   "label": "Consent Method",
+   "options": "Web form\nUploaded document"
+  },
+  {
+   "fieldname": "consent_at",
+   "fieldtype": "Datetime",
+   "label": "Consent Granted At",
+   "read_only": 1
+  },
+  {
+   "fieldname": "consent_ip",
+   "fieldtype": "Data",
+   "label": "Consent IP Address",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_consent",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "consent_text_version",
+   "fieldtype": "Data",
+   "label": "Consent Text Version",
+   "read_only": 1
+  },
+  {
+   "fieldname": "consent_file",
+   "fieldtype": "Attach",
+   "label": "Signed Consent Document"
+  },
+  {
+   "fieldname": "consent_token",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Consent Token"
+  },
+  {
+   "fieldname": "consent_token_expires_at",
+   "fieldtype": "Datetime",
+   "hidden": 1,
+   "label": "Token Expires At"
+  },
+  {
+   "fieldname": "section_break_scope",
+   "fieldtype": "Section Break",
+   "label": "Consented Check Scopes"
+  },
+  {
+   "fieldname": "consent_scope",
+   "fieldtype": "Table",
+   "label": "Consent Scope",
+   "options": "Background Check Consent Scope"
+  },
+  {
+   "fieldname": "section_break_identity",
+   "fieldtype": "Section Break",
+   "label": "Identity & Context Terms"
+  },
+  {
+   "fieldname": "name_variants",
+   "fieldtype": "Small Text",
+   "label": "Name Variants (satu per baris)"
+  },
+  {
+   "fieldname": "context_terms",
+   "fieldtype": "Small Text",
+   "label": "Context Terms (dari Resume Screening)",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_accounts",
+   "fieldtype": "Section Break",
+   "label": "Registered Accounts"
+  },
+  {
+   "fieldname": "accounts",
+   "fieldtype": "Table",
+   "label": "Accounts",
+   "options": "Background Check Account"
+  },
+  {
+   "fieldname": "section_break_source_runs",
+   "fieldtype": "Section Break",
+   "label": "Source Status"
+  },
+  {
+   "fieldname": "source_runs",
+   "fieldtype": "Table",
+   "label": "Source Runs",
+   "options": "Background Check Source Run"
+  },
+  {
+   "fieldname": "section_break_summary",
+   "fieldtype": "Section Break",
+   "label": "Profile Summary & HR Conclusion"
+  },
+  {
+   "fieldname": "summary_auto",
+   "fieldtype": "Small Text",
+   "label": "Automated Summary",
+   "read_only": 1
+  },
+  {
+   "fieldname": "summary_hr",
+   "fieldtype": "Text Editor",
+   "label": "HR Summary Review"
+  },
+  {
+   "fieldname": "hr_conclusion",
+   "fieldtype": "Small Text",
+   "label": "HR Conclusion (Wajib sebelum Interview)"
+  },
+  {
+   "fieldname": "section_break_skck",
+   "fieldtype": "Section Break",
+   "label": "SKCK Verification (Opsional)"
+  },
+  {
+   "fieldname": "skck_file",
+   "fieldtype": "Attach",
+   "label": "SKCK Document"
+  },
+  {
+   "default": "Tidak diunggah",
+   "fieldname": "skck_status",
+   "fieldtype": "Select",
+   "label": "SKCK Status",
+   "options": "Tidak diunggah\nBelum diperiksa\nBersih\nAda catatan\nKedaluwarsa"
+  },
+  {
+   "fieldname": "column_break_skck",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval:doc.skck_file",
+   "fieldname": "skck_number",
+   "fieldtype": "Data",
+   "label": "SKCK Number"
+  },
+  {
+   "depends_on": "eval:doc.skck_file",
+   "fieldname": "skck_valid_until",
+   "fieldtype": "Date",
+   "label": "SKCK Valid Until"
+  },
+  {
+   "fieldname": "section_break_audit",
+   "fieldtype": "Section Break",
+   "label": "Review Audit"
+  },
+  {
+   "fieldname": "reviewed_by",
+   "fieldtype": "Link",
+   "label": "Reviewed By",
+   "options": "User"
+  },
+  {
+   "fieldname": "reviewed_on",
+   "fieldtype": "Datetime",
+   "label": "Reviewed On"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-10-18 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "HRIS ATS",
+ "name": "Background Check",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "HR Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 0,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Background Check Officer",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1,
+ "track_views": 1
+}

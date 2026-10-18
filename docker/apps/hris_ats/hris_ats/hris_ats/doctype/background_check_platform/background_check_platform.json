@@ -1,0 +1,126 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "field:platform_name",
+ "creation": "2026-10-18 00:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "platform_name",
+  "category",
+  "enabled",
+  "column_break_1",
+  "icon",
+  "profile_url_template",
+  "section_break_check",
+  "check_method",
+  "check_value",
+  "column_break_2",
+  "post_api"
+ ],
+ "fields": [
+  {
+   "fieldname": "platform_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Platform Name",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "default": "Professional",
+   "fieldname": "category",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Category",
+   "options": "Creative\nSocial\nProfessional\nDeveloper\nOther"
+  },
+  {
+   "default": "1",
+   "fieldname": "enabled",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Enabled"
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "icon",
+   "fieldtype": "Data",
+   "label": "Icon (SVG / FontAwesome)"
+  },
+  {
+   "fieldname": "profile_url_template",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Profile URL Template",
+   "reqd": 1
+  },
+  {
+   "fieldname": "section_break_check",
+   "fieldtype": "Section Break",
+   "label": "Verification Method"
+  },
+  {
+   "default": "Status code",
+   "fieldname": "check_method",
+   "fieldtype": "Select",
+   "label": "Check Method",
+   "options": "Status code\nBody contains\nBody not contains"
+  },
+  {
+   "fieldname": "check_value",
+   "fieldtype": "Data",
+   "label": "Check Value"
+  },
+  {
+   "fieldname": "column_break_2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "None",
+   "fieldname": "post_api",
+   "fieldtype": "Select",
+   "label": "Post API Integration",
+   "options": "None\nX\nYouTube\nGitHub\nMastodon\nReddit"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-10-18 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "HRIS ATS",
+ "name": "Background Check Platform",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "HR Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 0,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Background Check Officer",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "platform_name",
+ "sort_order": "ASC",
+ "states": []
+}

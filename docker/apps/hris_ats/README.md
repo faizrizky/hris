@@ -30,4 +30,8 @@ Pre-commit is configured to use the following tools for checking and formatting 
 
 ### License
 
-mit
+MIT
+
+### Attribution
+
+Katalog platform publik pada modul Background Check menggunakan data dari dataset terbuka [WhatsMyName](https://github.com/WebBreacher/WhatsMyName) yang dilisensikan di bawah [Creative Commons Attribution-ShareAlike 4.0 International (CC BY-SA 4.0)](https://creativecommons.org/licenses/by-sa/4.0/).

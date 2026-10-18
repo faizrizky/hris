@@ -1,0 +1,233 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2026-10-18 00:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "background_check",
+  "finding_type",
+  "category",
+  "severity",
+  "match_confidence",
+  "hr_verdict",
+  "column_break_1",
+  "title",
+  "source_name",
+  "url",
+  "account",
+  "file_type",
+  "published_on",
+  "section_break_content",
+  "snippet",
+  "match_reasons",
+  "risk_flags",
+  "section_break_case",
+  "case_type",
+  "case_number",
+  "court",
+  "column_break_case",
+  "party_role",
+  "registered_on",
+  "uploaded_on",
+  "adjudicated_on",
+  "section_break_hr",
+  "hr_note"
+ ],
+ "fields": [
+  {
+   "fieldname": "background_check",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Background Check",
+   "options": "Background Check",
+   "reqd": 1
+  },
+  {
+   "fieldname": "finding_type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Finding Type",
+   "options": "Article\nFile\nCase\nPost",
+   "reqd": 1
+  },
+  {
+   "default": "Netral",
+   "fieldname": "category",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Category",
+   "options": "Prestasi\nProfesional\nNetral\nBerisiko"
+  },
+  {
+   "default": "Info",
+   "fieldname": "severity",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Severity",
+   "options": "Info\nRendah\nSedang\nTinggi"
+  },
+  {
+   "default": "0",
+   "fieldname": "match_confidence",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Match Confidence (%)"
+  },
+  {
+   "default": "Belum ditinjau",
+   "fieldname": "hr_verdict",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "HR Verdict",
+   "options": "Belum ditinjau\nRelevan\nBukan orang ini\nDiabaikan"
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Title / Identifier"
+  },
+  {
+   "fieldname": "source_name",
+   "fieldtype": "Data",
+   "label": "Source Name"
+  },
+  {
+   "fieldname": "url",
+   "fieldtype": "Data",
+   "label": "URL"
+  },
+  {
+   "fieldname": "account",
+   "fieldtype": "Data",
+   "label": "Account"
+  },
+  {
+   "fieldname": "file_type",
+   "fieldtype": "Data",
+   "label": "File Type"
+  },
+  {
+   "fieldname": "published_on",
+   "fieldtype": "Datetime",
+   "label": "Published On"
+  },
+  {
+   "fieldname": "section_break_content",
+   "fieldtype": "Section Break",
+   "label": "Content & Match Reason"
+  },
+  {
+   "fieldname": "snippet",
+   "fieldtype": "Small Text",
+   "label": "Snippet / Excerpt"
+  },
+  {
+   "fieldname": "match_reasons",
+   "fieldtype": "Small Text",
+   "label": "Match Reasons"
+  },
+  {
+   "fieldname": "risk_flags",
+   "fieldtype": "Small Text",
+   "label": "Risk Flags"
+  },
+  {
+   "fieldname": "section_break_case",
+   "fieldtype": "Section Break",
+   "label": "Case Details (Putusan MA)"
+  },
+  {
+   "fieldname": "case_type",
+   "fieldtype": "Data",
+   "label": "Case Type"
+  },
+  {
+   "fieldname": "case_number",
+   "fieldtype": "Data",
+   "label": "Case Number"
+  },
+  {
+   "fieldname": "court",
+   "fieldtype": "Data",
+   "label": "Court"
+  },
+  {
+   "fieldname": "column_break_case",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "party_role",
+   "fieldtype": "Data",
+   "label": "Party Role"
+  },
+  {
+   "fieldname": "registered_on",
+   "fieldtype": "Date",
+   "label": "Registered On"
+  },
+  {
+   "fieldname": "uploaded_on",
+   "fieldtype": "Date",
+   "label": "Uploaded On"
+  },
+  {
+   "fieldname": "adjudicated_on",
+   "fieldtype": "Date",
+   "label": "Adjudicated On"
+  },
+  {
+   "fieldname": "section_break_hr",
+   "fieldtype": "Section Break",
+   "label": "HR Review"
+  },
+  {
+   "fieldname": "hr_note",
+   "fieldtype": "Small Text",
+   "label": "HR Review Note"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-10-18 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "HRIS ATS",
+ "name": "Background Check Finding",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "HR Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Background Check Officer",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1,
+ "track_views": 1
+}

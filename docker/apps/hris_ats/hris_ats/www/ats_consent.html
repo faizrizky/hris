@@ -1,0 +1,219 @@
+{% extends "templates/web.html" %}
+
+{% block page_content %}
+<div class="container my-5" style="max-width: 800px;">
+	<div class="card shadow-sm border-0">
+		<div class="card-body p-4 p-md-5">
+			{% if error %}
+			<div class="text-center py-4">
+				<div class="mb-3 text-warning" style="font-size: 3rem;">⚠️</div>
+				<h3 class="h4 text-dark mb-2">{{ _("Tautan Tidak Dapat Dibuka") }}</h3>
+				<p class="text-muted">{{ error }}</p>
+			</div>
+			{% else %}
+			<div id="consent-form-section">
+				<div class="mb-4 text-center">
+					<h2 class="h3 font-weight-bold mb-2">{{ _("Pemeriksaan Latar Belakang") }}</h2>
+					<p class="text-muted mb-0">
+						{{ _("Formulir Persetujuan Kandidat Rekrutmen (Kepatuhan UU No. 27/2022 UU PDP)") }}
+					</p>
+				</div>
+
+				<div class="alert alert-info border-0 rounded p-3 mb-4">
+					<p class="mb-1"><strong>{{ _("Halo,") }} {{ applicant_name }}!</strong></p>
+					<p class="small mb-0">
+						{{ _("Sebagai bagian dari proses seleksi, kami memerlukan persetujuan eksplisit Anda sebelum melakukan pemeriksaan latar belakang. Anda berhak menentukan ruang lingkup pemeriksaan, memperbarui akun yang diperiksa, dan menarik persetujuan sewaktu-waktu.") }}
+					</p>
+				</div>
+
+				<form id="consent-form">
+					<input type="hidden" name="token" value="{{ token }}">
+
+					<div class="mb-4">
+						<h5 class="h6 font-weight-bold text-uppercase text-secondary mb-3">
+							1. {{ _("Pilih Sumber Pemeriksaan yang Disetujui") }}
+						</h5>
+						<div class="list-group">
+							{% for src in sources %}
+							<label class="list-group-item d-flex align-items-start gap-3 cursor-pointer">
+								<input class="form-check-input mt-1 me-2 source-checkbox" type="checkbox" name="sources" value="{{ src.key }}" checked>
+								<div>
+									<div class="font-weight-bold text-dark">{{ src.label }}</div>
+									<div class="small text-muted">{{ src.desc }}</div>
+								</div>
+							</label>
+							{% endfor %}
+						</div>
+					</div>
+
+					<div class="mb-4">
+						<h5 class="h6 font-weight-bold text-uppercase text-secondary mb-2">
+							2. {{ _("Akun Profil Publik (Opsional)") }}
+						</h5>
+						<p class="small text-muted mb-2">
+							{{ _("Cantumkan akun media sosial atau profil profesional yang ingin Anda nyatakan untuk diperiksa.") }}
+						</p>
+						<div id="accounts-container" class="mb-2">
+							<div class="row g-2 mb-2 account-row">
+								<div class="col-5">
+									<select class="form-control form-control-sm account-platform">
+										<option value="">-- {{ _("Pilih Platform") }} --</option>
+										{% for p in platforms %}
+										<option value="{{ p.platform_name }}">{{ p.platform_name }}</option>
+										{% endfor %}
+									</select>
+								</div>
+								<div class="col-6">
+									<input type="text" class="form-control form-control-sm account-username" placeholder="{{ _("Username / Handle") }}">
+								</div>
+								<div class="col-1 text-end">
+									<button type="button" class="btn btn-sm btn-outline-danger btn-remove-account" title="{{ _("Hapus") }}">✕</button>
+								</div>
+							</div>
+						</div>
+						<button type="button" id="btn-add-account" class="btn btn-sm btn-outline-primary">
+							+ {{ _("Tambah Akun") }}
+						</button>
+					</div>
+
+					<div class="mb-4">
+						<h5 class="h6 font-weight-bold text-uppercase text-secondary mb-2">
+							3. {{ _("Unggah SKCK (Opsional)") }}
+						</h5>
+						<p class="small text-muted mb-2">
+							{{ _("Jika memiliki Surat Keterangan Catatan Kepolisian (SKCK) yang masih berlaku, Anda dapat melampirkannya sebagai dokumen pendukung.") }}
+						</p>
+						<input type="file" id="skck-file-input" class="form-control form-control-sm" accept=".pdf,.jpg,.jpeg,.png">
+					</div>
+
+					<div class="mb-4">
+						<h5 class="h6 font-weight-bold text-uppercase text-secondary mb-2">
+							4. {{ _("Pernyataan Persetujuan & Retensi") }}
+						</h5>
+						<div class="border rounded p-3 bg-light mb-3 small text-muted" style="max-height: 140px; overflow-y: auto;">
+							<p class="mb-2">{{ consent_text }}</p>
+							<p class="mb-0">
+								<strong>{{ _("Ketentuan Retensi:") }}</strong> {{ _("Seluruh data temuan mentah akan otomatis dimusnahkan dalam waktu {0} hari setelah keputusan akhir rekrutmen sesuai prinsip minimisasi data.").format(retention_days) }}
+							</p>
+						</div>
+
+						<div class="form-check">
+							<input class="form-check-input" type="checkbox" id="consent-agree" required>
+							<label class="form-check-label font-weight-bold text-dark" for="consent-agree">
+								{{ _("Saya telah membaca, memahami, dan menyetujui seluruh ketentuan pemeriksaan latar belakang di atas.") }}
+							</label>
+						</div>
+					</div>
+
+					<div class="d-grid mt-4">
+						<button type="submit" id="btn-submit-consent" class="btn btn-primary btn-lg" disabled>
+							{{ _("Kirim Persetujuan") }}
+						</button>
+					</div>
+				</form>
+			</div>
+
+			<div id="consent-success-section" class="text-center py-5 d-none">
+				<div class="mb-3 text-success" style="font-size: 3.5rem;">✓</div>
+				<h3 class="h4 font-weight-bold text-dark mb-2">{{ _("Persetujuan Berhasil Dicatat") }}</h3>
+				<p class="text-muted mb-4">
+					{{ _("Terima kasih atas persetujuan yang Anda berikan. Proses pemeriksaan latar belakang akan dilakukan sesuai ruang lingkup yang Anda pilih.") }}
+				</p>
+				<p class="small text-muted">{{ _("Anda dapat menutup halaman ini sekarang.") }}</p>
+			</div>
+			{% endif %}
+		</div>
+	</div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+	const agreeCheck = document.getElementById("consent-agree");
+	const submitBtn = document.getElementById("btn-submit-consent");
+	const addAccountBtn = document.getElementById("btn-add-account");
+	const accountsContainer = document.getElementById("accounts-container");
+	const form = document.getElementById("consent-form");
+
+	if (agreeCheck && submitBtn) {
+		agreeCheck.addEventListener("change", function () {
+			submitBtn.disabled = !this.checked;
+		});
+	}
+
+	if (addAccountBtn && accountsContainer) {
+		addAccountBtn.addEventListener("click", function () {
+			const template = accountsContainer.querySelector(".account-row");
+			if (template) {
+				const clone = template.cloneNode(true);
+				clone.querySelector(".account-platform").value = "";
+				clone.querySelector(".account-username").value = "";
+				accountsContainer.appendChild(clone);
+			}
+		});
+
+		accountsContainer.addEventListener("click", function (e) {
+			if (e.target && e.target.classList.contains("btn-remove-account")) {
+				const rows = accountsContainer.querySelectorAll(".account-row");
+				if (rows.length > 1) {
+					e.target.closest(".account-row").remove();
+				} else {
+					e.target.closest(".account-row").querySelector(".account-platform").value = "";
+					e.target.closest(".account-row").querySelector(".account-username").value = "";
+				}
+			}
+		});
+	}
+
+	if (form) {
+		form.addEventListener("submit", function (e) {
+			e.preventDefault();
+			if (!agreeCheck.checked) return;
+
+			submitBtn.disabled = true;
+			submitBtn.innerText = "{{ _('Memproses...') }}";
+
+			// Collect sources
+			const grantedSources = [];
+			document.querySelectorAll(".source-checkbox:checked").forEach(cb => {
+				grantedSources.push(cb.value);
+			});
+
+			// Collect accounts
+			const accounts = [];
+			document.querySelectorAll(".account-row").forEach(row => {
+				const plat = row.querySelector(".account-platform").value;
+				const user = row.querySelector(".account-username").value.trim();
+				if (plat && user) {
+					accounts.push({ platform: plat, username: user });
+				}
+			});
+
+			const token = form.querySelector('input[name="token"]').value;
+
+			frappe.call({
+				method: "hris_ats.bgc.consent.submit_candidate_consent",
+				args: {
+					token: token,
+					granted_sources: JSON.stringify(grantedSources),
+					accounts: JSON.stringify(accounts)
+				},
+				callback: function (r) {
+					if (r.message && r.message.success) {
+						document.getElementById("consent-form-section").classList.add("d-none");
+						document.getElementById("consent-success-section").classList.remove("d-none");
+					} else {
+						submitBtn.disabled = false;
+						submitBtn.innerText = "{{ _('Kirim Persetujuan') }}";
+						frappe.msgprint(__("Terjadi kesalahan saat menyimpan persetujuan."));
+					}
+				},
+				error: function () {
+					submitBtn.disabled = false;
+					submitBtn.innerText = "{{ _('Kirim Persetujuan') }}";
+				}
+			});
+		});
+	}
+});
+</script>
+{% endblock %}

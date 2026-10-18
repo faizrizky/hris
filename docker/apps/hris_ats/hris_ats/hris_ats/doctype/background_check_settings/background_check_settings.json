@@ -1,0 +1,210 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "creation": "2026-10-18 00:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "enabled",
+  "mock_provider",
+  "section_break_sources",
+  "enable_platform",
+  "enable_article",
+  "enable_file",
+  "column_break_sources",
+  "enable_case_history",
+  "enable_posts",
+  "section_break_providers",
+  "search_provider",
+  "search_api_key",
+  "x_api_key",
+  "column_break_cred",
+  "youtube_api_key",
+  "github_token",
+  "section_break_thresholds",
+  "min_match_confidence",
+  "max_results_per_source",
+  "column_break_param",
+  "rate_limit_per_minute",
+  "retention_days",
+  "section_break_consent",
+  "consent_text_version",
+  "consent_text"
+ ],
+ "fields": [
+  {
+   "default": "1",
+   "fieldname": "enabled",
+   "fieldtype": "Check",
+   "label": "Enable Background Check"
+  },
+  {
+   "default": "1",
+   "fieldname": "mock_provider",
+   "fieldtype": "Check",
+   "label": "Use Mock Provider (Offline / Testing)"
+  },
+  {
+   "fieldname": "section_break_sources",
+   "fieldtype": "Section Break",
+   "label": "Source Toggles"
+  },
+  {
+   "default": "1",
+   "fieldname": "enable_platform",
+   "fieldtype": "Check",
+   "label": "Enable Registered Platforms"
+  },
+  {
+   "default": "1",
+   "fieldname": "enable_article",
+   "fieldtype": "Check",
+   "label": "Enable News Articles"
+  },
+  {
+   "default": "1",
+   "fieldname": "enable_file",
+   "fieldtype": "Check",
+   "label": "Enable Public Files (PDF/DOCX)"
+  },
+  {
+   "fieldname": "column_break_sources",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "1",
+   "fieldname": "enable_case_history",
+   "fieldtype": "Check",
+   "label": "Enable Case History (Putusan MA)"
+  },
+  {
+   "default": "1",
+   "fieldname": "enable_posts",
+   "fieldtype": "Check",
+   "label": "Enable Public Posts API"
+  },
+  {
+   "fieldname": "section_break_providers",
+   "fieldtype": "Section Break",
+   "label": "Provider API Credentials"
+  },
+  {
+   "default": "Mock",
+   "fieldname": "search_provider",
+   "fieldtype": "Select",
+   "label": "Web Search Provider",
+   "options": "Mock\nBrave\nGoogle\nSerpAPI"
+  },
+  {
+   "fieldname": "search_api_key",
+   "fieldtype": "Password",
+   "label": "Search API Key"
+  },
+  {
+   "fieldname": "x_api_key",
+   "fieldtype": "Password",
+   "label": "X (Twitter) API Key"
+  },
+  {
+   "fieldname": "column_break_cred",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "youtube_api_key",
+   "fieldtype": "Password",
+   "label": "YouTube Data API Key"
+  },
+  {
+   "fieldname": "github_token",
+   "fieldtype": "Password",
+   "label": "GitHub Personal Access Token"
+  },
+  {
+   "fieldname": "section_break_thresholds",
+   "fieldtype": "Section Break",
+   "label": "Parameters & Retention"
+  },
+  {
+   "default": "50",
+   "fieldname": "min_match_confidence",
+   "fieldtype": "Int",
+   "label": "Min Match Confidence (0-100)"
+  },
+  {
+   "default": "50",
+   "fieldname": "max_results_per_source",
+   "fieldtype": "Int",
+   "label": "Max Results Per Source"
+  },
+  {
+   "fieldname": "column_break_param",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "30",
+   "fieldname": "rate_limit_per_minute",
+   "fieldtype": "Int",
+   "label": "Rate Limit Per Minute"
+  },
+  {
+   "default": "90",
+   "fieldname": "retention_days",
+   "fieldtype": "Int",
+   "label": "Retention Days (Purge Raw Findings)"
+  },
+  {
+   "fieldname": "section_break_consent",
+   "fieldtype": "Section Break",
+   "label": "Consent Configuration"
+  },
+  {
+   "default": "v1.0",
+   "fieldname": "consent_text_version",
+   "fieldtype": "Data",
+   "label": "Consent Text Version"
+  },
+  {
+   "default": "Dengan memberikan persetujuan ini, saya mengizinkan verifikasi informasi profil publik, riwayat perkara publik, dan akun media sosial yang saya nyatakan untuk keperluan seleksi kerja sesuai ketentuan UU PDP.",
+   "fieldname": "consent_text",
+   "fieldtype": "Small Text",
+   "label": "Consent Terms Text"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "issingle": 1,
+ "links": [],
+ "modified": "2026-10-18 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "HRIS ATS",
+ "name": "Background Check Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 0,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "HR Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 0,
+   "delete": 0,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Background Check Officer",
+   "share": 0,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

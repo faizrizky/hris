@@ -52,9 +52,17 @@ required_apps = ["erpnext", "hrms"]
 # page_js = {"page" : "public/js/file.js"}
 
 # include js in doctype views
+doctype_js = {
+	"Job Applicant": "public/js/job_applicant.js"
+}
+
 doctype_list_js = {
 	"Job Applicant": "public/js/job_applicant_list.js"
 }
+
+website_route_rules = [
+	{"from_route": "/ats-consent", "to_route": "ats_consent"},
+]
 
 
 # Svg Icons
