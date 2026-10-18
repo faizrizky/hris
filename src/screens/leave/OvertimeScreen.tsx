@@ -1,29 +1,21 @@
-import { useCallback, useState, useMemo } from "react";
+import { useMemo } from "react";
 import type { ScreenProps } from "@/navigation/types";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { RevealScrollView as ScrollView } from "@/components/Reveal";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
-import { useFocusEffect } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Palette, primaryButtonStyle } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
-import { hrisApi } from "@/services/api";
-import { describeError } from "@/services/api/http";
 import { ErrorState } from "@/components/ErrorState";
 import { useT } from "@/i18n";
-import { useSession } from "@/services/session";
-import { OvertimeRecord } from "@/services/types";
 import { StatusBadge } from "@/components/StatusBadge";
 import { ICON } from "@/constants/icons";
 import {
   OVERTIME_STATUS_LABEL,
   OVERTIME_STATUS_TONE,
 } from "@/constants/statusLabels";
-import {
-  OVERTIME_LIMIT_HOURS,
-  OVERTIME_PAY_PER_HOUR,
-} from "@/constants/payroll";
+import { OVERTIME_LIMIT_HOURS } from "@/constants/payroll";
 import { rupiah } from "@/utils/currency";
 import {
   formatShortDuration,
@@ -31,44 +23,26 @@ import {
   getMonthName,
   getWeekdayName,
   formatShortDateWithYear,
-  toISODate,
 } from "@/utils/date";
 import { Skeleton } from "@/components/Skeleton";
 import { EmptyState } from "@/components/EmptyState";
 import { goBackAnimated } from "@/navigation/navigationBack";
+import { useOvertime } from "@/hooks/useOvertime";
 
 export function OvertimeScreen({ navigation }: ScreenProps) {
-  const { employee } = useSession();
+  const {
+    records,
+    errorMessage,
+    load,
+    jam,
+    minutes,
+    percent,
+    estimate,
+    isTight,
+  } = useOvertime();
   const insets = useSafeAreaInsets();
-  const [records, setRecords] = useState<OvertimeRecord[] | null>(null);
-
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-
-  const load = useCallback(() => {
-    if (!employee) return;
-    setErrorMessage(null);
-    hrisApi
-      .getOvertimes(employee.id)
-      .then(setRecords)
-      .catch((e) => setErrorMessage(describeError(e)));
-  }, [employee]);
-
-  useFocusEffect(load);
-
   // Ringkasan hanya bulan ini. String ISO "2026-09-12" cukup dipotong 7
   // karakter jadi "2026-09" untuk dibandingkan — tidak perlu parse tanggal.
-  const thisMonth = toISODate(new Date()).slice(0, 7);
-  const monthly =
-    records === null
-      ? []
-      : records.filter((r) => r.date.slice(0, 7) === thisMonth);
-
-  const totalJam = monthly.reduce((a, r) => a + r.hours, 0);
-  const jam = Math.floor(totalJam);
-  const minutes = Math.round((totalJam % 1) * 60);
-  const percent = Math.min(100, (totalJam / OVERTIME_LIMIT_HOURS) * 100);
-  const estimate = totalJam * OVERTIME_PAY_PER_HOUR;
-  const isTight = totalJam >= OVERTIME_LIMIT_HOURS * 0.8;
   const c = useTheme();
   const t = useT();
   const styles = useMemo(() => makeStyles(c), [c]);

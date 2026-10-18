@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import { useMemo } from "react";
 import type { ScreenProps } from "@/navigation/types";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { RevealFlatList as FlatList } from "@/components/Reveal";
@@ -9,64 +9,34 @@ import { StatusBadge } from "@/components/StatusBadge";
 import { Skeleton } from "@/components/Skeleton";
 import { Palette } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
-import { hrisApi } from "@/services/api";
-import { useSession } from "@/services/session";
-import { AttendanceStatus } from "@/services/types";
-import { useLoad } from "@/hooks/useLoad";
 import { ErrorState } from "@/components/ErrorState";
 import {
   ATTENDANCE_STATUS_LABEL as STATUS_LABEL,
   ATTENDANCE_STATUS_TONE as STATUS_TONE,
 } from "@/constants/statusLabels";
-import {
-  getWeekdayName,
-  formatNumericDate,
-  getShortMonth,
-  getMonthName,
-} from "@/utils/date";
-import { useT, getActiveLanguage } from "@/i18n";
+import { getWeekdayName, formatNumericDate, getShortMonth } from "@/utils/date";
+import { useT } from "@/i18n";
 import { goBackAnimated } from "@/navigation/navigationBack";
-
-type Filter = "semua" | "telat" | "izin";
+import { useAttendanceHistory } from "@/hooks/useAttendanceHistory";
 
 export function AttendanceHistoryScreen({ navigation }: ScreenProps) {
+  const {
+    history,
+    records,
+    filter,
+    setFilter,
+    isMemuat,
+    presentCount,
+    lateMinutes,
+    permission,
+    percent,
+    filtered,
+    chips,
+  } = useAttendanceHistory();
   const t = useT();
-  const { employee } = useSession();
   const insets = useSafeAreaInsets();
-  const history = useLoad(
-    () =>
-      employee
-        ? hrisApi.getAttendanceHistory(employee.id)
-        : Promise.resolve([]),
-    employee?.id,
-  );
-  const records = history.data;
-  const [filter, setFilter] = useState<Filter>("semua");
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
-
-  const isMemuat = history.isLoading;
-  const all = records ?? [];
-
-  const count = (s: AttendanceStatus) =>
-    all.filter((r) => r.status === s).length;
-
-  const presentCount = count("hadir");
-  const lateMinutes = count("telat");
-  const permission = count("izin");
-
-  const percent = all.length
-    ? `${(((presentCount + lateMinutes) / all.length) * 100).toFixed(1).replace(".", getActiveLanguage() === "en" ? "." : ",")}%`
-    : "–";
-
-  const filtered = all.filter((r) => filter === "semua" || r.status === filter);
-
-  const chips: { key: Filter; label: string }[] = [
-    { key: "semua", label: getMonthName() },
-    { key: "telat", label: t("ab.telatN", { n: lateMinutes }) },
-    { key: "izin", label: t("ab.izinN", { n: permission }) },
-  ];
-
   return (
     <View style={styles.container}>
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>

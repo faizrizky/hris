@@ -1,8 +1,7 @@
-import React, { useEffect, useState, useMemo, useRef } from "react";
+import React, { useMemo } from "react";
 import type { ScreenProps } from "@/navigation/types";
 import {
   Animated,
-  Easing,
   Pressable,
   StyleSheet,
   Switch,
@@ -16,48 +15,33 @@ import { Ionicons } from "@expo/vector-icons";
 import { RadialGlow } from "@/components/RadialGlow";
 import { Skeleton } from "@/components/Skeleton";
 import { Palette } from "@/theme/colors";
-import { useTheme, useThemeMode } from "@/theme/ThemeContext";
+import { useTheme } from "@/theme/ThemeContext";
 import { yearsSince } from "@/utils/date";
-import { hrisApi } from "@/services/api";
 import { signOutSafely, useSession } from "@/services/session";
-import { LeaveBalance } from "@/services/types";
 import { useConfirm } from "@/components/ConfirmDialog";
 import { useT } from "@/i18n";
 import { LanguagePicker } from "@/components/LanguagePicker";
-import { useProfilePhoto } from "@/hooks/useProfilePhoto";
+import { useProfile } from "@/hooks/useProfile";
 
 export function ProfileScreen({ navigation }: ScreenProps) {
+  const {
+    balances,
+    isPushOn,
+    setIsPushOn,
+    mode,
+    toggle,
+    exitRef,
+    photo,
+    photoAppear,
+    revealPhoto,
+  } = useProfile();
   const { employee, setEmployee } = useSession();
   const insets = useSafeAreaInsets();
-  const [balances, setBalances] = useState<LeaveBalance[] | null>(null);
-  const [isPushOn, setIsPushOn] = useState(true);
-  const { mode, toggle } = useThemeMode();
   const t = useT();
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
   const confirm = useConfirm();
-  const exitRef = useRef<View>(null);
-  const photo = useProfilePhoto();
   // Foto memudar masuk sambil sedikit mengecil, selaras animasi halaman lain.
-  const [photoAppear] = useState(() => new Animated.Value(0));
-  const revealPhoto = () =>
-    Animated.timing(photoAppear, {
-      toValue: 1,
-      duration: 520,
-      easing: Easing.bezier(0.25, 0.1, 0.25, 1),
-      useNativeDriver: true,
-    }).start();
-
-  useEffect(() => {
-    if (!employee) return;
-    hrisApi
-      .getLeaveBalances(employee.id)
-      .then(setBalances)
-      // Saldo hanya satu statistik di kepala halaman; kalau gagal, layar tetap
-      // berguna (menu, keluar), jadi tampilkan kosong, bukan skeleton selamanya.
-      .catch(() => setBalances([]));
-  }, [employee]);
-
   if (!employee) return null;
 
   const leave = (balances ?? []).find((b) => b.type === "cuti");
@@ -284,7 +268,6 @@ function Stat({
 }
 
 function MenuRow({
-  iconBg,
   ink,
   icon,
   title,

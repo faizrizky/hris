@@ -1,5 +1,4 @@
-import React, { useCallback, useState, useMemo } from "react";
-import type { AppNavigation } from "@/navigation/types";
+import { useMemo } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { Reveal, RevealScrollView as ScrollView } from "@/components/Reveal";
 import { Ionicons } from "@expo/vector-icons";
@@ -9,119 +8,44 @@ import { StatusBadge } from "@/components/StatusBadge";
 import { RadialGlow } from "@/components/RadialGlow";
 import { Palette } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
-import { useActivePolling } from "@/hooks/useActivePolling";
-import { hrisApi } from "@/services/api";
 import { useSession } from "@/services/session";
 import { LinearGradient } from "expo-linear-gradient";
-import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { MenuSheet, type ItemMenu } from "@/components/MenuSheet";
 import { getShiftInfo, employeeGreeting } from "@/utils/greeting";
 import { formatLongDate, formatJam } from "@/utils/date";
 import { useT, getActiveLanguage } from "@/i18n";
-import {
-  FeedItem,
-  ClockState,
-  LeaveBalance,
-  AttendanceRecord,
-  EmploymentSlice,
-} from "@/services/types";
+import { EmploymentSlice } from "@/services/types";
 import { ICON } from "@/constants/icons";
 import { DonutChart } from "@/components/DonutChart";
 import { Skeleton } from "@/components/Skeleton";
-import { describeError } from "@/services/api/http";
 import { ErrorState } from "@/components/ErrorState";
 import { EmptyState } from "@/components/EmptyState";
-import { useConfirm } from "@/components/ConfirmDialog";
+import { useHome } from "@/hooks/useHome";
 
 // Pengingat daftar ulang wajah muncul sekali per pembukaan aplikasi.
-let hasShownFaceReminder = false;
-let hasShownDeviceReminder = false;
 
 export function HomeScreen() {
+  const {
+    now,
+    isMenuOpen,
+    setIsMenuOpen,
+    navigation,
+    notifications,
+    clock,
+    balances,
+    history,
+    employment,
+    errorMessage,
+    load,
+  } = useHome();
   const t = useT();
-  const confirm = useConfirm();
-  const [now, setNow] = useState(() => new Date());
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { employee } = useSession();
-  const navigation = useNavigation<AppNavigation>();
-  const [notifications, setNotifications] = useState<FeedItem[] | null>(null);
-  const [clock, setClock] = useState<ClockState | null>(null);
-  const [balances, setBalances] = useState<LeaveBalance[] | null>(null);
-  const [history, setHistory] = useState<AttendanceRecord[] | null>(null);
-  const [employment, setEmployment] = useState<EmploymentSlice[] | null>(null);
   const insets = useSafeAreaInsets();
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-
   // Dimuat ulang setiap Beranda mendapat fokus, supaya hasil persetujuan atau
   // pengajuan di tab lain langsung tampil saat kembali ke sini.
-  const load = useCallback(() => {
-    if (!employee) return;
-    setErrorMessage(null);
-    Promise.all([
-      hrisApi.getFeed(employee.id, employee.role),
-      hrisApi.getClockState(employee.id),
-      hrisApi.getLeaveBalances(employee.id),
-      hrisApi.getAttendanceHistory(employee.id),
-      hrisApi.getEmploymentSummary(employee.id),
-    ])
-      .then(([notif, clockState, leaveBalances, attendance, komposisi]) => {
-        setNotifications(notif);
-        setClock(clockState);
-        setBalances(leaveBalances);
-        setHistory(attendance);
-        setEmployment(komposisi);
-      })
-      .catch((e) => setErrorMessage(describeError(e)));
-    if (!hasShownDeviceReminder) {
-      hrisApi
-        .registerDevice()
-        .then((d) => {
-          if (d.status !== "Pending" && d.status !== "Rejected") return;
-          hasShownDeviceReminder = true;
-          confirm({
-            title: t("dv.judul"),
-            message: t(d.status === "Pending" ? "dv.menunggu" : "dv.ditolak"),
-            tone: "warn",
-            confirmText: t("dv.ok"),
-            cancelText: t("fe.nanti"),
-          });
-        })
-        .catch(() => {});
-    }
-    if (!hasShownFaceReminder) {
-      hrisApi
-        .getFaceStatus()
-        .then(async (f) => {
-          if (f.state !== "needs_reenroll" || hasShownFaceReminder) return;
-          hasShownFaceReminder = true;
-          const isOpen = await confirm({
-            title: t("fe.pengingatJudul"),
-            message: t("fe.perluDaftarUlang", { tgl: f.graceUntil ?? "-" }),
-            tone: "warn",
-            confirmText: t("fe.daftarUlang"),
-            cancelText: t("fe.nanti"),
-          });
-          if (isOpen) navigation.navigate("Profil", { screen: "FaceEnroll" });
-        })
-        .catch(() => {});
-    }
-  }, [employee, confirm, t, navigation]);
-
-  useFocusEffect(load);
-
   // Jam, sapaan, dan status absen diperbarui selagi Beranda terbuka dan aplikasi di depan (berhenti di latar belakang).
-  const refreshClock = useCallback(() => {
-    if (!employee) return;
-    setNow(new Date());
-    hrisApi
-      .getClockState(employee.id)
-      .then(setClock)
-      .catch(() => {});
-  }, [employee]);
-  useActivePolling(refreshClock, 20_000, !!employee);
-
   if (!employee) return null;
 
   const greeting =
@@ -592,7 +516,6 @@ export function HomeScreen() {
 }
 
 function StatCard({
-  iconBg,
   ink,
   icon,
   label,

@@ -1,19 +1,15 @@
-import { useCallback, useMemo, useState } from "react";
+import { useMemo } from "react";
 import type { ScreenProps } from "@/navigation/types";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { RevealScrollView as ScrollView } from "@/components/Reveal";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
-import { useFocusEffect } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Palette } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
-import { hrisApi } from "@/services/api";
-import { describeError } from "@/services/api/http";
 import { ErrorState } from "@/components/ErrorState";
-import { useSession } from "@/services/session";
-import { DocCategory, EmployeeDocument } from "@/services/types";
+import { DocCategory } from "@/services/types";
 import { Skeleton } from "@/components/Skeleton";
 import {
   DOC_CATEGORY_LABEL,
@@ -21,65 +17,33 @@ import {
   DOC_STATUS_TONE,
 } from "@/constants/statusLabels";
 import { useT } from "@/i18n";
-import { useActivePolling } from "@/hooks/useActivePolling";
 import { EmptyState } from "@/components/EmptyState";
 import { ICON } from "@/constants/icons";
 import { goBackAnimated } from "@/navigation/navigationBack";
+import { useProfileDocs, ALL_TAB } from "@/hooks/useProfileDocs";
 
-const ALL_TAB = "semua";
 const CATEGORIES: DocCategory[] = ["kontrak", "sk", "sertifikat", "identitas"];
 const TAB: (DocCategory | typeof ALL_TAB)[] = [ALL_TAB, ...CATEGORIES];
 
 export function ProfileDocsScreen({ navigation }: ScreenProps) {
+  const {
+    docs,
+    tab,
+    setTab,
+    errorMessage,
+    load,
+    items,
+    isLoading,
+    verifiedCount,
+    needsAction,
+    countBy,
+    filtered,
+  } = useProfileDocs();
   const t = useT();
-  const { employee } = useSession();
   const insets = useSafeAreaInsets();
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
-
-  const [docs, setDocs] = useState<EmployeeDocument[] | null>(null);
-  const [tab, setTab] = useState<DocCategory | typeof ALL_TAB>(ALL_TAB);
-
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-
-  const load = useCallback(() => {
-    if (!employee) return;
-    setErrorMessage(null);
-    hrisApi
-      .getDocuments(employee.id)
-      .then(setDocs)
-      .catch((e) => setErrorMessage(describeError(e)));
-  }, [employee]);
-
-  const loadQuietly = useCallback(() => {
-    if (!employee) return;
-    hrisApi
-      .getDocuments(employee.id)
-      .then(setDocs)
-      .catch(() => {});
-  }, [employee]);
-
-  useFocusEffect(load);
   // Status dokumen bisa berubah oleh HR: muat ulang diam-diam, hanya bila ada dokumen yang belum final.
-  useActivePolling(
-    loadQuietly,
-    20_000,
-    (docs ?? []).some(
-      (d) => d.status === "pending" || d.status === "changeRequested",
-    ),
-  );
-
-  const items = docs ?? [];
-  const isLoading = docs === null && !errorMessage;
-
-  const verifiedCount = items.filter((d) => d.status === "verified").length;
-  const needsAction = items.length - verifiedCount;
-
-  const countBy = (k: DocCategory | typeof ALL_TAB) =>
-    k === ALL_TAB ? items.length : items.filter((d) => d.category === k).length;
-
-  const filtered = items.filter((d) => tab === ALL_TAB || d.category === tab);
-
   return (
     <View style={styles.container}>
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>

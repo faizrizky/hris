@@ -1,14 +1,12 @@
-import React, { useMemo, useState } from "react";
-import { getRouteParams, type ScreenProps } from "@/navigation/types";
+import { useMemo } from "react";
+import { type ScreenProps } from "@/navigation/types";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { RevealScrollView as ScrollView } from "@/components/Reveal";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Palette } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
-import { hrisApi } from "@/services/api";
 import { ReviewDocument, ReviewStatus } from "@/services/types";
-import { useLoad } from "@/hooks/useLoad";
 import { ErrorState } from "@/components/ErrorState";
 import { Skeleton } from "@/components/Skeleton";
 import { DOC_CATEGORY_LABEL } from "@/constants/statusLabels";
@@ -18,6 +16,7 @@ import { EmptyState } from "@/components/EmptyState";
 import { ICON } from "@/constants/icons";
 import type { Kunci } from "@/i18n/id";
 import { goBackAnimated } from "@/navigation/navigationBack";
+import { useDocumentReview } from "@/hooks/useDocumentReview";
 
 const FILTER: { key: ReviewStatus | "all"; label: Kunci }[] = [
   { key: "all", label: "rv.semua" },
@@ -29,27 +28,14 @@ const FILTER: { key: ReviewStatus | "all"; label: Kunci }[] = [
 
 // HR: daftar Dokumen Digital karyawan yang perlu (atau sudah) diverifikasi.
 export function DocumentReviewScreen({ navigation, route }: ScreenProps) {
+  const { status, setStatus, documentItem, items } = useDocumentReview({
+    route,
+  });
   const t = useT();
   const insets = useSafeAreaInsets();
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
-  const initial: ReviewStatus | "all" =
-    getRouteParams<{ status?: ReviewStatus | "all" }>(route).status ??
-    "Pending";
-  const [status, setStatus] = useState<ReviewStatus | "all">(initial);
   // Dibuka lagi dari notifikasi lain saat layar sudah terpasang: ikuti konteks barunya.
-  const [previousInitial, setPreviousInitial] = useState(initial);
-  if (initial !== previousInitial) {
-    setPreviousInitial(initial);
-    setStatus(initial);
-  }
-
-  const documentItem = useLoad(
-    () => hrisApi.getDocumentsForReview(status),
-    status,
-  );
-  const items = documentItem.data ?? [];
-
   return (
     <View style={styles.container}>
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>

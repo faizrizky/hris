@@ -1,5 +1,5 @@
-import { useEffect, useState, useMemo } from "react";
-import { getRouteParams, type ScreenProps } from "@/navigation/types";
+import { useMemo } from "react";
+import { type ScreenProps } from "@/navigation/types";
 import { Linking, Pressable, StyleSheet, Text, View } from "react-native";
 import { RevealScrollView as ScrollView } from "@/components/Reveal";
 import { Ionicons } from "@expo/vector-icons";
@@ -10,11 +10,7 @@ import {
   primaryButtonStyle,
 } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
-import { hrisApi } from "@/services/api";
-import { describeError } from "@/services/api/http";
 import { ErrorState } from "@/components/ErrorState";
-import { useSession } from "@/services/session";
-import { AttendanceRecord, Staff } from "@/services/types";
 import { RadialGlow } from "@/components/RadialGlow";
 import { Skeleton } from "@/components/Skeleton";
 import {
@@ -29,48 +25,22 @@ import {
 } from "@/utils/date";
 import { useT } from "@/i18n";
 import { goBackAnimated } from "@/navigation/navigationBack";
+import { useStaffDetail } from "@/hooks/useStaffDetail";
 
 export function StaffDetailScreen({ navigation, route }: ScreenProps) {
+  const {
+    staff,
+    attendance,
+    isLoading,
+    setIsLoading,
+    errorMessage,
+    setErrorMessage,
+    setAttempt,
+  } = useStaffDetail({ route });
   const t = useT();
-  const { employee } = useSession();
   const insets = useSafeAreaInsets();
-  const { staffId } = getRouteParams<{ staffId: string }>(route);
-
-  const [staff, setStaff] = useState<Staff | null>(null);
-  const [attendance, setAttendance] = useState<AttendanceRecord[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [attempt, setAttempt] = useState(0); // naik saat Coba lagi ditekan
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
-
-  useEffect(() => {
-    if (!employee) return;
-    let isCancelled = false;
-
-    Promise.all([
-      hrisApi.getStaffDirectory(employee.id),
-      hrisApi.getStaffAttendanceHistory(staffId),
-    ])
-      .then(([directory, history]) => {
-        if (isCancelled) return;
-        setStaff(directory.items.find((s) => s.id === staffId) ?? null);
-        setAttendance(history.slice(0, 5));
-        setIsLoading(false);
-      })
-      .catch((e) => {
-        if (isCancelled) return;
-        setErrorMessage(describeError(e));
-        setIsLoading(false);
-      });
-
-    // Kalau layar ditutup sebelum data datang, setState pada komponen yang
-    // sudah dilepas percuma — flag ini membatalkannya.
-    return () => {
-      isCancelled = true;
-    };
-  }, [employee, staffId, attempt]);
-
   const header = (
     <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
       <RadialGlow size={250} color={c.glowHeader} top={-80} right={-50} />

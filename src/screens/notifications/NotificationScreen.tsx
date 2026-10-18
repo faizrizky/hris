@@ -1,23 +1,19 @@
-import { useCallback, useEffect, useState, useMemo } from "react";
+import { useMemo } from "react";
 import type { ScreenProps } from "@/navigation/types";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { RevealScrollView as ScrollView } from "@/components/Reveal";
 import { Ionicons } from "@expo/vector-icons";
-import { useFocusEffect } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Palette } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
-import { hrisApi } from "@/services/api";
-import { describeError } from "@/services/api/http";
 import { ErrorState } from "@/components/ErrorState";
-import { useSession } from "@/services/session";
-import { AppNotification, NotifCategory } from "@/services/types";
+import { NotifCategory } from "@/services/types";
 import { ICON } from "@/constants/icons";
 import { Skeleton } from "@/components/Skeleton";
 import { useT } from "@/i18n";
 import { EmptyState } from "@/components/EmptyState";
-import { setUnreadCount } from "@/navigation/notifBadge";
 import { goBackOrHome } from "@/navigation/navigationBack";
+import { useNotification } from "@/hooks/useNotification";
 
 const CATEGORY_ICONS: Record<NotifCategory, keyof typeof Ionicons.glyphMap> = {
   Approval: "checkmark-done-outline",
@@ -28,108 +24,17 @@ const CATEGORY_ICONS: Record<NotifCategory, keyof typeof Ionicons.glyphMap> = {
 };
 
 export function NotificationScreen({ navigation }: ScreenProps) {
+  const { items, errorMessage, load, unreadCount, markRead, open, groups } =
+    useNotification({ navigation });
   const t = useT();
-  const { employee } = useSession();
   const insets = useSafeAreaInsets();
-  const [items, setItems] = useState<AppNotification[] | null>(null);
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
-
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-
-  const load = useCallback(() => {
-    if (!employee) return;
-    setErrorMessage(null);
-    hrisApi
-      .getNotificationInbox(employee.id)
-      .then(setItems)
-      .catch((e) => setErrorMessage(describeError(e)));
-  }, [employee]);
-
-  useFocusEffect(load);
-
-  const unreadCount = items === null ? 0 : items.filter((n) => !n.read).length;
-
-  useEffect(() => {
-    if (items !== null) setUnreadCount(unreadCount);
-  }, [items, unreadCount]);
-
-  const markRead = (ids?: string[]) => {
-    if (!employee) return;
-    hrisApi
-      .markNotificationsRead(employee.id, ids)
-      .then(setItems)
-      // Gagal menandai dibaca tidak kritis; daftar tetap seperti semula.
-      .catch(() => {});
-  };
-
   // Mengetuk notifikasi menandainya dibaca lalu membuka tempat yang dirujuk.
   // Nada "warn" dipakai server untuk "menunggu keputusanmu"; selain itu kabar
   // tentang pengajuan milik sendiri.
-  const open = async (n: AppNotification) => {
-    if (!n.read) markRead([n.id]);
-    const isSupervisor = employee?.role === "mss" || employee?.role === "hr";
-    const isPending = n.tone === "warn" && isSupervisor;
-    switch (n.documentType) {
-      case "Employee Document":
-        // HR meninjau di layar verifikasi; karyawan melihat daftar dokumennya.
-        if (employee?.role === "hr" && n.tone === "warn") {
-          // Buka tab sesuai konteks: permintaan ubah dokumen -> "Perubahan", lainnya -> "Menunggu".
-          navigation.navigate("DocumentReview", {
-            status:
-              n.documentStatus === "Change Requested"
-                ? "Change Requested"
-                : "Pending",
-          });
-        } else {
-          navigation.navigate("Profil", { screen: "ProfileDocs" });
-        }
-        return;
-      case "Employee Checkin":
-        if (isPending) navigation.navigate("OfflineReview");
-        return;
-      case "Face Enrollment":
-        // HR meninjau di web; karyawan membuka layar pendaftaran wajahnya.
-        if (employee?.role !== "hr") {
-          navigation.navigate("Profil", { screen: "FaceEnroll" });
-        }
-        return;
-      case "HR Announcement":
-        navigation.navigate("Announcements", { id: n.documentName });
-        return;
-      case "Profile Change Request":
-        if (employee?.role === "hr" && n.tone === "warn") {
-          navigation.navigate("ProfileChangeReview");
-        } else {
-          navigation.navigate("Profil", { screen: "ProfileData" });
-        }
-        return;
-      case "Leave Application":
-      case "Overtime Request":
-      case "Travel Request":
-      case "WFH Schedule":
-      case "Attendance Request":
-        if (isPending) {
-          navigation.navigate("Approval");
-          return;
-        }
-        if (n.documentType === "Attendance Request") {
-          navigation.navigate("AttendanceCorrectionHistory");
-        } else if (n.documentType === "Overtime Request") {
-          navigation.navigate("Overtime");
-        } else {
-          navigation.navigate("LeaveList");
-        }
-        return;
-    }
-  };
-
   // Judul seksi diturunkan dari datanya, bukan daftar tetap: urutan grup
   // mengikuti urutan kemunculan pertamanya di list.
-  const groups: string[] = [];
-  for (const n of items ?? [])
-    if (!groups.includes(n.group)) groups.push(n.group);
-
   return (
     <View style={styles.container}>
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>

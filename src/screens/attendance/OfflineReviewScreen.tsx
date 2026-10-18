@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import { useMemo } from "react";
 import type { ScreenProps } from "@/navigation/types";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { RevealScrollView as ScrollView } from "@/components/Reveal";
@@ -6,20 +6,15 @@ import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Palette, primaryButtonStyle } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
-import { hrisApi } from "@/services/api";
-import { describeError } from "@/services/api/http";
-import { OfflineCheckin, OfflineReviewStatus } from "@/services/types";
-import { useLoad } from "@/hooks/useLoad";
-import { useSession } from "@/services/session";
-import { useConfirm } from "@/components/ConfirmDialog";
+import { OfflineReviewStatus } from "@/services/types";
 import { ErrorState } from "@/components/ErrorState";
 import { EmptyState } from "@/components/EmptyState";
 import { Skeleton } from "@/components/Skeleton";
 import { ICON } from "@/constants/icons";
 import { goBackAnimated } from "@/navigation/navigationBack";
-import { formatShortDate } from "@/utils/date";
 import { useT } from "@/i18n";
 import type { Kunci } from "@/i18n/id";
+import { useOfflineReview, formatTime } from "@/hooks/useOfflineReview";
 
 const FILTER: { key: OfflineReviewStatus | "all"; label: Kunci }[] = [
   { key: "Needs Review", label: "ofr.perlu" },
@@ -29,63 +24,16 @@ const FILTER: { key: OfflineReviewStatus | "all"; label: Kunci }[] = [
 ];
 
 // "2026-10-12 08:30:00" -> "12 Okt · 08:30"
-function formatTime(s: string | null): string {
-  if (!s) return "—";
-  const [tgl, jam = ""] = s.replace("T", " ").split(" ");
-  return `${formatShortDate(tgl!)} · ${jam.slice(0, 5)}`;
-}
-
 // Atasan/HR: check-in offline yang ditandai server (jam HP berubah, tidak
 // terverifikasi, kuota, dsb.). Menyetujui memakai jam yang diklaim karyawan;
 // menolak membiarkan jam saat server menerimanya.
 export function OfflineReviewScreen({ navigation }: ScreenProps) {
+  const { status, setStatus, busy, errorMessage, checkinList, items, decide } =
+    useOfflineReview();
   const t = useT();
-  const { employee } = useSession();
   const insets = useSafeAreaInsets();
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
-  const confirm = useConfirm();
-  const [status, setStatus] = useState<OfflineReviewStatus | "all">(
-    "Needs Review",
-  );
-  const [busy, setBusy] = useState<string | null>(null);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-
-  const checkinList = useLoad(
-    () =>
-      hrisApi.getOfflineCheckins(
-        status,
-        employee?.role === "mss" ? "team" : undefined,
-      ),
-    `${status}-${employee?.role}`,
-  );
-  const items = checkinList.data ?? [];
-
-  const decide = async (x: OfflineCheckin, decision: "approve" | "reject") => {
-    if (decision === "approve") {
-      const isConfirmed = await confirm({
-        title: t(x.claimedTime ? "ofr.setujuiJudul" : "ofr.terimaJudul"),
-        message: x.claimedTime
-          ? t("ofr.setujuiPesan", { jam: formatTime(x.claimedTime) })
-          : t("ofr.terimaPesan"),
-        tone: "info",
-        confirmText: t("pcr.setujui"),
-        cancelText: t("umum.batal"),
-      });
-      if (!isConfirmed) return;
-    }
-    setBusy(x.id);
-    setErrorMessage(null);
-    try {
-      await hrisApi.decideOfflineCheckin(x.id, decision);
-      checkinList.retry();
-    } catch (e) {
-      setErrorMessage(describeError(e));
-    } finally {
-      setBusy(null);
-    }
-  };
-
   return (
     <View style={styles.container}>
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>

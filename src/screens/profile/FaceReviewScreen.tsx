@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { ScreenProps } from "@/navigation/types";
 import {
   ActivityIndicator,
@@ -15,74 +15,35 @@ import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Palette, secondaryButtonStyle } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
-import { hrisApi } from "@/services/api";
-import { describeError } from "@/services/api/http";
 import type { FaceReview } from "@/services/types";
-import { useLoad } from "@/hooks/useLoad";
 import { ErrorState } from "@/components/ErrorState";
 import { Skeleton } from "@/components/Skeleton";
 import { EmptyState } from "@/components/EmptyState";
-import { useConfirm } from "@/components/ConfirmDialog";
 import { ICON } from "@/constants/icons";
 import { useT } from "@/i18n";
 import { goBackAnimated } from "@/navigation/navigationBack";
 import { openAttachment, saveAttachment } from "@/utils/attachment";
+import { useFaceReview } from "@/hooks/useFaceReview";
 
 // HR: tinjau pendaftaran wajah yang menunggu (selfie, KTP, foto profil, skor kemiripan) lalu setujui atau tolak.
 export function FaceReviewScreen({ navigation }: ScreenProps) {
+  const {
+    enrollmentList,
+    items,
+    rejectTarget,
+    setRejectTarget,
+    reason,
+    setReason,
+    sibuk,
+    errorMessage,
+    setErrorMessage,
+    approve,
+    submitReject,
+  } = useFaceReview();
   const t = useT();
   const insets = useSafeAreaInsets();
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
-  const confirm = useConfirm();
-  const enrollmentList = useLoad(
-    () => hrisApi.getFaceEnrollmentsForReview(),
-    "wajah",
-  );
-  const items = enrollmentList.data ?? [];
-
-  const [rejectTarget, setRejectTarget] = useState<FaceReview | null>(null);
-  const [reason, setReason] = useState("");
-  const [sibuk, setSibuk] = useState<string | null>(null);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-
-  const decision = async (
-    f: FaceReview,
-    d: "approve" | "reject",
-    note?: string,
-  ) => {
-    setSibuk(f.name);
-    setErrorMessage(null);
-    try {
-      await hrisApi.decideFaceEnrollment(f.name, d, note);
-      enrollmentList.retry();
-    } catch (e) {
-      setErrorMessage(describeError(e));
-    } finally {
-      setSibuk(null);
-    }
-  };
-
-  const approve = async (f: FaceReview) => {
-    const isConfirmed = await confirm({
-      title: t("fr.setujuiJudul"),
-      message: t("fr.setujuiPesan", { nama: f.employeeName }),
-      tone: "info",
-      confirmText: t("fr.setujui"),
-      cancelText: t("umum.batal"),
-    });
-    if (isConfirmed) await decision(f, "approve");
-  };
-
-  const submitReject = async () => {
-    if (!rejectTarget) return;
-    if (!reason.trim()) return setErrorMessage(t("fr.alasanWajib"));
-    const f = rejectTarget;
-    setRejectTarget(null);
-    await decision(f, "reject", reason.trim());
-    setReason("");
-  };
-
   return (
     <View style={styles.container}>
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>

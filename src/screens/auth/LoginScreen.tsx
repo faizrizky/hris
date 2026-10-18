@@ -1,5 +1,4 @@
-import React, { useState, useMemo, useEffect, useEffectEvent } from "react";
-import { USERNAME_STORAGE_KEY, useLoginPrefill } from "@/hooks/useLoginPrefill";
+import { useMemo } from "react";
 import {
   KeyboardAvoidingView,
   Pressable,
@@ -13,109 +12,37 @@ import { LinearGradient } from "expo-linear-gradient";
 import { Palette, primaryButtonStyle } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
 import { RadialGlow } from "@/components/RadialGlow";
-import { hrisApi } from "@/services/api";
-import { useSession } from "@/services/session";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import {
-  getServerAddress,
-  setServerAddress,
-  describeError,
-} from "../../services/api/http";
 import { useT } from "@/i18n";
 import { LanguagePicker } from "@/components/LanguagePicker";
 import { LogoHris } from "@/components/LogoHris";
-import { useConfirm } from "@/components/ConfirmDialog";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import {
-  hasBiometricLogin,
-  readCredentials,
-  deleteCredentials,
-  getBiometricReadiness,
-} from "@/services/biometric";
+import { useLogin } from "@/hooks/useLogin";
 
 export function LoginScreen() {
-  const { setEmployee, loginNotice, clearLoginNotice } = useSession();
-  const confirm = useConfirm();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [isRememberMe, setIsRememberMe] = useState(true);
-  const [biometricName, setBiometricName] = useState("sidik jari / wajah");
-  const [isShowPassword, setIsShowPassword] = useState(false);
+  const {
+    email,
+    setEmail,
+    password,
+    setPassword,
+    isLoading,
+    isRememberMe,
+    setIsRememberMe,
+    biometricName,
+    isShowPassword,
+    setIsShowPassword,
+    error,
+    server,
+    setServer,
+    isServerOpen,
+    setIsServerOpen,
+    signInWithBiometric,
+    handleLogin,
+  } = useLogin();
   const insets = useSafeAreaInsets();
   const t = useT();
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
-  const [error, setError] = useState<string | null>(null);
-  const [server, setServer] = useState(getServerAddress());
-  const [isServerOpen, setIsServerOpen] = useState(false);
-
-  useLoginPrefill({
-    onSavedUsername: setEmail,
-    onBiometricName: setBiometricName,
-    onServerAddress: setServer,
-  });
-
   // Dikeluarkan dari luar (sesi berakhir / login di perangkat lain / dikeluarkan lewat Keamanan): beri tahu sekali.
-  const showSessionNotice = useEffectEvent(() => {
-    void confirm({
-      title: t("login.sesiJudul"),
-      message: t("login.sesiPesan"),
-      tone: "warn",
-      confirmText: t("umum.mengerti"),
-      cancelText: null,
-    }).then(clearLoginNotice);
-  });
-  useEffect(() => {
-    if (loginNotice) showSessionNotice();
-  }, [loginNotice]);
-
-  const signInWithBiometric = async () => {
-    setError(null);
-    const k = await getBiometricReadiness();
-    if (k === "tidakAda") return setError(t("bio.tidakAda"));
-    if (k === "belumDaftar") return setError(t("bio.belumDaftar"));
-    if (!(await hasBiometricLogin())) return setError(t("bio.belumAktif"));
-    const credentials = await readCredentials(
-      t("bio.pesanLogin"),
-      t("kunci.batal"),
-    );
-    if (!credentials) return; // dibatalkan atau gagal verifikasi
-    setIsLoading(true);
-    try {
-      setServer(await setServerAddress(server));
-      const employee = await hrisApi.login(credentials.u, credentials.p);
-      setEmployee(employee);
-    } catch {
-      await deleteCredentials(); // password berubah atau sesi tidak valid: aktifkan lagi dengan password
-      setError(t("bio.gagalMasuk"));
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleLogin = async () => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      setServer(await setServerAddress(server));
-      const employee = await hrisApi.login(email.trim(), password);
-
-      if (isRememberMe) {
-        await AsyncStorage.setItem(USERNAME_STORAGE_KEY, email.trim()).catch(
-          () => {},
-        );
-      } else {
-        await AsyncStorage.removeItem(USERNAME_STORAGE_KEY).catch(() => {});
-      }
-      setEmployee(employee);
-    } catch (e) {
-      setError(describeError(e));
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   return (
     <View style={styles.container}>
       {/* Pengisi warna kartu di bagian bawah: saat papan ketik naik/turun, area di bawah kartu tidak tampak hitam. */}

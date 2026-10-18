@@ -1,6 +1,5 @@
-import { useCallback, useMemo, useState } from "react";
+import { useMemo } from "react";
 import type { ScreenProps } from "@/navigation/types";
-import { useFocusEffect } from "@react-navigation/native";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { RevealScrollView as ScrollView } from "@/components/Reveal";
 import { Ionicons } from "@expo/vector-icons";
@@ -8,24 +7,16 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { SemanticTone, Palette } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
-import { hrisApi } from "@/services/api";
-import { describeError } from "@/services/api/http";
 import { ErrorState } from "@/components/ErrorState";
-import { useSession } from "@/services/session";
-import { Staff, StaffAttendanceState, StaffDirectory } from "@/services/types";
+import { Staff, StaffAttendanceState } from "@/services/types";
 import { Skeleton } from "@/components/Skeleton";
-import {
-  formatLongDate,
-  formatShortDateWithYear,
-  toISODate,
-} from "@/utils/date";
+import { formatLongDate } from "@/utils/date";
 import { useT } from "@/i18n";
 import type { Kunci } from "@/i18n/id";
 import { EmptyState } from "@/components/EmptyState";
 import { ICON } from "@/constants/icons";
 import { goBackAnimated } from "@/navigation/navigationBack";
-
-const ALL_TAB = "Semua";
+import { useStaffAttendance, ALL_TAB } from "@/hooks/useStaffAttendance";
 
 const TABS: { key: StaffAttendanceState; label: Kunci }[] = [
   { key: "attend", label: "stf.tabHadir" },
@@ -42,48 +33,24 @@ const TONE: Record<StaffAttendanceState, SemanticTone> = {
 };
 
 export function StaffAttendanceScreen({ navigation }: ScreenProps) {
+  const {
+    directory,
+    tab,
+    setTab,
+    departmentFilter,
+    setDepartmentFilter,
+    errorMessage,
+    load,
+    isLoading,
+    todayKey,
+    chips,
+    countTab,
+    filtered,
+  } = useStaffAttendance();
   const t = useT();
-  const { employee } = useSession();
   const insets = useSafeAreaInsets();
-
-  const [directory, setDirectory] = useState<StaffDirectory | null>(null);
-  const [tab, setTab] = useState<StaffAttendanceState>("attend");
-  const [departmentFilter, setDepartmentFilter] = useState(ALL_TAB);
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
-
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-
-  const load = useCallback(() => {
-    if (!employee) return;
-    setErrorMessage(null);
-    hrisApi
-      .getStaffDirectory(employee.id)
-      .then(setDirectory)
-      .catch((e) => setErrorMessage(describeError(e)));
-  }, [employee]);
-
-  useFocusEffect(load);
-
-  const items = useMemo(() => directory?.items ?? [], [directory]);
-  const isLoading = directory === null && !errorMessage;
-  const todayKey = formatShortDateWithYear(toISODate(new Date()));
-
-  const chips = useMemo(() => {
-    const nama: string[] = [];
-    for (const s of items)
-      if (!nama.includes(s.department)) nama.push(s.department);
-    return [ALL_TAB, ...nama];
-  }, [items]);
-
-  const sameDepartmentStaff = items.filter(
-    (s) => departmentFilter === ALL_TAB || s.department === departmentFilter,
-  );
-  const countTab = (k: StaffAttendanceState) =>
-    sameDepartmentStaff.filter((s) => s.today.state === k).length;
-
-  const filtered = sameDepartmentStaff.filter((s) => s.today.state === tab);
-
   return (
     <View style={styles.container}>
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>

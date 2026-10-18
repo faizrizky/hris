@@ -1,7 +1,6 @@
-import React, { useCallback, useState, useMemo } from "react";
+import { useMemo } from "react";
 import type { ScreenProps } from "@/navigation/types";
 import { formatDuration, getAttendanceStatus } from "@/utils/attendanceStatus";
-import { useFocusEffect } from "@react-navigation/native";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { RevealScrollView as ScrollView } from "@/components/Reveal";
 import { LinearGradient } from "expo-linear-gradient";
@@ -13,73 +12,51 @@ import { MapPreview } from "./MapPreview";
 import { formatLongDate } from "@/utils/date";
 import { hrisApi } from "@/services/api";
 import { useSession } from "@/services/session";
-import { ClockState } from "@/services/types";
 import { FaceCheck } from "./FaceCheck";
 import { isFaceSupported } from "@/services/faceCheck";
 import { Skeleton } from "@/components/Skeleton";
 import { describeError } from "@/services/api/http";
 import { ErrorState } from "@/components/ErrorState";
 import { useT } from "@/i18n";
-import { useWorkLocation } from "@/hooks/useWorkLocation";
-import { setTabBarHidden } from "@/navigation/tabBarVisibility";
-import type { FaceStatus, SpoofSummary } from "@/services/types";
 import { goBackOrHome, goHome } from "@/navigation/navigationBack";
+import { useClock } from "@/hooks/useClock";
 
 export function ClockScreen({ navigation }: ScreenProps) {
+  const {
+    state,
+    setState,
+    step,
+    setStep,
+    completedAction,
+    setCompletedAction,
+    permission,
+    fix,
+    nearest,
+    geofenceRule,
+    latestFetch,
+    isLoading,
+    setIsLoading,
+    setHasFacePassed,
+    faceStatus,
+    faceVec,
+    setFaceVec,
+    spoof,
+    setSpoof,
+    handleFacePassed,
+    isFaceOk,
+    errorMessage,
+    setErrorMessage,
+    loadError,
+    load,
+  } = useClock();
   const t = useT();
   const { employee } = useSession();
   const insets = useSafeAreaInsets();
-  const [state, setState] = useState<ClockState | null>(null);
-  const [step, setStep] = useState(0);
   // Aksi yang baru dilakukan; status clockedIn berbalik sesudah berhasil, jadi layar selesai memakai ini.
-  const [completedAction, setCompletedAction] = useState<"IN" | "OUT" | null>(
-    null,
-  );
-  const { permission, fix, nearest, geofenceRule, latestFetch } =
-    useWorkLocation(step < 2); // 0 = GPS, 1 = wajah, 2 = selesai
-  const [isLoading, setIsLoading] = useState(false);
-  const [hasFacePassed, setHasFacePassed] = useState(false);
-  const [faceStatus, setFaceStatus] = useState<FaceStatus | null>(null);
-  const [faceVec, setFaceVec] = useState<number[] | null>(null);
-  const [spoof, setSpoof] = useState<SpoofSummary | null>(null);
-  const handleFacePassed = useCallback(
-    (v: number[] | null, spoof?: SpoofSummary) => {
-      setFaceVec(v);
-      setSpoof(spoof ?? null);
-      setHasFacePassed(true);
-    },
-    [],
-  );
   // Perangkat tanpa modul wajah (iOS, Expo Go) melewati langkah ini.
-  const isFaceOk = hasFacePassed || !isFaceSupported();
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [loadError, setLoadError] = useState<string | null>(null);
-
-  const load = useCallback(() => {
-    if (!employee) return;
-    setLoadError(null);
-    hrisApi
-      .getClockState(employee.id)
-      .then(setState)
-      .catch((e) => setLoadError(describeError(e)));
-    hrisApi
-      .getFaceStatus()
-      .then(setFaceStatus)
-      .catch(() => setFaceStatus(null));
-  }, [employee]);
-
-  useFocusEffect(load);
-
   // Tab bar mengambang disembunyikan selama langkah verifikasi wajah.
-  useFocusEffect(
-    useCallback(() => {
-      setTabBarHidden(step === 1);
-      return () => setTabBarHidden(false);
-    }, [step]),
-  );
-
   if (!employee) return null;
 
   // Layar ini sebelumnya return null selama memuat, jadi penggunanya melihat

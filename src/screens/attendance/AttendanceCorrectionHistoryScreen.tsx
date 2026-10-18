@@ -1,15 +1,12 @@
-import { useState, useMemo } from "react";
+import { useMemo } from "react";
 import type { ScreenProps } from "@/navigation/types";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { RevealFlatList as FlatList } from "@/components/Reveal";
 import { Ionicons } from "@expo/vector-icons";
-import { useLoad } from "@/hooks/useLoad";
 import { ErrorState } from "@/components/ErrorState";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Palette, primaryButtonStyle } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
-import { hrisApi } from "@/services/api";
-import { useSession } from "@/services/session";
 import { StatusBadge } from "@/components/StatusBadge";
 import { LineIcon } from "@/components/LineIcon";
 import { Skeleton } from "@/components/Skeleton";
@@ -27,8 +24,10 @@ import { AttachmentList } from "@/screens/leave/AttachmentList";
 import type { Kunci } from "@/i18n/id";
 import { EmptyState } from "@/components/EmptyState";
 import { goBackAnimated } from "@/navigation/navigationBack";
-
-type Filter = "semua" | AttendanceRequestedStatus;
+import {
+  useAttendanceCorrectionHistory,
+  Filter,
+} from "@/hooks/useAttendanceCorrectionHistory";
 
 const CHIPS: { key: Filter; label: Kunci }[] = [
   { key: "semua", label: "kor.semua" },
@@ -38,37 +37,28 @@ const CHIPS: { key: Filter; label: Kunci }[] = [
 ];
 
 export function AttendanceCorrectionHistoryScreen({ navigation }: ScreenProps) {
+  const {
+    correction,
+    records,
+    filter,
+    setFilter,
+    openId,
+    setOpenId,
+    isMemuat,
+    countBy,
+    pending,
+    approved,
+    rejected,
+    total,
+    filtered,
+  } = useAttendanceCorrectionHistory();
   const t = useT();
-  const { employee } = useSession();
   const insets = useSafeAreaInsets();
-  const correction = useLoad(
-    () =>
-      employee
-        ? hrisApi.getAttendanceCorrections(employee.id)
-        : Promise.resolve([]),
-    employee?.id,
-  );
-  const records = correction.data;
-  const [filter, setFilter] = useState<Filter>("semua");
-  const [openId, setOpenId] = useState<string | null>(null);
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
 
   // useLoad memuat ulang tiap layar kembali fokus, jadi koreksi yang baru
   // dikirim langsung muncul.
-  const isMemuat = correction.isLoading;
-  const all = records ?? [];
-
-  const countBy = (s: AttendanceRequestedStatus) =>
-    all.filter((r) => r.status === s).length;
-
-  const pending = countBy("pending");
-  const approved = countBy("approved");
-  const rejected = countBy("rejected");
-  const total = all.length;
-
-  const filtered = all.filter((r) => filter === "semua" || r.status === filter);
-
   return (
     <View style={styles.container}>
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>

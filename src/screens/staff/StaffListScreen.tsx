@@ -1,87 +1,42 @@
-import { useCallback, useMemo, useState } from "react";
+import { useMemo } from "react";
 import type { ScreenProps } from "@/navigation/types";
-import { useFocusEffect } from "@react-navigation/native";
 import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { RevealScrollView as ScrollView } from "@/components/Reveal";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Palette } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
-import { hrisApi } from "@/services/api";
-import { describeError } from "@/services/api/http";
 import { ErrorState } from "@/components/ErrorState";
-import { useSession } from "@/services/session";
-import { Staff, StaffDirectory } from "@/services/types";
+import { Staff } from "@/services/types";
 import { Skeleton } from "@/components/Skeleton";
 import { useT } from "@/i18n";
 import { EmptyState } from "@/components/EmptyState";
 import { ICON } from "@/constants/icons";
 import { goBackAnimated } from "@/navigation/navigationBack";
-
-const ALL_TAB = "Semua";
+import { useStaffList, ALL_TAB } from "@/hooks/useStaffList";
 
 export function StaffListScreen({ navigation }: ScreenProps) {
+  const {
+    directory,
+    departmentFilter,
+    setDepartmentFilter,
+    search,
+    setSearch,
+    errorMessage,
+    load,
+    isLoading,
+    chips,
+    countDepartment,
+    q,
+    filtered,
+    scope,
+  } = useStaffList();
   const t = useT();
-  const { employee } = useSession();
   const insets = useSafeAreaInsets();
-
-  const [directory, setDirectory] = useState<StaffDirectory | null>(null);
-  const [departmentFilter, setDepartmentFilter] = useState(ALL_TAB);
-  const [search, setSearch] = useState("");
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
-
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-
-  const load = useCallback(() => {
-    if (!employee) return;
-    setErrorMessage(null);
-    hrisApi
-      .getStaffDirectory(employee.id)
-      .then(setDirectory)
-      .catch((e) => setErrorMessage(describeError(e)));
-  }, [employee]);
-
-  useFocusEffect(load);
-
-  const items = useMemo(() => directory?.items ?? [], [directory]);
-
-  const isLoading = directory === null && !errorMessage;
-
   // Chip departemen diturunkan dari datanya, bukan daftar tetap: departemen
   // baru di data langsung muncul sebagai chip tanpa mengubah kode ini.
-  const chips = useMemo(() => {
-    const nama: string[] = [];
-    for (const s of items)
-      if (!nama.includes(s.department)) nama.push(s.department);
-    return [ALL_TAB, ...nama];
-  }, [items]);
-
-  const countDepartment = (d: string) =>
-    d === ALL_TAB
-      ? items.length
-      : items.filter((s) => s.department === d).length;
-
-  const q = search.trim().toLowerCase();
-  const filtered = items.filter((s) => {
-    const isMatchingDepartment =
-      departmentFilter === ALL_TAB || s.department === departmentFilter;
-    const isMatchingSearch =
-      q === "" ||
-      s.fullName.toLowerCase().includes(q) ||
-      s.jobTitle.toLowerCase().includes(q) ||
-      s.code.toLowerCase().includes(q);
-    return isMatchingDepartment && isMatchingSearch;
-  });
-
-  const scope =
-    employee?.role === "hr"
-      ? t("stf.dariAktif", {
-          n: items.length,
-          total: directory?.totalActive ?? 0,
-        })
-      : t("stf.bawahan", { n: items.length });
-
   return (
     <View style={styles.container}>
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>

@@ -1,6 +1,5 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import type { ScreenProps } from "@/navigation/types";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   Image,
   Linking,
@@ -12,85 +11,39 @@ import {
 import { RevealScrollView as ScrollView } from "@/components/Reveal";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
-import { useFocusEffect } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Palette } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
-import { hrisApi } from "@/services/api";
-import { describeError } from "@/services/api/http";
 import { ErrorState } from "@/components/ErrorState";
-import { useSession } from "@/services/session";
-import { PersonalProfile, ProfileChange } from "@/services/types";
 import { LineIcon } from "@/components/LineIcon";
 import { ICON } from "@/constants/icons";
 import { Skeleton } from "@/components/Skeleton";
-import {
-  initialsOf,
-  findShortcomings,
-  completenessPercent,
-} from "@/utils/ProfileCompleteness";
+import { initialsOf } from "@/utils/ProfileCompleteness";
 import { yearsSince, formatShortDateWithYear } from "@/utils/date";
 import { useT } from "@/i18n";
 import { ChangeSummary } from "@/screens/profile/ChangeSummary";
 import { translateServerLabel } from "@/i18n/serverLabels";
 import { goBackAnimated } from "@/navigation/navigationBack";
-import { useProfilePhoto } from "@/hooks/useProfilePhoto";
+import { useProfileData } from "@/hooks/useProfileData";
 
 export function ProfileDataScreen({ navigation }: ScreenProps) {
+  const {
+    profile,
+    errorMessage,
+    photoUri,
+    load,
+    shortcomings,
+    percent,
+    isComplete,
+    shouldShowHero,
+    pendingRequest,
+  } = useProfileData();
   const t = useT();
-  const { employee } = useSession();
   const insets = useSafeAreaInsets();
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
-
-  const [profile, setProfile] = useState<PersonalProfile | null>(null);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [request, setRequest] = useState<ProfileChange[]>([]);
-  const photoUri = useProfilePhoto();
   // Kartu kelengkapan 100% cukup dilihat sekali; setelah itu tidak ditampilkan lagi.
-  const [hasSeen, setHasSeen] = useState<boolean | null>(null);
-
-  const load = useCallback(() => {
-    if (!employee) return;
-    setErrorMessage(null);
-    hrisApi
-      .getPersonalProfile(employee.id)
-      .then((p) => {
-        setProfile(p);
-        // Riwayat permintaan hanya relevan bagi yang tidak mengubah langsung.
-        if (!p.canEditDirectly) {
-          hrisApi
-            .getMyProfileChanges()
-            .then(setRequest)
-            .catch(() => setRequest([]));
-        }
-      })
-      .catch((e) => setErrorMessage(describeError(e)));
-  }, [employee]);
-
-  useFocusEffect(load);
-
-  const shortcomings = profile ? findShortcomings(profile.editable) : [];
-  const percent = profile ? completenessPercent(profile.editable) : 0;
-  const isComplete = shortcomings.length === 0;
-  const seenKey = `hris.pd.lengkapDilihat.${employee?.id ?? ""}`;
-  useEffect(() => {
-    if (!profile) return;
-    if (!isComplete) {
-      AsyncStorage.removeItem(seenKey).catch(() => {});
-      return;
-    }
-    AsyncStorage.getItem(seenKey)
-      .then((v) => {
-        setHasSeen(v === "1");
-        if (v !== "1") AsyncStorage.setItem(seenKey, "1").catch(() => {});
-      })
-      .catch(() => setHasSeen(false));
-  }, [profile, isComplete, seenKey]);
-  const shouldShowHero = !isComplete || hasSeen === false;
-  const pendingRequest = request.filter((p) => p.status === "Pending");
-
   const header = (
     <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
       <Pressable

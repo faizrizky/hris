@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import { useMemo } from "react";
 import type { ScreenProps } from "@/navigation/types";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { RevealFlatList as FlatList } from "@/components/Reveal";
@@ -11,38 +11,21 @@ import { ICON } from "@/constants/icons";
 import { leaveDecisionBadge } from "@/constants/statusLabels";
 import { Palette } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
-import { hrisApi } from "@/services/api";
 import { useSession } from "@/services/session";
-import { useLoad } from "@/hooks/useLoad";
 import { ErrorState } from "@/components/ErrorState";
 import { useT } from "@/i18n";
 import { AttachmentList } from "./AttachmentList";
 import { EmptyState } from "@/components/EmptyState";
 import { goBackOrHome } from "@/navigation/navigationBack";
+import { useLeaveList } from "@/hooks/useLeaveList";
 
 export function LeaveListScreen({ navigation }: ScreenProps) {
+  const { balances, requests, errorMessage, retryLoad } = useLeaveList();
   const { employee } = useSession();
   const insets = useSafeAreaInsets();
   const c = useTheme();
   const t = useT();
   const styles = useMemo(() => makeStyles(c), [c]);
-  const balanceList = useLoad(
-    () =>
-      employee ? hrisApi.getLeaveBalances(employee.id) : Promise.resolve([]),
-    employee?.id,
-  );
-  const submission = useLoad(
-    () =>
-      employee ? hrisApi.getLeaveRequests(employee.id) : Promise.resolve([]),
-    employee?.id,
-  );
-  const balances = balanceList.data;
-  const requests = submission.data;
-  const errorMessage = balanceList.error ?? submission.error;
-  const retryLoad = () => {
-    balanceList.retry();
-    submission.retry();
-  };
   if (!employee) return null;
 
   const isLoading = balances === null || requests === null;

@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useMemo } from "react";
 import type { ScreenProps } from "@/navigation/types";
 import {
   KeyboardAvoidingView,
@@ -11,215 +11,56 @@ import { RevealScrollView as ScrollView } from "@/components/Reveal";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { joinReason } from "@/utils/correctionReason";
 import { Palette, primaryButtonStyle } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
-import { hrisApi } from "@/services/api";
-import { useSession } from "@/services/session";
-import { AttendanceRecord, LeaveApprover } from "@/services/types";
-import { ATTENDANCE_STATUS_LABEL } from "@/constants/statusLabels";
 import { DatePickerCard } from "@/components/DatePickerCard";
-import {
-  ApprovalFlowCard,
-  ApprovalStep,
-  FormDoneView,
-} from "@/screens/leave/FormFlowCards";
-import { ProofAttachment } from "@/screens/leave/OvertimeFormCards";
+import { ApprovalFlowCard, FormDoneView } from "@/screens/leave/FormFlowCards";
 import {
   CorrectionReasonCard,
   CorrectionProofCard,
   RequestedTimeCard,
-  CorrectionKind,
   RecordedCard,
-  getCorrectionKindName,
 } from "./CorrectionCards";
-import {
-  formatHourDuration,
-  formatHoursMinutes,
-  minutesOf,
-  getWeekdayName,
-  formatShortDate,
-} from "@/utils/date";
-import { describeError } from "@/services/api/http";
+import { formatHourDuration } from "@/utils/date";
 import { useT } from "@/i18n";
-import { useConfirm } from "@/components/ConfirmDialog";
-import { pickProof } from "@/utils/pickProof";
 import { goBackAnimated, goHome } from "@/navigation/navigationBack";
-
-const DEFAULT_CHECKIN_MINUTES = 8 * 60; // menit sejak 00:00
-const DEFAULT_CHECKOUT_MINUTES = 17 * 60;
-const CHECKIN_MIN_MINUTES = 5 * 60;
-const CHECKIN_MAX_MINUTES = 12 * 60;
-const CHECKOUT_MIN_MINUTES = 6 * 60;
-const CHECKOUT_MAX_MINUTES = 23 * 60 + 45;
+import { useAttendanceCorrection } from "@/hooks/useAttendanceCorrection";
 
 export function AttendanceCorrectionScreen({ navigation }: ScreenProps) {
+  const {
+    approver,
+    selectedDate,
+    kind,
+    setKind,
+    reasonText,
+    setReasonText,
+    files,
+    setFiles,
+    isSending,
+    done,
+    errorMessage,
+    record,
+    masuk,
+    keluar,
+    setCheckIn,
+    setCheckOut,
+    handlePickDate,
+    isProofRequired,
+    blockMsg,
+    canSubmit,
+    footer,
+    buildDoneRows,
+    approvalSteps,
+    addProof,
+    handleSubmit,
+  } = useAttendanceCorrection();
   const t = useT();
-  const confirm = useConfirm();
-  const [approver, setApprover] = useState<LeaveApprover | null>(null);
-  const { employee } = useSession();
   const insets = useSafeAreaInsets();
-
-  const [history, setHistory] = useState<AttendanceRecord[]>([]);
-  const [selectedDate, setSelectedDate] = useState<string | null>(null);
   // Jam yang diubah pengguna; null = pakai jam tercatat tanggal itu (atau bawaan).
-  const [editedCheckIn, setEditedCheckIn] = useState<number | null>(null);
-  const [editedCheckOut, setEditedCheckOut] = useState<number | null>(null);
-  const [kind, setKind] = useState<CorrectionKind>("Forgot check-in");
-  const [reasonText, setReasonText] = useState("");
-  const [files, setFiles] = useState<ProofAttachment[]>([]);
-  const [isSending, setIsSending] = useState(false);
-  const [done, setDone] = useState<string | null>(null);
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!employee) return;
-    hrisApi
-      .getLeaveApprover(employee.id)
-      .then(setApprover)
-      .catch(() => setApprover(null));
-    hrisApi
-      .getAttendanceHistory(employee.id)
-      .then(setHistory)
-      // Riwayat hanya dipakai untuk mengisi jam awal; tanpa itu form tetap
-      // bisa diisi manual, jadi galatnya tidak perlu ditampilkan.
-      .catch(() => setHistory([]));
-  }, [employee]);
-
-  const record = selectedDate
-    ? (history.find((r) => r.date === selectedDate) ?? null)
-    : null;
-
-  const masuk =
-    editedCheckIn ??
-    (record?.checkIn ? minutesOf(record.checkIn) : DEFAULT_CHECKIN_MINUTES);
-  const keluar =
-    editedCheckOut ??
-    (record?.checkOut ? minutesOf(record.checkOut) : DEFAULT_CHECKOUT_MINUTES);
-
   // Clamp di setter: dua nilai ini independen, hubungannya diurus validasi.
-  const setCheckIn = (minutes: number) =>
-    setEditedCheckIn(
-      Math.min(Math.max(minutes, CHECKIN_MIN_MINUTES), CHECKIN_MAX_MINUTES),
-    );
-  const setCheckOut = (minutes: number) =>
-    setEditedCheckOut(
-      Math.min(Math.max(minutes, CHECKOUT_MIN_MINUTES), CHECKOUT_MAX_MINUTES),
-    );
-
   // Ganti tanggal membuang jam yang diubah, supaya jam tercatat tanggal baru yang tampil.
-  const handlePickDate = (nextDate: string | null) => {
-    setSelectedDate(nextDate);
-    setEditedCheckIn(null);
-    setEditedCheckOut(null);
-  };
-
-  const isProofRequired = !!selectedDate && !record;
-
-  const blockMsg = !selectedDate
-    ? t("kor.blokTgl")
-    : keluar < masuk + 60
-      ? t("kor.blokJam")
-      : reasonText.trim().length < 15
-        ? t("kor.blokPenjelasan")
-        : isProofRequired && files.length === 0
-          ? t("kor.blokBukti")
-          : "";
-
-  const canSubmit = !blockMsg && !isSending;
-
-  const footer = selectedDate
-    ? [
-        {
-          label: t("kor.tanggal"),
-          value: `${getWeekdayName(selectedDate)}, ${formatShortDate(selectedDate)}`,
-        },
-        {
-          label: t("kor.logTercatat"),
-          value: record
-            ? ATTENDANCE_STATUS_LABEL[record.status]
-            : t("kor.tidakAda"),
-          accent: !record,
-        },
-      ]
-    : [
-        { label: t("kor.tanggal"), value: t("kor.belumDipilih") },
-        { label: t("kor.logTercatat"), value: "—" },
-      ];
-
-  const buildDoneRows = () => {
-    if (!selectedDate) return [];
-    return [
-      {
-        k: t("kor.tanggal"),
-        v: `${getWeekdayName(selectedDate)}, ${formatShortDate(selectedDate)}`,
-      },
-      {
-        k: t("kor.jamDiajukan"),
-        v: `${formatHoursMinutes(masuk)} – ${formatHoursMinutes(keluar)}`,
-      },
-      { k: t("kor.jenis"), v: getCorrectionKindName(kind) },
-      { k: t("kor.bukti"), v: t("kor.nFile", { n: files.length }) },
-    ];
-  };
-
-  const approvalSteps: ApprovalStep[] = approver
-    ? [
-        {
-          stepLabel: approver.initials,
-          name: approver.fullName,
-          role: t("lr.atasan"),
-        },
-      ]
-    : [];
-
-  const addProof = async () => {
-    const r = await pickProof();
-    if (!r) return;
-    if ("tooLargeSizeLabel" in r) {
-      setErrorMessage(t("up.besarPesan", { ukuran: r.tooLargeSizeLabel }));
-      return;
-    }
-    setErrorMessage(null);
-    setFiles((prev) => [...prev, r.file]);
-  };
-
-  const handleSubmit = async () => {
-    if (!employee || !selectedDate || !canSubmit) return;
-    setIsSending(true);
-    setErrorMessage(null);
-    try {
-      const res = await hrisApi.submitAttendanceCorrection({
-        employeeId: employee.id,
-        date: selectedDate,
-        requestedCheckIn: formatHoursMinutes(masuk),
-        requestedCheckOut: formatHoursMinutes(keluar),
-        reason: joinReason(kind, reasonText),
-        attachments: files.flatMap((f) =>
-          f.uri
-            ? [{ uri: f.uri, name: f.name, mimeType: f.mimeType ?? "" }]
-            : [],
-        ),
-      });
-      setDone(res.id);
-      if (res.failedProofCount) {
-        void confirm({
-          title: t("lr.buktiGagalJudul"),
-          message: t("lr.buktiGagalPesan", { n: res.failedProofCount }),
-          tone: "warn",
-          confirmText: t("umum.mengerti"),
-          cancelText: null,
-        });
-      }
-    } catch (e) {
-      setErrorMessage(describeError(e));
-    } finally {
-      setIsSending(false);
-    }
-  };
-
   return (
     <View style={styles.container}>
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>

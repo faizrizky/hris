@@ -1,6 +1,5 @@
 {
   "1": "HrisClockModule.swift",
-  "2": "index.tsx",
   "6": "mockApi.ts",
   "7": "HrisApi",
   "8": "erpnextApi.ts",
@@ -93,11 +92,9 @@
   "101": "hris_get_offline_checkins.py",
   "102": "hris_get_offline_report.py",
   "103": "build.gradle",
-  "104": "useLokasiKerja.ts",
   "105": "hris_leave_rules.py",
   "106": "hris_shift_location_map.py",
   "107": "hris_submit_wfh.py",
-  "108": "offlineQueue.ts",
   "113": "face_lib.py",
   "115": "Web (admin/HR)",
   "117": "hris_decide_face_enrollment.py",

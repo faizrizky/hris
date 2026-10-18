@@ -1,5 +1,5 @@
-import { useEffect, useState, useMemo } from "react";
-import { getRouteParams, type ScreenProps } from "@/navigation/types";
+import { useMemo } from "react";
+import { type ScreenProps } from "@/navigation/types";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { RevealScrollView as ScrollView } from "@/components/Reveal";
 import { Ionicons } from "@expo/vector-icons";
@@ -7,11 +7,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Palette } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
-import { hrisApi } from "@/services/api";
-import { describeError } from "@/services/api/http";
 import { ErrorState } from "@/components/ErrorState";
-import { useSession } from "@/services/session";
-import { AttendanceRecord, Staff } from "@/services/types";
 import { Skeleton } from "@/components/Skeleton";
 import {
   ATTENDANCE_STATUS_LABEL,
@@ -20,47 +16,22 @@ import {
 import { getShortMonth, getWeekdayName, formatNumericDate } from "@/utils/date";
 import { useT } from "@/i18n";
 import { goBackAnimated } from "@/navigation/navigationBack";
+import { useStaffHistory } from "@/hooks/useStaffHistory";
 
 export function StaffHistoryScreen({ navigation, route }: ScreenProps) {
+  const {
+    staff,
+    errorMessage,
+    setErrorMessage,
+    setAttempt,
+    isLoading,
+    items,
+    countBy,
+  } = useStaffHistory({ route });
   const t = useT();
-  const { employee } = useSession();
   const insets = useSafeAreaInsets();
-  const { staffId } = getRouteParams<{ staffId: string }>(route);
-
-  const [staff, setStaff] = useState<Staff | null>(null);
-  const [records, setRecords] = useState<AttendanceRecord[] | null>(null);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [attempt, setAttempt] = useState(0); // naik saat Coba lagi ditekan
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
-
-  useEffect(() => {
-    if (!employee) return;
-    let isCancelled = false;
-
-    Promise.all([
-      hrisApi.getStaffDirectory(employee.id),
-      hrisApi.getStaffAttendanceHistory(staffId),
-    ])
-      .then(([directory, history]) => {
-        if (isCancelled) return;
-        setStaff(directory.items.find((s) => s.id === staffId) ?? null);
-        setRecords(history);
-      })
-      .catch((e) => {
-        if (!isCancelled) setErrorMessage(describeError(e));
-      });
-
-    return () => {
-      isCancelled = true;
-    };
-  }, [employee, staffId, attempt]);
-
-  const isLoading = records === null && !errorMessage;
-  const items = records ?? [];
-  const countBy = (s: AttendanceRecord["status"]) =>
-    items.filter((r) => r.status === s).length;
-
   return (
     <View style={styles.container}>
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>

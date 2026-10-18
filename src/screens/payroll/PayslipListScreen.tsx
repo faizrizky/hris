@@ -6,8 +6,6 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { Palette } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
-import { hrisApi } from "@/services/api";
-import { useSession } from "@/services/session";
 import {
   PayslipHero,
   PayslipHistoryCard,
@@ -15,28 +13,17 @@ import {
 } from "./PayslipCards";
 import { PdfButton } from "@/components/PdfButton";
 import { Skeleton } from "@/components/Skeleton";
-import { useLoad } from "@/hooks/useLoad";
 import { ErrorState } from "@/components/ErrorState";
 import { useT } from "@/i18n";
 import { goBackOrHome } from "@/navigation/navigationBack";
+import { usePayslipList } from "@/hooks/usePayslipList";
 
 export function PayslipListScreen({ navigation }: ScreenProps) {
+  const { slip, payslips, isMemuat, latest, previous } = usePayslipList();
   const t = useT();
-  const { employee } = useSession();
   const insets = useSafeAreaInsets();
-  const slip = useLoad(
-    () => (employee ? hrisApi.getPayslips(employee.id) : Promise.resolve([])),
-    employee?.id,
-  );
-  const payslips = slip.data;
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
-
-  const isMemuat = slip.isLoading;
-
-  const latest = payslips?.[0];
-  const previous = payslips?.slice(1) ?? [];
-
   return (
     <View style={styles.container}>
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
