@@ -1,0 +1,286 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "naming_series:",
+ "creation": "2026-10-18 00:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "naming_series",
+  "job_applicant",
+  "applicant_name",
+  "email_id",
+  "phone_number",
+  "column_break_applicant",
+  "job_opening",
+  "designation",
+  "source",
+  "template",
+  "section_break_status",
+  "status",
+  "total_score",
+  "passed",
+  "experience_level",
+  "column_break_status_2",
+  "result_label",
+  "result_indicator",
+  "result_description",
+  "screened_on",
+  "error",
+  "section_break_override",
+  "hr_override_label",
+  "hr_override_note",
+  "section_break_cv",
+  "resume_file",
+  "resume_text",
+  "criteria_snapshot",
+  "section_break_results",
+  "results"
+ ],
+ "fields": [
+  {
+   "default": "RS-.YYYY.-.#####",
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "label": "Series",
+   "options": "RS-.YYYY.-.#####",
+   "reqd": 1
+  },
+  {
+   "fieldname": "job_applicant",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Job Applicant",
+   "options": "Job Applicant",
+   "reqd": 1
+  },
+  {
+   "fetch_from": "job_applicant.applicant_name",
+   "fieldname": "applicant_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Applicant Name",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "job_applicant.email_id",
+   "fieldname": "email_id",
+   "fieldtype": "Data",
+   "label": "Email",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "job_applicant.phone_number",
+   "fieldname": "phone_number",
+   "fieldtype": "Data",
+   "label": "Phone Number",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_applicant",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fetch_from": "job_applicant.job_title",
+   "fieldname": "job_opening",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Job Opening",
+   "options": "Job Opening",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "job_opening.designation",
+   "fieldname": "designation",
+   "fieldtype": "Link",
+   "label": "Designation",
+   "options": "Designation",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "job_applicant.source",
+   "fieldname": "source",
+   "fieldtype": "Data",
+   "label": "Source",
+   "read_only": 1
+  },
+  {
+   "fieldname": "template",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Screening Template",
+   "options": "Resume Screening Template"
+  },
+  {
+   "fieldname": "section_break_status",
+   "fieldtype": "Section Break",
+   "label": "Status & Result"
+  },
+  {
+   "default": "Queued",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Status",
+   "options": "Queued\nScreening\nDone\nFailed"
+  },
+  {
+   "default": "0",
+   "fieldname": "total_score",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Total Score",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "passed",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Passed",
+   "read_only": 1
+  },
+  {
+   "fieldname": "experience_level",
+   "fieldtype": "Select",
+   "label": "Experience Level",
+   "options": "\nFresh Graduate\nExperienced",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_status_2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "result_label",
+   "fieldtype": "Data",
+   "label": "Result Label",
+   "read_only": 1
+  },
+  {
+   "fieldname": "result_indicator",
+   "fieldtype": "Select",
+   "label": "Result Indicator",
+   "options": "\ngreen\norange\nred\nblue",
+   "read_only": 1
+  },
+  {
+   "fieldname": "result_description",
+   "fieldtype": "Small Text",
+   "label": "Result Description",
+   "read_only": 1
+  },
+  {
+   "fieldname": "screened_on",
+   "fieldtype": "Datetime",
+   "label": "Screened On",
+   "read_only": 1
+  },
+  {
+   "fieldname": "error",
+   "fieldtype": "Small Text",
+   "label": "Error",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_override",
+   "fieldtype": "Section Break",
+   "label": "HR Override"
+  },
+  {
+   "fieldname": "hr_override_label",
+   "fieldtype": "Data",
+   "label": "HR Override Label"
+  },
+  {
+   "fieldname": "hr_override_note",
+   "fieldtype": "Small Text",
+   "label": "HR Override Note"
+  },
+  {
+   "fieldname": "section_break_cv",
+   "fieldtype": "Section Break",
+   "label": "Resume & Evidence"
+  },
+  {
+   "fetch_from": "job_applicant.resume_attachment",
+   "fieldname": "resume_file",
+   "fieldtype": "Attach",
+   "label": "Resume File",
+   "read_only": 1
+  },
+  {
+   "fieldname": "resume_text",
+   "fieldtype": "Long Text",
+   "label": "Extracted Text",
+   "read_only": 1
+  },
+  {
+   "fieldname": "criteria_snapshot",
+   "fieldtype": "JSON",
+   "label": "Criteria Snapshot",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_results",
+   "fieldtype": "Section Break",
+   "label": "Metric Results"
+  },
+  {
+   "fieldname": "results",
+   "fieldtype": "Table",
+   "label": "Metric Results",
+   "options": "Resume Screening Result",
+   "read_only": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-10-18 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "HRIS ATS",
+ "name": "Resume Screening",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "HR Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 0,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "HR User",
+   "share": 0,
+   "write": 1
+  },
+  {
+   "create": 0,
+   "delete": 0,
+   "email": 0,
+   "export": 0,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Interviewer",
+   "share": 0,
+   "write": 0
+  }
+ ],
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

@@ -95,8 +95,9 @@ required_apps = ["erpnext", "hrms"]
 # Installation
 # ------------
 
-# before_install = "hris_ats.install.before_install"
-# after_install = "hris_ats.install.after_install"
+after_install = "hris_ats.setup.after_install"
+after_migrate = "hris_ats.setup.after_migrate"
+
 
 # Uninstallation
 # ------------
