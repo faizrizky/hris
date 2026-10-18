@@ -3,6 +3,26 @@
 
 frappe.ui.form.on("Job Applicant", {
 	refresh(frm) {
+		if (!frm.is_new() && frm.doc.resume_attachment) {
+			frm.add_custom_button(__("Screen Ulang"), function () {
+				frappe.call({
+					method: "hris_ats.scoring.workflow.rescreen_applicant",
+					args: {
+						applicant_name: frm.doc.name
+					},
+					freeze: true,
+					freeze_message: __("Memulai screening ulang resume..."),
+					callback: function (r) {
+						frappe.show_alert({
+							message: __("Screening ulang berhasil dijadwalkan"),
+							indicator: "green"
+						});
+						frm.reload_doc();
+					}
+				});
+			});
+		}
+
 		if (frm.doc.screening_status === "Done" && !frm.is_new()) {
 			if (!frm.doc.background_check || frm.doc.recruitment_stage === "Screening") {
 				frm.add_custom_button(__("Mulai Background Check"), function () {

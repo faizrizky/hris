@@ -350,6 +350,21 @@ def bulk_rescreen(applicant_names: list[str] | str) -> dict[str, Any]:
 	return {"message": _("{0} pelamar dijadwalkan untuk screening ulang.").format(len(queued)), "count": len(queued)}
 
 
+@frappe.whitelist()
+def rescreen_applicant(applicant_name: str) -> dict[str, Any]:
+	"""Aksi 'Screen Ulang' langsung dari form Job Applicant."""
+	if not frappe.db.exists("Job Applicant", applicant_name):
+		frappe.throw(_("Pelamar {0} tidak ditemukan.").format(applicant_name))
+
+	screening_name = frappe.db.get_value("Resume Screening", {"job_applicant": applicant_name}, "name")
+	if screening_name:
+		return rescreen(screening_name)
+	else:
+		app_doc = frappe.get_doc("Job Applicant", applicant_name)
+		trigger_screening_if_eligible(app_doc)
+		return {"status": "Queued", "applicant": applicant_name}
+
+
 def validate_interview(doc, method=None):
 	"""Validasi sebelum Interview disimpan:
 	Jika pelamar memiliki berkas Background Check, hr_conclusion wajib diisi terlebih dahulu.
