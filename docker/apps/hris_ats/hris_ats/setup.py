@@ -192,6 +192,12 @@ def setup_kanban_board():
 			})
 		kb.insert(ignore_permissions=True)
 
+	if frappe.db.exists("Kanban Board", "hiring pipeline"):
+		doc = frappe.get_doc("Kanban Board", "hiring pipeline")
+		doc.kanban_board_name = "Hiring Pipeline"
+		doc.save()
+		frappe.rename_doc("Kanban Board", "hiring pipeline", "Hiring Pipeline", force=True)
+
 
 def setup_number_cards():
 	"""Membuat Number Card untuk metrik tahap rekrutmen."""
