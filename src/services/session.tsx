@@ -5,21 +5,24 @@ import { setSessionExpiredHandler } from "./api/http";
 import React, { useEffect, createContext, useContext, useState } from "react";
 import { Employee } from "./types";
 import { hrisApi } from "./api";
-import { useBahasa } from "@/i18n";
-import { ambilTokenPush } from "./push";
-import { muatJangkar } from "./trustedTime";
-import { jumlahAntrean } from "./offlineQueue";
-import { AppState } from "react-native";
+import {
+  useRegisterPushToken,
+  useSyncAccountLanguage,
+  useSyncOfflineCheckins,
+} from "@/hooks/useSessionEffects";
 
 // Keluar akun yang tidak bisa tersangkut: permintaan ke server dibatasi 3 detik; layar login tetap tampil
 // walau server lambat / tidak terjangkau (cookie sesi akan kedaluwarsa di server).
+const KELUAR_BATAS_MS = 3000;
+const KELUAR_SENGAJA_MS = 8000;
+const PULIHKAN_BATAS_MS = 6000;
 let keluarSengajaSampai = 0;
 
 export async function keluarAman(): Promise<void> {
-  keluarSengajaSampai = Date.now() + 8000; // sesi yang mati karena keluar sengaja bukan "dikeluarkan paksa"
+  keluarSengajaSampai = Date.now() + KELUAR_SENGAJA_MS; // sesi yang mati karena keluar sengaja bukan "dikeluarkan paksa"
   await Promise.race([
     hrisApi.logout().catch(() => {}),
-    new Promise<void>((r) => setTimeout(r, 3000)),
+    new Promise<void>((r) => setTimeout(r, KELUAR_BATAS_MS)),
   ]);
 }
 
@@ -50,7 +53,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     Promise.race([
       hrisApi.getCurrentEmployee(),
       new Promise<never>((_, tolak) =>
-        setTimeout(() => tolak(new Error("timeout")), 6000),
+        setTimeout(() => tolak(new Error("timeout")), PULIHKAN_BATAS_MS),
       ),
     ])
       .then((e) => {
@@ -76,49 +79,10 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     return () => setSessionExpiredHandler(null);
   }, []);
 
-  const { setBahasa } = useBahasa();
   const employeeId = employee?.id;
-
-  // Bahasa mengikuti akun ERPNext; gagal membaca = pakai pilihan lokal.
-  useEffect(() => {
-    if (!employeeId) return;
-    hrisApi
-      .getLanguage()
-      .then((b) => b && setBahasa(b))
-      .catch(() => {});
-  }, [employeeId, setBahasa]);
-
-  // Jangkar jam terpercaya dimuat sekali; antrean check-in offline dikirim saat
-  // login, saat aplikasi kembali aktif, dan tiap setengah menit selama masih ada.
-  useEffect(() => {
-    void muatJangkar();
-  }, []);
-
-  useEffect(() => {
-    if (!employeeId) return;
-    const kirim = () => {
-      void jumlahAntrean().then((n) => {
-        if (n > 0) void hrisApi.syncOfflineCheckins().catch(() => {});
-      });
-    };
-    kirim();
-    const langganan = AppState.addEventListener("change", (s) => {
-      if (s === "active") kirim();
-    });
-    const timer = setInterval(kirim, 30_000);
-    return () => {
-      langganan.remove();
-      clearInterval(timer);
-    };
-  }, [employeeId]);
-
-  // Daftarkan perangkat untuk push; tanpa izin atau di simulator, dilewati.
-  useEffect(() => {
-    if (!employeeId) return;
-    ambilTokenPush()
-      .then((t) => t && hrisApi.registerPushToken(t))
-      .catch(() => {});
-  }, [employeeId]);
+  useSyncAccountLanguage(employeeId);
+  useSyncOfflineCheckins(employeeId);
+  useRegisterPushToken(employeeId);
 
   return (
     <SessionContext.Provider
