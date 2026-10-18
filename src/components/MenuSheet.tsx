@@ -108,7 +108,7 @@ export function MenuSheet({
               onPress={() => tutup(it.onPress)}
             >
               <View style={[styles.ikon, { backgroundColor: it.bg }]}>
-                <Ionicons name={it.icon} size={24} color={it.ink} />
+                <Ionicons name={it.icon} size={28} color={it.ink} />
               </View>
               <Text style={styles.label} numberOfLines={2}>
                 {it.label}

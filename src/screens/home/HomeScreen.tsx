@@ -200,8 +200,9 @@ export function HomeScreen() {
     key,
     label,
     icon,
-    bg: c[tone].bg,
-    ink: c[tone].ink,
+    // Ikon tanpa kotak latar (seperti tab bar): kuning dituakan supaya terbaca di atas kartu putih.
+    bg: "transparent",
+    ink: tone === "warn" ? "#D97706" : c[tone].ink,
     onPress,
   });
   const ajukan = (kind: "cuti" | "lembur" | "dinas" | "wfh") => () =>
@@ -453,7 +454,7 @@ export function HomeScreen() {
             />
           ))}
           <QuickAction
-            iconBg={c.chip}
+            iconBg="transparent"
             ink={c.accent}
             icon="grid-outline"
             label={t("hm.semua")}
@@ -596,7 +597,7 @@ function QuickAction({
     <Reveal style={styles.quickCell}>
       <Pressable style={styles.quickCard} onPress={onPress}>
         <View style={[styles.quickIcon, { backgroundColor: iconBg }]}>
-          <Ionicons name={icon} size={20} color={ink} />
+          <Ionicons name={icon} size={26} color={ink} />
         </View>
         <Text style={styles.quickLabel} numberOfLines={2}>
           {label}
