@@ -8,8 +8,6 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { Palette, tombolSekunder } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
-import { LineIcon } from "@/components/LineIcon";
-import { ICON } from "@/constants/icons";
 import { MapPreview } from "./MapPreview";
 import { formatTanggalPanjang } from "@/utils/date";
 import { hrisApi } from "@/services/api";
@@ -285,7 +283,11 @@ export function ClockScreen({ navigation }: any) {
             />
             <View style={styles.locationRow}>
               <View style={styles.locationIcon}>
-                <LineIcon d={ICON.location} color={c.info.ink} size={16} />
+                <Ionicons
+                  name="location-outline"
+                  size={24}
+                  color={c.info.ink}
+                />
               </View>
               <View style={{ flex: 1, minWidth: 0 }}>
                 <Text style={styles.locationName}>
@@ -540,7 +542,7 @@ const makeStyles = (c: Palette) =>
       width: 34,
       height: 34,
       borderRadius: 11,
-      backgroundColor: c.info.bg,
+      backgroundColor: "transparent",
       alignItems: "center",
       justifyContent: "center",
     },

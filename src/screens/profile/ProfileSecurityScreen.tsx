@@ -405,10 +405,14 @@ export function ProfileSecurityScreen({ navigation }: any) {
             {info.devices.map((d) => (
               <View key={d.id} style={styles.devRow}>
                 <View style={styles.devIcon}>
-                  <LineIcon
-                    d={d.kind === "mobile" ? ICON.mobile : ICON.desktop}
+                  <Ionicons
+                    name={
+                      d.kind === "mobile"
+                        ? "phone-portrait-outline"
+                        : "desktop-outline"
+                    }
                     color={c.info.ink}
-                    size={17}
+                    size={26}
                   />
                 </View>
                 <View style={{ flex: 1, minWidth: 0 }}>
@@ -679,7 +683,7 @@ const makeStyles = (c: Palette) =>
       width: 38,
       height: 38,
       borderRadius: 12,
-      backgroundColor: c.info.bg,
+      backgroundColor: "transparent",
       alignItems: "center",
       justifyContent: "center",
     },

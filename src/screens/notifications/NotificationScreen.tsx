@@ -11,7 +11,6 @@ import { describeError } from "@/services/api/http";
 import { ErrorState } from "@/components/ErrorState";
 import { useSession } from "@/services/session";
 import { AppNotification, NotifCategory } from "@/services/types";
-import { LineIcon } from "@/components/LineIcon";
 import { ICON } from "@/constants/icons";
 import { Skeleton } from "@/components/Skeleton";
 import { useT } from "@/i18n";
@@ -19,12 +18,12 @@ import { EmptyState } from "@/components/EmptyState";
 import { setBelumDibaca } from "@/navigation/notifBadge";
 import { kembaliAtauBeranda } from "@/navigation/kembali";
 
-const ICON_KATEGORI: Record<NotifCategory, string> = {
-  Approval: ICON.approval,
-  Payroll: ICON.payslip,
-  Presensi: ICON.clock,
-  Appraisal: ICON.appraisal,
-  Pengumuman: ICON.bell,
+const ICON_KATEGORI: Record<NotifCategory, keyof typeof Ionicons.glyphMap> = {
+  Approval: "checkmark-done-outline",
+  Payroll: "wallet-outline",
+  Presensi: "finger-print-outline",
+  Appraisal: "star-outline",
+  Pengumuman: "megaphone-outline",
 };
 
 export function NotificationScreen({ navigation }: any) {
@@ -189,12 +188,15 @@ export function NotificationScreen({ navigation }: any) {
                         ]}
                       >
                         <View
-                          style={[styles.icon, { backgroundColor: tone.bg }]}
+                          style={[
+                            styles.icon,
+                            { backgroundColor: "transparent" },
+                          ]}
                         >
-                          <LineIcon
-                            d={ICON_KATEGORI[n.category]}
+                          <Ionicons
+                            name={ICON_KATEGORI[n.category]}
                             color={tone.ink}
-                            size={17}
+                            size={26}
                           />
                         </View>
 

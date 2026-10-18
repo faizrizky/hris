@@ -6,7 +6,6 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Skeleton } from "@/components/Skeleton";
-import { LineIcon } from "@/components/LineIcon";
 import { ICON } from "@/constants/icons";
 import { leaveDecisionBadge } from "@/constants/statusLabels";
 import { Palette } from "@/theme/colors";
@@ -157,9 +156,16 @@ export function LeaveListScreen({ navigation }: any) {
                 }
               >
                 <View
-                  style={[styles.actionIcon, { backgroundColor: c.info.bg }]}
+                  style={[
+                    styles.actionIcon,
+                    { backgroundColor: "transparent" },
+                  ]}
                 >
-                  <LineIcon d={ICON.plus} color={c.info.ink} size={16} />
+                  <Ionicons
+                    name="add-circle-outline"
+                    size={26}
+                    color={c.info.ink}
+                  />
                 </View>
                 <Text style={styles.actionTitle}>{t("cl.ajukanCuti")}</Text>
                 <Text style={styles.actionSub}>{t("cl.ajukanCutiSub")}</Text>
@@ -175,9 +181,16 @@ export function LeaveListScreen({ navigation }: any) {
                 }
               >
                 <View
-                  style={[styles.actionIcon, { backgroundColor: c.purple.bg }]}
+                  style={[
+                    styles.actionIcon,
+                    { backgroundColor: "transparent" },
+                  ]}
                 >
-                  <LineIcon d={ICON.location} color={c.purple.ink} size={16} />
+                  <Ionicons
+                    name="airplane-outline"
+                    size={26}
+                    color={c.purple.ink}
+                  />
                 </View>
                 <Text style={styles.actionTitle}>{t("cl.dinasLuar")}</Text>
                 <Text style={styles.actionSub}>{t("cl.dinasLuarSub")}</Text>

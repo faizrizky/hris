@@ -24,7 +24,6 @@ import {
   AttendanceRecord,
   EmploymentSlice,
 } from "@/services/types";
-import { LineIcon } from "@/components/LineIcon";
 import { ICON } from "@/constants/icons";
 import { DonutChart } from "@/components/DonutChart";
 import { Skeleton } from "@/components/Skeleton";
@@ -405,7 +404,7 @@ export function HomeScreen() {
           <StatCard
             iconBg={c.info.bg}
             ink={c.info.ink}
-            icon={ICON.attendanceRate}
+            icon="checkmark-done-outline"
             label={t("hm.kehadiran")}
             value={kehadiran}
             memuat={memuat}
@@ -413,7 +412,7 @@ export function HomeScreen() {
           <StatCard
             iconBg={c.ok.bg}
             ink={c.ok.ink}
-            icon={ICON.leave}
+            icon="calendar-outline"
             label={t("hm.sisaCuti")}
             value={cuti ? `${cuti.remaining} ${t(`unit.${cuti.unit}`)}` : "–"}
             memuat={memuat}
@@ -421,7 +420,7 @@ export function HomeScreen() {
           <StatCard
             iconBg={c.warn.bg}
             ink={c.warn.ink}
-            icon={ICON.overtime}
+            icon="moon-outline"
             label={t("hm.jamLembur")}
             value={
               lembur ? `${lembur.remaining} ${t(`unit.${lembur.unit}`)}` : "–"
@@ -431,7 +430,7 @@ export function HomeScreen() {
           <StatCard
             iconBg={c.bad.bg}
             ink={c.bad.ink}
-            icon={ICON.late}
+            icon="alarm-outline"
             label={t("hm.terlambat")}
             value={t("hm.kali", { n: telat })}
             memuat={memuat}
@@ -545,7 +544,7 @@ function StatCard({
 }: {
   iconBg: string;
   ink: string;
-  icon: string;
+  icon: keyof typeof Ionicons.glyphMap;
   label: string;
   value: string;
   memuat?: boolean;
@@ -558,8 +557,8 @@ function StatCard({
     // ukurannya dipegang pembungkus Reveal.
     <Reveal style={styles.statCell}>
       <View style={styles.statCard}>
-        <View style={[styles.statIcon, { backgroundColor: iconBg }]}>
-          <LineIcon d={icon} color={ink} size={16} />
+        <View style={[styles.statIcon, { backgroundColor: "transparent" }]}>
+          <Ionicons name={icon} size={24} color={ink} />
         </View>
         <Text style={styles.statLabel}>{label}</Text>
         {memuat ? (

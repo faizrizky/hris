@@ -14,8 +14,6 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { RadialGlow } from "@/components/RadialGlow";
 import { Skeleton } from "@/components/Skeleton";
-import { LineIcon } from "@/components/LineIcon";
-import { ICON } from "@/constants/icons";
 import { Palette } from "@/theme/colors";
 import { useTheme, useThemeMode } from "@/theme/ThemeContext";
 import { tahunSejak } from "@/utils/date";
@@ -167,7 +165,7 @@ export function ProfileScreen({ navigation }: any) {
           <MenuRow
             iconBg={c.info.bg}
             ink={c.info.ink}
-            icon={ICON.user}
+            icon="person-outline"
             title={t("profil.dataPribadi")}
             subtitle={t("profil.dataPribadiSub")}
             onPress={() => navigation.navigate("ProfileData")}
@@ -175,7 +173,7 @@ export function ProfileScreen({ navigation }: any) {
           <MenuRow
             iconBg={c.ok.bg}
             ink={c.ok.ink}
-            icon={ICON.document}
+            icon="document-text-outline"
             title={t("profil.dokumen")}
             subtitle={t("profil.dokumenSub")}
             onPress={() => navigation.navigate("ProfileDocs")}
@@ -183,7 +181,7 @@ export function ProfileScreen({ navigation }: any) {
           <MenuRow
             iconBg={c.warn.bg}
             ink={c.warn.ink}
-            icon={ICON.bell}
+            icon="notifications-outline"
             title={t("profil.push")}
             subtitle={t("profil.pushSub")}
             trailing={
@@ -198,7 +196,7 @@ export function ProfileScreen({ navigation }: any) {
           <MenuRow
             iconBg={c.info.bg}
             ink={c.info.ink}
-            icon={ICON.shield}
+            icon="moon-outline"
             title={t("profil.modeGelap")}
             subtitle={
               mode === "dark"
@@ -217,7 +215,7 @@ export function ProfileScreen({ navigation }: any) {
           <MenuRow
             iconBg={c.ok.bg}
             ink={c.ok.ink}
-            icon={ICON.document}
+            icon="language-outline"
             title={t("profil.bahasa")}
             subtitle={t("profil.bahasaSub")}
             trailing={<LanguagePicker />}
@@ -225,7 +223,7 @@ export function ProfileScreen({ navigation }: any) {
           <MenuRow
             iconBg={c.purple.bg}
             ink={c.purple.ink}
-            icon={ICON.shield}
+            icon="shield-checkmark-outline"
             title={t("profil.keamanan")}
             subtitle={t("profil.keamananSub")}
             isLast
@@ -296,7 +294,7 @@ function MenuRow({
 }: {
   iconBg: string;
   ink: string;
-  icon: string;
+  icon: keyof typeof Ionicons.glyphMap;
   title: string;
   subtitle: string;
   trailing?: React.ReactNode;
@@ -311,8 +309,8 @@ function MenuRow({
       style={[styles.menuRow, !isLast && styles.menuDivider]}
       onPress={onPress}
     >
-      <View style={[styles.menuIcon, { backgroundColor: iconBg }]}>
-        <LineIcon d={icon} color={ink} size={16} />
+      <View style={[styles.menuIcon, { backgroundColor: "transparent" }]}>
+        <Ionicons name={icon} size={24} color={ink} />
       </View>
 
       <View style={{ flex: 1, minWidth: 0 }}>
