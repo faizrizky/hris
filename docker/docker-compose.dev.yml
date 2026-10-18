@@ -1,0 +1,35 @@
+# ===========================================================================
+# Docker Compose Override untuk Mode Pengembangan (hris_ats)
+#
+# Me-mount source code custom app hris_ats dari direktori lokal ke dalam
+# container bench, sehingga perubahan kode Python/JS langsung terbaca
+# tanpa harus build image ulang.
+#
+# Penggunaan:
+#   docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d
+# ===========================================================================
+
+services:
+  configurator:
+    volumes:
+      - ./apps/hris_ats:/home/frappe/frappe-bench/apps/hris_ats
+
+  backend:
+    volumes:
+      - ./apps/hris_ats:/home/frappe/frappe-bench/apps/hris_ats
+
+  queue-short:
+    volumes:
+      - ./apps/hris_ats:/home/frappe/frappe-bench/apps/hris_ats
+
+  queue-long:
+    volumes:
+      - ./apps/hris_ats:/home/frappe/frappe-bench/apps/hris_ats
+
+  scheduler:
+    volumes:
+      - ./apps/hris_ats:/home/frappe/frappe-bench/apps/hris_ats
+
+  websocket:
+    volumes:
+      - ./apps/hris_ats:/home/frappe/frappe-bench/apps/hris_ats

@@ -959,3 +959,39 @@ tidak dicetak.
 Server Script `hris_get_my_roles` mengembalikan daftar role pemanggil, berupa
 `All`, `Guest`, lalu role yang ditetapkan (dibaca dari Has Role, karena
 `frappe.get_roles` tidak tersedia di sandbox Server Script).
+
+---
+
+## Custom app `hris_ats` (Mode Pengembangan)
+
+App `hris_ats` adalah custom Frappe app yang menampung modul **Resume Screening** dan **Background Check**. Untuk keperluan pengembangan cepat, kode app ini di-mount langsung dari direktori lokal (`docker/apps/hris_ats`) ke dalam container, sehingga perubahan kode tidak memerlukan proses build image ulang setiap kali ada perubahan.
+
+### Menyalakan Mode Pengembangan
+
+1. **Jalankan stack dengan docker-compose.dev.yml:**
+   ```sh
+   cd docker
+   docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d
+   ```
+   Berkas `docker-compose.dev.yml` me-mount `docker/apps/hris_ats` ke `/home/frappe/frappe-bench/apps/hris_ats` pada semua service yang menjalankan kode Python (`backend`, `queue-short`, `queue-long`, `scheduler`, `websocket`, `configurator`).
+
+2. **Pasang atau perbarui app ke dalam container:**
+   ```sh
+   ./dev-ats.sh
+   ```
+   Skrip ini bersifat idempoten dan aman dijalankan berulang kali. Yang dilakukan skrip:
+   - Menjalankan `docker compose up -d` dengan override dev.
+   - Menjalankan `pip install -e apps/hris_ats` di virtualenv setiap service Python (`backend`, `queue-short`, `queue-long`, `scheduler`).
+   - Memastikan `hris_ats` tercantum di `sites/apps.txt`.
+   - Menjalankan `bench --site hris.localhost install-app hris_ats` bila belum terpasang, atau `migrate` bila sudah terpasang.
+   - Menjalankan `bench build --app hris_ats` untuk mengompilasi aset dan terjemahan.
+   - Menjalankan `clear-cache` dan memuat ulang service Python.
+
+### Catatan untuk Image Produksi
+
+Untuk image produksi / staging:
+- Source code app `hris_ats` harus dipindahkan ke repositori git tersendiri.
+- Repositori git tersebut kemudian didaftarkan ke `docker/apps.json`.
+- Image baru dibangun lewat `./build-image.sh`.
+- **Penting:** Jangan menambahkan `hris_ats` ke `docker/apps.json` selama fase pengembangan lokal saat ini.
+
