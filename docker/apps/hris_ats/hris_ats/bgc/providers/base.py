@@ -2,14 +2,15 @@
 # For license information, please see license.txt
 
 """Antarmuka dasar (Base Provider) untuk pengumpulan data Background Check.
-Menyediakan rate limiting, User-Agent resmi, dan caching hasil query 24 jam.
+Mendelegasikan pengambilan halaman, robots.txt, batas laju per domain, dan caching ke bgc/fetch.py.
 """
 
 from __future__ import annotations
 
-import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any
+
+from hris_ats.bgc.fetch import FetchConfig, FetchResult, fetch, get_fetch_config_from_settings
 
 
 @dataclass
@@ -35,6 +36,10 @@ class FindingData:
 	adjudicated_on: str | None = None
 	account: str = ""
 	hr_verdict: str = "Belum ditinjau"
+	detail_url: str = ""
+	pdf_url: str = ""
+	text_source: str = "Cuplikan"
+	evidence_excerpt: str = ""
 
 	def as_dict(self) -> dict[str, Any]:
 		return {k: v for k, v in self.__dict__.items() if v is not None}
@@ -43,30 +48,29 @@ class FindingData:
 class BaseProvider:
 	name: str = "BaseProvider"
 
-	def __init__(self, rate_limit_per_minute: int = 10, user_agent: str | None = None):
-		self.rate_limit_per_minute = max(1, rate_limit_per_minute)
-		self.min_interval = 60.0 / self.rate_limit_per_minute
-		self.last_call_time: float = 0.0
-		self.user_agent = user_agent or "HRIS-ATS-Verifier/1.0 (+https://example.com; hr@example.com)"
-		self._cache: dict[str, tuple[float, list[FindingData]]] = {}
+	def __init__(
+		self,
+		config: FetchConfig | None = None,
+		rate_limit_per_minute: int | None = None,
+		user_agent: str | None = None,
+	):
+		self.config = config or get_fetch_config_from_settings()
+		if rate_limit_per_minute is not None:
+			self.config.rate_limit_per_minute = rate_limit_per_minute
+		if user_agent is not None:
+			self.config.user_agent = user_agent
 
-	def _wait_for_rate_limit(self) -> None:
-		now = time.time()
-		elapsed = now - self.last_call_time
-		if elapsed < self.min_interval:
-			time.sleep(self.min_interval - elapsed)
-		self.last_call_time = time.time()
+	@property
+	def rate_limit_per_minute(self) -> int:
+		return self.config.rate_limit_per_minute
 
-	def get_from_cache(self, key: str, ttl_seconds: int = 86400) -> list[FindingData] | None:
-		if key in self._cache:
-			timestamp, data = self._cache[key]
-			if time.time() - timestamp < ttl_seconds:
-				return data
-			del self._cache[key]
-		return None
+	@property
+	def user_agent(self) -> str:
+		return self.config.user_agent
 
-	def set_to_cache(self, key: str, data: list[FindingData]) -> None:
-		self._cache[key] = (time.time(), data)
+	def fetch(self, url: str, *, method: str = "GET", **kwargs) -> FetchResult:
+		"""Mengambil halaman web menggunakan lapisan terpusat bgc/fetch.py."""
+		return fetch(url, config=self.config, method=method, **kwargs)
 
 	def run(self, candidate_data: dict[str, Any], settings: dict[str, Any] | None = None) -> list[FindingData]:
 		raise NotImplementedError("Subclasses must implement run()")
