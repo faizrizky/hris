@@ -404,7 +404,7 @@ export function HomeScreen() {
           <StatCard
             iconBg={c.info.bg}
             ink={c.info.ink}
-            icon="checkmark-done-outline"
+            icon="pie-chart-outline"
             label={t("hm.kehadiran")}
             value={kehadiran}
             memuat={memuat}
