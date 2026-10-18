@@ -7,12 +7,18 @@ import { useSession } from "@/services/session";
 import { AppNotification } from "@/services/types";
 import { setUnreadCount } from "@/navigation/notifBadge";
 
+export type NotificationTab = "inbox" | "announcements";
+
 export function useNotification({
   navigation,
 }: Pick<ScreenProps, "navigation">) {
   const { employee } = useSession();
   const [items, setItems] = useState<AppNotification[] | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<NotificationTab>("inbox");
+  const [announcementOpenId, setAnnouncementOpenId] = useState<string | null>(
+    null,
+  );
   const load = useCallback(() => {
     if (!employee) return;
     setErrorMessage(null);
@@ -63,7 +69,8 @@ export function useNotification({
         }
         return;
       case "HR Announcement":
-        navigation.navigate("Announcements", { id: n.documentName });
+        setAnnouncementOpenId(n.documentName ?? null);
+        setActiveTab("announcements");
         return;
       case "Profile Change Request":
         if (employee?.role === "hr" && n.tone === "warn") {
@@ -94,5 +101,16 @@ export function useNotification({
   const groups: string[] = [];
   for (const n of items ?? [])
     if (!groups.includes(n.group)) groups.push(n.group);
-  return { items, errorMessage, load, unreadCount, markRead, open, groups };
+  return {
+    items,
+    errorMessage,
+    load,
+    unreadCount,
+    markRead,
+    open,
+    groups,
+    activeTab,
+    setActiveTab,
+    announcementOpenId,
+  };
 }

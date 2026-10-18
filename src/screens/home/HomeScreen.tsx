@@ -10,7 +10,6 @@ import { Palette } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
 import { useSession } from "@/services/session";
 import { LinearGradient } from "expo-linear-gradient";
-import { MenuSheet, type ItemMenu } from "@/components/MenuSheet";
 import { getShiftInfo, employeeGreeting } from "@/utils/greeting";
 import { formatLongDate, formatJam } from "@/utils/date";
 import { useT, getActiveLanguage } from "@/i18n";
@@ -21,14 +20,53 @@ import { Skeleton } from "@/components/Skeleton";
 import { ErrorState } from "@/components/ErrorState";
 import { EmptyState } from "@/components/EmptyState";
 import { useHome } from "@/hooks/useHome";
+import type { Kunci } from "@/i18n/id";
 
 // Pengingat daftar ulang wajah muncul sekali per pembukaan aplikasi.
+
+interface ItemMenu {
+  key: string;
+  label: string;
+  icon: keyof typeof Ionicons.glyphMap;
+  bg: string;
+  ink: string;
+  onPress: () => void;
+}
+
+type MenuSectionKey = "transaction" | "data" | "team";
+
+// Urutan bagian menu di Beranda, mengikuti pengelompokan Transaksi / Data Karyawan.
+const MENU_SECTIONS: { key: MenuSectionKey; title: Kunci }[] = [
+  { key: "transaction", title: "hm.secTransaksi" },
+  { key: "data", title: "hm.secData" },
+  { key: "team", title: "hm.secTim" },
+];
+
+const MENU_SECTION_OF: Record<string, MenuSectionKey> = {
+  presensi: "transaction",
+  ajukanCuti: "transaction",
+  ajukanLembur: "transaction",
+  dinas: "transaction",
+  wfh: "transaction",
+  koreksi: "transaction",
+  appraisal: "transaction",
+  riwayat: "data",
+  daftarCuti: "data",
+  daftarLembur: "data",
+  pajak: "data",
+  slip: "data",
+  approval: "team",
+  karyawan: "team",
+  absensiTim: "team",
+  offline: "team",
+  verifikasi: "team",
+  dataPribadi: "team",
+  wajah: "team",
+};
 
 export function HomeScreen() {
   const {
     now,
-    isMenuOpen,
-    setIsMenuOpen,
     navigation,
     notifications,
     clock,
@@ -128,9 +166,8 @@ export function HomeScreen() {
     key,
     label,
     icon,
-    // Ikon tanpa kotak latar (seperti tab bar): kuning dituakan supaya terbaca di atas kartu putih.
-    bg: "transparent",
-    ink: tone === "warn" ? "#D97706" : c[tone].ink,
+    bg: c[tone].bg,
+    ink: c[tone].ink,
     onPress,
   });
   const submitRequest = (kind: "cuti" | "lembur" | "dinas" | "wfh") => () =>
@@ -229,13 +266,6 @@ export function HomeScreen() {
     makeMenuItem("pajak", t("hm.aPajak"), "receipt-outline", "info", () =>
       navigation.navigate("TaxDetail"),
     ),
-    makeMenuItem(
-      "pengumuman",
-      t("hm.aPengumuman"),
-      "megaphone-outline",
-      "warn",
-      () => navigation.navigate("Announcements"),
-    ),
     ...(canApprove
       ? [
           makeMenuItem(
@@ -280,7 +310,10 @@ export function HomeScreen() {
         ]
       : []),
   ].filter((m) => !alreadyInTabs.has(m.key));
-  const homeMenuItems = allMenuItems.slice(0, 7);
+  const menuSections = MENU_SECTIONS.map((section) => ({
+    ...section,
+    items: allMenuItems.filter((m) => MENU_SECTION_OF[m.key] === section.key),
+  })).filter((section) => section.items.length > 0);
 
   return (
     <View style={styles.container}>
@@ -418,29 +451,25 @@ export function HomeScreen() {
           />
         </View>
         {employment && <EmploymentCard slices={employment} />}
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>{t("hm.menu")}</Text>
-        </View>
-
-        <View style={styles.quickGrid}>
-          {homeMenuItems.map((q) => (
-            <QuickAction
-              key={q.key}
-              iconBg={q.bg}
-              ink={q.ink}
-              icon={q.icon}
-              label={q.label}
-              onPress={q.onPress}
-            />
-          ))}
-          <QuickAction
-            iconBg="transparent"
-            ink={c.accent}
-            icon="grid-outline"
-            label={t("hm.semua")}
-            onPress={() => setIsMenuOpen(true)}
-          />
-        </View>
+        {menuSections.map((section) => (
+          <View key={section.key}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>{t(section.title)}</Text>
+            </View>
+            <View style={styles.quickGrid}>
+              {section.items.map((q) => (
+                <QuickAction
+                  key={q.key}
+                  iconBg={q.bg}
+                  ink={q.ink}
+                  icon={q.icon}
+                  label={q.label}
+                  onPress={q.onPress}
+                />
+              ))}
+            </View>
+          </View>
+        ))}
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>{feedTitle}</Text>
           <Pressable
@@ -506,11 +535,6 @@ export function HomeScreen() {
           ))}
         </Card>
       </ScrollView>
-      <MenuSheet
-        visible={isMenuOpen}
-        onClose={() => setIsMenuOpen(false)}
-        items={allMenuItems}
-      />
     </View>
   );
 }
@@ -576,7 +600,7 @@ function QuickAction({
     <Reveal style={styles.quickCell}>
       <Pressable style={styles.quickCard} onPress={onPress}>
         <View style={[styles.quickIcon, { backgroundColor: iconBg }]}>
-          <Ionicons name={icon} size={26} color={ink} />
+          <Ionicons name={icon} size={28} color={ink} />
         </View>
         <Text style={styles.quickLabel} numberOfLines={2}>
           {label}
@@ -863,32 +887,23 @@ const makeStyles = (c: Palette) =>
       backgroundColor: "rgba(255,255,255,0.22)",
     },
     heroCtaTextDone: { color: "#FFFFFF" },
-    quickGrid: { flexDirection: "row", flexWrap: "wrap", gap: 9 },
+    quickGrid: { flexDirection: "row", flexWrap: "wrap", marginBottom: 6 },
+    quickCell: { width: "25%", alignItems: "center", marginBottom: 14 },
+    quickCard: { alignItems: "center", gap: 7, width: "100%" },
     quickIcon: {
-      width: 32,
-      height: 32,
-      borderRadius: 11,
+      width: 62,
+      height: 62,
+      borderRadius: 18,
       alignItems: "center",
       justifyContent: "center",
     },
-    quickCell: { width: "22.5%" },
-    quickCard: {
-      backgroundColor: c.card,
-      borderWidth: 1,
-      borderColor: c.cardBorder,
-      borderRadius: 16,
-      height: 88,
-      paddingTop: 12,
-      paddingHorizontal: 6,
-      alignItems: "center",
-      gap: 8,
-    },
     quickLabel: {
-      height: 26, // dua baris tetap, jadi semua kartu menu sama tinggi
-      fontSize: 10.5,
-      lineHeight: 13,
+      height: 28,
+      fontSize: 11,
+      lineHeight: 14,
       fontWeight: "600",
       color: c.ink,
       textAlign: "center",
+      paddingHorizontal: 2,
     },
   });

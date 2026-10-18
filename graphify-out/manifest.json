@@ -282,9 +282,9 @@
     "semantic_hash": ""
   },
   "src/screens/home/HomeScreen.tsx": {
-    "mtime": 1792304511.0640774,
-    "seen": 1792304613.862634,
-    "ast_hash": "f438d1786318395733100a427602c8c9",
+    "mtime": 1792307169.9557328,
+    "seen": 1792307229.959616,
+    "ast_hash": "4f3176f53a44e2c92b34c50fc4bdb0bd",
     "semantic_hash": ""
   },
   "src/screens/leave/FormFlowCards.tsx": {
@@ -318,9 +318,9 @@
     "semantic_hash": ""
   },
   "src/screens/notifications/NotificationScreen.tsx": {
-    "mtime": 1792304511.216241,
-    "seen": 1792304613.862647,
-    "ast_hash": "e2884105a89585819c3e7064a794cbab",
+    "mtime": 1792307040.4548335,
+    "seen": 1792307229.95963,
+    "ast_hash": "a4f5f330f15e85c83d8c467abd9d6596",
     "semantic_hash": ""
   },
   "src/screens/payroll/PayslipCards.tsx": {
@@ -366,9 +366,9 @@
     "semantic_hash": ""
   },
   "src/screens/profile/ProfileScreen.tsx": {
-    "mtime": 1792304540.027549,
-    "seen": 1792304613.862663,
-    "ast_hash": "16869703cbdcc7488d3bbfbeb0151e65",
+    "mtime": 1792307193.0866394,
+    "seen": 1792307229.959649,
+    "ast_hash": "3de3f07601b8512b3b9364cf166bc54e",
     "semantic_hash": ""
   },
   "src/screens/profile/ProfileSecurityScreen.tsx": {
@@ -816,15 +816,15 @@
     "semantic_hash": ""
   },
   "src/i18n/en.ts": {
-    "mtime": 1792304251.4600906,
-    "seen": 1792304613.862607,
-    "ast_hash": "7cf9717042b77dba31fa38c2c31591fc",
+    "mtime": 1792307193.0882041,
+    "seen": 1792307229.9595861,
+    "ast_hash": "ddc27c189d0b6c3dca14e7666b1238a8",
     "semantic_hash": ""
   },
   "src/i18n/id.ts": {
-    "mtime": 1792304251.4826303,
-    "seen": 1792304613.862608,
-    "ast_hash": "094a38ced5eed708c59b3ea32847cc51",
+    "mtime": 1792307193.0878015,
+    "seen": 1792307229.959587,
+    "ast_hash": "e1944d6ab1adce81d2acbd64c82f8e06",
     "semantic_hash": ""
   },
   "src/i18n/index.tsx": {
@@ -912,9 +912,9 @@
     "semantic_hash": ""
   },
   "src/screens/announcements/AnnouncementsScreen.tsx": {
-    "mtime": 1792304365.9503357,
-    "seen": 1792304613.862617,
-    "ast_hash": "8ec759be5c0edf2a8c6501f4296d7705",
+    "mtime": 1792307027.1176028,
+    "seen": 1792307229.959596,
+    "ast_hash": "c5237fe90db7da28f54c92f7be256ffc",
     "semantic_hash": ""
   },
   "ANDROID.md": {
@@ -1176,9 +1176,9 @@
     "semantic_hash": ""
   },
   "scripts/kirim-update.sh": {
-    "mtime": 1792247717.253544,
-    "seen": 1792301536.98894,
-    "ast_hash": "10b531085e7328a3a108af27775f7492",
+    "mtime": 1792304658.78632,
+    "seen": 1792307229.959501,
+    "ast_hash": "a93e368da71d5a39f1477077a8c91944",
     "semantic_hash": ""
   },
   "scripts/rilis-apk.sh": {
@@ -1203,12 +1203,6 @@
     "mtime": 1792304251.3783298,
     "seen": 1792304613.8625531,
     "ast_hash": "b17240c2b54f16adea76b423eefbe810",
-    "semantic_hash": ""
-  },
-  "src/components/MenuSheet.tsx": {
-    "mtime": 1792304251.3856952,
-    "seen": 1792304613.862554,
-    "ast_hash": "9dfc9d0cb3df0ccbef179217c2c1ec61",
     "semantic_hash": ""
   },
   "src/navigation/tabBarVisibility.ts": {
@@ -1386,9 +1380,9 @@
     "semantic_hash": ""
   },
   "src/hooks/useHome.ts": {
-    "mtime": 1792304510.388068,
-    "seen": 1792304613.86258,
-    "ast_hash": "26c810ef76d71c4d84a1dfb6c441c1a7",
+    "mtime": 1792307113.9149766,
+    "seen": 1792307229.959552,
+    "ast_hash": "aa3e939e5ad3d2815a64f734c3dbf7b3",
     "semantic_hash": ""
   },
   "src/hooks/useLeaveApproval.ts": {
@@ -1416,9 +1410,9 @@
     "semantic_hash": ""
   },
   "src/hooks/useNotification.ts": {
-    "mtime": 1792304541.705299,
-    "seen": 1792304613.862587,
-    "ast_hash": "a1084d4f8f2dfe4e17eaab19e9796739",
+    "mtime": 1792307068.1566763,
+    "seen": 1792307229.95956,
+    "ast_hash": "296c24e523b068511993a1d75e176c29",
     "semantic_hash": ""
   },
   "src/hooks/useOfflineReview.ts": {

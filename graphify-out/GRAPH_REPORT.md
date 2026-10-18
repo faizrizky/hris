@@ -1,24 +1,24 @@
 # Graph Report - hris-mobile  (2026-10-18)
 
 ## Corpus Check
-- 269 files · ~155,987 words
+- 268 files · ~155,832 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 8 file(s) not represented in the graph (top: .onnx 3, (none) 2, .podspec 2)
 
 ## Summary
-- 1432 nodes · 5134 edges · 141 communities (53 shown, 88 thin omitted)
+- 1435 nodes · 5136 edges · 153 communities (64 shown, 89 thin omitted)
 - Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS · INFERRED: 15 edges (avg confidence: 0.88)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `33ef9149`
+- Built from commit: `6be7b810`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
 ## Community Hubs (Navigation)
 - date.ts
 - HrisClockModule.swift
-- useTheme
+- react
 - react
 - useFaceEnroll.ts
 - LeaveFormCards.tsx
@@ -30,7 +30,7 @@
 - dependencies
 - expo
 - Docker Compose stack ERPNext dev
-- eslint.config.js
+- useTheme
 - seed.py
 - HRIS Mobile (Fase 1 Mocking)
 - Menjalankan di Android tanpa Play Store
@@ -52,38 +52,50 @@
 - LeaveRequestScreen.tsx
 - useProfileUpload.ts
 - HrisFaceModule.kt
-- useEmployeeDocumentDetail.ts
+- AttendanceCorrectionHistoryScreen.tsx
 - offlineQueue.ts
 - FloatingTabBar.tsx
 - translate
 - useProfileSecurity.ts
 - TripExpenseCard.tsx
 - face_lib.py
-- session.tsx
+- http.ts
 - Web (admin/HR)
 - TaxScreen.tsx
-- index.ts
-- ClockScreen.tsx
+- useProfilePhotoScreen.ts
+- SamsungRing.tsx
 - docker_credentials_local
-- index.tsx
+- formatShortDateWithYear
 - device_lib.py
 - kirim-update.sh
 - ConfirmDialog.tsx
 - trustedTime.ts
 - useOvertime.ts
-- push.ts
+- HomeScreen.tsx
 - GlassPill.tsx
 - useProfileEdit.ts
 - ProfileScreen.tsx
+- translate
+- primaryButtonStyle
+- FaceCheck.tsx
+- useAttendanceCorrection.ts
+- AnnouncementsScreen.tsx
+- AppraisalScreen.tsx
+- ClockScreen
+- StaffAttendanceScreen.tsx
+- Reveal.tsx
+- request
+- useNotification.ts
+- HrisFaceNative
 
 ## God Nodes (most connected - your core abstractions)
 1. `useTheme()` - 207 edges
-2. `useT()` - 182 edges
-3. `react` - 122 edges
-4. `react-native` - 91 edges
+2. `useT()` - 181 edges
+3. `react` - 121 edges
+4. `react-native` - 90 edges
 5. `useSession()` - 77 edges
 6. `goBackAnimated()` - 73 edges
-7. `Palette` - 70 edges
+7. `Palette` - 69 edges
 8. `HrisApi` - 65 edges
 9. `Skeleton()` - 60 edges
 10. `describeError()` - 58 edges
@@ -95,10 +107,10 @@
   docker/README.md → README.md
 - `erpnextApi (integrasi fase 2)` --references--> `ERPNext v16`  [INFERRED]
   README.md → docker/README.md
-- `App()` --calls--> `AppLockProvider()`  [EXTRACTED]
-  App.tsx → src/services/appLock.tsx
-- `App()` --calls--> `SessionProvider()`  [EXTRACTED]
-  App.tsx → src/services/session.tsx
+- `App()` --calls--> `AnimatedSplash()`  [EXTRACTED]
+  App.tsx → src/components/AnimatedSplash.tsx
+- `App()` --calls--> `RootNavigator()`  [EXTRACTED]
+  App.tsx → src/navigation/RootNavigator.tsx
 
 ## Import Cycles
 - None detected.
@@ -108,47 +120,47 @@
 - **ERPNext dev compose stack services** — docker_docker_compose_backend, docker_docker_compose_frontend, docker_docker_compose_websocket, docker_docker_compose_queue_workers, docker_docker_compose_scheduler, docker_docker_compose_db, docker_docker_compose_redis [EXTRACTED 0.95]
 - **HrisApi contract with mock and ERPNext implementations** — readme_hrisapi_contract, readme_mock_api, readme_erpnext_api, readme_api_index_swap [EXTRACTED 0.95]
 
-## Communities (141 total, 88 thin omitted)
+## Communities (153 total, 89 thin omitted)
 
 ### Community 0 - "date.ts"
-Cohesion: 0.12
-Nodes (30): Cell, DatePickerCard(), FooterItem, makeStyles(), Props, useAttendanceHistory(), FORM_META, FORM_SEGMENTS (+22 more)
+Cohesion: 0.17
+Nodes (23): Cell, DatePickerCard(), FooterItem, makeStyles(), Props, FORM_META, useLeaveRequestForm(), getActiveLanguage() (+15 more)
 
 ### Community 1 - "HrisClockModule.swift"
 Cohesion: 0.20
 Nodes (4): ExpoModulesCore, Foundation, HrisClockModule, HrisFaceModule
 
-### Community 2 - "useTheme"
-Cohesion: 0.05
-Nodes (171): expo-linear-gradient, @expo/vector-icons, react-native, react-native-safe-area-context, DateSheet(), makeStyles(), Props, EmptyState() (+163 more)
+### Community 2 - "react"
+Cohesion: 0.14
+Nodes (36): expo-linear-gradient, @expo/vector-icons, react, react-native, react-native-safe-area-context, Props, Props, Props (+28 more)
 
 ### Community 3 - "react"
-Cohesion: 0.19
-Nodes (17): react, useConfirm(), DOC_CATEGORY_LABEL, useAppraisalFeedback(), useDocumentReview(), useDocumentReviewDetail(), useLeaveApproval(), useProfileChangeReviewDetail() (+9 more)
+Cohesion: 0.20
+Nodes (18): @react-navigation/native, useConfirm(), DOC_CATEGORY_LABEL, useActivePolling(), useAppraisalFeedback(), useDocumentReviewDetail(), useEmployeeDocumentDetail(), useFaceReview() (+10 more)
 
 ### Community 4 - "useFaceEnroll.ts"
-Cohesion: 0.06
-Nodes (46): EnrollAnimationValues, ENTER_EASING, useEnrollAnimations(), Challenge, COMMAND_TIMEOUT_MS, ENOUGH, HINT_MS, median() (+38 more)
+Cohesion: 0.10
+Nodes (20): EnrollAnimationValues, ENTER_EASING, useEnrollAnimations(), Challenge, COMMAND_TIMEOUT_MS, ENOUGH, HINT_MS, median() (+12 more)
 
 ### Community 5 - "LeaveFormCards.tsx"
-Cohesion: 0.18
+Cohesion: 0.16
 Nodes (17): ColleagueSheet(), makeStyles(), Props, attachmentLabel(), getLeaveInfo(), IMPORTANT_LEAVE_KINDS, isImportantLeave(), kindName() (+9 more)
 
 ### Community 6 - "mockApi.ts"
-Cohesion: 0.06
-Nodes (48): AppraisalRes, attendanceCorrections, clockState, documents, inbox, leaveRequests, mockApi, pendingApprovals (+40 more)
+Cohesion: 0.09
+Nodes (35): AppraisalRes, attendanceCorrections, clockState, documents, inbox, leaveRequests, mockApi, pendingApprovals (+27 more)
 
 ### Community 8 - "erpnextApi.ts"
 Cohesion: 0.05
-Nodes (51): attachAll(), AttendanceRow, BALANCE_KINDS, ChangeRow, clean(), ClockRes, CorrectionRow, daysUntil() (+43 more)
+Nodes (46): AttendanceRow, BALANCE_KINDS, ChangeRow, clean(), ClockRes, CorrectionRow, DECISION_BADGES, DinasRow (+38 more)
 
 ### Community 9 - "useT"
-Cohesion: 0.15
-Nodes (28): ATTENDANCE_STATUS_LABEL, CHECKIN_MAX_MINUTES, CHECKIN_MIN_MINUTES, CHECKOUT_MAX_MINUTES, CHECKOUT_MIN_MINUTES, DEFAULT_CHECKIN_MINUTES, DEFAULT_CHECKOUT_MINUTES, useAttendanceCorrection() (+20 more)
+Cohesion: 0.23
+Nodes (19): DateSheet(), makeStyles(), useT(), goHome(), AttendanceCorrectionScreen(), makeStyles(), CORRECTION_KINDS, CorrectionProofCard() (+11 more)
 
 ### Community 10 - "package.json"
-Cohesion: 0.11
-Nodes (18): main, name, private, version, @babel/core, babel-plugin-module-resolver, babel-preset-expo, expo-build-properties (+10 more)
+Cohesion: 0.07
+Nodes (28): { defineConfig }, expoConfig, main, name, private, version, @babel/core, babel-plugin-module-resolver (+20 more)
 
 ### Community 11 - "dependencies"
 Cohesion: 0.06
@@ -162,9 +174,9 @@ Nodes (32): backgroundColor, foregroundImage, adaptiveIcon, googleServicesFile, 
 Cohesion: 0.24
 Nodes (12): service backend (gunicorn), service configurator, service create-site, image hris-erpnext:16 (pull_policy never), service db (MariaDB 11.8), service frontend (nginx, port 8080), service queue-short dan queue-long, redis-cache dan redis-queue (+4 more)
 
-### Community 14 - "eslint.config.js"
-Cohesion: 0.40
-Nodes (4): { defineConfig }, expoConfig, eslint, eslint-config-expo
+### Community 14 - "useTheme"
+Cohesion: 0.12
+Nodes (46): ErrorState(), makeStyles(), LanguagePicker(), Skeleton(), goBackAnimated(), HomeStack(), NotifStack(), Stack (+38 more)
 
 ### Community 15 - "seed.py"
 Cohesion: 0.14
@@ -215,132 +227,176 @@ Cohesion: 0.67
 Nodes (3): Autentikasi token API key:secret, generate_keys method (perlu verifikasi v16), Autentikasi session cookie (CSRF)
 
 ### Community 30 - "HomeScreen.tsx"
-Cohesion: 0.13
-Nodes (25): Card(), makeStyles(), DonutChart(), Props, Segment, styles, ItemMenu, makeStyles() (+17 more)
+Cohesion: 0.18
+Nodes (17): Card(), makeStyles(), Reveal(), wrapChild(), wrapSlot(), EmploymentCard(), HomeScreen(), makeStyles() (+9 more)
 
 ### Community 39 - "Ceklis uji di HP"
 Cohesion: 0.13
 Nodes (14): Ceklis uji di HP, Fase 0: Persiapan, Fase 1: Login dan sesi, Fase 2: Bahasa, Fase 3: Karyawan (rani), Fase 3b: Fitur lanjutan (rani, dewi, sari), Fase 3c: Foto profil dan verifikasi wajah (rani, sari, dewi), Fase 3d: Build baru (com.hrismobile): perangkat, kunci, biometrik, anti-spoofing, push (+6 more)
 
 ### Community 40 - "services/types.ts"
-Cohesion: 0.06
-Nodes (40): expo-location, CORRECTION_STATUS_LABEL, CORRECTION_STATUS_TONE, DOC_STATUS_TONE, LEAVE_TYPE_LABEL, LEAVE_TYPE_TONE, OVERTIME_STATUS_LABEL, OVERTIME_STATUS_TONE (+32 more)
+Cohesion: 0.08
+Nodes (32): expo-location, hasShownDeviceReminder, hasShownFaceReminder, distanceInMeters(), LocationPermission, NearestWorkLocation, toCheckinLocation(), useWorkLocation() (+24 more)
 
 ### Community 41 - "useSession"
-Cohesion: 0.24
-Nodes (11): Filter, useAttendanceCorrectionHistory(), Filter, useFaceReview(), useLeaveList(), Load, useLoad(), formatTime() (+3 more)
+Cohesion: 0.17
+Nodes (19): Filter, useAttendanceCorrectionHistory(), Filter, useAttendanceHistory(), useDocumentReview(), useLeaveList(), Load, useLoad() (+11 more)
 
 ### Community 47 - "LeaveRequestScreen.tsx"
-Cohesion: 0.19
-Nodes (18): LineIcon(), goHome(), DOC_NAMA, LeaveRequestForm(), LeaveRequestScreen(), makeStyles(), makeStyles(), OvertimeDescriptionCard() (+10 more)
+Cohesion: 0.17
+Nodes (20): LineIcon(), FORM_SEGMENTS, FormKind, LeaveRequestParams, DOC_NAMA, LeaveRequestForm(), LeaveRequestScreen(), makeStyles() (+12 more)
 
 ### Community 72 - "useProfileUpload.ts"
-Cohesion: 0.22
-Nodes (14): expo-document-picker, expo-image-manipulator, expo-image-picker, useProfilePhotoScreen(), FileEntry, useProfileUpload(), holdLock(), extensionOf() (+6 more)
+Cohesion: 0.36
+Nodes (8): expo-document-picker, expo-image-picker, FileEntry, useProfileUpload(), extensionOf(), formatFileSize(), MAX_BYTES, withoutExtension()
 
-### Community 104 - "useEmployeeDocumentDetail.ts"
-Cohesion: 0.30
-Nodes (8): @react-navigation/native, useActivePolling(), useEmployeeDocumentDetail(), hasShownDeviceReminder, hasShownFaceReminder, useHome(), ALL_TAB, useProfileDocs()
+### Community 104 - "AttendanceCorrectionHistoryScreen.tsx"
+Cohesion: 0.20
+Nodes (23): EmptyState(), makeStyles(), RevealFlatList(), makeStyles(), StatusBadge(), ICON, goBackOrHome(), AttendanceCorrectionHistoryScreen() (+15 more)
 
 ### Community 108 - "offlineQueue.ts"
-Cohesion: 0.13
-Nodes (20): useQueueCount(), clientKey(), fetchClockStatus(), localTime(), sendCheckin(), sendItem(), statusFromQueue(), syncQueue() (+12 more)
+Cohesion: 0.14
+Nodes (19): useQueueCount(), clientKey(), fetchClockStatus(), localTime(), sendCheckin(), sendItem(), statusFromQueue(), syncQueue() (+11 more)
 
 ### Community 109 - "FloatingTabBar.tsx"
-Cohesion: 0.16
-Nodes (15): FloatingTabBar(), LABEL, makeStyles(), RIGHT, TONE_ICONS, useClock(), useNotification(), markBackNavigation() (+7 more)
+Cohesion: 0.18
+Nodes (13): @react-navigation/bottom-tabs, FloatingTabBar(), LABEL, makeStyles(), RIGHT, TONE_ICONS, markBackNavigation(), listeners (+5 more)
 
 ### Community 110 - "translate"
-Cohesion: 0.08
-Nodes (40): leaveDecisionBadge(), localizeLabels(), content(), translate(), translateNotification(), translateServerLabel(), fetchBalances(), fetchCurrentEmployee() (+32 more)
+Cohesion: 0.13
+Nodes (22): translateServerLabel(), fetchBalances(), fetchCurrentEmployee(), fetchOvertime(), fetchOwn(), fetchRole(), fetchTrips(), fetchWfh() (+14 more)
 
 ### Community 111 - "useProfileSecurity.ts"
 Cohesion: 0.11
-Nodes (38): @react-native-async-storage/async-storage, Props, useLogin(), LoginPrefillHandlers, useLoginPrefill(), USERNAME_STORAGE_KEY, useProfilePassword(), useProfileSecurity() (+30 more)
+Nodes (39): @react-native-async-storage/async-storage, useLogin(), LoginPrefillHandlers, useLoginPrefill(), USERNAME_STORAGE_KEY, useProfilePassword(), useProfileSecurity(), makeStyles() (+31 more)
 
 ### Community 112 - "TripExpenseCard.tsx"
-Cohesion: 0.27
-Nodes (11): makeStyles(), PickerSheet(), DinasBiayaCard(), Expense, EXPENSE_CATEGORIES, expenseCategory(), makeStyles(), PER_DIEM_PER_DAY (+3 more)
+Cohesion: 0.26
+Nodes (12): makeStyles(), PickerSheet(), DinasBiayaCard(), Expense, EXPENSE_CATEGORIES, expenseCategory(), makeStyles(), PER_DIEM_PER_DAY (+4 more)
 
 ### Community 113 - "face_lib.py"
 Cohesion: 0.22
 Nodes (3): fl_centroid(), fl_norm(), fl_parse()
 
-### Community 114 - "session.tsx"
-Cohesion: 0.36
-Nodes (9): useRegisterPushToken(), useSyncAccountLanguage(), useSyncOfflineCheckins(), setSessionExpiredHandler(), getQueueCount(), fetchPushToken(), SessionContext, SessionProvider() (+1 more)
+### Community 114 - "http.ts"
+Cohesion: 0.17
+Nodes (12): ALL_TAB, useStaffList(), addressReady, DEFAULT_SERVER_ADDRESS, Params, setSessionExpiredHandler(), SessionContext, SessionContextValue (+4 more)
 
 ### Community 115 - "Web (admin/HR)"
 Cohesion: 0.18
 Nodes (10): Core HR, Gap fitur KantorKu vs HRIS kita, General & Employee Services, Learning & Development, Mobile (ESS App), Payroll, Finance & Benefits, Performance Management, Prioritas (+2 more)
 
 ### Community 116 - "TaxScreen.tsx"
-Cohesion: 0.25
-Nodes (16): Line(), makeStyles(), PayslipCompareCard(), PayslipHero(), PayslipHistoryCard(), PayslipInfoCard(), PayslipLinesCard(), BAR_HEIGHT (+8 more)
+Cohesion: 0.19
+Nodes (19): makeStyles(), PdfButton(), Line(), makeStyles(), PayslipCompareCard(), PayslipHero(), PayslipHistoryCard(), PayslipInfoCard() (+11 more)
 
-### Community 121 - "index.ts"
-Cohesion: 0.38
-Nodes (6): useProfile(), cache, useProfilePhoto(), EASE, UpdateStage, hrisApi
+### Community 121 - "useProfilePhotoScreen.ts"
+Cohesion: 0.18
+Nodes (16): expo-file-system, EASE, UpdateStage, useProfilePhotoScreen(), DocPreview(), makeStyles(), Card(), makeStyles() (+8 more)
 
-### Community 122 - "ClockScreen.tsx"
-Cohesion: 0.09
-Nodes (35): react-native-svg, ClockScreen(), DoneMeta(), makeStyles(), makeStyles(), MapPreview(), CircleAnim, EASE (+27 more)
+### Community 122 - "SamsungRing.tsx"
+Cohesion: 0.23
+Nodes (14): CircleAnim, EASE, FaceRing(), GAnim, LineAnim, TICKS, clamp(), DIRECTION_ANGLE (+6 more)
 
 ### Community 123 - "docker_credentials_local"
 Cohesion: 0.29
 Nodes (3): push-rilis.sh script, rilis-apk.sh script, tes-push.sh script
 
-### Community 124 - "index.tsx"
-Cohesion: 0.15
-Nodes (10): en, id, Bahasa, Ctx, KAMUS, LanguageCtx, Param, ID (+2 more)
+### Community 124 - "formatShortDateWithYear"
+Cohesion: 0.22
+Nodes (9): ID, LabelCategory, MONTHS_ID, translateNotification(), daysUntil(), fetchDocuments(), mapDocument(), mapNotification() (+1 more)
 
 ### Community 132 - "ConfirmDialog.tsx"
-Cohesion: 0.28
-Nodes (8): ConfirmContext, ConfirmDialog(), ConfirmFn, ConfirmOptions, makeStyles(), Rect, Req, TONE_ICONS
+Cohesion: 0.17
+Nodes (16): App(), expo-status-bar, ConfirmContext, ConfirmDialog(), ConfirmFn, ConfirmOptions, ConfirmProvider(), makeStyles() (+8 more)
 
 ### Community 133 - "trustedTime.ts"
-Cohesion: 0.18
-Nodes (5): expo, Anchor, HrisClockNative, Native, TrustedTime
+Cohesion: 0.13
+Nodes (13): expo, useRegisterPushToken(), useSyncAccountLanguage(), useSyncOfflineCheckins(), useLanguage(), getQueueCount(), fetchPushToken(), Anchor (+5 more)
 
 ### Community 134 - "useOvertime.ts"
-Cohesion: 0.33
-Nodes (6): OVERTIME_LIMIT_HOURS, OVERTIME_PAY_PER_HOUR, useOvertime(), ALL_TAB, useStaffAttendance(), toISODate()
-
-### Community 135 - "push.ts"
 Cohesion: 0.25
-Nodes (6): expo-application, expo-constants, expo-device, expo-notifications, getCurrentPushToken(), TokenPush
+Nodes (8): OVERTIME_LIMIT_HOURS, OVERTIME_PAY_PER_HOUR, useOvertime(), ALL_TAB, useStaffAttendance(), OvertimeRecord, StaffAttendanceState, toISODate()
+
+### Community 135 - "HomeScreen.tsx"
+Cohesion: 0.13
+Nodes (24): DonutChart(), Props, Segment, styles, Props, RadialGlow(), ATTENDANCE_STATUS_TONE, AttendanceHistoryScreen() (+16 more)
 
 ### Community 136 - "GlassPill.tsx"
-Cohesion: 0.40
-Nodes (5): expo-blur, GlassPill(), Props, styles, useThemeMode()
+Cohesion: 0.18
+Nodes (11): expo-blur, GlassPill(), Props, styles, makeStyles(), NavBar(), AttendanceStack(), LeaveStack() (+3 more)
 
 ### Community 137 - "useProfileEdit.ts"
-Cohesion: 0.32
-Nodes (11): useProfileData(), useProfileEdit(), EditableProfile, EmergencyContact, FamilyMember, completenessPercent(), findShortcomings(), isValidEmail() (+3 more)
+Cohesion: 0.33
+Nodes (11): useProfileData(), useProfileEdit(), EditableProfile, PersonalProfile, ProfileChange, completenessPercent(), findShortcomings(), isValidEmail() (+3 more)
 
 ### Community 138 - "ProfileScreen.tsx"
+Cohesion: 0.14
+Nodes (19): expo-intent-launcher, expo-splash-screen, expo-updates, AnimatedSplash(), EASE, makeStyles(), NAMA, SPLASH_DURATION_MS (+11 more)
+
+### Community 140 - "translate"
 Cohesion: 0.09
-Nodes (35): App(), expo-file-system, expo-intent-launcher, expo-splash-screen, expo-status-bar, expo-updates, AnimatedSplash(), EASE (+27 more)
+Nodes (26): ATTENDANCE_STATUS_LABEL, CORRECTION_STATUS_LABEL, CORRECTION_STATUS_TONE, DOC_STATUS_LABEL, DOC_STATUS_TONE, LEAVE_TYPE_LABEL, LEAVE_TYPE_TONE, leaveDecisionBadge() (+18 more)
+
+### Community 141 - "primaryButtonStyle"
+Cohesion: 0.14
+Nodes (22): react-native-svg, PrimaryButton(), Props, styles, makeStyles(), makeStyles(), makeStyles(), makeStyles() (+14 more)
+
+### Community 142 - "FaceCheck.tsx"
+Cohesion: 0.22
+Nodes (16): useFaceEnroll(), FaceCheck(), makeStyles(), advanceSequence(), Challenge, detectFace(), getFaceEmbedding(), getSpoofScore() (+8 more)
+
+### Community 144 - "useAttendanceCorrection.ts"
+Cohesion: 0.17
+Nodes (14): CHECKIN_MAX_MINUTES, CHECKIN_MIN_MINUTES, CHECKOUT_MAX_MINUTES, CHECKOUT_MIN_MINUTES, DEFAULT_CHECKIN_MINUTES, DEFAULT_CHECKOUT_MINUTES, useAttendanceCorrection(), CorrectionKind (+6 more)
+
+### Community 145 - "AnnouncementsScreen.tsx"
+Cohesion: 0.32
+Nodes (10): makeStyles(), SegmentedControl(), AnnouncementsList(), AnnouncementsScreen(), Card(), makeStyles(), CATEGORY_ICONS, makeStyles() (+2 more)
+
+### Community 146 - "AppraisalScreen.tsx"
+Cohesion: 0.40
+Nodes (11): AppraisalSaya(), AppraisalScreen(), GoalCard(), makeStyles(), RaterRow(), ScoreRing(), Baris(), makeStyles() (+3 more)
+
+### Community 147 - "ClockScreen"
+Cohesion: 0.24
+Nodes (11): useClock(), setTabBarHidden(), ClockScreen(), DoneMeta(), makeStyles(), isFaceSupported(), difference(), formatDuration() (+3 more)
+
+### Community 148 - "StaffAttendanceScreen.tsx"
+Cohesion: 0.27
+Nodes (9): en, id, Kunci, AttendanceCard(), Cell(), makeStyles(), StaffAttendanceScreen(), TABS (+1 more)
+
+### Community 149 - "Reveal.tsx"
+Cohesion: 0.22
+Nodes (9): EASE, LAYOUT_KEYS, ListSlot, RevealContext, RevealCtx, RevealScope(), styles, consumeBackMark() (+1 more)
+
+### Community 150 - "request"
+Cohesion: 0.22
+Nodes (9): attachAll(), uploadFile(), encode(), get(), put(), request(), serverMessage(), upload() (+1 more)
+
+### Community 151 - "useNotification.ts"
+Cohesion: 0.50
+Nodes (4): NotificationTab, useNotification(), setUnreadCount(), AppNotification
 
 ## Knowledge Gaps
 - **29 isolated node(s):** `Foundation`, `@expo/metro-runtime`, `expo-build-properties`, `react-native-screens`, `@babel/core` (+24 more)
-  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 531 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
-- **88 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 536 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
+- **89 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `HrisApi` connect `HrisApi` to `erpnextApi.ts`, `index.ts`, `services/types.ts`, `mockApi.ts`?**
+- **Why does `HrisApi` connect `HrisApi` to `erpnextApi.ts`, `useSession`, `services/types.ts`, `mockApi.ts`?**
   _High betweenness centrality (0.060) - this node is a cross-community bridge._
 - **What connects `Foundation`, `@expo/metro-runtime`, `expo-build-properties` to the rest of the system?**
   _29 weakly-connected nodes found - possible documentation gaps or missing edges._
-- **Should `date.ts` be split into smaller, more focused modules?**
-  _Cohesion score 0.125 - nodes in this community are weakly interconnected._
-- **Why does `react` connect `react` to `date.ts`, `useTheme`, `ConfirmDialog.tsx`, `LeaveFormCards.tsx`, `useFaceEnroll.ts`, `useOvertime.ts`, `GlassPill.tsx`, `useT`, `ProfileScreen.tsx`, `package.json`, `useProfileEdit.ts`, `HomeScreen.tsx`, `services/types.ts`, `useSession`, `LeaveRequestScreen.tsx`, `useProfileUpload.ts`, `useEmployeeDocumentDetail.ts`, `offlineQueue.ts`, `FloatingTabBar.tsx`, `useProfileSecurity.ts`, `TripExpenseCard.tsx`, `session.tsx`, `TaxScreen.tsx`, `index.ts`, `ClockScreen.tsx`, `index.tsx`?**
-  _High betweenness centrality (0.059) - this node is a cross-community bridge._
-- **Should `useTheme` be split into smaller, more focused modules?**
-  _Cohesion score 0.05195392842451666 - nodes in this community are weakly interconnected._
-- **Why does `useT()` connect `useT` to `date.ts`, `useTheme`, `react`, `useFaceEnroll.ts`, `LeaveFormCards.tsx`, `useProfileEdit.ts`, `ProfileScreen.tsx`, `HomeScreen.tsx`, `useSession`, `LeaveRequestScreen.tsx`, `useProfileUpload.ts`, `useEmployeeDocumentDetail.ts`, `FloatingTabBar.tsx`, `translate`, `useProfileSecurity.ts`, `TripExpenseCard.tsx`, `TaxScreen.tsx`, `index.ts`, `ClockScreen.tsx`, `index.tsx`?**
-  _High betweenness centrality (0.051) - this node is a cross-community bridge._
+- **Should `react` be split into smaller, more focused modules?**
+  _Cohesion score 0.14244306418219463 - nodes in this community are weakly interconnected._
+- **Why does `react` connect `react` to `date.ts`, `react`, `ConfirmDialog.tsx`, `useFaceEnroll.ts`, `useOvertime.ts`, `HomeScreen.tsx`, `GlassPill.tsx`, `useProfileEdit.ts`, `package.json`, `ProfileScreen.tsx`, `trustedTime.ts`, `primaryButtonStyle`, `useTheme`, `useT`, `useAttendanceCorrection.ts`, `AnnouncementsScreen.tsx`, `AppraisalScreen.tsx`, `FaceCheck.tsx`, `StaffAttendanceScreen.tsx`, `Reveal.tsx`, `useNotification.ts`, `LeaveFormCards.tsx`, `services/types.ts`, `useSession`, `LeaveRequestScreen.tsx`, `useProfileUpload.ts`, `AttendanceCorrectionHistoryScreen.tsx`, `offlineQueue.ts`, `FloatingTabBar.tsx`, `useProfileSecurity.ts`, `TripExpenseCard.tsx`, `http.ts`, `TaxScreen.tsx`, `useProfilePhotoScreen.ts`, `SamsungRing.tsx`?**
+  _High betweenness centrality (0.054) - this node is a cross-community bridge._
 - **Should `useFaceEnroll.ts` be split into smaller, more focused modules?**
-  _Cohesion score 0.06265664160401002 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.09523809523809523 - nodes in this community are weakly interconnected._
+- **Why does `useT()` connect `useT` to `date.ts`, `react`, `react`, `useFaceEnroll.ts`, `LeaveFormCards.tsx`, `trustedTime.ts`, `HomeScreen.tsx`, `useProfileEdit.ts`, `ProfileScreen.tsx`, `translate`, `primaryButtonStyle`, `useTheme`, `FaceCheck.tsx`, `useAttendanceCorrection.ts`, `AnnouncementsScreen.tsx`, `AppraisalScreen.tsx`, `ClockScreen`, `StaffAttendanceScreen.tsx`, `HomeScreen.tsx`, `services/types.ts`, `useSession`, `LeaveRequestScreen.tsx`, `useProfileUpload.ts`, `AttendanceCorrectionHistoryScreen.tsx`, `FloatingTabBar.tsx`, `useProfileSecurity.ts`, `TripExpenseCard.tsx`, `http.ts`, `TaxScreen.tsx`, `useProfilePhotoScreen.ts`?**
+  _High betweenness centrality (0.045) - this node is a cross-community bridge._
+- **Should `mockApi.ts` be split into smaller, more focused modules?**
+  _Cohesion score 0.08677098150782361 - nodes in this community are weakly interconnected._

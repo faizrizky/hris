@@ -24,7 +24,6 @@ export function useHome() {
   const confirm = useConfirm();
   const { employee } = useSession();
   const [now, setNow] = useState(() => new Date());
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const navigation = useNavigation<AppNavigation>();
   const [notifications, setNotifications] = useState<FeedItem[] | null>(null);
   const [clock, setClock] = useState<ClockState | null>(null);
@@ -96,8 +95,6 @@ export function useHome() {
   useActivePolling(refreshClock, 20_000, !!employee);
   return {
     now,
-    isMenuOpen,
-    setIsMenuOpen,
     navigation,
     notifications,
     clock,

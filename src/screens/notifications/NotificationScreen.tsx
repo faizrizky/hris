@@ -14,6 +14,8 @@ import { useT } from "@/i18n";
 import { EmptyState } from "@/components/EmptyState";
 import { goBackOrHome } from "@/navigation/navigationBack";
 import { useNotification } from "@/hooks/useNotification";
+import { SegmentedControl } from "@/components/SegmentedControl";
+import { AnnouncementsList } from "@/screens/announcements/AnnouncementsScreen";
 
 const CATEGORY_ICONS: Record<NotifCategory, keyof typeof Ionicons.glyphMap> = {
   Approval: "checkmark-done-outline",
@@ -24,8 +26,18 @@ const CATEGORY_ICONS: Record<NotifCategory, keyof typeof Ionicons.glyphMap> = {
 };
 
 export function NotificationScreen({ navigation }: ScreenProps) {
-  const { items, errorMessage, load, unreadCount, markRead, open, groups } =
-    useNotification({ navigation });
+  const {
+    items,
+    errorMessage,
+    load,
+    unreadCount,
+    markRead,
+    open,
+    groups,
+    activeTab,
+    setActiveTab,
+    announcementOpenId,
+  } = useNotification({ navigation });
   const t = useT();
   const insets = useSafeAreaInsets();
   const c = useTheme();
@@ -45,85 +57,104 @@ export function NotificationScreen({ navigation }: ScreenProps) {
           <Ionicons name="chevron-back" size={18} color={c.ink} />
         </Pressable>
         <Text style={styles.headerTitle}>{t("nt.judul")}</Text>
-        <Pressable
-          onPress={() => markRead()}
-          disabled={unreadCount === 0}
-          hitSlop={8}
-        >
-          <Text
-            style={[
-              styles.markAll,
-              unreadCount === 0 && { color: c.mutedLabel },
-            ]}
+        {activeTab === "inbox" ? (
+          <Pressable
+            onPress={() => markRead()}
+            disabled={unreadCount === 0}
+            hitSlop={8}
           >
-            {t("nt.tandai")}
-          </Text>
-        </Pressable>
+            <Text
+              style={[
+                styles.markAll,
+                unreadCount === 0 && { color: c.mutedLabel },
+              ]}
+            >
+              {t("nt.tandai")}
+            </Text>
+          </Pressable>
+        ) : null}
       </View>
 
-      <ScrollView contentContainerStyle={styles.content}>
-        {errorMessage && items === null ? (
-          <ErrorState message={errorMessage} onRetry={load} />
-        ) : items === null ? (
-          <View style={{ gap: 9 }}>
-            {[0, 1, 2, 3].map((i) => (
-              <NotificationCardSkeleton key={i} />
-            ))}
-          </View>
-        ) : items.length === 0 ? (
-          <EmptyState
-            icon={ICON.bell}
-            title={t("nt.kosongJudul")}
-            text={t("nt.kosongIsi")}
-          />
-        ) : (
-          groups.map((g) => (
-            <View key={g}>
-              <Text style={styles.groupLabel}>{g}</Text>
-              <View style={{ gap: 9 }}>
-                {items
-                  .filter((n) => n.group === g)
-                  .map((n) => {
-                    const tone = c[n.tone];
-                    return (
-                      <Pressable
-                        key={n.id}
-                        onPress={() => open(n)}
-                        style={[
-                          styles.card,
-                          !n.read && { backgroundColor: c.unread },
-                        ]}
-                      >
-                        <View
+      <SegmentedControl
+        items={[
+          { key: "inbox", label: t("nt.tabInbox") },
+          { key: "announcements", label: t("nt.tabPengumuman") },
+        ]}
+        value={activeTab}
+        onChange={setActiveTab}
+        style={styles.tabs}
+      />
+
+      {activeTab === "announcements" ? (
+        <AnnouncementsList
+          key={announcementOpenId ?? "none"}
+          initialOpenId={announcementOpenId}
+        />
+      ) : (
+        <ScrollView contentContainerStyle={styles.content}>
+          {errorMessage && items === null ? (
+            <ErrorState message={errorMessage} onRetry={load} />
+          ) : items === null ? (
+            <View style={{ gap: 9 }}>
+              {[0, 1, 2, 3].map((i) => (
+                <NotificationCardSkeleton key={i} />
+              ))}
+            </View>
+          ) : items.length === 0 ? (
+            <EmptyState
+              icon={ICON.bell}
+              title={t("nt.kosongJudul")}
+              text={t("nt.kosongIsi")}
+            />
+          ) : (
+            groups.map((g) => (
+              <View key={g}>
+                <Text style={styles.groupLabel}>{g}</Text>
+                <View style={{ gap: 9 }}>
+                  {items
+                    .filter((n) => n.group === g)
+                    .map((n) => {
+                      const tone = c[n.tone];
+                      return (
+                        <Pressable
+                          key={n.id}
+                          onPress={() => open(n)}
                           style={[
-                            styles.icon,
-                            { backgroundColor: "transparent" },
+                            styles.card,
+                            !n.read && { backgroundColor: c.unread },
                           ]}
                         >
-                          <Ionicons
-                            name={CATEGORY_ICONS[n.category]}
-                            color={tone.ink}
-                            size={26}
-                          />
-                        </View>
+                          <View
+                            style={[
+                              styles.icon,
+                              { backgroundColor: "transparent" },
+                            ]}
+                          >
+                            <Ionicons
+                              name={CATEGORY_ICONS[n.category]}
+                              color={tone.ink}
+                              size={26}
+                            />
+                          </View>
 
-                        <View style={{ flex: 1, minWidth: 0 }}>
-                          <Text style={styles.title}>{n.title}</Text>
-                          <Text style={styles.body}>{n.body}</Text>
-                          <Text style={styles.time}>
-                            {n.timeLabel} · {t(`cat.${n.category}`)}
-                          </Text>
-                        </View>
+                          <View style={{ flex: 1, minWidth: 0 }}>
+                            <Text style={styles.title}>{n.title}</Text>
+                            <Text style={styles.body}>{n.body}</Text>
+                            <Text style={styles.time}>
+                              {n.timeLabel} · {t(`cat.${n.category}`)}
+                            </Text>
+                          </View>
 
-                        {!n.read && <View style={styles.dot} />}
-                      </Pressable>
-                    );
-                  })}
+                          {!n.read && <View style={styles.dot} />}
+                        </Pressable>
+                      );
+                    })}
+                </View>
               </View>
-            </View>
-          ))
-        )}
-      </ScrollView>
+            ))
+          )}
+        </ScrollView>
+      )}
     </View>
   );
 }
@@ -147,6 +178,7 @@ function NotificationCardSkeleton() {
 const makeStyles = (c: Palette) =>
   StyleSheet.create({
     container: { flex: 1, backgroundColor: c.bg },
+    tabs: { marginHorizontal: 18, marginBottom: 12 },
 
     header: {
       flexDirection: "row",

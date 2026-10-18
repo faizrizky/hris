@@ -24,15 +24,6 @@ export function AnnouncementsScreen({ navigation, route }: ScreenProps) {
   const insets = useSafeAreaInsets();
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
-  const announcementList = useLoad(
-    () => hrisApi.getAnnouncements(),
-    "pengumuman",
-  );
-  const [openId, setOpenId] = useState<string | null>(
-    getRouteParams<{ id?: string }>(route).id ?? null,
-  );
-  const items = announcementList.data ?? [];
-
   return (
     <View style={styles.container}>
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
@@ -47,51 +38,73 @@ export function AnnouncementsScreen({ navigation, route }: ScreenProps) {
           <Text style={styles.headerSub}>{t("an.sub")}</Text>
         </View>
       </View>
-
-      <ScrollView contentContainerStyle={styles.list}>
-        {announcementList.error && !announcementList.data ? (
-          <ErrorState
-            message={announcementList.error}
-            onRetry={announcementList.retry}
-          />
-        ) : announcementList.isLoading ? (
-          <View style={{ gap: 10 }}>
-            {[0, 1, 2].map((i) => (
-              <View key={i} style={styles.card}>
-                <Skeleton width="60%" height={13} radius={4} />
-                <Skeleton
-                  width="90%"
-                  height={10}
-                  radius={4}
-                  style={{ marginTop: 10 }}
-                />
-                <Skeleton
-                  width="70%"
-                  height={10}
-                  radius={4}
-                  style={{ marginTop: 6 }}
-                />
-              </View>
-            ))}
-          </View>
-        ) : items.length === 0 ? (
-          <EmptyState
-            icon={ICON.bell}
-            title={t("an.kosongJudul")}
-            text={t("an.kosongIsi")}
-          />
-        ) : (
-          items.map((a) => (
-            <Card
-              key={a.id}
-              a={a}
-              openId={openId === a.id}
-              onPress={() => setOpenId(openId === a.id ? null : a.id)}
-            />
-          ))
-        )}
-      </ScrollView>
+      <AnnouncementsList
+        initialOpenId={getRouteParams<{ id?: string }>(route).id ?? null}
+      />
     </View>
+  );
+}
+
+// Daftar pengumuman tanpa header: dipakai layar sendiri dan tab Pengumuman di Notifikasi.
+export function AnnouncementsList({
+  initialOpenId,
+}: {
+  initialOpenId: string | null;
+}) {
+  const t = useT();
+  const c = useTheme();
+  const styles = useMemo(() => makeStyles(c), [c]);
+  const announcementList = useLoad(
+    () => hrisApi.getAnnouncements(),
+    "pengumuman",
+  );
+  const [openId, setOpenId] = useState<string | null>(initialOpenId);
+  const items = announcementList.data ?? [];
+
+  return (
+    <ScrollView contentContainerStyle={styles.list}>
+      {announcementList.error && !announcementList.data ? (
+        <ErrorState
+          message={announcementList.error}
+          onRetry={announcementList.retry}
+        />
+      ) : announcementList.isLoading ? (
+        <View style={{ gap: 10 }}>
+          {[0, 1, 2].map((i) => (
+            <View key={i} style={styles.card}>
+              <Skeleton width="60%" height={13} radius={4} />
+              <Skeleton
+                width="90%"
+                height={10}
+                radius={4}
+                style={{ marginTop: 10 }}
+              />
+              <Skeleton
+                width="70%"
+                height={10}
+                radius={4}
+                style={{ marginTop: 6 }}
+              />
+            </View>
+          ))}
+        </View>
+      ) : items.length === 0 ? (
+        <EmptyState
+          icon={ICON.bell}
+          title={t("an.kosongJudul")}
+          text={t("an.kosongIsi")}
+        />
+      ) : (
+        items.map((a) => (
+          <Card
+            key={a.id}
+            a={a}
+            openId={openId === a.id}
+            onPress={() => setOpenId(openId === a.id ? null : a.id)}
+          />
+        ))
+      )}
+    </ScrollView>
   );
 }
 

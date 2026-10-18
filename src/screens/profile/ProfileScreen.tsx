@@ -146,6 +146,7 @@ export function ProfileScreen({ navigation }: ScreenProps) {
           />
         </View>
 
+        <SectionLabel title={t("profil.secAkun")} icon="person-outline" />
         <View style={styles.menuCard}>
           <MenuRow
             iconBg={c.info.bg}
@@ -162,6 +163,22 @@ export function ProfileScreen({ navigation }: ScreenProps) {
             title={t("profil.dokumen")}
             subtitle={t("profil.dokumenSub")}
             onPress={() => navigation.navigate("ProfileDocs")}
+            isLast
+          />
+        </View>
+
+        <SectionLabel
+          title={t("profil.secPengaturan")}
+          icon="settings-outline"
+        />
+        <View style={styles.menuCard}>
+          <MenuRow
+            iconBg={c.purple.bg}
+            ink={c.purple.ink}
+            icon="shield-checkmark-outline"
+            title={t("profil.keamanan")}
+            subtitle={t("profil.keamananSub")}
+            onPress={() => navigation.navigate("ProfileSecurity")}
           />
           <MenuRow
             iconBg={c.warn.bg}
@@ -204,15 +221,7 @@ export function ProfileScreen({ navigation }: ScreenProps) {
             title={t("profil.bahasa")}
             subtitle={t("profil.bahasaSub")}
             trailing={<LanguagePicker />}
-          />
-          <MenuRow
-            iconBg={c.purple.bg}
-            ink={c.purple.ink}
-            icon="shield-checkmark-outline"
-            title={t("profil.keamanan")}
-            subtitle={t("profil.keamananSub")}
             isLast
-            onPress={() => navigation.navigate("ProfileSecurity")}
           />
         </View>
 
@@ -240,6 +249,23 @@ export function ProfileScreen({ navigation }: ScreenProps) {
           <Text style={styles.logoutText}>{t("umum.keluar")}</Text>
         </Pressable>
       </ScrollView>
+    </View>
+  );
+}
+
+function SectionLabel({
+  title,
+  icon,
+}: {
+  title: string;
+  icon: keyof typeof Ionicons.glyphMap;
+}) {
+  const c = useTheme();
+  const styles = useMemo(() => makeStyles(c), [c]);
+  return (
+    <View style={styles.sectionLabelRow}>
+      <Text style={styles.sectionLabel}>{title}</Text>
+      <Ionicons name={icon} size={18} color={c.mutedLabel} />
     </View>
   );
 }
@@ -410,6 +436,21 @@ const makeStyles = (c: Palette) =>
     },
     statDivider: { width: 1, backgroundColor: c.hair },
 
+    sectionLabelRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      marginTop: 20,
+      marginBottom: 10,
+      paddingHorizontal: 4,
+    },
+    sectionLabel: {
+      fontSize: 11.5,
+      fontWeight: "700",
+      letterSpacing: 1.2,
+      textTransform: "uppercase",
+      color: c.muted,
+    },
     menuCard: {
       backgroundColor: c.card,
       borderWidth: 1,
