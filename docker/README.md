@@ -987,11 +987,20 @@ App `hris_ats` adalah custom Frappe app yang menampung modul **Resume Screening*
    - Menjalankan `bench build --app hris_ats` untuk mengompilasi aset dan terjemahan.
    - Menjalankan `clear-cache` dan memuat ulang service Python.
 
+   **Opsi `--with-browsers` (Mode Stealth Scrapling):**
+   ```sh
+   ./dev-ats.sh --with-browsers
+   ```
+   Secara default, browser headless (Chromium melalui Playwright/Patchright) **tidak diunduh** saat menjalankan `./dev-ats.sh`, sehingga dependensi Scrapling tetap ringan dan pengambilan halaman biasa (HTTP via `curl_cffi`) tetap berfungsi penuh.
+   
+   Bila ingin mengaktifkan mode stealth (`StealthyFetcher`), jalankan dengan opsi `--with-browsers`. Opsi ini akan menjalankan `scrapling install` di setiap service Python. Pemasangan browser ini menambah ukuran disk sekitar 300–500 MB per container/service.
+
 ### Catatan untuk Image Produksi
 
 Untuk image produksi / staging:
 - Source code app `hris_ats` harus dipindahkan ke repositori git tersendiri.
 - Repositori git tersebut kemudian didaftarkan ke `docker/apps.json`.
 - Image baru dibangun lewat `./build-image.sh`.
+- **Langkah build browser untuk mode stealth:** Jika lingkungan produksi membutuhkan mode stealth Scrapling, build image produksi memerlukan langkah tambahan di Containerfile/Dockerfile produksi untuk menjalankan `scrapling install` (atau `playwright install chromium && playwright install-deps chromium`) agar browser tersedia di dalam image akhir. Tanpa langkah ini, image hanya mendukung mode fetcher biasa (non-stealth).
 - **Penting:** Jangan menambahkan `hris_ats` ke `docker/apps.json` selama fase pengembangan lokal saat ini.
 

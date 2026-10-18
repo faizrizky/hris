@@ -5,10 +5,23 @@
 #
 # Penggunaan:
 #   cd docker
-#   ./dev-ats.sh
+#   ./dev-ats.sh [--with-browsers]
 # ===========================================================================
 set -euo pipefail
 cd "$(dirname "${BASH_SOURCE[0]}")"
+
+WITH_BROWSERS=0
+for arg in "$@"; do
+  case "$arg" in
+    --with-browsers)
+      WITH_BROWSERS=1
+      ;;
+    *)
+      echo "Opsi tidak dikenal: $arg" >&2
+      exit 1
+      ;;
+  esac
+done
 
 [ -f .env ] && { set -a; . ./.env; set +a; }
 SITE_NAME="${SITE_NAME:-hris.localhost}"
@@ -22,6 +35,10 @@ PYTHON_SERVICES=("backend" "queue-short" "queue-long" "scheduler")
 for svc in "${PYTHON_SERVICES[@]}"; do
   echo "[dev-ats] Memasang hris_ats di virtualenv service $svc..."
   docker compose exec -T "$svc" env/bin/pip install -q -e apps/hris_ats
+  if [ "$WITH_BROWSERS" -eq 1 ]; then
+    echo "[dev-ats] Memasang browser Scrapling di virtualenv service $svc..."
+    docker compose exec -T "$svc" env/bin/scrapling install
+  fi
 done
 
 # 3. Pastikan hris_ats tercantum di sites/apps.txt

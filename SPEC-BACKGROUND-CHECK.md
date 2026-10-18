@@ -75,9 +75,9 @@ Alur:
 | `skck_status` | Select `Tidak diunggah` / `Belum diperiksa` / `Bersih` / `Ada catatan` / `Kedaluwarsa` | Diisi HR. `Kedaluwarsa` otomatis bila `skck_valid_until` < hari ini. |
 | `purge_after` | Date, read only | Tanggal penghapusan temuan mentah (bagian 8). |
 
-Child `Background Check Account`: `platform` (Link Background Check Platform), `username`, `profile_url` (read only), `declared_by` (Select `Candidate` / `HR`), `exists` (Check, read only), `last_active` (Datetime, read only), `post_access` (Select `API` / `Manual review only` / `Not supported`).
+Child `Background Check Account`: `platform` (Link Background Check Platform), `username`, `profile_url` (read only), `declared_by` (Select `Candidate` / `HR`), `exists` (Check, read only), `last_active` (Datetime, read only), `post_access` (Select `API` / `Manual review only` / `Not supported`), `display_name`, `bio_snippet` (maks. 300 karakter), `profile_location` (read only, dari halaman profil publik), `identity_match` (Int 0–100, read only), `identity_reasons` (Small Text, read only). Lihat 6.2.1.
 
-Child `Background Check Source Run`: `source` (Select `Platform` / `Article` / `File` / `Case history` / `Posts`), `status` (`Pending` / `Crawling` / `Done` / `Failed` / `Skipped`), `items_found` (Int), `started_on`, `finished_on`, `error`.
+Child `Background Check Source Run`: `source` (Select `Platform` / `Article` / `File` / `Case history` / `Posts`), `status` (`Pending` / `Crawling` / `Done` / `Failed` / `Skipped`), `items_found` (Int), `started_on`, `finished_on`, `error`, `fetch_mode_used` (Data), `robots_ignored_count` (Int).
 
 Child `Background Check Consent Scope`: `source`, `granted` (Check).
 
@@ -96,6 +96,9 @@ Doctype terpisah, bukan tabel anak, karena jumlahnya bisa ratusan per kandidat d
 | `file_type` | Data | Untuk File: PDF, DOCX, dsb. |
 | `match_confidence` | Int 0–100 | Bagian 6.2. Di bawah ambang tidak ditampilkan secara default. |
 | `match_reasons` | Small Text | Mis. "Nama persis + kota Pekanbaru + perusahaan ABC". |
+| `text_source` | Select `Cuplikan` / `Teks lengkap` / `PDF putusan` | Dari teks mana skor kecocokan dihitung. Makin lengkap, makin bisa dipercaya. |
+| `evidence_excerpt` | Small Text, maks. 600 karakter | Potongan teks di sekitar nama yang menjadi bukti. Teks lengkap/PDF **tidak** disimpan (minimisasi data); cukup potongan ini + URL. |
+| `detail_url`, `pdf_url` | Data | Untuk Case: halaman detail putusan dan berkas PDF-nya. |
 | `category` | Select `Prestasi` / `Profesional` / `Netral` / `Berisiko` | |
 | `risk_flags` | Small Text | Kategori leksikon yang cocok (bagian 6.5). |
 | `severity` | Select `Info` / `Rendah` / `Sedang` / `Tinggi` | |
@@ -128,6 +131,20 @@ Isi awal disusun tim dan ditinjau Legal/HR. Kategori yang menyangkut agama, suku
 | `retention_days` | Default 90 hari setelah keputusan akhir pelamar. |
 | `consent_text` + `consent_text_version` | Teks persetujuan; versi naik setiap kali teks diubah. |
 
+Bagian **Mode pengambilan halaman** (lihat 5.1). Semua field di bagian ini memakai `permlevel 1`: hanya **System Manager** yang bisa mengubahnya; HR hanya bisa melihat.
+
+| Field | Default | Keterangan |
+|---|---|---|
+| `fetch_respect_robots` | 1 | Patuhi robots.txt. Bila 0, halaman yang dilarang robots.txt tetap diambil. |
+| `fetch_identity` | `Company` | Select `Company` / `Browser`. `Company`: User-Agent dari `fetch_user_agent`, tanpa peniruan. `Browser`: meniru header dan TLS fingerprint browser (fitur `impersonate` Scrapling). |
+| `fetch_user_agent` | `"<Nama Perusahaan> HR Background Check (+email kontak)"` | Dipakai bila `fetch_identity = Company`. |
+| `fetch_stealth_mode` | 0 | Pakai `StealthyFetcher` (browser + penanganan tantangan anti-bot seperti Cloudflare). Butuh browser terpasang (5.1). |
+| `fetch_stealth_domains` | kosong | Daftar domain, satu per baris. Bila diisi, mode stealth hanya dipakai untuk domain ini; domain lain tetap mode biasa. Kosong = semua domain. |
+| `fetch_browser_status` | read only | `Terpasang` / `Tidak terpasang`, dicek saat Settings dibuka. |
+| `fetch_risk_acknowledged` | 0 | Wajib dicentang sebelum salah satu saklar di atas dilonggarkan dari default. Menyimpan `fetch_risk_ack_by` dan `fetch_risk_ack_on`. |
+
+Validasi: menyimpan Settings dengan `fetch_respect_robots = 0`, `fetch_identity = Browser`, atau `fetch_stealth_mode = 1` ditolak bila `fetch_risk_acknowledged` belum dicentang. Teks di samping kotak centang menjelaskan risikonya (5.1).
+
 ## 5. Sumber data
 
 | Sumber | Cara | Catatan |
@@ -139,6 +156,52 @@ Isi awal disusun tim dan ditinjau Legal/HR. Kategori yang menyangkut agama, suku
 | Posts | Hanya platform dengan API resmi yang mengizinkan membaca post publik: X (API berbayar), YouTube, GitHub (relevan untuk posisi teknis), Mastodon, Reddit. | Instagram, Facebook, TikTok, LinkedIn: tidak ada akses resmi untuk membaca post akun orang lain, dan scraping melanggar ketentuan layanannya. Untuk platform ini sistem hanya menampilkan tautan profil untuk ditinjau manual oleh HR (`post_access = Manual review only`). |
 
 Setiap sumber dibuat sebagai *provider* yang bisa diganti lewat Settings. Bila kredensial belum diisi, sumber itu berstatus `Skipped` dengan alasan yang jelas, bukan error.
+
+### 5.1 Mesin pengambil halaman: Scrapling
+
+Semua pengambilan dan penguraian halaman (cek profil publik, isi artikel, Direktori Putusan MA) memakai **Scrapling** (`scrapling[fetchers]==0.5`, BSD-3), lewat satu modul pembungkus `bgc/fetch.py`. Provider tidak boleh memanggil Scrapling atau `requests` langsung, supaya Settings 4.5 selalu berlaku.
+
+Agent-Reach tidak dipakai: dirancang untuk dijalankan agen LLM, dan aksesnya ke media sosial memakai cookie/login akun.
+
+Fitur Scrapling yang dipakai, dan untuk apa:
+
+| Fitur | Dipakai untuk |
+|---|---|
+| `Fetcher` / `FetcherSession` (+ `impersonate` sebagai setting) | Semua pengambilan halaman biasa. Session dipakai ulang dalam satu job. |
+| `StealthyFetcher` / `StealthySession` (setting) | Mode stealth, hanya untuk domain yang diizinkan. |
+| **Spider** (`response.follow`, `concurrent_requests`, `robots_txt_obey`, `crawldir`) | Case history: menelusuri **semua halaman** hasil pencarian sampai `max_results_per_source`, lalu masuk ke halaman detail tiap putusan. `crawldir` di `sites/<site>/private/hris_ats/crawl/` supaya crawl yang terputus bisa dilanjutkan. |
+| **Selektor adaptif** (Smart Element Tracking) | Selektor halaman putusan MA dan halaman profil tetap menemukan elemennya walau tampilan situs berubah. Data pelacakan disimpan di `sites/<site>/private/hris_ats/`. |
+| **`find_similar`** | Mengambil semua baris hasil pencarian yang strukturnya sama, tanpa selektor rapuh per baris. |
+| Pencarian teks/regex di halaman | Menemukan nama kandidat dan istilah konteks di halaman detail. |
+| **`page.markdown()`** | Mengambil isi artikel yang bersih untuk pencocokan konteks, setelah penyedia pencarian Article dipilih. Bukan LLM. |
+
+Pengunduhan **PDF putusan** memakai `fetch.py` lalu dibaca dengan `pdfplumber` (sudah ada di image).
+
+Aturan yang sama dengan `fetch.py` wajib berlaku juga di Spider: domain terlarang, robots.txt sesuai setting, batas laju per domain lewat Redis, mode identitas/stealth, dan pencatatan `fetch_mode_used`. Kalau Spider tidak bisa dikonfigurasi untuk mematuhi semuanya, penelusuran halaman dikerjakan manual lewat `fetch.py`.
+
+Fitur Scrapling yang **tidak** dipakai:
+- `ProxyRotator`: fungsinya hanya menghindari blokir IP dari situs sumber; kalau situs sudah memblokir, itu keputusan mereka. Tidak tersedia juga sebagai setting.
+- Server MCP, Agent Skill, dan extra `[ai]`: untuk agen AI.
+
+Perilaku `bgc/fetch.py` menurut Settings:
+
+| Setting | Perilaku |
+|---|---|
+| Default (robots dipatuhi, identitas perusahaan, stealth mati) | `Fetcher`/`FetcherSession` tanpa `impersonate`, User-Agent perusahaan, robots.txt dicek dulu (Protego), batas laju per domain. |
+| `fetch_respect_robots = 0` | Pengecekan robots.txt dilewati. Batas laju tetap berlaku. |
+| `fetch_identity = Browser` | `Fetcher` dengan `impersonate` browser. |
+| `fetch_stealth_mode = 1` | `StealthyFetcher` untuk domain di `fetch_stealth_domains` (atau semua). Bila browser belum terpasang, sumber `Failed` dengan pesan "Mode stealth aktif tapi browser belum terpasang", bukan diam-diam turun ke mode biasa. |
+
+Yang tetap berlaku apa pun settingnya: batas laju per domain, cache 24 jam, persetujuan kandidat dan `consent_scope`, serta daftar yang tidak dibangun di bagian 2.1. Saklar ini hanya mengatur **cara** mengambil halaman, bukan **apa** yang boleh diambil: Instagram, Facebook, TikTok, dan LinkedIn tetap hanya tautan untuk ditinjau manual, dan tidak ada login atau cookie akun.
+
+**Browser untuk mode stealth** tidak dipasang secara default. Pemasangannya lewat opsi eksplisit: `docker/dev-ats.sh --with-browsers` untuk pengembangan, dan argumen build terpisah untuk image produksi. Ini menambah ukuran image beberapa ratus MB.
+
+**Jejak audit**: setiap `Background Check Source Run` mencatat `fetch_mode_used` (mis. `company+robots`, `browser`, `stealth`) dan jumlah halaman yang diambil dengan robots.txt diabaikan. Perubahan Settings tercatat lewat `track_changes`. Laporan PDF menyebut mode yang dipakai.
+
+**Risiko yang ditampilkan di samping `fetch_risk_acknowledged`**:
+- Menembus proteksi anti-bot dapat dianggap "menerobos atau menjebol sistem pengamanan" menurut UU ITE Pasal 30 ayat (3), dan melanggar ketentuan layanan situs sumber.
+- Mengabaikan robots.txt dan menyamar sebagai browser melanggar ketentuan layanan banyak situs dan bisa membuat IP server diblokir, termasuk untuk layanan lain yang berjalan di server yang sama.
+- Keputusan mengaktifkannya sebaiknya disetujui Legal dan dicatat.
 
 ## 6. Algoritma (tanpa LLM)
 
@@ -159,6 +222,21 @@ match_confidence = kemiripan_nama (0–50)
 - **konteks_cocok**: +15 per istilah konteks yang muncul dalam radius 300 karakter dari nama (kota, perusahaan, sekolah, jabatan), maksimal 40.
 - **bonus_unik**: +10 bila pencarian nama persis menghasilkan < 20 hasil (nama jarang); 0 untuk mononim.
 - Tingkat: ≥ 80 Tinggi, 50–79 Sedang, < 50 Rendah (disembunyikan secara default). Alasan kecocokan disimpan di `match_reasons`.
+- **Teks yang dipakai**: urutan prioritas PDF putusan → teks lengkap halaman (detail putusan / isi artikel) → cuplikan hasil pencarian. Skor dihitung ulang setiap kali teks yang lebih lengkap tersedia; `text_source` mencatat yang dipakai. Skor dari cuplikan saja dibatasi maksimal 70, karena konteksnya terlalu sedikit untuk tingkat Tinggi.
+- Bila nama muncul beberapa kali di teks lengkap, `konteks_cocok` dihitung di kemunculan dengan konteks terbanyak, dan potongan teks di sekitarnya disimpan sebagai `evidence_excerpt`.
+
+### 6.2.1 Kecocokan identitas akun platform
+
+Selain mengecek profil publik ada, halaman profil diurai untuk nama tampilan, bio, dan lokasi:
+
+```
+identity_match = kemiripan nama tampilan (0–50)   # rapidfuzz token_sort_ratio, skala sama dengan 6.2
+               + lokasi cocok dengan kota kandidat (0–20)
+               + bio menyebut perusahaan/sekolah/jabatan dari CV (0–20)
+               + akun dinyatakan sendiri oleh kandidat (+10)
+```
+
+Akun yang tidak dinyatakan kandidat dengan `identity_match` < 50 tidak ditampilkan sebagai milik kandidat. Platform terlarang (Instagram, Facebook, TikTok, LinkedIn) tidak diurai sama sekali; `identity_match` dibiarkan kosong.
 
 ### 6.3 Klasifikasi Article dan File
 Cocokkan judul + cuplikan ke leksikon:
@@ -170,8 +248,9 @@ Cocokkan judul + cuplikan ke leksikon:
 Severity temuan = severity leksikon tertinggi yang cocok, diturunkan satu tingkat bila `match_confidence` < 80.
 
 ### 6.4 Case history
-1. Ambil metadata putusan: jenis perkara (Pidana, Perdata, Perdata Khusus, Agama, TUN), nomor, pengadilan, tanggal register/upload/putus.
-2. Tentukan **peran** nama di dokumen dengan regex di sekitar nama: `Terdakwa`, `Tergugat`, `Penggugat`, `Pemohon`, `Termohon`, `Saksi`.
+1. Telusuri semua halaman hasil pencarian (Spider) sampai `max_results_per_source`, buka halaman detail tiap hasil, lalu ambil metadata putusan: jenis perkara (Pidana, Perdata, Perdata Khusus, Agama, TUN), nomor, pengadilan, tanggal register/upload/putus, dan tautan PDF.
+2. Unduh PDF putusan untuk hasil yang `kemiripan_nama` ≥ 80, lalu baca dengan `pdfplumber`. Dari bagian identitas para pihak di awal putusan, ambil peran, pekerjaan, dan kota/kabupaten alamat pihak yang namanya cocok. Pekerjaan dan kota dipakai sebagai istilah konteks di 6.2. Nama pihak lain, NIK, alamat lengkap, dan data selain pihak yang cocok tidak disimpan. PDF dibuang setelah dibaca.
+   Tentukan **peran** nama dengan regex di sekitar nama: `Terdakwa`, `Tergugat`, `Penggugat`, `Pemohon`, `Termohon`, `Saksi`. Peran dari PDF mengalahkan peran dari cuplikan. Bila PDF tidak tersedia atau tidak terbaca (hasil scan), peran diambil dari halaman detail dan `text_source = Teks lengkap`.
 3. Severity:
 
    | Jenis | Peran | Severity |
@@ -234,7 +313,7 @@ Kalimat yang nilainya nol dihilangkan. HR bisa menimpanya lewat `summary_hr`.
 - Setiap pembukaan dokumen dicatat (Access Log bawaan + `track_views`).
 - `purge_after` = tanggal keputusan akhir pelamar (Rejected/Hired) + `retention_days`. Job harian menghapus Finding, ringkasan otomatis, dan data akun setelah tanggal itu, dan hanya menyisakan level, kesimpulan HR, dan bukti persetujuan.
 - Kandidat berhak meminta salinan dan koreksi (UU PDP). Laporan PDF di atas juga dipakai untuk memenuhi permintaan ini.
-- Crawling memakai User-Agent yang menyebut nama perusahaan, mematuhi robots.txt, dibatasi laju per domain, dan menyimpan cache per kueri selama 24 jam supaya tidak membebani situs sumber.
+- Secara default crawling memakai User-Agent yang menyebut nama perusahaan dan mematuhi robots.txt; keduanya bisa dilonggarkan lewat Settings oleh System Manager (5.1). Batas laju per domain dan cache 24 jam per kueri selalu berlaku.
 
 ## 9. Pemicu dan perpindahan tahap
 - Tombol "Mulai background check" di Job Applicant (hanya bila Resume Screening `Done`) → Background Check dibuat, `recruitment_stage = Background Check`, email persetujuan terkirim.
@@ -244,12 +323,13 @@ Kalimat yang nilainya nol dihilangkan. HR bisa menimpanya lewat `summary_hr`.
 
 ## 10. Hal yang perlu diputuskan sebelum dibangun
 
-Sudah diputuskan: Dragonfly tidak dipakai; SKCK opsional.
+Sudah diputuskan: Dragonfly tidak dipakai; SKCK opsional; pengambil halaman memakai Scrapling dengan mode longgar yang bisa diaktifkan lewat Settings (5.1).
 
 Masih terbuka (tidak menghalangi pembangunan, karena sumbernya bisa dimatikan lewat Settings):
 1. **Penyedia pencarian web** untuk Article/File, beserta anggarannya.
 2. **API X** berbayar: perlu atau tidak? Tanpa itu, analisis post v1 hanya untuk YouTube, GitHub, Mastodon, dan Reddit.
 3. **Review Legal** atas teks persetujuan dan isi awal leksikon sebelum dipakai ke kandidat sungguhan.
+4. **Tanggal dan tempat lahir untuk pencocokan identitas** (opsional): putusan umumnya mencantumkan tempat/tanggal lahir pihak. Kalau kandidat mengisinya di form persetujuan, pencocokan perkara jauh lebih pasti. Datanya hanya dipakai untuk pencocokan, tidak ditampilkan di screening, dan tidak memengaruhi skor. Perlu diputuskan apakah field ini diminta.
 
 ## 11. Urutan pengerjaan setelah disetujui
 1. Doctype + settings + role + persetujuan (Web Form + email).
