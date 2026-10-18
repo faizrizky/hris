@@ -18,7 +18,7 @@ npx tsc --noEmit
 TMP=$(mktemp -d); trap 'rm -rf "$TMP"' EXIT
 npx eas-cli env:exec preview "npx expo export --clear --platform android --no-bytecode --no-minify --output-dir $TMP" --non-interactive >/dev/null 2>&1
 JS=$(ls "$TMP"/_expo/static/js/android/*.js | head -1)
-if ! grep -q "var hrisApi = _erpnextApi.erpnextApi" "$JS" || ! grep -q 'var ALAMAT_BAWAAN = "http' "$JS"; then
+if ! grep -q "var hrisApi = _erpnextApi.erpnextApi" "$JS" || ! grep -q 'var DEFAULT_SERVER_ADDRESS = "http' "$JS"; then
   echo "BATAL: bundel tidak memuat alamat server / memakai data contoh. Periksa env EAS preview (eas env:list preview)."; exit 1
 fi
 echo "Bundel memakai server asli."
