@@ -10,29 +10,29 @@ import React, {
   useState,
 } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { id, Kunci } from "./id";
+import { id, TranslationKey } from "./id";
 import { en } from "./en";
 
-export type Bahasa = "id" | "en";
+export type Language = "id" | "en";
 const KEY = "hris.bahasa";
-const KAMUS: Record<Bahasa, Record<Kunci, string>> = { id, en };
+const DICTIONARY: Record<Language, Record<TranslationKey, string>> = { id, en };
 
 // Bahasa aktif juga disimpan di luar React supaya kode non-komponen (mis.
 // penerjemah label server) bisa membacanya.
-let activeLanguage: Bahasa = "id";
-export function getActiveLanguage(): Bahasa {
+let activeLanguage: Language = "id";
+export function getActiveLanguage(): Language {
   return activeLanguage;
 }
 
 interface Ctx {
-  language: Bahasa;
-  setLanguage: (b: Bahasa) => void;
+  language: Language;
+  setLanguage: (b: Language) => void;
 }
 
 const LanguageCtx = createContext<Ctx | null>(null);
 
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
-  const [language, setLanguageState] = useState<Bahasa>("id");
+  const [language, setLanguageState] = useState<Language>("id");
 
   useEffect(() => {
     AsyncStorage.getItem(KEY)
@@ -45,7 +45,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
       .catch(() => {});
   }, []);
 
-  const setLanguage = useCallback((b: Bahasa) => {
+  const setLanguage = useCallback((b: Language) => {
     activeLanguage = b;
     setLanguageState(b);
     // Gagal menyimpan tidak boleh menggagalkan pergantian bahasa.
@@ -77,15 +77,15 @@ function content(text: string, param?: Param): string {
 }
 
 // Versi tanpa hook untuk kode di luar komponen (mis. pesan galat API).
-export function translate(cacheKey: Kunci, param?: Param): string {
-  return content(KAMUS[activeLanguage][cacheKey], param);
+export function translate(cacheKey: TranslationKey, param?: Param): string {
+  return content(DICTIONARY[activeLanguage][cacheKey], param);
 }
 
 export function useT() {
   const { language } = useLanguage();
   return useCallback(
-    (cacheKey: Kunci, param?: Param): string => {
-      return content(KAMUS[language][cacheKey], param);
+    (cacheKey: TranslationKey, param?: Param): string => {
+      return content(DICTIONARY[language][cacheKey], param);
     },
     [language],
   );

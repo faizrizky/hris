@@ -9,8 +9,8 @@ export function usePayslipList() {
     employee?.id,
   );
   const payslips = slip.data;
-  const isMemuat = slip.isLoading;
+  const isPayslipLoading = slip.isLoading;
   const latest = payslips?.[0];
   const previous = payslips?.slice(1) ?? [];
-  return { slip, payslips, isMemuat, latest, previous };
+  return { slip, payslips, isPayslipLoading, latest, previous };
 }

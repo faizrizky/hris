@@ -16,10 +16,10 @@ import { ICON } from "@/constants/icons";
 import { initialsOf } from "@/utils/ProfileCompleteness";
 import { formatShortDateWithYear } from "@/utils/date";
 import { useT } from "@/i18n";
-import type { Kunci } from "@/i18n/id";
+import type { TranslationKey } from "@/i18n/id";
 import { goBackAnimated } from "@/navigation/navigationBack";
 
-const FILTER: { key: ChangeStatus | "all"; label: Kunci }[] = [
+const FILTER: { key: ChangeStatus | "all"; label: TranslationKey }[] = [
   { key: "all", label: "pcr.semua" },
   { key: "Pending", label: "pcr.menunggu" },
   { key: "Approved", label: "pcr.disetujui" },

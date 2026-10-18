@@ -25,7 +25,7 @@ export function AttendanceHistoryScreen({ navigation }: ScreenProps) {
     records,
     filter,
     setFilter,
-    isMemuat,
+    isHistoryLoading,
     presentCount,
     lateMinutes,
     permission,
@@ -79,7 +79,7 @@ export function AttendanceHistoryScreen({ navigation }: ScreenProps) {
             <View style={{ flex: 1 }}>
               <Text style={styles.recapLabel}>{t("ab.rekap")}</Text>
               <View style={styles.recapRow}>
-                {isMemuat ? (
+                {isHistoryLoading ? (
                   ["hadir", "telat", "izin", "alpha"].map((l) => (
                     <View key={l} style={{ gap: 6 }}>
                       <Skeleton width={26} height={20} radius={6} />
@@ -109,7 +109,7 @@ export function AttendanceHistoryScreen({ navigation }: ScreenProps) {
               </View>
             </View>
 
-            {isMemuat ? (
+            {isHistoryLoading ? (
               <Skeleton width={70} height={70} radius={35} />
             ) : (
               <DonutChart
@@ -129,7 +129,7 @@ export function AttendanceHistoryScreen({ navigation }: ScreenProps) {
         ListEmptyComponent={
           history.error && !records ? (
             <ErrorState message={history.error} onRetry={history.retry} />
-          ) : isMemuat ? (
+          ) : isHistoryLoading ? (
             <>
               {[0, 1, 2, 3].map((i) => (
                 <View key={i} style={styles.row}>

@@ -1229,4 +1229,4 @@ export const id = {
   "login.usernameIsi": "Masukkan username",
 } as const;
 
-export type Kunci = keyof typeof id;
+export type TranslationKey = keyof typeof id;

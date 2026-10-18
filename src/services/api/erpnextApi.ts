@@ -72,7 +72,7 @@ import {
   translateNotification,
 } from "@/i18n/serverLabels";
 import { translate } from "@/i18n";
-import type { Kunci } from "@/i18n/id";
+import type { TranslationKey } from "@/i18n/id";
 
 interface EmployeeRow {
   name: string;
@@ -292,18 +292,18 @@ function mapSubmission(row: LeaveRow): LeaveRequest {
 
 // ---- Lembur dan Dinas Luar (endpoint Server Script) ----
 
-interface LampiranRow {
+interface AttachmentRow {
   file_name: string;
   file_url: string;
 }
 
-const toAttachment = (l?: LampiranRow[]) =>
+const toAttachment = (l?: AttachmentRow[]) =>
   l?.length
     ? l.map((x) => ({ name: x.file_name, url: x.file_url }))
     : undefined;
 
-interface LemburRow {
-  attachments?: LampiranRow[];
+interface OvertimeRow {
+  attachments?: AttachmentRow[];
   name: string;
   employee?: string;
   employee_name?: string;
@@ -316,9 +316,9 @@ interface LemburRow {
   status: "pending" | "approved" | "rejected";
 }
 
-interface DinasRow {
-  attachments?: LampiranRow[];
-  costs?: { attachments?: LampiranRow[] }[];
+interface TripRow {
+  attachments?: AttachmentRow[];
+  costs?: { attachments?: AttachmentRow[] }[];
   name: string;
   employee?: string;
   employee_name?: string;
@@ -348,7 +348,7 @@ const ID_WFH = /^WFH-/;
 const serverHoursMinutes = (m: number) =>
   `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`;
 
-function mapOvertime(r: LemburRow, saya?: string): LeaveRequest {
+function mapOvertime(r: OvertimeRow, saya?: string): LeaveRequest {
   const st = STATUS_SERVER[r.status] ?? STATUS_SERVER.pending;
   const nama = r.employee_name ?? saya ?? "—";
   return {
@@ -376,7 +376,7 @@ function mapOvertime(r: LemburRow, saya?: string): LeaveRequest {
   };
 }
 
-function mapTrip(r: DinasRow, saya?: string): LeaveRequest {
+function mapTrip(r: TripRow, saya?: string): LeaveRequest {
   const st = STATUS_SERVER[r.status] ?? STATUS_SERVER.pending;
   const nama = r.employee_name ?? saya ?? "—";
   return {
@@ -464,7 +464,7 @@ const SERVER_EXPENSE_KINDS: Record<string, string> = {
 const clean = (t: string) => t.replace(/[|;]/g, " ").trim();
 
 async function fetchOvertime(tim: boolean): Promise<LeaveRequest[]> {
-  const res = await get<{ message: LemburRow[] }>(
+  const res = await get<{ message: OvertimeRow[] }>(
     "/api/method/hris_get_overtimes",
     tim ? { scope: "team" } : undefined,
   );
@@ -472,7 +472,7 @@ async function fetchOvertime(tim: boolean): Promise<LeaveRequest[]> {
 }
 
 async function fetchTrips(tim: boolean): Promise<LeaveRequest[]> {
-  const res = await get<{ message: DinasRow[] }>(
+  const res = await get<{ message: TripRow[] }>(
     "/api/method/hris_get_travel_requests",
     tim ? { scope: "team" } : undefined,
   );
@@ -603,7 +603,7 @@ async function attachAll(
 
 // ---- Dokumen Digital dan Appraisal ----
 
-interface DokumenRow {
+interface DocumentRow {
   name: string;
   document_name: string;
   category: "Contract" | "Decree" | "Certificate" | "Identity";
@@ -618,14 +618,14 @@ interface DokumenRow {
   rejection_reason?: string | null;
 }
 
-const DOC_CATEGORIES: Record<DokumenRow["category"], DocCategory> = {
+const DOC_CATEGORIES: Record<DocumentRow["category"], DocCategory> = {
   Contract: "kontrak",
   Decree: "sk",
   Certificate: "sertifikat",
   Identity: "identitas",
 };
 
-const SERVER_DOC_CATEGORIES: Record<DocCategory, DokumenRow["category"]> = {
+const SERVER_DOC_CATEGORIES: Record<DocCategory, DocumentRow["category"]> = {
   kontrak: "Contract",
   sk: "Decree",
   sertifikat: "Certificate",
@@ -640,7 +640,7 @@ function daysUntil(iso: string): number {
   );
 }
 
-function mapDocument(r: DokumenRow): EmployeeDocument {
+function mapDocument(r: DocumentRow): EmployeeDocument {
   const remainder = r.expires_on ? daysUntil(r.expires_on) : null;
   const isExpiringSoon =
     r.status === "Verified" && remainder !== null && remainder <= 60;
@@ -683,13 +683,13 @@ function mapDocument(r: DokumenRow): EmployeeDocument {
 }
 
 async function fetchDocuments(): Promise<EmployeeDocument[]> {
-  const res = await get<{ message: DokumenRow[] }>(
+  const res = await get<{ message: DocumentRow[] }>(
     "/api/method/hris_get_my_documents",
   );
   return res.message.map(mapDocument);
 }
 
-interface ReviewRow extends DokumenRow {
+interface ReviewRow extends DocumentRow {
   employee_name: string;
   designation: string | null;
   department: string | null;
@@ -706,7 +706,7 @@ interface AppraisalRes {
   goals: { name: string; progress: number; note: string | null }[];
 }
 
-const RATING: Record<string, Kunci> = {
+const RATING: Record<string, TranslationKey> = {
   Excellent: "rate.Excellent",
   Good: "rate.Good",
   Fair: "rate.Fair",
@@ -716,7 +716,7 @@ const RATING: Record<string, Kunci> = {
 
 const DECISION_BADGES: Record<
   string,
-  { label: Kunci; tone: FeedItem["tone"] }
+  { label: TranslationKey; tone: FeedItem["tone"] }
 > = {
   approve: { label: "st.disetujui", tone: "ok" },
   reject: { label: "st.ditolak", tone: "bad" },
@@ -803,7 +803,7 @@ function mapStaff(r: StaffRow): Staff {
 // Profil dan keamanan
 // ---------------------------------------------------------------------------
 
-interface KontakRow {
+interface ContactRow {
   name: string | null;
   relation: string | null;
   phone: string | null;
@@ -876,8 +876,8 @@ interface ProfileRow {
   cell_number: string | null;
   current_address: string | null;
   permanent_address: string | null;
-  emergency: KontakRow;
-  em2: KontakRow;
+  emergency: ContactRow;
+  em2: ContactRow;
   ptkp_status?: string | null;
   can_edit_directly?: boolean;
   pending_change?: string | null;
@@ -894,12 +894,12 @@ interface ProfileRow {
   }[];
 }
 
-const GENDERS: Record<string, Kunci> = {
+const GENDERS: Record<string, TranslationKey> = {
   Male: "api.lakiLaki",
   Female: "api.perempuan",
 };
 
-const MARITAL_STATUSES: Record<string, Kunci> = {
+const MARITAL_STATUSES: Record<string, TranslationKey> = {
   Single: "api.belumMenikah",
   Married: "api.menikah",
   Divorced: "api.ceraiHidup",
@@ -953,7 +953,7 @@ function mapProfile(r: ProfileRow): PersonalProfile {
   };
 }
 
-interface SesiRow {
+interface SessionRow {
   id: string;
   ip: string | null;
   last_updated: string | null;
@@ -987,7 +987,7 @@ function namaBrowser(ua: string): string {
 }
 
 function mapDevice(
-  s: SesiRow,
+  s: SessionRow,
   count = 1,
   sessionIds: string[] = [s.id],
 ): ActiveDevice {
@@ -1015,13 +1015,13 @@ function mapDevice(
 }
 
 async function fetchDevices(): Promise<ActiveDevice[]> {
-  const res = await get<{ message: SesiRow[] }>(
+  const res = await get<{ message: SessionRow[] }>(
     "/api/method/hris_get_active_sessions",
   );
   // Satu baris per perangkat: sesi dengan jenis, nama tampilan, dan IP yang sama
   // digabung (versi user agent yang sedikit berbeda tetap dianggap satu),
   // diwakili sesi terbarunya (atau sesi perangkat ini bila termasuk).
-  const groups = new Map<string, SesiRow[]>();
+  const groups = new Map<string, SessionRow[]>();
   for (const s of res.message) {
     const d = mapDevice(s);
     const k = `${d.kind}|${d.name}|${s.ip ?? ""}`;
@@ -1053,7 +1053,7 @@ async function fetchSecurityInfo(employeeId: string): Promise<SecurityInfo> {
   return { ...baseName, devices };
 }
 
-interface NotifRow {
+interface NotificationRow {
   name: string;
   subject: string;
   body: string | null;
@@ -1067,7 +1067,7 @@ interface NotifRow {
   file_url?: string | null;
 }
 
-function mapNotification(r: NotifRow): AppNotification {
+function mapNotification(r: NotificationRow): AppNotification {
   const [date, jam = ""] = r.time.split("T");
   const dayCount = toISODate(new Date());
   const yesterday = toISODate(new Date(Date.now() - 24 * 60 * 60 * 1000));
@@ -1098,7 +1098,7 @@ function mapNotification(r: NotifRow): AppNotification {
   };
 }
 
-const EMPLOYMENT_NAMES: Record<string, Kunci> = {
+const EMPLOYMENT_NAMES: Record<string, TranslationKey> = {
   "Full-time": "api.permanen",
   Contract: "api.kontrak",
 };
@@ -1321,7 +1321,7 @@ interface CorrectionRow {
   check_out: string;
   reason: string;
   status: "pending" | "approved" | "rejected";
-  attachments?: LampiranRow[];
+  attachments?: AttachmentRow[];
 }
 
 function mapCorrection(
@@ -1501,7 +1501,7 @@ export const erpnextApi: HrisApi = {
   },
 
   async getOvertimes(employeeId: string): Promise<OvertimeRecord[]> {
-    const res = await get<{ message: LemburRow[] }>(
+    const res = await get<{ message: OvertimeRow[] }>(
       "/api/method/hris_get_overtimes",
     );
     return res.message.map((r) => ({
@@ -1600,7 +1600,7 @@ export const erpnextApi: HrisApi = {
     if (input.type === "lembur") {
       if (!input.overtimeEnd)
         throw new ApiError(translate("err.dataKurang"), 0, "NoEnd");
-      const res = await post<{ message: LemburRow }>(
+      const res = await post<{ message: OvertimeRow }>(
         "/api/method/hris_submit_overtime",
         {
           date: input.fromDate,
@@ -1633,7 +1633,7 @@ export const erpnextApi: HrisApi = {
     if (input.type === "dinas_luar") {
       const t = input.travel;
       if (!t) throw new ApiError(translate("err.dataKurang"), 0, "NoTravel");
-      const res = await post<{ message: DinasRow }>(
+      const res = await post<{ message: TripRow }>(
         "/api/method/hris_submit_travel_request",
         {
           destination: t.destination,
@@ -1733,7 +1733,7 @@ export const erpnextApi: HrisApi = {
     }
     const overtime = OVERTIME_ID_PREFIX.test(requestId);
     if (overtime || TRIP_ID_PREFIX.test(requestId)) {
-      const res = await post<{ message: LemburRow & DinasRow }>(
+      const res = await post<{ message: OvertimeRow & TripRow }>(
         overtime
           ? "/api/method/hris_decide_overtime"
           : "/api/method/hris_decide_travel_request",
@@ -2260,7 +2260,7 @@ export const erpnextApi: HrisApi = {
         priority: "Normal" | "Important";
         published_on: string | null;
         expires_on: string | null;
-        attachments?: LampiranRow[];
+        attachments?: AttachmentRow[];
         posted_by: string | null;
       }[];
     }>("/api/method/hris_get_announcements");
@@ -2346,7 +2346,7 @@ export const erpnextApi: HrisApi = {
     }
   },
   async getNotificationInbox(): Promise<AppNotification[]> {
-    const res = await get<{ message: NotifRow[] }>(
+    const res = await get<{ message: NotificationRow[] }>(
       "/api/method/hris_get_notifications",
     );
     return res.message.map(mapNotification);
@@ -2356,7 +2356,7 @@ export const erpnextApi: HrisApi = {
     _employeeId: string,
     ids?: string[],
   ): Promise<AppNotification[]> {
-    const res = await post<{ message: NotifRow[] }>(
+    const res = await post<{ message: NotificationRow[] }>(
       "/api/method/hris_mark_notifications_read",
       // Dipisah koma: Server Script tidak bisa mengurai JSON dari isi form.
       ids ? { names: ids.join(",") } : undefined,

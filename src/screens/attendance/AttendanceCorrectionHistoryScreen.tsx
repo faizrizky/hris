@@ -21,7 +21,7 @@ import { getShortMonth, getWeekdayName, formatNumericDate } from "@/utils/date";
 import { getCorrectionKindName } from "./CorrectionCards";
 import { useT } from "@/i18n";
 import { AttachmentList } from "@/screens/leave/AttachmentList";
-import type { Kunci } from "@/i18n/id";
+import type { TranslationKey } from "@/i18n/id";
 import { EmptyState } from "@/components/EmptyState";
 import { goBackAnimated } from "@/navigation/navigationBack";
 import {
@@ -29,7 +29,7 @@ import {
   Filter,
 } from "@/hooks/useAttendanceCorrectionHistory";
 
-const CHIPS: { key: Filter; label: Kunci }[] = [
+const CHIPS: { key: Filter; label: TranslationKey }[] = [
   { key: "semua", label: "kor.semua" },
   { key: "pending", label: "st.menunggu" },
   { key: "approved", label: "st.disetujui" },
@@ -44,7 +44,7 @@ export function AttendanceCorrectionHistoryScreen({ navigation }: ScreenProps) {
     setFilter,
     openId,
     setOpenId,
-    isMemuat,
+    isLoadingCorrections,
     countBy,
     pending,
     approved,
@@ -155,7 +155,7 @@ export function AttendanceCorrectionHistoryScreen({ navigation }: ScreenProps) {
         ListEmptyComponent={
           correction.error && !records ? (
             <ErrorState message={correction.error} onRetry={correction.retry} />
-          ) : isMemuat ? (
+          ) : isLoadingCorrections ? (
             <>
               {[0, 1, 2].map((i) => (
                 <View key={i} style={styles.skelRow}>

@@ -13,10 +13,10 @@ import { Skeleton } from "@/components/Skeleton";
 import { ICON } from "@/constants/icons";
 import { goBackAnimated } from "@/navigation/navigationBack";
 import { useT } from "@/i18n";
-import type { Kunci } from "@/i18n/id";
+import type { TranslationKey } from "@/i18n/id";
 import { useOfflineReview, formatTime } from "@/hooks/useOfflineReview";
 
-const FILTER: { key: OfflineReviewStatus | "all"; label: Kunci }[] = [
+const FILTER: { key: OfflineReviewStatus | "all"; label: TranslationKey }[] = [
   { key: "Needs Review", label: "ofr.perlu" },
   { key: "Approved", label: "pcr.disetujui" },
   { key: "Rejected", label: "pcr.ditolak" },

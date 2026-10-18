@@ -19,7 +19,8 @@ import { goBackOrHome } from "@/navigation/navigationBack";
 import { usePayslipList } from "@/hooks/usePayslipList";
 
 export function PayslipListScreen({ navigation }: ScreenProps) {
-  const { slip, payslips, isMemuat, latest, previous } = usePayslipList();
+  const { slip, payslips, isPayslipLoading, latest, previous } =
+    usePayslipList();
   const t = useT();
   const insets = useSafeAreaInsets();
   const c = useTheme();
@@ -42,7 +43,7 @@ export function PayslipListScreen({ navigation }: ScreenProps) {
       ) : null}
 
       <ScrollView contentContainerStyle={styles.content}>
-        {isMemuat && (
+        {isPayslipLoading && (
           <>
             <View style={styles.skelHero}>
               <Skeleton

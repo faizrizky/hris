@@ -9,11 +9,11 @@ import {
 } from "@/services/types";
 import { SemanticTone } from "@/theme/colors";
 import { translate } from "@/i18n";
-import type { Kunci } from "@/i18n/id";
+import type { TranslationKey } from "@/i18n/id";
 
 // Label dibaca saat dipakai (bukan saat modul dimuat) supaya mengikuti bahasa aktif.
 function localizeLabels<K extends string>(
-  labelMap: Record<K, Kunci>,
+  labelMap: Record<K, TranslationKey>,
 ): Record<K, string> {
   const result = {} as Record<K, string>;
   for (const k of Object.keys(labelMap) as K[]) {

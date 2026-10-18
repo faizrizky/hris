@@ -14,11 +14,11 @@ import { formatShortDateWithYear } from "@/utils/date";
 import { useT } from "@/i18n";
 import { EmptyState } from "@/components/EmptyState";
 import { ICON } from "@/constants/icons";
-import type { Kunci } from "@/i18n/id";
+import type { TranslationKey } from "@/i18n/id";
 import { goBackAnimated } from "@/navigation/navigationBack";
 import { useDocumentReview } from "@/hooks/useDocumentReview";
 
-const FILTER: { key: ReviewStatus | "all"; label: Kunci }[] = [
+const FILTER: { key: ReviewStatus | "all"; label: TranslationKey }[] = [
   { key: "all", label: "rv.semua" },
   { key: "Pending", label: "rv.menunggu" },
   { key: "Verified", label: "rv.diverifikasi" },

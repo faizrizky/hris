@@ -13,7 +13,7 @@ export function useActivePolling(fn: () => void, ms: number, isActive = true) {
   useEffect(() => {
     if (!isActive || !isFocused) return;
     let id: ReturnType<typeof setInterval> | null = null;
-    const mulai = () => {
+    const startPolling = () => {
       if (id === null) id = setInterval(() => latestCallback.current(), ms);
     };
     const stopPolling = () => {
@@ -22,11 +22,11 @@ export function useActivePolling(fn: () => void, ms: number, isActive = true) {
         id = null;
       }
     };
-    if (AppState.currentState === "active") mulai();
+    if (AppState.currentState === "active") startPolling();
     const sub = AppState.addEventListener("change", (s) => {
       if (s === "active") {
         latestCallback.current(); // segarkan sekali begitu kembali ke aplikasi
-        mulai();
+        startPolling();
       } else stopPolling();
     });
     return () => {

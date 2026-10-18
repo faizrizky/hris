@@ -6,10 +6,10 @@ import { translate } from "@/i18n";
 
 export type Greeting = "pagi" | "siang" | "sore" | "malam";
 
-export function getGreetingKind(jam: number): Greeting {
-  if (jam < 11) return "pagi";
-  if (jam < 15) return "siang";
-  if (jam < 18) return "sore";
+export function getGreetingKind(hour: number): Greeting {
+  if (hour < 11) return "pagi";
+  if (hour < 15) return "siang";
+  if (hour < 18) return "sore";
   return "malam";
 }
 
@@ -26,20 +26,24 @@ export function employeeGreeting(clock: ClockState | null, now: Date): string {
     `hm.salam.${getGreetingKind(now.getHours())}` as never,
   );
   let currentTime = now.getHours() * 60 + now.getMinutes();
-  const mulai = minutesOf(clock?.shiftStart);
+  const shiftStartMinutes = minutesOf(clock?.shiftStart);
   let shiftEndMinutes = minutesOf(clock?.shiftEnd);
-  // Shift malam yang melewati tengah malam (selesai lebih kecil dari mulai): selesai jatuh keesokan harinya.
-  if (mulai !== null && shiftEndMinutes !== null && shiftEndMinutes <= mulai)
+  // Shift malam yang melewati tengah malam (selesai lebih kecil dari shiftStartMinutes): selesai jatuh keesokan harinya.
+  if (
+    shiftStartMinutes !== null &&
+    shiftEndMinutes !== null &&
+    shiftEndMinutes <= shiftStartMinutes
+  )
     shiftEndMinutes += 24 * 60;
   const p = {
-    greeting,
+    salam: greeting,
     mulai: clock?.shiftStart ? dot(clock.shiftStart) : "",
     selesai: clock?.shiftEnd ? dot(clock.shiftEnd) : "",
   };
 
   // Dini hari saat shift malam kemarin masih berjalan: hitung jam sekarang sebagai lanjutan hari kemarin.
   if (
-    mulai !== null &&
+    shiftStartMinutes !== null &&
     shiftEndMinutes !== null &&
     shiftEndMinutes > 24 * 60 &&
     currentTime < shiftEndMinutes - 24 * 60
@@ -47,28 +51,32 @@ export function employeeGreeting(clock: ClockState | null, now: Date): string {
     currentTime += 24 * 60;
   }
 
-  if (!clock) return translate("hm.sapaEss", p as never);
+  if (!clock) return translate("hm.sapaEss", p);
   if (clock.lastCheckIn && clock.lastCheckOut && !clock.clockedIn) {
-    return translate("hm.selesaiHari", p as never);
+    return translate("hm.selesaiHari", p);
   }
   if (clock.clockedIn) {
     return shiftEndMinutes !== null && currentTime >= shiftEndMinutes
-      ? translate("hm.lupaOut", p as never)
-      : translate("hm.sedangKerja", p as never);
+      ? translate("hm.lupaOut", p)
+      : translate("hm.sedangKerja", p);
   }
-  if (mulai === null) return translate("hm.sapaEss", p as never);
-  if (currentTime < mulai - 60) return translate("hm.belumMulai", p as never);
-  if (currentTime <= mulai + 15) return translate("hm.ingatIn", p as never);
+  if (shiftStartMinutes === null) return translate("hm.sapaEss", p);
+  if (currentTime < shiftStartMinutes - 60)
+    return translate("hm.belumMulai", p);
+  if (currentTime <= shiftStartMinutes + 15) return translate("hm.ingatIn", p);
   if (shiftEndMinutes === null || currentTime < shiftEndMinutes)
-    return translate("hm.telatIn", p as never);
-  return translate("hm.tanpaAbsen", p as never);
+    return translate("hm.telatIn", p);
+  return translate("hm.tanpaAbsen", p);
 }
 
-export function getShiftInfo(clock: ClockState | null, lokasi: string): string {
+export function getShiftInfo(
+  clock: ClockState | null,
+  locationName: string,
+): string {
   if (!clock?.shiftStart || !clock.shiftEnd) return translate("hm.shift");
   return translate("hm.shiftInfo", {
     mulai: dot(clock.shiftStart),
     selesai: dot(clock.shiftEnd),
-    lokasi,
-  } as never);
+    lokasi: locationName,
+  });
 }

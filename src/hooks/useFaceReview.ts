@@ -16,14 +16,14 @@ export function useFaceReview() {
   const items = enrollmentList.data ?? [];
   const [rejectTarget, setRejectTarget] = useState<FaceReview | null>(null);
   const [reason, setReason] = useState("");
-  const [sibuk, setSibuk] = useState<string | null>(null);
+  const [busyId, setBusyId] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const decision = async (
     f: FaceReview,
     d: "approve" | "reject",
     note?: string,
   ) => {
-    setSibuk(f.name);
+    setBusyId(f.name);
     setErrorMessage(null);
     try {
       await hrisApi.decideFaceEnrollment(f.name, d, note);
@@ -31,7 +31,7 @@ export function useFaceReview() {
     } catch (e) {
       setErrorMessage(describeError(e));
     } finally {
-      setSibuk(null);
+      setBusyId(null);
     }
   };
   const approve = async (f: FaceReview) => {
@@ -59,7 +59,7 @@ export function useFaceReview() {
     setRejectTarget,
     reason,
     setReason,
-    sibuk,
+    busyId,
     errorMessage,
     setErrorMessage,
     approve,

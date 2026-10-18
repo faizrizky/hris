@@ -20,7 +20,7 @@ export function useAttendanceHistory() {
   );
   const records = history.data;
   const [filter, setFilter] = useState<Filter>("semua");
-  const isMemuat = history.isLoading;
+  const isHistoryLoading = history.isLoading;
   const all = records ?? [];
   const count = (s: AttendanceStatus) =>
     all.filter((r) => r.status === s).length;
@@ -41,7 +41,7 @@ export function useAttendanceHistory() {
     records,
     filter,
     setFilter,
-    isMemuat,
+    isHistoryLoading,
     presentCount,
     lateMinutes,
     permission,

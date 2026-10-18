@@ -140,7 +140,8 @@ export function useLeaveRequestForm({ route }: Pick<ScreenProps, "route">) {
       )
       .catch(() => {});
   }, [employee]);
-  const balances2 = balances.find((b) => b.type === "cuti")?.remaining ?? 0;
+  const leaveBalanceList =
+    balances.find((b) => b.type === "cuti")?.remaining ?? 0;
   const workdayCount =
     start && end
       ? leaveKind === "Melahirkan"
@@ -478,7 +479,7 @@ export function useLeaveRequestForm({ route }: Pick<ScreenProps, "route">) {
     isSending,
     errorMessage,
     switchKind,
-    balances2,
+    leaveBalanceList,
     workdayCount,
     blockMsg,
     canSubmit,

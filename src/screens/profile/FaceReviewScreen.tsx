@@ -34,7 +34,7 @@ export function FaceReviewScreen({ navigation }: ScreenProps) {
     setRejectTarget,
     reason,
     setReason,
-    sibuk,
+    busyId,
     errorMessage,
     setErrorMessage,
     approve,
@@ -81,7 +81,7 @@ export function FaceReviewScreen({ navigation }: ScreenProps) {
             <Card
               key={f.name}
               f={f}
-              isBusy={sibuk === f.name}
+              isBusy={busyId === f.name}
               onApprove={() => approve(f)}
               onReject={() => {
                 setReason("");

@@ -18,7 +18,7 @@ export function useAttendanceCorrectionHistory() {
   const records = correction.data;
   const [filter, setFilter] = useState<Filter>("semua");
   const [openId, setOpenId] = useState<string | null>(null);
-  const isMemuat = correction.isLoading;
+  const isLoadingCorrections = correction.isLoading;
   const all = records ?? [];
   const countBy = (s: AttendanceRequestedStatus) =>
     all.filter((r) => r.status === s).length;
@@ -34,7 +34,7 @@ export function useAttendanceCorrectionHistory() {
     setFilter,
     openId,
     setOpenId,
-    isMemuat,
+    isLoadingCorrections,
     countBy,
     pending,
     approved,

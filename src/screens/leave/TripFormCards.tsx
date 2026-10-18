@@ -15,7 +15,7 @@ export const TRANSPORT_MODES = [
 
 export type TransportMode = (typeof TRANSPORT_MODES)[number]["value"];
 
-export function DinasTujuanCard({
+export function TripDestinationCard({
   destination,
   onChange,
 }: {
@@ -43,7 +43,7 @@ export function DinasTujuanCard({
   );
 }
 
-export function DinasDetailCard({
+export function TripDetailCard({
   transport,
   onPickTransport,
   purpose,

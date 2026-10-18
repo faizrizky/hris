@@ -4,7 +4,7 @@
 
 import { requireOptionalNativeModule } from "expo";
 
-export interface HasilDeteksi {
+export interface DetectionResult {
   count: number;
   yaw: number; // derajat; tanda tergantung kamera depan, dipakai sebagai |yaw|
   pitch: number; // derajat, atas-bawah
@@ -14,7 +14,7 @@ export interface HasilDeteksi {
 
 interface HrisFaceNative {
   supported(): boolean;
-  detect(uri: string): Promise<HasilDeteksi>;
+  detect(uri: string): Promise<DetectionResult>;
   embed(uri: string): Promise<number[] | null>;
   spoof?(uri: string): Promise<number | null>; // hanya ada di build baru (Android)
 }
@@ -24,7 +24,7 @@ const Native = requireOptionalNativeModule<HrisFaceNative>("HrisFace");
 // False di iOS dan Expo Go: layar presensi melewati langkah wajah.
 export const isFaceSupported = (): boolean => !!Native && Native.supported();
 
-export const detectFace = (uri: string): Promise<HasilDeteksi> =>
+export const detectFace = (uri: string): Promise<DetectionResult> =>
   Native!.detect(uri);
 
 // Skor anti-spoofing 0..1 (makin tinggi makin asli), atau null bila tidak tersedia / tidak ada wajah.
@@ -86,7 +86,7 @@ export const initialSequence = (): SequenceState => ({
 
 export function advanceSequence(
   s: SequenceState,
-  d: HasilDeteksi,
+  d: DetectionResult,
   now: number,
 ): SequenceState {
   if (d.count === 0) return { ...s, message: "tidakAda" };

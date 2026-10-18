@@ -47,7 +47,7 @@ export function AnimatedSplash({ onDone }: { onDone: () => void }) {
   const [letters] = useState(() => NAMA.map(() => new Animated.Value(0)));
   const [underline] = useState(() => new Animated.Value(0));
   const [tagline] = useState(() => new Animated.Value(0));
-  const [keluar] = useState(() => new Animated.Value(0));
+  const [exitFade] = useState(() => new Animated.Value(0));
   const [status] = useState(() => new Animated.Value(0));
   const [stage, setStage] = useState<UpdateStage>("animasi");
   const [updateInfo, setUpdateInfo] = useState<UpdateInfo | null>(null);
@@ -113,13 +113,13 @@ export function AnimatedSplash({ onDone }: { onDone: () => void }) {
   }, [underline, letters, logo, ripple, tagline]);
 
   const exitSplash = useCallback(() => {
-    Animated.timing(keluar, {
+    Animated.timing(exitFade, {
       toValue: 1,
       duration: 420,
       easing: EASE,
       useNativeDriver: true,
     }).start(() => onDone());
-  }, [keluar, onDone]);
+  }, [exitFade, onDone]);
 
   const startDownload = async (b: UpdateInfo) => {
     setProgress(0);
@@ -185,13 +185,13 @@ export function AnimatedSplash({ onDone }: { onDone: () => void }) {
       style={[
         styles.root,
         {
-          opacity: keluar.interpolate({
+          opacity: exitFade.interpolate({
             inputRange: [0, 1],
             outputRange: [1, 0],
           }),
           transform: [
             {
-              scale: keluar.interpolate({
+              scale: exitFade.interpolate({
                 inputRange: [0, 1],
                 outputRange: [1, 1.05],
               }),

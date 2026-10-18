@@ -41,13 +41,21 @@ export function useHome() {
       hrisApi.getAttendanceHistory(employee.id),
       hrisApi.getEmploymentSummary(employee.id),
     ])
-      .then(([notif, clockState, leaveBalances, attendance, komposisi]) => {
-        setNotifications(notif);
-        setClock(clockState);
-        setBalances(leaveBalances);
-        setHistory(attendance);
-        setEmployment(komposisi);
-      })
+      .then(
+        ([
+          notificationItem,
+          clockState,
+          leaveBalances,
+          attendance,
+          composition,
+        ]) => {
+          setNotifications(notificationItem);
+          setClock(clockState);
+          setBalances(leaveBalances);
+          setHistory(attendance);
+          setEmployment(composition);
+        },
+      )
       .catch((e) => setErrorMessage(describeError(e)));
     if (!hasShownDeviceReminder) {
       hrisApi

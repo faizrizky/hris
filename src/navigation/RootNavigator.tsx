@@ -220,7 +220,7 @@ function HomeStack({ initial = "HomeMain" }: { initial?: string } = {}) {
 
 // Tab Notifikasi memakai kumpulan layar yang sama dengan Beranda (tujuan ketuk
 // notifikasi ada di sana), hanya layar awalnya yang beda.
-function NotifStack() {
+function NotificationStack() {
   return <HomeStack initial="Notifications" />;
 }
 
@@ -265,7 +265,7 @@ function MainTabs() {
       />
       <Tab.Screen
         name="Notifikasi"
-        component={NotifStack}
+        component={NotificationStack}
         options={{ headerShown: false }}
       />
       {employee?.role === "hr" && (

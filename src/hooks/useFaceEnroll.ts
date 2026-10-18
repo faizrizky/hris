@@ -12,7 +12,7 @@ import { useFocusEffect } from "@react-navigation/native";
 import { hrisApi } from "@/services/api";
 import { describeError } from "@/services/api/http";
 import { useT } from "@/i18n";
-import type { Kunci } from "@/i18n/id";
+import type { TranslationKey } from "@/i18n/id";
 import { setTabBarHidden } from "@/navigation/tabBarVisibility";
 import { saveAttachment } from "@/utils/attachment";
 import {
@@ -106,13 +106,13 @@ export function useFaceEnroll() {
     to: number;
   } | null>(null);
   const [warning, setWarning] = useState<string | null>(null);
-  const showError = useEffectEvent((cacheKey: Kunci) =>
+  const showError = useEffectEvent((cacheKey: TranslationKey) =>
     setErrorMessage(t(cacheKey)),
   );
-  const showMessage = useEffectEvent((cacheKey: Kunci) =>
+  const showMessage = useEffectEvent((cacheKey: TranslationKey) =>
     setStatusMessage(t(cacheKey)),
   );
-  const showWarning = useEffectEvent((cacheKey: Kunci) =>
+  const showWarning = useEffectEvent((cacheKey: TranslationKey) =>
     setWarning(t(cacheKey)),
   );
   const [scanRound, setScanRound] = useState(0);

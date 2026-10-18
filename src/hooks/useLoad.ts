@@ -24,7 +24,7 @@ export function useLoad<T>(
   // Data boleh null secara sah (mis. belum ada appraisal), jadi "sudah dimuat"
   // dicatat terpisah dari isinya.
   const [isFinished, setIsFinished] = useState(false);
-  const order = useRef(0); // abaikan jawaban dari permintaan yang sudah usang
+  const requestSeq = useRef(0); // abaikan jawaban dari permintaan yang sudah usang
   const latestFetch = useRef(fetchData);
 
   useEffect(() => {
@@ -32,18 +32,18 @@ export function useLoad<T>(
   });
 
   const runLoad = useCallback(() => {
-    const saya = ++order.current;
+    const currentRequest = ++requestSeq.current;
     setError(null);
     latestFetch
       .current()
       .then((result) => {
-        if (saya === order.current) {
+        if (currentRequest === requestSeq.current) {
           setData(result);
           setIsFinished(true);
         }
       })
       .catch((e) => {
-        if (saya === order.current) setError(describeError(e));
+        if (currentRequest === requestSeq.current) setError(describeError(e));
       });
   }, []);
 

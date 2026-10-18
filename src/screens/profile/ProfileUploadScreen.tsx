@@ -27,13 +27,13 @@ import { formatShortDateWithYear } from "@/utils/date";
 import { DOC_CATEGORY_LABEL } from "@/constants/statusLabels";
 import { formatFileSize } from "@/utils/file";
 import { useT } from "@/i18n";
-import type { Kunci } from "@/i18n/id";
+import type { TranslationKey } from "@/i18n/id";
 import { goBackAnimated } from "@/navigation/navigationBack";
 import { useProfileUpload } from "@/hooks/useProfileUpload";
 
 const CATEGORIES: DocCategory[] = ["kontrak", "sk", "sertifikat", "identitas"];
 
-const SAMPLE: Record<DocCategory, Kunci> = {
+const SAMPLE: Record<DocCategory, TranslationKey> = {
   kontrak: "up.cKontrak",
   sk: "up.cSk",
   sertifikat: "up.cSertifikat",

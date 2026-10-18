@@ -20,7 +20,7 @@ import { Skeleton } from "@/components/Skeleton";
 import { ErrorState } from "@/components/ErrorState";
 import { EmptyState } from "@/components/EmptyState";
 import { useHome } from "@/hooks/useHome";
-import type { Kunci } from "@/i18n/id";
+import type { TranslationKey } from "@/i18n/id";
 
 // Pengingat daftar ulang wajah muncul sekali per pembukaan aplikasi.
 
@@ -36,32 +36,32 @@ interface ItemMenu {
 type MenuSectionKey = "transaction" | "data" | "team";
 
 // Urutan bagian menu di Beranda, mengikuti pengelompokan Transaksi / Data Karyawan.
-const MENU_SECTIONS: { key: MenuSectionKey; title: Kunci }[] = [
+const MENU_SECTIONS: { key: MenuSectionKey; title: TranslationKey }[] = [
   { key: "transaction", title: "hm.secTransaksi" },
   { key: "data", title: "hm.secData" },
   { key: "team", title: "hm.secTim" },
 ];
 
 const MENU_SECTION_OF: Record<string, MenuSectionKey> = {
-  presensi: "transaction",
-  ajukanCuti: "transaction",
-  ajukanLembur: "transaction",
-  dinas: "transaction",
+  attendance: "transaction",
+  requestLeave: "transaction",
+  requestOvertime: "transaction",
+  trip: "transaction",
   wfh: "transaction",
-  koreksi: "transaction",
+  correction: "transaction",
   appraisal: "transaction",
-  riwayat: "data",
-  daftarCuti: "data",
-  daftarLembur: "data",
-  pajak: "data",
-  slip: "data",
+  history: "data",
+  leaveList: "data",
+  overtimeList: "data",
+  tax: "data",
+  payslip: "data",
   approval: "team",
-  karyawan: "team",
-  absensiTim: "team",
-  offline: "team",
-  verifikasi: "team",
-  dataPribadi: "team",
-  wajah: "team",
+  employees: "team",
+  teamAttendance: "team",
+  offlineReview: "team",
+  documentReview: "team",
+  profileReview: "team",
+  faceReview: "team",
 };
 
 export function HomeScreen() {
@@ -166,18 +166,21 @@ export function HomeScreen() {
     key,
     label,
     icon,
-    bg: c[tone].bg,
-    ink: c[tone].ink,
+    // Ikon tanpa kotak latar (seperti tab bar): kuning dituakan supaya terbaca di atas latar terang.
+    bg: "transparent",
+    ink: tone === "warn" ? "#D97706" : c[tone].ink,
     onPress,
   });
-  const submitRequest = (kind: "cuti" | "lembur" | "dinas" | "wfh") => () =>
+  const submitRequest = (kind: "cuti" | "lembur" | "trip" | "wfh") => () =>
     navigation.navigate("LeaveRequest", { kind, n: Date.now() });
   // Tujuan yang sudah jadi tab di bar bawah tidak diulang di menu. Tab kedua
   // bergantung peran: Absensi (karyawan), Approval (mss), Absensi Kry (hr).
   const alreadyInTabs = new Set([
-    "slip",
+    "payslip",
     ...(employee.role === "mss" ? ["approval"] : []),
-    ...(employee.role === "mss" || employee.role === "hr" ? [] : ["presensi"]),
+    ...(employee.role === "mss" || employee.role === "hr"
+      ? []
+      : ["attendance"]),
   ]);
   const allMenuItems: ItemMenu[] = [
     ...(canApprove
@@ -190,7 +193,7 @@ export function HomeScreen() {
             () => navigation.navigate("Approval"),
           ),
           makeMenuItem(
-            "karyawan",
+            "employees",
             t("hm.aKaryawan"),
             "people-outline",
             "purple",
@@ -199,32 +202,32 @@ export function HomeScreen() {
         ]
       : []),
     makeMenuItem(
-      "presensi",
+      "attendance",
       t("cr.presensi"),
       "finger-print-outline",
       "info",
       () => navigation.navigate("Clock"),
     ),
     makeMenuItem(
-      "ajukanCuti",
+      "requestLeave",
       t("cr.cuti"),
       "calendar-outline",
       "info",
       submitRequest("cuti"),
     ),
     makeMenuItem(
-      "ajukanLembur",
+      "requestOvertime",
       t("cr.lembur"),
       "moon-outline",
       "warn",
       submitRequest("lembur"),
     ),
     makeMenuItem(
-      "dinas",
+      "trip",
       t("cr.dinas"),
       "briefcase-outline",
       "purple",
-      submitRequest("dinas"),
+      submitRequest("trip"),
     ),
     makeMenuItem(
       "wfh",
@@ -233,7 +236,7 @@ export function HomeScreen() {
       "ok",
       submitRequest("wfh"),
     ),
-    makeMenuItem("slip", t("hm.aSlip"), "wallet-outline", "ok", () =>
+    makeMenuItem("payslip", t("hm.aSlip"), "wallet-outline", "ok", () =>
       navigation.navigate("PayslipList"),
     ),
     makeMenuItem(
@@ -243,33 +246,33 @@ export function HomeScreen() {
       "purple",
       () => navigation.navigate("Appraisal"),
     ),
-    makeMenuItem("riwayat", t("hm.aRiwayat"), "time-outline", "info", () =>
+    makeMenuItem("history", t("hm.aRiwayat"), "time-outline", "info", () =>
       navigation.navigate("History"),
     ),
-    makeMenuItem("koreksi", t("hm.aKoreksi"), "create-outline", "warn", () =>
+    makeMenuItem("correction", t("hm.aKoreksi"), "create-outline", "warn", () =>
       navigation.navigate("AttendanceCorrection"),
     ),
     makeMenuItem(
-      "daftarCuti",
+      "leaveList",
       t("hm.aCuti"),
       "calendar-number-outline",
       "info",
       () => navigation.navigate("LeaveList"),
     ),
     makeMenuItem(
-      "daftarLembur",
+      "overtimeList",
       t("hm.aLembur"),
       "hourglass-outline",
       "warn",
       () => navigation.navigate("Overtime"),
     ),
-    makeMenuItem("pajak", t("hm.aPajak"), "receipt-outline", "info", () =>
+    makeMenuItem("tax", t("hm.aPajak"), "receipt-outline", "info", () =>
       navigation.navigate("TaxDetail"),
     ),
     ...(canApprove
       ? [
           makeMenuItem(
-            "offline",
+            "offlineReview",
             t("hm.aOffline"),
             "cloud-offline-outline",
             "warn",
@@ -280,7 +283,7 @@ export function HomeScreen() {
     ...(employee.role === "mss"
       ? [
           makeMenuItem(
-            "absensiTim",
+            "teamAttendance",
             t("hm.aAbsensiTim"),
             "people-circle-outline",
             "ok",
@@ -291,20 +294,20 @@ export function HomeScreen() {
     ...(employee.role === "hr"
       ? [
           makeMenuItem(
-            "verifikasi",
+            "documentReview",
             t("hm.aVerifikasi"),
             "document-text-outline",
             "info",
             () => navigation.navigate("DocumentReview"),
           ),
           makeMenuItem(
-            "dataPribadi",
+            "profileReview",
             t("pcr.aksi"),
             "person-circle-outline",
             "purple",
             () => navigation.navigate("ProfileChangeReview"),
           ),
-          makeMenuItem("wajah", t("hm.aWajah"), "scan-outline", "ok", () =>
+          makeMenuItem("faceReview", t("hm.aWajah"), "scan-outline", "ok", () =>
             navigation.navigate("FaceReview"),
           ),
         ]
@@ -600,7 +603,7 @@ function QuickAction({
     <Reveal style={styles.quickCell}>
       <Pressable style={styles.quickCard} onPress={onPress}>
         <View style={[styles.quickIcon, { backgroundColor: iconBg }]}>
-          <Ionicons name={icon} size={28} color={ink} />
+          <Ionicons name={icon} size={26} color={ink} />
         </View>
         <Text style={styles.quickLabel} numberOfLines={2}>
           {label}

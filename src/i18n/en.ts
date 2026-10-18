@@ -1,6 +1,6 @@
-import type { Kunci } from "./id";
+import type { TranslationKey } from "./id";
 
-export const en: Record<Kunci, string> = {
+export const en: Record<TranslationKey, string> = {
   "umum.keluar": "Sign out",
   "umum.batal": "Cancel",
   "umum.kirim": "Send",

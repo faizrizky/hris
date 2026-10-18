@@ -40,7 +40,7 @@ export function totalExpense(items: Expense[], days: number) {
   return { expenses, perDiem, total: expenses + perDiem };
 }
 
-export function DinasBiayaCard({
+export function TripExpenseCard({
   items,
   days,
   onAdd,

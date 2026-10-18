@@ -119,13 +119,13 @@ function StepBox({
 }
 
 export function RequestedTimeCard({
-  masuk,
-  keluar,
+  checkIn,
+  checkOut,
   onChangeCheckIn,
   onChangeCheckOut,
 }: {
-  masuk: number;
-  keluar: number;
+  checkIn: number;
+  checkOut: number;
   onChangeCheckIn: (v: number) => void;
   onChangeCheckOut: (v: number) => void;
 }) {
@@ -146,12 +146,12 @@ export function RequestedTimeCard({
       <View style={styles.timeRow}>
         <StepBox
           label={t("kor.masuk")}
-          value={masuk}
+          value={checkIn}
           onChange={onChangeCheckIn}
         />
         <StepBox
           label={t("kor.keluar")}
-          value={keluar}
+          value={checkOut}
           onChange={onChangeCheckOut}
         />
       </View>

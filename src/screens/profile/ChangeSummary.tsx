@@ -3,11 +3,11 @@ import { StyleSheet, Text, View } from "react-native";
 import { Palette } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
 import { useT } from "@/i18n";
-import type { Kunci } from "@/i18n/id";
+import type { TranslationKey } from "@/i18n/id";
 import { ProfileChange } from "@/services/types";
 import { formatShortDateWithYear } from "@/utils/date";
 
-const FIELD: Record<string, Kunci> = {
+const FIELD: Record<string, TranslationKey> = {
   phone: "pc.f.phone",
   marital_status: "pc.f.marital_status",
   personal_email: "pc.f.personal_email",

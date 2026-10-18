@@ -1,4 +1,5 @@
 import { hrisApi } from "@/services/api";
+import { isInboxNotification } from "@/utils/notification";
 import { setUnreadCount, useUnreadCount } from "@/navigation/notifBadge";
 import { markBackNavigation } from "@/navigation/navigationBack";
 import { useTabBarHidden } from "@/navigation/tabBarVisibility";
@@ -20,13 +21,13 @@ import { Palette } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
 import { useSession } from "@/services/session";
 import { useT } from "@/i18n";
-import type { Kunci } from "@/i18n/id";
+import type { TranslationKey } from "@/i18n/id";
 import { getFocusedRouteNameFromRoute } from "@react-navigation/native";
 
 const RIGHT = ["Slip Gaji", "Profil"];
 
 // Label di mockup beda dari nama route-nya.
-const LABEL: Record<string, Kunci> = {
+const LABEL: Record<string, TranslationKey> = {
   Beranda: "tab.home",
   Absensi: "tab.absensi",
   AbsensiTim: "tab.absensiKry",
@@ -79,7 +80,11 @@ export function FloatingTabBar({ state, navigation }: BottomTabBarProps) {
     if (!employeeId) return;
     hrisApi
       .getNotificationInbox(employeeId)
-      .then((n) => setUnreadCount(n.filter((x) => !x.read).length))
+      .then((all) =>
+        setUnreadCount(
+          all.filter((n) => isInboxNotification(n) && !n.read).length,
+        ),
+      )
       .catch(() => {});
   }, [employeeId, state.index]);
 

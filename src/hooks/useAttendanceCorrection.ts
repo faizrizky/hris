@@ -64,10 +64,10 @@ export function useAttendanceCorrection() {
   const record = selectedDate
     ? (history.find((r) => r.date === selectedDate) ?? null)
     : null;
-  const masuk =
+  const checkInMinutes =
     editedCheckIn ??
     (record?.checkIn ? minutesOf(record.checkIn) : DEFAULT_CHECKIN_MINUTES);
-  const keluar =
+  const checkOutMinutes =
     editedCheckOut ??
     (record?.checkOut ? minutesOf(record.checkOut) : DEFAULT_CHECKOUT_MINUTES);
   const setCheckIn = (minutes: number) =>
@@ -86,7 +86,7 @@ export function useAttendanceCorrection() {
   const isProofRequired = !!selectedDate && !record;
   const blockMsg = !selectedDate
     ? t("kor.blokTgl")
-    : keluar < masuk + 60
+    : checkOutMinutes < checkInMinutes + 60
       ? t("kor.blokJam")
       : reasonText.trim().length < 15
         ? t("kor.blokPenjelasan")
@@ -121,7 +121,7 @@ export function useAttendanceCorrection() {
       },
       {
         k: t("kor.jamDiajukan"),
-        v: `${formatHoursMinutes(masuk)} – ${formatHoursMinutes(keluar)}`,
+        v: `${formatHoursMinutes(checkInMinutes)} – ${formatHoursMinutes(checkOutMinutes)}`,
       },
       { k: t("kor.jenis"), v: getCorrectionKindName(kind) },
       { k: t("kor.bukti"), v: t("kor.nFile", { n: files.length }) },
@@ -154,8 +154,8 @@ export function useAttendanceCorrection() {
       const res = await hrisApi.submitAttendanceCorrection({
         employeeId: employee.id,
         date: selectedDate,
-        requestedCheckIn: formatHoursMinutes(masuk),
-        requestedCheckOut: formatHoursMinutes(keluar),
+        requestedCheckIn: formatHoursMinutes(checkInMinutes),
+        requestedCheckOut: formatHoursMinutes(checkOutMinutes),
         reason: joinReason(kind, reasonText),
         attachments: files.flatMap((f) =>
           f.uri
@@ -192,8 +192,8 @@ export function useAttendanceCorrection() {
     done,
     errorMessage,
     record,
-    masuk,
-    keluar,
+    checkIn: checkInMinutes,
+    checkOut: checkOutMinutes,
     setCheckIn,
     setCheckOut,
     handlePickDate,

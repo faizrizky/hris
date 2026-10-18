@@ -40,8 +40,8 @@ export function AttendanceCorrectionScreen({ navigation }: ScreenProps) {
     done,
     errorMessage,
     record,
-    masuk,
-    keluar,
+    checkIn,
+    checkOut,
     setCheckIn,
     setCheckOut,
     handlePickDate,
@@ -108,8 +108,8 @@ export function AttendanceCorrectionScreen({ navigation }: ScreenProps) {
               {selectedDate && <RecordedCard record={record} />}
 
               <RequestedTimeCard
-                masuk={masuk}
-                keluar={keluar}
+                checkIn={checkIn}
+                checkOut={checkOut}
                 onChangeCheckIn={setCheckIn}
                 onChangeCheckOut={setCheckOut}
               />
@@ -148,8 +148,8 @@ export function AttendanceCorrectionScreen({ navigation }: ScreenProps) {
               {blockMsg || errorMessage || t("kor.siap")}
             </Text>
             <Text style={styles.sumTop}>
-              {selectedDate && keluar > masuk
-                ? formatHourDuration((keluar - masuk) / 60)
+              {selectedDate && checkOut > checkIn
+                ? formatHourDuration((checkOut - checkIn) / 60)
                 : "—"}
             </Text>
           </View>

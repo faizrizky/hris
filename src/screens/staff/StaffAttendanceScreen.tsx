@@ -12,13 +12,13 @@ import { Staff, StaffAttendanceState } from "@/services/types";
 import { Skeleton } from "@/components/Skeleton";
 import { formatLongDate } from "@/utils/date";
 import { useT } from "@/i18n";
-import type { Kunci } from "@/i18n/id";
+import type { TranslationKey } from "@/i18n/id";
 import { EmptyState } from "@/components/EmptyState";
 import { ICON } from "@/constants/icons";
 import { goBackAnimated } from "@/navigation/navigationBack";
 import { useStaffAttendance, ALL_TAB } from "@/hooks/useStaffAttendance";
 
-const TABS: { key: StaffAttendanceState; label: Kunci }[] = [
+const TABS: { key: StaffAttendanceState; label: TranslationKey }[] = [
   { key: "attend", label: "stf.tabHadir" },
   { key: "late", label: "stf.tabTelat" },
   { key: "leave", label: "stf.tabCuti" },

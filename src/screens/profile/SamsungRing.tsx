@@ -190,7 +190,7 @@ export function SamsungRing({
 }) {
   const canvas = D + 80; // ruang untuk cincin garis di luar lingkaran
   const cx = canvas / 2;
-  const rDalam = (D / 2) * 0.82; // lingkaran putih tipis (panduan wajah)
+  const ringInnerRadius = (D / 2) * 0.82; // lingkaran putih tipis (panduan wajah)
   const [dimColor] = useState(() => new Animated.Value(1));
   useEffect(() => {
     // Animasi tetap berjalan saat wajah ketemu, hanya lebih tipis supaya wajah terlihat jelas.
@@ -223,7 +223,7 @@ export function SamsungRing({
         }}
       >
         {children}
-        <WedgeGlass D={D} innerRadius={rDalam} dim={dimColor} />
+        <WedgeGlass D={D} innerRadius={ringInnerRadius} dim={dimColor} />
       </View>
 
       <Svg
@@ -235,7 +235,7 @@ export function SamsungRing({
         <Circle
           cx={cx}
           cy={cx}
-          r={rDalam}
+          r={ringInnerRadius}
           stroke={WHITE}
           strokeWidth={1.6}
           fill="none"

@@ -16,9 +16,9 @@ import {
   OvertimeDescriptionCard,
   OvertimeProofCard,
 } from "./OvertimeFormCards";
-import { DinasTujuanCard, DinasDetailCard } from "./TripFormCards";
+import { TripDestinationCard, TripDetailCard } from "./TripFormCards";
 
-import { DinasBiayaCard } from "./TripExpenseCard";
+import { TripExpenseCard } from "./TripExpenseCard";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { Palette, primaryButtonStyle } from "@/theme/colors";
@@ -108,7 +108,7 @@ function LeaveRequestForm({ navigation, route }: ScreenProps) {
     isSending,
     errorMessage,
     switchKind,
-    balances2,
+    leaveBalanceList,
     workdayCount,
     blockMsg,
     canSubmit,
@@ -241,13 +241,13 @@ function LeaveRequestForm({ navigation, route }: ScreenProps) {
                   <LeaveTypeCard
                     kind={leaveKind}
                     onPick={setLeaveKind}
-                    balanceList={balances2}
+                    balanceList={leaveBalanceList}
                     workdays={workdayCount}
                     gender={gender}
                   />
                 )}
                 {kind === "dinas" && (
-                  <DinasTujuanCard
+                  <TripDestinationCard
                     destination={destinationText}
                     onChange={setDestinationText}
                   />
@@ -324,7 +324,7 @@ function LeaveRequestForm({ navigation, route }: ScreenProps) {
                 )}
 
                 {kind === "dinas" && (
-                  <DinasDetailCard
+                  <TripDetailCard
                     transport={transport}
                     onPickTransport={setTransport}
                     purpose={purposeText}
@@ -333,7 +333,7 @@ function LeaveRequestForm({ navigation, route }: ScreenProps) {
                 )}
 
                 {kind === "dinas" && (
-                  <DinasBiayaCard
+                  <TripExpenseCard
                     items={expensesState}
                     days={tripDays}
                     onAdd={() =>

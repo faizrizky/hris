@@ -26,7 +26,7 @@ import { DateSheet } from "@/components/DateSheet";
 import { formatShortDateWithYear } from "@/utils/date";
 import { translateServerLabel } from "@/i18n/serverLabels";
 import { goBackAnimated } from "@/navigation/navigationBack";
-import type { Kunci } from "@/i18n/id";
+import type { TranslationKey } from "@/i18n/id";
 import { useProfileEdit } from "@/hooks/useProfileEdit";
 
 // Nilai baku ERPNext; tampilannya mengikuti bahasa lewat terjemahkan().
@@ -40,12 +40,13 @@ const RELATIONSHIPS = [
 ];
 const MAX_CONTACTS = 5;
 const MARITAL_STATUSES = ["Single", "Married", "Divorced", "Widowed"] as const;
-const MARITAL_NAMES: Record<(typeof MARITAL_STATUSES)[number], Kunci> = {
-  Single: "api.belumMenikah",
-  Married: "api.menikah",
-  Divorced: "api.ceraiHidup",
-  Widowed: "api.ceraiMati",
-};
+const MARITAL_NAMES: Record<(typeof MARITAL_STATUSES)[number], TranslationKey> =
+  {
+    Single: "api.belumMenikah",
+    Married: "api.menikah",
+    Divorced: "api.ceraiHidup",
+    Widowed: "api.ceraiMati",
+  };
 const FAMILY_ROLES = [
   "Spouse",
   "Child",

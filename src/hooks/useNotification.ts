@@ -6,6 +6,7 @@ import { describeError } from "@/services/api/http";
 import { useSession } from "@/services/session";
 import { AppNotification } from "@/services/types";
 import { setUnreadCount } from "@/navigation/notifBadge";
+import { isInboxNotification } from "@/utils/notification";
 
 export type NotificationTab = "inbox" | "announcements";
 
@@ -24,7 +25,7 @@ export function useNotification({
     setErrorMessage(null);
     hrisApi
       .getNotificationInbox(employee.id)
-      .then(setItems)
+      .then((all) => setItems(all.filter(isInboxNotification)))
       .catch((e) => setErrorMessage(describeError(e)));
   }, [employee]);
   useFocusEffect(load);
@@ -35,8 +36,11 @@ export function useNotification({
   const markRead = (ids?: string[]) => {
     if (!employee) return;
     hrisApi
-      .markNotificationsRead(employee.id, ids)
-      .then(setItems)
+      .markNotificationsRead(
+        employee.id,
+        ids ?? (items ?? []).filter((n) => !n.read).map((n) => n.id),
+      )
+      .then((all) => setItems(all.filter(isInboxNotification)))
       // Gagal menandai dibaca tidak kritis; daftar tetap seperti semula.
       .catch(() => {});
   };
