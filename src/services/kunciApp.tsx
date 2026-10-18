@@ -3,6 +3,7 @@ import React, {
   useCallback,
   useContext,
   useEffect,
+  useEffectEvent,
   useMemo,
   useRef,
   useState,
@@ -33,6 +34,8 @@ interface KunciCtx {
 }
 
 const Ctx = createContext<KunciCtx | null>(null);
+const DELAY_BUKA_AWAL_MS = 250; // beri waktu layar kunci tampil sebelum prompt biometrik
+const ABAIKAN_LATAR_PROMPT_MS = 15_000; // prompt biometrik membuat aplikasi sesaat "tidak aktif"
 
 export function useKunci(): KunciCtx {
   const c = useContext(Ctx);
@@ -150,18 +153,18 @@ function LayarKunci({
     if (sedang.current) return;
     sedang.current = true;
     setGagal(false);
-    abaikanLatar(15_000); // prompt biometrik membuat aplikasi sesaat "tidak aktif"
+    abaikanLatar(ABAIKAN_LATAR_PROMPT_MS);
     const ok = await autentikasi(t("kunci.prompt"), t("kunci.batal"));
     sedang.current = false;
     if (ok) onBuka();
     else setGagal(true);
   }, [abaikanLatar, onBuka, t]);
 
+  const bukaAwal = useEffectEvent(buka);
   useEffect(() => {
     jenisBiometrik().then(setJenis);
-    const id = setTimeout(buka, 250);
+    const id = setTimeout(bukaAwal, DELAY_BUKA_AWAL_MS);
     return () => clearTimeout(id);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const ikon = jenis === "wajah" ? "scan-outline" : "finger-print-outline";

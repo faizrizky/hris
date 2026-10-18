@@ -46,6 +46,13 @@ import { useConfirm } from "@/components/ConfirmDialog";
 import { pilihBukti } from "@/utils/pilihBukti";
 import { kembali, keBeranda } from "@/navigation/kembali";
 
+const JAM_MASUK_BAWAAN = 8 * 60; // menit sejak 00:00
+const JAM_KELUAR_BAWAAN = 17 * 60;
+const MASUK_MIN = 5 * 60;
+const MASUK_MAKS = 12 * 60;
+const KELUAR_MIN = 6 * 60;
+const KELUAR_MAKS = 23 * 60 + 45;
+
 export function AttendanceCorrectionScreen({ navigation }: ScreenProps) {
   const t = useT();
   const confirm = useConfirm();
@@ -55,8 +62,9 @@ export function AttendanceCorrectionScreen({ navigation }: ScreenProps) {
 
   const [history, setHistory] = useState<AttendanceRecord[]>([]);
   const [tanggal, setTanggal] = useState<string | null>(null);
-  const [masuk, setMasukRaw] = useState(8 * 60);
-  const [keluar, setKeluarRaw] = useState(17 * 60);
+  // Jam yang diubah pengguna; null = pakai jam tercatat tanggal itu (atau bawaan).
+  const [masukUbah, setMasukUbah] = useState<number | null>(null);
+  const [keluarUbah, setKeluarUbah] = useState<number | null>(null);
   const [jenis, setJenis] = useState<JenisKoreksi>("Forgot check-in");
   const [alasan, setAlasan] = useState("");
   const [files, setFiles] = useState<BuktiFile[]>([]);
@@ -84,21 +92,25 @@ export function AttendanceCorrectionScreen({ navigation }: ScreenProps) {
     ? (history.find((r) => r.date === tanggal) ?? null)
     : null;
 
-  // Tiap ganti tanggal, isi ulang jam dari log yang tercatat kalau ada.
-  useEffect(() => {
-    if (!tanggal) return;
-    const r = history.find((x) => x.date === tanggal);
-
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- sengaja: isi ulang jam saat tanggal berganti
-    setMasukRaw(r?.checkIn ? menitDari(r.checkIn) : 8 * 60);
-    setKeluarRaw(r?.checkOut ? menitDari(r.checkOut) : 17 * 60);
-  }, [tanggal, history]);
+  const masuk =
+    masukUbah ??
+    (record?.checkIn ? menitDari(record.checkIn) : JAM_MASUK_BAWAAN);
+  const keluar =
+    keluarUbah ??
+    (record?.checkOut ? menitDari(record.checkOut) : JAM_KELUAR_BAWAAN);
 
   // Clamp di setter: dua nilai ini independen, hubungannya diurus validasi.
-  const setMasuk = (v: number) =>
-    setMasukRaw(Math.min(Math.max(v, 5 * 60), 12 * 60));
-  const setKeluar = (v: number) =>
-    setKeluarRaw(Math.min(Math.max(v, 6 * 60), 23 * 60 + 45));
+  const setMasuk = (menit: number) =>
+    setMasukUbah(Math.min(Math.max(menit, MASUK_MIN), MASUK_MAKS));
+  const setKeluar = (menit: number) =>
+    setKeluarUbah(Math.min(Math.max(menit, KELUAR_MIN), KELUAR_MAKS));
+
+  // Ganti tanggal membuang jam yang diubah, supaya jam tercatat tanggal baru yang tampil.
+  const handlePilihTanggal = (tanggalBaru: string | null) => {
+    setTanggal(tanggalBaru);
+    setMasukUbah(null);
+    setKeluarUbah(null);
+  };
 
   const buktiWajib = !!tanggal && !record;
 
@@ -241,7 +253,7 @@ export function AttendanceCorrectionScreen({ navigation }: ScreenProps) {
                 hint={t("kor.hintTgl")}
                 start={tanggal}
                 end={tanggal}
-                onChange={(s) => setTanggal(s)}
+                onChange={handlePilihTanggal}
                 footer={footer}
               />
 

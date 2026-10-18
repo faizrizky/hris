@@ -53,7 +53,7 @@ export function FaceCheck({
   useEffect(() => {
     if (!izin?.granted || !siapKamera) return;
     let batal = false;
-    let s = status;
+    let s = awalUrutan();
     let vec: number[] | null = null;
     const skorFrame: number[] = [];
     const mulai = Date.now();
@@ -205,8 +205,7 @@ export function FaceCheck({
     return () => {
       batal = true;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [izin?.granted, siapKamera, putaran, onLulus]);
+  }, [izin?.granted, siapKamera, putaran, onLulus, aksi]);
 
   const ulang = () => {
     setStatus(awalUrutan());

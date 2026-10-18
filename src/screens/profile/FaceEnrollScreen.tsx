@@ -1,4 +1,11 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useEffectEvent,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import type { ScreenProps } from "@/navigation/types";
 import {
   ActivityIndicator,
@@ -21,6 +28,7 @@ import { useTheme } from "@/theme/ThemeContext";
 import { hrisApi } from "@/services/api";
 import { describeError } from "@/services/api/http";
 import { useT } from "@/i18n";
+import type { Kunci } from "@/i18n/id";
 import { kembali } from "@/navigation/kembali";
 import { setTabBarHidden } from "@/navigation/tabBarVisibility";
 import { EmptyState } from "@/components/EmptyState";
@@ -128,6 +136,12 @@ export function FaceEnrollScreen({ navigation }: ScreenProps) {
     ke: number;
   } | null>(null);
   const [peringatan, setPeringatan] = useState<string | null>(null);
+  // Dipanggil dari dalam loop kamera: membaca `t` terbaru tanpa memulai ulang loop.
+  const tampilkanGalat = useEffectEvent((kunci: Kunci) => setGalat(t(kunci)));
+  const tampilkanPesan = useEffectEvent((kunci: Kunci) => setPesan(t(kunci)));
+  const tampilkanPeringatan = useEffectEvent((kunci: Kunci) =>
+    setPeringatan(t(kunci)),
+  );
   const [putaran, setPutaran] = useState(0);
   // Embedding KTP dan foto profil dihitung SEBELUM pemindaian, supaya foto yang tidak berisi wajah
   // ketahuan sebelum karyawan memutar kepala.
@@ -272,7 +286,7 @@ export function FaceEnrollScreen({ navigation }: ScreenProps) {
           ? mulaiPerintah + BATAS_PERINTAH_MS
           : mulai + BATAS_MS;
         if (Date.now() > batas) {
-          setGalat(t("fe.habis"));
+          tampilkanGalat("fe.habis");
           setFase("intro");
           return;
         }
@@ -288,11 +302,11 @@ export function FaceEnrollScreen({ navigation }: ScreenProps) {
           if (d.count !== 1) {
             setAdaWajah(false);
             sebelumnya = null;
-            setPesan(t(d.count === 0 ? "face.tidakAda" : "face.banyak"));
+            tampilkanPesan(d.count === 0 ? "face.tidakAda" : "face.banyak");
             continue;
           }
           if (d.size < 0.15) {
-            setPesan(t("face.dekat"));
+            tampilkanPesan("face.dekat");
             continue;
           }
           setPesan(null);
@@ -380,12 +394,10 @@ export function FaceEnrollScreen({ navigation }: ScreenProps) {
                 if (!batal) setFase("lengkap");
                 return;
               }
-              setPeringatan(
-                t(
-                  sampel.length >= SAMPEL_MIN && !spoofLulus()
-                    ? "fe.bukanAsli"
-                    : "fe.hadapDepan",
-                ),
+              tampilkanPeringatan(
+                sampel.length >= SAMPEL_MIN && !spoofLulus()
+                  ? "fe.bukanAsli"
+                  : "fe.hadapDepan",
               );
             } else {
               const j = urutan[langkah]!;
@@ -408,8 +420,8 @@ export function FaceEnrollScreen({ navigation }: ScreenProps) {
                   setTantangan({ jenis: urutan[langkah]!, ke: langkah + 1 });
                 }
               } else if (Date.now() - mulaiLangkah > PETUNJUK_MS) {
-                setPeringatan(
-                  t(j === "pejam" ? "fe.petunjukPejam" : "fe.petunjukToleh"),
+                tampilkanPeringatan(
+                  j === "pejam" ? "fe.petunjukPejam" : "fe.petunjukToleh",
                 );
               }
             }
@@ -422,7 +434,6 @@ export function FaceEnrollScreen({ navigation }: ScreenProps) {
     return () => {
       batal = true;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [aktif, siapKamera, putaran]);
 
   const mulai = async () => {

@@ -45,11 +45,17 @@ export function useLoad<T>(
       .catch((e) => {
         if (saya === urutan.current) setError(describeError(e));
       });
-    // `kunci` sengaja menjadi satu-satunya pemicu muat ulang selain fokus.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [kunci]);
+  }, []);
 
   useFocusEffect(jalankan);
+
+  // `kunci` yang berubah memuat ulang walau layar tidak berganti fokus.
+  const kunciDimuat = useRef(kunci);
+  useEffect(() => {
+    if (kunciDimuat.current === kunci) return;
+    kunciDimuat.current = kunci;
+    jalankan();
+  }, [kunci, jalankan]);
 
   return {
     data,

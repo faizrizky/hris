@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useEffectEvent } from "react";
 import {
   KeyboardAvoidingView,
   Pressable,
@@ -63,8 +63,7 @@ export function LoginScreen() {
   }, []);
 
   // Dikeluarkan dari luar (sesi berakhir / login di perangkat lain / dikeluarkan lewat Keamanan): beri tahu sekali.
-  useEffect(() => {
-    if (!pesanLogin) return;
+  const tampilkanPesanSesi = useEffectEvent(() => {
     void confirm({
       title: t("login.sesiJudul"),
       message: t("login.sesiPesan"),
@@ -72,7 +71,9 @@ export function LoginScreen() {
       confirmText: t("umum.mengerti"),
       cancelText: null,
     }).then(bersihkanPesanLogin);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+  });
+  useEffect(() => {
+    if (pesanLogin) tampilkanPesanSesi();
   }, [pesanLogin]);
 
   // Biometrik hanya ditawarkan bila perangkat ini sudah punya sidik jari / wajah terdaftar.

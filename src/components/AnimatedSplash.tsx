@@ -1,4 +1,10 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useEffectEvent,
+  useMemo,
+  useState,
+} from "react";
 import {
   Animated,
   Easing,
@@ -104,8 +110,7 @@ export function AnimatedSplash({ onSelesai }: { onSelesai: () => void }) {
       if (finished) setTahap("cek");
     });
     return () => anim.stop();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [garis, huruf, logo, riak, tagline]);
 
   const keluarSplash = useCallback(() => {
     Animated.timing(keluar, {
@@ -129,8 +134,11 @@ export function AnimatedSplash({ onSelesai }: { onSelesai: () => void }) {
   };
 
   // Setelah animasi selesai: periksa pembaruan. Pembaruan wajib menahan layar ini sampai terpasang.
+  const isTahapCek = tahap === "cek";
+  const handleKeluarSplash = useEffectEvent(keluarSplash);
+  const handleMulaiUnduh = useEffectEvent(mulaiUnduh);
   useEffect(() => {
-    if (tahap !== "cek") return;
+    if (!isTahapCek) return;
     let batal = false;
     status.setValue(0);
     Animated.timing(status, {
@@ -144,17 +152,16 @@ export function AnimatedSplash({ onSelesai }: { onSelesai: () => void }) {
       if (!baru || !baru.mandatory) {
         // Tidak ada APK baru: cek paket JavaScript (EAS Update); bila ada, aplikasi dimuat ulang sendiri.
         await cekDanTerapkanOta(() => setTahap("ota"));
-        keluarSplash();
+        handleKeluarSplash();
         return;
       }
       setInfo(baru);
-      void mulaiUnduh(baru);
+      void handleMulaiUnduh(baru);
     })();
     return () => {
       batal = true;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tahap === "cek"]);
+  }, [isTahapCek, status]);
 
   const tampilStatus = tahap !== "animasi";
   const teksStatus =
