@@ -26,7 +26,7 @@ import { ErrorState } from "@/components/ErrorState";
 import { Skeleton } from "@/components/Skeleton";
 import { formatDecimal } from "@/utils/currency";
 import { useT } from "@/i18n";
-import { goBackAnimated } from "@/navigation/kembali";
+import { goBackAnimated } from "@/navigation/navigationBack";
 
 const STEPS = 0.5;
 

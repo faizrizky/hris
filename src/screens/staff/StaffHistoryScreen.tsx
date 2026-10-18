@@ -19,7 +19,7 @@ import {
 } from "@/constants/statusLabels";
 import { getShortMonth, getWeekdayName, formatNumericDate } from "@/utils/date";
 import { useT } from "@/i18n";
-import { goBackAnimated } from "@/navigation/kembali";
+import { goBackAnimated } from "@/navigation/navigationBack";
 
 export function StaffHistoryScreen({ navigation, route }: ScreenProps) {
   const t = useT();

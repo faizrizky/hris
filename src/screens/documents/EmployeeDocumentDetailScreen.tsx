@@ -13,7 +13,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useFocusEffect } from "@react-navigation/native";
 import { useSession } from "@/services/session";
-import { useActivePolling } from "@/hooks/usePollingAktif";
+import { useActivePolling } from "@/hooks/useActivePolling";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   Palette,
@@ -31,10 +31,10 @@ import {
   DOC_STATUS_TONE,
 } from "@/constants/statusLabels";
 import { formatShortDateWithYear } from "@/utils/date";
-import { pickProof } from "@/utils/pilihBukti";
+import { pickProof } from "@/utils/pickProof";
 import { useT } from "@/i18n";
 import { DocPreview } from "./DocPreview";
-import { goBackAnimated } from "@/navigation/kembali";
+import { goBackAnimated } from "@/navigation/navigationBack";
 
 // Karyawan: pratinjau dokumennya sendiri. Dokumen terverifikasi tidak bisa
 // diubah langsung; yang bisa dilakukan adalah mengajukan perubahan dengan alasan.

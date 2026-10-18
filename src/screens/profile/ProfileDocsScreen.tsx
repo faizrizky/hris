@@ -21,10 +21,10 @@ import {
   DOC_STATUS_TONE,
 } from "@/constants/statusLabels";
 import { useT } from "@/i18n";
-import { useActivePolling } from "@/hooks/usePollingAktif";
+import { useActivePolling } from "@/hooks/useActivePolling";
 import { EmptyState } from "@/components/EmptyState";
 import { ICON } from "@/constants/icons";
-import { goBackAnimated } from "@/navigation/kembali";
+import { goBackAnimated } from "@/navigation/navigationBack";
 
 const ALL_TAB = "semua";
 const CATEGORIES: DocCategory[] = ["kontrak", "sk", "sertifikat", "identitas"];

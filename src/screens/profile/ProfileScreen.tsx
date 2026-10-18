@@ -24,7 +24,7 @@ import { LeaveBalance } from "@/services/types";
 import { useConfirm } from "@/components/ConfirmDialog";
 import { useT } from "@/i18n";
 import { LanguagePicker } from "@/components/LanguagePicker";
-import { useProfilePhoto } from "@/hooks/useFotoProfil";
+import { useProfilePhoto } from "@/hooks/useProfilePhoto";
 
 export function ProfileScreen({ navigation }: ScreenProps) {
   const { employee, setEmployee } = useSession();

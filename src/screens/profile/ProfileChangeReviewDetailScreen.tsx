@@ -24,7 +24,7 @@ import { ProfileChange } from "@/services/types";
 import { useConfirm } from "@/components/ConfirmDialog";
 import { useT } from "@/i18n";
 import { ChangeSummary } from "./ChangeSummary";
-import { goBackAnimated } from "@/navigation/kembali";
+import { goBackAnimated } from "@/navigation/navigationBack";
 
 // HR: perbandingan data sekarang dengan usulan karyawan, lalu menyetujui
 // (usulan diterapkan ke data karyawan) atau menolak dengan catatan.

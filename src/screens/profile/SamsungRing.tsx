@@ -12,7 +12,7 @@ import Svg, {
   Rect,
   Stop,
 } from "react-native-svg";
-import { FaceRing } from "./CincinWajah";
+import { FaceRing } from "./FaceRing";
 
 export const TICKS = 60;
 

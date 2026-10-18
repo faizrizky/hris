@@ -19,14 +19,14 @@ import {
   CORRECTION_STATUS_LABEL as STATUS_LABEL,
   CORRECTION_STATUS_TONE as STATUS_TONE,
 } from "@/constants/statusLabels";
-import { splitReason } from "@/utils/Correction";
+import { splitReason } from "@/utils/correctionReason";
 import { getShortMonth, getWeekdayName, formatNumericDate } from "@/utils/date";
-import { getCorrectionKindName } from "./KoreksiCards";
+import { getCorrectionKindName } from "./CorrectionCards";
 import { useT } from "@/i18n";
-import { AttachmentList } from "@/screens/leave/LampiranList";
+import { AttachmentList } from "@/screens/leave/AttachmentList";
 import type { Kunci } from "@/i18n/id";
 import { EmptyState } from "@/components/EmptyState";
-import { goBackAnimated } from "@/navigation/kembali";
+import { goBackAnimated } from "@/navigation/navigationBack";
 
 type Filter = "semua" | AttendanceRequestedStatus;
 

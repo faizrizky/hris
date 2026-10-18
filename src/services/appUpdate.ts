@@ -1,4 +1,4 @@
-import { holdLock } from "@/services/biometrik";
+import { holdLock } from "@/services/biometric";
 // Pembaruan aplikasi tanpa toko (sementara, Android): APK diunggah ke server, aplikasi memeriksa versi
 // saat dibuka, mengunduhnya dengan progres, lalu membuka pemasang Android. Pemasangan tidak bisa senyap:
 // Android selalu meminta pengguna mengetuk "Perbarui".

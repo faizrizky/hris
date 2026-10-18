@@ -23,8 +23,8 @@ import {
   getBiometricName,
   saveCredentials,
   type BiometricReadiness,
-} from "@/services/biometrik";
-import { useAppLock } from "@/services/kunciApp";
+} from "@/services/biometric";
+import { useAppLock } from "@/services/appLock";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useConfirm } from "@/components/ConfirmDialog";
 import { Palette, secondaryButtonStyle } from "@/theme/colors";
@@ -46,7 +46,7 @@ import { ICON } from "@/constants/icons";
 import { Skeleton } from "@/components/Skeleton";
 import { formatShortDateWithYear } from "@/utils/date";
 import { useT } from "@/i18n";
-import { goBackAnimated } from "@/navigation/kembali";
+import { goBackAnimated } from "@/navigation/navigationBack";
 
 // Warna pil status wajah di atas kartu gelap.
 const PILL: Record<FaceState, { bg: string; ink: string }> = {

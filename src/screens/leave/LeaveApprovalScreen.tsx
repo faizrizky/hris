@@ -17,10 +17,10 @@ import { useConfirm } from "@/components/ConfirmDialog";
 import { describeError } from "@/services/api/http";
 import { ErrorState } from "@/components/ErrorState";
 import { useT } from "@/i18n";
-import { AttachmentList } from "./LampiranList";
+import { AttachmentList } from "./AttachmentList";
 import { EmptyState } from "@/components/EmptyState";
 import { ICON } from "@/constants/icons";
-import { goBackOrHome } from "@/navigation/kembali";
+import { goBackOrHome } from "@/navigation/navigationBack";
 
 // Layar ini cuma di-mount untuk role mss/hr (lihat RootNavigator).
 export function LeaveApprovalScreen({ navigation }: ScreenProps) {

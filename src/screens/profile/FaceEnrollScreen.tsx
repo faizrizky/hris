@@ -29,10 +29,10 @@ import { hrisApi } from "@/services/api";
 import { describeError } from "@/services/api/http";
 import { useT } from "@/i18n";
 import type { Kunci } from "@/i18n/id";
-import { goBackAnimated } from "@/navigation/kembali";
+import { goBackAnimated } from "@/navigation/navigationBack";
 import { setTabBarHidden } from "@/navigation/tabBarVisibility";
 import { EmptyState } from "@/components/EmptyState";
-import { saveAttachment } from "@/utils/lampiran";
+import { saveAttachment } from "@/utils/attachment";
 import {
   detectFace,
   getFaceEmbedding,
@@ -41,8 +41,8 @@ import {
   isFaceSupported,
 } from "@/services/faceCheck";
 import type { FaceStatus, SpoofSummary } from "@/services/types";
-import { FaceRing } from "./CincinWajah";
-import { SamsungRing, TICKS } from "./LingkaranSamsung";
+import { FaceRing } from "./FaceRing";
+import { SamsungRing, TICKS } from "./SamsungRing";
 
 // Sudut kepala (derajat) yang dianggap "sampai" ke tepi lingkaran. Mendongak/menunduk lebih sulit
 // daripada menoleh, jadi ambangnya lebih kecil; arah diagonal memakai kombinasi keduanya (elips).

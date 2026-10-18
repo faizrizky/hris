@@ -13,7 +13,7 @@ import { ICON } from "@/constants/icons";
 import { Palette } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
 import { useT } from "@/i18n";
-import { isImage, openAttachment, saveAttachment } from "@/utils/lampiran";
+import { isImage, openAttachment, saveAttachment } from "@/utils/attachment";
 
 // Pratinjau satu dokumen: gambar ditampilkan langsung, PDF/lainnya lewat
 // pratinjau sistem. Dipakai layar verifikasi HR dan layar dokumen karyawan.

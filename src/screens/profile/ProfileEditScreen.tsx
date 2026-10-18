@@ -41,7 +41,7 @@ import { DateSheet } from "@/components/DateSheet";
 import { formatShortDateWithYear } from "@/utils/date";
 import { translateServerLabel } from "@/i18n/serverLabels";
 import { useConfirm } from "@/components/ConfirmDialog";
-import { goBackAnimated } from "@/navigation/kembali";
+import { goBackAnimated } from "@/navigation/navigationBack";
 import type { Kunci } from "@/i18n/id";
 
 // Nilai baku ERPNext; tampilannya mengikuti bahasa lewat terjemahkan().

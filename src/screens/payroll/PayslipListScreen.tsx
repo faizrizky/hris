@@ -18,7 +18,7 @@ import { Skeleton } from "@/components/Skeleton";
 import { useLoad } from "@/hooks/useLoad";
 import { ErrorState } from "@/components/ErrorState";
 import { useT } from "@/i18n";
-import { goBackOrHome } from "@/navigation/kembali";
+import { goBackOrHome } from "@/navigation/navigationBack";
 
 export function PayslipListScreen({ navigation }: ScreenProps) {
   const t = useT();

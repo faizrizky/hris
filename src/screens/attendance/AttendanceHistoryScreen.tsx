@@ -25,7 +25,7 @@ import {
   getMonthName,
 } from "@/utils/date";
 import { useT, getActiveLanguage } from "@/i18n";
-import { goBackAnimated } from "@/navigation/kembali";
+import { goBackAnimated } from "@/navigation/navigationBack";
 
 type Filter = "semua" | "telat" | "izin";
 

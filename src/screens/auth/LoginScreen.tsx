@@ -31,7 +31,7 @@ import {
   readCredentials,
   deleteCredentials,
   getBiometricReadiness,
-} from "@/services/biometrik";
+} from "@/services/biometric";
 
 export function LoginScreen() {
   const { setEmployee, loginNotice, clearLoginNotice } = useSession();

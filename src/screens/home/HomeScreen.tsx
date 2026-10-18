@@ -9,13 +9,13 @@ import { StatusBadge } from "@/components/StatusBadge";
 import { RadialGlow } from "@/components/RadialGlow";
 import { Palette } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
-import { useActivePolling } from "@/hooks/usePollingAktif";
+import { useActivePolling } from "@/hooks/useActivePolling";
 import { hrisApi } from "@/services/api";
 import { useSession } from "@/services/session";
 import { LinearGradient } from "expo-linear-gradient";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { MenuSheet, type ItemMenu } from "@/components/MenuSheet";
-import { getShiftInfo, employeeGreeting } from "@/utils/sapaan";
+import { getShiftInfo, employeeGreeting } from "@/utils/greeting";
 import { formatLongDate, formatJam } from "@/utils/date";
 import { useT, getActiveLanguage } from "@/i18n";
 import {

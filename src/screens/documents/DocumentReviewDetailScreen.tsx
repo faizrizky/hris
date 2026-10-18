@@ -26,7 +26,7 @@ import { DocPreview } from "./DocPreview";
 import { DOC_CATEGORY_LABEL } from "@/constants/statusLabels";
 import { formatShortDateWithYear } from "@/utils/date";
 import { useT } from "@/i18n";
-import { goBackAnimated } from "@/navigation/kembali";
+import { goBackAnimated } from "@/navigation/navigationBack";
 
 // HR: pratinjau satu dokumen lalu memverifikasi atau menolaknya (dengan alasan).
 export function DocumentReviewDetailScreen({ navigation, route }: ScreenProps) {

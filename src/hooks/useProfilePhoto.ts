@@ -1,7 +1,7 @@
 import { useCallback, useState } from "react";
 import { useFocusEffect } from "@react-navigation/native";
 import { hrisApi } from "@/services/api";
-import { saveAttachment } from "@/utils/lampiran";
+import { saveAttachment } from "@/utils/attachment";
 
 // Foto profil adalah berkas privat: diunduh dengan sesi ke cache lalu
 // ditampilkan dari sana. Hasil unduhan diingat per URL supaya tidak diunduh

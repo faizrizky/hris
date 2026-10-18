@@ -17,7 +17,7 @@ import { initialsOf } from "@/utils/ProfileCompleteness";
 import { formatShortDateWithYear } from "@/utils/date";
 import { useT } from "@/i18n";
 import type { Kunci } from "@/i18n/id";
-import { goBackAnimated } from "@/navigation/kembali";
+import { goBackAnimated } from "@/navigation/navigationBack";
 
 const FILTER: { key: ChangeStatus | "all"; label: Kunci }[] = [
   { key: "all", label: "pcr.semua" },

@@ -1,4 +1,4 @@
-import { holdLock } from "@/services/biometrik";
+import { holdLock } from "@/services/biometric";
 import type { ScreenProps } from "@/navigation/types";
 import { useMemo, useState } from "react";
 import {
@@ -40,7 +40,7 @@ import {
 import { useConfirm } from "@/components/ConfirmDialog";
 import { useT } from "@/i18n";
 import type { Kunci } from "@/i18n/id";
-import { goBackAnimated } from "@/navigation/kembali";
+import { goBackAnimated } from "@/navigation/navigationBack";
 
 const CATEGORIES: DocCategory[] = ["kontrak", "sk", "sertifikat", "identitas"];
 

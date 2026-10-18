@@ -11,7 +11,7 @@ import { RevealScrollView as ScrollView } from "@/components/Reveal";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { joinReason } from "@/utils/Correction";
+import { joinReason } from "@/utils/correctionReason";
 import { Palette, primaryButtonStyle } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
 import { hrisApi } from "@/services/api";
@@ -24,7 +24,7 @@ import {
   ApprovalStep,
   FormDoneView,
 } from "@/screens/leave/FormFlowCards";
-import { ProofAttachment } from "@/screens/leave/LemburFormCards";
+import { ProofAttachment } from "@/screens/leave/OvertimeFormCards";
 import {
   CorrectionReasonCard,
   CorrectionProofCard,
@@ -32,7 +32,7 @@ import {
   CorrectionKind,
   RecordedCard,
   getCorrectionKindName,
-} from "./KoreksiCards";
+} from "./CorrectionCards";
 import {
   formatHourDuration,
   formatHoursMinutes,
@@ -43,8 +43,8 @@ import {
 import { describeError } from "@/services/api/http";
 import { useT } from "@/i18n";
 import { useConfirm } from "@/components/ConfirmDialog";
-import { pickProof } from "@/utils/pilihBukti";
-import { goBackAnimated, goHome } from "@/navigation/kembali";
+import { pickProof } from "@/utils/pickProof";
+import { goBackAnimated, goHome } from "@/navigation/navigationBack";
 
 const DEFAULT_CHECKIN_MINUTES = 8 * 60; // menit sejak 00:00
 const DEFAULT_CHECKOUT_MINUTES = 17 * 60;

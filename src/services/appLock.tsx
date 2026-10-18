@@ -23,7 +23,7 @@ import {
   saveLockSettings,
   holdLock,
   type LockSettings,
-} from "@/services/biometrik";
+} from "@/services/biometric";
 import type { Palette } from "@/theme/colors";
 
 interface LockContextValue {

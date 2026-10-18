@@ -34,8 +34,8 @@ import { yearsSince, formatShortDateWithYear } from "@/utils/date";
 import { useT } from "@/i18n";
 import { ChangeSummary } from "@/screens/profile/ChangeSummary";
 import { translateServerLabel } from "@/i18n/serverLabels";
-import { goBackAnimated } from "@/navigation/kembali";
-import { useProfilePhoto } from "@/hooks/useFotoProfil";
+import { goBackAnimated } from "@/navigation/navigationBack";
+import { useProfilePhoto } from "@/hooks/useProfilePhoto";
 
 export function ProfileDataScreen({ navigation }: ScreenProps) {
   const t = useT();

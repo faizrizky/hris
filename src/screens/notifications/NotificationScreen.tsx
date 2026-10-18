@@ -17,7 +17,7 @@ import { Skeleton } from "@/components/Skeleton";
 import { useT } from "@/i18n";
 import { EmptyState } from "@/components/EmptyState";
 import { setUnreadCount } from "@/navigation/notifBadge";
-import { goBackOrHome } from "@/navigation/kembali";
+import { goBackOrHome } from "@/navigation/navigationBack";
 
 const CATEGORY_ICONS: Record<NotifCategory, keyof typeof Ionicons.glyphMap> = {
   Approval: "checkmark-done-outline",

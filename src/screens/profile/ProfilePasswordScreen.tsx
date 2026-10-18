@@ -27,8 +27,8 @@ import {
 } from "@/utils/password";
 import { useT } from "@/i18n";
 import { useConfirm } from "@/components/ConfirmDialog";
-import { goBackAnimated } from "@/navigation/kembali";
-import { deleteCredentials } from "@/services/biometrik";
+import { goBackAnimated } from "@/navigation/navigationBack";
+import { deleteCredentials } from "@/services/biometric";
 
 export function ProfilePasswordScreen({ navigation }: ScreenProps) {
   const t = useT();

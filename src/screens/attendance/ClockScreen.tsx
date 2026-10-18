@@ -1,6 +1,6 @@
 import React, { useCallback, useState, useMemo } from "react";
 import type { ScreenProps } from "@/navigation/types";
-import { formatDuration, getAttendanceStatus } from "@/utils/statusPresensi";
+import { formatDuration, getAttendanceStatus } from "@/utils/attendanceStatus";
 import { useFocusEffect } from "@react-navigation/native";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { RevealScrollView as ScrollView } from "@/components/Reveal";
@@ -20,10 +20,10 @@ import { Skeleton } from "@/components/Skeleton";
 import { describeError } from "@/services/api/http";
 import { ErrorState } from "@/components/ErrorState";
 import { useT } from "@/i18n";
-import { useWorkLocation } from "@/hooks/useLokasiKerja";
+import { useWorkLocation } from "@/hooks/useWorkLocation";
 import { setTabBarHidden } from "@/navigation/tabBarVisibility";
 import type { FaceStatus, SpoofSummary } from "@/services/types";
-import { goBackOrHome, goHome } from "@/navigation/kembali";
+import { goBackOrHome, goHome } from "@/navigation/navigationBack";
 
 export function ClockScreen({ navigation }: ScreenProps) {
   const t = useT();

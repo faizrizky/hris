@@ -16,9 +16,9 @@ import { useSession } from "@/services/session";
 import { useLoad } from "@/hooks/useLoad";
 import { ErrorState } from "@/components/ErrorState";
 import { useT } from "@/i18n";
-import { AttachmentList } from "./LampiranList";
+import { AttachmentList } from "./AttachmentList";
 import { EmptyState } from "@/components/EmptyState";
-import { goBackOrHome } from "@/navigation/kembali";
+import { goBackOrHome } from "@/navigation/navigationBack";
 
 export function LeaveListScreen({ navigation }: ScreenProps) {
   const { employee } = useSession();

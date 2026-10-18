@@ -1,7 +1,7 @@
-import { holdLock } from "@/services/biometrik";
+import { holdLock } from "@/services/biometric";
 import * as DocumentPicker from "expo-document-picker";
 import { File } from "expo-file-system";
-import { toJpeg } from "@/utils/jadikanJpeg";
+import { toJpeg } from "@/utils/toJpeg";
 import { MAX_BYTES, formatFileSize } from "@/utils/file";
 
 export interface ProofFile {

@@ -23,7 +23,7 @@ import { useT } from "@/i18n";
 import type { Kunci } from "@/i18n/id";
 import { EmptyState } from "@/components/EmptyState";
 import { ICON } from "@/constants/icons";
-import { goBackAnimated } from "@/navigation/kembali";
+import { goBackAnimated } from "@/navigation/navigationBack";
 
 const ALL_TAB = "Semua";
 

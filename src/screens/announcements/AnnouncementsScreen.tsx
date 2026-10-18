@@ -13,9 +13,9 @@ import { ErrorState } from "@/components/ErrorState";
 import { EmptyState } from "@/components/EmptyState";
 import { Skeleton } from "@/components/Skeleton";
 import { ICON } from "@/constants/icons";
-import { goBackAnimated } from "@/navigation/kembali";
+import { goBackAnimated } from "@/navigation/navigationBack";
 import { formatShortDateWithYear } from "@/utils/date";
-import { AttachmentList } from "@/screens/leave/LampiranList";
+import { AttachmentList } from "@/screens/leave/AttachmentList";
 import { useT } from "@/i18n";
 
 // Pengumuman dari HR (doctype HR Announcement di ERPNext).

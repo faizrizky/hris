@@ -28,7 +28,7 @@ import {
   formatShortDateWithYear,
 } from "@/utils/date";
 import { useT } from "@/i18n";
-import { goBackAnimated } from "@/navigation/kembali";
+import { goBackAnimated } from "@/navigation/navigationBack";
 
 export function StaffDetailScreen({ navigation, route }: ScreenProps) {
   const t = useT();

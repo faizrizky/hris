@@ -3,7 +3,7 @@ import { StatusBar } from "expo-status-bar";
 import * as SplashScreen from "expo-splash-screen";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { SessionProvider } from "@/services/session";
-import { AppLockProvider } from "@/services/kunciApp";
+import { AppLockProvider } from "@/services/appLock";
 import { RootNavigator } from "@/navigation/RootNavigator";
 import { ThemeProvider } from "@/theme/ThemeContext";
 import { ConfirmProvider } from "@/components/ConfirmDialog";

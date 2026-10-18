@@ -9,7 +9,7 @@ import { useTheme } from "@/theme/ThemeContext";
 import { angka, rupiah } from "@/utils/currency";
 import { useT, translate } from "@/i18n";
 import { useConfirm } from "@/components/ConfirmDialog";
-import { ProofFile, pickProof } from "@/utils/pilihBukti";
+import { ProofFile, pickProof } from "@/utils/pickProof";
 
 export const EXPENSE_CATEGORIES = [
   "Transportasi",

@@ -1,4 +1,4 @@
-import { holdLock } from "@/services/biometrik";
+import { holdLock } from "@/services/biometric";
 import * as Sharing from "expo-sharing";
 import { File, Paths } from "expo-file-system";
 import { downloadFile } from "@/services/api/http";

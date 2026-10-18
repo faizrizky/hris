@@ -32,7 +32,7 @@ import {
 } from "react-native";
 import { NavigationContext } from "@react-navigation/native";
 import { useTheme } from "@/theme/ThemeContext";
-import { consumeBackMark } from "@/navigation/kembali";
+import { consumeBackMark } from "@/navigation/navigationBack";
 
 const EASE = Easing.bezier(0.25, 0.1, 0.25, 1);
 const ITEM_MS = 500;

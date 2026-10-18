@@ -16,7 +16,7 @@ import { Skeleton } from "@/components/Skeleton";
 import { useT } from "@/i18n";
 import { EmptyState } from "@/components/EmptyState";
 import { ICON } from "@/constants/icons";
-import { goBackAnimated } from "@/navigation/kembali";
+import { goBackAnimated } from "@/navigation/navigationBack";
 
 const ALL_TAB = "Semua";
 

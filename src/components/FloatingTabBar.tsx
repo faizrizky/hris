@@ -1,6 +1,6 @@
 import { hrisApi } from "@/services/api";
 import { setUnreadCount, useUnreadCount } from "@/navigation/notifBadge";
-import { markBackNavigation } from "@/navigation/kembali";
+import { markBackNavigation } from "@/navigation/navigationBack";
 import { useTabBarHidden } from "@/navigation/tabBarVisibility";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { LinearGradient } from "expo-linear-gradient";

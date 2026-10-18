@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import { BackHandler, View } from "react-native";
 import { useTheme } from "@/theme/ThemeContext";
-import { markBackNavigation } from "@/navigation/kembali";
+import { markBackNavigation } from "@/navigation/navigationBack";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";

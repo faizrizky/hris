@@ -1,4 +1,4 @@
-import { holdLock } from "@/services/biometrik";
+import { holdLock } from "@/services/biometric";
 import type { ScreenProps } from "@/navigation/types";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
@@ -30,13 +30,13 @@ import { useSession } from "@/services/session";
 import { useT } from "@/i18n";
 import { useConfirm } from "@/components/ConfirmDialog";
 import { EmptyState } from "@/components/EmptyState";
-import { goBackAnimated } from "@/navigation/kembali";
-import { saveAttachment } from "@/utils/lampiran";
-import { toJpeg } from "@/utils/jadikanJpeg";
+import { goBackAnimated } from "@/navigation/navigationBack";
+import { saveAttachment } from "@/utils/attachment";
+import { toJpeg } from "@/utils/toJpeg";
 import { initialsOf } from "@/utils/ProfileCompleteness";
-import { useProfilePhoto } from "@/hooks/useFotoProfil";
+import { useProfilePhoto } from "@/hooks/useProfilePhoto";
 import { getFaceEmbedding, isFaceSupported } from "@/services/faceCheck";
-import { Head, type HeadVariant } from "./KepalaIlustrasi";
+import { Head, type HeadVariant } from "./HeadIllustration";
 
 const SLIDES: { title: string; content: string; headVariant: HeadVariant }[] = [
   { title: "pf.t1", content: "pf.t1Isi", headVariant: "gelap" },

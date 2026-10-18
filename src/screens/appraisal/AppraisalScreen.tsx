@@ -19,7 +19,7 @@ import { formatDecimal } from "@/utils/currency";
 import { Skeleton } from "@/components/Skeleton";
 import { useT } from "@/i18n";
 import { ICON } from "@/constants/icons";
-import { goBackAnimated } from "@/navigation/kembali";
+import { goBackAnimated } from "@/navigation/navigationBack";
 
 const RING = 104;
 const STROKE = 13;

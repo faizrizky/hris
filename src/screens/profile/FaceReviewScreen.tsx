@@ -25,8 +25,8 @@ import { EmptyState } from "@/components/EmptyState";
 import { useConfirm } from "@/components/ConfirmDialog";
 import { ICON } from "@/constants/icons";
 import { useT } from "@/i18n";
-import { goBackAnimated } from "@/navigation/kembali";
-import { openAttachment, saveAttachment } from "@/utils/lampiran";
+import { goBackAnimated } from "@/navigation/navigationBack";
+import { openAttachment, saveAttachment } from "@/utils/attachment";
 
 // HR: tinjau pendaftaran wajah yang menunggu (selfie, KTP, foto profil, skor kemiripan) lalu setujui atau tolak.
 export function FaceReviewScreen({ navigation }: ScreenProps) {

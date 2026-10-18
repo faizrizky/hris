@@ -16,21 +16,21 @@ import {
   LeaveKind,
   leaveName,
   SERVER_KINDS,
-} from "./CutiFormCards";
+} from "./LeaveFormCards";
 import { ApprovalFlowCard, FormDoneView, ApprovalStep } from "./FormFlowCards";
 import {
   OvertimeHoursCard,
   OvertimeDescriptionCard,
   OvertimeProofCard,
   ProofAttachment,
-} from "./LemburFormCards";
+} from "./OvertimeFormCards";
 import {
   DinasTujuanCard,
   DinasDetailCard,
   TransportMode,
-} from "./DinasFormCards";
+} from "./TripFormCards";
 
-import { DinasBiayaCard, Expense, totalExpense } from "./DinasBiayaCard";
+import { DinasBiayaCard, Expense, totalExpense } from "./TripExpenseCard";
 import { hrisApi } from "@/services/api";
 import { useSession } from "@/services/session";
 import { LeaveBalance, Colleague, LeaveApprover } from "@/services/types";
@@ -52,9 +52,9 @@ import { LinearGradient } from "expo-linear-gradient";
 import { describeError } from "@/services/api/http";
 import { useT, translate } from "@/i18n";
 import { useConfirm } from "@/components/ConfirmDialog";
-import { pickProof } from "@/utils/pilihBukti";
+import { pickProof } from "@/utils/pickProof";
 import { WfhDetailCard, WFH_DAYS } from "./WfhFormCards";
-import { goBackAnimated, goHome } from "@/navigation/kembali";
+import { goBackAnimated, goHome } from "@/navigation/navigationBack";
 
 const FORM_SEGMENTS = [
   { key: "cuti", label: "lr.cuti" },

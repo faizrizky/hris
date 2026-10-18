@@ -17,7 +17,7 @@ import { useT } from "@/i18n";
 import { EmptyState } from "@/components/EmptyState";
 import { ICON } from "@/constants/icons";
 import type { Kunci } from "@/i18n/id";
-import { goBackAnimated } from "@/navigation/kembali";
+import { goBackAnimated } from "@/navigation/navigationBack";
 
 const FILTER: { key: ReviewStatus | "all"; label: Kunci }[] = [
   { key: "all", label: "rv.semua" },

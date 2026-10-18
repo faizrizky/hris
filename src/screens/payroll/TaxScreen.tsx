@@ -14,7 +14,7 @@ import { Skeleton } from "@/components/Skeleton";
 import { useLoad } from "@/hooks/useLoad";
 import { ErrorState } from "@/components/ErrorState";
 import { useT, getActiveLanguage } from "@/i18n";
-import { goBackAnimated } from "@/navigation/kembali";
+import { goBackAnimated } from "@/navigation/navigationBack";
 
 /** 3.7 -> "3,7" · 2 -> "2" */
 function percent(n: number) {

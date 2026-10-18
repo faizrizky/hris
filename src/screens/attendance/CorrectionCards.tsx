@@ -13,7 +13,7 @@ import {
   ATTENDANCE_STATUS_TONE,
 } from "@/constants/statusLabels";
 import { formatHoursMinutes } from "@/utils/date";
-import { ProofAttachment } from "@/screens/leave/LemburFormCards";
+import { ProofAttachment } from "@/screens/leave/OvertimeFormCards";
 import { useT, translate } from "@/i18n";
 
 // Nilai ini ikut tersimpan di ERPNext (bahasa Inggris); tampilannya diterjemahkan.

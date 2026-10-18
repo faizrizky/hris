@@ -35,7 +35,7 @@ import {
 } from "@/utils/date";
 import { Skeleton } from "@/components/Skeleton";
 import { EmptyState } from "@/components/EmptyState";
-import { goBackAnimated } from "@/navigation/kembali";
+import { goBackAnimated } from "@/navigation/navigationBack";
 
 export function OvertimeScreen({ navigation }: ScreenProps) {
   const { employee } = useSession();

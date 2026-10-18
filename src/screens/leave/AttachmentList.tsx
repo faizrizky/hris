@@ -6,7 +6,7 @@ import { ICON } from "@/constants/icons";
 import { useT } from "@/i18n";
 import { Palette } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
-import { openAttachment } from "@/utils/lampiran";
+import { openAttachment } from "@/utils/attachment";
 
 // Daftar lampiran (bukti lembur/biaya) yang bisa diketuk untuk dibuka.
 export function AttachmentList({

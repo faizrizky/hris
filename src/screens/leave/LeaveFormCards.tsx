@@ -8,7 +8,7 @@ import { ICON } from "@/constants/icons";
 import { Palette } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
 import { useT, translate } from "@/i18n";
-import type { ProofAttachment } from "./LemburFormCards";
+import type { ProofAttachment } from "./OvertimeFormCards";
 
 export const MAIN_KINDS = ["Tahunan", "Sakit", "Melahirkan"] as const;
 
