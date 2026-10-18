@@ -1,0 +1,102 @@
+{
+  "Ronald Richard": {
+    "accounts": [
+      {"platform": "GitHub", "username": "ronaldrichard", "exists": true, "post_access": "API"},
+      {"platform": "LinkedIn", "username": "ronaldrichard", "exists": true, "post_access": "Manual review only"},
+      {"platform": "Instagram", "username": "ronaldrichard", "exists": true, "post_access": "Manual review only"}
+    ],
+    "articles": [
+      {
+        "title": "Ronald Richard Raih Juara 1 Lomba Desain UI/UX Nasional",
+        "snippet": "Ronald Richard mahasiswa desain meraih penghargaan juara 1 lomba aplikasi di Jakarta.",
+        "url": "https://berita.example.com/ronald-richard-juara",
+        "source_name": "Kompas.com",
+        "published_on": "2023-08-15T10:00:00",
+        "category": "Prestasi",
+        "severity": "Info"
+      },
+      {
+        "title": "Ronald Richard Menjadi Narasumber Workshop Desain Produk",
+        "snippet": "Ronald Richard hadir sebagai pembicara dan narasumber teknologi digital di Jakarta.",
+        "url": "https://berita.example.com/ronald-richard-narasumber",
+        "source_name": "Detik.com",
+        "published_on": "2024-02-10T14:30:00",
+        "category": "Profesional",
+        "severity": "Info"
+      }
+    ],
+    "files": [
+      {
+        "title": "Portofolio Desain Interaksi dan Aplikasi Ronald Richard.pdf",
+        "snippet": "Dokumen portofolio desain produk digital Ronald Richard di Jakarta.",
+        "url": "https://storage.example.com/portofolio-ronald-richard.pdf",
+        "source_name": "Portofolio Publik",
+        "file_type": "PDF",
+        "published_on": "2023-11-20T08:00:00",
+        "category": "Profesional",
+        "severity": "Info"
+      }
+    ],
+    "cases": [
+      {
+        "case_type": "Perdata",
+        "case_number": "72/PDT.P/2017",
+        "court": "PN Jakarta Selatan",
+        "party_role": "Pemohon",
+        "registered_on": "2017-03-10",
+        "uploaded_on": "2017-04-01",
+        "adjudicated_on": "2017-04-20",
+        "title": "Putusan Permohonan Perdata Nomor 72/PDT.P/2017",
+        "snippet": "Permohonan perdata penetapan perbaikan akta kelahiran yang diajukan oleh pemohon Ronald Richard.",
+        "severity": "Info",
+        "category": "Netral"
+      }
+    ],
+    "posts": [
+      {"text": "Excited to launch our new Figma UI kit today! #design #uiux", "created_at": "2024-03-01T10:00:00Z", "url": "https://github.com/ronaldrichard/posts/1", "is_reply": false},
+      {"text": "Refactoring some React and TypeScript components. Clean code matters.", "created_at": "2024-03-05T14:00:00Z", "url": "https://github.com/ronaldrichard/posts/2", "is_reply": false},
+      {"text": "Thanks everyone for joining my design workshop yesterday!", "created_at": "2024-03-10T09:00:00Z", "url": "https://github.com/ronaldrichard/posts/3", "is_reply": false},
+      {"text": "Great discussion on UX research best practices.", "created_at": "2024-03-15T11:00:00Z", "url": "https://github.com/ronaldrichard/posts/4", "is_reply": true},
+      {"text": "Exploring accessible web design patterns today.", "created_at": "2024-03-20T16:00:00Z", "url": "https://github.com/ronaldrichard/posts/5", "is_reply": false}
+    ]
+  },
+  "Muhammad Rizky": {
+    "context": ["Pekanbaru", "PT Solusi Digital"],
+    "articles": [
+      {
+        "title": "Muhammad Rizky Ditangkap Terkait Sindikat Judi Online",
+        "snippet": "Kepolisian Surabaya mengamankan tersangka Muhammad Rizky di kota Surabaya terkait operasi judi online.",
+        "url": "https://berita.example.com/muhammad-rizky-surabaya",
+        "source_name": "Tribun Surabaya",
+        "category": "Berisiko",
+        "severity": "Tinggi",
+        "location": "Surabaya"
+      },
+      {
+        "title": "Muhammad Rizky Software Engineer PT Solusi Digital Luncurkan Modul Baru",
+        "snippet": "Muhammad Rizky software engineer PT Solusi Digital di Pekanbaru merilis pustaka kode terbuka.",
+        "url": "https://berita.example.com/muhammad-rizky-pekanbaru",
+        "source_name": "Media Pekanbaru",
+        "category": "Profesional",
+        "severity": "Info",
+        "location": "Pekanbaru"
+      }
+    ]
+  },
+  "Hendro Susanto": {
+    "cases": [
+      {
+        "case_type": "Pidana Khusus",
+        "case_number": "456/Pid.Sus/2022/PN Jkt.Pst",
+        "court": "PN Jakarta Pusat",
+        "party_role": "Terdakwa",
+        "registered_on": "2022-05-10",
+        "adjudicated_on": "2022-09-15",
+        "title": "Putusan Pidana Khusus Nomor 456/Pid.Sus/2022",
+        "snippet": "Menyatakan terdakwa Hendro Susanto terbukti bersalah melakukan tindak pidana korupsi.",
+        "severity": "Tinggi",
+        "category": "Berisiko"
+      }
+    ]
+  }
+}
