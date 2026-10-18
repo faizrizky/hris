@@ -89,6 +89,13 @@ class TestBackgroundCheckRunner(FrappeTestCase):
 		for acc in bgc.accounts:
 			self.assertTrue(acc.profile_url)
 			self.assertEqual(acc.exists, 1)
+			if acc.platform in ("Instagram", "LinkedIn"):
+				# Domain terlarang tidak pernah di-scrape: display_name kosong & identity_match tidak dihitung
+				self.assertIn(acc.identity_match, (None, 0))
+				self.assertEqual(acc.display_name or "", "")
+			else:
+				self.assertGreaterEqual(acc.identity_match, 50)
+				self.assertTrue(acc.display_name)
 
 		# 2. Periksa status per sumber (source_runs)
 		for sr in bgc.source_runs:
@@ -96,18 +103,21 @@ class TestBackgroundCheckRunner(FrappeTestCase):
 			self.assertGreaterEqual(sr.items_found, 1)
 
 		# 3. Periksa temuan di semua tipe
-		articles = frappe.get_all("Background Check Finding", filters={"background_check": bgc.name, "finding_type": "Article"}, fields=["title", "category", "severity", "match_confidence"])
+		articles = frappe.get_all("Background Check Finding", filters={"background_check": bgc.name, "finding_type": "Article"}, fields=["title", "category", "severity", "match_confidence", "text_source", "evidence_excerpt"])
 		self.assertGreaterEqual(len(articles), 1)
 		self.assertTrue(any(a.category == "Prestasi" and a.severity == "Info" for a in articles))
+		self.assertTrue(articles[0].text_source)
 
 		files = frappe.get_all("Background Check Finding", filters={"background_check": bgc.name, "finding_type": "File"}, fields=["title", "file_type", "match_confidence"])
 		self.assertGreaterEqual(len(files), 1)
 
-		cases = frappe.get_all("Background Check Finding", filters={"background_check": bgc.name, "finding_type": "Case"}, fields=["case_type", "party_role", "severity"])
+		cases = frappe.get_all("Background Check Finding", filters={"background_check": bgc.name, "finding_type": "Case"}, fields=["case_type", "party_role", "severity", "text_source", "evidence_excerpt", "detail_url"])
 		self.assertGreaterEqual(len(cases), 1)
 		# Permohonan perdata 72/PDT.P/2017 wajib ber-severity Info dan party_role Pemohon
 		self.assertEqual(cases[0].party_role, "Pemohon")
 		self.assertEqual(cases[0].severity, "Info")
+		self.assertTrue(cases[0].text_source)
+		self.assertTrue(cases[0].evidence_excerpt)
 
 		# 4. Periksa hasil evaluasi tingkat risiko dan ringkasan
 		self.assertEqual(bgc.risk_level_auto, "Rendah")
@@ -212,6 +222,15 @@ class TestBackgroundCheckRunner(FrappeTestCase):
 			self.assertEqual(c_run.status, "Done")
 			self.assertEqual(c_run.fetch_mode_used, "company+robots")
 			self.assertGreaterEqual(c_run.items_found, 1)
+
+			live_cases = frappe.get_all(
+				"Background Check Finding",
+				filters={"background_check": bgc.name, "finding_type": "Case"},
+				fields=["case_type", "party_role", "text_source", "evidence_excerpt", "detail_url"],
+			)
+			self.assertGreaterEqual(len(live_cases), 1)
+			self.assertTrue(live_cases[0].text_source)
+			self.assertTrue(live_cases[0].evidence_excerpt)
 
 			# Article -> Skipped
 			a_run = runs_by_source["Article"]

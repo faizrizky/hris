@@ -55,6 +55,19 @@ def daily_retention_purge() -> dict[str, int]:
 		bgc.save(ignore_permissions=True)
 		total_bgcs_purged += 1
 
+	# 3. Bersihkan berkas/direktori crawl yang tersisa di private/hris_ats/crawl/
+	try:
+		import os
+		import shutil
+		crawl_base = os.path.abspath(frappe.get_site_path("private", "hris_ats", "crawl"))
+		if os.path.exists(crawl_base):
+			for item in os.listdir(crawl_base):
+				item_path = os.path.join(crawl_base, item)
+				if os.path.isdir(item_path):
+					shutil.rmtree(item_path, ignore_errors=True)
+	except Exception:
+		pass
+
 	return {
 		"bgcs_purged": total_bgcs_purged,
 		"findings_deleted": total_findings_deleted,

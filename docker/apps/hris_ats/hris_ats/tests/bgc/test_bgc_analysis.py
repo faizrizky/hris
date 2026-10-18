@@ -8,6 +8,8 @@ from hris_ats.bgc.analysis.identity import (
 	generate_name_variants,
 	is_mononym,
 	calculate_match_confidence,
+	calculate_account_identity_match,
+	evaluate_match_with_excerpt,
 )
 from hris_ats.bgc.analysis.classify import classify_text
 from hris_ats.bgc.analysis.case import detect_party_role, evaluate_case_severity
@@ -75,6 +77,159 @@ def test_name_twins_context_discrimination():
 
 	# Skor kandidat asli harus jauh lebih tinggi
 	assert conf_pekanbaru > conf_surabaya
+
+
+def test_calculate_account_identity_match_full_score():
+	score, reasons = calculate_account_identity_match(
+		candidate_name="Ronald Richard",
+		candidate_variants=["ronald richard", "ronald"],
+		candidate_city="Jakarta Selatan",
+		candidate_cv_terms=["PT Maju Bersama", "UI/UX Designer", "Universitas Indonesia"],
+		display_name="Ronald Richard",
+		bio="Lead UI/UX Designer at PT Maju Bersama, alumnus Universitas Indonesia",
+		location="Jakarta Selatan, Indonesia",
+		declared_by_candidate=True,
+		is_forbidden=False,
+	)
+	# 50 (nama persis) + 20 (lokasi kota cocok) + 20 (bio cocok CV) + 10 (dinyatakan kandidat) = 100
+	assert score == 100
+	assert any("Nama tampilan persis cocok (+50)" in r for r in reasons)
+	assert any("Lokasi profil cocok" in r for r in reasons)
+	assert any("Bio menyebut entitas CV" in r for r in reasons)
+	assert any("Akun dinyatakan sendiri oleh kandidat (+10)" in r for r in reasons)
+
+
+def test_calculate_account_identity_match_similarity_levels():
+	# Kemiripan tinggi (>=90): +40
+	score_high, _ = calculate_account_identity_match(
+		candidate_name="Ronald Richard",
+		candidate_variants=[],
+		candidate_city=None,
+		candidate_cv_terms=[],
+		display_name="Ronald Richards",
+		bio=None,
+		location=None,
+		declared_by_candidate=False,
+	)
+	assert score_high == 40
+
+	# Kemiripan sedang (>=80): +25
+	score_med, _ = calculate_account_identity_match(
+		candidate_name="Ronald Richard",
+		candidate_variants=[],
+		candidate_city=None,
+		candidate_cv_terms=[],
+		display_name="Ronald D Richardson",
+		bio=None,
+		location=None,
+		declared_by_candidate=False,
+	)
+	assert score_med == 25
+
+	# Kemiripan rendah (<80): 0
+	score_low, _ = calculate_account_identity_match(
+		candidate_name="Ronald Richard",
+		candidate_variants=[],
+		candidate_city=None,
+		candidate_cv_terms=[],
+		display_name="Budi Santoso",
+		bio=None,
+		location=None,
+		declared_by_candidate=False,
+	)
+	assert score_low == 0
+
+
+def test_calculate_account_identity_match_forbidden_platforms():
+	score, reasons = calculate_account_identity_match(
+		candidate_name="Ronald Richard",
+		candidate_variants=[],
+		candidate_city="Jakarta",
+		candidate_cv_terms=["UI/UX"],
+		display_name="Ronald Richard",
+		bio="UI/UX Designer",
+		location="Jakarta",
+		declared_by_candidate=True,
+		is_forbidden=True,
+	)
+	assert score is None
+	assert reasons == []
+
+
+def test_calculate_account_identity_match_undeclared_below_threshold():
+	score, _ = calculate_account_identity_match(
+		candidate_name="Ronald Richard",
+		candidate_variants=[],
+		candidate_city="Jakarta",
+		candidate_cv_terms=[],
+		display_name="Ronald D Richardson",  # +25
+		bio="Just a developer",
+		location="Surabaya",  # 0
+		declared_by_candidate=False,  # 0
+	)
+	# 25 < 50
+	assert score == 25
+
+
+def test_evaluate_match_with_excerpt_cuplikan_capped_at_70():
+	text = "Ronald Richard meraih medali emas UI/UX Jakarta."
+	# Nama persis (+50) + 2 konteks (+30) + bonus unik (+10) = 90
+	# Tapi text_source = "Cuplikan" wajib dibatasi maksimal 70
+	conf, reasons, excerpt = evaluate_match_with_excerpt(
+		candidate_name="Ronald Richard",
+		candidate_variants=["ronald richard"],
+		context_terms=["UI/UX", "Jakarta"],
+		text=text,
+		total_hits=5,
+		text_source="Cuplikan",
+	)
+	assert conf == 70
+	assert any("dibatasi maksimal 70" in r for r in reasons)
+
+
+def test_evaluate_match_with_excerpt_pdf_source_uncapped():
+	text = "Ronald Richard meraih medali emas UI/UX Jakarta."
+	conf, _, _ = evaluate_match_with_excerpt(
+		candidate_name="Ronald Richard",
+		candidate_variants=["ronald richard"],
+		context_terms=["UI/UX", "Jakarta"],
+		text=text,
+		total_hits=5,
+		text_source="PDF putusan",
+	)
+	assert conf == 90
+
+
+def test_evaluate_match_with_excerpt_nik_redaction():
+	text = "Ronald Richard NIK 3171012345678901 telah terdaftar di Jakarta."
+	_, _, excerpt = evaluate_match_with_excerpt(
+		candidate_name="Ronald Richard",
+		candidate_variants=["ronald richard"],
+		context_terms=["Jakarta"],
+		text=text,
+		total_hits=5,
+	)
+	assert "3171012345678901" not in excerpt
+	assert "[NIK DIREDAKSI]" in excerpt
+
+
+def test_evaluate_match_with_excerpt_picks_best_context_occurrence():
+	# Nama muncul dua kali: satu di awal tanpa konteks, satu di tengah dengan konteks lengkap
+	text = (
+		"Daftar hadir: Ronald Richard. "
+		+ ("x " * 100)
+		+ "Sidang perkara Ronald Richard pekerjaan Karyawan Swasta di Jakarta Selatan terkait sengketa."
+	)
+	conf, reasons, excerpt = evaluate_match_with_excerpt(
+		candidate_name="Ronald Richard",
+		candidate_variants=["ronald richard"],
+		context_terms=["Jakarta Selatan", "Karyawan Swasta"],
+		text=text,
+		total_hits=5,
+	)
+	# Harus memilih kemunculan kedua sehingga cuplikan memuat konteks
+	assert "Karyawan Swasta" in excerpt
+	assert "Jakarta Selatan" in excerpt
 
 
 # =====================================================================

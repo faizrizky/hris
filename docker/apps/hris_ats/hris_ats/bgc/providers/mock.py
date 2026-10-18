@@ -87,6 +87,9 @@ class MockProvider(BaseProvider):
 					match_reasons="; ".join(reasons),
 					category=cat,
 					severity=sev,
+					text_source=art.get("text_source", "Cuplikan"),
+					evidence_excerpt=art.get("evidence_excerpt") or art["snippet"][:600],
+					detail_url=art.get("url", ""),
 				))
 
 		# 2. Files
@@ -111,6 +114,9 @@ class MockProvider(BaseProvider):
 					match_reasons="; ".join(reasons),
 					category=cat,
 					severity=sev,
+					text_source=f.get("text_source", "Cuplikan"),
+					evidence_excerpt=f.get("evidence_excerpt") or f["snippet"][:600],
+					detail_url=f.get("url", ""),
 				))
 
 		# 3. Cases
@@ -138,6 +144,9 @@ class MockProvider(BaseProvider):
 					match_reasons="; ".join(reasons),
 					category=c.get("category", case_eval["category"]),
 					severity=c.get("severity", case_eval["severity"]),
+					text_source=c.get("text_source", "Cuplikan"),
+					evidence_excerpt=c.get("evidence_excerpt") or c["snippet"][:600],
+					detail_url=c.get("url", ""),
 				))
 
 		return findings

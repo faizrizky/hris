@@ -88,6 +88,7 @@ class FetchResult:
 	robots_ignored: bool = False
 	from_cache: bool = False
 	page: Any | None = None
+	content: bytes | None = None
 
 
 # 4. Cache Abstraction
@@ -334,6 +335,7 @@ def fetch(
 	config: FetchConfig | None = None,
 	*,
 	method: str = "GET",
+	max_size_bytes: int | None = None,
 	cache_backend: BaseCacheBackend | None = None,
 	raw_fetch_fn: Callable[..., Any] | None = None,
 	sleep_fn: Callable[[float], None] = time.sleep,
@@ -366,6 +368,9 @@ def fetch(
 		cached_data = cache.get(cache_key)
 		if cached_data is not None and isinstance(cached_data, dict):
 			body = cached_data.get("body", "")
+			content_bytes = cached_data.get("content") or (body.encode("utf-8") if isinstance(body, str) else b"")
+			if max_size_bytes and len(content_bytes) > max_size_bytes:
+				raise FetchError(f"Ukuran berkas {len(content_bytes)} bytes melebihi batas {max_size_bytes} bytes")
 			page = Adaptor(body) if Adaptor else None
 			return FetchResult(
 				url=url,
@@ -375,6 +380,7 @@ def fetch(
 				robots_ignored=cached_data.get("robots_ignored", False),
 				from_cache=True,
 				page=page,
+				content=content_bytes,
 			)
 
 	# Cek robots.txt
@@ -477,6 +483,18 @@ def fetch(
 		except Exception as e:
 			raise FetchNetworkError(f"Gagal mengambil {url}: {e}") from e
 
+	content_bytes = b""
+	if hasattr(res_page, "body") and isinstance(res_page.body, bytes):
+		content_bytes = res_page.body
+	elif isinstance(body, bytes):
+		content_bytes = body
+		body = body.decode("utf-8", errors="ignore")
+	elif isinstance(body, str):
+		content_bytes = body.encode("utf-8", errors="ignore")
+
+	if max_size_bytes and len(content_bytes) > max_size_bytes:
+		raise FetchError(f"Ukuran berkas {len(content_bytes)} bytes melebihi batas {max_size_bytes} bytes")
+
 	# Buat Adaptor bila res_page belum memiliki selektor
 	if res_page is None and Adaptor:
 		res_page = Adaptor(body)
@@ -485,7 +503,7 @@ def fetch(
 	if norm_method == "GET" and status == 200:
 		cache.set(
 			cache_key,
-			{"status": status, "body": body, "robots_ignored": robots_ignored},
+			{"status": status, "body": body, "robots_ignored": robots_ignored, "content": content_bytes},
 			ttl=config.cache_ttl_seconds,
 		)
 
@@ -497,6 +515,7 @@ def fetch(
 		robots_ignored=robots_ignored,
 		from_cache=False,
 		page=res_page,
+		content=content_bytes,
 	)
 
 

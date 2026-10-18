@@ -119,11 +119,29 @@ def run_all_sources(bgc_name: str) -> None:
 				modes_used: set[str] = set()
 				robots_ignored_count = 0
 
+				candidate_city = ""
+				if bgc.job_applicant and frappe.db.exists("Job Applicant", bgc.job_applicant):
+					meta = frappe.get_meta("Job Applicant")
+					city_field = "city" if meta.has_field("city") else ("location" if meta.has_field("location") else None)
+					if city_field:
+						candidate_city = frappe.db.get_value("Job Applicant", bgc.job_applicant, city_field) or ""
+				if not candidate_city and bgc.context_terms:
+					for term in [t.strip() for t in bgc.context_terms.split(",") if t.strip()]:
+						if any(c in term.lower() for c in ("jakarta", "bandung", "surabaya", "medan", "pekanbaru", "semarang", "yogyakarta", "makassar", "denpasar", "palembang", "malang", "depok", "tangerang", "bekasi", "bogor")):
+							candidate_city = term
+							break
+
+				candidate_cv_terms = [t.strip() for t in (bgc.context_terms or "").split(",") if t.strip()]
+				name_variants = [v.strip() for v in (bgc.name_variants or "").split("\n") if v.strip()]
+
 				for acc in bgc.accounts:
 					plat_doc = frappe.get_doc("Background Check Platform", acc.platform) if frappe.db.exists("Background Check Platform", acc.platform) else None
 					url_tmpl = plat_doc.profile_url_template if plat_doc else ""
 					chk_method = plat_doc.check_method if plat_doc else "Status code"
 					chk_val = plat_doc.check_value if plat_doc else "200"
+					dn_sel = getattr(plat_doc, "display_name_selector", None) if plat_doc else None
+					bio_sel = getattr(plat_doc, "bio_selector", None) if plat_doc else None
+					loc_sel = getattr(plat_doc, "location_selector", None) if plat_doc else None
 
 					res = p_provider.check_single_account(
 						platform_name=acc.platform,
@@ -132,18 +150,34 @@ def run_all_sources(bgc_name: str) -> None:
 						check_method=chk_method,
 						check_value=chk_val,
 						is_mock=is_mock,
+						candidate_name=bgc.full_name,
+						candidate_variants=name_variants,
+						candidate_city=candidate_city,
+						candidate_cv_terms=candidate_cv_terms,
+						display_name_selector=dn_sel,
+						bio_selector=bio_sel,
+						location_selector=loc_sel,
+						declared_by=acc.declared_by or "Candidate",
 					)
 					acc.profile_url = res["profile_url"]
 					acc.exists = res["exists"]
 					acc.post_access = res["post_access"]
+					acc.display_name = res.get("display_name", "")
+					acc.bio_snippet = res.get("bio_snippet", "")
+					acc.profile_location = res.get("profile_location", "")
+					acc.identity_match = res.get("identity_match")
+					reasons_val = res.get("identity_reasons", [])
+					acc.identity_reasons = "; ".join(reasons_val) if isinstance(reasons_val, list) else (reasons_val or "")
 					if res.get("mode_used"):
 						modes_used.add(res["mode_used"])
 					if res.get("robots_ignored"):
 						robots_ignored_count += 1
 
-				run_row.items_found = len(bgc.accounts)
+				run_row.items_found = len([a for a in bgc.accounts if a.exists])
 				run_row.fetch_mode_used = ", ".join(sorted(modes_used)) if modes_used else ("mock" if is_mock else "company")
 				run_row.robots_ignored_count = robots_ignored_count
+				if p_provider.warnings:
+					run_row.error = "; ".join(p_provider.warnings)
 				run_row.status = "Done"
 
 			elif source_name == "Article":
@@ -183,6 +217,7 @@ def run_all_sources(bgc_name: str) -> None:
 
 			elif source_name == "Case history":
 				candidate_data["source"] = "Case history"
+				candidate_data["bgc_name"] = bgc.name
 				settings_dict = {"max_results_per_source": settings.max_results_per_source or 50}
 				provider = CourtMAProvider(config=fetch_config, is_mock=is_mock)
 				findings = provider.run(candidate_data, settings=settings_dict)
@@ -190,6 +225,8 @@ def run_all_sources(bgc_name: str) -> None:
 				run_row.items_found = len(findings)
 				run_row.fetch_mode_used = "mock" if is_mock else (provider.last_mode_used or "company+robots")
 				run_row.robots_ignored_count = 0 if is_mock else provider.last_robots_ignored_count
+				if provider.warnings:
+					run_row.error = "; ".join(provider.warnings)
 				run_row.status = "Done"
 
 			elif source_name == "Posts":

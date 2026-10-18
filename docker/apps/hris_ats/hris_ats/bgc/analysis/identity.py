@@ -2,7 +2,8 @@
 # For license information, please see license.txt
 
 """Modul analisis identitas murni (tanpa import frappe).
-Menghitung skor kecocokan identitas (match_confidence) berbasis nama, konteks, dan keunikan.
+Menghitung skor kecocokan identitas (match_confidence) berbasis nama, konteks, dan keunikan,
+serta kecocokan akun platform profil publik (identity_match).
 """
 
 from __future__ import annotations
@@ -18,6 +19,7 @@ TITLES = [
 ]
 
 TITLES_REGEX = re.compile(r"\b(?:" + "|".join(re.escape(t) for t in TITLES) + r")\.?", re.IGNORECASE)
+NIK_REGEX = re.compile(r"\b\d{16}\b")
 
 
 def normalize_name(name: str) -> str:
@@ -51,7 +53,6 @@ def generate_name_variants(name: str) -> list[str]:
 	elif len(words) == 2:
 		variants.append(f"{words[0]} {words[1]}")
 
-	# Urutkan unik
 	seen = set()
 	result = []
 	for v in variants:
@@ -63,28 +64,39 @@ def generate_name_variants(name: str) -> list[str]:
 
 def calculate_match_confidence(
 	candidate_name: str,
-	candidate_variants: list[str],
-	context_terms: list[str],
+	candidate_variants: list[str] | None,
+	context_terms: list[str] | None,
 	text: str,
 	total_hits: int = 10,
-) -> tuple[int, list[str]]:
-	"""Menghitung match_confidence (0-100) dan alasan kecocokan.
+	text_source: str = "Teks lengkap",
+	extra_context: list[str] | None = None,
+	return_excerpt: bool = False,
+) -> tuple[int, list[str]] | tuple[int, list[str], str]:
+	"""Menghitung match_confidence (0-100) dan alasan kecocokan sesuai spesifikasi 6.2.
 
 	Rumus:
 	match_confidence = kemiripan_nama (0–50)
 	                 + konteks_cocok   (0–40)
 	                 + bonus_unik      (0–10)
+
+	Aturan:
+	- Urutan prioritas teks: PDF putusan -> Teks lengkap -> Cuplikan.
+	- Bila text_source == 'Cuplikan', skor dibatasi maksimal 70.
+	- Bila nama muncul beberapa kali di teks, konteks_cocok dihitung di kemunculan
+	  dengan konteks terbanyak, dan potongan teks di sekitarnya disimpan sebagai evidence_excerpt.
 	"""
 	if not text or not candidate_name:
-		return 0, ["Teks atau nama kosong"]
+		reasons = ["Teks atau nama kosong"]
+		return (0, reasons, "") if return_excerpt else (0, reasons)
 
 	clean_text = text.lower()
 	clean_candidate = normalize_name(candidate_name)
-	variants = [normalize_name(v) for v in (candidate_variants or [clean_candidate]) if v]
+	raw_variants = candidate_variants or [clean_candidate]
+	variants = [normalize_name(v) for v in raw_variants if v]
 	if clean_candidate not in variants:
 		variants.insert(0, clean_candidate)
 
-	reasons = []
+	reasons: list[str] = []
 
 	# 1. Kemiripan nama (0-50)
 	best_ratio = 0.0
@@ -99,7 +111,6 @@ def calculate_match_confidence(
 			break
 
 	if not is_exact_in_text:
-		# Cari jendela kata yang memiliki kemiripan tertinggi
 		target_word_len = len(clean_candidate.split())
 		text_words = clean_text.split()
 		for i in range(max(1, len(text_words) - target_word_len + 1)):
@@ -120,14 +131,21 @@ def calculate_match_confidence(
 		name_score = 25
 		reasons.append(f"Kemiripan nama sedang {best_ratio:.0f}% (+25)")
 	else:
-		return 0, [f"Kemiripan nama {best_ratio:.0f}% di bawah ambang 80% (temuan dibuang)"]
+		fail_reasons = [f"Kemiripan nama {best_ratio:.0f}% di bawah ambang 80% (temuan dibuang)"]
+		return (0, fail_reasons, "") if return_excerpt else (0, fail_reasons)
 
-	# 2. Konteks cocok (0-40): +15 per istilah dalam radius 300 karakter
-	context_score = 0
-	matched_context_terms = []
+	# Gabungkan context_terms dan extra_context (mis. pekerjaan dan kota dari PDF)
+	combined_context_pool: list[str] = []
+	for raw_list in (context_terms, extra_context):
+		if raw_list:
+			for item in raw_list:
+				if isinstance(item, str):
+					clean_term = item.strip().lower()
+					if len(clean_term) >= 2 and clean_term not in combined_context_pool:
+						combined_context_pool.append(clean_term)
 
-	# Temukan semua kemunculan nama di teks
-	positions = []
+	# 2. Temukan semua kemunculan nama untuk memilih kemunculan dengan konteks terbanyak
+	positions: list[tuple[int, int]] = []
 	for v in variants:
 		start = 0
 		while True:
@@ -138,27 +156,39 @@ def calculate_match_confidence(
 			start = idx + len(v)
 
 	if not positions:
-		# Fallback ke seluruh teks jika nama ditemukan lewat fuzz ratio
-		positions = [(0, len(clean_text))]
+		positions = [(0, min(len(clean_text), 100))]
 
-	# Ekstrak radius 300 karakter di sekitar setiap posisi nama
-	search_windows = []
+	best_occurrence_terms: list[str] = []
+	best_pos = positions[0]
+
 	for p_start, p_end in positions:
 		w_start = max(0, p_start - 300)
 		w_end = min(len(clean_text), p_end + 300)
-		search_windows.append(clean_text[w_start:w_end])
+		win_text = clean_text[w_start:w_end]
 
-	combined_windows = " ".join(search_windows)
+		occurrence_terms: list[str] = []
+		for term in combined_context_pool:
+			if term in win_text and term not in occurrence_terms:
+				occurrence_terms.append(term)
 
-	clean_context_terms = [t.strip().lower() for t in context_terms if t and len(t.strip()) >= 2]
-	for term in clean_context_terms:
-		if term in combined_windows and term not in matched_context_terms:
-			matched_context_terms.append(term)
-			context_score += 15
+		if len(occurrence_terms) > len(best_occurrence_terms):
+			best_occurrence_terms = occurrence_terms
+			best_pos = (p_start, p_end)
 
-	context_score = min(40, context_score)
-	if matched_context_terms:
-		reasons.append(f"Konteks cocok (+{context_score}): {', '.join(matched_context_terms)}")
+	context_score = min(40, len(best_occurrence_terms) * 15)
+	if best_occurrence_terms:
+		reasons.append(f"Konteks cocok (+{context_score}): {', '.join(best_occurrence_terms)}")
+
+	# Ekstrak potongan teks bukti (evidence_excerpt, maks 600 karakter) di sekitar kemunculan terbaik
+	best_start, best_end = best_pos
+	exc_start = max(0, best_start - 150)
+	exc_end = min(len(text), best_end + 450)
+	evidence_excerpt = text[exc_start:exc_end].strip()
+	if len(evidence_excerpt) > 600:
+		evidence_excerpt = evidence_excerpt[:600]
+
+	# Redaksi NIK 16 digit demi perlindungan data pribadi
+	evidence_excerpt = NIK_REGEX.sub("[NIK DIREDAKSI]", evidence_excerpt)
 
 	# 3. Bonus unik (0-10): +10 bila total_hits < 20 dan bukan mononim
 	bonus_unik = 0
@@ -169,4 +199,131 @@ def calculate_match_confidence(
 		reasons.append(f"Bonus nama unik {total_hits} hasil (+10)")
 
 	total_confidence = min(100, name_score + context_score + bonus_unik)
+
+	# Batasi skor dari cuplikan saja maksimal 70 (spesifikasi 6.2)
+	if text_source.strip().lower() == "cuplikan" and total_confidence > 70:
+		total_confidence = 70
+		reasons.append("Skor dari cuplikan saja dibatasi maksimal 70")
+
+	if return_excerpt:
+		return total_confidence, reasons, evidence_excerpt
 	return total_confidence, reasons
+
+
+def evaluate_match_with_excerpt(
+	candidate_name: str,
+	candidate_variants: list[str] | None,
+	context_terms: list[str] | None,
+	text: str,
+	total_hits: int = 10,
+	text_source: str = "Teks lengkap",
+	extra_context: list[str] | None = None,
+) -> tuple[int, list[str], str]:
+	"""Kemudahan pemanggilan yang selalu mengembalikan (match_confidence, match_reasons, evidence_excerpt)."""
+	res = calculate_match_confidence(
+		candidate_name=candidate_name,
+		candidate_variants=candidate_variants,
+		context_terms=context_terms,
+		text=text,
+		total_hits=total_hits,
+		text_source=text_source,
+		extra_context=extra_context,
+		return_excerpt=True,
+	)
+	return res  # type: ignore[return-value]
+
+
+def calculate_account_identity_match(
+	candidate_name: str,
+	candidate_variants: list[str] | None,
+	candidate_city: str | None,
+	candidate_cv_terms: list[str] | None,
+	display_name: str | None,
+	bio: str | None,
+	location: str | None,
+	declared_by_candidate: bool = False,
+	is_forbidden: bool = False,
+) -> tuple[int | None, list[str]]:
+	"""Menghitung kecocokan identitas akun platform publik (identity_match 0-100) sesuai 6.2.1.
+
+	Rumus:
+	identity_match = kemiripan nama tampilan (0–50)   # token_sort_ratio: persis 50, >=90: 40, >=80: 25, <80: 0
+	               + lokasi cocok dengan kota kandidat (0–20)
+	               + bio menyebut perusahaan/sekolah/jabatan dari CV (0–20)
+	               + akun dinyatakan sendiri oleh kandidat (+10)
+
+	Untuk platform terlarang (Instagram, FB, TikTok, LinkedIn), kembalikan (None, []).
+	"""
+	if is_forbidden:
+		return None, []
+
+	reasons: list[str] = []
+
+	# 1. Kemiripan nama tampilan (0-50)
+	name_score = 0
+	clean_display = normalize_name(display_name or "")
+	clean_cand = normalize_name(candidate_name or "")
+	all_variants = [normalize_name(v) for v in (candidate_variants or []) if v]
+	if clean_cand and clean_cand not in all_variants:
+		all_variants.insert(0, clean_cand)
+
+	if clean_display and all_variants:
+		best_ratio = 0.0
+		best_v = ""
+		for v in all_variants:
+			ratio = fuzz.token_sort_ratio(v, clean_display)
+			if ratio > best_ratio:
+				best_ratio = ratio
+				best_v = v
+
+		if clean_display == clean_cand or best_ratio >= 99.0:
+			name_score = 50
+			reasons.append(f"Nama tampilan persis cocok (+50): '{display_name}'")
+		elif best_ratio >= 90.0:
+			name_score = 40
+			reasons.append(f"Kemiripan nama tampilan tinggi {best_ratio:.0f}% (+40)")
+		elif best_ratio >= 80.0:
+			name_score = 25
+			reasons.append(f"Kemiripan nama tampilan sedang {best_ratio:.0f}% (+25)")
+		else:
+			reasons.append(f"Kemiripan nama tampilan rendah {best_ratio:.0f}% (+0)")
+	else:
+		reasons.append("Nama tampilan tidak tersedia (+0)")
+
+	# 2. Lokasi cocok dengan kota kandidat (0-20)
+	loc_score = 0
+	clean_loc = (location or "").strip().lower()
+	clean_city = (candidate_city or "").strip().lower()
+
+	if clean_city and clean_loc and (clean_city in clean_loc or clean_loc in clean_city):
+		loc_score = 20
+		reasons.append(f"Lokasi profil cocok dengan kota kandidat '{candidate_city}' (+20)")
+	elif clean_city and clean_loc:
+		reasons.append(f"Lokasi profil '{location}' berbeda dari kota kandidat (+0)")
+
+	# 3. Bio menyebut perusahaan/sekolah/jabatan dari CV (0-20)
+	bio_score = 0
+	clean_bio = (bio or "").strip().lower()
+	matched_cv_term = ""
+
+	if clean_bio and candidate_cv_terms:
+		for term in candidate_cv_terms:
+			if not term or not isinstance(term, str):
+				continue
+			ct = term.strip().lower()
+			if len(ct) >= 3 and ct in clean_bio:
+				matched_cv_term = term.strip()
+				break
+
+	if matched_cv_term:
+		bio_score = 20
+		reasons.append(f"Bio menyebut entitas CV '{matched_cv_term}' (+20)")
+
+	# 4. Akun dinyatakan sendiri oleh kandidat (+10)
+	declared_score = 0
+	if declared_by_candidate:
+		declared_score = 10
+		reasons.append("Akun dinyatakan sendiri oleh kandidat (+10)")
+
+	total_score = min(100, name_score + loc_score + bio_score + declared_score)
+	return total_score, reasons

@@ -10,6 +10,7 @@
   "category",
   "severity",
   "match_confidence",
+  "text_source",
   "hr_verdict",
   "column_break_1",
   "title",
@@ -20,9 +21,12 @@
   "published_on",
   "section_break_content",
   "snippet",
+  "evidence_excerpt",
   "match_reasons",
   "risk_flags",
   "section_break_case",
+  "detail_url",
+  "pdf_url",
   "case_type",
   "case_number",
   "court",
@@ -73,6 +77,14 @@
    "fieldtype": "Int",
    "in_list_view": 1,
    "label": "Match Confidence (%)"
+  },
+  {
+   "default": "Cuplikan",
+   "fieldname": "text_source",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Text Source",
+   "options": "Cuplikan\nTeks lengkap\nPDF putusan"
   },
   {
    "default": "Belum ditinjau",
@@ -128,6 +140,12 @@
    "label": "Snippet / Excerpt"
   },
   {
+   "fieldname": "evidence_excerpt",
+   "fieldtype": "Small Text",
+   "label": "Evidence Excerpt",
+   "length": 600
+  },
+  {
    "fieldname": "match_reasons",
    "fieldtype": "Small Text",
    "label": "Match Reasons"
@@ -141,6 +159,16 @@
    "fieldname": "section_break_case",
    "fieldtype": "Section Break",
    "label": "Case Details (Putusan MA)"
+  },
+  {
+   "fieldname": "detail_url",
+   "fieldtype": "Data",
+   "label": "Detail URL"
+  },
+  {
+   "fieldname": "pdf_url",
+   "fieldtype": "Data",
+   "label": "PDF URL"
   },
   {
    "fieldname": "case_type",
@@ -194,7 +222,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-10-18 00:00:00.000000",
+ "modified": "2026-10-19 00:00:00.000000",
  "modified_by": "Administrator",
  "module": "HRIS ATS",
  "name": "Background Check Finding",

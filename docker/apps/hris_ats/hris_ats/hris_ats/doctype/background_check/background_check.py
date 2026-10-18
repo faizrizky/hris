@@ -122,7 +122,8 @@ def get_findings_data(bgc_name: str) -> dict[str, Any]:
 			"name", "finding_type", "title", "snippet", "url", "source_name",
 			"file_type", "match_confidence", "match_reasons", "category",
 			"risk_flags", "severity", "case_type", "case_number", "court",
-			"party_role", "hr_verdict", "hr_note", "published_on"
+			"party_role", "hr_verdict", "hr_note", "published_on",
+			"text_source", "evidence_excerpt", "detail_url", "pdf_url"
 		],
 		order_by="match_confidence desc, creation desc",
 	)
