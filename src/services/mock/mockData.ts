@@ -272,13 +272,13 @@ export const MOCK_PENDING_APPROVALS: LeaveRequest[] = [
   },
 ];
 
-const EARNINGS_REGULER: PayslipLine[] = [
+const REGULAR_EARNINGS: PayslipLine[] = [
   { label: "Gaji pokok", amount: 8500000 },
   { label: "Tunjangan transport", amount: 750000 },
   { label: "Tunjangan makan", amount: 600000 },
 ];
 
-const POTONGAN_REGULER: PayslipLine[] = [
+const REGULAR_DEDUCTIONS: PayslipLine[] = [
   { label: "PPh 21 (TER bulanan)", amount: 246250 },
   { label: "BPJS Kesehatan 1%", amount: 85000 },
   { label: "JHT 2%", amount: 170000 },
@@ -294,8 +294,8 @@ export const MOCK_PAYSLIPS: Payslip[] = [
     status: "Dibayar",
     bankAccount: "BCA •••• 4812",
     paidAt: "29 Agt 2026",
-    earnings: EARNINGS_REGULER,
-    deductions: POTONGAN_REGULER,
+    earnings: REGULAR_EARNINGS,
+    deductions: REGULAR_DEDUCTIONS,
     grossPay: 9850000,
     totalDeduction: 586250,
     netPay: 9263750,
@@ -308,8 +308,8 @@ export const MOCK_PAYSLIPS: Payslip[] = [
     status: "Dibayar",
     bankAccount: "BCA •••• 4812",
     paidAt: "28 Jul 2026",
-    earnings: [...EARNINGS_REGULER, { label: "THR", amount: 8500000 }],
-    deductions: POTONGAN_REGULER,
+    earnings: [...REGULAR_EARNINGS, { label: "THR", amount: 8500000 }],
+    deductions: REGULAR_DEDUCTIONS,
     grossPay: 18350000,
     totalDeduction: 586250,
     netPay: 17763750,
@@ -322,8 +322,8 @@ export const MOCK_PAYSLIPS: Payslip[] = [
     status: "Dibayar",
     bankAccount: "BCA •••• 4812",
     paidAt: "29 Jun 2026",
-    earnings: EARNINGS_REGULER,
-    deductions: POTONGAN_REGULER,
+    earnings: REGULAR_EARNINGS,
+    deductions: REGULAR_DEDUCTIONS,
     grossPay: 9850000,
     totalDeduction: 586250,
     netPay: 9263750,
@@ -570,7 +570,7 @@ export const MOCK_STAFF: Staff[] = [
   },
 ];
 
-export const TOTAL_KARYAWAN_AKTIF = 128;
+export const TOTAL_ACTIVE_EMPLOYEES = 128;
 
 export const MOCK_EMPLOYMENT: EmploymentSlice[] = [
   { label: "Permanent", count: 78 },

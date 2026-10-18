@@ -5,20 +5,20 @@ import { useTheme } from "@/theme/ThemeContext";
 import { useT } from "@/i18n";
 
 export function ErrorState({
-  pesan,
-  onUlangi,
+  message,
+  onRetry,
 }: {
-  pesan: string;
-  onUlangi: () => void;
+  message: string;
+  onRetry: () => void;
 }) {
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
   const t = useT();
   return (
     <View style={styles.box}>
-      <Text style={styles.judul}>{t("err.gagalMemuat")}</Text>
-      <Text style={styles.isi}>{pesan}</Text>
-      <Pressable style={styles.btn} onPress={onUlangi}>
+      <Text style={styles.title}>{t("err.gagalMemuat")}</Text>
+      <Text style={styles.content}>{message}</Text>
+      <Pressable style={styles.btn} onPress={onRetry}>
         <Text style={styles.btnText}>{t("err.cobaLagi")}</Text>
       </Pressable>
     </View>
@@ -33,8 +33,8 @@ const makeStyles = (c: Palette) =>
       padding: 18,
       marginHorizontal: 2,
     },
-    judul: { fontSize: 14, fontWeight: "800", color: c.bad.ink },
-    isi: { fontSize: 12.5, lineHeight: 19, color: c.bad.ink, marginTop: 4 },
+    title: { fontSize: 14, fontWeight: "800", color: c.bad.ink },
+    content: { fontSize: 12.5, lineHeight: 19, color: c.bad.ink, marginTop: 4 },
     btn: {
       alignSelf: "flex-start",
       marginTop: 12,

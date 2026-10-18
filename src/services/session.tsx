@@ -13,26 +13,26 @@ import {
 
 // Keluar akun yang tidak bisa tersangkut: permintaan ke server dibatasi 3 detik; layar login tetap tampil
 // walau server lambat / tidak terjangkau (cookie sesi akan kedaluwarsa di server).
-const KELUAR_BATAS_MS = 3000;
-const KELUAR_SENGAJA_MS = 8000;
-const PULIHKAN_BATAS_MS = 6000;
-let keluarSengajaSampai = 0;
+const SIGN_OUT_TIMEOUT_MS = 3000;
+const INTENTIONAL_SIGN_OUT_MS = 8000;
+const RESTORE_TIMEOUT_MS = 6000;
+let intentionalSignOutUntil = 0;
 
-export async function keluarAman(): Promise<void> {
-  keluarSengajaSampai = Date.now() + KELUAR_SENGAJA_MS; // sesi yang mati karena keluar sengaja bukan "dikeluarkan paksa"
+export async function signOutSafely(): Promise<void> {
+  intentionalSignOutUntil = Date.now() + INTENTIONAL_SIGN_OUT_MS; // sesi yang mati karena keluar sengaja bukan "dikeluarkan paksa"
   await Promise.race([
     hrisApi.logout().catch(() => {}),
-    new Promise<void>((r) => setTimeout(r, KELUAR_BATAS_MS)),
+    new Promise<void>((r) => setTimeout(r, SIGN_OUT_TIMEOUT_MS)),
   ]);
 }
 
 interface SessionContextValue {
   employee: Employee | null;
   setEmployee: (employee: Employee | null) => void;
-  siap: boolean; // false selama sesi tersimpan masih dipulihkan saat aplikasi dibuka
-  dipulihkan: boolean; // true bila pengguna masuk lewat sesi tersimpan (bukan mengetik login)
-  pesanLogin: "sesiBerakhir" | null; // alasan kembali ke layar login (ditampilkan sekali di layar login)
-  bersihkanPesanLogin: () => void;
+  isReady: boolean; // false selama sesi tersimpan masih dipulihkan saat aplikasi dibuka
+  isRestored: boolean; // true bila pengguna masuk lewat sesi tersimpan (bukan mengetik login)
+  loginNotice: "sesiBerakhir" | null; // alasan kembali ke layar login (ditampilkan sekali di layar login)
+  clearLoginNotice: () => void;
 }
 
 const SessionContext = createContext<SessionContextValue | undefined>(
@@ -41,39 +41,39 @@ const SessionContext = createContext<SessionContextValue | undefined>(
 
 export function SessionProvider({ children }: { children: React.ReactNode }) {
   const [employee, setEmployee] = useState<Employee | null>(null);
-  const [siap, setSiap] = useState(false);
-  const [dipulihkan, setDipulihkan] = useState(false);
-  const [pesanLogin, setPesanLogin] = useState<"sesiBerakhir" | null>(null);
+  const [isReady, setIsReady] = useState(false);
+  const [isRestored, setIsRestored] = useState(false);
+  const [loginNotice, setLoginNotice] = useState<"sesiBerakhir" | null>(null);
 
   // Sesi login hidup di cookie server, jadi aplikasi yang dibuka ulang (termasuk setelah pembaruan APK/OTA)
   // tinggal bertanya "siapa saya"; hanya bila sesinya sudah kedaluwarsa pengguna kembali ke layar login.
   useEffect(() => {
-    let batal = false;
+    let isCancelled = false;
     // Batas waktu supaya server yang lambat/tidak terjangkau tidak menahan layar kosong.
     Promise.race([
       hrisApi.getCurrentEmployee(),
-      new Promise<never>((_, tolak) =>
-        setTimeout(() => tolak(new Error("timeout")), PULIHKAN_BATAS_MS),
+      new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error("timeout")), RESTORE_TIMEOUT_MS),
       ),
     ])
       .then((e) => {
-        if (batal) return;
-        setEmployee((sekarang) => sekarang ?? e);
-        setDipulihkan(true);
+        if (isCancelled) return;
+        setEmployee((now) => now ?? e);
+        setIsRestored(true);
       })
       .catch(() => {})
       .finally(() => {
-        if (!batal) setSiap(true);
+        if (!isCancelled) setIsReady(true);
       });
     return () => {
-      batal = true;
+      isCancelled = true;
     };
   }, []);
 
   useEffect(() => {
     setSessionExpiredHandler(() => {
       // Dikeluarkan dari luar (sesi habis, login di perangkat lain, dikeluarkan lewat Keamanan): beri tahu pengguna.
-      if (Date.now() > keluarSengajaSampai) setPesanLogin("sesiBerakhir");
+      if (Date.now() > intentionalSignOutUntil) setLoginNotice("sesiBerakhir");
       setEmployee(null);
     });
     return () => setSessionExpiredHandler(null);
@@ -89,10 +89,10 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
       value={{
         employee,
         setEmployee,
-        siap,
-        dipulihkan,
-        pesanLogin,
-        bersihkanPesanLogin: () => setPesanLogin(null),
+        isReady,
+        isRestored,
+        loginNotice,
+        clearLoginNotice: () => setLoginNotice(null),
       }}
     >
       {children}

@@ -13,9 +13,9 @@ import { ErrorState } from "@/components/ErrorState";
 import { EmptyState } from "@/components/EmptyState";
 import { Skeleton } from "@/components/Skeleton";
 import { ICON } from "@/constants/icons";
-import { kembali } from "@/navigation/kembali";
-import { tanggalPendekTahun } from "@/utils/date";
-import { LampiranList } from "@/screens/leave/LampiranList";
+import { goBackAnimated } from "@/navigation/kembali";
+import { formatShortDateWithYear } from "@/utils/date";
+import { AttachmentList } from "@/screens/leave/LampiranList";
 import { useT } from "@/i18n";
 
 // Pengumuman dari HR (doctype HR Announcement di ERPNext).
@@ -24,16 +24,22 @@ export function AnnouncementsScreen({ navigation, route }: ScreenProps) {
   const insets = useSafeAreaInsets();
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
-  const daftar = useLoad(() => hrisApi.getAnnouncements(), "pengumuman");
-  const [terbuka, setTerbuka] = useState<string | null>(
+  const announcementList = useLoad(
+    () => hrisApi.getAnnouncements(),
+    "pengumuman",
+  );
+  const [openId, setOpenId] = useState<string | null>(
     getRouteParams<{ id?: string }>(route).id ?? null,
   );
-  const items = daftar.data ?? [];
+  const items = announcementList.data ?? [];
 
   return (
     <View style={styles.container}>
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
-        <Pressable style={styles.backBtn} onPress={() => kembali(navigation)}>
+        <Pressable
+          style={styles.backBtn}
+          onPress={() => goBackAnimated(navigation)}
+        >
           <Ionicons name="chevron-back" size={18} color={c.ink} />
         </Pressable>
         <View style={{ flex: 1, minWidth: 0 }}>
@@ -43,9 +49,12 @@ export function AnnouncementsScreen({ navigation, route }: ScreenProps) {
       </View>
 
       <ScrollView contentContainerStyle={styles.list}>
-        {daftar.error && !daftar.data ? (
-          <ErrorState pesan={daftar.error} onUlangi={daftar.ulangi} />
-        ) : daftar.memuat ? (
+        {announcementList.error && !announcementList.data ? (
+          <ErrorState
+            message={announcementList.error}
+            onRetry={announcementList.retry}
+          />
+        ) : announcementList.isLoading ? (
           <View style={{ gap: 10 }}>
             {[0, 1, 2].map((i) => (
               <View key={i} style={styles.card}>
@@ -73,11 +82,11 @@ export function AnnouncementsScreen({ navigation, route }: ScreenProps) {
           />
         ) : (
           items.map((a) => (
-            <Kartu
+            <Card
               key={a.id}
               a={a}
-              buka={terbuka === a.id}
-              onPress={() => setTerbuka(terbuka === a.id ? null : a.id)}
+              openId={openId === a.id}
+              onPress={() => setOpenId(openId === a.id ? null : a.id)}
             />
           ))
         )}
@@ -86,22 +95,22 @@ export function AnnouncementsScreen({ navigation, route }: ScreenProps) {
   );
 }
 
-function Kartu({
+function Card({
   a,
-  buka,
+  openId,
   onPress,
 }: {
   a: Announcement;
-  buka: boolean;
+  openId: boolean;
   onPress: () => void;
 }) {
   const c = useTheme();
   const t = useT();
   const styles = useMemo(() => makeStyles(c), [c]);
-  const penting = a.priority === "Important";
+  const isImportant = a.priority === "Important";
   return (
     <Pressable
-      style={[styles.card, penting && { borderColor: c.warn.ink }]}
+      style={[styles.card, isImportant && { borderColor: c.warn.ink }]}
       onPress={onPress}
     >
       <View style={styles.head}>
@@ -109,14 +118,14 @@ function Kartu({
           <Text style={styles.title}>{a.title}</Text>
           <Text style={styles.meta}>
             {[
-              a.publishedOn ? tanggalPendekTahun(a.publishedOn) : null,
+              a.publishedOn ? formatShortDateWithYear(a.publishedOn) : null,
               a.postedBy ? t("an.oleh", { nama: a.postedBy }) : null,
             ]
               .filter(Boolean)
               .join(" · ")}
           </Text>
         </View>
-        {penting && (
+        {isImportant && (
           <View style={[styles.badge, { backgroundColor: c.warn.bg }]}>
             <Text style={[styles.badgeText, { color: c.warn.ink }]}>
               {t("an.penting")}
@@ -124,15 +133,15 @@ function Kartu({
           </View>
         )}
       </View>
-      <Text style={styles.body} numberOfLines={buka ? undefined : 3}>
+      <Text style={styles.body} numberOfLines={openId ? undefined : 3}>
         {a.content}
       </Text>
-      {buka ? (
+      {openId ? (
         <>
-          <LampiranList items={a.attachments} />
+          <AttachmentList items={a.attachments} />
           {a.expiresOn ? (
             <Text style={styles.meta}>
-              {t("an.berlaku", { tgl: tanggalPendekTahun(a.expiresOn) })}
+              {t("an.berlaku", { tgl: formatShortDateWithYear(a.expiresOn) })}
             </Text>
           ) : null}
         </>

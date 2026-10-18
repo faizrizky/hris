@@ -5,8 +5,8 @@ import { describeError } from "@/services/api/http";
 export interface Load<T> {
   data: T | null;
   error: string | null;
-  memuat: boolean; // true selama belum ada data pertama
-  ulangi: () => void;
+  isLoading: boolean; // true selama belum ada data pertama
+  retry: () => void;
 }
 
 // Memuat data setiap layar mendapat fokus. Data lama tetap tampil selama
@@ -16,51 +16,51 @@ export interface Load<T> {
 // login). Fungsi `ambil` boleh dibuat ulang tiap render: yang dipakai selalu
 // versi terbarunya.
 export function useLoad<T>(
-  ambil: () => Promise<T>,
-  kunci: string | number | null | undefined,
+  fetchData: () => Promise<T>,
+  cacheKey: string | number | null | undefined,
 ): Load<T> {
   const [data, setData] = useState<T | null>(null);
   const [error, setError] = useState<string | null>(null);
   // Data boleh null secara sah (mis. belum ada appraisal), jadi "sudah dimuat"
   // dicatat terpisah dari isinya.
-  const [selesai, setSelesai] = useState(false);
-  const urutan = useRef(0); // abaikan jawaban dari permintaan yang sudah usang
-  const ambilTerbaru = useRef(ambil);
+  const [isFinished, setIsFinished] = useState(false);
+  const order = useRef(0); // abaikan jawaban dari permintaan yang sudah usang
+  const latestFetch = useRef(fetchData);
 
   useEffect(() => {
-    ambilTerbaru.current = ambil;
+    latestFetch.current = fetchData;
   });
 
-  const jalankan = useCallback(() => {
-    const saya = ++urutan.current;
+  const runLoad = useCallback(() => {
+    const saya = ++order.current;
     setError(null);
-    ambilTerbaru
+    latestFetch
       .current()
-      .then((hasil) => {
-        if (saya === urutan.current) {
-          setData(hasil);
-          setSelesai(true);
+      .then((result) => {
+        if (saya === order.current) {
+          setData(result);
+          setIsFinished(true);
         }
       })
       .catch((e) => {
-        if (saya === urutan.current) setError(describeError(e));
+        if (saya === order.current) setError(describeError(e));
       });
   }, []);
 
-  useFocusEffect(jalankan);
+  useFocusEffect(runLoad);
 
   // `kunci` yang berubah memuat ulang walau layar tidak berganti fokus.
-  const kunciDimuat = useRef(kunci);
+  const loadedKey = useRef(cacheKey);
   useEffect(() => {
-    if (kunciDimuat.current === kunci) return;
-    kunciDimuat.current = kunci;
-    jalankan();
-  }, [kunci, jalankan]);
+    if (loadedKey.current === cacheKey) return;
+    loadedKey.current = cacheKey;
+    runLoad();
+  }, [cacheKey, runLoad]);
 
   return {
     data,
     error,
-    memuat: !selesai && error === null,
-    ulangi: jalankan,
+    isLoading: !isFinished && error === null,
+    retry: runLoad,
   };
 }

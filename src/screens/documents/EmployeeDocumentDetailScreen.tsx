@@ -13,9 +13,13 @@ import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useFocusEffect } from "@react-navigation/native";
 import { useSession } from "@/services/session";
-import { usePollingAktif } from "@/hooks/usePollingAktif";
+import { useActivePolling } from "@/hooks/usePollingAktif";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Palette, tombolSekunder, tombolUtama } from "@/theme/colors";
+import {
+  Palette,
+  secondaryButtonStyle,
+  primaryButtonStyle,
+} from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
 import { hrisApi } from "@/services/api";
 import { describeError } from "@/services/api/http";
@@ -26,11 +30,11 @@ import {
   DOC_STATUS_LABEL,
   DOC_STATUS_TONE,
 } from "@/constants/statusLabels";
-import { tanggalPendekTahun } from "@/utils/date";
-import { pilihBukti } from "@/utils/pilihBukti";
+import { formatShortDateWithYear } from "@/utils/date";
+import { pickProof } from "@/utils/pilihBukti";
 import { useT } from "@/i18n";
 import { DocPreview } from "./DocPreview";
-import { kembali } from "@/navigation/kembali";
+import { goBackAnimated } from "@/navigation/kembali";
 
 // Karyawan: pratinjau dokumennya sendiri. Dokumen terverifikasi tidak bisa
 // diubah langsung; yang bisa dilakukan adalah mengajukan perubahan dengan alasan.
@@ -50,12 +54,12 @@ export function EmployeeDocumentDetailScreen({
   const styles = useMemo(() => makeStyles(c), [c]);
   const confirm = useConfirm();
 
-  const [minta, setMinta] = useState(false);
-  const [alasan, setAlasan] = useState("");
-  const [sending, setSending] = useState(false);
-  const [galat, setGalat] = useState<string | null>(null);
+  const [isRequesting, setIsRequesting] = useState(false);
+  const [reason, setReason] = useState("");
+  const [isSending, setIsSending] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const segarkan = useCallback(() => {
+  const refresh = useCallback(() => {
     if (!employee) return;
     hrisApi
       .getDocuments(employee.id)
@@ -65,49 +69,49 @@ export function EmployeeDocumentDetailScreen({
       })
       .catch(() => {});
   }, [employee, doc.id]);
-  useFocusEffect(segarkan);
+  useFocusEffect(refresh);
   // Polling hanya selagi status belum final (menunggu / diminta ubah) dan layar aktif di depan.
-  usePollingAktif(
-    segarkan,
+  useActivePolling(
+    refresh,
     20_000,
     doc.status === "pending" || doc.status === "changeRequested",
   );
 
-  const terverifikasi = doc.status === "verified" || doc.status === "expiring";
-  const bisaGanti = doc.status === "pending" || doc.status === "rejected";
+  const isVerified = doc.status === "verified" || doc.status === "expiring";
+  const canChange = doc.status === "pending" || doc.status === "rejected";
   const tone = c[DOC_STATUS_TONE[doc.status]];
 
-  const kirimUbah = async () => {
-    if (!alasan.trim()) {
-      setGalat(t("dk.alasanWajib"));
+  const submitChange = async () => {
+    if (!reason.trim()) {
+      setErrorMessage(t("dk.alasanWajib"));
       return;
     }
-    setSending(true);
-    setGalat(null);
+    setIsSending(true);
+    setErrorMessage(null);
     try {
-      await hrisApi.requestDocumentChange(doc.id, alasan.trim());
-      kembali(navigation);
+      await hrisApi.requestDocumentChange(doc.id, reason.trim());
+      goBackAnimated(navigation);
     } catch (e) {
-      setGalat(describeError(e));
+      setErrorMessage(describeError(e));
     } finally {
-      setSending(false);
+      setIsSending(false);
     }
   };
 
-  const ganti = async () => {
-    const r = await pilihBukti();
+  const swap = async () => {
+    const r = await pickProof();
     if (!r) return;
-    if ("terlaluBesar" in r) {
-      setGalat(t("up.besarPesan", { ukuran: r.terlaluBesar }));
+    if ("tooLargeSizeLabel" in r) {
+      setErrorMessage(t("up.besarPesan", { ukuran: r.tooLargeSizeLabel }));
       return;
     }
-    setSending(true);
-    setGalat(null);
+    setIsSending(true);
+    setErrorMessage(null);
     try {
       await hrisApi.replaceDocumentFile(doc.id, {
-        uri: r.berkas.uri,
-        name: r.berkas.name,
-        mimeType: r.berkas.mimeType,
+        uri: r.file.uri,
+        name: r.file.name,
+        mimeType: r.file.mimeType,
       });
       await confirm({
         title: t("dk.judul"),
@@ -116,15 +120,15 @@ export function EmployeeDocumentDetailScreen({
         confirmText: t("umum.mengerti"),
         cancelText: null,
       });
-      kembali(navigation);
+      goBackAnimated(navigation);
     } catch (e) {
-      setGalat(describeError(e));
+      setErrorMessage(describeError(e));
     } finally {
-      setSending(false);
+      setIsSending(false);
     }
   };
 
-  const info = terverifikasi
+  const info = isVerified
     ? t("dk.terverifikasiInfo")
     : doc.status === "changeRequested"
       ? t("dk.menungguHr")
@@ -137,18 +141,21 @@ export function EmployeeDocumentDetailScreen({
     { k: t("rv.ukuran"), v: `${doc.ext} · ${doc.sizeLabel}` },
     {
       k: t("rv.tglUnggah"),
-      v: doc.uploadedOn ? tanggalPendekTahun(doc.uploadedOn) : "—",
+      v: doc.uploadedOn ? formatShortDateWithYear(doc.uploadedOn) : "—",
     },
     {
       k: t("rv.berlaku"),
-      v: doc.expiresOn ? tanggalPendekTahun(doc.expiresOn) : "—",
+      v: doc.expiresOn ? formatShortDateWithYear(doc.expiresOn) : "—",
     },
   ];
 
   return (
     <View style={styles.container}>
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
-        <Pressable style={styles.backBtn} onPress={() => kembali(navigation)}>
+        <Pressable
+          style={styles.backBtn}
+          onPress={() => goBackAnimated(navigation)}
+        >
           <Ionicons name="chevron-back" size={18} color={c.ink} />
         </Pressable>
         <View style={{ flex: 1, minWidth: 0 }}>
@@ -203,18 +210,18 @@ export function EmployeeDocumentDetailScreen({
           </View>
         </ScrollView>
 
-        {terverifikasi || bisaGanti ? (
+        {isVerified || canChange ? (
           <View
             style={[styles.actionBar, { paddingBottom: insets.bottom + 14 }]}
           >
             {/* Alasan ada di bar yang menempel di atas keyboard, jadi tidak tertutup. */}
-            {minta ? (
+            {isRequesting ? (
               <>
                 <Text style={styles.barLabel}>{t("dk.ubahJudul")}</Text>
                 <TextInput
                   style={styles.textarea}
-                  value={alasan}
-                  onChangeText={setAlasan}
+                  value={reason}
+                  onChangeText={setReason}
                   placeholder={t("dk.ubahContoh")}
                   placeholderTextColor={c.mutedLabel}
                   multiline
@@ -222,23 +229,25 @@ export function EmployeeDocumentDetailScreen({
                 />
               </>
             ) : null}
-            {galat ? <Text style={styles.galat}>{galat}</Text> : null}
+            {errorMessage ? (
+              <Text style={styles.errorText}>{errorMessage}</Text>
+            ) : null}
             <View style={styles.btnRow}>
-              {terverifikasi && minta ? (
+              {isVerified && isRequesting ? (
                 <>
                   <Pressable
                     style={styles.secondaryBtn}
                     onPress={() => {
-                      setMinta(false);
-                      setGalat(null);
+                      setIsRequesting(false);
+                      setErrorMessage(null);
                     }}
                   >
                     <Text style={styles.secondaryText}>{t("umum.batal")}</Text>
                   </Pressable>
                   <Pressable
                     style={{ flex: 2 }}
-                    disabled={sending}
-                    onPress={kirimUbah}
+                    disabled={isSending}
+                    onPress={submitChange}
                   >
                     <LinearGradient
                       colors={[c.accent, c.accent2]}
@@ -247,13 +256,16 @@ export function EmployeeDocumentDetailScreen({
                       style={styles.primaryBtn}
                     >
                       <Text style={styles.primaryText}>
-                        {sending ? t("umum.memproses") : t("dk.kirimUbah")}
+                        {isSending ? t("umum.memproses") : t("dk.kirimUbah")}
                       </Text>
                     </LinearGradient>
                   </Pressable>
                 </>
-              ) : terverifikasi ? (
-                <Pressable style={{ flex: 1 }} onPress={() => setMinta(true)}>
+              ) : isVerified ? (
+                <Pressable
+                  style={{ flex: 1 }}
+                  onPress={() => setIsRequesting(true)}
+                >
                   <LinearGradient
                     colors={[c.accent, c.accent2]}
                     start={{ x: 0, y: 0 }}
@@ -266,8 +278,8 @@ export function EmployeeDocumentDetailScreen({
               ) : (
                 <Pressable
                   style={{ flex: 1 }}
-                  disabled={sending}
-                  onPress={ganti}
+                  disabled={isSending}
+                  onPress={swap}
                 >
                   <LinearGradient
                     colors={[c.accent, c.accent2]}
@@ -276,7 +288,7 @@ export function EmployeeDocumentDetailScreen({
                     style={styles.primaryBtn}
                   >
                     <Text style={styles.primaryText}>
-                      {sending ? t("umum.memproses") : t("dk.ganti")}
+                      {isSending ? t("umum.memproses") : t("dk.ganti")}
                     </Text>
                   </LinearGradient>
                 </Pressable>
@@ -390,7 +402,7 @@ const makeStyles = (c: Palette) =>
       color: c.ink,
       textAlignVertical: "top",
     },
-    galat: {
+    errorText: {
       marginBottom: 10,
       fontSize: 12,
       fontWeight: "600",
@@ -402,12 +414,12 @@ const makeStyles = (c: Palette) =>
       flex: 1,
       paddingVertical: 14,
       borderRadius: 14,
-      ...tombolSekunder(c),
+      ...secondaryButtonStyle(c),
       alignItems: "center",
     },
     secondaryText: { fontSize: 13, fontWeight: "700", color: c.btnSoftInk },
     primaryBtn: {
-      ...tombolUtama(c),
+      ...primaryButtonStyle(c),
       paddingVertical: 14,
       borderRadius: 14,
       alignItems: "center",

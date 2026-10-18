@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import { BackHandler, View } from "react-native";
 import { useTheme } from "@/theme/ThemeContext";
-import { tandaiKembali } from "@/navigation/kembali";
+import { markBackNavigation } from "@/navigation/kembali";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
@@ -162,10 +162,10 @@ function PayrollStack() {
   );
 }
 
-function HomeStack({ awal = "HomeMain" }: { awal?: string } = {}) {
+function HomeStack({ initial = "HomeMain" }: { initial?: string } = {}) {
   return (
     <Stack.Navigator
-      initialRouteName={awal}
+      initialRouteName={initial}
       screenLayout={revealLayout}
       screenOptions={{ headerShown: false, animation: "none" }}
     >
@@ -221,7 +221,7 @@ function HomeStack({ awal = "HomeMain" }: { awal?: string } = {}) {
 // Tab Notifikasi memakai kumpulan layar yang sama dengan Beranda (tujuan ketuk
 // notifikasi ada di sana), hanya layar awalnya yang beda.
 function NotifStack() {
-  return <HomeStack awal="Notifications" />;
+  return <HomeStack initial="Notifications" />;
 }
 
 function ProfileStack() {
@@ -304,7 +304,7 @@ function MainTabs() {
 }
 
 export function RootNavigator() {
-  const { employee, siap } = useSession();
+  const { employee, isReady } = useSession();
   const c = useTheme();
 
   // Tombol kembali Android (fisik/gestur sistem) tidak lewat `kembali()`, sehingga halaman tujuan tidak memutar animasi
@@ -313,16 +313,16 @@ export function RootNavigator() {
   // baru terpasang setelah `siap`; jadi pendengar ini harus didaftarkan sesudahnya (bukan saat
   // mount pertama), kalau tidak penanganan bawaan jalan lebih dulu dan tanda tidak pernah terpasang.
   useEffect(() => {
-    if (!siap) return;
+    if (!isReady) return;
     const sub = BackHandler.addEventListener("hardwareBackPress", () => {
-      tandaiKembali();
+      markBackNavigation();
       return false;
     });
     return () => sub.remove();
-  }, [siap]);
+  }, [isReady]);
 
   // Sesi tersimpan masih dipulihkan: tampilkan layar berlatar tema (bukan kosong/gelap) sebentar.
-  if (!siap) {
+  if (!isReady) {
     return <View style={{ flex: 1, backgroundColor: c.bg }} />;
   }
 

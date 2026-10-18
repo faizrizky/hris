@@ -9,15 +9,15 @@ import { StatusBadge } from "@/components/StatusBadge";
 import { RadialGlow } from "@/components/RadialGlow";
 import { Palette } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
-import { usePollingAktif } from "@/hooks/usePollingAktif";
+import { useActivePolling } from "@/hooks/usePollingAktif";
 import { hrisApi } from "@/services/api";
 import { useSession } from "@/services/session";
 import { LinearGradient } from "expo-linear-gradient";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { MenuSheet, type ItemMenu } from "@/components/MenuSheet";
-import { infoShift, sapaanKaryawan } from "@/utils/sapaan";
-import { formatTanggalPanjang, formatJam } from "@/utils/date";
-import { useT, bahasaAktif } from "@/i18n";
+import { getShiftInfo, employeeGreeting } from "@/utils/sapaan";
+import { formatLongDate, formatJam } from "@/utils/date";
+import { useT, getActiveLanguage } from "@/i18n";
 import {
   FeedItem,
   ClockState,
@@ -34,14 +34,14 @@ import { EmptyState } from "@/components/EmptyState";
 import { useConfirm } from "@/components/ConfirmDialog";
 
 // Pengingat daftar ulang wajah muncul sekali per pembukaan aplikasi.
-let pengingatWajahTampil = false;
-let pengingatPerangkatTampil = false;
+let hasShownFaceReminder = false;
+let hasShownDeviceReminder = false;
 
 export function HomeScreen() {
   const t = useT();
   const confirm = useConfirm();
   const [now, setNow] = useState(() => new Date());
-  const [menuTerbuka, setMenuTerbuka] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { employee } = useSession();
   const navigation = useNavigation<AppNavigation>();
   const [notifications, setNotifications] = useState<FeedItem[] | null>(null);
@@ -52,13 +52,13 @@ export function HomeScreen() {
   const insets = useSafeAreaInsets();
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
-  const [galat, setGalat] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   // Dimuat ulang setiap Beranda mendapat fokus, supaya hasil persetujuan atau
   // pengajuan di tab lain langsung tampil saat kembali ke sini.
-  const muat = useCallback(() => {
+  const load = useCallback(() => {
     if (!employee) return;
-    setGalat(null);
+    setErrorMessage(null);
     Promise.all([
       hrisApi.getFeed(employee.id, employee.role),
       hrisApi.getClockState(employee.id),
@@ -73,13 +73,13 @@ export function HomeScreen() {
         setHistory(attendance);
         setEmployment(komposisi);
       })
-      .catch((e) => setGalat(describeError(e)));
-    if (!pengingatPerangkatTampil) {
+      .catch((e) => setErrorMessage(describeError(e)));
+    if (!hasShownDeviceReminder) {
       hrisApi
         .registerDevice()
         .then((d) => {
           if (d.status !== "Pending" && d.status !== "Rejected") return;
-          pengingatPerangkatTampil = true;
+          hasShownDeviceReminder = true;
           confirm({
             title: t("dv.judul"),
             message: t(d.status === "Pending" ? "dv.menunggu" : "dv.ditolak"),
@@ -90,29 +90,29 @@ export function HomeScreen() {
         })
         .catch(() => {});
     }
-    if (!pengingatWajahTampil) {
+    if (!hasShownFaceReminder) {
       hrisApi
         .getFaceStatus()
         .then(async (f) => {
-          if (f.state !== "needs_reenroll" || pengingatWajahTampil) return;
-          pengingatWajahTampil = true;
-          const buka = await confirm({
+          if (f.state !== "needs_reenroll" || hasShownFaceReminder) return;
+          hasShownFaceReminder = true;
+          const isOpen = await confirm({
             title: t("fe.pengingatJudul"),
             message: t("fe.perluDaftarUlang", { tgl: f.graceUntil ?? "-" }),
             tone: "warn",
             confirmText: t("fe.daftarUlang"),
             cancelText: t("fe.nanti"),
           });
-          if (buka) navigation.navigate("Profil", { screen: "FaceEnroll" });
+          if (isOpen) navigation.navigate("Profil", { screen: "FaceEnroll" });
         })
         .catch(() => {});
     }
   }, [employee, confirm, t, navigation]);
 
-  useFocusEffect(muat);
+  useFocusEffect(load);
 
   // Jam, sapaan, dan status absen diperbarui selagi Beranda terbuka dan aplikasi di depan (berhenti di latar belakang).
-  const segarkanJam = useCallback(() => {
+  const refreshClock = useCallback(() => {
     if (!employee) return;
     setNow(new Date());
     hrisApi
@@ -120,7 +120,7 @@ export function HomeScreen() {
       .then(setClock)
       .catch(() => {});
   }, [employee]);
-  usePollingAktif(segarkanJam, 20_000, !!employee);
+  useActivePolling(refreshClock, 20_000, !!employee);
 
   if (!employee) return null;
 
@@ -129,7 +129,7 @@ export function HomeScreen() {
       ? t("hm.sapaMss")
       : employee.role === "hr"
         ? t("hm.sapaHr")
-        : sapaanKaryawan(clock, now);
+        : employeeGreeting(clock, now);
 
   const greetingSub =
     employee.role === "mss"
@@ -140,7 +140,7 @@ export function HomeScreen() {
               n: employment.reduce((n, s) => n + s.count, 0),
             })
           : t("umum.memuat")
-        : infoShift(clock, clock?.workLocation ?? t("ab.kantor"));
+        : getShiftInfo(clock, clock?.workLocation ?? t("ab.kantor"));
 
   const feedTitle =
     employee.role === "mss"
@@ -151,38 +151,42 @@ export function HomeScreen() {
 
   // Kelimanya datang dari satu Promise.all, tapi flag ini sengaja menyebut
   // semuanya: kalau suatu saat ada yang dipisah, cek ini tidak ikut bohong.
-  const memuat =
+  const isLoading =
     clock === null ||
     notifications === null ||
     balances === null ||
     history === null;
 
-  const riwayat = history ?? [];
-  const saldo = balances ?? [];
+  const attendanceHistory = history ?? [];
+  const balanceList = balances ?? [];
 
   const clockInTime = clock?.lastCheckIn ?? "--:--";
   const clockOutTime = clock?.lastCheckOut ?? "--:--";
-  const absensiSelesai =
+  const isAttendanceDone =
     !!clock && !clock.clockedIn && !!clock.lastCheckIn && !!clock.lastCheckOut;
-  const clockCta = absensiSelesai
+  const clockCtaText = isAttendanceDone
     ? t("hm.absensiSelesai")
     : clock?.clockedIn
       ? t("hm.clockOut")
       : t("hm.clockInSekarang");
 
-  const hadir = riwayat.filter((r) => r.status !== "izin").length;
-  const kehadiran = riwayat.length
-    ? `${((hadir / riwayat.length) * 100).toFixed(1).replace(".", bahasaAktif() === "en" ? "." : ",")}%`
+  const presentCount = attendanceHistory.filter(
+    (r) => r.status !== "izin",
+  ).length;
+  const attendanceRate = attendanceHistory.length
+    ? `${((presentCount / attendanceHistory.length) * 100).toFixed(1).replace(".", getActiveLanguage() === "en" ? "." : ",")}%`
     : "-";
 
-  const cuti = saldo.find((b) => b.type === "cuti");
-  const lembur = saldo.find((b) => b.type === "lembur");
-  const telat = riwayat.filter((r) => r.status === "telat").length;
+  const leaveBalance = balanceList.find((b) => b.type === "cuti");
+  const overtime = balanceList.find((b) => b.type === "lembur");
+  const lateMinutes = attendanceHistory.filter(
+    (r) => r.status === "telat",
+  ).length;
 
   const canApprove = employee.role === "mss" || employee.role === "hr";
 
   // Atasan/HR membuka Inbox Approval; karyawan membuka daftar pengajuannya.
-  const bukaFeed = (id: string) => {
+  const openFeed = (id: string) => {
     if (canApprove) navigation.navigate("Approval");
     else if (id.startsWith("OT-")) navigation.navigate("Overtime");
     else navigation.navigate("LeaveList");
@@ -190,7 +194,7 @@ export function HomeScreen() {
 
   // Seluruh menu milik akun ini. Tujuh pertama tampil di Beranda (dua baris, "Semua" di ujung kanan baris kedua);
   // "Semua" membuka lembar berisi semuanya.
-  const mk = (
+  const makeMenuItem = (
     key: string,
     label: string,
     icon: keyof typeof Ionicons.glyphMap,
@@ -205,77 +209,123 @@ export function HomeScreen() {
     ink: tone === "warn" ? "#D97706" : c[tone].ink,
     onPress,
   });
-  const ajukan = (kind: "cuti" | "lembur" | "dinas" | "wfh") => () =>
+  const submitRequest = (kind: "cuti" | "lembur" | "dinas" | "wfh") => () =>
     navigation.navigate("LeaveRequest", { kind, n: Date.now() });
   // Tujuan yang sudah jadi tab di bar bawah tidak diulang di menu. Tab kedua
   // bergantung peran: Absensi (karyawan), Approval (mss), Absensi Kry (hr).
-  const sudahDiTab = new Set([
+  const alreadyInTabs = new Set([
     "slip",
     ...(employee.role === "mss" ? ["approval"] : []),
     ...(employee.role === "mss" || employee.role === "hr" ? [] : ["presensi"]),
   ]);
-  const semuaMenu: ItemMenu[] = [
+  const allMenuItems: ItemMenu[] = [
     ...(canApprove
       ? [
-          mk(
+          makeMenuItem(
             "approval",
             t("hm.aApproval"),
             "checkmark-done-outline",
             "warn",
             () => navigation.navigate("Approval"),
           ),
-          mk("karyawan", t("hm.aKaryawan"), "people-outline", "purple", () =>
-            navigation.navigate("StaffList"),
+          makeMenuItem(
+            "karyawan",
+            t("hm.aKaryawan"),
+            "people-outline",
+            "purple",
+            () => navigation.navigate("StaffList"),
           ),
         ]
       : []),
-    mk("presensi", t("cr.presensi"), "finger-print-outline", "info", () =>
-      navigation.navigate("Clock"),
+    makeMenuItem(
+      "presensi",
+      t("cr.presensi"),
+      "finger-print-outline",
+      "info",
+      () => navigation.navigate("Clock"),
     ),
-    mk("ajukanCuti", t("cr.cuti"), "calendar-outline", "info", ajukan("cuti")),
-    mk(
+    makeMenuItem(
+      "ajukanCuti",
+      t("cr.cuti"),
+      "calendar-outline",
+      "info",
+      submitRequest("cuti"),
+    ),
+    makeMenuItem(
       "ajukanLembur",
       t("cr.lembur"),
       "moon-outline",
       "warn",
-      ajukan("lembur"),
+      submitRequest("lembur"),
     ),
-    mk("dinas", t("cr.dinas"), "briefcase-outline", "purple", ajukan("dinas")),
-    mk("wfh", t("cr.wfh"), "laptop-outline", "ok", ajukan("wfh")),
-    mk("slip", t("hm.aSlip"), "wallet-outline", "ok", () =>
+    makeMenuItem(
+      "dinas",
+      t("cr.dinas"),
+      "briefcase-outline",
+      "purple",
+      submitRequest("dinas"),
+    ),
+    makeMenuItem(
+      "wfh",
+      t("cr.wfh"),
+      "laptop-outline",
+      "ok",
+      submitRequest("wfh"),
+    ),
+    makeMenuItem("slip", t("hm.aSlip"), "wallet-outline", "ok", () =>
       navigation.navigate("PayslipList"),
     ),
-    mk("appraisal", t("hm.aAppraisal"), "star-outline", "purple", () =>
-      navigation.navigate("Appraisal"),
+    makeMenuItem(
+      "appraisal",
+      t("hm.aAppraisal"),
+      "star-outline",
+      "purple",
+      () => navigation.navigate("Appraisal"),
     ),
-    mk("riwayat", t("hm.aRiwayat"), "time-outline", "info", () =>
+    makeMenuItem("riwayat", t("hm.aRiwayat"), "time-outline", "info", () =>
       navigation.navigate("History"),
     ),
-    mk("koreksi", t("hm.aKoreksi"), "create-outline", "warn", () =>
+    makeMenuItem("koreksi", t("hm.aKoreksi"), "create-outline", "warn", () =>
       navigation.navigate("AttendanceCorrection"),
     ),
-    mk("daftarCuti", t("hm.aCuti"), "calendar-number-outline", "info", () =>
-      navigation.navigate("LeaveList"),
+    makeMenuItem(
+      "daftarCuti",
+      t("hm.aCuti"),
+      "calendar-number-outline",
+      "info",
+      () => navigation.navigate("LeaveList"),
     ),
-    mk("daftarLembur", t("hm.aLembur"), "hourglass-outline", "warn", () =>
-      navigation.navigate("Overtime"),
+    makeMenuItem(
+      "daftarLembur",
+      t("hm.aLembur"),
+      "hourglass-outline",
+      "warn",
+      () => navigation.navigate("Overtime"),
     ),
-    mk("pajak", t("hm.aPajak"), "receipt-outline", "info", () =>
+    makeMenuItem("pajak", t("hm.aPajak"), "receipt-outline", "info", () =>
       navigation.navigate("TaxDetail"),
     ),
-    mk("pengumuman", t("hm.aPengumuman"), "megaphone-outline", "warn", () =>
-      navigation.navigate("Announcements"),
+    makeMenuItem(
+      "pengumuman",
+      t("hm.aPengumuman"),
+      "megaphone-outline",
+      "warn",
+      () => navigation.navigate("Announcements"),
     ),
     ...(canApprove
       ? [
-          mk("offline", t("hm.aOffline"), "cloud-offline-outline", "warn", () =>
-            navigation.navigate("OfflineReview"),
+          makeMenuItem(
+            "offline",
+            t("hm.aOffline"),
+            "cloud-offline-outline",
+            "warn",
+            () => navigation.navigate("OfflineReview"),
           ),
         ]
       : []),
     ...(employee.role === "mss"
       ? [
-          mk(
+          makeMenuItem(
             "absensiTim",
             t("hm.aAbsensiTim"),
             "people-circle-outline",
@@ -286,27 +336,27 @@ export function HomeScreen() {
       : []),
     ...(employee.role === "hr"
       ? [
-          mk(
+          makeMenuItem(
             "verifikasi",
             t("hm.aVerifikasi"),
             "document-text-outline",
             "info",
             () => navigation.navigate("DocumentReview"),
           ),
-          mk(
+          makeMenuItem(
             "dataPribadi",
             t("pcr.aksi"),
             "person-circle-outline",
             "purple",
             () => navigation.navigate("ProfileChangeReview"),
           ),
-          mk("wajah", t("hm.aWajah"), "scan-outline", "ok", () =>
+          makeMenuItem("wajah", t("hm.aWajah"), "scan-outline", "ok", () =>
             navigation.navigate("FaceReview"),
           ),
         ]
       : []),
-  ].filter((m) => !sudahDiTab.has(m.key));
-  const menuBeranda = semuaMenu.slice(0, 7);
+  ].filter((m) => !alreadyInTabs.has(m.key));
+  const homeMenuItems = allMenuItems.slice(0, 7);
 
   return (
     <View style={styles.container}>
@@ -339,18 +389,18 @@ export function HomeScreen() {
             <View style={styles.heroBlob} />
 
             <View style={styles.heroTopRow}>
-              <Text style={styles.heroDate}>{formatTanggalPanjang()}</Text>
+              <Text style={styles.heroDate}>{formatLongDate()}</Text>
               <View style={styles.heroTimePill}>
                 <Text style={styles.heroTimeText}>{formatJam()}</Text>
               </View>
             </View>
-            {galat && memuat ? (
-              <ErrorState pesan={galat} onUlangi={muat} />
+            {errorMessage && isLoading ? (
+              <ErrorState message={errorMessage} onRetry={load} />
             ) : null}
             <View style={styles.clockRow}>
               <View style={styles.clockBox}>
                 <Text style={styles.clockLabel}>{t("hm.clockIn")}</Text>
-                {memuat ? (
+                {isLoading ? (
                   <Skeleton
                     width={72}
                     height={19}
@@ -364,7 +414,7 @@ export function HomeScreen() {
               </View>
               <View style={styles.clockBox}>
                 <Text style={styles.clockLabel}>{t("hm.clockOut")}</Text>
-                {memuat ? (
+                {isLoading ? (
                   <Skeleton
                     width={72}
                     height={19}
@@ -381,21 +431,21 @@ export function HomeScreen() {
             </View>
 
             <Pressable
-              style={[styles.heroCta, absensiSelesai && styles.heroCtaSelesai]}
+              style={[styles.heroCta, isAttendanceDone && styles.heroCtaDone]}
               onPress={() =>
-                navigation.navigate(absensiSelesai ? "History" : "Clock")
+                navigation.navigate(isAttendanceDone ? "History" : "Clock")
               }
             >
-              {absensiSelesai ? (
+              {isAttendanceDone ? (
                 <Ionicons name="checkmark-circle" size={16} color="#fff" />
               ) : null}
               <Text
                 style={[
                   styles.heroCtaText,
-                  absensiSelesai && styles.heroCtaTextSelesai,
+                  isAttendanceDone && styles.heroCtaTextDone,
                 ]}
               >
-                {clockCta}
+                {clockCtaText}
               </Text>
             </Pressable>
           </LinearGradient>
@@ -407,16 +457,20 @@ export function HomeScreen() {
             ink={c.info.ink}
             icon="pie-chart-outline"
             label={t("hm.kehadiran")}
-            value={kehadiran}
-            memuat={memuat}
+            value={attendanceRate}
+            isLoading={isLoading}
           />
           <StatCard
             iconBg={c.ok.bg}
             ink={c.ok.ink}
             icon="calendar-outline"
             label={t("hm.sisaCuti")}
-            value={cuti ? `${cuti.remaining} ${t(`unit.${cuti.unit}`)}` : "–"}
-            memuat={memuat}
+            value={
+              leaveBalance
+                ? `${leaveBalance.remaining} ${t(`unit.${leaveBalance.unit}`)}`
+                : "–"
+            }
+            isLoading={isLoading}
           />
           <StatCard
             iconBg={c.warn.bg}
@@ -424,17 +478,19 @@ export function HomeScreen() {
             icon="moon-outline"
             label={t("hm.jamLembur")}
             value={
-              lembur ? `${lembur.remaining} ${t(`unit.${lembur.unit}`)}` : "–"
+              overtime
+                ? `${overtime.remaining} ${t(`unit.${overtime.unit}`)}`
+                : "–"
             }
-            memuat={memuat}
+            isLoading={isLoading}
           />
           <StatCard
             iconBg={c.bad.bg}
             ink={c.bad.ink}
             icon="alarm-outline"
             label={t("hm.terlambat")}
-            value={t("hm.kali", { n: telat })}
-            memuat={memuat}
+            value={t("hm.kali", { n: lateMinutes })}
+            isLoading={isLoading}
           />
         </View>
         {employment && <EmploymentCard slices={employment} />}
@@ -443,7 +499,7 @@ export function HomeScreen() {
         </View>
 
         <View style={styles.quickGrid}>
-          {menuBeranda.map((q) => (
+          {homeMenuItems.map((q) => (
             <QuickAction
               key={q.key}
               iconBg={q.bg}
@@ -458,7 +514,7 @@ export function HomeScreen() {
             ink={c.accent}
             icon="grid-outline"
             label={t("hm.semua")}
-            onPress={() => setMenuTerbuka(true)}
+            onPress={() => setIsMenuOpen(true)}
           />
         </View>
         <View style={styles.sectionHeader}>
@@ -475,7 +531,7 @@ export function HomeScreen() {
         </View>
 
         <Card style={styles.feedCard}>
-          {memuat
+          {isLoading
             ? [0, 1, 2].map((i) => (
                 <View
                   key={i}
@@ -490,9 +546,9 @@ export function HomeScreen() {
                 </View>
               ))
             : null}
-          {!memuat && (notifications ?? []).length === 0 ? (
+          {!isLoading && (notifications ?? []).length === 0 ? (
             <EmptyState
-              tinggi={230}
+              height={230}
               icon={employee.role === "ess" ? ICON.leave : ICON.approval}
               title={
                 employee.role === "ess" ? t("hm.kosongEss") : t("hm.kosongMgr")
@@ -507,7 +563,7 @@ export function HomeScreen() {
           {(notifications ?? []).map((n, i) => (
             <Pressable
               key={n.id}
-              onPress={() => bukaFeed(n.id)}
+              onPress={() => openFeed(n.id)}
               style={[
                 styles.feedRow,
                 i < (notifications?.length ?? 0) - 1 && styles.feedRowDivider,
@@ -527,9 +583,9 @@ export function HomeScreen() {
         </Card>
       </ScrollView>
       <MenuSheet
-        visible={menuTerbuka}
-        onClose={() => setMenuTerbuka(false)}
-        items={semuaMenu}
+        visible={isMenuOpen}
+        onClose={() => setIsMenuOpen(false)}
+        items={allMenuItems}
       />
     </View>
   );
@@ -541,14 +597,14 @@ function StatCard({
   icon,
   label,
   value,
-  memuat,
+  isLoading,
 }: {
   iconBg: string;
   ink: string;
   icon: keyof typeof Ionicons.glyphMap;
   label: string;
   value: string;
-  memuat?: boolean;
+  isLoading?: boolean;
 }) {
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
@@ -562,7 +618,7 @@ function StatCard({
           <Ionicons name={icon} size={24} color={ink} />
         </View>
         <Text style={styles.statLabel}>{label}</Text>
-        {memuat ? (
+        {isLoading ? (
           <Skeleton
             width={76}
             height={17}
@@ -607,7 +663,7 @@ function QuickAction({
   );
 }
 
-const SLICE_WARNA = ["accent2", "accent", "accentLight", "track"] as const;
+const SLICE_COLORS = ["accent2", "accent", "accentLight", "track"] as const;
 
 function EmploymentCard({ slices }: { slices: EmploymentSlice[] }) {
   const t = useT();
@@ -617,7 +673,7 @@ function EmploymentCard({ slices }: { slices: EmploymentSlice[] }) {
   const total = slices.reduce((sum, s) => sum + s.count, 0);
   if (total === 0) return null;
 
-  const warna = (i: number) => c[SLICE_WARNA[i % SLICE_WARNA.length]];
+  const toneColor = (i: number) => c[SLICE_COLORS[i % SLICE_COLORS.length]];
 
   return (
     <Card style={styles.empCard}>
@@ -632,7 +688,7 @@ function EmploymentCard({ slices }: { slices: EmploymentSlice[] }) {
           stroke={19}
           segments={slices.map((s, i) => ({
             value: s.count,
-            color: warna(i),
+            color: toneColor(i),
           }))}
         >
           <Text style={styles.empHoleValue}>{total}</Text>
@@ -642,7 +698,9 @@ function EmploymentCard({ slices }: { slices: EmploymentSlice[] }) {
         <View style={styles.empLegend}>
           {slices.map((s, i) => (
             <View key={s.label} style={styles.empRow}>
-              <View style={[styles.empDot, { backgroundColor: warna(i) }]} />
+              <View
+                style={[styles.empDot, { backgroundColor: toneColor(i) }]}
+              />
               <Text style={styles.empLabel}>
                 {s.label} ({Math.round((s.count / total) * 100)}%)
               </Text>
@@ -874,14 +932,14 @@ const makeStyles = (c: Palette) =>
       marginTop: 4,
     },
 
-    heroCtaSelesai: {
+    heroCtaDone: {
       flexDirection: "row",
       gap: 7,
       alignItems: "center",
       justifyContent: "center",
       backgroundColor: "rgba(255,255,255,0.22)",
     },
-    heroCtaTextSelesai: { color: "#FFFFFF" },
+    heroCtaTextDone: { color: "#FFFFFF" },
     quickGrid: { flexDirection: "row", flexWrap: "wrap", gap: 9 },
     quickIcon: {
       width: 32,

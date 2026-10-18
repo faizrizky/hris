@@ -13,7 +13,7 @@ import {
 import { RevealScrollView as ScrollView } from "@/components/Reveal";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Palette, tombolSekunder } from "@/theme/colors";
+import { Palette, secondaryButtonStyle } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
 import { hrisApi } from "@/services/api";
 import { describeError } from "@/services/api/http";
@@ -25,8 +25,8 @@ import { EmptyState } from "@/components/EmptyState";
 import { useConfirm } from "@/components/ConfirmDialog";
 import { ICON } from "@/constants/icons";
 import { useT } from "@/i18n";
-import { kembali } from "@/navigation/kembali";
-import { bukaLampiran, simpanLampiran } from "@/utils/lampiran";
+import { goBackAnimated } from "@/navigation/kembali";
+import { openAttachment, saveAttachment } from "@/utils/lampiran";
 
 // HR: tinjau pendaftaran wajah yang menunggu (selfie, KTP, foto profil, skor kemiripan) lalu setujui atau tolak.
 export function FaceReviewScreen({ navigation }: ScreenProps) {
@@ -35,55 +35,61 @@ export function FaceReviewScreen({ navigation }: ScreenProps) {
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
   const confirm = useConfirm();
-  const daftar = useLoad(() => hrisApi.getFaceEnrollmentsForReview(), "wajah");
-  const items = daftar.data ?? [];
+  const enrollmentList = useLoad(
+    () => hrisApi.getFaceEnrollmentsForReview(),
+    "wajah",
+  );
+  const items = enrollmentList.data ?? [];
 
-  const [tolak, setTolak] = useState<FaceReview | null>(null);
-  const [alasan, setAlasan] = useState("");
+  const [rejectTarget, setRejectTarget] = useState<FaceReview | null>(null);
+  const [reason, setReason] = useState("");
   const [sibuk, setSibuk] = useState<string | null>(null);
-  const [galat, setGalat] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const keputusan = async (
+  const decision = async (
     f: FaceReview,
     d: "approve" | "reject",
-    catatan?: string,
+    note?: string,
   ) => {
     setSibuk(f.name);
-    setGalat(null);
+    setErrorMessage(null);
     try {
-      await hrisApi.decideFaceEnrollment(f.name, d, catatan);
-      daftar.ulangi();
+      await hrisApi.decideFaceEnrollment(f.name, d, note);
+      enrollmentList.retry();
     } catch (e) {
-      setGalat(describeError(e));
+      setErrorMessage(describeError(e));
     } finally {
       setSibuk(null);
     }
   };
 
-  const setujui = async (f: FaceReview) => {
-    const ya = await confirm({
+  const approve = async (f: FaceReview) => {
+    const isConfirmed = await confirm({
       title: t("fr.setujuiJudul"),
       message: t("fr.setujuiPesan", { nama: f.employeeName }),
       tone: "info",
       confirmText: t("fr.setujui"),
       cancelText: t("umum.batal"),
     });
-    if (ya) await keputusan(f, "approve");
+    if (isConfirmed) await decision(f, "approve");
   };
 
-  const kirimTolak = async () => {
-    if (!tolak) return;
-    if (!alasan.trim()) return setGalat(t("fr.alasanWajib"));
-    const f = tolak;
-    setTolak(null);
-    await keputusan(f, "reject", alasan.trim());
-    setAlasan("");
+  const submitReject = async () => {
+    if (!rejectTarget) return;
+    if (!reason.trim()) return setErrorMessage(t("fr.alasanWajib"));
+    const f = rejectTarget;
+    setRejectTarget(null);
+    await decision(f, "reject", reason.trim());
+    setReason("");
   };
 
   return (
     <View style={styles.container}>
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
-        <Pressable style={styles.backBtn} onPress={() => kembali(navigation)}>
+        <Pressable
+          style={styles.backBtn}
+          onPress={() => goBackAnimated(navigation)}
+        >
           <Ionicons name="chevron-back" size={18} color={c.ink} />
         </Pressable>
         <View style={{ flex: 1, minWidth: 0 }}>
@@ -93,10 +99,15 @@ export function FaceReviewScreen({ navigation }: ScreenProps) {
       </View>
 
       <ScrollView contentContainerStyle={styles.list}>
-        {galat ? <Text style={styles.galat}>{galat}</Text> : null}
-        {daftar.error && !daftar.data ? (
-          <ErrorState pesan={daftar.error} onUlangi={daftar.ulangi} />
-        ) : daftar.memuat ? (
+        {errorMessage ? (
+          <Text style={styles.errorText}>{errorMessage}</Text>
+        ) : null}
+        {enrollmentList.error && !enrollmentList.data ? (
+          <ErrorState
+            message={enrollmentList.error}
+            onRetry={enrollmentList.retry}
+          />
+        ) : enrollmentList.isLoading ? (
           <Skeleton width="100%" height={220} radius={22} />
         ) : items.length === 0 ? (
           <EmptyState
@@ -106,15 +117,15 @@ export function FaceReviewScreen({ navigation }: ScreenProps) {
           />
         ) : (
           items.map((f) => (
-            <Kartu
+            <Card
               key={f.name}
               f={f}
-              sibuk={sibuk === f.name}
-              onSetujui={() => setujui(f)}
-              onTolak={() => {
-                setAlasan("");
-                setGalat(null);
-                setTolak(f);
+              isBusy={sibuk === f.name}
+              onApprove={() => approve(f)}
+              onReject={() => {
+                setReason("");
+                setErrorMessage(null);
+                setRejectTarget(f);
               }}
             />
           ))
@@ -122,43 +133,45 @@ export function FaceReviewScreen({ navigation }: ScreenProps) {
       </ScrollView>
 
       <Modal
-        visible={!!tolak}
+        visible={!!rejectTarget}
         transparent
         animationType="fade"
-        onRequestClose={() => setTolak(null)}
+        onRequestClose={() => setRejectTarget(null)}
       >
-        <View style={styles.modalLatar}>
-          <View style={styles.modalKartu}>
-            <Text style={styles.judulKartu}>{t("fr.tolakJudul")}</Text>
-            <Text style={styles.meta}>{tolak?.employeeName}</Text>
+        <View style={styles.modalBackdrop}>
+          <View style={styles.modalCard}>
+            <Text style={styles.cardTitle}>{t("fr.tolakJudul")}</Text>
+            <Text style={styles.meta}>{rejectTarget?.employeeName}</Text>
             <TextInput
               style={styles.input}
-              value={alasan}
-              onChangeText={setAlasan}
+              value={reason}
+              onChangeText={setReason}
               placeholder={t("fr.alasan")}
               placeholderTextColor={c.mutedLabel}
               multiline
             />
-            {galat ? <Text style={styles.galat}>{galat}</Text> : null}
+            {errorMessage ? (
+              <Text style={styles.errorText}>{errorMessage}</Text>
+            ) : null}
             <View style={{ flexDirection: "row", gap: 10, marginTop: 14 }}>
               <Pressable
                 style={[
-                  styles.tombol,
+                  styles.button,
                   {
-                    ...tombolSekunder(c),
+                    ...secondaryButtonStyle(c),
                   },
                 ]}
-                onPress={() => setTolak(null)}
+                onPress={() => setRejectTarget(null)}
               >
-                <Text style={[styles.tombolText, { color: c.btnSoftInk }]}>
+                <Text style={[styles.buttonText, { color: c.btnSoftInk }]}>
                   {t("umum.batal")}
                 </Text>
               </Pressable>
               <Pressable
-                style={[styles.tombol, { backgroundColor: c.bad.ink }]}
-                onPress={kirimTolak}
+                style={[styles.button, { backgroundColor: c.bad.ink }]}
+                onPress={submitReject}
               >
-                <Text style={[styles.tombolText, { color: "#fff" }]}>
+                <Text style={[styles.buttonText, { color: "#fff" }]}>
                   {t("fr.tolak")}
                 </Text>
               </Pressable>
@@ -170,30 +183,30 @@ export function FaceReviewScreen({ navigation }: ScreenProps) {
   );
 }
 
-function Kartu({
+function Card({
   f,
-  sibuk,
-  onSetujui,
-  onTolak,
+  isBusy,
+  onApprove,
+  onReject,
 }: {
   f: FaceReview;
-  sibuk: boolean;
-  onSetujui: () => void;
-  onTolak: () => void;
+  isBusy: boolean;
+  onApprove: () => void;
+  onReject: () => void;
 }) {
   const t = useT();
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
-  const skor = (label: string, v: number | null, min?: number) => {
+  const score = (label: string, v: number | null, min?: number) => {
     if (v === null || v === undefined) return null;
-    const rendah = min !== undefined && v < min;
+    const isLow = min !== undefined && v < min;
     return (
       <View
         key={label}
-        style={[styles.skor, { borderColor: rendah ? c.bad.ink : c.ok.ink }]}
+        style={[styles.skor, { borderColor: isLow ? c.bad.ink : c.ok.ink }]}
       >
         <Text
-          style={[styles.skorText, { color: rendah ? c.bad.ink : c.ok.ink }]}
+          style={[styles.scoreText, { color: isLow ? c.bad.ink : c.ok.ink }]}
         >
           {label}: {Math.round(v * 10) / 10}%
           {min !== undefined ? `  (${t("fr.min", { n: min })})` : ""}
@@ -201,37 +214,37 @@ function Kartu({
       </View>
     );
   };
-  const spoofRendah = f.spoofMean !== null && f.spoofMean < 0.75;
+  const isSpoofLow = f.spoofMean !== null && f.spoofMean < 0.75;
   return (
-    <View style={styles.kartu}>
-      <Text style={styles.judulKartu}>{f.employeeName}</Text>
+    <View style={styles.card}>
+      <Text style={styles.cardTitle}>{f.employeeName}</Text>
       <Text style={styles.meta}>
         {f.employee} · {f.created.slice(0, 16).replace("T", " ")}
       </Text>
-      <View style={styles.fotoRow}>
-        <Foto url={f.selfieUrl} label={t("fr.selfie")} />
-        <Foto url={f.ktpUrl} label={t("fr.ktp")} />
-        <Foto url={f.profileUrl} label={t("fr.profil")} />
+      <View style={styles.photoRow}>
+        <Photo url={f.selfieUrl} label={t("fr.selfie")} />
+        <Photo url={f.ktpUrl} label={t("fr.ktp")} />
+        <Photo url={f.profileUrl} label={t("fr.profil")} />
       </View>
       <View style={{ gap: 6, marginTop: 12 }}>
-        {skor(t("fr.skorKtp"), f.scoreKtp, f.minKtp)}
-        {skor(t("fr.skorProfil"), f.scoreProfile, f.minProfile)}
-        {skor(t("fr.skorProfilKtp"), f.scoreProfileKtp, f.minKtp)}
+        {score(t("fr.skorKtp"), f.scoreKtp, f.minKtp)}
+        {score(t("fr.skorProfil"), f.scoreProfile, f.minProfile)}
+        {score(t("fr.skorProfilKtp"), f.scoreProfileKtp, f.minKtp)}
         {f.spoofMean !== null ? (
           <View
             style={[
               styles.skor,
-              { borderColor: spoofRendah ? c.warn.ink : c.ok.ink },
+              { borderColor: isSpoofLow ? c.warn.ink : c.ok.ink },
             ]}
           >
             <Text
               style={[
-                styles.skorText,
-                { color: spoofRendah ? c.warn.ink : c.ok.ink },
+                styles.scoreText,
+                { color: isSpoofLow ? c.warn.ink : c.ok.ink },
               ]}
             >
               {t("fr.spoof", { n: f.spoofMean.toFixed(2) })}
-              {spoofRendah ? `  (${t("fr.spoofRendah")})` : ""}
+              {isSpoofLow ? `  (${t("fr.spoofRendah")})` : ""}
             </Text>
           </View>
         ) : null}
@@ -239,29 +252,29 @@ function Kartu({
       <View style={{ flexDirection: "row", gap: 10, marginTop: 14 }}>
         <Pressable
           style={[
-            styles.tombol,
+            styles.button,
             {
               backgroundColor: c.bad.bg,
               borderWidth: 1.5,
               borderColor: c.bad.ink,
             },
           ]}
-          onPress={onTolak}
-          disabled={sibuk}
+          onPress={onReject}
+          disabled={isBusy}
         >
-          <Text style={[styles.tombolText, { color: c.bad.ink }]}>
+          <Text style={[styles.buttonText, { color: c.bad.ink }]}>
             {t("fr.tolak")}
           </Text>
         </Pressable>
         <Pressable
-          style={[styles.tombol, { backgroundColor: c.accent }]}
-          onPress={onSetujui}
-          disabled={sibuk}
+          style={[styles.button, { backgroundColor: c.accent }]}
+          onPress={onApprove}
+          disabled={isBusy}
         >
-          {sibuk ? (
+          {isBusy ? (
             <ActivityIndicator color="#fff" />
           ) : (
-            <Text style={[styles.tombolText, { color: "#fff" }]}>
+            <Text style={[styles.buttonText, { color: "#fff" }]}>
               {t("fr.setujui")}
             </Text>
           )}
@@ -272,46 +285,46 @@ function Kartu({
 }
 
 // Foto privat: diunduh dengan sesi aplikasi. Gambar tampil langsung; PDF (mis. KTP hasil pindai) berupa tombol buka.
-function Foto({ url, label }: { url: string | null; label: string }) {
+function Photo({ url, label }: { url: string | null; label: string }) {
   const t = useT();
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
-  const pdf = !!url && /\.pdf($|\?)/i.test(url);
+  const isPdf = !!url && /\.pdf($|\?)/i.test(url);
   const [uri, setUri] = useState<string | null>(null);
-  const [gagal, setGagal] = useState(false);
+  const [hasFailed, setHasFailed] = useState(false);
   useEffect(() => {
-    if (!url || pdf) return;
-    let batal = false;
-    simpanLampiran(url, `wajah-${label}`)
-      .then((u) => !batal && setUri(u))
-      .catch(() => !batal && setGagal(true));
+    if (!url || isPdf) return;
+    let isCancelled = false;
+    saveAttachment(url, `wajah-${label}`)
+      .then((u) => !isCancelled && setUri(u))
+      .catch(() => !isCancelled && setHasFailed(true));
     return () => {
-      batal = true;
+      isCancelled = true;
     };
-  }, [url, pdf, label]);
+  }, [url, isPdf, label]);
   return (
     <View style={{ flex: 1, alignItems: "center" }}>
       <Pressable
-        style={styles.fotoKotak}
+        style={styles.photoBox}
         disabled={!url}
-        onPress={() => url && bukaLampiran(url, label).catch(() => {})}
+        onPress={() => url && openAttachment(url, label).catch(() => {})}
       >
         {!url ? (
-          <Text style={styles.fotoKosong}>{t("fr.tanpaFoto")}</Text>
-        ) : pdf ? (
+          <Text style={styles.photoEmpty}>{t("fr.tanpaFoto")}</Text>
+        ) : isPdf ? (
           <View style={{ alignItems: "center", gap: 4 }}>
             <Ionicons name="document-text-outline" size={26} color={c.accent} />
-            <Text style={styles.fotoKosong}>{t("fr.buka")}</Text>
+            <Text style={styles.photoEmpty}>{t("fr.buka")}</Text>
           </View>
         ) : uri ? (
-          <Image source={{ uri }} style={styles.foto} resizeMode="cover" />
-        ) : gagal ? (
-          <Text style={styles.fotoKosong}>{t("fr.tanpaFoto")}</Text>
+          <Image source={{ uri }} style={styles.photo} resizeMode="cover" />
+        ) : hasFailed ? (
+          <Text style={styles.photoEmpty}>{t("fr.tanpaFoto")}</Text>
         ) : (
           <ActivityIndicator color={c.accent} />
         )}
       </Pressable>
-      <Text style={styles.fotoLabel}>{label}</Text>
+      <Text style={styles.photoLabel}>{label}</Text>
     </View>
   );
 }
@@ -342,17 +355,17 @@ const makeStyles = (c: Palette) =>
       marginTop: 2,
     },
     list: { paddingHorizontal: 18, paddingBottom: 180, gap: 12 },
-    kartu: {
+    card: {
       backgroundColor: c.card,
       borderWidth: 1,
       borderColor: c.cardBorder,
       borderRadius: 22,
       padding: 16,
     },
-    judulKartu: { fontSize: 14, fontWeight: "700", color: c.ink },
+    cardTitle: { fontSize: 14, fontWeight: "700", color: c.ink },
     meta: { fontSize: 11, color: c.muted, marginTop: 3 },
-    fotoRow: { flexDirection: "row", gap: 10, marginTop: 14 },
-    fotoKotak: {
+    photoRow: { flexDirection: "row", gap: 10, marginTop: 14 },
+    photoBox: {
       width: "100%",
       aspectRatio: 3 / 4,
       borderRadius: 14,
@@ -361,33 +374,33 @@ const makeStyles = (c: Palette) =>
       justifyContent: "center",
       overflow: "hidden",
     },
-    foto: { width: "100%", height: "100%" },
-    fotoKosong: { fontSize: 10.5, fontWeight: "600", color: c.muted },
-    fotoLabel: { fontSize: 11, fontWeight: "600", color: c.ink, marginTop: 6 },
+    photo: { width: "100%", height: "100%" },
+    photoEmpty: { fontSize: 10.5, fontWeight: "600", color: c.muted },
+    photoLabel: { fontSize: 11, fontWeight: "600", color: c.ink, marginTop: 6 },
     skor: {
       borderWidth: 1,
       borderRadius: 12,
       paddingHorizontal: 12,
       paddingVertical: 8,
     },
-    skorText: { fontSize: 12, fontWeight: "700" },
-    tombol: {
+    scoreText: { fontSize: 12, fontWeight: "700" },
+    button: {
       flex: 1,
       alignItems: "center",
       justifyContent: "center",
       borderRadius: 14,
       paddingVertical: 13,
     },
-    tombolText: { fontSize: 13, fontWeight: "700" },
-    galat: { fontSize: 12, color: c.bad.ink, fontWeight: "600" },
-    modalLatar: {
+    buttonText: { fontSize: 13, fontWeight: "700" },
+    errorText: { fontSize: 12, color: c.bad.ink, fontWeight: "600" },
+    modalBackdrop: {
       flex: 1,
       backgroundColor: "rgba(0,0,0,0.5)",
       alignItems: "center",
       justifyContent: "center",
       padding: 24,
     },
-    modalKartu: {
+    modalCard: {
       width: "100%",
       maxWidth: 380,
       backgroundColor: c.card,

@@ -32,14 +32,14 @@ import {
 } from "react-native";
 import { NavigationContext } from "@react-navigation/native";
 import { useTheme } from "@/theme/ThemeContext";
-import { ambilTandaKembali } from "@/navigation/kembali";
+import { consumeBackMark } from "@/navigation/kembali";
 
 const EASE = Easing.bezier(0.25, 0.1, 0.25, 1);
 const ITEM_MS = 500;
 const RISE = 40; // jarak naik kartu (pt) sambil memudar
 const FIRST_DELAY = 100;
 const STEP = 90;
-const MAX_STEPS = 12; // daftar panjang tidak menunggu terlalu lama
+const MAX_STAGGER_STEPS = 12; // daftar panjang tidak menunggu terlalu lama
 const SCREEN_DELAY_MS = 120; // kepala halaman
 const SCREEN_FADE_MS = 200;
 const BATCH_GAP_MS = 50; // item yang dipasang berdekatan dianggap satu gelombang
@@ -86,25 +86,27 @@ export function RevealScope({
     // Kembali dari halaman yang menumpuk di atasnya (tombol/geser kembali)
     // tidak memutar ulang animasi masuk: isinya masih sama, dan memutarnya
     // membuat halaman terlihat seperti dimuat ulang. Ganti tab tetap diputar.
-    let tertutup = false;
+    let isCovered = false;
     const lepasBlur = navigation.addListener("blur", () => {
       const st = navigation.getState();
-      const sini = st?.routes.findIndex((r) => r.key === routeKey) ?? -1;
-      tertutup = st?.type === "stack" && sini >= 0 && sini < st.index;
+      const currentIndex =
+        st?.routes.findIndex((r) => r.key === routeKey) ?? -1;
+      isCovered =
+        st?.type === "stack" && currentIndex >= 0 && currentIndex < st.index;
     });
-    const lepasFokus = navigation.addListener("focus", () => {
+    const unsubscribeFocus = navigation.addListener("focus", () => {
       // Kembali lewat tombol tetap beranimasi; lewat geser tidak.
-      const lewatTombol = ambilTandaKembali();
-      if (tertutup && !lewatTombol) {
-        tertutup = false;
+      const isViaButton = consumeBackMark();
+      if (isCovered && !isViaButton) {
+        isCovered = false;
         return;
       }
-      tertutup = false;
+      isCovered = false;
       play();
     });
     return () => {
       lepasBlur();
-      lepasFokus();
+      unsubscribeFocus();
     };
   }, [navigation, fade, routeKey]);
 
@@ -152,7 +154,7 @@ export function Reveal({
     if (epoch === undefined) return;
     a.setValue(0);
     y.setValue(1);
-    const delay = FIRST_DELAY + Math.min(index, MAX_STEPS) * STEP;
+    const delay = FIRST_DELAY + Math.min(index, MAX_STAGGER_STEPS) * STEP;
     const anim = Animated.parallel([
       Animated.timing(a, {
         toValue: 1,
@@ -197,7 +199,7 @@ const LAYOUT_KEYS = [
   "zIndex",
 ] as const;
 
-function bungkus(child: React.ReactNode): React.ReactNode {
+function wrapChild(child: React.ReactNode): React.ReactNode {
   if (!React.isValidElement(child)) return child;
   const el = child as React.ReactElement<{
     style?: StyleProp<ViewStyle>;
@@ -212,7 +214,7 @@ function bungkus(child: React.ReactNode): React.ReactNode {
     return React.cloneElement(el, {
       children: React.Children.map(el.props.children, (c) =>
         React.isValidElement(c) && typeof c.type !== "function"
-          ? bungkus(c)
+          ? wrapChild(c)
           : c,
       ),
     });
@@ -223,16 +225,16 @@ function bungkus(child: React.ReactNode): React.ReactNode {
     if (flat[k] !== undefined) Object.assign(wrapper, { [k]: flat[k] });
   }
   // Lebar persen dihitung terhadap pembungkus, jadi dipindah ke pembungkus.
-  let isi: React.ReactNode = el;
+  let content: React.ReactNode = el;
   if (typeof flat.width === "string" && flat.width.endsWith("%")) {
     wrapper.width = flat.width;
-    isi = React.cloneElement(el, {
+    content = React.cloneElement(el, {
       style: [el.props.style, { width: "100%" }],
     });
   }
   return (
     <Reveal key={el.key ?? undefined} style={wrapper}>
-      {isi}
+      {content}
     </Reveal>
   );
 }
@@ -242,7 +244,7 @@ export const RevealScrollView = forwardRef<ScrollView, ScrollViewProps>(
   function RevealScrollView({ children, ...props }, ref) {
     return (
       <ScrollView ref={ref} {...props}>
-        {React.Children.map(children, bungkus)}
+        {React.Children.map(children, wrapChild)}
       </ScrollView>
     );
   },
@@ -252,19 +254,19 @@ type ListSlot = FlatListProps<unknown>["ListHeaderComponent"];
 
 // Header/empty FlatList bisa berupa elemen atau komponen. Fragment dipecah
 // supaya setiap kartu di dalamnya tetap bergiliran.
-function bungkusSlot(slot: ListSlot): React.ReactElement | undefined {
+function wrapSlot(slot: ListSlot): React.ReactElement | undefined {
   if (!slot) return undefined;
   if (React.isValidElement(slot)) {
     const el = slot as React.ReactElement<{ children?: React.ReactNode }>;
     if (el.type === React.Fragment) {
-      return <>{React.Children.map(el.props.children, bungkus)}</>;
+      return <>{React.Children.map(el.props.children, wrapChild)}</>;
     }
     return <Reveal>{el}</Reveal>;
   }
-  const Comp = slot as React.ComponentType;
+  const SlotComponent = slot as React.ComponentType;
   return (
     <Reveal>
-      <Comp />
+      <SlotComponent />
     </Reveal>
   );
 }
@@ -279,8 +281,8 @@ export function RevealFlatList<T>({
   return (
     <FlatList
       {...props}
-      ListHeaderComponent={bungkusSlot(ListHeaderComponent)}
-      ListEmptyComponent={bungkusSlot(ListEmptyComponent)}
+      ListHeaderComponent={wrapSlot(ListHeaderComponent)}
+      ListEmptyComponent={wrapSlot(ListEmptyComponent)}
       renderItem={
         renderItem ? (info) => <Reveal>{renderItem(info)}</Reveal> : undefined
       }

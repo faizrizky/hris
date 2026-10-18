@@ -13,31 +13,34 @@ import { angka, rupiah } from "@/utils/currency";
 import { Skeleton } from "@/components/Skeleton";
 import { useLoad } from "@/hooks/useLoad";
 import { ErrorState } from "@/components/ErrorState";
-import { useT, bahasaAktif } from "@/i18n";
-import { kembali } from "@/navigation/kembali";
+import { useT, getActiveLanguage } from "@/i18n";
+import { goBackAnimated } from "@/navigation/kembali";
 
 /** 3.7 -> "3,7" · 2 -> "2" */
-function persen(n: number) {
-  return String(n).replace(".", bahasaAktif() === "en" ? "." : ",");
+function percent(n: number) {
+  return String(n).replace(".", getActiveLanguage() === "en" ? "." : ",");
 }
-const TINGGI_BAR = [44, 60, 38, 96, 50, 64, 42, 72, 55, 48, 68];
+const BAR_HEIGHT = [44, 60, 38, 96, 50, 64, 42, 72, 55, 48, 68];
 
 export function TaxScreen({ navigation }: ScreenProps) {
   const t = useT();
   const { employee } = useSession();
   const insets = useSafeAreaInsets();
-  const ringkasan = useLoad(
+  const summary = useLoad(
     () =>
       employee ? hrisApi.getTaxSummary(employee.id) : Promise.resolve(null),
     employee?.id,
   );
-  const tax = ringkasan.data;
+  const tax = summary.data;
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
 
   const head = (
     <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
-      <Pressable style={styles.backBtn} onPress={() => kembali(navigation)}>
+      <Pressable
+        style={styles.backBtn}
+        onPress={() => goBackAnimated(navigation)}
+      >
         <Ionicons name="chevron-back" size={18} color={c.ink} />
       </Pressable>
       <Text style={styles.headerTitle}>{t("tax.judul")}</Text>
@@ -45,12 +48,12 @@ export function TaxScreen({ navigation }: ScreenProps) {
   );
 
   if (!tax) {
-    if (ringkasan.error) {
+    if (summary.error) {
       return (
         <View style={styles.container}>
           {head}
           <ScrollView contentContainerStyle={styles.content}>
-            <ErrorState pesan={ringkasan.error} onUlangi={ringkasan.ulangi} />
+            <ErrorState message={summary.error} onRetry={summary.retry} />
           </ScrollView>
         </View>
       );
@@ -74,12 +77,15 @@ export function TaxScreen({ navigation }: ScreenProps) {
               style={{ marginTop: 14 }}
             />
             <View style={styles.chart}>
-              {TINGGI_BAR.map((tinggi, i) => (
+              {BAR_HEIGHT.map((chartHeight, i) => (
                 <View
                   key={i}
                   style={[
                     styles.bar,
-                    { height: `${tinggi}%`, backgroundColor: c.onDark.track },
+                    {
+                      height: `${chartHeight}%`,
+                      backgroundColor: c.onDark.track,
+                    },
                   ]}
                 />
               ))}
@@ -117,12 +123,12 @@ export function TaxScreen({ navigation }: ScreenProps) {
   // YTD dan bulan puncak sama-sama diturunkan dari monthly, jadi tidak
   // mungkin melenceng dari bar yang digambar di bawahnya.
   const ytd = tax.monthly.reduce((a, m) => a + m.amount, 0);
-  const maks = Math.max(...tax.monthly.map((m) => m.amount), 1);
-  const puncak = tax.monthly.find((m) => m.amount === maks);
-  const pertama = tax.monthly[0]?.monthShort ?? "";
-  const terakhir = tax.monthly[tax.monthly.length - 1]?.monthShort ?? "";
+  const maxValue = Math.max(...tax.monthly.map((m) => m.amount), 1);
+  const peak = tax.monthly.find((m) => m.amount === maxValue);
+  const first = tax.monthly[0]?.monthShort ?? "";
+  const lastLocation = tax.monthly[tax.monthly.length - 1]?.monthShort ?? "";
 
-  const dasar = [
+  const baseName = [
     { k: t("tax.penghasilan"), v: angka(tax.grossPay) },
     { k: t("tax.kategoriTer"), v: tax.terCategory },
     {
@@ -153,16 +159,18 @@ export function TaxScreen({ navigation }: ScreenProps) {
 
           <View style={styles.chart}>
             {tax.monthly.map((m) => {
-              const tinggi = (m.amount / maks) * 100;
-              const on = m.amount === maks;
+              const chartHeight = (m.amount / maxValue) * 100;
+              const isOn = m.amount === maxValue;
               return (
                 <View
                   key={m.monthShort}
                   style={[
                     styles.bar,
                     {
-                      height: `${tinggi}%`,
-                      backgroundColor: on ? c.accent : "rgba(36,144,239,0.45)",
+                      height: `${chartHeight}%`,
+                      backgroundColor: isOn
+                        ? c.accent
+                        : "rgba(36,144,239,0.45)",
                     },
                   ]}
                 />
@@ -171,9 +179,9 @@ export function TaxScreen({ navigation }: ScreenProps) {
           </View>
 
           <Text style={styles.chartNote}>
-            {pertama} — {terakhir}
-            {puncak
-              ? ` ${t("tax.puncak", { bulan: puncak.monthShort })}${tax.peakReason ? ` (${tax.peakReason})` : ""}`
+            {first} — {lastLocation}
+            {peak
+              ? ` ${t("tax.puncak", { bulan: peak.monthShort })}${tax.peakReason ? ` (${tax.peakReason})` : ""}`
               : ""}
           </Text>
         </View>
@@ -183,7 +191,7 @@ export function TaxScreen({ navigation }: ScreenProps) {
             {t("tax.dasar", { periode: tax.basePeriod })}
           </Text>
           <View style={styles.lines}>
-            {dasar.map((r) => (
+            {baseName.map((r) => (
               <View key={r.k} style={styles.lineRow}>
                 <Text style={styles.lineLabel}>{r.k}</Text>
                 <Text style={styles.lineValue}>{r.v}</Text>
@@ -222,28 +230,28 @@ function BpjsRow({ item }: { item: BpjsItem }) {
   const styles = useMemo(() => makeStyles(c), [c]);
 
   const total = item.employeePct + item.companyPct;
-  const porsi = total === 0 ? 0 : (item.employeePct / total) * 100;
+  const share = total === 0 ? 0 : (item.employeePct / total) * 100;
 
   return (
     <View>
       <View style={styles.bpjsHead}>
         <Text style={styles.bpjsLabel}>{item.label}</Text>
         <Text style={styles.bpjsPct}>
-          {persen(item.employeePct)}% / {persen(item.companyPct)}%
+          {percent(item.employeePct)}% / {percent(item.companyPct)}%
         </Text>
       </View>
 
       <View style={styles.bpjsTrack}>
         <View
           style={{
-            width: `${porsi}%`,
+            width: `${share}%`,
             backgroundColor: c.accent,
             borderRadius: 4,
           }}
         />
         <View
           style={{
-            width: `${100 - porsi}%`,
+            width: `${100 - share}%`,
             backgroundColor: c.info.bg,
             borderRadius: 4,
           }}

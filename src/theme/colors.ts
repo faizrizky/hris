@@ -130,7 +130,7 @@ export type SemanticTone = "ok" | "warn" | "info" | "bad";
 
 // Gaya tombol sekunder: kartu putih berbingkai tipis dengan bayangan lembut,
 // sama seperti kartu menu di Beranda.
-export const tombolSekunder = (c: Palette) =>
+export const secondaryButtonStyle = (c: Palette) =>
   ({
     backgroundColor: c.card,
     borderWidth: 1,
@@ -144,7 +144,7 @@ export const tombolSekunder = (c: Palette) =>
 
 // Gaya tombol utama (berlatar warna): garis tepi terang tipis + bayangan
 // berwarna aksen. Latar tombolnya tetap diatur di tempat masing-masing.
-export const tombolUtama = (c: Palette) =>
+export const primaryButtonStyle = (c: Palette) =>
   ({
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.3)",

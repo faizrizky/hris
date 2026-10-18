@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
-import { dengarkanAntrean } from "@/services/offlineQueue";
+import { listenToQueue } from "@/services/offlineQueue";
 
 // Jumlah check-in offline yang masih menunggu dikirim.
-export function useJumlahAntrean(): number {
+export function useQueueCount(): number {
   const [n, setN] = useState(0);
-  useEffect(() => dengarkanAntrean(setN), []);
+  useEffect(() => listenToQueue(setN), []);
   return n;
 }

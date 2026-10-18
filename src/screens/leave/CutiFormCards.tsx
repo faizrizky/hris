@@ -7,13 +7,13 @@ import { PickerSheet } from "@/components/PickerSheet";
 import { ICON } from "@/constants/icons";
 import { Palette } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
-import { useT, tt } from "@/i18n";
-import type { BuktiFile } from "./LemburFormCards";
+import { useT, translate } from "@/i18n";
+import type { ProofAttachment } from "./LemburFormCards";
 
-export const JENIS_UTAMA = ["Tahunan", "Sakit", "Melahirkan"] as const;
+export const MAIN_KINDS = ["Tahunan", "Sakit", "Melahirkan"] as const;
 
 // Izin penting menurut UU 13/2003 Pasal 93: dibayar, tidak memotong cuti tahunan.
-export const IZIN_PENTING = [
+export const IMPORTANT_LEAVE_KINDS = [
   "Menikah",
   "MenikahkanAnak",
   "KhitanBaptis",
@@ -22,14 +22,14 @@ export const IZIN_PENTING = [
   "SerumahMeninggal",
 ] as const;
 
-export type JenisCuti =
-  (typeof JENIS_UTAMA)[number] | (typeof IZIN_PENTING)[number];
+export type LeaveKind =
+  (typeof MAIN_KINDS)[number] | (typeof IMPORTANT_LEAVE_KINDS)[number];
 
-export const adalahIzinPenting = (j: JenisCuti) =>
-  (IZIN_PENTING as readonly string[]).includes(j);
+export const isImportantLeave = (j: LeaveKind) =>
+  (IMPORTANT_LEAVE_KINDS as readonly string[]).includes(j);
 
 // Nama Leave Type di ERPNext untuk tiap jenis.
-export const JENIS_SERVER: Record<JenisCuti, string> = {
+export const SERVER_KINDS: Record<LeaveKind, string> = {
   Tahunan: "Annual Leave",
   Sakit: "Sick Leave",
   Melahirkan: "Maternity Leave",
@@ -42,7 +42,7 @@ export const JENIS_SERVER: Record<JenisCuti, string> = {
 };
 
 // Batas hari per pengajuan (sama dengan Leave Type di server).
-export const HARI_MAKS: Partial<Record<JenisCuti, number>> = {
+export const MAX_DAYS: Partial<Record<LeaveKind, number>> = {
   Melahirkan: 90,
   Menikah: 3,
   MenikahkanAnak: 2,
@@ -52,81 +52,87 @@ export const HARI_MAKS: Partial<Record<JenisCuti, number>> = {
   SerumahMeninggal: 1,
 };
 
-export const namaCuti = (j: JenisCuti) => tt(`lr.jenisCutiNama.${j}`);
+export const leaveName = (j: LeaveKind) => translate(`lr.jenisCutiNama.${j}`);
 
-export const namaJenis = (j: JenisCuti) => tt(`lr.jenisCutiNama.${j}`);
+export const kindName = (j: LeaveKind) => translate(`lr.jenisCutiNama.${j}`);
 
-function infoCuti(jenis: JenisCuti, saldo: number, hariKerja: number) {
-  const t = tt;
-  if (jenis === "Melahirkan")
-    return t("fc.infoMelahirkan", { hari: HARI_MAKS.Melahirkan! });
-  if (adalahIzinPenting(jenis))
-    return t("fc.infoPenting", { hari: HARI_MAKS[jenis]! });
-  if (jenis === "Tahunan") {
-    return hariKerja > saldo
-      ? t("fc.infoMelebihi", { saldo })
-      : t("fc.infoSaldo", { saldo, sisa: saldo - hariKerja });
+function getLeaveInfo(kind: LeaveKind, balanceList: number, workdays: number) {
+  const t = translate;
+  if (kind === "Melahirkan")
+    return t("fc.infoMelahirkan", { hari: MAX_DAYS.Melahirkan! });
+  if (isImportantLeave(kind))
+    return t("fc.infoPenting", { hari: MAX_DAYS[kind]! });
+  if (kind === "Tahunan") {
+    return workdays > balanceList
+      ? t("fc.infoMelebihi", { saldo: balanceList })
+      : t("fc.infoSaldo", { saldo: balanceList, sisa: balanceList - workdays });
   }
   return t("fc.infoSakit");
 }
 
-export function labelLampiran(jenis: JenisCuti) {
-  return jenis === "Sakit" ? tt("fc.lampiranSakit") : tt("fc.lampiranOpsional");
+export function attachmentLabel(kind: LeaveKind) {
+  return kind === "Sakit"
+    ? translate("fc.lampiranSakit")
+    : translate("fc.lampiranOpsional");
 }
 
-export function CutiTypeCard({
-  jenis,
+export function LeaveTypeCard({
+  kind,
   onPick,
-  saldo,
-  hariKerja,
+  balanceList,
+  workdays,
   gender,
 }: {
-  jenis: JenisCuti;
-  onPick: (j: JenisCuti) => void;
-  saldo: number;
-  hariKerja: number; // hari yang dihitung untuk jenis ini (kerja, atau kalender untuk melahirkan)
+  kind: LeaveKind;
+  onPick: (j: LeaveKind) => void;
+  balanceList: number;
+  workdays: number; // hari yang dihitung untuk jenis ini (kerja, atau kalender untuk melahirkan)
   gender: "F" | "M" | null;
 }) {
-  const melebihi =
-    (jenis === "Tahunan" && hariKerja > saldo) ||
-    (HARI_MAKS[jenis] !== undefined && hariKerja > HARI_MAKS[jenis]!);
+  const isExceeding =
+    (kind === "Tahunan" && workdays > balanceList) ||
+    (MAX_DAYS[kind] !== undefined && workdays > MAX_DAYS[kind]!);
   const c = useTheme();
   const t = useT();
   const styles = useMemo(() => makeStyles(c), [c]);
-  const [bukaPenting, setBukaPenting] = useState(false);
+  const [isImportantOpen, setIsImportantOpen] = useState(false);
 
   // Jenis yang hanya berlaku untuk satu jenis kelamin disembunyikan bagi yang lain.
-  const utama = JENIS_UTAMA.filter((j) => j !== "Melahirkan" || gender === "F");
-  const penting = IZIN_PENTING.filter(
+  const mainKinds = MAIN_KINDS.filter(
+    (j) => j !== "Melahirkan" || gender === "F",
+  );
+  const importantKinds = IMPORTANT_LEAVE_KINDS.filter(
     (j) => j !== "IstriMelahirkan" || gender === "M",
   );
-  const pentingAktif = adalahIzinPenting(jenis);
+  const isImportantActive = isImportantLeave(kind);
 
   return (
     <View style={styles.card}>
       <Text style={styles.cardTitle}>{t("fc.jenisCuti")}</Text>
 
       <View style={styles.chipWrap}>
-        {utama.map((j) => {
-          const on = jenis === j;
+        {mainKinds.map((j) => {
+          const isOn = kind === j;
           return (
             <Pressable
               key={j}
               onPress={() => onPick(j)}
-              style={[styles.chip, on && styles.chipOn]}
+              style={[styles.chip, isOn && styles.chipOn]}
             >
-              <Text style={[styles.chipText, on && styles.chipTextOn]}>
-                {namaJenis(j)}
+              <Text style={[styles.chipText, isOn && styles.chipTextOn]}>
+                {kindName(j)}
               </Text>
             </Pressable>
           );
         })}
         <Pressable
-          onPress={() => setBukaPenting(true)}
-          style={[styles.chip, pentingAktif && styles.chipOn]}
+          onPress={() => setIsImportantOpen(true)}
+          style={[styles.chip, isImportantActive && styles.chipOn]}
         >
-          <Text style={[styles.chipText, pentingAktif && styles.chipTextOn]}>
-            {pentingAktif ? namaJenis(jenis) : t("fc.penting")}
+          <Text
+            style={[styles.chipText, isImportantActive && styles.chipTextOn]}
+          >
+            {isImportantActive ? kindName(kind) : t("fc.penting")}
           </Text>
         </Pressable>
       </View>
@@ -134,64 +140,64 @@ export function CutiTypeCard({
       <View
         style={[
           styles.infoBox,
-          { backgroundColor: melebihi ? c.warn.bg : c.info.bg },
+          { backgroundColor: isExceeding ? c.warn.bg : c.info.bg },
         ]}
       >
         <LineIcon
           d={ICON.info}
-          color={melebihi ? c.warn.ink : c.info.ink}
+          color={isExceeding ? c.warn.ink : c.info.ink}
           size={16}
         />
         <Text
           style={[
             styles.infoText,
-            { color: melebihi ? c.warn.ink : c.info.ink },
+            { color: isExceeding ? c.warn.ink : c.info.ink },
           ]}
         >
-          {HARI_MAKS[jenis] !== undefined && hariKerja > HARI_MAKS[jenis]!
-            ? t("fc.melebihiMaks", { hari: HARI_MAKS[jenis]! })
-            : infoCuti(jenis, saldo, hariKerja)}
+          {MAX_DAYS[kind] !== undefined && workdays > MAX_DAYS[kind]!
+            ? t("fc.melebihiMaks", { hari: MAX_DAYS[kind]! })
+            : getLeaveInfo(kind, balanceList, workdays)}
         </Text>
       </View>
 
       <PickerSheet
-        visible={bukaPenting}
+        visible={isImportantOpen}
         title={t("fc.pilihPenting")}
-        options={penting}
-        value={pentingAktif ? jenis : null}
-        labelOf={(v) => namaJenis(v as JenisCuti)}
-        onSelect={(v) => onPick(v as JenisCuti)}
-        onClose={() => setBukaPenting(false)}
+        options={importantKinds}
+        value={isImportantActive ? kind : null}
+        labelOf={(v) => kindName(v as LeaveKind)}
+        onSelect={(v) => onPick(v as LeaveKind)}
+        onClose={() => setIsImportantOpen(false)}
       />
     </View>
   );
 }
 
-export function CutiDetailCard({
-  jenis,
-  alasan,
-  onChangeAlasan,
-  rekan,
-  delegasi,
-  onPickDelegasi,
+export function LeaveDetailCard({
+  kind,
+  reason,
+  onChangeReason,
+  colleagues,
+  delegate,
+  onPickDelegate,
   files,
   onAdd,
   onRemove,
 }: {
-  jenis: JenisCuti;
-  alasan: string;
-  onChangeAlasan: (v: string) => void;
-  rekan: Colleague[];
-  delegasi: Colleague | null;
-  onPickDelegasi: (v: Colleague) => void;
-  files: BuktiFile[];
+  kind: LeaveKind;
+  reason: string;
+  onChangeReason: (v: string) => void;
+  colleagues: Colleague[];
+  delegate: Colleague | null;
+  onPickDelegate: (v: Colleague) => void;
+  files: ProofAttachment[];
   onAdd: () => void;
   onRemove: (index: number) => void;
 }) {
   const c = useTheme();
   const t = useT();
   const styles = useMemo(() => makeStyles(c), [c]);
-  const [buka, setBuka] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
 
   return (
     <View style={[styles.card, { marginTop: 12 }]}>
@@ -200,14 +206,14 @@ export function CutiDetailCard({
       <Text style={styles.label}>{t("fc.alasan")}</Text>
       <TextInput
         style={styles.textarea}
-        value={alasan}
-        onChangeText={onChangeAlasan}
+        value={reason}
+        onChangeText={onChangeReason}
         placeholder={t("fc.alasanContoh")}
         placeholderTextColor={c.mutedLabel}
         multiline
       />
 
-      <Text style={styles.label}>{labelLampiran(jenis)}</Text>
+      <Text style={styles.label}>{attachmentLabel(kind)}</Text>
       {files.map((f, i) => (
         <View key={`${f.name}-${i}`} style={styles.fileRow}>
           <LineIcon d={ICON.fileCheck} color={c.ok.ink} size={16} />
@@ -235,15 +241,15 @@ export function CutiDetailCard({
       </Pressable>
 
       <Text style={styles.label}>{t("fc.delegasi")}</Text>
-      <Pressable style={styles.delegateBox} onPress={() => setBuka(true)}>
-        {delegasi ? (
+      <Pressable style={styles.delegateBox} onPress={() => setIsOpen(true)}>
+        {delegate ? (
           <>
             <View style={styles.avatar}>
-              <Text style={styles.avatarText}>{delegasi.initials}</Text>
+              <Text style={styles.avatarText}>{delegate.initials}</Text>
             </View>
             <View style={{ flex: 1, minWidth: 0 }}>
-              <Text style={styles.rowTitle}>{delegasi.fullName}</Text>
-              <Text style={styles.rowSub}>{delegasi.jobTitle}</Text>
+              <Text style={styles.rowTitle}>{delegate.fullName}</Text>
+              <Text style={styles.rowSub}>{delegate.jobTitle}</Text>
             </View>
             <Text style={styles.changeText}>{t("fc.ganti")}</Text>
           </>
@@ -255,7 +261,7 @@ export function CutiDetailCard({
             <View style={{ flex: 1, minWidth: 0 }}>
               <Text style={styles.rowTitle}>{t("fc.belumDipilih")}</Text>
               <Text style={styles.rowSub}>
-                {t("fc.rekan", { n: rekan.length })}
+                {t("fc.rekan", { n: colleagues.length })}
               </Text>
             </View>
             <Text style={styles.changeText}>{t("fc.pilih")}</Text>
@@ -264,11 +270,11 @@ export function CutiDetailCard({
       </Pressable>
 
       <ColleagueSheet
-        visible={buka}
-        options={rekan}
-        value={delegasi}
-        onSelect={onPickDelegasi}
-        onClose={() => setBuka(false)}
+        visible={isOpen}
+        options={colleagues}
+        value={delegate}
+        onSelect={onPickDelegate}
+        onClose={() => setIsOpen(false)}
       />
     </View>
   );

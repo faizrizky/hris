@@ -4,22 +4,22 @@ import { LineIcon } from "@/components/LineIcon";
 import { ICON } from "@/constants/icons";
 import { Palette } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
-import { useT, tt } from "@/i18n";
+import { useT, translate } from "@/i18n";
 
-export const TRANSPORTASI = [
+export const TRANSPORT_MODES = [
   { value: "Pesawat", icon: ICON.plane },
   { value: "Kereta", icon: ICON.train },
   { value: "Mobil kantor", icon: ICON.car },
   { value: "Lainnya", icon: ICON.dots },
 ] as const;
 
-export type Transportasi = (typeof TRANSPORTASI)[number]["value"];
+export type TransportMode = (typeof TRANSPORT_MODES)[number]["value"];
 
 export function DinasTujuanCard({
-  dest,
+  destination,
   onChange,
 }: {
-  dest: string;
+  destination: string;
   onChange: (v: string) => void;
 }) {
   const c = useTheme();
@@ -33,7 +33,7 @@ export function DinasTujuanCard({
         <LineIcon d={ICON.location} color={c.accent} size={17} />
         <TextInput
           style={styles.input}
-          value={dest}
+          value={destination}
           onChangeText={onChange}
           placeholder={t("fc.kotaTujuan")}
           placeholderTextColor={c.mutedLabel}
@@ -46,13 +46,13 @@ export function DinasTujuanCard({
 export function DinasDetailCard({
   transport,
   onPickTransport,
-  keperluan,
-  onChangeKeperluan,
+  purpose,
+  onChangePurpose,
 }: {
-  transport: Transportasi | null;
-  onPickTransport: (t: Transportasi) => void;
-  keperluan: string;
-  onChangeKeperluan: (v: string) => void;
+  transport: TransportMode | null;
+  onPickTransport: (t: TransportMode) => void;
+  purpose: string;
+  onChangePurpose: (v: string) => void;
 }) {
   const c = useTheme();
   const t = useT();
@@ -63,17 +63,21 @@ export function DinasDetailCard({
       <Text style={styles.cardTitle}>{t("fc.transportasi")}</Text>
 
       <View style={styles.transGrid}>
-        {TRANSPORTASI.map((tp) => {
-          const on = transport === tp.value;
+        {TRANSPORT_MODES.map((transportMode) => {
+          const isOn = transport === transportMode.value;
           return (
             <Pressable
-              key={tp.value}
-              onPress={() => onPickTransport(tp.value)}
-              style={[styles.transCard, on && styles.transCardOn]}
+              key={transportMode.value}
+              onPress={() => onPickTransport(transportMode.value)}
+              style={[styles.transCard, isOn && styles.transCardOn]}
             >
-              <LineIcon d={tp.icon} color={on ? "#fff" : c.ink} size={20} />
-              <Text style={[styles.transLabel, on && styles.transLabelOn]}>
-                {tt(`tr.${tp.value}`)}
+              <LineIcon
+                d={transportMode.icon}
+                color={isOn ? "#fff" : c.ink}
+                size={20}
+              />
+              <Text style={[styles.transLabel, isOn && styles.transLabelOn]}>
+                {translate(`tr.${transportMode.value}`)}
               </Text>
             </Pressable>
           );
@@ -83,8 +87,8 @@ export function DinasDetailCard({
       <Text style={styles.label}>{t("fc.keperluan")}</Text>
       <TextInput
         style={styles.textarea}
-        value={keperluan}
-        onChangeText={onChangeKeperluan}
+        value={purpose}
+        onChangeText={onChangePurpose}
         placeholder={t("fc.keperluanContoh")}
         placeholderTextColor={c.mutedLabel}
         multiline

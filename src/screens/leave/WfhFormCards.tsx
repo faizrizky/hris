@@ -4,18 +4,18 @@ import { Palette } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
 import { useT } from "@/i18n";
 
-export const HARI_WFH = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
+export const WFH_DAYS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
 
 export function WfhDetailCard({
-  hari,
+  days,
   onToggle,
-  alasan,
-  onChangeAlasan,
+  reason,
+  onChangeReason,
 }: {
-  hari: string[];
+  days: string[];
   onToggle: (d: string) => void;
-  alasan: string;
-  onChangeAlasan: (v: string) => void;
+  reason: string;
+  onChangeReason: (v: string) => void;
 }) {
   const c = useTheme();
   const t = useT();
@@ -26,15 +26,15 @@ export function WfhDetailCard({
       <Text style={styles.cardTitle}>{t("fc.hariWfh")}</Text>
       <Text style={styles.desc}>{t("fc.hariWfhInfo")}</Text>
       <View style={styles.chips}>
-        {HARI_WFH.map((d) => {
-          const on = hari.includes(d);
+        {WFH_DAYS.map((d) => {
+          const isOn = days.includes(d);
           return (
             <Pressable
               key={d}
               onPress={() => onToggle(d)}
-              style={[styles.chip, on && styles.chipOn]}
+              style={[styles.chip, isOn && styles.chipOn]}
             >
-              <Text style={[styles.chipText, on && styles.chipTextOn]}>
+              <Text style={[styles.chipText, isOn && styles.chipTextOn]}>
                 {t(`hari.${d}` as never)}
               </Text>
             </Pressable>
@@ -46,8 +46,8 @@ export function WfhDetailCard({
       </Text>
       <TextInput
         style={styles.textarea}
-        value={alasan}
-        onChangeText={onChangeAlasan}
+        value={reason}
+        onChangeText={onChangeReason}
         placeholder={t("fc.alasanWfhContoh")}
         placeholderTextColor={c.mutedLabel}
         multiline

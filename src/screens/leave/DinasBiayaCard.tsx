@@ -7,11 +7,11 @@ import { ICON } from "@/constants/icons";
 import { Palette } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
 import { angka, rupiah } from "@/utils/currency";
-import { useT, tt } from "@/i18n";
+import { useT, translate } from "@/i18n";
 import { useConfirm } from "@/components/ConfirmDialog";
-import { BuktiBerkas, pilihBukti } from "@/utils/pilihBukti";
+import { ProofFile, pickProof } from "@/utils/pilihBukti";
 
-export const KATEGORI_BIAYA = [
+export const EXPENSE_CATEGORIES = [
   "Transportasi",
   "Hotel",
   "Konsumsi",
@@ -19,58 +19,58 @@ export const KATEGORI_BIAYA = [
   "Lainnya",
 ] as const;
 
-export const kategoriBiaya = (k: string) =>
-  (KATEGORI_BIAYA as readonly string[]).includes(k)
-    ? tt(`bi.${k}` as never)
+export const expenseCategory = (k: string) =>
+  (EXPENSE_CATEGORIES as readonly string[]).includes(k)
+    ? translate(`bi.${k}` as never)
     : k;
 
-export const PERDIEM_PER_HARI = 350000;
+export const PER_DIEM_PER_DAY = 350000;
 
-export interface Biaya {
+export interface Expense {
   id: string;
-  kategori: string;
-  keterangan: string;
+  category: string;
+  description: string;
   nominal: string; // digit mentah, diformat saat ditampilkan
-  bukti: BuktiBerkas | null;
+  proof: ProofFile | null;
 }
 
-export function totalBiaya(items: Biaya[], hari: number) {
-  const pengeluaran = items.reduce((a, x) => a + (Number(x.nominal) || 0), 0);
-  const perdiem = PERDIEM_PER_HARI * Math.max(0, hari);
-  return { pengeluaran, perdiem, total: pengeluaran + perdiem };
+export function totalExpense(items: Expense[], days: number) {
+  const expenses = items.reduce((a, x) => a + (Number(x.nominal) || 0), 0);
+  const perDiem = PER_DIEM_PER_DAY * Math.max(0, days);
+  return { expenses, perDiem, total: expenses + perDiem };
 }
 
 export function DinasBiayaCard({
   items,
-  hari,
+  days,
   onAdd,
   onRemove,
   onChange,
 }: {
-  items: Biaya[];
-  hari: number;
+  items: Expense[];
+  days: number;
   onAdd: () => void;
   onRemove: (id: string) => void;
-  onChange: (id: string, patch: Partial<Biaya>) => void;
+  onChange: (id: string, patch: Partial<Expense>) => void;
 }) {
-  const [editing, setEditing] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const confirm = useConfirm();
-  const pilih = async (id: string) => {
-    const r = await pilihBukti();
+  const pick = async (id: string) => {
+    const r = await pickProof();
     if (!r) return;
-    if ("terlaluBesar" in r) {
+    if ("tooLargeSizeLabel" in r) {
       void confirm({
         title: t("bi.besarJudul"),
-        message: t("bi.besarPesan", { ukuran: r.terlaluBesar }),
+        message: t("bi.besarPesan", { ukuran: r.tooLargeSizeLabel }),
         tone: "warn",
         confirmText: t("umum.mengerti"),
         cancelText: null,
       });
       return;
     }
-    onChange(id, { bukti: r.berkas });
+    onChange(id, { proof: r.file });
   };
-  const { pengeluaran, perdiem, total } = totalBiaya(items, hari);
+  const { expenses, perDiem, total } = totalExpense(items, days);
   const c = useTheme();
   const t = useT();
   const styles = useMemo(() => makeStyles(c), [c]);
@@ -88,17 +88,17 @@ export function DinasBiayaCard({
       <View style={{ gap: 10, marginTop: 12 }}>
         {items.map((x) => {
           const nominal = Number(x.nominal) || 0;
-          const wajibBukti = nominal > 0 && !x.bukti;
+          const isProofMandatory = nominal > 0 && !x.proof;
 
           return (
             <View key={x.id} style={styles.item}>
               <View style={styles.itemHead}>
                 <Pressable
                   style={styles.catPill}
-                  onPress={() => setEditing(x.id)}
+                  onPress={() => setEditingId(x.id)}
                 >
                   <Text style={styles.catText}>
-                    {kategoriBiaya(x.kategori)}
+                    {expenseCategory(x.category)}
                   </Text>
                   <Ionicons name="chevron-down" size={12} color={c.info.ink} />
                 </Pressable>
@@ -113,8 +113,8 @@ export function DinasBiayaCard({
 
               <TextInput
                 style={styles.noteInput}
-                value={x.keterangan}
-                onChangeText={(v) => onChange(x.id, { keterangan: v })}
+                value={x.description}
+                onChangeText={(v) => onChange(x.id, { description: v })}
                 placeholder={t("bi.ket")}
                 placeholderTextColor={c.mutedLabel}
               />
@@ -133,33 +133,33 @@ export function DinasBiayaCard({
                 />
               </View>
 
-              {x.bukti ? (
+              {x.proof ? (
                 <View style={styles.proofOk}>
                   <LineIcon d={ICON.fileCheck} color={c.ok.ink} size={15} />
-                  <Text style={styles.proofName}>{x.bukti.name}</Text>
-                  <Pressable onPress={() => onChange(x.id, { bukti: null })}>
+                  <Text style={styles.proofName}>{x.proof.name}</Text>
+                  <Pressable onPress={() => onChange(x.id, { proof: null })}>
                     <Text style={styles.proofRemove}>{t("bi.hapus")}</Text>
                   </Pressable>
                 </View>
               ) : (
                 <Pressable
-                  onPress={() => pilih(x.id)}
+                  onPress={() => pick(x.id)}
                   style={[
                     styles.proofAdd,
                     {
-                      borderColor: wajibBukti ? c.bad.ink : c.fieldBorder,
+                      borderColor: isProofMandatory ? c.bad.ink : c.fieldBorder,
                     },
                   ]}
                 >
                   <LineIcon
                     d={ICON.upload}
-                    color={wajibBukti ? c.bad.ink : c.muted}
+                    color={isProofMandatory ? c.bad.ink : c.muted}
                     size={15}
                   />
                   <Text
                     style={[
                       styles.proofAddText,
-                      { color: wajibBukti ? c.bad.ink : c.muted },
+                      { color: isProofMandatory ? c.bad.ink : c.muted },
                     ]}
                   >
                     {t("bi.unggahWajib")}
@@ -172,13 +172,13 @@ export function DinasBiayaCard({
       </View>
 
       <View style={styles.totals}>
-        <TotalRow label={t("bi.totalDiajukan")} value={rupiah(pengeluaran)} />
+        <TotalRow label={t("bi.totalDiajukan")} value={rupiah(expenses)} />
         <TotalRow
           label={t("bi.uangHarian", {
-            n: Math.max(0, hari),
-            tarif: rupiah(PERDIEM_PER_HARI),
+            n: Math.max(0, days),
+            tarif: rupiah(PER_DIEM_PER_DAY),
           })}
-          value={rupiah(perdiem)}
+          value={rupiah(perDiem)}
         />
         <View style={styles.totalRow}>
           <Text style={styles.totalLabel}>{t("bi.total")}</Text>
@@ -187,13 +187,13 @@ export function DinasBiayaCard({
       </View>
 
       <PickerSheet
-        visible={editing !== null}
+        visible={editingId !== null}
         title={t("bi.kategori")}
-        options={KATEGORI_BIAYA}
-        labelOf={kategoriBiaya}
-        value={items.find((x) => x.id === editing)?.kategori}
-        onSelect={(v) => editing && onChange(editing, { kategori: v })}
-        onClose={() => setEditing(null)}
+        options={EXPENSE_CATEGORIES}
+        labelOf={expenseCategory}
+        value={items.find((x) => x.id === editingId)?.category}
+        onSelect={(v) => editingId && onChange(editingId, { category: v })}
+        onClose={() => setEditingId(null)}
       />
     </View>
   );

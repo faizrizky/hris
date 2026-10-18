@@ -3,37 +3,37 @@
 
 import { useEffect } from "react";
 import { AppState } from "react-native";
-import { useBahasa } from "@/i18n";
+import { useLanguage } from "@/i18n";
 import { hrisApi } from "@/services/api";
-import { ambilTokenPush } from "@/services/push";
-import { muatJangkar } from "@/services/trustedTime";
-import { jumlahAntrean } from "@/services/offlineQueue";
+import { fetchPushToken } from "@/services/push";
+import { loadAnchor } from "@/services/trustedTime";
+import { getQueueCount } from "@/services/offlineQueue";
 
-const SYNC_ANTREAN_INTERVAL_MS = 30_000;
+const QUEUE_SYNC_INTERVAL_MS = 30_000;
 
 // Bahasa mengikuti akun ERPNext; gagal membaca = pakai pilihan lokal.
 export function useSyncAccountLanguage(employeeId: string | undefined) {
-  const { setBahasa } = useBahasa();
+  const { setLanguage } = useLanguage();
   useEffect(() => {
     if (!employeeId) return;
     hrisApi
       .getLanguage()
-      .then((language) => language && setBahasa(language))
+      .then((language) => language && setLanguage(language))
       .catch(() => {});
-  }, [employeeId, setBahasa]);
+  }, [employeeId, setLanguage]);
 }
 
 // Jangkar jam terpercaya dimuat sekali; antrean check-in offline dikirim saat
 // login, saat aplikasi kembali aktif, dan tiap setengah menit selama masih ada.
 export function useSyncOfflineCheckins(employeeId: string | undefined) {
   useEffect(() => {
-    void muatJangkar();
+    void loadAnchor();
   }, []);
 
   useEffect(() => {
     if (!employeeId) return;
     const syncQueuedCheckins = () => {
-      void jumlahAntrean().then((queuedCount) => {
+      void getQueueCount().then((queuedCount) => {
         if (queuedCount > 0) void hrisApi.syncOfflineCheckins().catch(() => {});
       });
     };
@@ -41,7 +41,7 @@ export function useSyncOfflineCheckins(employeeId: string | undefined) {
     const subscription = AppState.addEventListener("change", (state) => {
       if (state === "active") syncQueuedCheckins();
     });
-    const timer = setInterval(syncQueuedCheckins, SYNC_ANTREAN_INTERVAL_MS);
+    const timer = setInterval(syncQueuedCheckins, QUEUE_SYNC_INTERVAL_MS);
     return () => {
       subscription.remove();
       clearInterval(timer);
@@ -53,7 +53,7 @@ export function useSyncOfflineCheckins(employeeId: string | undefined) {
 export function useRegisterPushToken(employeeId: string | undefined) {
   useEffect(() => {
     if (!employeeId) return;
-    ambilTokenPush()
+    fetchPushToken()
       .then((token) => token && hrisApi.registerPushToken(token))
       .catch(() => {});
   }, [employeeId]);

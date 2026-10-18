@@ -17,7 +17,7 @@ export function Skeleton({
 }) {
   const [anim] = useState(() => new Animated.Value(0));
   const c = useTheme();
-  const isi = color ?? c.track;
+  const content = color ?? c.track;
 
   useEffect(() => {
     const loop = Animated.loop(
@@ -54,7 +54,7 @@ export function Skeleton({
           width,
           height,
           borderRadius: radius,
-          backgroundColor: isi,
+          backgroundColor: content,
           opacity,
         },
         style,

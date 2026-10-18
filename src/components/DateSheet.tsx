@@ -45,7 +45,7 @@ export function DateSheet({
   const insets = useSafeAreaInsets();
 
   const [anim] = useState(() => new Animated.Value(0));
-  const [tinggi, setTinggi] = useState(520);
+  const [sheetHeight, setSheetHeight] = useState(520);
 
   useEffect(() => {
     if (!visible) return;
@@ -65,7 +65,7 @@ export function DateSheet({
 
   const translateY = anim.interpolate({
     inputRange: [0, 1],
-    outputRange: [tinggi, 0],
+    outputRange: [sheetHeight, 0],
   });
 
   return (
@@ -75,7 +75,7 @@ export function DateSheet({
       </Animated.View>
 
       <Animated.View
-        onLayout={(e) => setTinggi(e.nativeEvent.layout.height)}
+        onLayout={(e) => setSheetHeight(e.nativeEvent.layout.height)}
         style={[
           styles.sheet,
           { paddingBottom: insets.bottom + 20, transform: [{ translateY }] },

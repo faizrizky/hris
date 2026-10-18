@@ -9,8 +9,8 @@ import { TeamAppraisal } from "@/services/types";
 import { useLoad } from "@/hooks/useLoad";
 import { ErrorState } from "@/components/ErrorState";
 import { Skeleton } from "@/components/Skeleton";
-import { desimal } from "@/utils/currency";
-import { inisial } from "@/utils/ProfileCompleteness";
+import { formatDecimal } from "@/utils/currency";
+import { initialsOf } from "@/utils/ProfileCompleteness";
 import { useT } from "@/i18n";
 import { EmptyState } from "@/components/EmptyState";
 import { ICON } from "@/constants/icons";
@@ -26,8 +26,8 @@ export function TimAppraisal({ navigation }: Pick<ScreenProps, "navigation">) {
   return (
     <ScrollView contentContainerStyle={styles.content}>
       {tim.error && !tim.data ? (
-        <ErrorState pesan={tim.error} onUlangi={tim.ulangi} />
-      ) : tim.memuat ? (
+        <ErrorState message={tim.error} onRetry={tim.retry} />
+      ) : tim.isLoading ? (
         <View style={{ gap: 10 }}>
           {[0, 1, 2].map((i) => (
             <View key={i} style={styles.row}>
@@ -75,21 +75,24 @@ function Baris({ a, onPress }: { a: TeamAppraisal; onPress: () => void }) {
         : c.warn;
   const label =
     a.myStatus === "submitted"
-      ? t("ap2.sudahDinilai", { skor: desimal(a.myScore ?? 0) })
+      ? t("ap2.sudahDinilai", { skor: formatDecimal(a.myScore ?? 0) })
       : a.myStatus === "draft"
         ? t("ap2.draft")
         : t("ap2.belumDinilai");
   return (
     <Pressable style={styles.row} onPress={onPress}>
       <View style={styles.avatar}>
-        <Text style={styles.avatarText}>{inisial(a.employeeName)}</Text>
+        <Text style={styles.avatarText}>{initialsOf(a.employeeName)}</Text>
       </View>
       <View style={{ flex: 1, minWidth: 0 }}>
         <Text style={styles.name} numberOfLines={1}>
           {a.employeeName}
         </Text>
         <Text style={styles.meta} numberOfLines={1}>
-          {[a.designation, t("ap2.skorAkhir", { skor: desimal(a.finalScore) })]
+          {[
+            a.designation,
+            t("ap2.skorAkhir", { skor: formatDecimal(a.finalScore) }),
+          ]
             .filter(Boolean)
             .join(" · ")}
         </Text>

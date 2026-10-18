@@ -1,4 +1,4 @@
-import { tahanKunci } from "@/services/biometrik";
+import { holdLock } from "@/services/biometrik";
 // Pembaruan aplikasi tanpa toko (sementara, Android): APK diunggah ke server, aplikasi memeriksa versi
 // saat dibuka, mengunduhnya dengan progres, lalu membuka pemasang Android. Pemasangan tidak bisa senyap:
 // Android selalu meminta pengguna mengetuk "Perbarui".
@@ -11,15 +11,15 @@ import * as Application from "expo-application";
 import * as Updates from "expo-updates";
 import * as FileSystem from "expo-file-system/legacy";
 import * as IntentLauncher from "expo-intent-launcher";
-import { muatAlamatServer } from "@/services/api/http";
+import { loadServerAddress } from "@/services/api/http";
 
-export const MODE_PEMBARUAN: "unduh" | "toko" = "unduh";
+export const UPDATE_MODE: "unduh" | "toko" = "unduh";
 export const URL_TOKO = {
   android: "https://play.google.com/store/apps/details?id=com.hrismobile",
   ios: "",
 };
 
-export interface InfoPembaruan {
+export interface UpdateInfo {
   versionCode: number;
   versionName: string;
   apkUrl: string;
@@ -28,21 +28,21 @@ export interface InfoPembaruan {
   mandatory: boolean;
 }
 
-const BATAS_CEK_MS = 7000;
+const CHECK_TIMEOUT_MS = 7000;
 
 // Null = tidak perlu memperbarui (sudah terbaru, bukan build asli, server tidak terjangkau, atau belum ada APK).
 // Kegagalan jaringan tidak boleh menghalangi pengguna masuk, jadi galat ditelan.
-export async function cekPembaruan(): Promise<InfoPembaruan | null> {
+export async function checkAppUpdate(): Promise<UpdateInfo | null> {
   if (Platform.OS !== "android") return null;
-  const terpasang = Number(Application.nativeBuildVersion);
-  if (!Number.isFinite(terpasang) || terpasang <= 0) return null; // Expo Go / dev
-  const ctl = new AbortController();
-  const timer = setTimeout(() => ctl.abort(), BATAS_CEK_MS);
+  const installedVersion = Number(Application.nativeBuildVersion);
+  if (!Number.isFinite(installedVersion) || installedVersion <= 0) return null; // Expo Go / dev
+  const abortController = new AbortController();
+  const timer = setTimeout(() => abortController.abort(), CHECK_TIMEOUT_MS);
   try {
-    const base = await muatAlamatServer();
+    const base = await loadServerAddress();
     if (!base) return null;
     const res = await fetch(`${base}/api/method/hris_get_app_update`, {
-      signal: ctl.signal,
+      signal: abortController.signal,
     });
     if (!res.ok) return null;
     const m = (await res.json()).message as {
@@ -53,8 +53,9 @@ export async function cekPembaruan(): Promise<InfoPembaruan | null> {
       notes: string;
       mandatory: number;
     };
-    if (!m || !m.version_code || m.version_code <= terpasang) return null;
-    if (MODE_PEMBARUAN === "unduh" && !m.apk_url) return null;
+    if (!m || !m.version_code || m.version_code <= installedVersion)
+      return null;
+    if (UPDATE_MODE === "unduh" && !m.apk_url) return null;
     return {
       versionCode: m.version_code,
       versionName: m.version_name,
@@ -72,35 +73,35 @@ export async function cekPembaruan(): Promise<InfoPembaruan | null> {
 }
 
 // Mengunduh APK ke cache dengan progres 0..1, memeriksa ukurannya, lalu membuka pemasang Android.
-export async function unduhDanPasang(
-  info: InfoPembaruan,
-  onProgres: (p: number) => void,
+export async function downloadAndInstall(
+  info: UpdateInfo,
+  onProgress: (p: number) => void,
 ): Promise<void> {
-  if (MODE_PEMBARUAN === "toko") {
+  if (UPDATE_MODE === "toko") {
     const url = Platform.OS === "ios" ? URL_TOKO.ios : URL_TOKO.android;
     if (url) await Linking.openURL(url);
     return;
   }
-  const tujuan = `${FileSystem.cacheDirectory}hris-${info.versionCode}.apk`;
-  await FileSystem.deleteAsync(tujuan, { idempotent: true });
-  const unduhan = FileSystem.createDownloadResumable(
+  const destination = `${FileSystem.cacheDirectory}hris-${info.versionCode}.apk`;
+  await FileSystem.deleteAsync(destination, { idempotent: true });
+  const download = FileSystem.createDownloadResumable(
     info.apkUrl,
-    tujuan,
+    destination,
     {},
     (p) => {
       const total = p.totalBytesExpectedToWrite || info.size;
-      if (total > 0) onProgres(Math.min(1, p.totalBytesWritten / total));
+      if (total > 0) onProgress(Math.min(1, p.totalBytesWritten / total));
     },
   );
-  const hasil = await unduhan.downloadAsync();
-  if (!hasil || hasil.status !== 200) throw new Error("download");
-  const berkas = await FileSystem.getInfoAsync(tujuan);
-  if (!berkas.exists || (info.size > 0 && berkas.size !== info.size)) {
+  const result = await download.downloadAsync();
+  if (!result || result.status !== 200) throw new Error("download");
+  const file = await FileSystem.getInfoAsync(destination);
+  if (!file.exists || (info.size > 0 && file.size !== info.size)) {
     throw new Error("ukuran");
   }
-  onProgres(1);
-  const uri = await FileSystem.getContentUriAsync(tujuan);
-  tahanKunci();
+  onProgress(1);
+  const uri = await FileSystem.getContentUriAsync(destination);
+  holdLock();
   await IntentLauncher.startActivityAsync("android.intent.action.VIEW", {
     data: uri,
     flags: 1, // FLAG_GRANT_READ_URI_PERMISSION
@@ -111,19 +112,19 @@ export async function unduhDanPasang(
 // ---- EAS Update (OTA): paket JavaScript baru tanpa build ulang ----
 // Dicek setelah pemeriksaan APK. Bila ada, paket diunduh lalu aplikasi dimuat ulang otomatis.
 // Tidak aktif di Expo Go / mode pengembangan.
-export async function cekDanTerapkanOta(
-  onTahap: (tahap: "unduh") => void,
+export async function checkAndApplyOta(
+  onStage: (stage: "unduh") => void,
 ): Promise<boolean> {
   if (__DEV__ || !Updates.isEnabled) return false;
   try {
-    const cek = await Promise.race([
+    const checkResult = await Promise.race([
       Updates.checkForUpdateAsync(),
-      new Promise<null>((r) => setTimeout(() => r(null), BATAS_CEK_MS)),
+      new Promise<null>((r) => setTimeout(() => r(null), CHECK_TIMEOUT_MS)),
     ]);
-    if (!cek || !cek.isAvailable) return false;
-    onTahap("unduh");
-    const hasil = await Updates.fetchUpdateAsync();
-    if (!hasil.isNew) return false;
+    if (!checkResult || !checkResult.isAvailable) return false;
+    onStage("unduh");
+    const result = await Updates.fetchUpdateAsync();
+    if (!result.isNew) return false;
     await Updates.reloadAsync();
     return true;
   } catch {

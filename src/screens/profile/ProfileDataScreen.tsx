@@ -26,16 +26,16 @@ import { LineIcon } from "@/components/LineIcon";
 import { ICON } from "@/constants/icons";
 import { Skeleton } from "@/components/Skeleton";
 import {
-  inisial,
-  kekurangan,
-  persenKelengkapan,
+  initialsOf,
+  findShortcomings,
+  completenessPercent,
 } from "@/utils/ProfileCompleteness";
-import { tahunSejak, tanggalPendekTahun } from "@/utils/date";
+import { yearsSince, formatShortDateWithYear } from "@/utils/date";
 import { useT } from "@/i18n";
 import { ChangeSummary } from "@/screens/profile/ChangeSummary";
-import { terjemahkan } from "@/i18n/serverLabels";
-import { kembali } from "@/navigation/kembali";
-import { useFotoProfil } from "@/hooks/useFotoProfil";
+import { translateServerLabel } from "@/i18n/serverLabels";
+import { goBackAnimated } from "@/navigation/kembali";
+import { useProfilePhoto } from "@/hooks/useFotoProfil";
 
 export function ProfileDataScreen({ navigation }: ScreenProps) {
   const t = useT();
@@ -44,56 +44,59 @@ export function ProfileDataScreen({ navigation }: ScreenProps) {
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
 
-  const [profil, setProfil] = useState<PersonalProfile | null>(null);
-  const [galat, setGalat] = useState<string | null>(null);
-  const [permintaan, setPermintaan] = useState<ProfileChange[]>([]);
-  const foto = useFotoProfil();
+  const [profile, setProfile] = useState<PersonalProfile | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [request, setRequest] = useState<ProfileChange[]>([]);
+  const photoUri = useProfilePhoto();
   // Kartu kelengkapan 100% cukup dilihat sekali; setelah itu tidak ditampilkan lagi.
-  const [sudahLihat, setSudahLihat] = useState<boolean | null>(null);
+  const [hasSeen, setHasSeen] = useState<boolean | null>(null);
 
-  const muat = useCallback(() => {
+  const load = useCallback(() => {
     if (!employee) return;
-    setGalat(null);
+    setErrorMessage(null);
     hrisApi
       .getPersonalProfile(employee.id)
       .then((p) => {
-        setProfil(p);
+        setProfile(p);
         // Riwayat permintaan hanya relevan bagi yang tidak mengubah langsung.
         if (!p.canEditDirectly) {
           hrisApi
             .getMyProfileChanges()
-            .then(setPermintaan)
-            .catch(() => setPermintaan([]));
+            .then(setRequest)
+            .catch(() => setRequest([]));
         }
       })
-      .catch((e) => setGalat(describeError(e)));
+      .catch((e) => setErrorMessage(describeError(e)));
   }, [employee]);
 
-  useFocusEffect(muat);
+  useFocusEffect(load);
 
-  const kurang = profil ? kekurangan(profil.editable) : [];
-  const persen = profil ? persenKelengkapan(profil.editable) : 0;
-  const lengkap = kurang.length === 0;
-  const kunciLihat = `hris.pd.lengkapDilihat.${employee?.id ?? ""}`;
+  const shortcomings = profile ? findShortcomings(profile.editable) : [];
+  const percent = profile ? completenessPercent(profile.editable) : 0;
+  const isComplete = shortcomings.length === 0;
+  const seenKey = `hris.pd.lengkapDilihat.${employee?.id ?? ""}`;
   useEffect(() => {
-    if (!profil) return;
-    if (!lengkap) {
-      AsyncStorage.removeItem(kunciLihat).catch(() => {});
+    if (!profile) return;
+    if (!isComplete) {
+      AsyncStorage.removeItem(seenKey).catch(() => {});
       return;
     }
-    AsyncStorage.getItem(kunciLihat)
+    AsyncStorage.getItem(seenKey)
       .then((v) => {
-        setSudahLihat(v === "1");
-        if (v !== "1") AsyncStorage.setItem(kunciLihat, "1").catch(() => {});
+        setHasSeen(v === "1");
+        if (v !== "1") AsyncStorage.setItem(seenKey, "1").catch(() => {});
       })
-      .catch(() => setSudahLihat(false));
-  }, [profil, lengkap, kunciLihat]);
-  const tampilHero = !lengkap || sudahLihat === false;
-  const permintaanPending = permintaan.filter((p) => p.status === "Pending");
+      .catch(() => setHasSeen(false));
+  }, [profile, isComplete, seenKey]);
+  const shouldShowHero = !isComplete || hasSeen === false;
+  const pendingRequest = request.filter((p) => p.status === "Pending");
 
   const header = (
     <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
-      <Pressable style={styles.backBtn} onPress={() => kembali(navigation)}>
+      <Pressable
+        style={styles.backBtn}
+        onPress={() => goBackAnimated(navigation)}
+      >
         <Ionicons name="chevron-back" size={18} color={c.ink} />
       </Pressable>
       <Text style={styles.headerTitle}>{t("pd.judul")}</Text>
@@ -102,19 +105,19 @@ export function ProfileDataScreen({ navigation }: ScreenProps) {
         onPress={() => navigation.navigate("ProfileEdit")}
       >
         <Text style={styles.editText}>
-          {t(profil && !profil.canEditDirectly ? "pc.ajukan" : "pd.ubah")}
+          {t(profile && !profile.canEditDirectly ? "pc.ajukan" : "pd.ubah")}
         </Text>
       </Pressable>
     </View>
   );
 
-  if (!profil) {
-    if (galat) {
+  if (!profile) {
+    if (errorMessage) {
       return (
         <View style={styles.container}>
           {header}
           <View style={styles.content}>
-            <ErrorState pesan={galat} onUlangi={muat} />
+            <ErrorState message={errorMessage} onRetry={load} />
           </View>
         </View>
       );
@@ -135,47 +138,49 @@ export function ProfileDataScreen({ navigation }: ScreenProps) {
     );
   }
 
-  const e = profil.editable;
-  const belumDiisi = t("pd.belumDiisi");
+  const e = profile.editable;
+  const unfilledText = t("pd.belumDiisi");
 
-  const seksi = [
+  const sections = [
     {
       title: t("pd.dataPribadi"),
       rows: [
-        [t("pd.nama"), profil.fullName],
-        [t("pd.nik"), profil.nikMasked],
+        [t("pd.nama"), profile.fullName],
+        [t("pd.nik"), profile.nikMasked],
         [
           t("pd.ttl"),
           [
-            profil.birthPlace !== "—" ? profil.birthPlace : null,
-            profil.birthDate ? tanggalPendekTahun(profil.birthDate) : null,
+            profile.birthPlace !== "—" ? profile.birthPlace : null,
+            profile.birthDate
+              ? formatShortDateWithYear(profile.birthDate)
+              : null,
           ]
             .filter(Boolean)
             .join(", ") || "—",
         ],
-        [t("pd.gender"), profil.gender],
-        [t("pd.nikah"), profil.maritalStatus],
-        [t("pd.agama"), profil.religion],
-        [t("pd.npwp"), profil.npwpMasked],
+        [t("pd.gender"), profile.gender],
+        [t("pd.nikah"), profile.maritalStatus],
+        [t("pd.agama"), profile.religion],
+        [t("pd.npwp"), profile.npwpMasked],
       ],
     },
     {
       title: t("pd.kontakAlamat"),
       rows: [
-        [t("pd.telepon"), e.phone || belumDiisi],
-        [t("pd.emailKantor"), profil.workEmail],
-        [t("pd.emailPribadi"), e.personalEmail || belumDiisi],
-        [t("pd.alamatKtp"), profil.ktpAddress],
-        [t("pd.domisili"), e.address || belumDiisi],
+        [t("pd.telepon"), e.phone || unfilledText],
+        [t("pd.emailKantor"), profile.workEmail],
+        [t("pd.emailPribadi"), e.personalEmail || unfilledText],
+        [t("pd.alamatKtp"), profile.ktpAddress],
+        [t("pd.domisili"), e.address || unfilledText],
       ],
     },
   ];
 
-  const darurat = [
-    profil.primaryEmergency,
+  const emergency = [
+    profile.primaryEmergency,
     ...e.contacts.map((k) => ({
       ...k,
-      relation: terjemahkan("relation", k.relation),
+      relation: translateServerLabel("relation", k.relation),
     })),
   ];
 
@@ -185,8 +190,8 @@ export function ProfileDataScreen({ navigation }: ScreenProps) {
 
       <ScrollView contentContainerStyle={styles.content}>
         <View style={[styles.card, styles.photoCard]}>
-          {foto ? (
-            <Image source={{ uri: foto }} style={styles.photo} />
+          {photoUri ? (
+            <Image source={{ uri: photoUri }} style={styles.photo} />
           ) : (
             <LinearGradient
               colors={[c.accent, c.accent2]}
@@ -195,14 +200,14 @@ export function ProfileDataScreen({ navigation }: ScreenProps) {
               style={styles.photo}
             >
               <Text style={styles.photoInitial}>
-                {inisial(profil.fullName)}
+                {initialsOf(profile.fullName)}
               </Text>
             </LinearGradient>
           )}
           <View style={{ flex: 1, minWidth: 0 }}>
             <Text style={styles.cardTitle}>{t("pd.fotoProfil")}</Text>
             <Text style={styles.famMeta}>
-              {foto ? t("pd.fotoAda") : t("pd.fotoBelum")}
+              {photoUri ? t("pd.fotoAda") : t("pd.fotoBelum")}
             </Text>
           </View>
           <Pressable
@@ -213,7 +218,7 @@ export function ProfileDataScreen({ navigation }: ScreenProps) {
           </Pressable>
         </View>
 
-        {tampilHero ? (
+        {shouldShowHero ? (
           <LinearGradient
             colors={[c.accent, c.accent2]}
             start={{ x: 0, y: 0 }}
@@ -225,62 +230,62 @@ export function ProfileDataScreen({ navigation }: ScreenProps) {
               <Text style={styles.heroLabel}>{t("pd.kelengkapan")}</Text>
               <View style={styles.heroBadge}>
                 <Text style={styles.heroBadgeText}>
-                  {lengkap
+                  {isComplete
                     ? t("pd.lengkap")
-                    : t("pd.perluN", { n: kurang.length })}
+                    : t("pd.perluN", { n: shortcomings.length })}
                 </Text>
               </View>
             </View>
 
-            <Text style={styles.heroPct}>{persen}%</Text>
+            <Text style={styles.heroPct}>{percent}%</Text>
 
             <View style={styles.heroTrack}>
-              <View style={[styles.heroFill, { width: `${persen}%` }]} />
+              <View style={[styles.heroFill, { width: `${percent}%` }]} />
             </View>
 
             <Text style={styles.heroNote}>
-              {lengkap
+              {isComplete
                 ? t("pd.noteLengkap")
                 : t("pd.noteKurang", {
-                    daftar: kurang
-                      .map((k) => k.judul.toLowerCase())
+                    daftar: shortcomings
+                      .map((k) => k.title.toLowerCase())
                       .join(t("pe.dan")),
                   })}
             </Text>
           </LinearGradient>
         ) : null}
 
-        {profil.pendingChange ? (
+        {profile.pendingChange ? (
           <View style={styles.pendingBanner}>
             <Text style={styles.pendingText}>{t("pc.menunggu")}</Text>
           </View>
         ) : null}
 
-        {permintaanPending.length > 0 ? (
+        {pendingRequest.length > 0 ? (
           <View style={[styles.card, { marginTop: 12 }]}>
             <Text style={styles.cardTitle}>{t("pc.riwayat")}</Text>
             <View style={{ gap: 12, marginTop: 12 }}>
-              {permintaanPending.slice(0, 5).map((p) => (
+              {pendingRequest.slice(0, 5).map((p) => (
                 <ChangeSummary key={p.id} p={p} />
               ))}
             </View>
           </View>
         ) : null}
 
-        {!lengkap ? (
+        {!isComplete ? (
           <View style={styles.card}>
             <Text style={styles.cardTitle}>{t("pd.belumLengkap")}</Text>
             <View style={{ gap: 10, marginTop: 12 }}>
-              {kurang.map((k) => (
+              {shortcomings.map((k) => (
                 <Pressable
-                  key={k.judul}
+                  key={k.title}
                   style={styles.todoRow}
                   onPress={() => navigation.navigate("ProfileEdit")}
                 >
                   <LineIcon d={ICON.late} color={c.warn.ink} size={17} />
                   <View style={{ flex: 1, minWidth: 0 }}>
-                    <Text style={styles.todoTitle}>{k.judul}</Text>
-                    <Text style={styles.todoSub}>{k.alasan}</Text>
+                    <Text style={styles.todoTitle}>{k.title}</Text>
+                    <Text style={styles.todoSub}>{k.reason}</Text>
                   </View>
                   <Text style={styles.todoCta}>{t("pd.isi")}</Text>
                 </Pressable>
@@ -289,11 +294,11 @@ export function ProfileDataScreen({ navigation }: ScreenProps) {
           </View>
         ) : null}
 
-        {seksi.map((s, idx) => (
+        {sections.map((s, idx) => (
           <View key={s.title} style={[styles.card, { marginTop: 12 }]}>
             <View style={styles.cardHead}>
               <Text style={styles.cardTitle}>{s.title}</Text>
-              {idx === 0 && lengkap ? (
+              {idx === 0 && isComplete ? (
                 <View style={styles.okPill}>
                   <LineIcon
                     d={ICON.attendanceRate}
@@ -311,7 +316,7 @@ export function ProfileDataScreen({ navigation }: ScreenProps) {
                   <Text
                     style={[
                       styles.rowValue,
-                      v === belumDiisi && { color: c.warn.ink },
+                      v === unfilledText && { color: c.warn.ink },
                     ]}
                   >
                     {v}
@@ -326,7 +331,9 @@ export function ProfileDataScreen({ navigation }: ScreenProps) {
           <View style={styles.cardHead}>
             <Text style={styles.cardTitle}>{t("pd.keluarga")}</Text>
             <View style={styles.softBadge}>
-              <Text style={styles.softBadgeText}>PTKP {profil.ptkpStatus}</Text>
+              <Text style={styles.softBadgeText}>
+                PTKP {profile.ptkpStatus}
+              </Text>
             </View>
           </View>
 
@@ -337,14 +344,16 @@ export function ProfileDataScreen({ navigation }: ScreenProps) {
               e.family.map((m, i) => (
                 <View key={`${m.name}-${i}`} style={styles.famRow}>
                   <View style={styles.famAvatar}>
-                    <Text style={styles.famAvatarText}>{inisial(m.name)}</Text>
+                    <Text style={styles.famAvatarText}>
+                      {initialsOf(m.name)}
+                    </Text>
                   </View>
                   <View style={{ flex: 1, minWidth: 0 }}>
                     <Text style={styles.famName}>{m.name}</Text>
                     <Text style={styles.famMeta}>
-                      {terjemahkan("relation", m.relation)}
+                      {translateServerLabel("relation", m.relation)}
                       {m.birthDate
-                        ? ` · ${t("pd.umur", { n: tahunSejak(m.birthDate) })}`
+                        ? ` · ${t("pd.umur", { n: yearsSince(m.birthDate) })}`
                         : ""}
                     </Text>
                   </View>
@@ -373,16 +382,16 @@ export function ProfileDataScreen({ navigation }: ScreenProps) {
             <Text style={styles.cardTitle}>{t("pd.kontakDarurat")}</Text>
             <View style={styles.softBadge}>
               <Text style={styles.softBadgeText}>
-                {t("pd.nKontak", { n: darurat.length })}
+                {t("pd.nKontak", { n: emergency.length })}
               </Text>
             </View>
           </View>
 
           <View style={{ marginTop: 6 }}>
-            {darurat.map((k) => (
+            {emergency.map((k) => (
               <View key={k.phone} style={styles.emRow}>
                 <View style={styles.emAvatar}>
-                  <Text style={styles.emAvatarText}>{inisial(k.name)}</Text>
+                  <Text style={styles.emAvatarText}>{initialsOf(k.name)}</Text>
                 </View>
                 <View style={{ flex: 1, minWidth: 0 }}>
                   <View style={styles.emNameRow}>

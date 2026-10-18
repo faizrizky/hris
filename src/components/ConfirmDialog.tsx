@@ -19,9 +19,9 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import { Palette, SemanticTone, tombolSekunder } from "@/theme/colors";
+import { Palette, SemanticTone, secondaryButtonStyle } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
-import { tt } from "@/i18n";
+import { translate } from "@/i18n";
 
 // Ukuran dan waktu diukur frame per frame dari video referensi.
 const MARGIN = 14; // jarak kartu ke tepi layar
@@ -60,7 +60,7 @@ interface Req extends ConfirmOptions {
   key: number;
 }
 
-const IKON: Record<SemanticTone, keyof typeof Ionicons.glyphMap> = {
+const TONE_ICONS: Record<SemanticTone, keyof typeof Ionicons.glyphMap> = {
   bad: "alert-circle-outline",
   warn: "warning-outline",
   info: "information-circle-outline",
@@ -72,14 +72,14 @@ function ConfirmDialog({
   onDone,
 }: {
   req: Req;
-  onDone: (ok: boolean) => void;
+  onDone: (isConfirmed: boolean) => void;
 }) {
   const {
     title,
     message,
     tone = "info",
-    confirmText = tt("umum.lanjut"),
-    cancelText = tt("umum.batal"),
+    confirmText = translate("umum.lanjut"),
+    cancelText = translate("umum.batal"),
   } = req;
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
@@ -89,20 +89,22 @@ function ConfirmDialog({
   const [p] = useState(() => new Animated.Value(0)); // 0 = tombol, 1 = kartu
   const [cancelA] = useState(() => new Animated.Value(0));
   const [contentH, setContentH] = useState<number | null>(null);
-  const menutup = useRef(false);
+  const isClosing = useRef(false);
 
-  const warna = c[tone];
-  const warnaUtama = tone === "bad" ? c.bad.ink : c.accent;
-  const duaTombol = cancelText !== null;
+  const toneColor = c[tone];
+  const primaryColor = tone === "bad" ? c.bad.ink : c.accent;
+  const hasTwoButtons = cancelText !== null;
 
   // Posisi akhir, semuanya dalam koordinat layar.
   const cardW = W - MARGIN * 2;
   const cardH = (contentH ?? 0) + GAP_BTN + BTN_H + PAD;
   const cardX = MARGIN;
   const cardY = H - Math.max(insets.bottom, MARGIN) - cardH;
-  const btnW = duaTombol ? (cardW - PAD * 2 - BTN_GAP) / 2 : cardW - PAD * 2;
+  const btnW = hasTwoButtons
+    ? (cardW - PAD * 2 - BTN_GAP) / 2
+    : cardW - PAD * 2;
   const btnY = cardY + cardH - PAD - BTN_H;
-  const akhirKonfirmasi: Rect = {
+  const confirmEndRect: Rect = {
     x: cardX + cardW - PAD - btnW,
     y: btnY,
     w: btnW,
@@ -111,22 +113,22 @@ function ConfirmDialog({
   };
   // Dengan tombol pemicu, kartu "tumbuh" dari tombol itu (seperti Keluar).
   // Tanpa pemicu, kartu utuh meluncur naik dari bawah sambil memudar.
-  const morph = req.origin !== null;
-  const kartuAkhir: Rect = {
+  const isMorph = req.origin !== null;
+  const cardEndRect: Rect = {
     x: cardX,
     y: cardY,
     w: cardW,
     h: cardH,
     r: RADIUS,
   };
-  const asalKartu: Rect = req.origin ?? kartuAkhir;
-  const asalTombol: Rect = req.origin ?? akhirKonfirmasi;
+  const cardStartRect: Rect = req.origin ?? cardEndRect;
+  const buttonStartRect: Rect = req.origin ?? confirmEndRect;
 
   // Buka setelah tinggi isi diketahui.
   useEffect(() => {
     if (contentH === null) return;
     Animated.parallel([
-      morph
+      isMorph
         ? Animated.spring(p, {
             toValue: 1,
             stiffness: 1089,
@@ -149,16 +151,16 @@ function ConfirmDialog({
         useNativeDriver: false,
       }),
     ]).start();
-  }, [contentH, p, cancelA, morph]);
+  }, [contentH, p, cancelA, isMorph]);
 
-  const tutup = (ok: boolean) => {
-    if (menutup.current) return;
-    menutup.current = true;
+  const close = (isConfirmed: boolean) => {
+    if (isClosing.current) return;
+    isClosing.current = true;
     Animated.parallel([
       Animated.timing(p, {
         toValue: 0,
-        duration: morph ? 140 : 240,
-        easing: morph ? Easing.inOut(Easing.sin) : Easing.in(Easing.cubic),
+        duration: isMorph ? 140 : 240,
+        easing: isMorph ? Easing.inOut(Easing.sin) : Easing.in(Easing.cubic),
         useNativeDriver: false,
       }),
       Animated.timing(cancelA, {
@@ -167,21 +169,21 @@ function ConfirmDialog({
         easing: Easing.linear,
         useNativeDriver: false,
       }),
-    ]).start(() => onDone(ok));
+    ]).start(() => onDone(isConfirmed));
   };
 
   const antara = (a: number, b: number) =>
     p.interpolate({ inputRange: [0, 1], outputRange: [a, b] });
 
-  const kotak = (dari: Rect, ke: Rect) => ({
-    left: antara(dari.x, ke.x),
-    top: antara(dari.y, ke.y),
-    width: antara(dari.w, ke.w),
-    height: antara(dari.h, ke.h),
-    borderRadius: antara(dari.r, ke.r),
+  const rectStyle = (dari: Rect, to: Rect) => ({
+    left: antara(dari.x, to.x),
+    top: antara(dari.y, to.y),
+    width: antara(dari.w, to.w),
+    height: antara(dari.h, to.h),
+    borderRadius: antara(dari.r, to.r),
   });
 
-  const opasitasIsi = morph
+  const contentOpacity = isMorph
     ? p.interpolate({
         inputRange: [0, 0.9],
         outputRange: [0, 1],
@@ -189,7 +191,7 @@ function ConfirmDialog({
       })
     : 1;
   // Mode luncur: seluruh kartu dan tombolnya bergerak bersama dari bawah.
-  const luncur = morph
+  const launchStyle = isMorph
     ? null
     : {
         opacity: p.interpolate({
@@ -211,13 +213,13 @@ function ConfirmDialog({
           },
         ],
       };
-  const opasitasLatar = p.interpolate({
+  const backdropOpacity = p.interpolate({
     inputRange: [0, 0.8, 1],
     outputRange: [0, 0.93, 1],
   });
 
-  const labelAsal = req.fromLabel ?? confirmText;
-  const gantiLabel = labelAsal !== confirmText;
+  const fromLabelText = req.fromLabel ?? confirmText;
+  const hasLabelChange = fromLabelText !== confirmText;
 
   return (
     <Modal
@@ -225,55 +227,64 @@ function ConfirmDialog({
       transparent
       animationType="none"
       statusBarTranslucent
-      onRequestClose={() => tutup(false)}
+      onRequestClose={() => close(false)}
     >
-      <Animated.View style={[styles.latar, { opacity: opasitasLatar }]}>
-        <Pressable style={{ flex: 1 }} onPress={() => tutup(false)} />
+      <Animated.View style={[styles.backdrop, { opacity: backdropOpacity }]}>
+        <Pressable style={{ flex: 1 }} onPress={() => close(false)} />
       </Animated.View>
 
       <Animated.View
         pointerEvents="box-none"
-        style={[StyleSheet.absoluteFill, luncur]}
+        style={[StyleSheet.absoluteFill, launchStyle]}
       >
         {/* Kartu: tumbuh dari kotak tombol pemicu ke kotak kartu. */}
-        <Animated.View style={[styles.kartu, kotak(asalKartu, kartuAkhir)]}>
+        <Animated.View
+          style={[styles.card, rectStyle(cardStartRect, cardEndRect)]}
+        >
           <Animated.View
-            style={[styles.isi, { width: cardW, opacity: opasitasIsi }]}
+            style={[styles.content, { width: cardW, opacity: contentOpacity }]}
             onLayout={(e) => {
               if (contentH === null) setContentH(e.nativeEvent.layout.height);
             }}
           >
-            <View style={styles.ikon}>
-              <Ionicons name={IKON[tone]} size={44} color={warna.ink} />
+            <View style={styles.icon}>
+              <Ionicons
+                name={TONE_ICONS[tone]}
+                size={44}
+                color={toneColor.ink}
+              />
             </View>
-            <Text style={styles.judul}>{title}</Text>
-            <Text style={styles.teks}>{message}</Text>
+            <Text style={styles.title}>{title}</Text>
+            <Text style={styles.text}>{message}</Text>
 
             <Pressable
               hitSlop={8}
-              onPress={() => tutup(false)}
-              style={styles.tutup}
+              onPress={() => close(false)}
+              style={styles.close}
             >
               <Ionicons name="close" size={22} color={c.mutedLabel} />
             </Pressable>
           </Animated.View>
         </Animated.View>
 
-        {duaTombol && (
+        {hasTwoButtons && (
           <Animated.View
             style={[
-              styles.tombol,
+              styles.button,
               {
                 left: cardX + PAD,
                 top: btnY,
                 width: btnW,
-                ...tombolSekunder(c),
-                opacity: morph ? cancelA : 1,
+                ...secondaryButtonStyle(c),
+                opacity: isMorph ? cancelA : 1,
               },
             ]}
           >
-            <Pressable style={styles.isiTombol} onPress={() => tutup(false)}>
-              <Text style={[styles.labelTombol, { color: c.btnSoftInk }]}>
+            <Pressable
+              style={styles.buttonContent}
+              onPress={() => close(false)}
+            >
+              <Text style={[styles.buttonLabel, { color: c.btnSoftInk }]}>
                 {cancelText}
               </Text>
             </Pressable>
@@ -283,23 +294,23 @@ function ConfirmDialog({
         {/* Tombol konfirmasi: tombol pemicu yang menyusut ke posisinya. */}
         <Animated.View
           style={[
-            styles.tombolMorph,
-            kotak(asalTombol, akhirKonfirmasi),
+            styles.morphButton,
+            rectStyle(buttonStartRect, confirmEndRect),
             {
               backgroundColor: p.interpolate({
                 inputRange: [0, 1],
-                outputRange: [req.fromColor ?? warnaUtama, warnaUtama],
+                outputRange: [req.fromColor ?? primaryColor, primaryColor],
               }),
             },
           ]}
         >
-          <Pressable style={styles.isiTombol} onPress={() => tutup(true)}>
-            {gantiLabel && (
+          <Pressable style={styles.buttonContent} onPress={() => close(true)}>
+            {hasLabelChange && (
               <Animated.Text
                 numberOfLines={1}
                 style={[
-                  styles.labelTombol,
-                  styles.labelTumpuk,
+                  styles.buttonLabel,
+                  styles.stackedLabel,
                   {
                     color: req.fromTextColor ?? "#FFFFFF",
                     opacity: p.interpolate({
@@ -310,16 +321,16 @@ function ConfirmDialog({
                   },
                 ]}
               >
-                {labelAsal}
+                {fromLabelText}
               </Animated.Text>
             )}
             <Animated.Text
               numberOfLines={1}
               style={[
-                styles.labelTombol,
+                styles.buttonLabel,
                 {
                   color: "#FFFFFF",
-                  opacity: gantiLabel
+                  opacity: hasLabelChange
                     ? p.interpolate({
                         inputRange: [0.3, 0.8],
                         outputRange: [0, 1],
@@ -347,7 +358,7 @@ const ConfirmContext = createContext<ConfirmFn | null>(null);
 
 export function ConfirmProvider({ children }: { children: React.ReactNode }) {
   const [req, setReq] = useState<Req | null>(null);
-  const resolver = useRef<((ok: boolean) => void) | null>(null);
+  const resolver = useRef<((isConfirmed: boolean) => void) | null>(null);
 
   const confirm = useCallback<ConfirmFn>(
     (o) =>
@@ -372,16 +383,16 @@ export function ConfirmProvider({ children }: { children: React.ReactNode }) {
 
   // Dipanggil setelah animasi tutup selesai, supaya aksi lanjutan
   // (mis. logout) berjalan setelah dialog kembali ke tombolnya.
-  const selesai = (ok: boolean) => {
+  const finish = (isConfirmed: boolean) => {
     setReq(null);
-    resolver.current?.(ok);
+    resolver.current?.(isConfirmed);
     resolver.current = null;
   };
 
   return (
     <ConfirmContext.Provider value={confirm}>
       {children}
-      {req && <ConfirmDialog key={req.key} req={req} onDone={selesai} />}
+      {req && <ConfirmDialog key={req.key} req={req} onDone={finish} />}
     </ConfirmContext.Provider>
   );
 }
@@ -394,7 +405,7 @@ export function useConfirm(): ConfirmFn {
 
 const makeStyles = (c: Palette) =>
   StyleSheet.create({
-    latar: {
+    backdrop: {
       position: "absolute",
       top: 0,
       left: 0,
@@ -402,22 +413,22 @@ const makeStyles = (c: Palette) =>
       bottom: 0,
       backgroundColor: BACKDROP,
     },
-    kartu: {
+    card: {
       position: "absolute",
       backgroundColor: c.card,
       overflow: "hidden",
     },
     // Isi menempel ke tepi atas kartu, jadi ikut naik saat kartu tumbuh.
-    isi: {
+    content: {
       position: "absolute",
       top: 0,
       left: 0,
       paddingTop: 34,
       paddingHorizontal: 32,
     },
-    ikon: { width: 44, height: 44, margin: -4 },
+    icon: { width: 44, height: 44, margin: -4 },
 
-    tutup: {
+    close: {
       position: "absolute",
       top: 28,
       right: 27,
@@ -426,27 +437,27 @@ const makeStyles = (c: Palette) =>
       alignItems: "center",
       justifyContent: "center",
     },
-    judul: {
+    title: {
       fontSize: 19,
       lineHeight: 24,
       fontWeight: "700",
       color: c.ink,
       marginTop: 20,
     },
-    teks: {
+    text: {
       fontSize: 15,
       lineHeight: 23,
       fontWeight: "400",
       color: c.muted,
       marginTop: 12,
     },
-    tombol: {
+    button: {
       position: "absolute",
       height: BTN_H,
       borderRadius: BTN_H / 2,
     },
-    tombolMorph: { position: "absolute", overflow: "hidden" },
-    isiTombol: { flex: 1, alignItems: "center", justifyContent: "center" },
-    labelTombol: { fontSize: 15.5, fontWeight: "600" },
-    labelTumpuk: { position: "absolute" },
+    morphButton: { position: "absolute", overflow: "hidden" },
+    buttonContent: { flex: 1, alignItems: "center", justifyContent: "center" },
+    buttonLabel: { fontSize: 15.5, fontWeight: "600" },
+    stackedLabel: { position: "absolute" },
   });

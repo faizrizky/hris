@@ -11,59 +11,59 @@ import {
 } from "react-native";
 import { RevealScrollView as ScrollView } from "@/components/Reveal";
 import {
-  CutiTypeCard,
-  CutiDetailCard,
-  JenisCuti,
-  namaCuti,
-  JENIS_SERVER,
+  LeaveTypeCard,
+  LeaveDetailCard,
+  LeaveKind,
+  leaveName,
+  SERVER_KINDS,
 } from "./CutiFormCards";
 import { ApprovalFlowCard, FormDoneView, ApprovalStep } from "./FormFlowCards";
 import {
-  LemburJamCard,
-  LemburUraianCard,
-  LemburBuktiCard,
-  BuktiFile,
+  OvertimeHoursCard,
+  OvertimeDescriptionCard,
+  OvertimeProofCard,
+  ProofAttachment,
 } from "./LemburFormCards";
 import {
   DinasTujuanCard,
   DinasDetailCard,
-  Transportasi,
+  TransportMode,
 } from "./DinasFormCards";
 
-import { DinasBiayaCard, Biaya, totalBiaya } from "./DinasBiayaCard";
+import { DinasBiayaCard, Expense, totalExpense } from "./DinasBiayaCard";
 import { hrisApi } from "@/services/api";
 import { useSession } from "@/services/session";
 import { LeaveBalance, Colleague, LeaveApprover } from "@/services/types";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import { Palette, tombolUtama } from "@/theme/colors";
+import { Palette, primaryButtonStyle } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
 import { DatePickerCard, FooterItem } from "@/components/DatePickerCard";
 import {
-  tanggalPendek,
-  hitungHari,
-  hitungHariKerja,
+  formatShortDate,
+  countDays,
+  countWorkdays,
   fromISODate,
-  jamMenit,
-  durasiJam,
+  formatHoursMinutes,
+  formatHourDuration,
 } from "@/utils/date";
 import { rupiah } from "@/utils/currency";
 import { LinearGradient } from "expo-linear-gradient";
 import { describeError } from "@/services/api/http";
-import { useT, tt } from "@/i18n";
+import { useT, translate } from "@/i18n";
 import { useConfirm } from "@/components/ConfirmDialog";
-import { pilihBukti } from "@/utils/pilihBukti";
-import { WfhDetailCard, HARI_WFH } from "./WfhFormCards";
-import { kembali, keBeranda } from "@/navigation/kembali";
+import { pickProof } from "@/utils/pilihBukti";
+import { WfhDetailCard, WFH_DAYS } from "./WfhFormCards";
+import { goBackAnimated, goHome } from "@/navigation/kembali";
 
-const SEGMENTS = [
+const FORM_SEGMENTS = [
   { key: "cuti", label: "lr.cuti" },
   { key: "lembur", label: "lr.lembur" },
   { key: "dinas", label: "lr.dinas" },
   { key: "wfh", label: "lr.wfh" },
 ] as const;
 
-export type FormKind = (typeof SEGMENTS)[number]["key"];
+export type FormKind = (typeof FORM_SEGMENTS)[number]["key"];
 
 const FORM_META = {
   cuti: { title: "lr.judulCuti", subtitle: "Leave Application" },
@@ -103,30 +103,30 @@ function LeaveRequestForm({ navigation, route }: ScreenProps) {
   const confirm = useConfirm();
   const { employee } = useSession();
   const [balances, setBalances] = useState<LeaveBalance[]>([]);
-  const [jenisCuti, setJenisCuti] = useState<JenisCuti>("Tahunan");
+  const [leaveKind, setLeaveKind] = useState<LeaveKind>("Tahunan");
   const [gender, setGender] = useState<"F" | "M" | null>(null);
-  const [alasan, setAlasan] = useState("");
-  const [rekan, setRekan] = useState<Colleague[]>([]);
-  const [delegasi, setDelegasi] = useState<Colleague | null>(null);
+  const [reasonText, setReasonText] = useState("");
+  const [colleagueList, setColleagueList] = useState<Colleague[]>([]);
+  const [delegatePerson, setDelegatePerson] = useState<Colleague | null>(null);
   const insets = useSafeAreaInsets();
   const [kind, setKind] = useState<FormKind>(
     getRouteParams<LeaveRequestParams>(route).kind ?? "cuti",
   );
   const [segW, setSegW] = useState(0);
-  const [geser] = useState(
-    () => new Animated.Value(SEGMENTS.findIndex((x) => x.key === kind)),
+  const [slide] = useState(
+    () => new Animated.Value(FORM_SEGMENTS.findIndex((x) => x.key === kind)),
   );
-  const [muncul] = useState(() => new Animated.Value(1));
+  const [appear] = useState(() => new Animated.Value(1));
   const [otEndRaw, setOtEndRaw] = useState(0);
-  const [uraian, setUraian] = useState("");
-  const [otFiles, setOtFiles] = useState<BuktiFile[]>([]);
-  const [wfhHari, setWfhHari] = useState<string[]>([]);
-  const [alasanWfh, setAlasanWfh] = useState("");
-  const [cutiFiles, setCutiFiles] = useState<BuktiFile[]>([]);
-  const [dest, setDest] = useState("");
-  const [transport, setTransport] = useState<Transportasi | null>(null);
-  const [keperluan, setKeperluan] = useState("");
-  const [biaya, setBiaya] = useState<Biaya[]>([]);
+  const [taskDescription, setTaskDescription] = useState("");
+  const [otFiles, setOtFiles] = useState<ProofAttachment[]>([]);
+  const [wfhWeekdays, setWfhWeekdays] = useState<string[]>([]);
+  const [wfhReason, setWfhReason] = useState("");
+  const [cutiFiles, setCutiFiles] = useState<ProofAttachment[]>([]);
+  const [destinationText, setDestinationText] = useState("");
+  const [transport, setTransport] = useState<TransportMode | null>(null);
+  const [purposeText, setPurposeText] = useState("");
+  const [expensesState, setExpensesState] = useState<Expense[]>([]);
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
   const [approver, setApprover] = useState<LeaveApprover | null | undefined>(
@@ -145,35 +145,35 @@ function LeaveRequestForm({ navigation, route }: ScreenProps) {
   const end = isSingle ? otDate : rangeEnd;
   const range = start && end;
 
-  const otHoliday = !!otDate && [0, 6].includes(fromISODate(otDate).getDay());
-  const otStart = otHoliday ? 8 * 60 : 17 * 60;
-  const otMax = otHoliday ? 8 * 60 : 4 * 60;
+  const isOtHoliday = !!otDate && [0, 6].includes(fromISODate(otDate).getDay());
+  const otStart = isOtHoliday ? 8 * 60 : 17 * 60;
+  const otMax = isOtHoliday ? 8 * 60 : 4 * 60;
   const otEnd = Math.min(Math.max(otEndRaw, otStart + 60), otStart + otMax);
   const otJam = (otEnd - otStart) / 60;
 
-  const hariPerjalanan = start && end ? hitungHari(start, end) : 0;
-  const totalDinas = totalBiaya(biaya, hariPerjalanan);
+  const tripDays = start && end ? countDays(start, end) : 0;
+  const totalTrip = totalExpense(expensesState, tripDays);
 
   const [done, setDone] = useState<string | null>(null); // id pengajuan
-  const [sending, setSending] = useState(false);
+  const [isSending, setIsSending] = useState(false);
 
-  const [galat, setGalat] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   // Ganti jenis pengajuan: indikator bergeser, isi form memudar masuk, dan
   // hasil kiriman sebelumnya tidak ikut ke jenis lain.
-  const gantiKind = (k: FormKind) => {
+  const switchKind = (k: FormKind) => {
     if (k === kind) return;
     setKind(k);
     setDone(null);
-    setGalat(null);
-    Animated.timing(geser, {
-      toValue: SEGMENTS.findIndex((x) => x.key === k),
+    setErrorMessage(null);
+    Animated.timing(slide, {
+      toValue: FORM_SEGMENTS.findIndex((x) => x.key === k),
       duration: 260,
       easing: Easing.out(Easing.cubic),
       useNativeDriver: true,
     }).start();
-    muncul.setValue(0);
-    Animated.timing(muncul, {
+    appear.setValue(0);
+    Animated.timing(appear, {
       toValue: 1,
       duration: 280,
       easing: Easing.out(Easing.cubic),
@@ -185,18 +185,18 @@ function LeaveRequestForm({ navigation, route }: ScreenProps) {
     if (!employee) return;
     // Kegagalan memuat ditampilkan di ringkasan bawah (galat), bukan dibiarkan
     // sebagai penolakan promise yang tak tertangkap.
-    const tangkap = (e: unknown) => setGalat(describeError(e));
-    hrisApi.getLeaveBalances(employee.id).then(setBalances).catch(tangkap);
-    hrisApi.getColleagues(employee.id).then(setRekan).catch(tangkap);
-    hrisApi.getLeaveApprover(employee.id).then(setApprover).catch(tangkap);
+    const capture = (e: unknown) => setErrorMessage(describeError(e));
+    hrisApi.getLeaveBalances(employee.id).then(setBalances).catch(capture);
+    hrisApi.getColleagues(employee.id).then(setColleagueList).catch(capture);
+    hrisApi.getLeaveApprover(employee.id).then(setApprover).catch(capture);
     // Jenis cuti tertentu hanya untuk satu jenis kelamin.
     hrisApi
       .getPersonalProfile(employee.id)
       .then((p) =>
         setGender(
-          p.gender === tt("api.perempuan")
+          p.gender === translate("api.perempuan")
             ? "F"
-            : p.gender === tt("api.lakiLaki")
+            : p.gender === translate("api.lakiLaki")
               ? "M"
               : null,
         ),
@@ -204,17 +204,17 @@ function LeaveRequestForm({ navigation, route }: ScreenProps) {
       .catch(() => {});
   }, [employee]);
 
-  const saldo = balances.find((b) => b.type === "cuti")?.remaining ?? 0;
+  const balances2 = balances.find((b) => b.type === "cuti")?.remaining ?? 0;
   // Cuti melahirkan dihitung hari kalender; yang lain hari kerja.
-  const hariKerja =
+  const workdayCount =
     start && end
-      ? jenisCuti === "Melahirkan"
-        ? hitungHari(start, end)
-        : hitungHariKerja(start, end)
+      ? leaveKind === "Melahirkan"
+        ? countDays(start, end)
+        : countWorkdays(start, end)
       : 0;
 
-  const buktiBiayaKurang = biaya.filter(
-    (x) => Number(x.nominal) > 0 && !x.bukti,
+  const missingExpenseProofCount = expensesState.filter(
+    (x) => Number(x.nominal) > 0 && !x.proof,
   ).length;
 
   // Rentang (cuti, dinas) baru lengkap setelah tanggal selesai dipilih; tanpa itu
@@ -224,58 +224,58 @@ function LeaveRequestForm({ navigation, route }: ScreenProps) {
     : !end
       ? t("lr.blokTglSelesai")
       : kind === "cuti" &&
-          jenisCuti === "Sakit" &&
-          hariKerja > 1 &&
+          leaveKind === "Sakit" &&
+          workdayCount > 1 &&
           cutiFiles.length === 0
         ? t("lr.blokSurat")
-        : kind === "cuti" && !alasan.trim()
+        : kind === "cuti" && !reasonText.trim()
           ? t("lr.blokAlasan")
           : kind === "cuti" && approver === null
             ? t("lr.blokApprover")
-            : kind === "lembur" && !uraian.trim()
+            : kind === "lembur" && !taskDescription.trim()
               ? t("lr.blokUraian")
               : kind === "lembur" && otFiles.length === 0
                 ? t("lr.blokBukti")
-                : kind === "dinas" && !dest.trim()
+                : kind === "dinas" && !destinationText.trim()
                   ? t("lr.blokKota")
                   : kind === "dinas" && !transport
                     ? t("lr.blokTransport")
-                    : kind === "dinas" && buktiBiayaKurang
-                      ? t("lr.blokBiaya", { n: buktiBiayaKurang })
-                      : kind === "wfh" && !alasanWfh.trim()
+                    : kind === "dinas" && missingExpenseProofCount
+                      ? t("lr.blokBiaya", { n: missingExpenseProofCount })
+                      : kind === "wfh" && !wfhReason.trim()
                         ? t("lr.blokAlasanWfh")
                         : kind === "wfh" && approver === null
                           ? t("lr.blokApprover")
                           : "";
 
-  const bisaKirim = !blockMsg && !sending;
+  const canSubmit = !blockMsg && !isSending;
 
-  const tambahBukti = async () => {
-    const r = await pilihBukti();
+  const addProof = async () => {
+    const r = await pickProof();
     if (!r) return;
-    if ("terlaluBesar" in r) {
-      setGalat(t("up.besarPesan", { ukuran: r.terlaluBesar }));
+    if ("tooLargeSizeLabel" in r) {
+      setErrorMessage(t("up.besarPesan", { ukuran: r.tooLargeSizeLabel }));
       return;
     }
-    setGalat(null);
-    setOtFiles((prev) => [...prev, r.berkas]);
+    setErrorMessage(null);
+    setOtFiles((prev) => [...prev, r.file]);
   };
 
-  const tambahBuktiCuti = async () => {
-    const r = await pilihBukti();
+  const addLeaveProof = async () => {
+    const r = await pickProof();
     if (!r) return;
-    if ("terlaluBesar" in r) {
-      setGalat(t("up.besarPesan", { ukuran: r.terlaluBesar }));
+    if ("tooLargeSizeLabel" in r) {
+      setErrorMessage(t("up.besarPesan", { ukuran: r.tooLargeSizeLabel }));
       return;
     }
-    setGalat(null);
-    setCutiFiles((prev) => [...prev, r.berkas]);
+    setErrorMessage(null);
+    setCutiFiles((prev) => [...prev, r.file]);
   };
 
   const handleSubmit = async () => {
-    if (!bisaKirim || !employee) return;
-    setSending(true);
-    setGalat(null);
+    if (!canSubmit || !employee) return;
+    setIsSending(true);
+    setErrorMessage(null);
     try {
       const created = await hrisApi.submitLeaveRequest({
         fromDate: start!,
@@ -288,36 +288,42 @@ function LeaveRequestForm({ navigation, route }: ScreenProps) {
               ? "dinas_luar"
               : kind === "wfh"
                 ? "wfh"
-                : jenisCuti === "Sakit"
+                : leaveKind === "Sakit"
                   ? "sakit"
                   : "cuti",
         label:
           kind === "cuti"
-            ? t("lr.labelCuti", { jenis: namaCuti(jenisCuti), n: hariKerja })
+            ? t("lr.labelCuti", {
+                jenis: leaveName(leaveKind),
+                n: workdayCount,
+              })
             : kind === "lembur"
               ? t("lr.labelLembur", {
-                  durasi: durasiJam(otJam),
-                  tgl: tanggalPendek(start!),
+                  durasi: formatHourDuration(otJam),
+                  tgl: formatShortDate(start!),
                 })
               : kind === "wfh"
-                ? wfhHari.length === 0
+                ? wfhWeekdays.length === 0
                   ? t("lr.labelWfhSemua")
-                  : t("lr.labelWfh", { n: wfhHari.length })
-                : t("lr.labelDinas", { n: hariPerjalanan }),
+                  : t("lr.labelWfh", { n: wfhWeekdays.length })
+                : t("lr.labelDinas", { n: tripDays }),
         reason:
           kind === "cuti"
-            ? alasan.trim()
+            ? reasonText.trim()
             : kind === "lembur"
-              ? uraian.trim()
+              ? taskDescription.trim()
               : kind === "wfh"
-                ? alasanWfh.trim()
-                : `${dest.trim()} · ${keperluan.trim()}`,
+                ? wfhReason.trim()
+                : `${destinationText.trim()} · ${purposeText.trim()}`,
         delegateName:
-          kind === "cuti" && delegasi ? delegasi.fullName : undefined,
-        delegateId: kind === "cuti" && delegasi ? delegasi.id : undefined,
-        leaveType: kind === "cuti" ? JENIS_SERVER[jenisCuti] : undefined,
-        wfhDays: kind === "wfh" ? wfhHari : undefined,
-        overtimeEnd: kind === "lembur" ? jamMenit(otEnd) : undefined,
+          kind === "cuti" && delegatePerson
+            ? delegatePerson.fullName
+            : undefined,
+        delegateId:
+          kind === "cuti" && delegatePerson ? delegatePerson.id : undefined,
+        leaveType: kind === "cuti" ? SERVER_KINDS[leaveKind] : undefined,
+        wfhDays: kind === "wfh" ? wfhWeekdays : undefined,
+        overtimeEnd: kind === "lembur" ? formatHoursMinutes(otEnd) : undefined,
         attachments: (kind === "lembur"
           ? otFiles
           : kind === "cuti"
@@ -331,18 +337,18 @@ function LeaveRequestForm({ navigation, route }: ScreenProps) {
         travel:
           kind === "dinas" && transport
             ? {
-                destination: dest.trim(),
+                destination: destinationText.trim(),
                 transport,
-                purpose: keperluan.trim() || dest.trim(),
-                costs: biaya.map((x) => ({
-                  category: x.kategori,
-                  description: x.keterangan,
+                purpose: purposeText.trim() || destinationText.trim(),
+                costs: expensesState.map((x) => ({
+                  category: x.category,
+                  description: x.description,
                   amount: Number(x.nominal) || 0,
-                  proof: x.bukti
+                  proof: x.proof
                     ? {
-                        uri: x.bukti.uri,
-                        name: x.bukti.name,
-                        mimeType: x.bukti.mimeType,
+                        uri: x.proof.uri,
+                        name: x.proof.name,
+                        mimeType: x.proof.mimeType,
                       }
                     : undefined,
                 })),
@@ -350,49 +356,52 @@ function LeaveRequestForm({ navigation, route }: ScreenProps) {
             : undefined,
       });
       setDone(created.id);
-      if (created.buktiGagal) {
+      if (created.failedProofCount) {
         void confirm({
           title: t("lr.buktiGagalJudul"),
-          message: t("lr.buktiGagalPesan", { n: created.buktiGagal }),
+          message: t("lr.buktiGagalPesan", { n: created.failedProofCount }),
           tone: "warn",
           confirmText: t("umum.mengerti"),
           cancelText: null,
         });
       }
     } catch (e) {
-      setGalat(describeError(e));
+      setErrorMessage(describeError(e));
     } finally {
-      setSending(false);
+      setIsSending(false);
     }
   };
 
-  const buatDoneRows = () => {
+  const buildDoneRows = () => {
     if (!start || !end) return [];
 
     if (kind === "cuti") {
       return [
-        { k: t("lr.rowJenis"), v: namaCuti(jenisCuti) },
+        { k: t("lr.rowJenis"), v: leaveName(leaveKind) },
         {
           k: t("lr.rowTanggal"),
-          v: `${tanggalPendek(start)} – ${tanggalPendek(end)}`,
+          v: `${formatShortDate(start)} – ${formatShortDate(end)}`,
         },
         {
           k: t("lr.rowDurasi"),
           v: t(
-            jenisCuti === "Melahirkan" ? "lr.nHariKalender" : "lr.nHariKerja",
+            leaveKind === "Melahirkan" ? "lr.nHariKalender" : "lr.nHariKerja",
             {
-              n: hariKerja,
+              n: workdayCount,
             },
           ),
         },
-        { k: t("lr.rowDelegasi"), v: delegasi?.fullName ?? "—" },
+        { k: t("lr.rowDelegasi"), v: delegatePerson?.fullName ?? "—" },
       ];
     }
 
     if (kind === "lembur") {
       return [
-        { k: t("lr.rowTanggal"), v: tanggalPendek(start) },
-        { k: t("lr.rowJam"), v: `${jamMenit(otStart)} – ${jamMenit(otEnd)}` },
+        { k: t("lr.rowTanggal"), v: formatShortDate(start) },
+        {
+          k: t("lr.rowJam"),
+          v: `${formatHoursMinutes(otStart)} – ${formatHoursMinutes(otEnd)}`,
+        },
         { k: t("lr.rowBukti"), v: t("lr.nFile", { n: otFiles.length }) },
       ];
     }
@@ -401,14 +410,14 @@ function LeaveRequestForm({ navigation, route }: ScreenProps) {
       return [
         {
           k: t("lr.rowTanggal"),
-          v: `${tanggalPendek(start)} – ${tanggalPendek(end)}`,
+          v: `${formatShortDate(start)} – ${formatShortDate(end)}`,
         },
         {
           k: t("lr.rowHariWfh"),
           v:
-            wfhHari.length === 0
+            wfhWeekdays.length === 0
               ? t("lr.semuaHariWfh")
-              : HARI_WFH.filter((d) => wfhHari.includes(d))
+              : WFH_DAYS.filter((d) => wfhWeekdays.includes(d))
                   .map((d) => t(`hari.${d}` as never))
                   .join(", "),
         },
@@ -416,15 +425,15 @@ function LeaveRequestForm({ navigation, route }: ScreenProps) {
     }
 
     return [
-      { k: t("lr.rowTujuan"), v: dest },
+      { k: t("lr.rowTujuan"), v: destinationText },
       {
         k: t("lr.rowTanggal"),
-        v: `${tanggalPendek(start)} – ${tanggalPendek(end)}`,
+        v: `${formatShortDate(start)} – ${formatShortDate(end)}`,
       },
-      { k: t("lr.rowTotalBiaya"), v: rupiah(totalDinas.total) },
+      { k: t("lr.rowTotalBiaya"), v: rupiah(totalTrip.total) },
       {
         k: t("lr.rowBukti"),
-        v: t("lr.nFile", { n: biaya.filter((x) => x.bukti).length }),
+        v: t("lr.nFile", { n: expensesState.filter((x) => x.proof).length }),
       },
     ];
   };
@@ -453,7 +462,7 @@ function LeaveRequestForm({ navigation, route }: ScreenProps) {
     ? [
         {
           label: t("lr.tanggal"),
-          value: start ? tanggalPendek(start) : t("lr.pilih"),
+          value: start ? formatShortDate(start) : t("lr.pilih"),
         },
         {
           label: t("lr.jenisHari"),
@@ -465,36 +474,36 @@ function LeaveRequestForm({ navigation, route }: ScreenProps) {
         },
         {
           label: t("lr.durasi"),
-          value: otDate ? durasiJam(otJam) : "—",
+          value: otDate ? formatHourDuration(otJam) : "—",
           accent: true,
         },
       ]
     : [
         {
           label: t("lr.mulai"),
-          value: start ? tanggalPendek(start) : t("lr.pilih"),
+          value: start ? formatShortDate(start) : t("lr.pilih"),
         },
         {
           label: t("lr.selesai"),
-          value: end ? tanggalPendek(end) : t("lr.pilih"),
+          value: end ? formatShortDate(end) : t("lr.pilih"),
         },
         {
           label: t("lr.durasi"),
           value: range
             ? kind === "dinas" || kind === "wfh"
-              ? t("lr.nHari", { n: hitungHari(start!, end!) })
-              : jenisCuti === "Melahirkan" && kind === "cuti"
-                ? t("lr.nHariKalender", { n: hariKerja })
-                : t("lr.nHariKerja", { n: hitungHariKerja(start!, end!) })
+              ? t("lr.nHari", { n: countDays(start!, end!) })
+              : leaveKind === "Melahirkan" && kind === "cuti"
+                ? t("lr.nHariKalender", { n: workdayCount })
+                : t("lr.nHariKerja", { n: countWorkdays(start!, end!) })
             : "—",
           accent: true,
         },
       ];
 
-  const langkahApproval: ApprovalStep[] = approver
+  const approvalSteps: ApprovalStep[] = approver
     ? [
         {
-          ini: approver.initials,
+          stepLabel: approver.initials,
           name: approver.fullName,
           role: t("lr.atasan"),
         },
@@ -505,7 +514,10 @@ function LeaveRequestForm({ navigation, route }: ScreenProps) {
     <View style={styles.container}>
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
         <View style={styles.headerRow}>
-          <Pressable style={styles.backBtn} onPress={() => kembali(navigation)}>
+          <Pressable
+            style={styles.backBtn}
+            onPress={() => goBackAnimated(navigation)}
+          >
             <Ionicons name="chevron-back" size={18} color={c.ink} />
           </Pressable>
           <View style={{ flex: 1, minWidth: 0 }}>
@@ -525,15 +537,16 @@ function LeaveRequestForm({ navigation, route }: ScreenProps) {
                 styles.segIndicator,
                 {
                   width:
-                    (segW - 8 - 4 * (SEGMENTS.length - 1)) / SEGMENTS.length,
+                    (segW - 8 - 4 * (FORM_SEGMENTS.length - 1)) /
+                    FORM_SEGMENTS.length,
                   transform: [
                     {
-                      translateX: geser.interpolate({
-                        inputRange: SEGMENTS.map((_, i) => i),
-                        outputRange: SEGMENTS.map(
+                      translateX: slide.interpolate({
+                        inputRange: FORM_SEGMENTS.map((_, i) => i),
+                        outputRange: FORM_SEGMENTS.map(
                           (_, i) =>
-                            ((segW - 8 - 4 * (SEGMENTS.length - 1)) /
-                              SEGMENTS.length +
+                            ((segW - 8 - 4 * (FORM_SEGMENTS.length - 1)) /
+                              FORM_SEGMENTS.length +
                               4) *
                             i,
                         ),
@@ -544,16 +557,16 @@ function LeaveRequestForm({ navigation, route }: ScreenProps) {
               ]}
             />
           )}
-          {SEGMENTS.map((s) => {
-            const on = kind === s.key;
+          {FORM_SEGMENTS.map((s) => {
+            const isOn = kind === s.key;
             return (
               <Pressable
                 key={s.key}
-                onPress={() => gantiKind(s.key)}
+                onPress={() => switchKind(s.key)}
                 style={styles.segBtn}
               >
                 <Text
-                  style={[styles.segText, on && styles.segTextOn]}
+                  style={[styles.segText, isOn && styles.segTextOn]}
                   numberOfLines={1}
                   adjustsFontSizeToFit
                   minimumFontScale={0.8}
@@ -573,10 +586,10 @@ function LeaveRequestForm({ navigation, route }: ScreenProps) {
         >
           <Animated.View
             style={{
-              opacity: muncul,
+              opacity: appear,
               transform: [
                 {
-                  translateY: muncul.interpolate({
+                  translateY: appear.interpolate({
                     inputRange: [0, 1],
                     outputRange: [14, 0],
                   }),
@@ -595,25 +608,28 @@ function LeaveRequestForm({ navigation, route }: ScreenProps) {
                         ? "lr.terkirimWfh"
                         : "lr.terkirimDinas",
                 )}
-                waitingOn={langkahApproval[0]?.name ?? t("lr.approver")}
-                rows={buatDoneRows()}
+                waitingOn={approvalSteps[0]?.name ?? t("lr.approver")}
+                rows={buildDoneRows()}
                 doc={`${DOC_NAMA[kind]} · ${done}`}
-                onLihat={() => kembali(navigation)}
-                onHome={() => keBeranda(navigation)}
+                onView={() => goBackAnimated(navigation)}
+                onHome={() => goHome(navigation)}
               />
             ) : (
               <>
                 {kind === "cuti" && (
-                  <CutiTypeCard
-                    jenis={jenisCuti}
-                    onPick={setJenisCuti}
-                    saldo={saldo}
-                    hariKerja={hariKerja}
+                  <LeaveTypeCard
+                    kind={leaveKind}
+                    onPick={setLeaveKind}
+                    balanceList={balances2}
+                    workdays={workdayCount}
                     gender={gender}
                   />
                 )}
                 {kind === "dinas" && (
-                  <DinasTujuanCard dest={dest} onChange={setDest} />
+                  <DinasTujuanCard
+                    destination={destinationText}
+                    onChange={setDestinationText}
+                  />
                 )}
 
                 <DatePickerCard
@@ -630,15 +646,15 @@ function LeaveRequestForm({ navigation, route }: ScreenProps) {
                 />
 
                 {kind === "cuti" && (
-                  <CutiDetailCard
-                    jenis={jenisCuti}
-                    alasan={alasan}
-                    onChangeAlasan={setAlasan}
-                    rekan={rekan}
-                    delegasi={delegasi}
-                    onPickDelegasi={setDelegasi}
+                  <LeaveDetailCard
+                    kind={leaveKind}
+                    reason={reasonText}
+                    onChangeReason={setReasonText}
+                    colleagues={colleagueList}
+                    delegate={delegatePerson}
+                    onPickDelegate={setDelegatePerson}
                     files={cutiFiles}
-                    onAdd={tambahBuktiCuti}
+                    onAdd={addLeaveProof}
                     onRemove={(i) =>
                       setCutiFiles((prev) => prev.filter((_, idx) => idx !== i))
                     }
@@ -647,20 +663,23 @@ function LeaveRequestForm({ navigation, route }: ScreenProps) {
 
                 {kind === "lembur" && (
                   <>
-                    <LemburJamCard
-                      holiday={otHoliday}
-                      startLabel={jamMenit(otStart)}
-                      endLabel={jamMenit(otEnd)}
+                    <OvertimeHoursCard
+                      isHoliday={isOtHoliday}
+                      startLabel={formatHoursMinutes(otStart)}
+                      endLabel={formatHoursMinutes(otEnd)}
                       rule={
-                        otHoliday ? t("lr.aturanLibur") : t("lr.aturanKerja")
+                        isOtHoliday ? t("lr.aturanLibur") : t("lr.aturanKerja")
                       }
                       onMinus={() => setOtEndRaw(otEnd - 30)}
                       onPlus={() => setOtEndRaw(otEnd + 30)}
                     />
-                    <LemburUraianCard uraian={uraian} onChange={setUraian} />
-                    <LemburBuktiCard
+                    <OvertimeDescriptionCard
+                      description={taskDescription}
+                      onChange={setTaskDescription}
+                    />
+                    <OvertimeProofCard
                       files={otFiles}
-                      onAdd={tambahBukti}
+                      onAdd={addProof}
                       onRemove={(i) =>
                         setOtFiles((prev) => prev.filter((_, idx) => idx !== i))
                       }
@@ -670,16 +689,16 @@ function LeaveRequestForm({ navigation, route }: ScreenProps) {
 
                 {kind === "wfh" && (
                   <WfhDetailCard
-                    hari={wfhHari}
+                    days={wfhWeekdays}
                     onToggle={(d) =>
-                      setWfhHari((prev) =>
+                      setWfhWeekdays((prev) =>
                         prev.includes(d)
                           ? prev.filter((x) => x !== d)
                           : [...prev, d],
                       )
                     }
-                    alasan={alasanWfh}
-                    onChangeAlasan={setAlasanWfh}
+                    reason={wfhReason}
+                    onChangeReason={setWfhReason}
                   />
                 )}
 
@@ -687,38 +706,40 @@ function LeaveRequestForm({ navigation, route }: ScreenProps) {
                   <DinasDetailCard
                     transport={transport}
                     onPickTransport={setTransport}
-                    keperluan={keperluan}
-                    onChangeKeperluan={setKeperluan}
+                    purpose={purposeText}
+                    onChangePurpose={setPurposeText}
                   />
                 )}
 
                 {kind === "dinas" && (
                   <DinasBiayaCard
-                    items={biaya}
-                    hari={hariPerjalanan}
+                    items={expensesState}
+                    days={tripDays}
                     onAdd={() =>
-                      setBiaya((prev) => [
+                      setExpensesState((prev) => [
                         ...prev,
                         {
                           id: `b${Date.now()}`,
-                          kategori: "Transportasi",
-                          keterangan: "",
+                          category: "Transportasi",
+                          description: "",
                           nominal: "",
-                          bukti: null,
+                          proof: null,
                         },
                       ])
                     }
                     onRemove={(id) =>
-                      setBiaya((prev) => prev.filter((x) => x.id !== id))
+                      setExpensesState((prev) =>
+                        prev.filter((x) => x.id !== id),
+                      )
                     }
                     onChange={(id, patch) =>
-                      setBiaya((prev) =>
+                      setExpensesState((prev) =>
                         prev.map((x) => (x.id === id ? { ...x, ...patch } : x)),
                       )
                     }
                   />
                 )}
-                <ApprovalFlowCard steps={langkahApproval} />
+                <ApprovalFlowCard steps={approvalSteps} />
               </>
             )}
           </Animated.View>
@@ -730,31 +751,31 @@ function LeaveRequestForm({ navigation, route }: ScreenProps) {
             <Text
               style={[
                 styles.sumSub,
-                blockMsg || galat ? { color: c.bad.ink } : null,
+                blockMsg || errorMessage ? { color: c.bad.ink } : null,
               ]}
             >
-              {blockMsg || galat || t("lr.siap")}
+              {blockMsg || errorMessage || t("lr.siap")}
             </Text>
             <Text style={styles.sumTop}>
-              {kind === "cuti" && hariKerja > 0
+              {kind === "cuti" && workdayCount > 0
                 ? t(
-                    jenisCuti === "Melahirkan"
+                    leaveKind === "Melahirkan"
                       ? "lr.nHariKalender"
                       : "lr.nHariKerja",
-                    { n: hariKerja },
+                    { n: workdayCount },
                   )
                 : kind === "lembur" && otDate
-                  ? durasiJam(otJam)
+                  ? formatHourDuration(otJam)
                   : kind === "dinas" && start && end
-                    ? rupiah(totalDinas.total)
+                    ? rupiah(totalTrip.total)
                     : "—"}
             </Text>
           </View>
           {/* Tombol kirim baru muncul setelah form lengkap. */}
-          {bisaKirim || sending ? (
-            <Pressable onPress={handleSubmit} disabled={!bisaKirim}>
+          {canSubmit || isSending ? (
+            <Pressable onPress={handleSubmit} disabled={!canSubmit}>
               <LinearGradient
-                colors={bisaKirim ? [c.accent, c.accent2] : [c.track, c.track]}
+                colors={canSubmit ? [c.accent, c.accent2] : [c.track, c.track]}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
                 style={styles.submitBtn}
@@ -762,10 +783,10 @@ function LeaveRequestForm({ navigation, route }: ScreenProps) {
                 <Text
                   style={[
                     styles.submitText,
-                    bisaKirim ? { color: "#fff" } : null,
+                    canSubmit ? { color: "#fff" } : null,
                   ]}
                 >
-                  {sending ? t("lr.mengirim") : t("lr.kirim")}
+                  {isSending ? t("lr.mengirim") : t("lr.kirim")}
                 </Text>
               </LinearGradient>
             </Pressable>
@@ -863,7 +884,7 @@ const makeStyles = (c: Palette) =>
     sumSub: { fontSize: 10.5, fontWeight: "600", color: c.muted },
     sumTop: { fontSize: 16, fontWeight: "800", color: c.ink, marginTop: 3 },
     submitBtn: {
-      ...tombolUtama(c),
+      ...primaryButtonStyle(c),
       paddingHorizontal: 22,
       paddingVertical: 14,
       borderRadius: 16,

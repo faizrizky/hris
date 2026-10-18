@@ -1,7 +1,7 @@
 import React from "react";
 import { ActivityIndicator, Pressable, StyleSheet, Text } from "react-native";
 import { useTheme } from "@/theme/ThemeContext";
-import { tombolSekunder, tombolUtama } from "@/theme/colors";
+import { secondaryButtonStyle, primaryButtonStyle } from "@/theme/colors";
 
 interface Props {
   label: string;
@@ -32,8 +32,8 @@ export function PrimaryButton({
       style={[
         styles.button,
         variant === "outline"
-          ? { ...tombolSekunder(c), borderColor: c.accent }
-          : { ...tombolUtama(c), backgroundColor: bg },
+          ? { ...secondaryButtonStyle(c), borderColor: c.accent }
+          : { ...primaryButtonStyle(c), backgroundColor: bg },
         variant === "danger" && { shadowColor: c.bad.ink },
       ]}
     >

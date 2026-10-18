@@ -2,23 +2,23 @@ import { useSyncExternalStore } from "react";
 
 // Jumlah notifikasi belum dibaca untuk titik di tab bar. Diisi tab bar (saat
 // dimuat/pindah tab) dan layar Notifikasi (saat daftar berubah).
-let jumlah = 0;
-const pendengar = new Set<() => void>();
+let count = 0;
+const listeners = new Set<() => void>();
 
-export function setBelumDibaca(n: number) {
-  if (jumlah === n) return;
-  jumlah = n;
-  pendengar.forEach((f) => f());
+export function setUnreadCount(n: number) {
+  if (count === n) return;
+  count = n;
+  listeners.forEach((f) => f());
 }
 
-export function useBelumDibaca(): number {
+export function useUnreadCount(): number {
   return useSyncExternalStore(
     (cb) => {
-      pendengar.add(cb);
+      listeners.add(cb);
       return () => {
-        pendengar.delete(cb);
+        listeners.delete(cb);
       };
     },
-    () => jumlah,
+    () => count,
   );
 }

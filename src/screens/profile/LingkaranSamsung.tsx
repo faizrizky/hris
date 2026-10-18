@@ -12,7 +12,7 @@ import Svg, {
   Rect,
   Stop,
 } from "react-native-svg";
-import { CincinWajah } from "./CincinWajah";
+import { FaceRing } from "./CincinWajah";
 
 export const TICKS = 60;
 
@@ -21,93 +21,93 @@ export const TICKS = 60;
 // panduan wajah dan sebuah "irisan bola kaca" (gore) yang terus menggelinding melintasi lingkaran: bola kaca
 // berputar pada sumbu tegak, irisan di antara dua garis bujur terlihat sebagai sabit di tepi kiri, melebar,
 // bergeser melewati tengah sebagai lensa, lalu menyempit jadi sabit di tepi kanan, dan mengulang.
-const PUTIH = "rgba(255,255,255,0.92)";
-const IRISAN_DERAJAT = 55; // lebar irisan (selisih garis bujur)
-const LINTAS_MS = 1100; // satu lintasan
-const ARAH_SUDUT = [0, 90, 180, 270]; // lintasan bergantian: kiri-kanan, atas-bawah, kanan-kiri, bawah-atas
-const JEDA_MS = 450;
+const WHITE = "rgba(255,255,255,0.92)";
+const WEDGE_DEGREES = 55; // lebar irisan (selisih garis bujur)
+const SWEEP_MS = 1100; // satu lintasan
+const DIRECTION_ANGLE = [0, 90, 180, 270]; // lintasan bergantian: kiri-kanan, atas-bawah, kanan-kiri, bawah-atas
+const PAUSE_MS = 450;
 
 const rad = (d: number) => (d * Math.PI) / 180;
-const jepit = (d: number) => Math.max(-90, Math.min(90, d));
+const clamp = (d: number) => Math.max(-90, Math.min(90, d));
 
 // Jalur irisan: batas kiri/kanan = proyeksi dua garis bujur pada bola berjari-jari R. Garis bujur di balik
 // tepi bola (|sudut| > 90) menempel di tepi lingkaran, itulah yang membentuk sabit.
-function jalurIrisan(R: number, a1: number): string {
-  const a2 = a1 + IRISAN_DERAJAT;
+function wedgePath(R: number, a1: number): string {
+  const a2 = a1 + WEDGE_DEGREES;
   if (a2 <= -90 || a1 >= 90) return "";
   const N = 36;
   const kiri: string[] = [];
-  const kanan: string[] = [];
+  const right: string[] = [];
   for (let i = 0; i <= N; i++) {
     const y = -R + (2 * R * i) / N;
     const g = Math.sqrt(Math.max(0, 1 - (y / R) * (y / R)));
-    const x1 = R * Math.sin(rad(jepit(a1))) * g;
-    const x2 = R * Math.sin(rad(jepit(a2))) * g;
+    const x1 = R * Math.sin(rad(clamp(a1))) * g;
+    const x2 = R * Math.sin(rad(clamp(a2))) * g;
     kiri.push(`${(R + x1).toFixed(1)} ${(R + y).toFixed(1)}`);
-    kanan.push(`${(R + x2).toFixed(1)} ${(R + y).toFixed(1)}`);
+    right.push(`${(R + x2).toFixed(1)} ${(R + y).toFixed(1)}`);
   }
-  return `M ${kiri.join(" L ")} L ${kanan.reverse().join(" L ")} Z`;
+  return `M ${kiri.join(" L ")} L ${right.reverse().join(" L ")} Z`;
 }
 
 // Garis tepi tipis di sisi depan irisan (meridian pada a2): satu garis halus yang meruncing ke ujung.
-function jalurTepi(R: number, a1: number): string {
-  const a2 = a1 + IRISAN_DERAJAT;
+function edgePath(R: number, a1: number): string {
+  const a2 = a1 + WEDGE_DEGREES;
   if (a2 <= -90 || a1 >= 90) return "";
   const N = 36;
   const t: string[] = [];
   for (let i = 0; i <= N; i++) {
     const y = -R + (2 * R * i) / N;
     const g = Math.sqrt(Math.max(0, 1 - (y / R) * (y / R)));
-    const x = R * Math.sin(rad(jepit(a2))) * g;
+    const x = R * Math.sin(rad(clamp(a2))) * g;
     t.push(`${(R + x).toFixed(1)} ${(R + y).toFixed(1)}`);
   }
   return `M ${t.join(" L ")}`;
 }
 
-function KacaIrisan({
+function WedgeGlass({
   D,
-  rDalam,
-  redup,
+  innerRadius,
+  dim,
 }: {
   D: number;
-  rDalam: number;
-  redup: Animated.Value;
+  innerRadius: number;
+  dim: Animated.Value;
 }) {
   // Kaca hidup di dalam lingkaran putih tipis (panduan wajah), bukan di seluruh lingkaran kamera.
-  const R = rDalam;
-  const [a1, setA1] = useState(-90 - IRISAN_DERAJAT);
-  const [lintasan, setLintasan] = useState(0);
+  const R = innerRadius;
+  const [a1, setA1] = useState(-90 - WEDGE_DEGREES);
+  const [sweep, setSweep] = useState(0);
   useEffect(() => {
-    let raf = 0;
-    let mati = false;
+    let frameHandle = 0;
+    let isDisabled = false;
     const t0 = Date.now();
-    let terakhir = 0;
-    const lingkar = () => {
-      if (mati) return;
-      const sekarang = Date.now();
-      if (sekarang - terakhir >= 24) {
-        terakhir = sekarang;
-        const siklus = LINTAS_MS + JEDA_MS;
-        const t = (sekarang - t0) % siklus;
-        setLintasan(Math.floor((sekarang - t0) / siklus) % ARAH_SUDUT.length);
-        const f = Math.min(1, t / LINTAS_MS);
-        const halus = 0.5 - 0.5 * Math.cos(Math.PI * f); // pelan di ujung, cepat di tengah
-        setA1(-90 - IRISAN_DERAJAT + halus * (180 + IRISAN_DERAJAT));
+    let lastLocation = 0;
+    const ringRadius = () => {
+      if (isDisabled) return;
+      const nowMs = Date.now();
+      if (nowMs - lastLocation >= 24) {
+        lastLocation = nowMs;
+        const cycle = SWEEP_MS + PAUSE_MS;
+        const t = (nowMs - t0) % cycle;
+        setSweep(Math.floor((nowMs - t0) / cycle) % DIRECTION_ANGLE.length);
+        const f = Math.min(1, t / SWEEP_MS);
+        const smooth = 0.5 - 0.5 * Math.cos(Math.PI * f); // pelan di ujung, cepat di tengah
+        setA1(-90 - WEDGE_DEGREES + smooth * (180 + WEDGE_DEGREES));
       }
-      raf = requestAnimationFrame(lingkar);
+      frameHandle = requestAnimationFrame(ringRadius);
     };
-    raf = requestAnimationFrame(lingkar);
+    frameHandle = requestAnimationFrame(ringRadius);
     return () => {
-      mati = true;
-      cancelAnimationFrame(raf);
+      isDisabled = true;
+      cancelAnimationFrame(frameHandle);
     };
   }, []);
-  const d = jalurIrisan(R, a1);
-  const tepi = jalurTepi(R, a1);
+  const d = wedgePath(R, a1);
+  const edge = edgePath(R, a1);
   return (
     <Animated.View
       pointerEvents="none"
-      style={[StyleSheet.absoluteFill, { opacity: redup }]}
+      style={[StyleSheet.absoluteFill, { opacity: dim }]}
     >
       {/* Semburat ungu di bagian atas lingkaran, seperti di video. */}
       <LinearGradient
@@ -155,12 +155,12 @@ function KacaIrisan({
         </Defs>
         {d ? (
           <G
-            transform={`translate(${D / 2 - R} ${D / 2 - R}) rotate(${ARAH_SUDUT[lintasan]} ${R} ${R})`}
+            transform={`translate(${D / 2 - R} ${D / 2 - R}) rotate(${DIRECTION_ANGLE[sweep]} ${R} ${R})`}
           >
             <G mask="url(#ujung)">
               <Path d={d} fill="url(#irisan)" />
               <Path
-                d={tepi}
+                d={edge}
                 fill="none"
                 stroke="rgba(240,245,255,0.9)"
                 strokeWidth={1.2}
@@ -175,46 +175,46 @@ function KacaIrisan({
   );
 }
 
-export function LingkaranSamsung({
+export function SamsungRing({
   D,
-  terisi,
-  selesai,
-  adaWajah,
-  anak,
+  filledTicks,
+  isFinished,
+  hasFace,
+  children,
 }: {
   D: number; // diameter lingkaran kamera
-  terisi: number[]; // indeks garis (0..TICKS-1) yang sudah tercapai
-  selesai: boolean;
-  adaWajah: boolean;
-  anak: React.ReactNode;
+  filledTicks: number[]; // indeks garis (0..TICKS-1) yang sudah tercapai
+  isFinished: boolean;
+  hasFace: boolean;
+  children: React.ReactNode;
 }) {
-  const kanvas = D + 80; // ruang untuk cincin garis di luar lingkaran
-  const cx = kanvas / 2;
+  const canvas = D + 80; // ruang untuk cincin garis di luar lingkaran
+  const cx = canvas / 2;
   const rDalam = (D / 2) * 0.82; // lingkaran putih tipis (panduan wajah)
-  const [redup] = useState(() => new Animated.Value(1));
+  const [dimColor] = useState(() => new Animated.Value(1));
   useEffect(() => {
     // Animasi tetap berjalan saat wajah ketemu, hanya lebih tipis supaya wajah terlihat jelas.
-    Animated.timing(redup, {
-      toValue: adaWajah ? 0.5 : 1,
+    Animated.timing(dimColor, {
+      toValue: hasFace ? 0.5 : 1,
       duration: 400,
       useNativeDriver: true,
     }).start();
-  }, [adaWajah, redup]);
+  }, [hasFace, dimColor]);
 
   return (
-    <View style={{ width: kanvas, height: kanvas }}>
-      <CincinWajah
-        size={kanvas}
+    <View style={{ width: canvas, height: canvas }}>
+      <FaceRing
+        size={canvas}
         rIn={D / 2 + 12}
-        terisi={terisi}
-        selesai={selesai}
-        rFoto={D / 2 + 3}
+        filledTicks={filledTicks}
+        isFinished={isFinished}
+        photoRadius={D / 2 + 3}
       />
       <View
         style={{
           position: "absolute",
-          left: (kanvas - D) / 2,
-          top: (kanvas - D) / 2,
+          left: (canvas - D) / 2,
+          top: (canvas - D) / 2,
           width: D,
           height: D,
           borderRadius: D / 2,
@@ -222,13 +222,13 @@ export function LingkaranSamsung({
           backgroundColor: "#000",
         }}
       >
-        {anak}
-        <KacaIrisan D={D} rDalam={rDalam} redup={redup} />
+        {children}
+        <WedgeGlass D={D} innerRadius={rDalam} dim={dimColor} />
       </View>
 
       <Svg
-        width={kanvas}
-        height={kanvas}
+        width={canvas}
+        height={canvas}
         style={StyleSheet.absoluteFill}
         pointerEvents="none"
       >
@@ -236,7 +236,7 @@ export function LingkaranSamsung({
           cx={cx}
           cy={cx}
           r={rDalam}
-          stroke={PUTIH}
+          stroke={WHITE}
           strokeWidth={1.6}
           fill="none"
         />

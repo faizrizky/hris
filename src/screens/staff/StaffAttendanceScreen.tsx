@@ -15,17 +15,17 @@ import { useSession } from "@/services/session";
 import { Staff, StaffAttendanceState, StaffDirectory } from "@/services/types";
 import { Skeleton } from "@/components/Skeleton";
 import {
-  formatTanggalPanjang,
-  tanggalPendekTahun,
+  formatLongDate,
+  formatShortDateWithYear,
   toISODate,
 } from "@/utils/date";
 import { useT } from "@/i18n";
 import type { Kunci } from "@/i18n/id";
 import { EmptyState } from "@/components/EmptyState";
 import { ICON } from "@/constants/icons";
-import { kembali } from "@/navigation/kembali";
+import { goBackAnimated } from "@/navigation/kembali";
 
-const SEMUA = "Semua";
+const ALL_TAB = "Semua";
 
 const TABS: { key: StaffAttendanceState; label: Kunci }[] = [
   { key: "attend", label: "stf.tabHadir" },
@@ -46,65 +46,70 @@ export function StaffAttendanceScreen({ navigation }: ScreenProps) {
   const { employee } = useSession();
   const insets = useSafeAreaInsets();
 
-  const [dir, setDir] = useState<StaffDirectory | null>(null);
+  const [directory, setDirectory] = useState<StaffDirectory | null>(null);
   const [tab, setTab] = useState<StaffAttendanceState>("attend");
-  const [dept, setDept] = useState(SEMUA);
+  const [departmentFilter, setDepartmentFilter] = useState(ALL_TAB);
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
 
-  const [galat, setGalat] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const muat = useCallback(() => {
+  const load = useCallback(() => {
     if (!employee) return;
-    setGalat(null);
+    setErrorMessage(null);
     hrisApi
       .getStaffDirectory(employee.id)
-      .then(setDir)
-      .catch((e) => setGalat(describeError(e)));
+      .then(setDirectory)
+      .catch((e) => setErrorMessage(describeError(e)));
   }, [employee]);
 
-  useFocusEffect(muat);
+  useFocusEffect(load);
 
-  const items = useMemo(() => dir?.items ?? [], [dir]);
-  const loading = dir === null && !galat;
-  const hariIni = tanggalPendekTahun(toISODate(new Date()));
+  const items = useMemo(() => directory?.items ?? [], [directory]);
+  const isLoading = directory === null && !errorMessage;
+  const todayKey = formatShortDateWithYear(toISODate(new Date()));
 
   const chips = useMemo(() => {
     const nama: string[] = [];
     for (const s of items)
       if (!nama.includes(s.department)) nama.push(s.department);
-    return [SEMUA, ...nama];
+    return [ALL_TAB, ...nama];
   }, [items]);
 
-  const seDept = items.filter((s) => dept === SEMUA || s.department === dept);
-  const hitungTab = (k: StaffAttendanceState) =>
-    seDept.filter((s) => s.today.state === k).length;
+  const sameDepartmentStaff = items.filter(
+    (s) => departmentFilter === ALL_TAB || s.department === departmentFilter,
+  );
+  const countTab = (k: StaffAttendanceState) =>
+    sameDepartmentStaff.filter((s) => s.today.state === k).length;
 
-  const tersaring = seDept.filter((s) => s.today.state === tab);
+  const filtered = sameDepartmentStaff.filter((s) => s.today.state === tab);
 
   return (
     <View style={styles.container}>
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
-        <Pressable style={styles.backBtn} onPress={() => kembali(navigation)}>
+        <Pressable
+          style={styles.backBtn}
+          onPress={() => goBackAnimated(navigation)}
+        >
           <Ionicons name="chevron-back" size={18} color={c.ink} />
         </Pressable>
         <View style={{ flex: 1, minWidth: 0 }}>
           <Text style={styles.headerTitle}>{t("stf.absensiKry")}</Text>
-          <Text style={styles.headerSub}>{formatTanggalPanjang()}</Text>
+          <Text style={styles.headerSub}>{formatLongDate()}</Text>
         </View>
       </View>
 
       <View style={styles.tabRow}>
-        {TABS.map((tb) => {
-          const on = tab === tb.key;
+        {TABS.map((tabKey) => {
+          const isOn = tab === tabKey.key;
           return (
             <Pressable
-              key={tb.key}
-              onPress={() => setTab(tb.key)}
-              style={[styles.tab, on && styles.tabOn]}
+              key={tabKey.key}
+              onPress={() => setTab(tabKey.key)}
+              style={[styles.tab, isOn && styles.tabOn]}
             >
-              <Text style={[styles.tabText, on && styles.tabTextOn]}>
-                {t(tb.label)} · {loading ? "–" : hitungTab(tb.key)}
+              <Text style={[styles.tabText, isOn && styles.tabTextOn]}>
+                {t(tabKey.label)} · {isLoading ? "–" : countTab(tabKey.key)}
               </Text>
             </Pressable>
           );
@@ -117,20 +122,20 @@ export function StaffAttendanceScreen({ navigation }: ScreenProps) {
         style={{ flexGrow: 0, flexShrink: 0, marginBottom: 12 }}
         contentContainerStyle={styles.chipRow}
       >
-        {loading
+        {isLoading
           ? [92, 110, 74].map((w, i) => (
               <Skeleton key={i} width={w} height={31} radius={999} />
             ))
           : chips.map((c) => {
-              const on = dept === c;
+              const isOn = departmentFilter === c;
               return (
                 <Pressable
                   key={c}
-                  onPress={() => setDept(c)}
-                  style={[styles.chip, on && styles.chipOn]}
+                  onPress={() => setDepartmentFilter(c)}
+                  style={[styles.chip, isOn && styles.chipOn]}
                 >
-                  <Text style={[styles.chipText, on && styles.chipTextOn]}>
-                    {c === SEMUA ? t("stf.semua") : c}
+                  <Text style={[styles.chipText, isOn && styles.chipTextOn]}>
+                    {c === ALL_TAB ? t("stf.semua") : c}
                   </Text>
                 </Pressable>
               );
@@ -138,9 +143,9 @@ export function StaffAttendanceScreen({ navigation }: ScreenProps) {
       </ScrollView>
 
       <ScrollView contentContainerStyle={styles.list}>
-        {galat && dir === null ? (
-          <ErrorState pesan={galat} onUlangi={muat} />
-        ) : loading ? (
+        {errorMessage && directory === null ? (
+          <ErrorState message={errorMessage} onRetry={load} />
+        ) : isLoading ? (
           <View style={{ gap: 10 }}>
             {[0, 1, 2].map((i) => (
               <View key={i} style={styles.card}>
@@ -156,22 +161,27 @@ export function StaffAttendanceScreen({ navigation }: ScreenProps) {
               </View>
             ))}
           </View>
-        ) : tersaring.length === 0 ? (
+        ) : filtered.length === 0 ? (
           <EmptyState
             icon={ICON.attendanceRate}
             title={t("stf.kosongKategori")}
             text={t("stf.kosongKategoriIsi", {
-              status: t(TABS.find((tb) => tb.key === tab)!.label).toLowerCase(),
-              dept: dept === SEMUA ? "" : t("stf.diDept", { dept }),
+              status: t(
+                TABS.find((tabKey) => tabKey.key === tab)!.label,
+              ).toLowerCase(),
+              dept:
+                departmentFilter === ALL_TAB
+                  ? ""
+                  : t("stf.diDept", { dept: departmentFilter }),
             })}
           />
         ) : (
           <View style={{ gap: 10 }}>
-            {tersaring.map((s) => (
+            {filtered.map((s) => (
               <AttendanceCard
                 key={s.id}
                 staff={s}
-                tanggal={hariIni}
+                date={todayKey}
                 onOpen={() =>
                   navigation.navigate("StaffDetail", { staffId: s.id })
                 }
@@ -186,11 +196,11 @@ export function StaffAttendanceScreen({ navigation }: ScreenProps) {
 
 function AttendanceCard({
   staff,
-  tanggal,
+  date,
   onOpen,
 }: {
   staff: Staff;
-  tanggal: string;
+  date: string;
   onOpen: () => void;
 }) {
   const t = useT();
@@ -198,7 +208,7 @@ function AttendanceCard({
   const styles = useMemo(() => makeStyles(c), [c]);
 
   const tone = c[TONE[staff.today.state]];
-  const telat = staff.today.state === "late";
+  const isLate = staff.today.state === "late";
 
   return (
     <View style={styles.card}>
@@ -226,11 +236,11 @@ function AttendanceCard({
       <View style={styles.cardDivider} />
 
       <View style={styles.grid}>
-        <Cell label={t("stf.tanggal")} value={tanggal} />
+        <Cell label={t("stf.tanggal")} value={date} />
         <Cell
           label={t("hm.clockIn")}
           value={staff.today.checkIn ?? "—"}
-          color={telat ? c.warn.ink : c.ink}
+          color={isLate ? c.warn.ink : c.ink}
         />
         <Cell
           label={t("hm.clockOut")}

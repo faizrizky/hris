@@ -3,8 +3,8 @@
 // file ini, jadi menambah bahasa lain cukup di satu tempat. Nilai yang tidak
 // dikenal (mis. nama departemen baru) ditampilkan apa adanya.
 
-import { bahasaAktif } from "./index";
-import { tanggalPendekTahun } from "@/utils/date";
+import { getActiveLanguage } from "./index";
+import { formatShortDateWithYear } from "@/utils/date";
 import { rupiah } from "@/utils/currency";
 
 const ID = {
@@ -59,24 +59,30 @@ const ID = {
   },
 } as const;
 
-export type KategoriLabel = keyof typeof ID;
+export type LabelCategory = keyof typeof ID;
 
-export function terjemahkan(kategori: KategoriLabel, nilai: string): string {
+export function translateServerLabel(
+  category: LabelCategory,
+  value: string,
+): string {
   // Server berbahasa Inggris, jadi mode English menampilkan nilainya apa adanya.
-  if (bahasaAktif() === "en") return nilai;
-  const tabel = ID[kategori] as Record<string, string>;
-  return tabel[nilai] ?? nilai;
+  if (getActiveLanguage() === "en") return value;
+  const table = ID[category] as Record<string, string>;
+  return table[value] ?? value;
 }
 
 // Arah sebaliknya, untuk nilai yang dikirim kembali ke server (mis. hubungan
 // kontak darurat yang dipilih pengguna dalam bahasa Indonesia).
-export function kembalikan(kategori: KategoriLabel, tampilan: string): string {
-  const tabel = ID[kategori] as Record<string, string>;
-  const ketemu = Object.entries(tabel).find(([, v]) => v === tampilan);
-  return ketemu ? ketemu[0] : tampilan;
+export function toServerValue(
+  category: LabelCategory,
+  displayText: string,
+): string {
+  const table = ID[category] as Record<string, string>;
+  const foundEntry = Object.entries(table).find(([, v]) => v === displayText);
+  return foundEntry ? foundEntry[0] : displayText;
 }
 
-const BULAN_ID: Record<string, string> = {
+const MONTHS_ID: Record<string, string> = {
   January: "Januari",
   February: "Februari",
   March: "Maret",
@@ -93,11 +99,11 @@ const BULAN_ID: Record<string, string> = {
 
 // Teks notifikasi dari server berbahasa Inggris dan berpola tetap, jadi
 // diterjemahkan dengan pola. Yang tidak dikenal ditampilkan apa adanya.
-export function terjemahkanNotifikasi(
+export function translateNotification(
   subject: string,
   body: string,
 ): { title: string; body: string } {
-  if (bahasaAktif() === "en") return { title: subject, body };
+  if (getActiveLanguage() === "en") return { title: subject, body };
 
   let title = subject;
   let m: RegExpMatchArray | null;
@@ -112,24 +118,24 @@ export function terjemahkanNotifikasi(
   } else if (subject === "Your leave request was rejected") {
     title = "Pengajuan cutimu ditolak";
   } else if ((m = subject.match(/^Your (\w+) (\d{4}) payslip is available$/))) {
-    title = `Slip gaji ${BULAN_ID[m[1]!] ?? m[1]} ${m[2]} tersedia`;
+    title = `Slip gaji ${MONTHS_ID[m[1]!] ?? m[1]} ${m[2]} tersedia`;
   } else if (subject === "Your attendance correction was approved") {
     title = "Koreksi absensimu disetujui";
   } else if (subject === "Your attendance correction was rejected") {
     title = "Koreksi absensimu ditolak";
   }
 
-  let isi = body;
-  const cuti = body.match(/^(Annual Leave|Sick Leave): (\S+) to (\S+)$/);
-  if (cuti) {
-    const tgl = (iso: string) => tanggalPendekTahun(iso);
-    isi = `${terjemahkan("leaveType", cuti[1]!)}: ${
-      cuti[2] === cuti[3]
-        ? tgl(cuti[2]!)
-        : `${tgl(cuti[2]!)} – ${tgl(cuti[3]!)}`
+  let content = body;
+  const leave = body.match(/^(Annual Leave|Sick Leave): (\S+) to (\S+)$/);
+  if (leave) {
+    const tgl = (iso: string) => formatShortDateWithYear(iso);
+    content = `${translateServerLabel("leaveType", leave[1]!)}: ${
+      leave[2] === leave[3]
+        ? tgl(leave[2]!)
+        : `${tgl(leave[2]!)} – ${tgl(leave[3]!)}`
     }`;
   }
-  const gaji = body.match(/^Net pay: ([\d.]+)$/);
-  if (gaji) isi = `Take home ${rupiah(Number(gaji[1]))}`;
-  return { title, body: isi };
+  const salary = body.match(/^Net pay: ([\d.]+)$/);
+  if (salary) content = `Take home ${rupiah(Number(salary[1]))}`;
+  return { title, body: content };
 }

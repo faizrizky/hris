@@ -22,16 +22,16 @@ export function DonutChart({ segments, size, stroke, children }: Props) {
   const total = segments.reduce((sum, s) => sum + s.value, 0) || 1;
   const radius = (size - stroke) / 2;
   const circ = 2 * Math.PI * radius;
-  const lubang = size - stroke * 2;
+  const innerSize = size - stroke * 2;
 
   // Dihitung dulu ke array, baru dibaca JSX — jangan menghitung sambil
   // menggambar. offset negatif karena strokeDashoffset bergerak berlawanan.
   const arcs = segments.map((seg, i) => {
     const len = (seg.value / total) * circ;
-    const jalan = segments
+    const offsetLength = segments
       .slice(0, i)
       .reduce((sum, s) => sum + (s.value / total) * circ, 0);
-    return { color: seg.color, len, offset: -jalan };
+    return { color: seg.color, len, offset: -offsetLength };
   });
 
   return (
@@ -58,9 +58,9 @@ export function DonutChart({ segments, size, stroke, children }: Props) {
         style={[
           styles.hole,
           {
-            width: lubang,
-            height: lubang,
-            borderRadius: lubang / 2,
+            width: innerSize,
+            height: innerSize,
+            borderRadius: innerSize / 2,
             backgroundColor: c.card,
           },
         ]}

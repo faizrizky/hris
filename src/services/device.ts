@@ -8,7 +8,7 @@ import * as Device from "expo-device";
 const KUNCI = "hris.deviceId";
 let cache: { id: string; nama: string; platform: string } | null = null;
 
-export async function infoPerangkat() {
+export async function getDeviceInfo() {
   if (cache) return cache;
   let id: string | null = null;
   try {

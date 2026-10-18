@@ -12,12 +12,12 @@ import { useLoad } from "@/hooks/useLoad";
 import { ErrorState } from "@/components/ErrorState";
 import { Skeleton } from "@/components/Skeleton";
 import { DOC_CATEGORY_LABEL } from "@/constants/statusLabels";
-import { tanggalPendekTahun } from "@/utils/date";
+import { formatShortDateWithYear } from "@/utils/date";
 import { useT } from "@/i18n";
 import { EmptyState } from "@/components/EmptyState";
 import { ICON } from "@/constants/icons";
 import type { Kunci } from "@/i18n/id";
-import { kembali } from "@/navigation/kembali";
+import { goBackAnimated } from "@/navigation/kembali";
 
 const FILTER: { key: ReviewStatus | "all"; label: Kunci }[] = [
   { key: "all", label: "rv.semua" },
@@ -33,24 +33,30 @@ export function DocumentReviewScreen({ navigation, route }: ScreenProps) {
   const insets = useSafeAreaInsets();
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
-  const awal: ReviewStatus | "all" =
+  const initial: ReviewStatus | "all" =
     getRouteParams<{ status?: ReviewStatus | "all" }>(route).status ??
     "Pending";
-  const [status, setStatus] = useState<ReviewStatus | "all">(awal);
+  const [status, setStatus] = useState<ReviewStatus | "all">(initial);
   // Dibuka lagi dari notifikasi lain saat layar sudah terpasang: ikuti konteks barunya.
-  const [awalLama, setAwalLama] = useState(awal);
-  if (awal !== awalLama) {
-    setAwalLama(awal);
-    setStatus(awal);
+  const [previousInitial, setPreviousInitial] = useState(initial);
+  if (initial !== previousInitial) {
+    setPreviousInitial(initial);
+    setStatus(initial);
   }
 
-  const dok = useLoad(() => hrisApi.getDocumentsForReview(status), status);
-  const items = dok.data ?? [];
+  const documentItem = useLoad(
+    () => hrisApi.getDocumentsForReview(status),
+    status,
+  );
+  const items = documentItem.data ?? [];
 
   return (
     <View style={styles.container}>
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
-        <Pressable style={styles.backBtn} onPress={() => kembali(navigation)}>
+        <Pressable
+          style={styles.backBtn}
+          onPress={() => goBackAnimated(navigation)}
+        >
           <Ionicons name="chevron-back" size={18} color={c.ink} />
         </Pressable>
         <View style={{ flex: 1, minWidth: 0 }}>
@@ -61,14 +67,14 @@ export function DocumentReviewScreen({ navigation, route }: ScreenProps) {
 
       <View style={styles.chipRow}>
         {FILTER.map((f) => {
-          const on = status === f.key;
+          const isOn = status === f.key;
           return (
             <Pressable
               key={f.key}
               onPress={() => setStatus(f.key)}
-              style={[styles.chip, on && styles.chipOn]}
+              style={[styles.chip, isOn && styles.chipOn]}
             >
-              <Text style={[styles.chipText, on && styles.chipTextOn]}>
+              <Text style={[styles.chipText, isOn && styles.chipTextOn]}>
                 {t(f.label)}
               </Text>
             </Pressable>
@@ -77,9 +83,12 @@ export function DocumentReviewScreen({ navigation, route }: ScreenProps) {
       </View>
 
       <ScrollView contentContainerStyle={styles.list}>
-        {dok.error && !dok.data ? (
-          <ErrorState pesan={dok.error} onUlangi={dok.ulangi} />
-        ) : dok.memuat ? (
+        {documentItem.error && !documentItem.data ? (
+          <ErrorState
+            message={documentItem.error}
+            onRetry={documentItem.retry}
+          />
+        ) : documentItem.isLoading ? (
           <View style={{ gap: 10 }}>
             {[0, 1, 2].map((i) => (
               <View key={i} style={styles.row}>
@@ -123,16 +132,18 @@ function DocRow({
   const c = useTheme();
   const t = useT();
   const styles = useMemo(() => makeStyles(c), [c]);
-  const pdf = doc.ext === "PDF";
+  const isPdf = doc.ext === "PDF";
   return (
     <Pressable style={styles.row} onPress={onPress}>
       <View
         style={[
           styles.extChip,
-          { backgroundColor: pdf ? c.bad.bg : c.info.bg },
+          { backgroundColor: isPdf ? c.bad.bg : c.info.bg },
         ]}
       >
-        <Text style={[styles.extText, { color: pdf ? c.bad.ink : c.info.ink }]}>
+        <Text
+          style={[styles.extText, { color: isPdf ? c.bad.ink : c.info.ink }]}
+        >
           {doc.ext}
         </Text>
       </View>
@@ -145,7 +156,7 @@ function DocRow({
         </Text>
         <Text style={styles.meta}>
           {doc.uploadedOn
-            ? t("rv.diunggah", { tgl: tanggalPendekTahun(doc.uploadedOn) })
+            ? t("rv.diunggah", { tgl: formatShortDateWithYear(doc.uploadedOn) })
             : "—"}
           {doc.fileUrl ? "" : ` · ${t("rv.tanpaFile")}`}
         </Text>

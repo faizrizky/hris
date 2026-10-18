@@ -11,33 +11,33 @@ import React, {
 import { AppState, Pressable, StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { keluarAman, useSession } from "@/services/session";
+import { signOutSafely, useSession } from "@/services/session";
 import { useTheme } from "@/theme/ThemeContext";
 import { useT } from "@/i18n";
 import {
-  adaLoginBiometrik,
-  autentikasi,
-  bacaKunci,
-  jenisBiometrik,
-  kunciDitahan,
-  simpanKunci,
-  tahanKunci,
-  type PengaturanKunci,
+  hasBiometricLogin,
+  authenticate,
+  readLockSettings,
+  getBiometricKind,
+  isLockHeld,
+  saveLockSettings,
+  holdLock,
+  type LockSettings,
 } from "@/services/biometrik";
 import type { Palette } from "@/theme/colors";
 
-interface KunciCtx {
-  pengaturan: PengaturanKunci;
-  ubah: (p: PengaturanKunci) => void;
+interface LockContextValue {
+  settings: LockSettings;
+  update: (p: LockSettings) => void;
   /** Dipanggil sebelum aksi yang membuka prompt sistem (mis. kamera/biometrik) supaya tidak dianggap ke latar belakang. */
-  abaikanLatar: (ms?: number) => void;
+  ignoreBackground: (ms?: number) => void;
 }
 
-const Ctx = createContext<KunciCtx | null>(null);
-const DELAY_BUKA_AWAL_MS = 250; // beri waktu layar kunci tampil sebelum prompt biometrik
-const ABAIKAN_LATAR_PROMPT_MS = 15_000; // prompt biometrik membuat aplikasi sesaat "tidak aktif"
+const Ctx = createContext<LockContextValue | null>(null);
+const INITIAL_PROMPT_DELAY_MS = 250; // beri waktu layar kunci tampil sebelum prompt biometrik
+const IGNORE_BACKGROUND_PROMPT_MS = 15_000; // prompt biometrik membuat aplikasi sesaat "tidak aktif"
 
-export function useKunci(): KunciCtx {
+export function useAppLock(): LockContextValue {
   const c = useContext(Ctx);
   if (!c) throw new Error("useKunci dipakai di luar KunciProvider");
   return c;
@@ -45,150 +45,150 @@ export function useKunci(): KunciCtx {
 
 // Kunci otomatis: aplikasi terkunci saat dibuka dari nol dan saat kembali dari latar belakang setelah melewati batas
 // waktu, bila pengguna mengaktifkannya dan perangkat punya biometrik terdaftar.
-export function KunciProvider({ children }: { children: React.ReactNode }) {
-  const { employee, setEmployee, dipulihkan } = useSession();
-  const [pengaturan, setPengaturan] = useState<PengaturanKunci>({
-    aktif: false,
+export function AppLockProvider({ children }: { children: React.ReactNode }) {
+  const { employee, setEmployee, isRestored } = useSession();
+  const [settings, setSettings] = useState<LockSettings>({
+    isActive: false,
     timeoutMs: 60_000,
   });
-  const [dimuat, setDimuat] = useState(false);
-  const [kunciLatar, setKunciLatar] = useState(false); // dikunci karena kembali dari latar belakang
-  const [sudahBuka, setSudahBuka] = useState(false);
-  const latarSejak = useRef<number | null>(null);
+  const [isLoaded, setIsLoaded] = useState(false);
+  const [isLockedByBackground, setIsLockedByBackground] = useState(false); // dikunci karena kembali dari latar belakang
+  const [hasOpened, setHasOpened] = useState(false);
+  const backgroundSince = useRef<number | null>(null);
 
   useEffect(() => {
-    bacaKunci().then(async (p) => {
+    readLockSettings().then(async (p) => {
       // Kunci otomatis terikat biometrik: tanpa login biometrik aktif, kunci dimatikan (data lama yang tidak konsisten).
-      if (p.aktif && !(await adaLoginBiometrik())) {
-        p = { ...p, aktif: false };
-        simpanKunci(p);
+      if (p.isActive && !(await hasBiometricLogin())) {
+        p = { ...p, isActive: false };
+        saveLockSettings(p);
       }
-      setPengaturan(p);
-      setDimuat(true);
+      setSettings(p);
+      setIsLoaded(true);
     });
   }, []);
 
-  const ubah = useCallback((p: PengaturanKunci) => {
-    setPengaturan(p);
-    simpanKunci(p);
+  const update = useCallback((p: LockSettings) => {
+    setSettings(p);
+    saveLockSettings(p);
   }, []);
 
-  const abaikanLatar = useCallback((ms = 30_000) => {
-    tahanKunci(ms);
+  const ignoreBackground = useCallback((ms = 30_000) => {
+    holdLock(ms);
   }, []);
 
   // Terkunci saat aplikasi dibuka dari nol dengan sesi tersimpan, dan saat kembali dari latar belakang melewati batas waktu.
-  const terkunci =
-    dimuat &&
-    pengaturan.aktif &&
+  const isLocked =
+    isLoaded &&
+    settings.isActive &&
     !!employee &&
-    (kunciLatar || (dipulihkan && !sudahBuka));
+    (isLockedByBackground || (isRestored && !hasOpened));
 
   useEffect(() => {
     const sub = AppState.addEventListener("change", (s) => {
       if (s === "background") {
-        if (!kunciDitahan()) latarSejak.current = Date.now();
+        if (!isLockHeld()) backgroundSince.current = Date.now();
         return;
       }
       if (s === "active") {
-        const sejak = latarSejak.current;
-        latarSejak.current = null;
+        const since = backgroundSince.current;
+        backgroundSince.current = null;
         if (
-          sejak !== null &&
-          pengaturan.aktif &&
+          since !== null &&
+          settings.isActive &&
           employee &&
-          Date.now() - sejak >= pengaturan.timeoutMs
+          Date.now() - since >= settings.timeoutMs
         )
-          setKunciLatar(true);
+          setIsLockedByBackground(true);
       }
     });
     return () => sub.remove();
-  }, [pengaturan, employee]);
+  }, [settings, employee]);
 
-  const nilai = useMemo(
-    () => ({ pengaturan, ubah, abaikanLatar }),
-    [pengaturan, ubah, abaikanLatar],
+  const contextValue = useMemo(
+    () => ({ settings, update, ignoreBackground }),
+    [settings, update, ignoreBackground],
   );
 
   return (
-    <Ctx.Provider value={nilai}>
+    <Ctx.Provider value={contextValue}>
       {children}
-      {terkunci && employee ? (
-        <LayarKunci
-          onBuka={() => {
-            setKunciLatar(false);
-            setSudahBuka(true);
+      {isLocked && employee ? (
+        <LockScreen
+          onUnlock={() => {
+            setIsLockedByBackground(false);
+            setHasOpened(true);
           }}
-          onKeluar={async () => {
-            await keluarAman();
-            setKunciLatar(false);
-            setSudahBuka(true);
+          onSignOut={async () => {
+            await signOutSafely();
+            setIsLockedByBackground(false);
+            setHasOpened(true);
             setEmployee(null);
           }}
-          abaikanLatar={abaikanLatar}
+          ignoreBackground={ignoreBackground}
         />
       ) : null}
     </Ctx.Provider>
   );
 }
 
-function LayarKunci({
-  onBuka,
-  onKeluar,
-  abaikanLatar,
+function LockScreen({
+  onUnlock,
+  onSignOut,
+  ignoreBackground,
 }: {
-  onBuka: () => void;
-  onKeluar: () => void;
-  abaikanLatar: (ms?: number) => void;
+  onUnlock: () => void;
+  onSignOut: () => void;
+  ignoreBackground: (ms?: number) => void;
 }) {
   const t = useT();
   const c = useTheme();
   const insets = useSafeAreaInsets();
   const styles = useMemo(() => makeStyles(c), [c]);
-  const [jenis, setJenis] = useState<"wajah" | "sidikJari" | "umum">("umum");
-  const [gagal, setGagal] = useState(false);
+  const [kind, setKind] = useState<"wajah" | "sidikJari" | "umum">("umum");
+  const [hasFailed, setHasFailed] = useState(false);
   const sedang = useRef(false);
 
-  const buka = useCallback(async () => {
+  const open = useCallback(async () => {
     if (sedang.current) return;
     sedang.current = true;
-    setGagal(false);
-    abaikanLatar(ABAIKAN_LATAR_PROMPT_MS);
-    const ok = await autentikasi(t("kunci.prompt"), t("kunci.batal"));
+    setHasFailed(false);
+    ignoreBackground(IGNORE_BACKGROUND_PROMPT_MS);
+    const isConfirmed = await authenticate(t("kunci.prompt"), t("kunci.batal"));
     sedang.current = false;
-    if (ok) onBuka();
-    else setGagal(true);
-  }, [abaikanLatar, onBuka, t]);
+    if (isConfirmed) onUnlock();
+    else setHasFailed(true);
+  }, [ignoreBackground, onUnlock, t]);
 
-  const bukaAwal = useEffectEvent(buka);
+  const openInitially = useEffectEvent(open);
   useEffect(() => {
-    jenisBiometrik().then(setJenis);
-    const id = setTimeout(bukaAwal, DELAY_BUKA_AWAL_MS);
+    getBiometricKind().then(setKind);
+    const id = setTimeout(openInitially, INITIAL_PROMPT_DELAY_MS);
     return () => clearTimeout(id);
   }, []);
 
-  const ikon = jenis === "wajah" ? "scan-outline" : "finger-print-outline";
+  const icon = kind === "wajah" ? "scan-outline" : "finger-print-outline";
   return (
     <View
       style={[
-        styles.layar,
+        styles.screen,
         { paddingTop: insets.top, paddingBottom: insets.bottom + 24 },
       ]}
     >
-      <View style={styles.tengah}>
-        <View style={styles.lingkar}>
-          <Ionicons name={ikon} size={44} color={c.accent} />
+      <View style={styles.center}>
+        <View style={styles.ring}>
+          <Ionicons name={icon} size={44} color={c.accent} />
         </View>
-        <Text style={styles.judul}>{t("kunci.judul")}</Text>
+        <Text style={styles.title}>{t("kunci.judul")}</Text>
         <Text style={styles.sub}>
-          {gagal ? t("kunci.gagal") : t("kunci.sub")}
+          {hasFailed ? t("kunci.gagal") : t("kunci.sub")}
         </Text>
-        <Pressable style={styles.tombol} onPress={buka}>
-          <Text style={styles.tombolText}>{t("kunci.buka")}</Text>
+        <Pressable style={styles.button} onPress={open}>
+          <Text style={styles.buttonText}>{t("kunci.buka")}</Text>
         </Pressable>
       </View>
-      <Pressable onPress={onKeluar} hitSlop={10}>
-        <Text style={styles.keluar}>{t("kunci.keluar")}</Text>
+      <Pressable onPress={onSignOut} hitSlop={10}>
+        <Text style={styles.signOut}>{t("kunci.keluar")}</Text>
       </Pressable>
     </View>
   );
@@ -196,7 +196,7 @@ function LayarKunci({
 
 const makeStyles = (c: Palette) =>
   StyleSheet.create({
-    layar: {
+    screen: {
       position: "absolute",
       top: 0,
       left: 0,
@@ -208,13 +208,13 @@ const makeStyles = (c: Palette) =>
       zIndex: 1000,
       elevation: 1000,
     },
-    tengah: {
+    center: {
       flex: 1,
       alignItems: "center",
       justifyContent: "center",
       paddingHorizontal: 32,
     },
-    lingkar: {
+    ring: {
       width: 96,
       height: 96,
       borderRadius: 48,
@@ -222,7 +222,7 @@ const makeStyles = (c: Palette) =>
       alignItems: "center",
       justifyContent: "center",
     },
-    judul: { fontSize: 20, fontWeight: "800", color: c.ink, marginTop: 22 },
+    title: { fontSize: 20, fontWeight: "800", color: c.ink, marginTop: 22 },
     sub: {
       fontSize: 13,
       lineHeight: 20,
@@ -231,13 +231,13 @@ const makeStyles = (c: Palette) =>
       marginTop: 8,
       maxWidth: 280,
     },
-    tombol: {
+    button: {
       marginTop: 28,
       backgroundColor: c.accent,
       borderRadius: 14,
       paddingVertical: 14,
       paddingHorizontal: 28,
     },
-    tombolText: { color: "#fff", fontSize: 14, fontWeight: "700" },
-    keluar: { fontSize: 13, fontWeight: "700", color: c.muted },
+    buttonText: { color: "#fff", fontSize: 14, fontWeight: "700" },
+    signOut: { fontSize: 13, fontWeight: "700", color: c.muted },
   });

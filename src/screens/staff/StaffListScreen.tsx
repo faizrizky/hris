@@ -16,37 +16,37 @@ import { Skeleton } from "@/components/Skeleton";
 import { useT } from "@/i18n";
 import { EmptyState } from "@/components/EmptyState";
 import { ICON } from "@/constants/icons";
-import { kembali } from "@/navigation/kembali";
+import { goBackAnimated } from "@/navigation/kembali";
 
-const SEMUA = "Semua";
+const ALL_TAB = "Semua";
 
 export function StaffListScreen({ navigation }: ScreenProps) {
   const t = useT();
   const { employee } = useSession();
   const insets = useSafeAreaInsets();
 
-  const [dir, setDir] = useState<StaffDirectory | null>(null);
-  const [dept, setDept] = useState(SEMUA);
-  const [cari, setCari] = useState("");
+  const [directory, setDirectory] = useState<StaffDirectory | null>(null);
+  const [departmentFilter, setDepartmentFilter] = useState(ALL_TAB);
+  const [search, setSearch] = useState("");
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
 
-  const [galat, setGalat] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const muat = useCallback(() => {
+  const load = useCallback(() => {
     if (!employee) return;
-    setGalat(null);
+    setErrorMessage(null);
     hrisApi
       .getStaffDirectory(employee.id)
-      .then(setDir)
-      .catch((e) => setGalat(describeError(e)));
+      .then(setDirectory)
+      .catch((e) => setErrorMessage(describeError(e)));
   }, [employee]);
 
-  useFocusEffect(muat);
+  useFocusEffect(load);
 
-  const items = useMemo(() => dir?.items ?? [], [dir]);
+  const items = useMemo(() => directory?.items ?? [], [directory]);
 
-  const loading = dir === null && !galat;
+  const isLoading = directory === null && !errorMessage;
 
   // Chip departemen diturunkan dari datanya, bukan daftar tetap: departemen
   // baru di data langsung muncul sebagai chip tanpa mengubah kode ini.
@@ -54,38 +54,47 @@ export function StaffListScreen({ navigation }: ScreenProps) {
     const nama: string[] = [];
     for (const s of items)
       if (!nama.includes(s.department)) nama.push(s.department);
-    return [SEMUA, ...nama];
+    return [ALL_TAB, ...nama];
   }, [items]);
 
-  const hitungDept = (d: string) =>
-    d === SEMUA ? items.length : items.filter((s) => s.department === d).length;
+  const countDepartment = (d: string) =>
+    d === ALL_TAB
+      ? items.length
+      : items.filter((s) => s.department === d).length;
 
-  const q = cari.trim().toLowerCase();
-  const tersaring = items.filter((s) => {
-    const cocokDept = dept === SEMUA || s.department === dept;
-    const cocokCari =
+  const q = search.trim().toLowerCase();
+  const filtered = items.filter((s) => {
+    const isMatchingDepartment =
+      departmentFilter === ALL_TAB || s.department === departmentFilter;
+    const isMatchingSearch =
       q === "" ||
       s.fullName.toLowerCase().includes(q) ||
       s.jobTitle.toLowerCase().includes(q) ||
       s.code.toLowerCase().includes(q);
-    return cocokDept && cocokCari;
+    return isMatchingDepartment && isMatchingSearch;
   });
 
   const scope =
     employee?.role === "hr"
-      ? t("stf.dariAktif", { n: items.length, total: dir?.totalActive ?? 0 })
+      ? t("stf.dariAktif", {
+          n: items.length,
+          total: directory?.totalActive ?? 0,
+        })
       : t("stf.bawahan", { n: items.length });
 
   return (
     <View style={styles.container}>
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
-        <Pressable style={styles.backBtn} onPress={() => kembali(navigation)}>
+        <Pressable
+          style={styles.backBtn}
+          onPress={() => goBackAnimated(navigation)}
+        >
           <Ionicons name="chevron-back" size={18} color={c.ink} />
         </Pressable>
         <View style={{ flex: 1, minWidth: 0 }}>
           <View style={{ flex: 1, minWidth: 0 }}>
             <Text style={styles.headerTitle}>{t("stf.judul")}</Text>
-            {loading ? (
+            {isLoading ? (
               <Skeleton
                 width={150}
                 height={11}
@@ -109,14 +118,14 @@ export function StaffListScreen({ navigation }: ScreenProps) {
         <Ionicons name="search" size={15} color={c.mutedLabel} />
         <TextInput
           style={styles.searchInput}
-          value={cari}
-          onChangeText={setCari}
+          value={search}
+          onChangeText={setSearch}
           placeholder={t("stf.cari")}
           placeholderTextColor={c.mutedLabel}
           autoCorrect={false}
         />
-        {cari.length > 0 && (
-          <Pressable onPress={() => setCari("")} hitSlop={8}>
+        {search.length > 0 && (
+          <Pressable onPress={() => setSearch("")} hitSlop={8}>
             <Ionicons name="close-circle" size={16} color={c.mutedLabel} />
           </Pressable>
         )}
@@ -128,20 +137,20 @@ export function StaffListScreen({ navigation }: ScreenProps) {
         style={{ flexGrow: 0, flexShrink: 0, marginBottom: 12 }}
         contentContainerStyle={styles.chipRow}
       >
-        {loading
+        {isLoading
           ? [92, 110, 74].map((w, i) => (
               <Skeleton key={i} width={w} height={31} radius={999} />
             ))
           : chips.map((c) => {
-              const on = dept === c;
+              const isOn = departmentFilter === c;
               return (
                 <Pressable
                   key={c}
-                  onPress={() => setDept(c)}
-                  style={[styles.chip, on && styles.chipOn]}
+                  onPress={() => setDepartmentFilter(c)}
+                  style={[styles.chip, isOn && styles.chipOn]}
                 >
-                  <Text style={[styles.chipText, on && styles.chipTextOn]}>
-                    {c === SEMUA ? t("stf.semua") : c} ({hitungDept(c)})
+                  <Text style={[styles.chipText, isOn && styles.chipTextOn]}>
+                    {c === ALL_TAB ? t("stf.semua") : c} ({countDepartment(c)})
                   </Text>
                 </Pressable>
               );
@@ -149,27 +158,27 @@ export function StaffListScreen({ navigation }: ScreenProps) {
       </ScrollView>
 
       <ScrollView contentContainerStyle={styles.list}>
-        {galat && dir === null ? (
-          <ErrorState pesan={galat} onUlangi={muat} />
-        ) : loading ? (
+        {errorMessage && directory === null ? (
+          <ErrorState message={errorMessage} onRetry={load} />
+        ) : isLoading ? (
           <View style={{ gap: 9 }}>
             {[0, 1, 2, 3, 4].map((i) => (
               <StaffRowSkeleton key={i} />
             ))}
           </View>
-        ) : tersaring.length === 0 ? (
+        ) : filtered.length === 0 ? (
           <EmptyState
             icon={ICON.user}
             title={t("stf.tidakCocok")}
             text={
               q
-                ? t("stf.tanpaKata", { q: cari.trim() })
+                ? t("stf.tanpaKata", { q: search.trim() })
                 : t("stf.kosongLingkup")
             }
           />
         ) : (
           <View style={{ gap: 9 }}>
-            {tersaring.map((s) => (
+            {filtered.map((s) => (
               <StaffRow
                 key={s.id}
                 staff={s}
@@ -190,8 +199,8 @@ function StaffRow({ staff, onPress }: { staff: Staff; onPress: () => void }) {
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
 
-  const tetap = staff.status === "Tetap";
-  const tone = tetap ? c.ok : c.info;
+  const isPermanent = staff.status === "Tetap";
+  const tone = isPermanent ? c.ok : c.info;
 
   return (
     <Pressable style={styles.row} onPress={onPress}>
@@ -210,7 +219,7 @@ function StaffRow({ staff, onPress }: { staff: Staff; onPress: () => void }) {
 
       <View style={[styles.statusBadge, { backgroundColor: tone.bg }]}>
         <Text style={[styles.statusText, { color: tone.ink }]}>
-          {tetap ? t("stf.tetap") : t("stf.kontrak")}
+          {isPermanent ? t("stf.tetap") : t("stf.kontrak")}
         </Text>
       </View>
       <Ionicons name="chevron-forward" size={14} color={c.mutedLabel} />

@@ -14,15 +14,15 @@ import {
   LeaveType,
   Announcement,
   Appraisal,
-  AturanLokasi,
-  LokasiCheckin,
+  GeofenceRule,
+  CheckinLocation,
   FaceStatus,
   OfflineCheckin,
   ProfileChange,
   FeedbackForm,
   ReviewDocument,
   TeamAppraisal,
-  BerkasLampiran,
+  AttachmentFile,
   DocCategory,
   DocStatus,
   EmployeeDocument,
@@ -49,26 +49,29 @@ import {
 } from "../types";
 import {
   fromISODate,
-  namaBulan,
-  tanggalPendek,
-  tanggalPendekTahun,
+  getMonthName,
+  formatShortDate,
+  formatShortDateWithYear,
   toISODate,
 } from "../../utils/date";
 import { ApiError, get, post, put, upload } from "./http";
-import { ukuranFile } from "../../utils/file";
+import { formatFileSize } from "../../utils/file";
 import { File as FileFs } from "expo-file-system";
-import { tokenPushSaatIni } from "../push";
-import { infoPerangkat } from "../device";
-import { waktuTerpercaya } from "../trustedTime";
+import { getCurrentPushToken } from "../push";
+import { getDeviceInfo } from "../device";
+import { getTrustedTime } from "../trustedTime";
 import {
-  ItemAntrean,
-  ambilAntrean,
+  QueueItem,
+  getQueue,
   antre,
-  hapusDariAntrean,
-  jumlahAntrean,
+  removeFromQueue,
+  getQueueCount,
 } from "../offlineQueue";
-import { terjemahkan, terjemahkanNotifikasi } from "@/i18n/serverLabels";
-import { tt } from "@/i18n";
+import {
+  translateServerLabel,
+  translateNotification,
+} from "@/i18n/serverLabels";
+import { translate } from "@/i18n";
 import type { Kunci } from "@/i18n/id";
 
 interface EmployeeRow {
@@ -89,25 +92,28 @@ const EMPLOYEE_FIELDS = [
   "date_of_joining",
 ];
 
-function inisial(nama: string): string {
+function initialsOf(nama: string): string {
   return nama
     .split(/\s+/)
     .filter(Boolean)
     .slice(0, 2)
-    .map((kata) => kata[0]!.toUpperCase())
+    .map((word) => word[0]!.toUpperCase())
     .join("");
 }
 
 // ERPNext menambahkan sufiks company: "Keuangan - FT" -> "Keuangan".
-function tanpaSufiks(departemen: string | null): string {
-  return departemen
-    ? terjemahkan("department", departemen.replace(/ - [^-]+$/, ""))
+function withoutSuffix(departmentName: string | null): string {
+  return departmentName
+    ? translateServerLabel(
+        "department",
+        departmentName.replace(/ - [^-]+$/, ""),
+      )
     : "—";
 }
 
 // Doc User dan Has Role tidak bisa dibaca role Employee, jadi role diambil
 // dari endpoint server yang mengembalikan role pemanggil sendiri.
-async function ambilRole(): Promise<Role> {
+async function fetchRole(): Promise<Role> {
   let roles: string[];
   try {
     const res = await get<{ message: string[] }>(
@@ -119,7 +125,7 @@ async function ambilRole(): Promise<Role> {
     // supaya tidak tampil sebagai "login gagal".
     if (e instanceof ApiError && e.excType === "SessionExpired") throw e;
     throw new ApiError(
-      tt("err.peran"),
+      translate("err.peran"),
       e instanceof ApiError ? e.status : 0,
       "RoleFetchFailed",
     );
@@ -129,7 +135,7 @@ async function ambilRole(): Promise<Role> {
   return "ess";
 }
 
-async function ambilKaryawanSaatIni() {
+async function fetchCurrentEmployee() {
   const { message: email } = await get<{ message: string }>(
     "/api/method/frappe.auth.get_logged_user",
   );
@@ -143,19 +149,19 @@ async function ambilKaryawanSaatIni() {
   const row = res.data[0];
   if (!row) {
     // Contoh: Administrator tidak punya Employee.
-    throw new ApiError(tt("err.tanpaKaryawan"), 200, "NoEmployeeLinked");
+    throw new ApiError(translate("err.tanpaKaryawan"), 200, "NoEmployeeLinked");
   }
 
   return {
     id: row.name,
     nik: row.employee_number ?? "—",
     fullName: row.employee_name,
-    role: await ambilRole(),
+    role: await fetchRole(),
     jobTitle: row.designation
-      ? terjemahkan("designation", row.designation)
+      ? translateServerLabel("designation", row.designation)
       : "—",
-    department: tanpaSufiks(row.department),
-    avatarInitials: inisial(row.employee_name),
+    department: withoutSuffix(row.department),
+    avatarInitials: initialsOf(row.employee_name),
     joinDate: row.date_of_joining ?? "",
     kpiScore: 0, // TODO: ambil dari Appraisal saat slice Appraisal dikerjakan
   };
@@ -175,17 +181,17 @@ interface LeaveDetailsRes {
 }
 
 // Hanya jenis cuti yang dikenal aplikasi. Jenis lain di ERPNext diabaikan dulu.
-const JENIS_SALDO: Record<string, { type: LeaveType; label: string }> = {
+const BALANCE_KINDS: Record<string, { type: LeaveType; label: string }> = {
   "Annual Leave": { type: "cuti", label: "Annual Leave" },
   "Sick Leave": { type: "sakit", label: "Sick Leave" },
 };
 
-const NAMA_JENIS: Partial<Record<LeaveType, string>> = {
+const KIND_NAMES: Partial<Record<LeaveType, string>> = {
   cuti: "Annual Leave",
   sakit: "Sick Leave",
 };
 
-async function ambilSaldo(employeeId: string): Promise<LeaveBalance[]> {
+async function fetchBalances(employeeId: string): Promise<LeaveBalance[]> {
   // Leave Allocation tidak bisa dibaca role Employee, jadi saldo lewat
   // endpoint hrms ini.
   const res = await get<LeaveDetailsRes>(
@@ -193,19 +199,19 @@ async function ambilSaldo(employeeId: string): Promise<LeaveBalance[]> {
     { employee: employeeId, date: toISODate(new Date()) },
   );
 
-  const hasil: LeaveBalance[] = [];
+  const result: LeaveBalance[] = [];
   for (const [nama, v] of Object.entries(res.message.leave_allocation)) {
-    const jenis = JENIS_SALDO[nama];
-    if (!jenis) continue;
-    hasil.push({
-      ...jenis,
-      label: terjemahkan("leaveType", nama),
+    const kind = BALANCE_KINDS[nama];
+    if (!kind) continue;
+    result.push({
+      ...kind,
+      label: translateServerLabel("leaveType", nama),
       remaining: v.remaining_leaves,
       total: v.total_leaves,
       unit: "hari",
     });
   }
-  return hasil;
+  return result;
 }
 
 interface LeaveRow {
@@ -244,41 +250,41 @@ const LEAVE_FIELDS = [
 
 // ERPNext hanya punya satu tahap persetujuan; "Tahap 1 dari 2" di mock
 // tidak punya padanan.
-const STATUS_CUTI: Record<
+const LEAVE_STATUSES: Record<
   string,
   { decision: LeaveDecision; stage: () => string }
 > = {
-  Open: { decision: null, stage: () => tt("api.menungguPersetujuan") },
-  Approved: { decision: "approve", stage: () => tt("st.disetujui") },
-  Rejected: { decision: "reject", stage: () => tt("st.ditolak") },
+  Open: { decision: null, stage: () => translate("api.menungguPersetujuan") },
+  Approved: { decision: "approve", stage: () => translate("st.disetujui") },
+  Rejected: { decision: "reject", stage: () => translate("st.ditolak") },
 };
 
-function periodeCuti(dari: string, sampai: string): string {
-  return dari === sampai
-    ? tanggalPendekTahun(dari)
-    : `${tanggalPendek(dari)} – ${tanggalPendekTahun(sampai)}`;
+function formatLeavePeriod(dari: string, until: string): string {
+  return dari === until
+    ? formatShortDateWithYear(dari)
+    : `${formatShortDate(dari)} – ${formatShortDateWithYear(until)}`;
 }
 
-function bentukPengajuan(row: LeaveRow): LeaveRequest {
-  const status = STATUS_CUTI[row.status] ?? STATUS_CUTI.Open;
-  const pemberiSetuju = row.leave_approver_name ?? row.leave_approver;
-  const periode = periodeCuti(row.from_date, row.to_date);
+function mapSubmission(row: LeaveRow): LeaveRequest {
+  const status = LEAVE_STATUSES[row.status] ?? LEAVE_STATUSES.Open;
+  const approver = row.leave_approver_name ?? row.leave_approver;
+  const period = formatLeavePeriod(row.from_date, row.to_date);
   return {
     id: row.name,
     employeeId: row.employee,
     employeeName: row.employee_name,
-    employeeInitials: inisial(row.employee_name),
+    employeeInitials: initialsOf(row.employee_name),
     employeeJobTitle: row.custom_designation
-      ? terjemahkan("designation", row.custom_designation)
+      ? translateServerLabel("designation", row.custom_designation)
       : "",
     type: row.leave_type === "Sick Leave" ? "sakit" : "cuti",
-    label: `${terjemahkan("leaveType", row.leave_type)} · ${tt("lr.nHari", { n: row.total_leave_days })}`,
-    reason: row.description ? `${periode} · ${row.description}` : periode,
+    label: `${translateServerLabel("leaveType", row.leave_type)} · ${translate("lr.nHari", { n: row.total_leave_days })}`,
+    reason: row.description ? `${period} · ${row.description}` : period,
     delegateName: row.custom_delegate_name,
     stage: status.stage(),
     quota: "—",
-    approverName: pemberiSetuju,
-    approverInitials: inisial(pemberiSetuju),
+    approverName: approver,
+    approverInitials: initialsOf(approver),
     decision: status.decision,
     createdAt: row.posting_date,
   };
@@ -291,7 +297,7 @@ interface LampiranRow {
   file_url: string;
 }
 
-const keLampiran = (l?: LampiranRow[]) =>
+const toAttachment = (l?: LampiranRow[]) =>
   l?.length
     ? l.map((x) => ({ name: x.file_name, url: x.file_url }))
     : undefined;
@@ -330,33 +336,36 @@ const STATUS_SERVER: Record<
   string,
   { decision: LeaveRequest["decision"]; stage: () => string }
 > = {
-  pending: { decision: null, stage: () => tt("api.menungguAtasan") },
-  approved: { decision: "approve", stage: () => tt("st.disetujui") },
-  rejected: { decision: "reject", stage: () => tt("st.ditolak") },
+  pending: { decision: null, stage: () => translate("api.menungguAtasan") },
+  approved: { decision: "approve", stage: () => translate("st.disetujui") },
+  rejected: { decision: "reject", stage: () => translate("st.ditolak") },
 };
 
-const ID_LEMBUR = /^OT-/;
-const ID_DINAS = /^HR-TRQ-/;
+const OVERTIME_ID_PREFIX = /^OT-/;
+const TRIP_ID_PREFIX = /^HR-TRQ-/;
 const ID_WFH = /^WFH-/;
 
-const jamMenitServer = (m: number) =>
+const serverHoursMinutes = (m: number) =>
   `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`;
 
-function bentukLembur(r: LemburRow, saya?: string): LeaveRequest {
+function mapOvertime(r: LemburRow, saya?: string): LeaveRequest {
   const st = STATUS_SERVER[r.status] ?? STATUS_SERVER.pending;
   const nama = r.employee_name ?? saya ?? "—";
   return {
     id: r.name,
     employeeId: r.employee ?? "",
     employeeName: nama,
-    employeeInitials: inisial(nama),
+    employeeInitials: initialsOf(nama),
     employeeJobTitle: r.designation
-      ? terjemahkan("designation", r.designation)
+      ? translateServerLabel("designation", r.designation)
       : "",
     type: "lembur",
-    attachments: keLampiran(r.attachments),
-    label: tt("api.lemburLabel", { jam: r.hours, tgl: tanggalPendek(r.date) }),
-    reason: `${jamMenitServer(r.start_minute)}–${jamMenitServer(r.end_minute)} · ${r.note}`,
+    attachments: toAttachment(r.attachments),
+    label: translate("api.lemburLabel", {
+      jam: r.hours,
+      tgl: formatShortDate(r.date),
+    }),
+    reason: `${serverHoursMinutes(r.start_minute)}–${serverHoursMinutes(r.end_minute)} · ${r.note}`,
     delegateName: null,
     stage: st.stage(),
     quota: "—",
@@ -367,24 +376,24 @@ function bentukLembur(r: LemburRow, saya?: string): LeaveRequest {
   };
 }
 
-function bentukDinas(r: DinasRow, saya?: string): LeaveRequest {
+function mapTrip(r: DinasRow, saya?: string): LeaveRequest {
   const st = STATUS_SERVER[r.status] ?? STATUS_SERVER.pending;
   const nama = r.employee_name ?? saya ?? "—";
   return {
     id: r.name,
     employeeId: r.employee ?? "",
     employeeName: nama,
-    employeeInitials: inisial(nama),
+    employeeInitials: initialsOf(nama),
     employeeJobTitle: r.designation
-      ? terjemahkan("designation", r.designation)
+      ? translateServerLabel("designation", r.designation)
       : "",
     type: "dinas_luar",
-    attachments: keLampiran([
+    attachments: toAttachment([
       ...(r.attachments ?? []),
       ...(r.costs ?? []).flatMap((c) => c.attachments ?? []),
     ]),
-    label: tt("api.dinasLabel", { kota: r.destination }),
-    reason: `${periodeCuti(r.from_date, r.to_date)} · ${r.purpose}`,
+    label: translate("api.dinasLabel", { kota: r.destination }),
+    reason: `${formatLeavePeriod(r.from_date, r.to_date)} · ${r.purpose}`,
     delegateName: null,
     stage: st.stage(),
     quota: "—",
@@ -407,21 +416,25 @@ interface WfhRow {
   status: "pending" | "approved" | "rejected";
 }
 
-function bentukWfh(r: WfhRow, saya?: string): LeaveRequest {
+function mapWfh(r: WfhRow, saya?: string): LeaveRequest {
   const st = STATUS_SERVER[r.status] ?? STATUS_SERVER.pending;
   const nama = r.employee_name ?? saya ?? "—";
-  const hari = r.days.map((d) => tt(`hari.${d}` as never)).join(", ");
+  const dayCount = r.days
+    .map((d) => translate(`hari.${d}` as never))
+    .join(", ");
   return {
     id: r.name,
     employeeId: r.employee ?? "",
     employeeName: nama,
-    employeeInitials: inisial(nama),
+    employeeInitials: initialsOf(nama),
     employeeJobTitle: r.designation
-      ? terjemahkan("designation", r.designation)
+      ? translateServerLabel("designation", r.designation)
       : "",
     type: "wfh",
-    label: hari ? tt("api.wfhLabel", { hari }) : tt("api.wfhLabelSemua"),
-    reason: `${periodeCuti(r.from_date, r.to_date)} · ${r.reason}`,
+    label: dayCount
+      ? translate("api.wfhLabel", { hari: dayCount })
+      : translate("api.wfhLabelSemua"),
+    reason: `${formatLeavePeriod(r.from_date, r.to_date)} · ${r.reason}`,
     delegateName: null,
     stage: st.stage(),
     quota: "—",
@@ -439,7 +452,7 @@ const TRANSPORT_SERVER: Record<string, string> = {
   Lainnya: "Bus",
 };
 
-const BIAYA_SERVER: Record<string, string> = {
+const SERVER_EXPENSE_KINDS: Record<string, string> = {
   Transportasi: "Travel",
   Hotel: "Others",
   Konsumsi: "Food",
@@ -448,39 +461,41 @@ const BIAYA_SERVER: Record<string, string> = {
 };
 
 // Pemisah format "kategori|keterangan|nominal;..." tidak boleh ada di isi.
-const bersih = (t: string) => t.replace(/[|;]/g, " ").trim();
+const clean = (t: string) => t.replace(/[|;]/g, " ").trim();
 
-async function ambilLembur(tim: boolean): Promise<LeaveRequest[]> {
+async function fetchOvertime(tim: boolean): Promise<LeaveRequest[]> {
   const res = await get<{ message: LemburRow[] }>(
     "/api/method/hris_get_overtimes",
     tim ? { scope: "team" } : undefined,
   );
-  return res.message.map((r) => bentukLembur(r));
+  return res.message.map((r) => mapOvertime(r));
 }
 
-async function ambilDinas(tim: boolean): Promise<LeaveRequest[]> {
+async function fetchTrips(tim: boolean): Promise<LeaveRequest[]> {
   const res = await get<{ message: DinasRow[] }>(
     "/api/method/hris_get_travel_requests",
     tim ? { scope: "team" } : undefined,
   );
-  return res.message.map((r) => bentukDinas(r));
+  return res.message.map((r) => mapTrip(r));
 }
 
-async function ambilWfh(tim: boolean): Promise<LeaveRequest[]> {
+async function fetchWfh(tim: boolean): Promise<LeaveRequest[]> {
   const res = await get<{ message: WfhRow[] }>(
     "/api/method/hris_get_wfh",
     tim ? { scope: "team" } : undefined,
   );
-  return res.message.map((r) => bentukWfh(r));
+  return res.message.map((r) => mapWfh(r));
 }
 
-const urutBaru = (a: LeaveRequest, b: LeaveRequest) =>
+const newestFirst = (a: LeaveRequest, b: LeaveRequest) =>
   b.createdAt.localeCompare(a.createdAt);
 
 // Lampiran pengajuan cuti diambil sekali untuk semua pengajuan sekaligus.
-async function lampiranCuti(daftar: LeaveRequest[]): Promise<LeaveRequest[]> {
-  const nama = daftar.map((r) => r.id).filter((id) => id.startsWith("HR-LAP"));
-  if (nama.length === 0) return daftar;
+async function fetchLeaveAttachments(
+  list: LeaveRequest[],
+): Promise<LeaveRequest[]> {
+  const nama = list.map((r) => r.id).filter((id) => id.startsWith("HR-LAP"));
+  if (nama.length === 0) return list;
   try {
     const res = await get<{
       data: { file_name: string; file_url: string; attached_to_name: string }[];
@@ -492,23 +507,23 @@ async function lampiranCuti(daftar: LeaveRequest[]): Promise<LeaveRequest[]> {
       fields: ["file_name", "file_url", "attached_to_name"],
       limit_page_length: 200,
     });
-    const peta = new Map<string, { name: string; url: string }[]>();
+    const labelMap = new Map<string, { name: string; url: string }[]>();
     for (const f of res.data) {
-      peta.set(f.attached_to_name, [
-        ...(peta.get(f.attached_to_name) ?? []),
+      labelMap.set(f.attached_to_name, [
+        ...(labelMap.get(f.attached_to_name) ?? []),
         { name: f.file_name, url: f.file_url },
       ]);
     }
-    return daftar.map((r) =>
-      peta.has(r.id) ? { ...r, attachments: peta.get(r.id) } : r,
+    return list.map((r) =>
+      labelMap.has(r.id) ? { ...r, attachments: labelMap.get(r.id) } : r,
     );
   } catch {
     // Lampiran hanya pelengkap; gagal memuatnya tidak boleh menggagalkan daftar.
-    return daftar;
+    return list;
   }
 }
 
-async function ambilMenunggu(): Promise<LeaveRequest[]> {
+async function fetchPending(): Promise<LeaveRequest[]> {
   const { message: email } = await get<{ message: string }>(
     "/api/method/frappe.auth.get_logged_user",
   );
@@ -525,10 +540,10 @@ async function ambilMenunggu(): Promise<LeaveRequest[]> {
       limit_page_length: 50,
     },
   );
-  return lampiranCuti(res.data.map(bentukPengajuan));
+  return fetchLeaveAttachments(res.data.map(mapSubmission));
 }
 
-async function ambilMilikSendiri(employeeId: string): Promise<LeaveRequest[]> {
+async function fetchOwn(employeeId: string): Promise<LeaveRequest[]> {
   const res = await get<{ data: LeaveRow[] }>(
     `/api/resource/${encodeURIComponent("Leave Application")}`,
     {
@@ -541,25 +556,25 @@ async function ambilMilikSendiri(employeeId: string): Promise<LeaveRequest[]> {
       limit_page_length: 3,
     },
   );
-  return res.data.map(bentukPengajuan);
+  return res.data.map(mapSubmission);
 }
 
 // Unggah satu berkas ke upload_file. fetch bawaan Expo tidak menerima bentuk
 // {uri,name,type} khas React Native, jadi isinya dibaca lewat expo-file-system
 // dan dikirim sebagai bagian multipart biasa (objek dengan bytes()).
-async function unggahBerkas(
-  f: BerkasLampiran,
+async function uploadFile(
+  f: AttachmentFile,
   doctype: string,
   docname: string,
   fieldname: string,
 ): Promise<void> {
-  const sumber = new FileFs(f.uri);
+  const source = new FileFs(f.uri);
   const form = new FormData();
   // fetch Expo meng-encode nama berkas (spasi jadi %20), jadi dibersihkan dulu.
   form.append("file", {
     name: f.name.replace(/[^\w.\-]+/g, "_"),
     type: f.mimeType || "application/octet-stream",
-    bytes: () => sumber.bytes(),
+    bytes: () => source.bytes(),
   } as unknown as Blob);
   form.append("is_private", "1");
   form.append("doctype", doctype);
@@ -570,20 +585,20 @@ async function unggahBerkas(
 
 // Lampiran dikirim setelah dokumennya ada. Satu yang gagal tidak menggagalkan
 // pengajuan; jumlah yang gagal dikembalikan supaya pengguna diberi tahu.
-async function lampirkanSemua(
+async function attachAll(
   doctype: string,
   docname: string,
-  daftar: { f: BerkasLampiran; field: string }[],
+  list: { f: AttachmentFile; field: string }[],
 ): Promise<number> {
-  let gagal = 0;
-  for (const { f, field } of daftar) {
+  let hasFailed = 0;
+  for (const { f, field } of list) {
     try {
-      await unggahBerkas(f, doctype, docname, field);
+      await uploadFile(f, doctype, docname, field);
     } catch {
-      gagal += 1;
+      hasFailed += 1;
     }
   }
-  return gagal;
+  return hasFailed;
 }
 
 // ---- Dokumen Digital dan Appraisal ----
@@ -603,14 +618,14 @@ interface DokumenRow {
   rejection_reason?: string | null;
 }
 
-const KATEGORI_DOK: Record<DokumenRow["category"], DocCategory> = {
+const DOC_CATEGORIES: Record<DokumenRow["category"], DocCategory> = {
   Contract: "kontrak",
   Decree: "sk",
   Certificate: "sertifikat",
   Identity: "identitas",
 };
 
-const KATEGORI_DOK_SERVER: Record<DocCategory, DokumenRow["category"]> = {
+const SERVER_DOC_CATEGORIES: Record<DocCategory, DokumenRow["category"]> = {
   kontrak: "Contract",
   sk: "Decree",
   sertifikat: "Certificate",
@@ -618,14 +633,17 @@ const KATEGORI_DOK_SERVER: Record<DocCategory, DokumenRow["category"]> = {
 };
 
 // Hitungan hari kalender dari hari ini; negatif = sudah lewat.
-function hariKe(iso: string): number {
-  const hari = fromISODate(toISODate(new Date()));
-  return Math.round((fromISODate(iso).getTime() - hari.getTime()) / 86400000);
+function daysUntil(iso: string): number {
+  const dayCount = fromISODate(toISODate(new Date()));
+  return Math.round(
+    (fromISODate(iso).getTime() - dayCount.getTime()) / 86400000,
+  );
 }
 
-function bentukDokumen(r: DokumenRow): EmployeeDocument {
-  const sisa = r.expires_on ? hariKe(r.expires_on) : null;
-  const hampirHabis = r.status === "Verified" && sisa !== null && sisa <= 60;
+function mapDocument(r: DokumenRow): EmployeeDocument {
+  const remainder = r.expires_on ? daysUntil(r.expires_on) : null;
+  const isExpiringSoon =
+    r.status === "Verified" && remainder !== null && remainder <= 60;
   const status: DocStatus =
     r.status === "Rejected"
       ? "rejected"
@@ -633,24 +651,26 @@ function bentukDokumen(r: DokumenRow): EmployeeDocument {
         ? "changeRequested"
         : r.status === "Pending"
           ? "pending"
-          : hampirHabis
+          : isExpiringSoon
             ? "expiring"
             : "verified";
-  const dateLabel = hampirHabis
-    ? sisa! < 0
-      ? tt("doc.sudahBerakhir")
-      : tt("doc.berakhirHari", { n: sisa! })
+  const dateLabel = isExpiringSoon
+    ? remainder! < 0
+      ? translate("doc.sudahBerakhir")
+      : translate("doc.berakhirHari", { n: remainder! })
     : r.expires_on
-      ? tt("doc.berlakuSd", { tgl: tanggalPendekTahun(r.expires_on) })
-      : tt("doc.diunggah", {
-          tgl: r.uploaded_on ? tanggalPendekTahun(r.uploaded_on) : "—",
+      ? translate("doc.berlakuSd", {
+          tgl: formatShortDateWithYear(r.expires_on),
+        })
+      : translate("doc.diunggah", {
+          tgl: r.uploaded_on ? formatShortDateWithYear(r.uploaded_on) : "—",
         });
   return {
     id: r.name,
-    category: KATEGORI_DOK[r.category] ?? "sertifikat",
+    category: DOC_CATEGORIES[r.category] ?? "sertifikat",
     ext: r.ext ?? "FILE",
     name: r.document_name,
-    sizeLabel: r.size_bytes ? ukuranFile(r.size_bytes) : "—",
+    sizeLabel: r.size_bytes ? formatFileSize(r.size_bytes) : "—",
     dateLabel,
     status,
     fileUrl: r.file_url ?? null,
@@ -662,11 +682,11 @@ function bentukDokumen(r: DokumenRow): EmployeeDocument {
   };
 }
 
-async function ambilDokumen(): Promise<EmployeeDocument[]> {
+async function fetchDocuments(): Promise<EmployeeDocument[]> {
   const res = await get<{ message: DokumenRow[] }>(
     "/api/method/hris_get_my_documents",
   );
-  return res.message.map(bentukDokumen);
+  return res.message.map(mapDocument);
 }
 
 interface ReviewRow extends DokumenRow {
@@ -694,7 +714,7 @@ const RATING: Record<string, Kunci> = {
   Poor: "rate.Poor",
 };
 
-const BADGE_KEPUTUSAN: Record<
+const DECISION_BADGES: Record<
   string,
   { label: Kunci; tone: FeedItem["tone"] }
 > = {
@@ -703,15 +723,15 @@ const BADGE_KEPUTUSAN: Record<
   menunggu: { label: "st.menunggu", tone: "warn" },
 };
 
-function keFeed(r: LeaveRequest, untukApprover: boolean): FeedItem {
-  const badge = BADGE_KEPUTUSAN[r.decision ?? "menunggu"]!;
+function toFeedItem(r: LeaveRequest, forApprover: boolean): FeedItem {
+  const badge = DECISION_BADGES[r.decision ?? "menunggu"]!;
   return {
     id: r.id,
     // Approver melihat siapa pemohonnya; pemohon melihat inisialnya sendiri.
-    initials: untukApprover ? r.employeeInitials : r.approverInitials,
-    title: untukApprover ? `${r.employeeName} · ${r.label}` : r.label,
+    initials: forApprover ? r.employeeInitials : r.approverInitials,
+    title: forApprover ? `${r.employeeName} · ${r.label}` : r.label,
     subtitle: r.reason,
-    badge: tt(badge.label),
+    badge: translate(badge.label),
     tone: badge.tone,
     createdAt: r.createdAt,
   };
@@ -740,29 +760,31 @@ interface StaffRow {
   };
 }
 
-function teksKepegawaian(r: StaffRow): string {
-  if (r.employment_type !== "Contract") return tt("api.permanen");
-  if (!r.contract_end_date) return tt("api.kontrak");
-  const [tahun] = r.contract_end_date.split("-").map(Number);
-  return tt("api.kontrakSd", {
-    bulan: namaBulan(fromISODate(r.contract_end_date)),
-    tahun: tahun!,
+function employmentText(r: StaffRow): string {
+  if (r.employment_type !== "Contract") return translate("api.permanen");
+  if (!r.contract_end_date) return translate("api.kontrak");
+  const [yearValue] = r.contract_end_date.split("-").map(Number);
+  return translate("api.kontrakSd", {
+    bulan: getMonthName(fromISODate(r.contract_end_date)),
+    tahun: yearValue!,
   });
 }
 
-function bentukStaff(r: StaffRow): Staff {
+function mapStaff(r: StaffRow): Staff {
   return {
     id: r.name,
-    initials: inisial(r.employee_name),
+    initials: initialsOf(r.employee_name),
     fullName: r.employee_name,
-    jobTitle: r.designation ? terjemahkan("designation", r.designation) : "—",
-    department: tanpaSufiks(r.department),
+    jobTitle: r.designation
+      ? translateServerLabel("designation", r.designation)
+      : "—",
+    department: withoutSuffix(r.department),
     code: r.employee_number ?? r.name,
     status: r.employment_type === "Contract" ? "Kontrak" : "Tetap",
-    employment: teksKepegawaian(r),
+    employment: employmentText(r),
     joinDate: r.date_of_joining ?? "",
     manager: r.reports_to_name ?? "—",
-    shift: r.shift ? terjemahkan("shift", r.shift) : "—",
+    shift: r.shift ? translateServerLabel("shift", r.shift) : "—",
     email: r.company_email ?? "—",
     phone: r.cell_number ?? "—",
     leaveLeft: r.leave_left ?? 0,
@@ -772,7 +794,7 @@ function bentukStaff(r: StaffRow): Staff {
       state: r.today.state ?? "belum",
       checkIn: r.today.check_in,
       checkOut: r.today.check_out,
-      label: terjemahkan("attendanceLabel", r.today.label),
+      label: translateServerLabel("attendanceLabel", r.today.label),
     },
   };
 }
@@ -789,8 +811,8 @@ interface KontakRow {
 
 // Parameter form-encoded untuk menyimpan/mengajukan data pribadi. Daftar dikirim
 // sebagai teks: kontak "nama|relasi|telepon;...", keluarga "nama|relasi|tgl|0/1;...".
-function paramProfil(data: EditableProfile) {
-  const bersih = (x: string) => x.replace(/[|;]/g, " ").trim();
+function profileParams(data: EditableProfile) {
+  const clean = (x: string) => x.replace(/[|;]/g, " ").trim();
   return {
     phone: data.phone,
     marital_status: data.maritalStatus,
@@ -799,7 +821,7 @@ function paramProfil(data: EditableProfile) {
     family: data.family
       .map((m) =>
         [
-          bersih(m.name),
+          clean(m.name),
           m.relation,
           m.birthDate ?? "",
           m.dependent ? "1" : "0",
@@ -807,7 +829,7 @@ function paramProfil(data: EditableProfile) {
       )
       .join(";"),
     emergency_contacts: data.contacts
-      .map((k) => [k.name, k.relation, k.phone].map(bersih).join("|"))
+      .map((k) => [k.name, k.relation, k.phone].map(clean).join("|"))
       .join(";"),
   };
 }
@@ -825,7 +847,7 @@ interface ChangeRow {
   department?: string | null;
 }
 
-function bentukPerubahan(r: ChangeRow): ProfileChange {
+function mapChange(r: ChangeRow): ProfileChange {
   return {
     id: r.name,
     status: r.status,
@@ -836,9 +858,9 @@ function bentukPerubahan(r: ChangeRow): ProfileChange {
     decidedOn: r.decided_on ? r.decided_on.slice(0, 10) : null,
     employeeName: r.employee_name,
     designation: r.designation
-      ? terjemahkan("designation", r.designation)
+      ? translateServerLabel("designation", r.designation)
       : undefined,
-    department: r.department ? tanpaSufiks(r.department) : undefined,
+    department: r.department ? withoutSuffix(r.department) : undefined,
   };
 }
 
@@ -872,30 +894,30 @@ interface ProfileRow {
   }[];
 }
 
-const JENIS_KELAMIN: Record<string, Kunci> = {
+const GENDERS: Record<string, Kunci> = {
   Male: "api.lakiLaki",
   Female: "api.perempuan",
 };
 
-const STATUS_NIKAH: Record<string, Kunci> = {
+const MARITAL_STATUSES: Record<string, Kunci> = {
   Single: "api.belumMenikah",
   Married: "api.menikah",
   Divorced: "api.ceraiHidup",
   Widowed: "api.ceraiMati",
 };
 
-function bentukProfil(r: ProfileRow): PersonalProfile {
+function mapProfile(r: ProfileRow): PersonalProfile {
   return {
     fullName: r.employee_name,
     // NIK, NPWP, dan PTKP tidak punya sumber di ERPNext, jadi tidak dikarang.
     nikMasked: "—",
     birthPlace: r.place_of_birth ?? "—",
     birthDate: r.date_of_birth ?? "",
-    gender: JENIS_KELAMIN[r.gender ?? ""]
-      ? tt(JENIS_KELAMIN[r.gender ?? ""]!)
+    gender: GENDERS[r.gender ?? ""]
+      ? translate(GENDERS[r.gender ?? ""]!)
       : (r.gender ?? "—"),
-    maritalStatus: STATUS_NIKAH[r.marital_status ?? ""]
-      ? tt(STATUS_NIKAH[r.marital_status ?? ""]!)
+    maritalStatus: MARITAL_STATUSES[r.marital_status ?? ""]
+      ? translate(MARITAL_STATUSES[r.marital_status ?? ""]!)
       : (r.marital_status ?? "—"),
     religion: r.religion ?? "—",
     npwpMasked: "—",
@@ -905,7 +927,7 @@ function bentukProfil(r: ProfileRow): PersonalProfile {
     primaryEmergency: {
       name: r.emergency.name ?? "—",
       relation: r.emergency.relation
-        ? terjemahkan("relation", r.emergency.relation)
+        ? translateServerLabel("relation", r.emergency.relation)
         : "—",
       phone: r.emergency.phone ?? "—",
     },
@@ -949,7 +971,7 @@ function namaBrowser(ua: string): string {
         ? "Chrome"
         : /safari\//i.test(ua)
           ? "Safari"
-          : tt("api.browser");
+          : translate("api.browser");
   const os = /windows/i.test(ua)
     ? "Windows"
     : /mac os x|macintosh/i.test(ua)
@@ -964,22 +986,26 @@ function namaBrowser(ua: string): string {
   return os ? `${browser} · ${os}` : browser;
 }
 
-function bentukPerangkat(
+function mapDevice(
   s: SesiRow,
-  jumlah = 1,
+  count = 1,
   sessionIds: string[] = [s.id],
 ): ActiveDevice {
   const ua = s.user_agent ?? "";
   const mobile = /expo|cfnetwork|okhttp|dalvik/i.test(ua);
-  const waktu = s.last_updated ? s.last_updated.slice(0, 16) : "";
+  const formatTime = s.last_updated ? s.last_updated.slice(0, 16) : "";
   return {
     id: s.id,
     name: mobile
-      ? tt("api.appHris")
+      ? translate("api.appHris")
       : ua
         ? namaBrowser(ua)
-        : tt("api.perangkat"),
-    meta: [s.ip ?? "—", waktu, jumlah > 1 ? tt("sec.nSesi", { n: jumlah }) : ""]
+        : translate("api.perangkat"),
+    meta: [
+      s.ip ?? "—",
+      formatTime,
+      count > 1 ? translate("sec.nSesi", { n: count }) : "",
+    ]
       .filter(Boolean)
       .join(" · "),
     kind: mobile ? "mobile" : "web",
@@ -988,30 +1014,30 @@ function bentukPerangkat(
   };
 }
 
-async function ambilPerangkat(): Promise<ActiveDevice[]> {
+async function fetchDevices(): Promise<ActiveDevice[]> {
   const res = await get<{ message: SesiRow[] }>(
     "/api/method/hris_get_active_sessions",
   );
   // Satu baris per perangkat: sesi dengan jenis, nama tampilan, dan IP yang sama
   // digabung (versi user agent yang sedikit berbeda tetap dianggap satu),
   // diwakili sesi terbarunya (atau sesi perangkat ini bila termasuk).
-  const grup = new Map<string, SesiRow[]>();
+  const groups = new Map<string, SesiRow[]>();
   for (const s of res.message) {
-    const d = bentukPerangkat(s);
+    const d = mapDevice(s);
     const k = `${d.kind}|${d.name}|${s.ip ?? ""}`;
-    grup.set(k, [...(grup.get(k) ?? []), s]);
+    groups.set(k, [...(groups.get(k) ?? []), s]);
   }
-  return [...grup.values()]
-    .map((daftar) => {
-      const wakil =
-        daftar.find((s) => s.current) ??
-        [...daftar].sort((a, b) =>
+  return [...groups.values()]
+    .map((list) => {
+      const deputy =
+        list.find((s) => s.current) ??
+        [...list].sort((a, b) =>
           (b.last_updated ?? "").localeCompare(a.last_updated ?? ""),
         )[0]!;
-      return bentukPerangkat(
-        wakil,
-        daftar.length,
-        daftar.map((x) => x.id),
+      return mapDevice(
+        deputy,
+        list.length,
+        list.map((x) => x.id),
       );
     })
     .sort((a, b) => Number(b.current) - Number(a.current));
@@ -1019,12 +1045,12 @@ async function ambilPerangkat(): Promise<ActiveDevice[]> {
 
 // Daftar perangkat asli; verifikasi wajah dan toggle masih dari mock sampai
 // fase ML Kit.
-async function ambilInfoKeamanan(employeeId: string): Promise<SecurityInfo> {
-  const [dasar, devices] = await Promise.all([
+async function fetchSecurityInfo(employeeId: string): Promise<SecurityInfo> {
+  const [baseName, devices] = await Promise.all([
     mockApi.getSecurityInfo(employeeId),
-    ambilPerangkat(),
+    fetchDevices(),
   ]);
-  return { ...dasar, devices };
+  return { ...baseName, devices };
 }
 
 interface NotifRow {
@@ -1041,18 +1067,21 @@ interface NotifRow {
   file_url?: string | null;
 }
 
-function bentukNotifikasi(r: NotifRow): AppNotification {
-  const [tanggal, jam = ""] = r.time.split("T");
-  const hari = toISODate(new Date());
-  const kemarin = toISODate(new Date(Date.now() - 24 * 60 * 60 * 1000));
+function mapNotification(r: NotifRow): AppNotification {
+  const [date, jam = ""] = r.time.split("T");
+  const dayCount = toISODate(new Date());
+  const yesterday = toISODate(new Date(Date.now() - 24 * 60 * 60 * 1000));
   const hhmm = jam.slice(0, 5);
-  const { title, body } = terjemahkanNotifikasi(r.subject, r.body ?? "");
+  const { title, body } = translateNotification(r.subject, r.body ?? "");
   const [group, timeLabel] =
-    tanggal === hari
-      ? [tt("notif.hariIni"), hhmm]
-      : tanggal === kemarin
-        ? [tt("notif.kemarin"), `${tt("notif.kemarin")} ${hhmm}`]
-        : [tt("notif.sebelumnya"), `${tanggalPendekTahun(tanggal!)} ${hhmm}`];
+    date === dayCount
+      ? [translate("notif.hariIni"), hhmm]
+      : date === yesterday
+        ? [translate("notif.kemarin"), `${translate("notif.kemarin")} ${hhmm}`]
+        : [
+            translate("notif.sebelumnya"),
+            `${formatShortDateWithYear(date!)} ${hhmm}`,
+          ];
   return {
     id: r.name,
     title,
@@ -1069,7 +1098,7 @@ function bentukNotifikasi(r: NotifRow): AppNotification {
   };
 }
 
-const NAMA_KEPEGAWAIAN: Record<string, Kunci> = {
+const EMPLOYMENT_NAMES: Record<string, Kunci> = {
   "Full-time": "api.permanen",
   Contract: "api.kontrak",
 };
@@ -1099,37 +1128,37 @@ interface AttendanceRow {
 }
 
 // Status jam terakhir yang berhasil dibaca; dipakai bila layar dibuka tanpa sinyal.
-let statusTerakhir: ClockState | null = null;
+let lastStatus: ClockState | null = null;
 
-const jamLokal = (ms: number) => {
+const localTime = (ms: number) => {
   const d = new Date(ms);
   return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
 };
 
 // Status sementara dari antrean offline: memperlihatkan hasil ketukan karyawan
 // walau server belum menerimanya.
-async function statusDariAntrean(): Promise<ClockState | null> {
-  const daftar = await ambilAntrean();
-  const terakhir = daftar.at(-1);
-  if (!terakhir) return statusTerakhir;
-  const jam = jamLokal(terakhir.capturedMs || terakhir.deviceMs);
+async function statusFromQueue(): Promise<ClockState | null> {
+  const list = await getQueue();
+  const lastLocation = list.at(-1);
+  if (!lastLocation) return lastStatus;
+  const jam = localTime(lastLocation.capturedMs || lastLocation.deviceMs);
   return {
-    clockedIn: terakhir.logType === "IN",
+    clockedIn: lastLocation.logType === "IN",
     lastCheckIn:
-      terakhir.logType === "IN" ? jam : (statusTerakhir?.lastCheckIn ?? null),
-    lastCheckOut: terakhir.logType === "OUT" ? jam : null,
-    timezoneLabel: statusTerakhir?.timezoneLabel,
-    workLocation: statusTerakhir?.workLocation ?? null,
+      lastLocation.logType === "IN" ? jam : (lastStatus?.lastCheckIn ?? null),
+    lastCheckOut: lastLocation.logType === "OUT" ? jam : null,
+    timezoneLabel: lastStatus?.timezoneLabel,
+    workLocation: lastStatus?.workLocation ?? null,
     pendingOffline: true,
-    shiftName: statusTerakhir?.shiftName ?? null,
-    shiftStart: statusTerakhir?.shiftStart ?? null,
-    shiftEnd: statusTerakhir?.shiftEnd ?? null,
-    lateGraceMin: statusTerakhir?.lateGraceMin,
-    earlyGraceMin: statusTerakhir?.earlyGraceMin,
+    shiftName: lastStatus?.shiftName ?? null,
+    shiftStart: lastStatus?.shiftStart ?? null,
+    shiftEnd: lastStatus?.shiftEnd ?? null,
+    lateGraceMin: lastStatus?.lateGraceMin,
+    earlyGraceMin: lastStatus?.earlyGraceMin,
   };
 }
 
-async function ambilStatusJam(): Promise<ClockState> {
+async function fetchClockStatus(): Promise<ClockState> {
   try {
     const r = await get<ClockRes>("/api/method/hris_get_clock_state");
     const status: ClockState = {
@@ -1144,23 +1173,23 @@ async function ambilStatusJam(): Promise<ClockState> {
       lateGraceMin: r.message.late_grace_min ?? 0,
       earlyGraceMin: r.message.early_grace_min ?? 0,
     };
-    statusTerakhir = status;
+    lastStatus = status;
     return status;
   } catch (e) {
     // Tanpa sinyal: tampilkan keadaan terakhir yang diketahui beserta antrean.
     if (e instanceof ApiError && e.status === 0) {
-      const sementara = await statusDariAntrean();
-      if (sementara) return sementara;
+      const temporary = await statusFromQueue();
+      if (temporary) return temporary;
     }
     throw e;
   }
 }
 
-const idKlien = () =>
+const clientKey = () =>
   `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
 
-async function kirimItem(i: ItemAntrean, offline: boolean) {
-  const dev = await infoPerangkat();
+async function sendItem(i: QueueItem, offline: boolean) {
+  const dev = await getDeviceInfo();
   await post("/api/method/hris_checkin", {
     log_type: i.logType,
     device_id: dev.id,
@@ -1195,16 +1224,16 @@ async function kirimItem(i: ItemAntrean, offline: boolean) {
   });
 }
 
-async function kirimCheckin(
+async function sendCheckin(
   _employeeId: string,
   logType: "IN" | "OUT",
-  lokasi?: LokasiCheckin,
+  lokasi?: CheckinLocation,
   faceVec?: number[],
   spoof?: { mean: number; scores: number[] },
 ) {
-  const t = waktuTerpercaya();
-  const item: ItemAntrean = {
-    clientId: idKlien(),
+  const t = getTrustedTime();
+  const item: QueueItem = {
+    clientId: clientKey(),
     logType,
     capturedMs: t.ms,
     deviceMs: Date.now(),
@@ -1217,50 +1246,50 @@ async function kirimCheckin(
   try {
     // Jam ditentukan server menurut zona kerja; client_id mencegah check-in
     // dobel bila jawabannya hilang di jalan lalu item dikirim ulang dari antrean.
-    await kirimItem(item, false);
+    await sendItem(item, false);
   } catch (e) {
     if (e instanceof ApiError && e.status === 0) {
       await antre(item);
-      const sementara = await statusDariAntrean();
-      if (sementara) return sementara;
+      const temporary = await statusFromQueue();
+      if (temporary) return temporary;
     }
     throw e;
   }
-  return ambilStatusJam();
+  return fetchClockStatus();
 }
 
-let sedangSinkron = false;
+let isSyncing = false;
 
 // Mengirim antrean berurutan. Berhenti di galat jaringan (coba lagi nanti);
 // item yang ditolak server (4xx) dibuang supaya antrean tidak macet selamanya.
-async function sinkronAntrean(): Promise<{ sent: number; remaining: number }> {
-  if (sedangSinkron) return { sent: 0, remaining: await jumlahAntrean() };
-  sedangSinkron = true;
-  let terkirim = 0;
+async function syncQueue(): Promise<{ sent: number; remaining: number }> {
+  if (isSyncing) return { sent: 0, remaining: await getQueueCount() };
+  isSyncing = true;
+  let isSubmitted = 0;
   try {
-    for (const item of [...(await ambilAntrean())]) {
+    for (const item of [...(await getQueue())]) {
       try {
-        await kirimItem(item, true);
-        await hapusDariAntrean(item.clientId);
-        terkirim += 1;
+        await sendItem(item, true);
+        await removeFromQueue(item.clientId);
+        isSubmitted += 1;
       } catch (e) {
         if (e instanceof ApiError && e.status === 0) break;
         if (e instanceof ApiError && e.status >= 400 && e.status < 500) {
-          await hapusDariAntrean(item.clientId);
+          await removeFromQueue(item.clientId);
           continue;
         }
         break;
       }
     }
   } finally {
-    sedangSinkron = false;
+    isSyncing = false;
   }
-  if (terkirim > 0) statusTerakhir = null;
-  return { sent: terkirim, remaining: await jumlahAntrean() };
+  if (isSubmitted > 0) lastStatus = null;
+  return { sent: isSubmitted, remaining: await getQueueCount() };
 }
 
 // "Present"/"Absent"/"On Leave" dipetakan ke tiga status yang dikenal layar.
-function bentukAbsensi(r: AttendanceRow): AttendanceRecord {
+function mapAttendance(r: AttendanceRow): AttendanceRecord {
   const status: AttendanceStatus =
     r.status === "On Leave" || r.status === "Absent" || r.status === "Half Day"
       ? "izin"
@@ -1268,12 +1297,12 @@ function bentukAbsensi(r: AttendanceRow): AttendanceRecord {
         ? "telat"
         : "hadir";
   const jam = r.working_hours
-    ? tt("api.durasi", {
+    ? translate("api.durasi", {
         h: Math.floor(r.working_hours),
         m: Math.round((r.working_hours % 1) * 60),
       })
     : r.check_in && !r.check_out
-      ? tt("api.berjalan")
+      ? translate("api.berjalan")
       : null;
   return {
     id: r.date,
@@ -1295,7 +1324,7 @@ interface CorrectionRow {
   attachments?: LampiranRow[];
 }
 
-function bentukKoreksi(
+function mapCorrection(
   r: CorrectionRow,
   employeeId: string,
 ): AttendanceCorrectionRequest {
@@ -1307,7 +1336,7 @@ function bentukKoreksi(
     requestedCheckOut: r.check_out,
     reason: r.reason,
     status: r.status,
-    attachments: keLampiran(r.attachments),
+    attachments: toAttachment(r.attachments),
   };
 }
 
@@ -1324,30 +1353,30 @@ interface SlipRow {
 }
 
 // Nomor rekening penuh tidak ditampilkan di layar: hanya empat digit terakhir.
-function samarkanRekening(no: string | null): string {
+function maskAccount(no: string | null): string {
   return no ? `•••• ${no.slice(-4)}` : "—";
 }
 
-function bentukSlip(r: SlipRow): Payslip {
-  const [tahun, bulan] = r.start_date.split("-").map(Number);
-  const nama = namaBulan(new Date(tahun!, bulan! - 1, 1));
+function mapPayslip(r: SlipRow): Payslip {
+  const [yearValue, month] = r.start_date.split("-").map(Number);
+  const nama = getMonthName(new Date(yearValue!, month! - 1, 1));
   return {
     id: r.name,
-    period: `${nama} ${tahun}`,
-    monthShort: namaBulan(new Date(tahun!, bulan! - 1, 1))
+    period: `${nama} ${yearValue}`,
+    monthShort: getMonthName(new Date(yearValue!, month! - 1, 1))
       .slice(0, 3)
       .toUpperCase(),
     // Belum ada sumber untuk "Termasuk THR"; slip dianggap reguler.
-    note: tt("api.reguler"),
-    status: tt("api.diterbitkan"),
-    bankAccount: samarkanRekening(r.bank_account_no),
-    paidAt: tanggalPendekTahun(r.posting_date),
+    note: translate("api.reguler"),
+    status: translate("api.diterbitkan"),
+    bankAccount: maskAccount(r.bank_account_no),
+    paidAt: formatShortDateWithYear(r.posting_date),
     earnings: r.earnings.map((e) => ({
-      label: terjemahkan("salaryComponent", e.salary_component),
+      label: translateServerLabel("salaryComponent", e.salary_component),
       amount: e.amount,
     })),
     deductions: r.deductions.map((d) => ({
-      label: terjemahkan("salaryComponent", d.salary_component),
+      label: translateServerLabel("salaryComponent", d.salary_component),
       amount: d.amount,
     })),
     grossPay: r.gross_pay,
@@ -1378,7 +1407,7 @@ export const erpnextApi: HrisApi = {
   async login(email: string, password: string): Promise<Employee> {
     await post("/api/method/login", { usr: email, pwd: password });
     try {
-      return await ambilKaryawanSaatIni();
+      return await fetchCurrentEmployee();
     } catch (e) {
       // Jangan biarkan sesi di server hidup padahal aplikasi menganggap
       // login gagal.
@@ -1388,7 +1417,7 @@ export const erpnextApi: HrisApi = {
   },
 
   async registerDevice() {
-    const dev = await infoPerangkat();
+    const dev = await getDeviceInfo();
     const r = await post<{
       message: { status: "Approved" | "Pending" | "Rejected" | "Unknown" };
     }>("/api/method/hris_register_device", {
@@ -1400,12 +1429,12 @@ export const erpnextApi: HrisApi = {
   },
 
   async getCurrentEmployee(): Promise<Employee> {
-    return ambilKaryawanSaatIni();
+    return fetchCurrentEmployee();
   },
 
   async logout(): Promise<void> {
     // Token dilepas dulu selagi sesi masih berlaku; gagal tidak boleh menahan logout.
-    const token = tokenPushSaatIni();
+    const token = getCurrentPushToken();
     if (token) {
       await post("/api/method/hris_unregister_push_token", { token }).catch(
         () => {},
@@ -1415,36 +1444,37 @@ export const erpnextApi: HrisApi = {
   },
 
   async getDocuments(): Promise<EmployeeDocument[]> {
-    return ambilDokumen();
+    return fetchDocuments();
   },
 
   // Dua langkah: buat dokumen (employee dari sesi), lalu lampirkan file lewat
   // upload_file. Batas 5 MB dan tipe pdf/jpg/png dijaga server.
   async uploadDocument(_employeeId, input) {
-    if (!input.file) throw new ApiError(tt("err.dokumenGagal"), 0, "NoFile");
-    const dibuat = await post<{ message: { name: string } }>(
+    if (!input.file)
+      throw new ApiError(translate("err.dokumenGagal"), 0, "NoFile");
+    const createdAt = await post<{ message: { name: string } }>(
       "/api/method/hris_create_my_document",
       {
         document_name: input.name,
-        category: KATEGORI_DOK_SERVER[input.category],
+        category: SERVER_DOC_CATEGORIES[input.category],
         expires_on: input.expiresOn,
       },
     );
     try {
-      await unggahBerkas(
+      await uploadFile(
         input.file,
         "Employee Document",
-        dibuat.message.name,
+        createdAt.message.name,
         "file",
       );
     } catch (e) {
       // Dokumen tanpa berkas tidak berguna; dihapus supaya tidak muncul dobel saat diulang.
       await post("/api/method/hris_delete_my_document", {
-        name: dibuat.message.name,
+        name: createdAt.message.name,
       }).catch(() => {});
       throw e;
     }
-    return ambilDokumen();
+    return fetchDocuments();
   },
 
   async getAppraisal(): Promise<Appraisal | null> {
@@ -1459,7 +1489,7 @@ export const erpnextApi: HrisApi = {
       method: a.method,
       score: a.score,
       maxScore: a.max_score,
-      rating: RATING[a.rating] ? tt(RATING[a.rating]!) : a.rating,
+      rating: RATING[a.rating] ? translate(RATING[a.rating]!) : a.rating,
       ratingTone: a.rating_tone,
       raters: a.raters,
       goals: a.goals.map((g) => ({
@@ -1510,7 +1540,7 @@ export const erpnextApi: HrisApi = {
   },
 
   async getLeaveBalances(employeeId: string): Promise<LeaveBalance[]> {
-    return ambilSaldo(employeeId);
+    return fetchBalances(employeeId);
   },
 
   async getLeaveRequests(employeeId: string): Promise<LeaveRequest[]> {
@@ -1526,13 +1556,13 @@ export const erpnextApi: HrisApi = {
         limit_page_length: 50,
       },
     );
-    const [lembur, dinas, wfh] = await Promise.all([
-      ambilLembur(false),
-      ambilDinas(false),
-      ambilWfh(false),
+    const [overtime, trip, wfh] = await Promise.all([
+      fetchOvertime(false),
+      fetchTrips(false),
+      fetchWfh(false),
     ]);
-    const cuti = await lampiranCuti(res.data.map(bentukPengajuan));
-    return [...cuti, ...lembur, ...dinas, ...wfh].sort(urutBaru);
+    const leave = await fetchLeaveAttachments(res.data.map(mapSubmission));
+    return [...leave, ...overtime, ...trip, ...wfh].sort(newestFirst);
   },
 
   // Pemanggil dikenali server dari sesinya, jadi employeeId tidak dikirim.
@@ -1546,9 +1576,11 @@ export const erpnextApi: HrisApi = {
     }>("/api/method/hris_get_colleagues");
     return res.message.map((r) => ({
       id: r.name,
-      initials: inisial(r.employee_name),
+      initials: initialsOf(r.employee_name),
       fullName: r.employee_name,
-      jobTitle: r.designation ? terjemahkan("designation", r.designation) : "—",
+      jobTitle: r.designation
+        ? translateServerLabel("designation", r.designation)
+        : "—",
     }));
   },
 
@@ -1560,14 +1592,14 @@ export const erpnextApi: HrisApi = {
     return {
       id: res.message.email,
       fullName: res.message.name ?? res.message.email,
-      initials: inisial(res.message.name ?? res.message.email),
+      initials: initialsOf(res.message.name ?? res.message.email),
     };
   },
 
   async submitLeaveRequest(input) {
     if (input.type === "lembur") {
       if (!input.overtimeEnd)
-        throw new ApiError(tt("err.dataKurang"), 0, "NoEnd");
+        throw new ApiError(translate("err.dataKurang"), 0, "NoEnd");
       const res = await post<{ message: LemburRow }>(
         "/api/method/hris_submit_overtime",
         {
@@ -1576,14 +1608,14 @@ export const erpnextApi: HrisApi = {
           note: input.reason,
         },
       );
-      const gagal = await lampirkanSemua(
+      const hasFailed = await attachAll(
         "Overtime Request",
         res.message.name,
         (input.attachments ?? []).map((f) => ({ f, field: "proof" })),
       );
       return {
-        ...bentukLembur(res.message, input.employeeId),
-        buktiGagal: gagal || undefined,
+        ...mapOvertime(res.message, input.employeeId),
+        failedProofCount: hasFailed || undefined,
       };
     }
     if (input.type === "wfh") {
@@ -1596,11 +1628,11 @@ export const erpnextApi: HrisApi = {
           reason: input.reason,
         },
       );
-      return bentukWfh(res.message, input.employeeId);
+      return mapWfh(res.message, input.employeeId);
     }
     if (input.type === "dinas_luar") {
       const t = input.travel;
-      if (!t) throw new ApiError(tt("err.dataKurang"), 0, "NoTravel");
+      if (!t) throw new ApiError(translate("err.dataKurang"), 0, "NoTravel");
       const res = await post<{ message: DinasRow }>(
         "/api/method/hris_submit_travel_request",
         {
@@ -1613,38 +1645,38 @@ export const erpnextApi: HrisApi = {
             .filter((x) => x.amount > 0)
             .map(
               (x) =>
-                `${BIAYA_SERVER[x.category] ?? "Others"}|${bersih(x.description)}|${x.amount}`,
+                `${SERVER_EXPENSE_KINDS[x.category] ?? "Others"}|${clean(x.description)}|${x.amount}`,
             )
             .join(";"),
         },
       );
       // Indeks bukti mengikuti urutan baris biaya yang benar-benar dikirim.
-      const terkirim = t.costs.filter((x) => x.amount > 0);
-      const gagal = await lampirkanSemua(
+      const isSubmitted = t.costs.filter((x) => x.amount > 0);
+      const hasFailed = await attachAll(
         "Travel Request",
         res.message.name,
-        terkirim.flatMap((x, n) =>
+        isSubmitted.flatMap((x, n) =>
           x.proof ? [{ f: x.proof, field: `cost_${n}` }] : [],
         ),
       );
       return {
-        ...bentukDinas(res.message, input.employeeId),
-        buktiGagal: gagal || undefined,
+        ...mapTrip(res.message, input.employeeId),
+        failedProofCount: hasFailed || undefined,
       };
     }
-    const jenis = input.leaveType ?? NAMA_JENIS[input.type];
-    if (!jenis) return mockApi.submitLeaveRequest(input);
+    const kind = input.leaveType ?? KIND_NAMES[input.type];
+    if (!kind) return mockApi.submitLeaveRequest(input);
 
     const approver = await this.getLeaveApprover(input.employeeId);
     if (!approver) {
-      throw new ApiError(tt("err.tanpaApprover"), 0, "NoApprover");
+      throw new ApiError(translate("err.tanpaApprover"), 0, "NoApprover");
     }
 
     const res = await post<{ data: LeaveRow }>(
       `/api/resource/${encodeURIComponent("Leave Application")}`,
       {
         employee: input.employeeId,
-        leave_type: jenis,
+        leave_type: kind,
         from_date: input.fromDate,
         to_date: input.toDate,
         description: input.reason,
@@ -1653,40 +1685,40 @@ export const erpnextApi: HrisApi = {
       },
     );
     // Bukti (surat dokter, akta, dll.) dilampirkan setelah pengajuan ada.
-    const gagal = await lampirkanSemua(
+    const gagal = await attachAll(
       "Leave Application",
       res.data.name,
       (input.attachments ?? []).map((f) => ({ f, field: "proof" })),
     );
     return {
-      ...bentukPengajuan(res.data),
-      buktiGagal: gagal || undefined,
+      ...mapSubmission(res.data),
+      failedProofCount: gagal || undefined,
     };
   },
 
   async getPendingApprovals(): Promise<LeaveRequest[]> {
-    const [cuti, lembur, dinas, wfh] = await Promise.all([
-      ambilMenunggu(),
-      ambilLembur(true),
-      ambilDinas(true),
-      ambilWfh(true),
+    const [leave, overtime, trip, wfh] = await Promise.all([
+      fetchPending(),
+      fetchOvertime(true),
+      fetchTrips(true),
+      fetchWfh(true),
     ]);
-    const menunggu = (r: LeaveRequest) => r.decision === null;
+    const isPending = (r: LeaveRequest) => r.decision === null;
     return [
-      ...cuti,
-      ...lembur.filter(menunggu),
-      ...dinas.filter(menunggu),
-      ...wfh.filter(menunggu),
-    ].sort(urutBaru);
+      ...leave,
+      ...overtime.filter(isPending),
+      ...trip.filter(isPending),
+      ...wfh.filter(isPending),
+    ].sort(newestFirst);
   },
 
   async getFeed(employeeId: string, role: Role): Promise<FeedItem[]> {
     if (role === "ess") {
-      return (await ambilMilikSendiri(employeeId)).map((r) => keFeed(r, false));
+      return (await fetchOwn(employeeId)).map((r) => toFeedItem(r, false));
     }
     return (await this.getPendingApprovals(employeeId))
       .slice(0, 3)
-      .map((r) => keFeed(r, true));
+      .map((r) => toFeedItem(r, true));
   },
 
   // Satu PUT: status saja hanya mengubah draft dan tidak memotong saldo,
@@ -1697,17 +1729,17 @@ export const erpnextApi: HrisApi = {
         "/api/method/hris_decide_wfh",
         { name: requestId, decision },
       );
-      return bentukWfh(res.message);
+      return mapWfh(res.message);
     }
-    const lembur = ID_LEMBUR.test(requestId);
-    if (lembur || ID_DINAS.test(requestId)) {
+    const overtime = OVERTIME_ID_PREFIX.test(requestId);
+    if (overtime || TRIP_ID_PREFIX.test(requestId)) {
       const res = await post<{ message: LemburRow & DinasRow }>(
-        lembur
+        overtime
           ? "/api/method/hris_decide_overtime"
           : "/api/method/hris_decide_travel_request",
         { name: requestId, decision },
       );
-      return lembur ? bentukLembur(res.message) : bentukDinas(res.message);
+      return overtime ? mapOvertime(res.message) : mapTrip(res.message);
     }
     const res = await put<{ data: LeaveRow }>(
       `/api/resource/${encodeURIComponent("Leave Application")}/${encodeURIComponent(requestId)}`,
@@ -1716,7 +1748,7 @@ export const erpnextApi: HrisApi = {
         docstatus: 1,
       },
     );
-    return bentukPengajuan(res.data);
+    return mapSubmission(res.data);
   },
 
   // Penyaringan hak akses (HR semua, atasan hanya bawahan) dilakukan Server Script.
@@ -1726,7 +1758,7 @@ export const erpnextApi: HrisApi = {
     }>("/api/method/hris_get_staff_directory");
     return {
       totalActive: res.message.total_active,
-      items: res.message.items.map(bentukStaff),
+      items: res.message.items.map(mapStaff),
     };
   },
 
@@ -1736,15 +1768,15 @@ export const erpnextApi: HrisApi = {
     }>("/api/method/hris_get_employment_summary");
     if (!res.message) return null;
     return res.message.map((s) => ({
-      label: NAMA_KEPEGAWAIAN[s.label]
-        ? tt(NAMA_KEPEGAWAIAN[s.label]!)
+      label: EMPLOYMENT_NAMES[s.label]
+        ? translate(EMPLOYMENT_NAMES[s.label]!)
         : s.label,
       count: s.count,
     }));
   },
 
   async syncOfflineCheckins() {
-    return sinkronAntrean();
+    return syncQueue();
   },
 
   async getOfflineCheckins(status, scope): Promise<OfflineCheckin[]> {
@@ -1772,7 +1804,7 @@ export const erpnextApi: HrisApi = {
       id: r.name,
       employeeName: r.employee_name,
       designation: r.designation
-        ? terjemahkan("designation", r.designation)
+        ? translateServerLabel("designation", r.designation)
         : "",
       logType: r.log_type,
       time: r.time,
@@ -1799,13 +1831,13 @@ export const erpnextApi: HrisApi = {
   },
 
   async getClockState(): Promise<ClockState> {
-    return ambilStatusJam();
+    return fetchClockStatus();
   },
 
-  async getWorkLocations(): Promise<AturanLokasi> {
+  async getWorkLocations(): Promise<GeofenceRule> {
     const res = await get<{
       message: {
-        geofence_mode: AturanLokasi["mode"];
+        geofence_mode: GeofenceRule["mode"];
         max_accuracy_m: number;
         wfh_today: boolean;
         require_location: number;
@@ -1836,20 +1868,20 @@ export const erpnextApi: HrisApi = {
 
   async clockIn(
     employeeId: string,
-    lokasi?: LokasiCheckin,
+    lokasi?: CheckinLocation,
     faceVec?: number[],
     spoof?: { mean: number; scores: number[] },
   ): Promise<ClockState> {
-    return kirimCheckin(employeeId, "IN", lokasi, faceVec, spoof);
+    return sendCheckin(employeeId, "IN", lokasi, faceVec, spoof);
   },
 
   async clockOut(
     employeeId: string,
-    lokasi?: LokasiCheckin,
+    lokasi?: CheckinLocation,
     faceVec?: number[],
     spoof?: { mean: number; scores: number[] },
   ): Promise<ClockState> {
-    return kirimCheckin(employeeId, "OUT", lokasi, faceVec, spoof);
+    return sendCheckin(employeeId, "OUT", lokasi, faceVec, spoof);
   },
 
   async getFaceStatus(): Promise<FaceStatus> {
@@ -1985,7 +2017,7 @@ export const erpnextApi: HrisApi = {
     const res = await get<{ message: AttendanceRow[] }>(
       "/api/method/hris_get_attendance_history",
     );
-    return res.message.map(bentukAbsensi);
+    return res.message.map(mapAttendance);
   },
 
   async getDocumentsForReview(status): Promise<ReviewDocument[]> {
@@ -1997,13 +2029,13 @@ export const erpnextApi: HrisApi = {
       id: r.name,
       employeeName: r.employee_name,
       designation: r.designation
-        ? terjemahkan("designation", r.designation)
+        ? translateServerLabel("designation", r.designation)
         : "",
-      department: tanpaSufiks(r.department),
+      department: withoutSuffix(r.department),
       name: r.document_name,
-      category: KATEGORI_DOK[r.category] ?? "sertifikat",
+      category: DOC_CATEGORIES[r.category] ?? "sertifikat",
       ext: r.ext ?? "FILE",
-      sizeLabel: r.size_bytes ? ukuranFile(r.size_bytes) : "—",
+      sizeLabel: r.size_bytes ? formatFileSize(r.size_bytes) : "—",
       uploadedOn: r.uploaded_on,
       expiresOn: r.expires_on,
       status: r.status,
@@ -2022,7 +2054,7 @@ export const erpnextApi: HrisApi = {
   },
 
   async replaceDocumentFile(id, file) {
-    await unggahBerkas(file, "Employee Document", id, "file");
+    await uploadFile(file, "Employee Document", id, "file");
   },
 
   async decideDocument(id, decision, reason) {
@@ -2049,7 +2081,7 @@ export const erpnextApi: HrisApi = {
       employeeId: r.employee,
       employeeName: r.employee_name,
       designation: r.designation
-        ? terjemahkan("designation", r.designation)
+        ? translateServerLabel("designation", r.designation)
         : "",
       cycle: r.cycle,
       finalScore: r.final_score ?? 0,
@@ -2115,7 +2147,7 @@ export const erpnextApi: HrisApi = {
       "/api/method/hris_get_staff_attendance_history",
       { employee: staffId },
     );
-    return res.message.map(bentukAbsensi);
+    return res.message.map(mapAttendance);
   },
 
   async submitAttendanceCorrection(
@@ -2130,14 +2162,14 @@ export const erpnextApi: HrisApi = {
         reason: input.reason,
       },
     );
-    const gagal = await lampirkanSemua(
+    const hasFailed = await attachAll(
       "Attendance Request",
       res.message.name,
       (input.attachments ?? []).map((f) => ({ f, field: "proof" })),
     );
     return {
-      ...bentukKoreksi(res.message, input.employeeId),
-      buktiGagal: gagal || undefined,
+      ...mapCorrection(res.message, input.employeeId),
+      failedProofCount: hasFailed || undefined,
     };
   },
 
@@ -2145,44 +2177,42 @@ export const erpnextApi: HrisApi = {
     const res = await get<{ message: CorrectionRow[] }>(
       "/api/method/hris_get_attendance_corrections",
     );
-    return res.message.map((r) => bentukKoreksi(r, employeeId));
+    return res.message.map((r) => mapCorrection(r, employeeId));
   },
 
   async getPayslips(): Promise<Payslip[]> {
     const res = await get<{ message: SlipRow[] }>(
       "/api/method/hris_get_payslips",
     );
-    return res.message.map(bentukSlip);
+    return res.message.map(mapPayslip);
   },
 
   async getTaxSummary(): Promise<TaxSummary> {
     const res = await get<TaxRes>("/api/method/hris_get_tax_summary");
     const data = res.message;
-    const tahun = data?.year ?? new Date().getFullYear();
+    const yearValue = data?.year ?? new Date().getFullYear();
     const latest = data?.latest;
     const gross = latest?.gross_pay ?? 0;
-    const bulanTerakhir = (data?.months ?? [])
-      .filter((m) => m.gross > 0)
-      .at(-1);
+    const latestMonth = (data?.months ?? []).filter((m) => m.gross > 0).at(-1);
     return {
-      year: tahun,
+      year: yearValue,
       // PTKP, NPWP, dan TER tidak ada sumbernya di ERPNext; tidak dikarang.
       scheme: "—",
       // Hanya bulan yang punya slip, supaya grafik tidak penuh batang kosong.
       monthly: (data?.months ?? [])
         .filter((m) => m.gross > 0)
         .map((m) => ({
-          monthShort: namaBulan(new Date(2000, m.month - 1, 1)).slice(0, 3),
+          monthShort: getMonthName(new Date(2000, m.month - 1, 1)).slice(0, 3),
           amount: m.pph21,
         })),
       peakReason: "",
       // Nama bulan dari nomor bulan, bukan dari teks server (berbahasa Inggris).
-      basePeriod: bulanTerakhir
-        ? namaBulan(new Date(2000, bulanTerakhir.month - 1, 1))
+      basePeriod: latestMonth
+        ? getMonthName(new Date(2000, latestMonth.month - 1, 1))
         : "—",
       grossPay: gross,
       terCategory: data?.ter_category
-        ? tt("tax.terKategori", { k: data.ter_category })
+        ? translate("tax.terKategori", { k: data.ter_category })
         : "—",
       ptkpStatus: data?.ptkp_status ?? "—",
       ptkpAnnual: data?.ptkp_annual ?? 0,
@@ -2190,7 +2220,7 @@ export const erpnextApi: HrisApi = {
       monthTax: latest?.pph21 ?? 0,
       // Tinggal porsi karyawan (persen dari bruto); porsi perusahaan tidak ada.
       bpjs: (latest?.bpjs ?? []).map((b) => ({
-        label: terjemahkan("salaryComponent", b.label),
+        label: translateServerLabel("salaryComponent", b.label),
         employeePct: gross ? Math.round((b.amount / gross) * 10000) / 100 : 0,
         companyPct: 0,
       })),
@@ -2200,7 +2230,7 @@ export const erpnextApi: HrisApi = {
     const res = await get<{ message: ProfileRow }>(
       "/api/method/hris_get_my_profile",
     );
-    return bentukProfil(res.message);
+    return mapProfile(res.message);
   },
 
   async savePersonalProfile(
@@ -2209,14 +2239,14 @@ export const erpnextApi: HrisApi = {
   ): Promise<PersonalProfile> {
     const res = await post<{ message: ProfileRow }>(
       "/api/method/hris_update_my_profile",
-      paramProfil(data),
+      profileParams(data),
     );
-    return bentukProfil(res.message);
+    return mapProfile(res.message);
   },
 
   async submitProfileChange(data: EditableProfile, reason: string) {
     await post("/api/method/hris_submit_profile_change", {
-      ...paramProfil(data),
+      ...profileParams(data),
       reason,
     });
   },
@@ -2241,7 +2271,7 @@ export const erpnextApi: HrisApi = {
       priority: a.priority,
       publishedOn: a.published_on ? a.published_on.slice(0, 10) : null,
       expiresOn: a.expires_on,
-      attachments: keLampiran(a.attachments) ?? [],
+      attachments: toAttachment(a.attachments) ?? [],
       postedBy: a.posted_by,
     }));
   },
@@ -2250,7 +2280,7 @@ export const erpnextApi: HrisApi = {
     const res = await get<{ message: ChangeRow[] }>(
       "/api/method/hris_get_my_profile_changes",
     );
-    return res.message.map(bentukPerubahan);
+    return res.message.map(mapChange);
   },
 
   async getProfileChangesForReview(status): Promise<ProfileChange[]> {
@@ -2258,7 +2288,7 @@ export const erpnextApi: HrisApi = {
       "/api/method/hris_get_profile_changes_for_review",
       { status },
     );
-    return res.message.map(bentukPerubahan);
+    return res.message.map(mapChange);
   },
 
   async decideProfileChange(id, decision, note) {
@@ -2270,7 +2300,7 @@ export const erpnextApi: HrisApi = {
   },
 
   async getSecurityInfo(employeeId: string): Promise<SecurityInfo> {
-    return ambilInfoKeamanan(employeeId);
+    return fetchSecurityInfo(employeeId);
   },
 
   async setSecurityToggle(
@@ -2280,7 +2310,7 @@ export const erpnextApi: HrisApi = {
   ): Promise<SecurityInfo> {
     // Toggle masih mock; daftar perangkat tetap yang asli.
     await mockApi.setSecurityToggle(employeeId, key, enabled);
-    return ambilInfoKeamanan(employeeId);
+    return fetchSecurityInfo(employeeId);
   },
 
   async logoutDevice(
@@ -2290,7 +2320,7 @@ export const erpnextApi: HrisApi = {
     await post("/api/method/hris_logout_sessions", {
       ids: JSON.stringify(sessionIds),
     });
-    return ambilInfoKeamanan(employeeId);
+    return fetchSecurityInfo(employeeId);
   },
 
   // Setelah berhasil, server mematikan sesi ini; permintaan berikutnya
@@ -2307,10 +2337,10 @@ export const erpnextApi: HrisApi = {
       });
     } catch (e) {
       if (e instanceof ApiError && e.status === 401) {
-        throw new ApiError(tt("err.passwordLama"), 401, "WrongPassword");
+        throw new ApiError(translate("err.passwordLama"), 401, "WrongPassword");
       }
       if (e instanceof ApiError && e.status === 417) {
-        throw new ApiError(tt("err.passwordLemah"), 417, "WeakPassword");
+        throw new ApiError(translate("err.passwordLemah"), 417, "WeakPassword");
       }
       throw e;
     }
@@ -2319,7 +2349,7 @@ export const erpnextApi: HrisApi = {
     const res = await get<{ message: NotifRow[] }>(
       "/api/method/hris_get_notifications",
     );
-    return res.message.map(bentukNotifikasi);
+    return res.message.map(mapNotification);
   },
 
   async markNotificationsRead(
@@ -2331,6 +2361,6 @@ export const erpnextApi: HrisApi = {
       // Dipisah koma: Server Script tidak bisa mengurai JSON dari isi form.
       ids ? { names: ids.join(",") } : undefined,
     );
-    return res.message.map(bentukNotifikasi);
+    return res.message.map(mapNotification);
   },
 };

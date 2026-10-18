@@ -54,15 +54,15 @@ export function MenuSheet({
     }).start();
   }, [visible, anim]);
 
-  const tinggiSheet = Math.min(height * 0.68, 560);
+  const sheetHeight = Math.min(height * 0.68, 560);
   const translateY = anim.interpolate({
     inputRange: [0, 1],
-    outputRange: [tinggiSheet + 40, 0],
+    outputRange: [sheetHeight + 40, 0],
   });
 
   // Lembar turun dan latar memudar dulu, baru modal ditutup; navigasi sesudahnya supaya
   // lembar tidak terlihat menumpuk di atas layar tujuan.
-  const tutup = (lalu?: () => void) => {
+  const close = (onClosed?: () => void) => {
     Animated.timing(anim, {
       toValue: 0,
       duration: 200,
@@ -70,7 +70,7 @@ export function MenuSheet({
       useNativeDriver: true,
     }).start(() => {
       onClose();
-      lalu?.();
+      onClosed?.();
     });
   };
 
@@ -79,24 +79,24 @@ export function MenuSheet({
       visible={visible}
       transparent
       animationType="none"
-      onRequestClose={() => tutup()}
+      onRequestClose={() => close()}
     >
       <Animated.View style={[styles.backdrop, { opacity: anim }]}>
-        <Pressable style={{ flex: 1 }} onPress={() => tutup()} />
+        <Pressable style={{ flex: 1 }} onPress={() => close()} />
       </Animated.View>
 
       <Animated.View
         style={[
           styles.sheet,
           {
-            height: tinggiSheet,
+            height: sheetHeight,
             paddingBottom: insets.bottom + 12,
             transform: [{ translateY }],
           },
         ]}
       >
         <View style={styles.grabber} />
-        <Text style={styles.judul}>{t("mn.judul")}</Text>
+        <Text style={styles.title}>{t("mn.judul")}</Text>
         <ScrollView
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.grid}
@@ -105,9 +105,9 @@ export function MenuSheet({
             <Pressable
               key={it.key}
               style={styles.cell}
-              onPress={() => tutup(it.onPress)}
+              onPress={() => close(it.onPress)}
             >
-              <View style={[styles.ikon, { backgroundColor: it.bg }]}>
+              <View style={[styles.icon, { backgroundColor: it.bg }]}>
                 <Ionicons name={it.icon} size={28} color={it.ink} />
               </View>
               <Text style={styles.label} numberOfLines={2}>
@@ -150,7 +150,7 @@ const makeStyles = (c: Palette) =>
       alignSelf: "center",
       marginBottom: 14,
     },
-    judul: {
+    title: {
       fontSize: 18,
       fontWeight: "800",
       color: c.ink,
@@ -164,7 +164,7 @@ const makeStyles = (c: Palette) =>
       paddingBottom: 12,
     },
     cell: { width: "25%", alignItems: "center", paddingHorizontal: 4, gap: 8 },
-    ikon: {
+    icon: {
       width: 58,
       height: 58,
       borderRadius: 19,

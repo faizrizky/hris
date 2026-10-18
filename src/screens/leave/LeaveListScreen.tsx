@@ -16,9 +16,9 @@ import { useSession } from "@/services/session";
 import { useLoad } from "@/hooks/useLoad";
 import { ErrorState } from "@/components/ErrorState";
 import { useT } from "@/i18n";
-import { LampiranList } from "./LampiranList";
+import { AttachmentList } from "./LampiranList";
 import { EmptyState } from "@/components/EmptyState";
-import { kembaliAtauBeranda } from "@/navigation/kembali";
+import { goBackOrHome } from "@/navigation/kembali";
 
 export function LeaveListScreen({ navigation }: ScreenProps) {
   const { employee } = useSession();
@@ -26,39 +26,43 @@ export function LeaveListScreen({ navigation }: ScreenProps) {
   const c = useTheme();
   const t = useT();
   const styles = useMemo(() => makeStyles(c), [c]);
-  const saldo = useLoad(
+  const balanceList = useLoad(
     () =>
       employee ? hrisApi.getLeaveBalances(employee.id) : Promise.resolve([]),
     employee?.id,
   );
-  const pengajuan = useLoad(
+  const submission = useLoad(
     () =>
       employee ? hrisApi.getLeaveRequests(employee.id) : Promise.resolve([]),
     employee?.id,
   );
-  const balances = saldo.data;
-  const requests = pengajuan.data;
-  const galat = saldo.error ?? pengajuan.error;
-  const ulangi = () => {
-    saldo.ulangi();
-    pengajuan.ulangi();
+  const balances = balanceList.data;
+  const requests = submission.data;
+  const errorMessage = balanceList.error ?? submission.error;
+  const retryLoad = () => {
+    balanceList.retry();
+    submission.retry();
   };
   if (!employee) return null;
 
-  const memuat = balances === null || requests === null;
+  const isLoading = balances === null || requests === null;
 
-  const cuti = (balances ?? []).find((b) => b.type === "cuti");
-  const sakit = (balances ?? []).find((b) => b.type === "sakit");
-  const terpakai = cuti ? cuti.total - cuti.remaining : 0;
-  const sisaPersen =
-    cuti && cuti.total ? (cuti.remaining / cuti.total) * 100 : 0;
+  const leaveBalance = (balances ?? []).find((b) => b.type === "cuti");
+  const sickBalance = (balances ?? []).find((b) => b.type === "sakit");
+  const usedAmount = leaveBalance
+    ? leaveBalance.total - leaveBalance.remaining
+    : 0;
+  const remainingPercent =
+    leaveBalance && leaveBalance.total
+      ? (leaveBalance.remaining / leaveBalance.total) * 100
+      : 0;
 
   return (
     <View style={styles.container}>
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
         <Pressable
           style={styles.backBtn}
-          onPress={() => kembaliAtauBeranda(navigation)}
+          onPress={() => goBackOrHome(navigation)}
         >
           <Ionicons name="chevron-back" size={18} color={c.ink} />
         </Pressable>
@@ -84,7 +88,7 @@ export function LeaveListScreen({ navigation }: ScreenProps) {
                   {t("cl.saldoTahunan", { y: new Date().getFullYear() })}
                 </Text>
 
-                {memuat ? (
+                {isLoading ? (
                   <Skeleton
                     width={132}
                     height={30}
@@ -95,22 +99,25 @@ export function LeaveListScreen({ navigation }: ScreenProps) {
                 ) : (
                   <View style={styles.balanceRow}>
                     <Text style={styles.balanceBig}>
-                      {cuti?.remaining ?? "–"}
+                      {leaveBalance?.remaining ?? "–"}
                     </Text>
                     <Text style={styles.balanceTotal}>
-                      / {cuti?.total ?? "–"} {t(`unit.${cuti?.unit ?? "hari"}`)}
+                      / {leaveBalance?.total ?? "–"}{" "}
+                      {t(`unit.${leaveBalance?.unit ?? "hari"}`)}
                     </Text>
                   </View>
                 )}
 
                 <View style={styles.bar}>
-                  <View style={[styles.barFill, { width: `${sisaPersen}%` }]} />
+                  <View
+                    style={[styles.barFill, { width: `${remainingPercent}%` }]}
+                  />
                 </View>
 
                 <View style={styles.heroBoxes}>
                   <View style={styles.heroBox}>
                     <Text style={styles.heroBoxLabel}>{t("cl.terpakai")}</Text>
-                    {memuat ? (
+                    {isLoading ? (
                       <Skeleton
                         width={62}
                         height={14}
@@ -120,13 +127,13 @@ export function LeaveListScreen({ navigation }: ScreenProps) {
                       />
                     ) : (
                       <Text style={styles.heroBoxValue}>
-                        {terpakai} {t(`unit.${cuti?.unit ?? "hari"}`)}
+                        {usedAmount} {t(`unit.${leaveBalance?.unit ?? "hari"}`)}
                       </Text>
                     )}
                   </View>
                   <View style={styles.heroBox}>
                     <Text style={styles.heroBoxLabel}>{t("cl.sisaSakit")}</Text>
-                    {memuat ? (
+                    {isLoading ? (
                       <Skeleton
                         width={62}
                         height={14}
@@ -136,8 +143,8 @@ export function LeaveListScreen({ navigation }: ScreenProps) {
                       />
                     ) : (
                       <Text style={styles.heroBoxValue}>
-                        {sakit
-                          ? `${sakit.remaining} ${t(`unit.${sakit.unit}`)}`
+                        {sickBalance
+                          ? `${sickBalance.remaining} ${t(`unit.${sickBalance.unit}`)}`
                           : "–"}
                       </Text>
                     )}
@@ -202,12 +209,12 @@ export function LeaveListScreen({ navigation }: ScreenProps) {
           </>
         }
         ListEmptyComponent={
-          galat && !requests ? (
-            <ErrorState pesan={galat} onUlangi={ulangi} />
-          ) : memuat ? (
+          errorMessage && !requests ? (
+            <ErrorState message={errorMessage} onRetry={retryLoad} />
+          ) : isLoading ? (
             <RequestCardSkeleton />
           ) : (
-            <EmptyState icon={ICON.leave} tinggi={240} title={t("cl.kosong")} />
+            <EmptyState icon={ICON.leave} height={240} title={t("cl.kosong")} />
           )
         }
         renderItem={({ item }) => {
@@ -226,7 +233,7 @@ export function LeaveListScreen({ navigation }: ScreenProps) {
                 />
               </View>
 
-              <LampiranList items={item.attachments} />
+              <AttachmentList items={item.attachments} />
 
               <View style={styles.divider} />
 

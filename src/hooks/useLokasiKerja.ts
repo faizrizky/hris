@@ -1,19 +1,19 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import * as Location from "expo-location";
 import { hrisApi } from "@/services/api";
-import { AturanLokasi, LokasiCheckin } from "@/services/types";
+import { GeofenceRule, CheckinLocation } from "@/services/types";
 
-export type IzinLokasi = "cek" | "ok" | "ditolak";
+export type LocationPermission = "cek" | "ok" | "ditolak";
 
-export interface TerdekatKerja {
+export interface NearestWorkLocation {
   nama: string;
-  jarakM: number;
+  distanceM: number;
   radiusM: number;
-  didalam: boolean;
+  isInside: boolean;
 }
 
 // Jarak antara dua titik (meter), rumus haversine.
-export function jarakMeter(
+export function distanceInMeters(
   lat1: number,
   lng1: number,
   lat2: number,
@@ -29,7 +29,7 @@ export function jarakMeter(
   return 2 * R * Math.asin(Math.sqrt(a));
 }
 
-function keLokasi(l: Location.LocationObject): LokasiCheckin {
+function toCheckinLocation(l: Location.LocationObject): CheckinLocation {
   return {
     lat: l.coords.latitude,
     lng: l.coords.longitude,
@@ -43,81 +43,81 @@ function keLokasi(l: Location.LocationObject): LokasiCheckin {
 // Memantau lokasi saat layar presensi terbuka, lalu menghitung jarak ke lokasi
 // kerja. Server tetap yang menilai; ini hanya agar karyawan tahu posisinya
 // sebelum check-in.
-export function useLokasiKerja(aktif: boolean) {
-  const [izin, setIzin] = useState<IzinLokasi>("cek");
-  const [fix, setFix] = useState<LokasiCheckin | null>(null);
-  const [aturan, setAturan] = useState<AturanLokasi | null>(null);
-  const terakhir = useRef<LokasiCheckin | null>(null);
+export function useWorkLocation(isActive: boolean) {
+  const [permission, setPermission] = useState<LocationPermission>("cek");
+  const [fix, setFix] = useState<CheckinLocation | null>(null);
+  const [geofenceRule, setGeofenceRule] = useState<GeofenceRule | null>(null);
+  const lastLocation = useRef<CheckinLocation | null>(null);
 
   useEffect(() => {
-    if (!aktif) return;
-    let batal = false;
-    let langganan: Location.LocationSubscription | null = null;
+    if (!isActive) return;
+    let isCancelled = false;
+    let subscription: Location.LocationSubscription | null = null;
     hrisApi
       .getWorkLocations()
-      .then((l) => !batal && setAturan(l))
+      .then((l) => !isCancelled && setGeofenceRule(l))
       .catch(() => {});
     (async () => {
       try {
         const r = await Location.requestForegroundPermissionsAsync();
-        if (batal) return;
+        if (isCancelled) return;
         if (r.status !== "granted") {
-          setIzin("ditolak");
+          setPermission("ditolak");
           return;
         }
-        setIzin("ok");
-        langganan = await Location.watchPositionAsync(
+        setPermission("ok");
+        subscription = await Location.watchPositionAsync(
           {
             accuracy: Location.Accuracy.High,
             timeInterval: 4000,
             distanceInterval: 3,
           },
           (l) => {
-            const x = keLokasi(l);
-            terakhir.current = x;
-            if (!batal) setFix(x);
+            const x = toCheckinLocation(l);
+            lastLocation.current = x;
+            if (!isCancelled) setFix(x);
           },
         );
       } catch {
-        if (!batal) setIzin("ditolak");
+        if (!isCancelled) setPermission("ditolak");
       }
     })();
     return () => {
-      batal = true;
-      langganan?.remove();
+      isCancelled = true;
+      subscription?.remove();
     };
-  }, [aktif]);
+  }, [isActive]);
 
   // Lokasi terbaru saat tombol ditekan: pakai fix segar, selain itu minta satu kali.
-  const ambilTerbaru = useCallback(async (): Promise<
-    LokasiCheckin | undefined
+  const latestFetch = useCallback(async (): Promise<
+    CheckinLocation | undefined
   > => {
-    const baru = terakhir.current;
+    const baru = lastLocation.current;
     if (baru && Date.now() - baru.gpsMs < 60_000) return baru;
     try {
       const l = await Location.getCurrentPositionAsync({
         accuracy: Location.Accuracy.High,
       });
-      return keLokasi(l);
+      return toCheckinLocation(l);
     } catch {
       return baru ?? undefined;
     }
   }, []);
 
-  let terdekat: TerdekatKerja | null = null;
+  let nearest: NearestWorkLocation | null = null;
   if (fix) {
-    for (const l of aturan?.locations ?? []) {
-      const d = jarakMeter(fix.lat, fix.lng, l.latitude, l.longitude);
-      if (!terdekat || d < terdekat.jarakM) {
-        terdekat = {
+    for (const l of geofenceRule?.locations ?? []) {
+      const d = distanceInMeters(fix.lat, fix.lng, l.latitude, l.longitude);
+      if (!nearest || d < nearest.distanceM) {
+        nearest = {
           nama: l.locationName,
-          jarakM: Math.round(d),
+          distanceM: Math.round(d),
           radiusM: l.radiusM,
-          didalam: d <= l.radiusM + Math.min(fix.accuracyM, 50),
+          isInside: d <= l.radiusM + Math.min(fix.accuracyM, 50),
         };
       }
     }
   }
 
-  return { izin, fix, terdekat, aturan, ambilTerbaru };
+  return { permission, fix, nearest, geofenceRule, latestFetch };
 }

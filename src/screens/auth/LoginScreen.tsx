@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect, useEffectEvent } from "react";
-import { KUNCI_USERNAME, useLoginPrefill } from "@/hooks/useLoginPrefill";
+import { USERNAME_STORAGE_KEY, useLoginPrefill } from "@/hooks/useLoginPrefill";
 import {
   KeyboardAvoidingView,
   Pressable,
@@ -10,15 +10,15 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
-import { Palette, tombolUtama } from "@/theme/colors";
+import { Palette, primaryButtonStyle } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
 import { RadialGlow } from "@/components/RadialGlow";
 import { hrisApi } from "@/services/api";
 import { useSession } from "@/services/session";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
-  alamatServer,
-  aturAlamatServer,
+  getServerAddress,
+  setServerAddress,
   describeError,
 } from "../../services/api/http";
 import { useT } from "@/i18n";
@@ -27,96 +27,99 @@ import { LogoHris } from "@/components/LogoHris";
 import { useConfirm } from "@/components/ConfirmDialog";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
-  adaLoginBiometrik,
-  bacaKredensial,
-  hapusKredensial,
-  kesiapanBiometrik,
+  hasBiometricLogin,
+  readCredentials,
+  deleteCredentials,
+  getBiometricReadiness,
 } from "@/services/biometrik";
 
 export function LoginScreen() {
-  const { setEmployee, pesanLogin, bersihkanPesanLogin } = useSession();
+  const { setEmployee, loginNotice, clearLoginNotice } = useSession();
   const confirm = useConfirm();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [rememberMe, setRememberMe] = useState(true);
-  const [namaBio, setNamaBio] = useState("sidik jari / wajah");
-  const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isRememberMe, setIsRememberMe] = useState(true);
+  const [biometricName, setBiometricName] = useState("sidik jari / wajah");
+  const [isShowPassword, setIsShowPassword] = useState(false);
   const insets = useSafeAreaInsets();
   const t = useT();
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
   const [error, setError] = useState<string | null>(null);
-  const [server, setServer] = useState(alamatServer());
-  const [bukaServer, setBukaServer] = useState(false);
+  const [server, setServer] = useState(getServerAddress());
+  const [isServerOpen, setIsServerOpen] = useState(false);
 
   useLoginPrefill({
     onSavedUsername: setEmail,
-    onBiometricName: setNamaBio,
+    onBiometricName: setBiometricName,
     onServerAddress: setServer,
   });
 
   // Dikeluarkan dari luar (sesi berakhir / login di perangkat lain / dikeluarkan lewat Keamanan): beri tahu sekali.
-  const tampilkanPesanSesi = useEffectEvent(() => {
+  const showSessionNotice = useEffectEvent(() => {
     void confirm({
       title: t("login.sesiJudul"),
       message: t("login.sesiPesan"),
       tone: "warn",
       confirmText: t("umum.mengerti"),
       cancelText: null,
-    }).then(bersihkanPesanLogin);
+    }).then(clearLoginNotice);
   });
   useEffect(() => {
-    if (pesanLogin) tampilkanPesanSesi();
-  }, [pesanLogin]);
+    if (loginNotice) showSessionNotice();
+  }, [loginNotice]);
 
-  const masukDenganBiometrik = async () => {
+  const signInWithBiometric = async () => {
     setError(null);
-    const k = await kesiapanBiometrik();
+    const k = await getBiometricReadiness();
     if (k === "tidakAda") return setError(t("bio.tidakAda"));
     if (k === "belumDaftar") return setError(t("bio.belumDaftar"));
-    if (!(await adaLoginBiometrik())) return setError(t("bio.belumAktif"));
-    const kred = await bacaKredensial(t("bio.pesanLogin"), t("kunci.batal"));
-    if (!kred) return; // dibatalkan atau gagal verifikasi
-    setLoading(true);
+    if (!(await hasBiometricLogin())) return setError(t("bio.belumAktif"));
+    const credentials = await readCredentials(
+      t("bio.pesanLogin"),
+      t("kunci.batal"),
+    );
+    if (!credentials) return; // dibatalkan atau gagal verifikasi
+    setIsLoading(true);
     try {
-      setServer(await aturAlamatServer(server));
-      const employee = await hrisApi.login(kred.u, kred.p);
+      setServer(await setServerAddress(server));
+      const employee = await hrisApi.login(credentials.u, credentials.p);
       setEmployee(employee);
     } catch {
-      await hapusKredensial(); // password berubah atau sesi tidak valid: aktifkan lagi dengan password
+      await deleteCredentials(); // password berubah atau sesi tidak valid: aktifkan lagi dengan password
       setError(t("bio.gagalMasuk"));
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
   const handleLogin = async () => {
-    setLoading(true);
+    setIsLoading(true);
     setError(null);
     try {
-      setServer(await aturAlamatServer(server));
+      setServer(await setServerAddress(server));
       const employee = await hrisApi.login(email.trim(), password);
 
-      if (rememberMe) {
-        await AsyncStorage.setItem(KUNCI_USERNAME, email.trim()).catch(
+      if (isRememberMe) {
+        await AsyncStorage.setItem(USERNAME_STORAGE_KEY, email.trim()).catch(
           () => {},
         );
       } else {
-        await AsyncStorage.removeItem(KUNCI_USERNAME).catch(() => {});
+        await AsyncStorage.removeItem(USERNAME_STORAGE_KEY).catch(() => {});
       }
       setEmployee(employee);
     } catch (e) {
       setError(describeError(e));
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
   return (
     <View style={styles.container}>
       {/* Pengisi warna kartu di bagian bawah: saat papan ketik naik/turun, area di bawah kartu tidak tampak hitam. */}
-      <View style={styles.pengisiBawah} />
+      <View style={styles.bottomFiller} />
       <RadialGlow size={340} color={c.glowTop} top={-120} right={-90} />
       <RadialGlow size={320} color={c.glowBottom} bottom={-140} left={-110} />
 
@@ -175,26 +178,26 @@ export function LoginScreen() {
                     style={styles.fieldInput}
                     value={password}
                     onChangeText={setPassword}
-                    secureTextEntry={!showPassword}
+                    secureTextEntry={!isShowPassword}
                     placeholder={t("login.passwordIsi")}
                     placeholderTextColor={c.mutedLabel}
                   />
                 </View>
-                <Pressable onPress={() => setShowPassword((v) => !v)}>
+                <Pressable onPress={() => setIsShowPassword((v) => !v)}>
                   <Text style={styles.showToggle}>
-                    {showPassword ? t("login.sembunyikan") : t("login.lihat")}
+                    {isShowPassword ? t("login.sembunyikan") : t("login.lihat")}
                   </Text>
                 </Pressable>
               </View>
             </View>
           </View>
 
-          <Pressable onPress={() => setBukaServer((v) => !v)}>
+          <Pressable onPress={() => setIsServerOpen((v) => !v)}>
             <Text style={styles.serverToggle}>
               {t("login.server")}: {server || "—"}
             </Text>
           </Pressable>
-          {bukaServer && (
+          {isServerOpen && (
             <View style={[styles.fieldBox, { marginTop: 8 }]}>
               <Text style={styles.fieldLabel}>{t("login.alamatServer")}</Text>
               <TextInput
@@ -213,10 +216,12 @@ export function LoginScreen() {
           <View style={styles.rowBetween}>
             <Pressable
               style={styles.rememberRow}
-              onPress={() => setRememberMe((v) => !v)}
+              onPress={() => setIsRememberMe((v) => !v)}
             >
-              <View style={[styles.checkbox, rememberMe && styles.checkboxOn]}>
-                {rememberMe && (
+              <View
+                style={[styles.checkbox, isRememberMe && styles.checkboxOn]}
+              >
+                {isRememberMe && (
                   <Ionicons name="checkmark" size={11} color="#fff" />
                 )}
               </View>
@@ -229,7 +234,7 @@ export function LoginScreen() {
             {error && <Text style={styles.errorText}>{error}</Text>}
           </Text>
 
-          <Pressable onPress={handleLogin} disabled={loading}>
+          <Pressable onPress={handleLogin} disabled={isLoading}>
             <LinearGradient
               colors={[c.accent, c.accent2]}
               start={{ x: 0, y: 0 }}
@@ -237,7 +242,7 @@ export function LoginScreen() {
               style={styles.submitButton}
             >
               <Text style={styles.submitLabel}>
-                {loading ? t("login.memproses") : t("login.masuk")}
+                {isLoading ? t("login.memproses") : t("login.masuk")}
               </Text>
             </LinearGradient>
           </Pressable>
@@ -250,14 +255,14 @@ export function LoginScreen() {
 
           <Pressable
             style={styles.faceIdButton}
-            onPress={masukDenganBiometrik}
-            disabled={loading}
+            onPress={signInWithBiometric}
+            disabled={isLoading}
           >
             <View style={styles.faceIdIcon}>
               <View style={styles.faceIdIconInner} />
             </View>
             <Text style={styles.faceIdLabel}>
-              {t("login.faceId", { nama: namaBio })}
+              {t("login.faceId", { nama: biometricName })}
             </Text>
           </Pressable>
         </View>
@@ -269,7 +274,7 @@ export function LoginScreen() {
 const makeStyles = (c: Palette) =>
   StyleSheet.create({
     container: { flex: 1, backgroundColor: c.headerBg },
-    pengisiBawah: {
+    bottomFiller: {
       position: "absolute",
       left: 0,
       right: 0,
@@ -364,7 +369,7 @@ const makeStyles = (c: Palette) =>
     hint: { fontSize: 11, color: c.muted, marginTop: 10, lineHeight: 15 },
 
     submitButton: {
-      ...tombolUtama(c),
+      ...primaryButtonStyle(c),
       marginTop: 18,
       paddingVertical: 15,
       borderRadius: 16,

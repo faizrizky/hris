@@ -4,7 +4,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { RevealScrollView as ScrollView } from "@/components/Reveal";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Palette, tombolUtama } from "@/theme/colors";
+import { Palette, primaryButtonStyle } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
 import { hrisApi } from "@/services/api";
 import { describeError } from "@/services/api/http";
@@ -16,8 +16,8 @@ import { ErrorState } from "@/components/ErrorState";
 import { EmptyState } from "@/components/EmptyState";
 import { Skeleton } from "@/components/Skeleton";
 import { ICON } from "@/constants/icons";
-import { kembali } from "@/navigation/kembali";
-import { tanggalPendek } from "@/utils/date";
+import { goBackAnimated } from "@/navigation/kembali";
+import { formatShortDate } from "@/utils/date";
 import { useT } from "@/i18n";
 import type { Kunci } from "@/i18n/id";
 
@@ -29,10 +29,10 @@ const FILTER: { key: OfflineReviewStatus | "all"; label: Kunci }[] = [
 ];
 
 // "2026-10-12 08:30:00" -> "12 Okt · 08:30"
-function waktu(s: string | null): string {
+function formatTime(s: string | null): string {
   if (!s) return "—";
   const [tgl, jam = ""] = s.replace("T", " ").split(" ");
-  return `${tanggalPendek(tgl!)} · ${jam.slice(0, 5)}`;
+  return `${formatShortDate(tgl!)} · ${jam.slice(0, 5)}`;
 }
 
 // Atasan/HR: check-in offline yang ditandai server (jam HP berubah, tidak
@@ -49,9 +49,9 @@ export function OfflineReviewScreen({ navigation }: ScreenProps) {
     "Needs Review",
   );
   const [busy, setBusy] = useState<string | null>(null);
-  const [galat, setGalat] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const daftar = useLoad(
+  const checkinList = useLoad(
     () =>
       hrisApi.getOfflineCheckins(
         status,
@@ -59,31 +59,28 @@ export function OfflineReviewScreen({ navigation }: ScreenProps) {
       ),
     `${status}-${employee?.role}`,
   );
-  const items = daftar.data ?? [];
+  const items = checkinList.data ?? [];
 
-  const putuskan = async (
-    x: OfflineCheckin,
-    decision: "approve" | "reject",
-  ) => {
+  const decide = async (x: OfflineCheckin, decision: "approve" | "reject") => {
     if (decision === "approve") {
-      const ya = await confirm({
+      const isConfirmed = await confirm({
         title: t(x.claimedTime ? "ofr.setujuiJudul" : "ofr.terimaJudul"),
         message: x.claimedTime
-          ? t("ofr.setujuiPesan", { jam: waktu(x.claimedTime) })
+          ? t("ofr.setujuiPesan", { jam: formatTime(x.claimedTime) })
           : t("ofr.terimaPesan"),
         tone: "info",
         confirmText: t("pcr.setujui"),
         cancelText: t("umum.batal"),
       });
-      if (!ya) return;
+      if (!isConfirmed) return;
     }
     setBusy(x.id);
-    setGalat(null);
+    setErrorMessage(null);
     try {
       await hrisApi.decideOfflineCheckin(x.id, decision);
-      daftar.ulangi();
+      checkinList.retry();
     } catch (e) {
-      setGalat(describeError(e));
+      setErrorMessage(describeError(e));
     } finally {
       setBusy(null);
     }
@@ -92,7 +89,10 @@ export function OfflineReviewScreen({ navigation }: ScreenProps) {
   return (
     <View style={styles.container}>
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
-        <Pressable style={styles.backBtn} onPress={() => kembali(navigation)}>
+        <Pressable
+          style={styles.backBtn}
+          onPress={() => goBackAnimated(navigation)}
+        >
           <Ionicons name="chevron-back" size={18} color={c.ink} />
         </Pressable>
         <View style={{ flex: 1, minWidth: 0 }}>
@@ -103,14 +103,14 @@ export function OfflineReviewScreen({ navigation }: ScreenProps) {
 
       <View style={styles.chipRow}>
         {FILTER.map((f) => {
-          const on = status === f.key;
+          const isOn = status === f.key;
           return (
             <Pressable
               key={f.key}
               onPress={() => setStatus(f.key)}
-              style={[styles.chip, on && styles.chipOn]}
+              style={[styles.chip, isOn && styles.chipOn]}
             >
-              <Text style={[styles.chipText, on && styles.chipTextOn]}>
+              <Text style={[styles.chipText, isOn && styles.chipTextOn]}>
                 {t(f.label)}
               </Text>
             </Pressable>
@@ -119,10 +119,12 @@ export function OfflineReviewScreen({ navigation }: ScreenProps) {
       </View>
 
       <ScrollView contentContainerStyle={styles.list}>
-        {galat ? <Text style={styles.galat}>{galat}</Text> : null}
-        {daftar.error && !daftar.data ? (
-          <ErrorState pesan={daftar.error} onUlangi={daftar.ulangi} />
-        ) : daftar.memuat ? (
+        {errorMessage ? (
+          <Text style={styles.errorText}>{errorMessage}</Text>
+        ) : null}
+        {checkinList.error && !checkinList.data ? (
+          <ErrorState message={checkinList.error} onRetry={checkinList.retry} />
+        ) : checkinList.isLoading ? (
           <View style={{ gap: 10 }}>
             {[0, 1].map((i) => (
               <View key={i} style={styles.card}>
@@ -186,12 +188,12 @@ export function OfflineReviewScreen({ navigation }: ScreenProps) {
                 {x.claimedTime ? (
                   <Text style={styles.row}>
                     {t("ofr.diklaim")}:{" "}
-                    <Text style={styles.bold}>{waktu(x.claimedTime)}</Text>
+                    <Text style={styles.bold}>{formatTime(x.claimedTime)}</Text>
                   </Text>
                 ) : null}
                 <Text style={styles.row}>
                   {t("ofr.tercatat")}:{" "}
-                  <Text style={styles.bold}>{waktu(x.time)}</Text>
+                  <Text style={styles.bold}>{formatTime(x.time)}</Text>
                 </Text>
                 {x.skewSeconds !== 0 ? (
                   <Text style={styles.row}>
@@ -219,14 +221,14 @@ export function OfflineReviewScreen({ navigation }: ScreenProps) {
                   <Pressable
                     style={styles.rejectBtn}
                     disabled={busy === x.id}
-                    onPress={() => putuskan(x, "reject")}
+                    onPress={() => decide(x, "reject")}
                   >
                     <Text style={styles.rejectText}>{t("pcr.tolak")}</Text>
                   </Pressable>
                   <Pressable
                     style={styles.approveBtn}
                     disabled={busy === x.id}
-                    onPress={() => putuskan(x, "approve")}
+                    onPress={() => decide(x, "approve")}
                   >
                     <Text style={styles.approveText}>
                       {busy === x.id
@@ -286,7 +288,7 @@ const makeStyles = (c: Palette) =>
     chipText: { fontSize: 11.5, fontWeight: "600", color: c.muted },
     chipTextOn: { color: "#fff" },
     list: { paddingHorizontal: 18, paddingBottom: 170 },
-    galat: {
+    errorText: {
       color: c.bad.ink,
       fontSize: 12,
       fontWeight: "600",
@@ -336,7 +338,7 @@ const makeStyles = (c: Palette) =>
     },
     rejectText: { fontSize: 12.5, fontWeight: "700", color: c.bad.ink },
     approveBtn: {
-      ...tombolUtama(c),
+      ...primaryButtonStyle(c),
       flex: 2,
       paddingVertical: 12,
       borderRadius: 13,

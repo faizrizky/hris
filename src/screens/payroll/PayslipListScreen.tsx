@@ -18,7 +18,7 @@ import { Skeleton } from "@/components/Skeleton";
 import { useLoad } from "@/hooks/useLoad";
 import { ErrorState } from "@/components/ErrorState";
 import { useT } from "@/i18n";
-import { kembaliAtauBeranda } from "@/navigation/kembali";
+import { goBackOrHome } from "@/navigation/kembali";
 
 export function PayslipListScreen({ navigation }: ScreenProps) {
   const t = useT();
@@ -32,7 +32,7 @@ export function PayslipListScreen({ navigation }: ScreenProps) {
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
 
-  const memuat = slip.memuat;
+  const isMemuat = slip.isLoading;
 
   const latest = payslips?.[0];
   const previous = payslips?.slice(1) ?? [];
@@ -42,7 +42,7 @@ export function PayslipListScreen({ navigation }: ScreenProps) {
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
         <Pressable
           style={styles.backBtn}
-          onPress={() => kembaliAtauBeranda(navigation)}
+          onPress={() => goBackOrHome(navigation)}
         >
           <Ionicons name="chevron-back" size={18} color={c.ink} />
         </Pressable>
@@ -51,11 +51,11 @@ export function PayslipListScreen({ navigation }: ScreenProps) {
       </View>
 
       {slip.error && !payslips ? (
-        <ErrorState pesan={slip.error} onUlangi={slip.ulangi} />
+        <ErrorState message={slip.error} onRetry={slip.retry} />
       ) : null}
 
       <ScrollView contentContainerStyle={styles.content}>
-        {memuat && (
+        {isMemuat && (
           <>
             <View style={styles.skelHero}>
               <Skeleton

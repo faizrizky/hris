@@ -12,7 +12,11 @@ import { RevealScrollView as ScrollView } from "@/components/Reveal";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Palette, tombolSekunder, tombolUtama } from "@/theme/colors";
+import {
+  Palette,
+  secondaryButtonStyle,
+  primaryButtonStyle,
+} from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
 import { hrisApi } from "@/services/api";
 import { describeError } from "@/services/api/http";
@@ -20,9 +24,9 @@ import { ReviewDocument } from "@/services/types";
 import { useConfirm } from "@/components/ConfirmDialog";
 import { DocPreview } from "./DocPreview";
 import { DOC_CATEGORY_LABEL } from "@/constants/statusLabels";
-import { tanggalPendekTahun } from "@/utils/date";
+import { formatShortDateWithYear } from "@/utils/date";
 import { useT } from "@/i18n";
-import { kembali } from "@/navigation/kembali";
+import { goBackAnimated } from "@/navigation/kembali";
 
 // HR: pratinjau satu dokumen lalu memverifikasi atau menolaknya (dengan alasan).
 export function DocumentReviewDetailScreen({ navigation, route }: ScreenProps) {
@@ -35,51 +39,54 @@ export function DocumentReviewDetailScreen({ navigation, route }: ScreenProps) {
   const styles = useMemo(() => makeStyles(c), [c]);
   const confirm = useConfirm();
   // Dialog konfirmasi tumbuh dari tombol ini, seperti dialog Keluar.
-  const pemicu = useRef<View>(null);
+  const triggerRef = useRef<View>(null);
 
-  const [tolak, setTolak] = useState(false);
-  const [alasan, setAlasan] = useState("");
-  const [sending, setSending] = useState(false);
-  const [galat, setGalat] = useState<string | null>(null);
+  const [isRejecting, setIsRejecting] = useState(false);
+  const [reason, setReason] = useState("");
+  const [isSending, setIsSending] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const putuskan = async (
+  const decide = async (
     decision: "verify" | "reject" | "allow_change" | "deny_change",
   ) => {
-    if (decision === "reject" && !alasan.trim()) {
-      setGalat(t("rv.alasanWajib"));
+    if (decision === "reject" && !reason.trim()) {
+      setErrorMessage(t("rv.alasanWajib"));
       return;
     }
     if (decision === "verify" || decision === "allow_change") {
-      const verif = decision === "verify";
-      const ya = await confirm({
-        title: t(verif ? "rv.verifikasiJudul" : "rv.izinkanJudul"),
-        message: t(verif ? "rv.verifikasiPesan" : "rv.izinkanPesan", {
-          nama: doc.employeeName,
-        }),
+      const isVerifyDecision = decision === "verify";
+      const isConfirmed = await confirm({
+        title: t(isVerifyDecision ? "rv.verifikasiJudul" : "rv.izinkanJudul"),
+        message: t(
+          isVerifyDecision ? "rv.verifikasiPesan" : "rv.izinkanPesan",
+          {
+            nama: doc.employeeName,
+          },
+        ),
         tone: "info",
-        confirmText: t(verif ? "rv.verifikasi" : "rv.izinkanUbah"),
+        confirmText: t(isVerifyDecision ? "rv.verifikasi" : "rv.izinkanUbah"),
         cancelText: t("umum.batal"),
-        from: pemicu,
+        from: triggerRef,
         fromColor: c.accent,
         fromTextColor: "#FFFFFF",
-        fromLabel: t(verif ? "rv.verifikasi" : "rv.izinkanUbah"),
+        fromLabel: t(isVerifyDecision ? "rv.verifikasi" : "rv.izinkanUbah"),
         fromRadius: 14,
       });
-      if (!ya) return;
+      if (!isConfirmed) return;
     }
-    setSending(true);
-    setGalat(null);
+    setIsSending(true);
+    setErrorMessage(null);
     try {
       await hrisApi.decideDocument(
         doc.id,
         decision,
-        alasan.trim() || undefined,
+        reason.trim() || undefined,
       );
-      kembali(navigation);
+      goBackAnimated(navigation);
     } catch (e) {
-      setGalat(describeError(e));
+      setErrorMessage(describeError(e));
     } finally {
-      setSending(false);
+      setIsSending(false);
     }
   };
 
@@ -93,21 +100,24 @@ export function DocumentReviewDetailScreen({ navigation, route }: ScreenProps) {
     { k: t("rv.ukuran"), v: `${doc.ext} · ${doc.sizeLabel}` },
     {
       k: t("rv.tglUnggah"),
-      v: doc.uploadedOn ? tanggalPendekTahun(doc.uploadedOn) : "—",
+      v: doc.uploadedOn ? formatShortDateWithYear(doc.uploadedOn) : "—",
     },
     {
       k: t("rv.berlaku"),
-      v: doc.expiresOn ? tanggalPendekTahun(doc.expiresOn) : "—",
+      v: doc.expiresOn ? formatShortDateWithYear(doc.expiresOn) : "—",
     },
   ];
 
-  const menunggu = doc.status === "Pending";
-  const perubahan = doc.status === "Change Requested";
+  const isPending = doc.status === "Pending";
+  const isChangeRequested = doc.status === "Change Requested";
 
   return (
     <View style={styles.container}>
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
-        <Pressable style={styles.backBtn} onPress={() => kembali(navigation)}>
+        <Pressable
+          style={styles.backBtn}
+          onPress={() => goBackAnimated(navigation)}
+        >
           <Ionicons name="chevron-back" size={18} color={c.ink} />
         </Pressable>
         <View style={{ flex: 1, minWidth: 0 }}>
@@ -154,46 +164,46 @@ export function DocumentReviewDetailScreen({ navigation, route }: ScreenProps) {
             </View>
           ) : null}
         </ScrollView>
-        {menunggu || perubahan ? (
+        {isPending || isChangeRequested ? (
           <View
             style={[styles.actionBar, { paddingBottom: insets.bottom + 14 }]}
           >
             {/* Alasan ada di dalam bar yang menempel di atas keyboard, jadi tidak pernah tertutup. */}
-            {tolak ? (
+            {isRejecting ? (
               <TextInput
                 style={styles.textarea}
-                value={alasan}
-                onChangeText={setAlasan}
+                value={reason}
+                onChangeText={setReason}
                 placeholder={t("rv.alasanContoh")}
                 placeholderTextColor={c.mutedLabel}
                 multiline
                 autoFocus
               />
             ) : null}
-            {galat ? <Text style={styles.galat}>{galat}</Text> : null}
+            {errorMessage ? (
+              <Text style={styles.errorText}>{errorMessage}</Text>
+            ) : null}
             <View style={styles.btnRow}>
-              {tolak ? (
+              {isRejecting ? (
                 <>
                   <Pressable
                     style={styles.secondaryBtn}
                     onPress={() => {
-                      setTolak(false);
-                      setGalat(null);
+                      setIsRejecting(false);
+                      setErrorMessage(null);
                     }}
                   >
                     <Text style={styles.secondaryText}>{t("umum.batal")}</Text>
                   </Pressable>
                   <Pressable
                     style={[styles.rejectBtn, { flex: 2 }]}
-                    disabled={sending}
-                    onPress={() =>
-                      putuskan(menunggu ? "reject" : "deny_change")
-                    }
+                    disabled={isSending}
+                    onPress={() => decide(isPending ? "reject" : "deny_change")}
                   >
                     <Text style={styles.rejectText}>
-                      {sending
+                      {isSending
                         ? t("umum.memproses")
-                        : menunggu
+                        : isPending
                           ? t("rv.kirimTolak")
                           : t("rv.kirimTolakUbah")}
                     </Text>
@@ -203,23 +213,23 @@ export function DocumentReviewDetailScreen({ navigation, route }: ScreenProps) {
                 <>
                   <Pressable
                     style={styles.rejectBtn}
-                    onPress={() => setTolak(true)}
+                    onPress={() => setIsRejecting(true)}
                   >
                     <Text style={styles.rejectText}>
-                      {menunggu ? t("rv.tolak") : t("rv.tolakUbah")}
+                      {isPending ? t("rv.tolak") : t("rv.tolakUbah")}
                     </Text>
                   </Pressable>
                   <Pressable
-                    ref={pemicu}
+                    ref={triggerRef}
                     style={{ flex: 2 }}
-                    disabled={sending || (menunggu && !doc.fileUrl)}
+                    disabled={isSending || (isPending && !doc.fileUrl)}
                     onPress={() =>
-                      putuskan(menunggu ? "verify" : "allow_change")
+                      decide(isPending ? "verify" : "allow_change")
                     }
                   >
                     <LinearGradient
                       colors={
-                        menunggu && !doc.fileUrl
+                        isPending && !doc.fileUrl
                           ? [c.track, c.track]
                           : [c.accent, c.accent2]
                       }
@@ -228,9 +238,9 @@ export function DocumentReviewDetailScreen({ navigation, route }: ScreenProps) {
                       style={styles.approveBtn}
                     >
                       <Text style={styles.approveText}>
-                        {sending
+                        {isSending
                           ? t("umum.memproses")
-                          : menunggu
+                          : isPending
                             ? t("rv.verifikasi")
                             : t("rv.izinkanUbah")}
                       </Text>
@@ -341,7 +351,7 @@ const makeStyles = (c: Palette) =>
       color: c.ink,
       textAlignVertical: "top",
     },
-    galat: {
+    errorText: {
       marginBottom: 10,
       fontSize: 12,
       fontWeight: "600",
@@ -368,7 +378,7 @@ const makeStyles = (c: Palette) =>
       flex: 1,
       paddingVertical: 14,
       borderRadius: 14,
-      ...tombolSekunder(c),
+      ...secondaryButtonStyle(c),
       alignItems: "center",
     },
     secondaryText: { fontSize: 13, fontWeight: "700", color: c.btnSoftInk },
@@ -381,7 +391,7 @@ const makeStyles = (c: Palette) =>
     },
     rejectText: { fontSize: 13, fontWeight: "700", color: c.bad.ink },
     approveBtn: {
-      ...tombolUtama(c),
+      ...primaryButtonStyle(c),
       paddingVertical: 14,
       borderRadius: 14,
       alignItems: "center",

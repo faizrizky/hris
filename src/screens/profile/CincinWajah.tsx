@@ -5,8 +5,8 @@ import Svg, { Circle, G, Line } from "react-native-svg";
 export const TICKS = 60;
 
 // Warna mengikuti layar Face ID (selalu gelap), bukan tema aplikasi.
-const PUTIH = "rgba(255,255,255,0.82)";
-const HIJAU = "#3ADE5B";
+const WHITE = "rgba(255,255,255,0.82)";
+const GREEN = "#3ADE5B";
 
 const LineAnim = Animated.createAnimatedComponent(Line);
 const GAnim = Animated.createAnimatedComponent(G);
@@ -16,39 +16,39 @@ const EASE = Easing.bezier(0.25, 0.1, 0.25, 1);
 // Cincin garis ala Face ID. Garis putih pendek; saat kepala pernah mengarah ke
 // sana, garis memanjang ke luar sambil berubah hijau. Saat `selesai`, garis
 // memudar dan diganti satu lingkaran hijau yang tergambar mengelilingi foto.
-export function CincinWajah({
+export function FaceRing({
   size,
   rIn,
   len = 10,
   lenOn = 20,
-  terisi,
-  selesai = false,
-  rFoto,
+  filledTicks,
+  isFinished = false,
+  photoRadius,
 }: {
   size: number;
   rIn: number;
   len?: number;
   lenOn?: number;
-  terisi: number[];
-  selesai?: boolean;
-  rFoto: number; // jari-jari foto, untuk lingkaran hijau akhir
+  filledTicks: number[];
+  isFinished?: boolean;
+  photoRadius: number; // jari-jari foto, untuk lingkaran hijau akhir
 }) {
-  const [nyala] = useState(() =>
+  const [litTicks] = useState(() =>
     Array.from({ length: TICKS }, () => new Animated.Value(0)),
   );
-  const [tutup] = useState(() => new Animated.Value(0));
-  const sudah = useRef(new Set<number>());
+  const [closeProgress] = useState(() => new Animated.Value(0));
+  const litSet = useRef(new Set<number>());
 
   useEffect(() => {
-    if (terisi.length === 0 && sudah.current.size > 0) {
-      sudah.current.clear();
-      nyala.forEach((v) => v.setValue(0));
+    if (filledTicks.length === 0 && litSet.current.size > 0) {
+      litSet.current.clear();
+      litTicks.forEach((v) => v.setValue(0));
       return;
     }
-    const baru = terisi.filter((i) => !sudah.current.has(i));
+    const baru = filledTicks.filter((i) => !litSet.current.has(i));
     baru.forEach((i, k) => {
-      sudah.current.add(i);
-      Animated.timing(nyala[i]!, {
+      litSet.current.add(i);
+      Animated.timing(litTicks[i]!, {
         toValue: 1,
         duration: 320,
         delay: k * 18,
@@ -56,30 +56,33 @@ export function CincinWajah({
         useNativeDriver: false,
       }).start();
     });
-  }, [terisi, nyala]);
+  }, [filledTicks, litTicks]);
 
   useEffect(() => {
-    Animated.timing(tutup, {
-      toValue: selesai ? 1 : 0,
-      duration: selesai ? 700 : 0,
+    Animated.timing(closeProgress, {
+      toValue: isFinished ? 1 : 0,
+      duration: isFinished ? 700 : 0,
       easing: EASE,
       useNativeDriver: false,
     }).start();
-  }, [selesai, tutup]);
+  }, [isFinished, closeProgress]);
 
   const cx = size / 2;
-  const keliling = 2 * Math.PI * rFoto;
+  const circumference = 2 * Math.PI * photoRadius;
 
   return (
     <Svg width={size} height={size} style={StyleSheet.absoluteFill}>
       <GAnim
-        opacity={tutup.interpolate({ inputRange: [0, 1], outputRange: [1, 0] })}
+        opacity={closeProgress.interpolate({
+          inputRange: [0, 1],
+          outputRange: [1, 0],
+        })}
       >
         {Array.from({ length: TICKS }, (_, i) => {
           const a = ((i * 360) / TICKS - 90) * (Math.PI / 180);
           const cos = Math.cos(a);
           const sin = Math.sin(a);
-          const v = nyala[i]!;
+          const v = litTicks[i]!;
           return (
             <G key={i}>
               <Line
@@ -87,7 +90,7 @@ export function CincinWajah({
                 y1={cx + rIn * sin}
                 x2={cx + (rIn + len) * cos}
                 y2={cx + (rIn + len) * sin}
-                stroke={PUTIH}
+                stroke={WHITE}
                 strokeWidth={2.4}
                 strokeLinecap="round"
               />
@@ -108,7 +111,7 @@ export function CincinWajah({
                     cx + (rIn + lenOn) * sin,
                   ],
                 })}
-                stroke={HIJAU}
+                stroke={GREEN}
                 strokeWidth={3}
                 strokeLinecap="round"
                 strokeOpacity={v}
@@ -120,14 +123,14 @@ export function CincinWajah({
       <CircleAnim
         cx={cx}
         cy={cx}
-        r={rFoto}
-        stroke={HIJAU}
+        r={photoRadius}
+        stroke={GREEN}
         strokeWidth={4}
         fill="none"
-        strokeDasharray={`${keliling} ${keliling}`}
-        strokeDashoffset={tutup.interpolate({
+        strokeDasharray={`${circumference} ${circumference}`}
+        strokeDashoffset={closeProgress.interpolate({
           inputRange: [0, 1],
-          outputRange: [keliling, 0],
+          outputRange: [circumference, 0],
         })}
         rotation={-90}
         origin={`${cx}, ${cx}`}

@@ -1,29 +1,29 @@
 import React, { useCallback, useState, useMemo } from "react";
 import type { ScreenProps } from "@/navigation/types";
-import { formatDurasi, statusPresensi } from "@/utils/statusPresensi";
+import { formatDuration, getAttendanceStatus } from "@/utils/statusPresensi";
 import { useFocusEffect } from "@react-navigation/native";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { RevealScrollView as ScrollView } from "@/components/Reveal";
 import { LinearGradient } from "expo-linear-gradient";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import { Palette, tombolSekunder } from "@/theme/colors";
+import { Palette, secondaryButtonStyle } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
 import { MapPreview } from "./MapPreview";
-import { formatTanggalPanjang } from "@/utils/date";
+import { formatLongDate } from "@/utils/date";
 import { hrisApi } from "@/services/api";
 import { useSession } from "@/services/session";
 import { ClockState } from "@/services/types";
 import { FaceCheck } from "./FaceCheck";
-import { wajahDidukung } from "@/services/faceCheck";
+import { isFaceSupported } from "@/services/faceCheck";
 import { Skeleton } from "@/components/Skeleton";
 import { describeError } from "@/services/api/http";
 import { ErrorState } from "@/components/ErrorState";
 import { useT } from "@/i18n";
-import { useLokasiKerja } from "@/hooks/useLokasiKerja";
+import { useWorkLocation } from "@/hooks/useLokasiKerja";
 import { setTabBarHidden } from "@/navigation/tabBarVisibility";
-import type { FaceStatus, SpoofRingkas } from "@/services/types";
-import { kembaliAtauBeranda, keBeranda } from "@/navigation/kembali";
+import type { FaceStatus, SpoofSummary } from "@/services/types";
+import { goBackOrHome, goHome } from "@/navigation/kembali";
 
 export function ClockScreen({ navigation }: ScreenProps) {
   const t = useT();
@@ -32,41 +32,45 @@ export function ClockScreen({ navigation }: ScreenProps) {
   const [state, setState] = useState<ClockState | null>(null);
   const [step, setStep] = useState(0);
   // Aksi yang baru dilakukan; status clockedIn berbalik sesudah berhasil, jadi layar selesai memakai ini.
-  const [aksiSelesai, setAksiSelesai] = useState<"IN" | "OUT" | null>(null);
-  const { izin, fix, terdekat, aturan, ambilTerbaru } = useLokasiKerja(
-    step < 2,
-  ); // 0 = GPS, 1 = wajah, 2 = selesai
-  const [loading, setLoading] = useState(false);
-  const [faceLulus, setFaceLulus] = useState(false);
+  const [completedAction, setCompletedAction] = useState<"IN" | "OUT" | null>(
+    null,
+  );
+  const { permission, fix, nearest, geofenceRule, latestFetch } =
+    useWorkLocation(step < 2); // 0 = GPS, 1 = wajah, 2 = selesai
+  const [isLoading, setIsLoading] = useState(false);
+  const [hasFacePassed, setHasFacePassed] = useState(false);
   const [faceStatus, setFaceStatus] = useState<FaceStatus | null>(null);
   const [faceVec, setFaceVec] = useState<number[] | null>(null);
-  const [spoof, setSpoof] = useState<SpoofRingkas | null>(null);
-  const onWajahLulus = useCallback((v: number[] | null, sp?: SpoofRingkas) => {
-    setFaceVec(v);
-    setSpoof(sp ?? null);
-    setFaceLulus(true);
-  }, []);
+  const [spoof, setSpoof] = useState<SpoofSummary | null>(null);
+  const handleFacePassed = useCallback(
+    (v: number[] | null, spoof?: SpoofSummary) => {
+      setFaceVec(v);
+      setSpoof(spoof ?? null);
+      setHasFacePassed(true);
+    },
+    [],
+  );
   // Perangkat tanpa modul wajah (iOS, Expo Go) melewati langkah ini.
-  const faceOk = faceLulus || !wajahDidukung();
+  const isFaceOk = hasFacePassed || !isFaceSupported();
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
-  const [galat, setGalat] = useState<string | null>(null);
-  const [galatMuat, setGalatMuat] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
-  const muat = useCallback(() => {
+  const load = useCallback(() => {
     if (!employee) return;
-    setGalatMuat(null);
+    setLoadError(null);
     hrisApi
       .getClockState(employee.id)
       .then(setState)
-      .catch((e) => setGalatMuat(describeError(e)));
+      .catch((e) => setLoadError(describeError(e)));
     hrisApi
       .getFaceStatus()
       .then(setFaceStatus)
       .catch(() => setFaceStatus(null));
   }, [employee]);
 
-  useFocusEffect(muat);
+  useFocusEffect(load);
 
   // Tab bar mengambang disembunyikan selama langkah verifikasi wajah.
   useFocusEffect(
@@ -87,7 +91,7 @@ export function ClockScreen({ navigation }: ScreenProps) {
         <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
           <Pressable
             style={styles.backBtn}
-            onPress={() => kembaliAtauBeranda(navigation)}
+            onPress={() => goBackOrHome(navigation)}
           >
             <Ionicons name="chevron-back" size={18} color={c.ink} />
           </Pressable>
@@ -95,8 +99,8 @@ export function ClockScreen({ navigation }: ScreenProps) {
         </View>
 
         <View style={styles.content}>
-          {galatMuat ? <ErrorState pesan={galatMuat} onUlangi={muat} /> : null}
-          {!galatMuat ? (
+          {loadError ? <ErrorState message={loadError} onRetry={load} /> : null}
+          {!loadError ? (
             <>
               <View style={styles.steps}>
                 {[0, 1, 2].map((i) => (
@@ -127,60 +131,67 @@ export function ClockScreen({ navigation }: ScreenProps) {
   }
 
   const done = step === 2;
-  const aksiIni: "IN" | "OUT" = done
-    ? (aksiSelesai ?? "IN")
+  const currentAction: "IN" | "OUT" = done
+    ? (completedAction ?? "IN")
     : state.clockedIn
       ? "OUT"
       : "IN";
-  const aksi = aksiIni === "OUT" ? t("ab.clockOut") : t("ab.clockIn");
+  const actionLabel =
+    currentAction === "OUT" ? t("ab.clockOut") : t("ab.clockIn");
 
   // Clock In hanya di area kerja (kecuali jadwal WFH atau dinas luar, yang server
   // bebaskan); Clock Out bebas di mana saja. Server tetap yang memutuskan: ini
   // mencegah ketukan yang pasti ditolak dan menjelaskan alasannya.
-  const masuk = !state.clockedIn;
-  const wfh = aturan?.wfhToday ?? false;
-  let alasanBlokir: string | null = null;
-  if (masuk && !done && aturan && aturan.mode === "Block" && !wfh) {
-    if (izin === "ditolak") {
-      alasanBlokir = t("loc.tanpa");
-    } else if (aturan.locations.length > 0) {
-      if (!fix) alasanBlokir = t("loc.mencari");
-      else if (fix.mocked) alasanBlokir = t("loc.mock");
-      else if (fix.accuracyM > aturan.maxAccuracyM)
-        alasanBlokir = t("loc.akurasiBuruk", { m: Math.round(fix.accuracyM) });
-      else if (terdekat && !terdekat.didalam)
-        alasanBlokir = t("loc.diluar", { m: terdekat.jarakM });
+  const isClockingIn = !state.clockedIn;
+  const isWfh = geofenceRule?.wfhToday ?? false;
+  let blockReason: string | null = null;
+  if (
+    isClockingIn &&
+    !done &&
+    geofenceRule &&
+    geofenceRule.mode === "Block" &&
+    !isWfh
+  ) {
+    if (permission === "ditolak") {
+      blockReason = t("loc.tanpa");
+    } else if (geofenceRule.locations.length > 0) {
+      if (!fix) blockReason = t("loc.mencari");
+      else if (fix.mocked) blockReason = t("loc.mock");
+      else if (fix.accuracyM > geofenceRule.maxAccuracyM)
+        blockReason = t("loc.akurasiBuruk", { m: Math.round(fix.accuracyM) });
+      else if (nearest && !nearest.isInside)
+        blockReason = t("loc.diluar", { m: nearest.distanceM });
     }
   }
 
   // Absen masuk mewajibkan wajah terdaftar dan disetujui HR (Face Settings > Require Registered Face).
   // Absen keluar tidak diblokir.
-  const wajahBelum =
-    masuk &&
+  const isFaceMissing =
+    isClockingIn &&
     !done &&
     !!faceStatus?.requireEnrollment &&
     faceStatus.state !== "active" &&
     faceStatus.state !== "needs_reenroll";
-  if (!alasanBlokir && wajahBelum) {
-    alasanBlokir = t(
+  if (!blockReason && isFaceMissing) {
+    blockReason = t(
       faceStatus?.state === "pending" ? "fe.blokMenunggu" : "fe.blokBelum",
     );
   }
 
   const handleNext = async () => {
     if (done) {
-      keBeranda(navigation);
+      goHome(navigation);
       return;
     }
     if (step === 0) {
       setStep(1);
       return;
     }
-    setLoading(true);
-    setGalat(null);
+    setIsLoading(true);
+    setErrorMessage(null);
     try {
-      const lokasi = await ambilTerbaru();
-      const dilakukan: "IN" | "OUT" = state.clockedIn ? "OUT" : "IN";
+      const lokasi = await latestFetch();
+      const performedAction: "IN" | "OUT" = state.clockedIn ? "OUT" : "IN";
       const next = state.clockedIn
         ? await hrisApi.clockOut(
             employee.id,
@@ -195,32 +206,32 @@ export function ClockScreen({ navigation }: ScreenProps) {
             spoof ?? undefined,
           );
       setState(next);
-      setAksiSelesai(dilakukan);
+      setCompletedAction(performedAction);
       setStep(2);
-      setFaceLulus(false);
+      setHasFacePassed(false);
       setFaceVec(null);
       setSpoof(null);
     } catch (e) {
-      setGalat(describeError(e));
+      setErrorMessage(describeError(e));
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
-  const ctaLabel = done
+  const ctaCaption = done
     ? t("ab.selesai")
     : step === 0
       ? t("ab.lanjutWajah")
-      : t("ab.konfirmasi", { aksi });
+      : t("ab.konfirmasi", { aksi: actionLabel });
 
-  const jam = aksiIni === "IN" ? state.lastCheckIn : state.lastCheckOut;
-  const hasil = statusPresensi(aksiIni, jam, state);
+  const jam = currentAction === "IN" ? state.lastCheckIn : state.lastCheckOut;
+  const result = getAttendanceStatus(currentAction, jam, state);
   const labelStatus = state.pendingOffline
     ? t("ab.menungguKirim")
-    : hasil.jenis === "terlambat"
-      ? t("ab.terlambat", { durasi: formatDurasi(hasil.menit) })
-      : hasil.jenis === "pulangAwal"
-        ? t("ab.pulangAwal", { durasi: formatDurasi(hasil.menit) })
+    : result.kind === "terlambat"
+      ? t("ab.terlambat", { durasi: formatDuration(result.minutes) })
+      : result.kind === "pulangAwal"
+        ? t("ab.pulangAwal", { durasi: formatDuration(result.minutes) })
         : t("ab.tepat");
 
   return (
@@ -228,7 +239,7 @@ export function ClockScreen({ navigation }: ScreenProps) {
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
         <Pressable
           style={styles.backBtn}
-          onPress={() => kembaliAtauBeranda(navigation)}
+          onPress={() => goBackOrHome(navigation)}
         >
           <Ionicons name="chevron-back" size={18} color={c.ink} />
         </Pressable>
@@ -256,15 +267,15 @@ export function ClockScreen({ navigation }: ScreenProps) {
           />
         </View>
 
-        {wajahBelum && faceStatus?.state !== "pending" ? (
+        {isFaceMissing && faceStatus?.state !== "pending" ? (
           <Pressable
-            style={styles.wajahBanner}
+            style={styles.faceBanner}
             onPress={() =>
               navigation.navigate("Profil", { screen: "FaceEnroll" })
             }
           >
-            <Text style={styles.wajahBannerText}>{t("fe.blokBelum")}</Text>
-            <Text style={styles.wajahBannerCta}>{t("fe.daftarSekarang")}</Text>
+            <Text style={styles.faceBannerText}>{t("fe.blokBelum")}</Text>
+            <Text style={styles.faceBannerCta}>{t("fe.daftarSekarang")}</Text>
           </Pressable>
         ) : null}
 
@@ -278,9 +289,9 @@ export function ClockScreen({ navigation }: ScreenProps) {
           <View style={styles.panel}>
             <MapPreview
               badge={
-                terdekat ? t("loc.radius", { m: terdekat.radiusM }) : undefined
+                nearest ? t("loc.radius", { m: nearest.radiusM }) : undefined
               }
-              inside={terdekat?.didalam}
+              inside={nearest?.isInside}
             />
             <View style={styles.locationRow}>
               <View style={styles.locationIcon}>
@@ -295,19 +306,19 @@ export function ClockScreen({ navigation }: ScreenProps) {
                   {state.workLocation ?? t("ab.kantor")}
                 </Text>
                 <Text style={styles.locationCoord}>
-                  {izin === "ditolak"
+                  {permission === "ditolak"
                     ? t("loc.izinDitolak")
-                    : fix && terdekat
+                    : fix && nearest
                       ? t("loc.jarak", {
-                          m: terdekat.jarakM,
-                          lokasi: terdekat.nama,
+                          m: nearest.distanceM,
+                          lokasi: nearest.nama,
                           acc: Math.round(fix.accuracyM),
                         })
                       : fix
                         ? `${fix.lat.toFixed(5)}, ${fix.lng.toFixed(5)}`
                         : t("loc.mencari")}
                 </Text>
-                {wfh ? (
+                {isWfh ? (
                   <Text
                     style={[
                       styles.locationCoord,
@@ -316,11 +327,11 @@ export function ClockScreen({ navigation }: ScreenProps) {
                   >
                     {t("loc.wfh")}
                   </Text>
-                ) : !masuk ? (
+                ) : !isClockingIn ? (
                   <Text style={styles.locationCoord}>
                     {t("loc.keluarBebas")}
                   </Text>
-                ) : alasanBlokir ? (
+                ) : blockReason ? (
                   <Text
                     style={[
                       styles.locationCoord,
@@ -330,9 +341,9 @@ export function ClockScreen({ navigation }: ScreenProps) {
                       },
                     ]}
                   >
-                    {alasanBlokir}
+                    {blockReason}
                   </Text>
-                ) : fix && terdekat ? (
+                ) : fix && nearest ? (
                   <Text
                     style={[
                       styles.locationCoord,
@@ -351,15 +362,15 @@ export function ClockScreen({ navigation }: ScreenProps) {
           <View style={[styles.panel, styles.facePanel]}>
             <Text style={styles.faceTitle}>{t("ab.faceTitle")}</Text>
             <Text style={styles.faceSub}>{t("ab.faceSub")}</Text>
-            {wajahDidukung() ? (
+            {isFaceSupported() ? (
               <FaceCheck
-                onLulus={onWajahLulus}
-                aksi={state.clockedIn ? "OUT" : "IN"}
+                onPass={handleFacePassed}
+                action={state.clockedIn ? "OUT" : "IN"}
               />
             ) : (
               <Text style={styles.faceSub}>{t("face.tidakDidukung")}</Text>
             )}
-            {faceOk && wajahDidukung() ? (
+            {isFaceOk && isFaceSupported() ? (
               <View style={styles.faceChips}>
                 <View style={[styles.faceChip, { backgroundColor: c.ok.bg }]}>
                   <Text style={[styles.faceChipText, { color: c.ok.ink }]}>
@@ -386,12 +397,12 @@ export function ClockScreen({ navigation }: ScreenProps) {
                 {t(
                   state.pendingOffline ? "ab.berhasilOffline" : "ab.berhasil",
                   {
-                    aksi,
+                    actionLabel,
                   },
                 )}
               </Text>
               <Text style={styles.doneSub}>
-                {formatTanggalPanjang()} · {jam ?? "--:--"}{" "}
+                {formatLongDate()} · {jam ?? "--:--"}{" "}
                 {state.timezoneLabel ?? "WIB"}
               </Text>
 
@@ -415,7 +426,9 @@ export function ClockScreen({ navigation }: ScreenProps) {
             </View>
           </>
         )}
-        {galat ? <Text style={styles.galat}>{galat}</Text> : null}
+        {errorMessage ? (
+          <Text style={styles.errorText}>{errorMessage}</Text>
+        ) : null}
         <View style={styles.actions}>
           <Pressable
             style={[
@@ -423,16 +436,16 @@ export function ClockScreen({ navigation }: ScreenProps) {
               {
                 backgroundColor: done
                   ? c.ok.ink
-                  : alasanBlokir || (step === 1 && !faceOk)
+                  : blockReason || (step === 1 && !isFaceOk)
                     ? c.track
                     : c.accent,
               },
             ]}
             onPress={handleNext}
-            disabled={loading || !!alasanBlokir || (step === 1 && !faceOk)}
+            disabled={isLoading || !!blockReason || (step === 1 && !isFaceOk)}
           >
             <Text style={styles.ctaText}>
-              {loading ? t("umum.memproses") : ctaLabel}
+              {isLoading ? t("umum.memproses") : ctaCaption}
             </Text>
           </Pressable>
 
@@ -479,15 +492,15 @@ function DoneMeta({ label, value }: { label: string; value: string }) {
 
 const makeStyles = (c: Palette) =>
   StyleSheet.create({
-    wajahBanner: {
+    faceBanner: {
       backgroundColor: c.warn.bg,
       borderRadius: 16,
       padding: 14,
       marginBottom: 12,
       gap: 6,
     },
-    wajahBannerText: { fontSize: 12.5, fontWeight: "700", color: c.warn.ink },
-    wajahBannerCta: { fontSize: 12, fontWeight: "800", color: c.accent },
+    faceBannerText: { fontSize: 12.5, fontWeight: "700", color: c.warn.ink },
+    faceBannerCta: { fontSize: 12, fontWeight: "800", color: c.accent },
     offlineBanner: {
       marginBottom: 12,
       padding: 13,
@@ -654,11 +667,11 @@ const makeStyles = (c: Palette) =>
     secondary: {
       paddingVertical: 13,
       borderRadius: 16,
-      ...tombolSekunder(c),
+      ...secondaryButtonStyle(c),
       alignItems: "center",
     },
     secondaryText: { fontSize: 13, fontWeight: "600", color: c.btnSoftInk },
-    galat: {
+    errorText: {
       fontSize: 12.5,
       fontWeight: "600",
       color: c.bad.ink,

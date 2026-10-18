@@ -6,10 +6,10 @@ import { ICON } from "@/constants/icons";
 import { useT } from "@/i18n";
 import { Palette } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
-import { bukaLampiran } from "@/utils/lampiran";
+import { openAttachment } from "@/utils/lampiran";
 
 // Daftar lampiran (bukti lembur/biaya) yang bisa diketuk untuk dibuka.
-export function LampiranList({
+export function AttachmentList({
   items,
 }: {
   items?: { name: string; url: string }[];
@@ -20,9 +20,10 @@ export function LampiranList({
   const styles = useMemo(() => makeStyles(c), [c]);
   if (!items?.length) return null;
 
-  const buka = async (x: { name: string; url: string }) => {
+  const open = async (x: { name: string; url: string }) => {
     try {
-      if (!(await bukaLampiran(x.url, x.name))) throw new Error("unavailable");
+      if (!(await openAttachment(x.url, x.name)))
+        throw new Error("unavailable");
     } catch {
       void confirm({
         title: t("lamp.gagalJudul"),
@@ -38,7 +39,7 @@ export function LampiranList({
     <View style={styles.wrap}>
       <Text style={styles.label}>{t("lamp.judul")}</Text>
       {items.map((x) => (
-        <Pressable key={x.url} style={styles.row} onPress={() => buka(x)}>
+        <Pressable key={x.url} style={styles.row} onPress={() => open(x)}>
           <LineIcon d={ICON.fileCheck} color={c.info.ink} size={14} />
           <Text style={styles.name} numberOfLines={1}>
             {x.name}

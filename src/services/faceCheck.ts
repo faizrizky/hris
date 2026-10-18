@@ -22,14 +22,14 @@ interface HrisFaceNative {
 const Native = requireOptionalNativeModule<HrisFaceNative>("HrisFace");
 
 // False di iOS dan Expo Go: layar presensi melewati langkah wajah.
-export const wajahDidukung = (): boolean => !!Native && Native.supported();
+export const isFaceSupported = (): boolean => !!Native && Native.supported();
 
-export const deteksiWajah = (uri: string): Promise<HasilDeteksi> =>
+export const detectFace = (uri: string): Promise<HasilDeteksi> =>
   Native!.detect(uri);
 
 // Skor anti-spoofing 0..1 (makin tinggi makin asli), atau null bila tidak tersedia / tidak ada wajah.
-export const spoofTersedia = (): boolean => !!Native && !!Native.spoof;
-export const skorSpoof = async (uri: string): Promise<number | null> => {
+export const isSpoofAvailable = (): boolean => !!Native && !!Native.spoof;
+export const getSpoofScore = async (uri: string): Promise<number | null> => {
   try {
     return Native?.spoof ? await Native.spoof(uri) : null;
   } catch {
@@ -38,92 +38,93 @@ export const skorSpoof = async (uri: string): Promise<number | null> => {
 };
 
 // Embedding 128 angka ternormalisasi, atau null bila tidak ada wajah di foto.
-export const embeddingWajah = (uri: string): Promise<number[] | null> =>
+export const getFaceEmbedding = (uri: string): Promise<number[] | null> =>
   Native!.embed(uri);
 
 // Kemiripan cosine -1..1 (keduanya ternormalisasi = hasil kali titik).
-export const kemiripan = (a: number[], b: number[]): number =>
+export const similarity = (a: number[], b: number[]): number =>
   a.reduce((sum, v, i) => sum + v * b[i], 0);
 
 // Liveness saat absen: tiga perintah berurutan yang baru terlihat satu per satu dan urutannya diacak tiap sesi:
 // pejam mata, toleh ke satu sisi, lalu toleh ke sisi SEBALIKNYA. Foto tidak bisa memejam atau menoleh, dan video
 // rekaman tidak tahu kapan harus melakukan apa. Tanpa menyebut kiri/kanan, jadi tidak bergantung tanda sudut kamera.
-export type Tantangan = "pejam" | "toleh" | "tolehBalik";
+export type Challenge = "pejam" | "toleh" | "tolehBalik";
 
-export const LANGKAH_TOTAL = 3;
-export const BATAS_LANGKAH_MS = 10_000;
-const SUDUT_DEPAN = 8; // |yaw| di bawah ini dianggap menghadap depan
-const SUDUT_TOLEH = 14; // |yaw| di atas ini dianggap menoleh
+export const TOTAL_STEPS = 3;
+export const STEP_TIMEOUT_MS = 10_000;
+const FRONT_ANGLE = 8; // |yaw| di bawah ini dianggap menghadap depan
+const TURN_ANGLE = 14; // |yaw| di atas ini dianggap menoleh
 
-export const urutanAcak = (): Tantangan[] => {
-  const posisiPejam = Math.floor(Math.random() * 3); // 0 awal, 1 tengah, 2 akhir
-  const urutan: Tantangan[] = ["toleh", "tolehBalik"];
-  urutan.splice(posisiPejam, 0, "pejam");
-  return urutan;
+export const randomOrder = (): Challenge[] => {
+  const blinkPosition = Math.floor(Math.random() * 3); // 0 awal, 1 tengah, 2 akhir
+  const order: Challenge[] = ["toleh", "tolehBalik"];
+  order.splice(blinkPosition, 0, "pejam");
+  return order;
 };
 
-export interface StatusUrutan {
-  urutan: Tantangan[];
-  langkah: number; // indeks perintah aktif
-  siap: boolean; // sudah melihat wajah depan dengan mata terbuka
-  netral: boolean; // kondisi awal perintah aktif terpenuhi (mata terbuka / kepala di tengah)
+export interface SequenceState {
+  order: Challenge[];
+  step: number; // indeks perintah aktif
+  isReady: boolean; // sudah melihat wajah depan dengan mata terbuka
+  isNeutral: boolean; // kondisi awal perintah aktif terpenuhi (mata terbuka / kepala di tengah)
   sisi: number; // tanda yaw toleh pertama (+1 atau -1), 0 bila belum
-  mulaiLangkah: number; // epoch ms
-  lulus: boolean;
-  pesan: "tidakAda" | "banyak" | "dekat" | "depan" | "tantangan";
+  stepStartedAt: number; // epoch ms
+  hasPassed: boolean;
+  message: "tidakAda" | "banyak" | "dekat" | "depan" | "tantangan";
 }
 
-export const awalUrutan = (): StatusUrutan => ({
-  urutan: urutanAcak(),
-  langkah: 0,
-  siap: false,
-  netral: false,
+export const initialSequence = (): SequenceState => ({
+  order: randomOrder(),
+  step: 0,
+  isReady: false,
+  isNeutral: false,
   sisi: 0,
-  mulaiLangkah: 0,
-  lulus: false,
-  pesan: "tidakAda",
+  stepStartedAt: 0,
+  hasPassed: false,
+  message: "tidakAda",
 });
 
-export function langkahUrutan(
-  s: StatusUrutan,
+export function advanceSequence(
+  s: SequenceState,
   d: HasilDeteksi,
-  sekarang: number,
-): StatusUrutan {
-  if (d.count === 0) return { ...s, pesan: "tidakAda" };
-  if (d.count > 1) return { ...s, pesan: "banyak" };
-  if (d.size < 0.25) return { ...s, pesan: "dekat" };
-  if (!s.siap) {
-    const depan = Math.abs(d.yaw) < SUDUT_DEPAN && d.eyesOpen > 0.6;
-    return depan
-      ? { ...s, siap: true, mulaiLangkah: sekarang, pesan: "tantangan" }
-      : { ...s, pesan: "depan" };
+  now: number,
+): SequenceState {
+  if (d.count === 0) return { ...s, message: "tidakAda" };
+  if (d.count > 1) return { ...s, message: "banyak" };
+  if (d.size < 0.25) return { ...s, message: "dekat" };
+  if (!s.isReady) {
+    const isFacingFront = Math.abs(d.yaw) < FRONT_ANGLE && d.eyesOpen > 0.6;
+    return isFacingFront
+      ? { ...s, isReady: true, stepStartedAt: now, message: "tantangan" }
+      : { ...s, message: "depan" };
   }
-  const aktif = s.urutan[s.langkah]!;
-  let netral = s.netral;
+  const currentChallenge = s.order[s.step]!;
+  let isNeutral = s.isNeutral;
   let sisi = s.sisi;
-  let ok = false;
-  if (aktif === "pejam") {
-    if (d.eyesOpen >= 0.5 && Math.abs(d.yaw) < SUDUT_DEPAN + 4) netral = true;
-    ok = netral && d.eyesOpen >= 0 && d.eyesOpen < 0.45;
-  } else if (aktif === "toleh") {
-    if (Math.abs(d.yaw) < SUDUT_DEPAN) netral = true;
-    if (netral && Math.abs(d.yaw) >= SUDUT_TOLEH) {
-      ok = true;
+  let isConfirmed = false;
+  if (currentChallenge === "pejam") {
+    if (d.eyesOpen >= 0.5 && Math.abs(d.yaw) < FRONT_ANGLE + 4)
+      isNeutral = true;
+    isConfirmed = isNeutral && d.eyesOpen >= 0 && d.eyesOpen < 0.45;
+  } else if (currentChallenge === "toleh") {
+    if (Math.abs(d.yaw) < FRONT_ANGLE) isNeutral = true;
+    if (isNeutral && Math.abs(d.yaw) >= TURN_ANGLE) {
+      isConfirmed = true;
       sisi = d.yaw > 0 ? 1 : -1;
     }
   } else {
     // sisi sebaliknya dari toleh pertama
-    ok = s.sisi !== 0 && d.yaw * s.sisi <= -SUDUT_TOLEH;
+    isConfirmed = s.sisi !== 0 && d.yaw * s.sisi <= -TURN_ANGLE;
   }
-  if (!ok) return { ...s, netral, sisi, pesan: "tantangan" };
-  const langkah = s.langkah + 1;
+  if (!isConfirmed) return { ...s, isNeutral, sisi, message: "tantangan" };
+  const nextStep = s.step + 1;
   return {
     ...s,
-    langkah,
-    netral: false,
+    step: nextStep,
+    isNeutral: false,
     sisi,
-    mulaiLangkah: sekarang,
-    lulus: langkah >= s.urutan.length,
-    pesan: "tantangan",
+    stepStartedAt: now,
+    hasPassed: nextStep >= s.order.length,
+    message: "tantangan",
   };
 }

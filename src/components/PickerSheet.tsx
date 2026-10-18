@@ -38,7 +38,7 @@ export function PickerSheet({
   const insets = useSafeAreaInsets();
 
   const [anim] = useState(() => new Animated.Value(0));
-  const [tinggi, setTinggi] = useState(400);
+  const [sheetHeight, setSheetHeight] = useState(400);
 
   useEffect(() => {
     if (!visible) return;
@@ -53,7 +53,7 @@ export function PickerSheet({
 
   const translateY = anim.interpolate({
     inputRange: [0, 1],
-    outputRange: [tinggi, 0],
+    outputRange: [sheetHeight, 0],
   });
   return (
     <Modal
@@ -67,7 +67,7 @@ export function PickerSheet({
       </Animated.View>
 
       <Animated.View
-        onLayout={(e) => setTinggi(e.nativeEvent.layout.height)}
+        onLayout={(e) => setSheetHeight(e.nativeEvent.layout.height)}
         style={[
           styles.sheet,
           { paddingBottom: insets.bottom + 20, transform: [{ translateY }] },
@@ -77,7 +77,7 @@ export function PickerSheet({
         <Text style={styles.title}>{title}</Text>
 
         {options.map((opt) => {
-          const on = opt === value;
+          const isOn = opt === value;
           return (
             <Pressable
               key={opt}
@@ -87,10 +87,10 @@ export function PickerSheet({
                 onClose();
               }}
             >
-              <Text style={[styles.rowText, on && styles.rowTextOn]}>
+              <Text style={[styles.rowText, isOn && styles.rowTextOn]}>
                 {labelOf ? labelOf(opt) : opt}
               </Text>
-              {on && <Ionicons name="checkmark" size={18} color={c.accent} />}
+              {isOn && <Ionicons name="checkmark" size={18} color={c.accent} />}
             </Pressable>
           );
         })}

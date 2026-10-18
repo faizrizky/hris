@@ -6,7 +6,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useLoad } from "@/hooks/useLoad";
 import { ErrorState } from "@/components/ErrorState";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Palette, tombolUtama } from "@/theme/colors";
+import { Palette, primaryButtonStyle } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
 import { hrisApi } from "@/services/api";
 import { useSession } from "@/services/session";
@@ -19,14 +19,14 @@ import {
   CORRECTION_STATUS_LABEL as STATUS_LABEL,
   CORRECTION_STATUS_TONE as STATUS_TONE,
 } from "@/constants/statusLabels";
-import { pisahAlasan } from "@/utils/Correction";
-import { bulanSingkat, namaHari, tanggalAngka } from "@/utils/date";
-import { namaJenisKoreksi } from "./KoreksiCards";
+import { splitReason } from "@/utils/Correction";
+import { getShortMonth, getWeekdayName, formatNumericDate } from "@/utils/date";
+import { getCorrectionKindName } from "./KoreksiCards";
 import { useT } from "@/i18n";
-import { LampiranList } from "@/screens/leave/LampiranList";
+import { AttachmentList } from "@/screens/leave/LampiranList";
 import type { Kunci } from "@/i18n/id";
 import { EmptyState } from "@/components/EmptyState";
-import { kembali } from "@/navigation/kembali";
+import { goBackAnimated } from "@/navigation/kembali";
 
 type Filter = "semua" | AttendanceRequestedStatus;
 
@@ -41,40 +41,41 @@ export function AttendanceCorrectionHistoryScreen({ navigation }: ScreenProps) {
   const t = useT();
   const { employee } = useSession();
   const insets = useSafeAreaInsets();
-  const koreksi = useLoad(
+  const correction = useLoad(
     () =>
       employee
         ? hrisApi.getAttendanceCorrections(employee.id)
         : Promise.resolve([]),
     employee?.id,
   );
-  const records = koreksi.data;
+  const records = correction.data;
   const [filter, setFilter] = useState<Filter>("semua");
-  const [buka, setBuka] = useState<string | null>(null);
+  const [openId, setOpenId] = useState<string | null>(null);
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
 
   // useLoad memuat ulang tiap layar kembali fokus, jadi koreksi yang baru
   // dikirim langsung muncul.
-  const memuat = koreksi.memuat;
-  const semua = records ?? [];
+  const isMemuat = correction.isLoading;
+  const all = records ?? [];
 
-  const hitung = (s: AttendanceRequestedStatus) =>
-    semua.filter((r) => r.status === s).length;
+  const countBy = (s: AttendanceRequestedStatus) =>
+    all.filter((r) => r.status === s).length;
 
-  const pending = hitung("pending");
-  const approved = hitung("approved");
-  const rejected = hitung("rejected");
-  const total = semua.length;
+  const pending = countBy("pending");
+  const approved = countBy("approved");
+  const rejected = countBy("rejected");
+  const total = all.length;
 
-  const filtered = semua.filter(
-    (r) => filter === "semua" || r.status === filter,
-  );
+  const filtered = all.filter((r) => filter === "semua" || r.status === filter);
 
   return (
     <View style={styles.container}>
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
-        <Pressable style={styles.backBtn} onPress={() => kembali(navigation)}>
+        <Pressable
+          style={styles.backBtn}
+          onPress={() => goBackAnimated(navigation)}
+        >
           <Ionicons name="chevron-back" size={18} color={c.ink} />
         </Pressable>
         <Text style={styles.headerTitle}>{t("kor.hJudul")}</Text>
@@ -90,18 +91,18 @@ export function AttendanceCorrectionHistoryScreen({ navigation }: ScreenProps) {
 
       <View style={styles.chipRow}>
         {CHIPS.map((c) => {
-          const on = filter === c.key;
+          const isOn = filter === c.key;
           const n =
             c.key === "semua"
               ? total
-              : hitung(c.key as AttendanceRequestedStatus);
+              : countBy(c.key as AttendanceRequestedStatus);
           return (
             <Pressable
               key={c.key}
               onPress={() => setFilter(c.key)}
-              style={[styles.chip, on && styles.chipOn]}
+              style={[styles.chip, isOn && styles.chipOn]}
             >
-              <Text style={[styles.chipText, on && styles.chipTextOn]}>
+              <Text style={[styles.chipText, isOn && styles.chipTextOn]}>
                 {t(c.label)}
                 {n > 0 ? ` ${n}` : ""}
               </Text>
@@ -162,9 +163,9 @@ export function AttendanceCorrectionHistoryScreen({ navigation }: ScreenProps) {
           ) : null
         }
         ListEmptyComponent={
-          koreksi.error && !records ? (
-            <ErrorState pesan={koreksi.error} onUlangi={koreksi.ulangi} />
-          ) : memuat ? (
+          correction.error && !records ? (
+            <ErrorState message={correction.error} onRetry={correction.retry} />
+          ) : isMemuat ? (
             <>
               {[0, 1, 2].map((i) => (
                 <View key={i} style={styles.skelRow}>
@@ -180,7 +181,7 @@ export function AttendanceCorrectionHistoryScreen({ navigation }: ScreenProps) {
           ) : (
             <EmptyState
               icon={ICON.fileCheck}
-              tinggi={300}
+              height={300}
               title={total === 0 ? t("kor.kosongJudul") : t("kor.tidakCocok")}
               text={total === 0 ? t("kor.kosongIsi") : t("kor.gantiFilter")}
             >
@@ -198,28 +199,30 @@ export function AttendanceCorrectionHistoryScreen({ navigation }: ScreenProps) {
           )
         }
         renderItem={({ item }) => {
-          const { jenis, catatan } = pisahAlasan(item.reason);
-          const terbuka = buka === item.id;
+          const { kind, note } = splitReason(item.reason);
+          const isOpen = openId === item.id;
 
           return (
             <Pressable
               style={styles.row}
-              onPress={() => setBuka(terbuka ? null : item.id)}
+              onPress={() => setOpenId(isOpen ? null : item.id)}
             >
               <View style={styles.rowTop}>
                 <View style={styles.dateChip}>
-                  <Text style={styles.dateDay}>{tanggalAngka(item.date)}</Text>
+                  <Text style={styles.dateDay}>
+                    {formatNumericDate(item.date)}
+                  </Text>
                   <Text style={styles.dateMonth}>
-                    {bulanSingkat(item.date)}
+                    {getShortMonth(item.date)}
                   </Text>
                 </View>
 
                 <View style={{ flex: 1, minWidth: 0 }}>
                   <Text style={styles.rowTitle} numberOfLines={1}>
-                    {namaJenisKoreksi(jenis)}
+                    {getCorrectionKindName(kind)}
                   </Text>
                   <Text style={styles.rowDetail}>
-                    {namaHari(item.date)} · {item.requestedCheckIn} –{" "}
+                    {getWeekdayName(item.date)} · {item.requestedCheckIn} –{" "}
                     {item.requestedCheckOut}
                   </Text>
                 </View>
@@ -230,16 +233,16 @@ export function AttendanceCorrectionHistoryScreen({ navigation }: ScreenProps) {
                   variant="compact"
                 />
                 <Ionicons
-                  name={terbuka ? "chevron-up" : "chevron-down"}
+                  name={isOpen ? "chevron-up" : "chevron-down"}
                   size={14}
                   color={c.mutedLabel}
                 />
               </View>
 
-              {terbuka && (
+              {isOpen && (
                 <View style={styles.rowBody}>
                   <Text style={styles.bodyLabel}>{t("kor.penjelasan")}</Text>
-                  <Text style={styles.bodyText}>{catatan || "—"}</Text>
+                  <Text style={styles.bodyText}>{note || "—"}</Text>
 
                   <Text style={[styles.bodyLabel, { marginTop: 11 }]}>
                     {t("kor.dokErp")}
@@ -247,7 +250,7 @@ export function AttendanceCorrectionHistoryScreen({ navigation }: ScreenProps) {
                   <Text style={styles.bodyDoc}>
                     Attendance Request · HR-ATR-{item.id}
                   </Text>
-                  <LampiranList items={item.attachments} />
+                  <AttachmentList items={item.attachments} />
                 </View>
               )}
             </Pressable>
@@ -309,7 +312,7 @@ const makeStyles = (c: Palette) =>
     },
     headerTitle: { fontSize: 15, fontWeight: "700", color: c.ink },
     addBtn: {
-      ...tombolUtama(c),
+      ...primaryButtonStyle(c),
       flexDirection: "row",
       alignItems: "center",
       gap: 6,
@@ -467,7 +470,7 @@ const makeStyles = (c: Palette) =>
       marginTop: 6,
     },
     emptyBtn: {
-      ...tombolUtama(c),
+      ...primaryButtonStyle(c),
       paddingHorizontal: 20,
       paddingVertical: 11,
       borderRadius: 14,

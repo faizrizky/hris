@@ -1,6 +1,6 @@
 import { hrisApi } from "@/services/api";
-import { setBelumDibaca, useBelumDibaca } from "@/navigation/notifBadge";
-import { tandaiKembali } from "@/navigation/kembali";
+import { setUnreadCount, useUnreadCount } from "@/navigation/notifBadge";
+import { markBackNavigation } from "@/navigation/kembali";
 import { useTabBarHidden } from "@/navigation/tabBarVisibility";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { LinearGradient } from "expo-linear-gradient";
@@ -36,7 +36,7 @@ const LABEL: Record<string, Kunci> = {
   Profil: "tab.profil",
 };
 
-const IKON: Record<string, keyof typeof Ionicons.glyphMap> = {
+const TONE_ICONS: Record<string, keyof typeof Ionicons.glyphMap> = {
   Beranda: "home-outline",
   Absensi: "finger-print-outline",
   AbsensiTim: "people-outline",
@@ -53,8 +53,8 @@ const RING_BOX = BUBBLE + RING * 2;
 // Tinggi pusat gelembung di atas tepi atas bar, dan seberapa dalam ia turun
 // ke dalam bar saat berpindah.
 const NAIK = 4;
-const TURUN = 30;
-const DURASI = 440;
+const BUBBLE_DIP = 30;
+const SWITCH_DURATION_MS = 440;
 
 export function FloatingTabBar({ state, navigation }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
@@ -70,8 +70,8 @@ export function FloatingTabBar({ state, navigation }: BottomTabBarProps) {
     getFocusedRouteNameFromRoute(active);
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
-  const disembunyikan = useTabBarHidden();
-  const belumDibaca = useBelumDibaca();
+  const isHidden = useTabBarHidden();
+  const unreadCount = useUnreadCount();
   const employeeId = employee?.id;
 
   // Muat jumlah belum dibaca saat bar tampil dan tiap pindah tab.
@@ -79,11 +79,11 @@ export function FloatingTabBar({ state, navigation }: BottomTabBarProps) {
     if (!employeeId) return;
     hrisApi
       .getNotificationInbox(employeeId)
-      .then((n) => setBelumDibaca(n.filter((x) => !x.read).length))
+      .then((n) => setUnreadCount(n.filter((x) => !x.read).length))
       .catch(() => {});
   }, [employeeId, state.index]);
 
-  const urutan = [
+  const order = [
     "Beranda",
     employee?.role === "mss"
       ? "Approval"
@@ -93,28 +93,28 @@ export function FloatingTabBar({ state, navigation }: BottomTabBarProps) {
     "Notifikasi",
     ...RIGHT,
   ];
-  const idx = urutan.indexOf(currentRoute);
+  const idx = order.indexOf(currentRoute);
 
-  const [lebar, setLebar] = useState(0);
-  const slot = lebar / urutan.length;
+  const [barWidth, setBarWidth] = useState(0);
+  const slot = barWidth / order.length;
 
   // Tiap tab punya nilai keaktifannya sendiri (0..1) dan gelembung punya posisi
   // kontinu. Semuanya selalu menuju keadaan akhir dari posisi terakhirnya, jadi
   // pindah tab beruntun dengan cepat tidak meninggalkan ikon setengah jalan.
-  const [aktifV] = useState(() =>
-    urutan.map((_, i) => new Animated.Value(i === idx ? 1 : 0)),
+  const [activeValues] = useState(() =>
+    order.map((_, i) => new Animated.Value(i === idx ? 1 : 0)),
   );
-  const [pos] = useState(() => new Animated.Value(Math.max(idx, 0)));
+  const [bubblePosition] = useState(() => new Animated.Value(Math.max(idx, 0)));
   const [dip] = useState(() => new Animated.Value(0));
-  const [tampil] = useState(() => new Animated.Value(0));
-  const sudahMasuk = useRef(false);
+  const [appear] = useState(() => new Animated.Value(0));
+  const hasEntered = useRef(false);
 
   useEffect(() => {
-    if (lebar === 0) return;
-    if (!sudahMasuk.current) {
+    if (barWidth === 0) return;
+    if (!hasEntered.current) {
       // Gelembung muncul (naik + memudar) di tab awal.
-      sudahMasuk.current = true;
-      Animated.timing(tampil, {
+      hasEntered.current = true;
+      Animated.timing(appear, {
         toValue: idx >= 0 ? 1 : 0,
         duration: 420,
         delay: 120,
@@ -123,24 +123,24 @@ export function FloatingTabBar({ state, navigation }: BottomTabBarProps) {
       }).start();
       return;
     }
-    Animated.timing(tampil, {
+    Animated.timing(appear, {
       toValue: idx >= 0 ? 1 : 0,
       duration: 220,
       useNativeDriver: true,
     }).start();
     const ease = Easing.bezier(0.45, 0, 0.2, 1);
-    aktifV.forEach((v, i) =>
+    activeValues.forEach((v, i) =>
       Animated.timing(v, {
         toValue: i === idx ? 1 : 0,
-        duration: DURASI,
+        duration: SWITCH_DURATION_MS,
         easing: ease,
         useNativeDriver: true,
       }).start(),
     );
     if (idx < 0) return;
-    Animated.timing(pos, {
+    Animated.timing(bubblePosition, {
       toValue: idx,
-      duration: DURASI,
+      duration: SWITCH_DURATION_MS,
       easing: ease,
       useNativeDriver: true,
     }).start();
@@ -158,7 +158,7 @@ export function FloatingTabBar({ state, navigation }: BottomTabBarProps) {
         useNativeDriver: true,
       }),
     ]).start();
-  }, [idx, lebar, aktifV, pos, dip, tampil]);
+  }, [idx, barWidth, activeValues, bubblePosition, dip, appear]);
 
   const HIDE_ON = [
     "LeaveRequest",
@@ -173,8 +173,7 @@ export function FloatingTabBar({ state, navigation }: BottomTabBarProps) {
     "FaceEnroll",
     "ProfilePhoto",
   ];
-  if (disembunyikan || (nestedRoute && HIDE_ON.includes(nestedRoute)))
-    return null;
+  if (isHidden || (nestedRoute && HIDE_ON.includes(nestedRoute))) return null;
 
   const go = (routeName: string) => {
     const route = state.routes.find((r) => r.name === routeName);
@@ -183,7 +182,7 @@ export function FloatingTabBar({ state, navigation }: BottomTabBarProps) {
     const isFocused = state.routes[state.index].key === route.key;
     // Menekan tab yang sedang aktif saat ada halaman bertumpuk di atasnya
     // mengembalikan ke akar tab; tandai agar akar itu memutar animasi masuknya.
-    if (isFocused && (nested?.index ?? 0) > 0) tandaiKembali();
+    if (isFocused && (nested?.index ?? 0) > 0) markBackNavigation();
     const event = navigation.emit({
       type: "tabPress",
       target: route.key,
@@ -195,25 +194,25 @@ export function FloatingTabBar({ state, navigation }: BottomTabBarProps) {
     }
   };
 
-  const pusat = (i: number) => i * slot + slot / 2 - RING_BOX / 2;
-  const bubbleX = pos.interpolate({
-    inputRange: urutan.map((_, i) => i),
-    outputRange: urutan.map((_, i) => pusat(i)),
+  const centerOf = (i: number) => i * slot + slot / 2 - RING_BOX / 2;
+  const bubbleX = bubblePosition.interpolate({
+    inputRange: order.map((_, i) => i),
+    outputRange: order.map((_, i) => centerOf(i)),
     extrapolate: "clamp",
   });
   const bubbleY = Animated.add(
-    dip.interpolate({ inputRange: [0, 1], outputRange: [0, TURUN] }),
-    tampil.interpolate({ inputRange: [0, 1], outputRange: [20, 0] }),
+    dip.interpolate({ inputRange: [0, 1], outputRange: [0, BUBBLE_DIP] }),
+    appear.interpolate({ inputRange: [0, 1], outputRange: [20, 0] }),
   );
 
   // Ikon di slot bar: saat tab menjadi aktif ikonnya naik masuk ke gelembung
   // (hilang dari slot); saat tidak aktif lagi ia turun kembali ke slotnya.
-  const ikonBar = (i: number) => ({
-    opacity: aktifV[i]!.interpolate({
+  const barIconStyle = (i: number) => ({
+    opacity: activeValues[i]!.interpolate({
       inputRange: [0, 0.2, 0.5, 1],
       outputRange: [1, 1, 0, 0],
     }),
-    translateY: aktifV[i]!.interpolate({
+    translateY: activeValues[i]!.interpolate({
       inputRange: [0, 0.2, 0.5, 1],
       outputRange: [0, 0, -14, -14],
     }),
@@ -221,21 +220,21 @@ export function FloatingTabBar({ state, navigation }: BottomTabBarProps) {
 
   // Ikon di dalam gelembung: kosong saat gelembung di titik terendah (tab lama
   // dan baru sama-sama sekitar 0,5), lalu ikon tujuan naik dari bawah.
-  const ikonGelembung = (i: number) => ({
-    opacity: aktifV[i]!.interpolate({
+  const bubbleIconStyle = (i: number) => ({
+    opacity: activeValues[i]!.interpolate({
       inputRange: [0, 0.5, 0.75, 1],
       outputRange: [0, 0, 1, 1],
     }),
-    translateY: aktifV[i]!.interpolate({
+    translateY: activeValues[i]!.interpolate({
       inputRange: [0, 0.5, 0.85, 1],
       outputRange: [16, 16, 0, 0],
     }),
   });
 
   const renderTab = (routeName: string, i: number) => {
-    const aktif = idx === i;
-    const warna = aktif ? c.accent : c.mutedLabel;
-    const b = ikonBar(i);
+    const isActive = idx === i;
+    const labelColor = isActive ? c.accent : c.mutedLabel;
+    const b = barIconStyle(i);
     return (
       <Pressable
         key={routeName}
@@ -248,13 +247,17 @@ export function FloatingTabBar({ state, navigation }: BottomTabBarProps) {
             { opacity: b.opacity, transform: [{ translateY: b.translateY }] },
           ]}
         >
-          <Ionicons name={IKON[routeName]!} size={22} color={c.mutedLabel} />
-          {routeName === "Notifikasi" && belumDibaca > 0 && (
-            <View style={styles.titik} />
+          <Ionicons
+            name={TONE_ICONS[routeName]!}
+            size={22}
+            color={c.mutedLabel}
+          />
+          {routeName === "Notifikasi" && unreadCount > 0 && (
+            <View style={styles.dot} />
           )}
         </Animated.View>
         <Text
-          style={[styles.tabLabel, { color: warna }]}
+          style={[styles.tabLabel, { color: labelColor }]}
           numberOfLines={1}
           adjustsFontSizeToFit
           minimumFontScale={0.8}
@@ -266,7 +269,7 @@ export function FloatingTabBar({ state, navigation }: BottomTabBarProps) {
   };
 
   const onLayout = (e: LayoutChangeEvent) =>
-    setLebar(e.nativeEvent.layout.width);
+    setBarWidth(e.nativeEvent.layout.width);
 
   return (
     <View
@@ -288,22 +291,22 @@ export function FloatingTabBar({ state, navigation }: BottomTabBarProps) {
         }}
       />
       <View style={styles.bar} onLayout={onLayout}>
-        {urutan.map(renderTab)}
+        {order.map(renderTab)}
 
-        {lebar > 0 && (
+        {barWidth > 0 && (
           <Animated.View
             pointerEvents="none"
             style={[
               styles.ring,
               {
-                opacity: tampil,
+                opacity: appear,
                 transform: [{ translateX: bubbleX }, { translateY: bubbleY }],
               },
             ]}
           >
             <View style={styles.bubble}>
-              {urutan.map((r, i) => {
-                const g = ikonGelembung(i);
+              {order.map((r, i) => {
+                const g = bubbleIconStyle(i);
                 return (
                   <Animated.View
                     key={r}
@@ -316,7 +319,7 @@ export function FloatingTabBar({ state, navigation }: BottomTabBarProps) {
                       },
                     ]}
                   >
-                    <Ionicons name={IKON[r]!} size={24} color="#FFFFFF" />
+                    <Ionicons name={TONE_ICONS[r]!} size={24} color="#FFFFFF" />
                   </Animated.View>
                 );
               })}
@@ -368,7 +371,7 @@ const makeStyles = (c: Palette) =>
       overflow: "hidden",
       shadowColor: c.accent,
     },
-    titik: {
+    dot: {
       position: "absolute",
       top: 0,
       right: -1,

@@ -21,14 +21,14 @@ import {
   DOC_STATUS_TONE,
 } from "@/constants/statusLabels";
 import { useT } from "@/i18n";
-import { usePollingAktif } from "@/hooks/usePollingAktif";
+import { useActivePolling } from "@/hooks/usePollingAktif";
 import { EmptyState } from "@/components/EmptyState";
 import { ICON } from "@/constants/icons";
-import { kembali } from "@/navigation/kembali";
+import { goBackAnimated } from "@/navigation/kembali";
 
-const SEMUA = "semua";
-const KATEGORI: DocCategory[] = ["kontrak", "sk", "sertifikat", "identitas"];
-const TAB: (DocCategory | typeof SEMUA)[] = [SEMUA, ...KATEGORI];
+const ALL_TAB = "semua";
+const CATEGORIES: DocCategory[] = ["kontrak", "sk", "sertifikat", "identitas"];
+const TAB: (DocCategory | typeof ALL_TAB)[] = [ALL_TAB, ...CATEGORIES];
 
 export function ProfileDocsScreen({ navigation }: ScreenProps) {
   const t = useT();
@@ -38,20 +38,20 @@ export function ProfileDocsScreen({ navigation }: ScreenProps) {
   const styles = useMemo(() => makeStyles(c), [c]);
 
   const [docs, setDocs] = useState<EmployeeDocument[] | null>(null);
-  const [tab, setTab] = useState<DocCategory | typeof SEMUA>(SEMUA);
+  const [tab, setTab] = useState<DocCategory | typeof ALL_TAB>(ALL_TAB);
 
-  const [galat, setGalat] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const muat = useCallback(() => {
+  const load = useCallback(() => {
     if (!employee) return;
-    setGalat(null);
+    setErrorMessage(null);
     hrisApi
       .getDocuments(employee.id)
       .then(setDocs)
-      .catch((e) => setGalat(describeError(e)));
+      .catch((e) => setErrorMessage(describeError(e)));
   }, [employee]);
 
-  const muatDiam = useCallback(() => {
+  const loadQuietly = useCallback(() => {
     if (!employee) return;
     hrisApi
       .getDocuments(employee.id)
@@ -59,10 +59,10 @@ export function ProfileDocsScreen({ navigation }: ScreenProps) {
       .catch(() => {});
   }, [employee]);
 
-  useFocusEffect(muat);
+  useFocusEffect(load);
   // Status dokumen bisa berubah oleh HR: muat ulang diam-diam, hanya bila ada dokumen yang belum final.
-  usePollingAktif(
-    muatDiam,
+  useActivePolling(
+    loadQuietly,
     20_000,
     (docs ?? []).some(
       (d) => d.status === "pending" || d.status === "changeRequested",
@@ -70,20 +70,23 @@ export function ProfileDocsScreen({ navigation }: ScreenProps) {
   );
 
   const items = docs ?? [];
-  const loading = docs === null && !galat;
+  const isLoading = docs === null && !errorMessage;
 
-  const terverifikasi = items.filter((d) => d.status === "verified").length;
-  const perluTindakan = items.length - terverifikasi;
+  const verifiedCount = items.filter((d) => d.status === "verified").length;
+  const needsAction = items.length - verifiedCount;
 
-  const hitung = (k: DocCategory | typeof SEMUA) =>
-    k === SEMUA ? items.length : items.filter((d) => d.category === k).length;
+  const countBy = (k: DocCategory | typeof ALL_TAB) =>
+    k === ALL_TAB ? items.length : items.filter((d) => d.category === k).length;
 
-  const tersaring = items.filter((d) => tab === SEMUA || d.category === tab);
+  const filtered = items.filter((d) => tab === ALL_TAB || d.category === tab);
 
   return (
     <View style={styles.container}>
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
-        <Pressable style={styles.backBtn} onPress={() => kembali(navigation)}>
+        <Pressable
+          style={styles.backBtn}
+          onPress={() => goBackAnimated(navigation)}
+        >
           <Ionicons name="chevron-back" size={18} color={c.ink} />
         </Pressable>
         <Text style={styles.headerTitle}>{t("doc.judul")}</Text>
@@ -105,17 +108,19 @@ export function ProfileDocsScreen({ navigation }: ScreenProps) {
           <View style={styles.heroBlob} />
           <View>
             <Text style={styles.heroLabel}>{t("doc.total")}</Text>
-            <Text style={styles.heroTotal}>{loading ? "–" : items.length}</Text>
+            <Text style={styles.heroTotal}>
+              {isLoading ? "–" : items.length}
+            </Text>
           </View>
           <View style={styles.heroPills}>
             <View style={styles.heroPill}>
               <Text style={styles.heroPillText}>
-                {t("doc.terverifikasi", { n: loading ? "–" : terverifikasi })}
+                {t("doc.terverifikasi", { n: isLoading ? "–" : verifiedCount })}
               </Text>
             </View>
             <View style={styles.heroPill}>
               <Text style={styles.heroPillText}>
-                {t("doc.perluTindakan", { n: loading ? "–" : perluTindakan })}
+                {t("doc.perluTindakan", { n: isLoading ? "–" : needsAction })}
               </Text>
             </View>
           </View>
@@ -129,16 +134,16 @@ export function ProfileDocsScreen({ navigation }: ScreenProps) {
         contentContainerStyle={styles.chipRow}
       >
         {TAB.map((k) => {
-          const on = tab === k;
-          const label = k === SEMUA ? t("doc.semua") : DOC_CATEGORY_LABEL[k];
+          const isOn = tab === k;
+          const label = k === ALL_TAB ? t("doc.semua") : DOC_CATEGORY_LABEL[k];
           return (
             <Pressable
               key={k}
               onPress={() => setTab(k)}
-              style={[styles.chip, on && styles.chipOn]}
+              style={[styles.chip, isOn && styles.chipOn]}
             >
-              <Text style={[styles.chipText, on && styles.chipTextOn]}>
-                {label} ({hitung(k)})
+              <Text style={[styles.chipText, isOn && styles.chipTextOn]}>
+                {label} ({countBy(k)})
               </Text>
             </Pressable>
           );
@@ -146,9 +151,9 @@ export function ProfileDocsScreen({ navigation }: ScreenProps) {
       </ScrollView>
 
       <ScrollView contentContainerStyle={styles.list}>
-        {galat && docs === null ? (
-          <ErrorState pesan={galat} onUlangi={muat} />
-        ) : loading ? (
+        {errorMessage && docs === null ? (
+          <ErrorState message={errorMessage} onRetry={load} />
+        ) : isLoading ? (
           <View style={{ gap: 10 }}>
             {[0, 1, 2, 3].map((i) => (
               <View key={i} style={styles.row}>
@@ -160,16 +165,16 @@ export function ProfileDocsScreen({ navigation }: ScreenProps) {
               </View>
             ))}
           </View>
-        ) : tersaring.length === 0 ? (
+        ) : filtered.length === 0 ? (
           <EmptyState
             icon={ICON.document}
             title={t("doc.kosongJudul")}
             text={t("doc.kosongIsi")}
           />
         ) : (
-          tersaring.map((d) => {
+          filtered.map((d) => {
             const tone = c[DOC_STATUS_TONE[d.status]];
-            const pdf = d.ext === "PDF";
+            const isPdf = d.ext === "PDF";
             return (
               <Pressable
                 key={d.id}
@@ -181,13 +186,13 @@ export function ProfileDocsScreen({ navigation }: ScreenProps) {
                 <View
                   style={[
                     styles.extChip,
-                    { backgroundColor: pdf ? c.bad.bg : c.info.bg },
+                    { backgroundColor: isPdf ? c.bad.bg : c.info.bg },
                   ]}
                 >
                   <Text
                     style={[
                       styles.extText,
-                      { color: pdf ? c.bad.ink : c.info.ink },
+                      { color: isPdf ? c.bad.ink : c.info.ink },
                     ]}
                   >
                     {d.ext}

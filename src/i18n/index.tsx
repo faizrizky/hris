@@ -19,44 +19,47 @@ const KAMUS: Record<Bahasa, Record<Kunci, string>> = { id, en };
 
 // Bahasa aktif juga disimpan di luar React supaya kode non-komponen (mis.
 // penerjemah label server) bisa membacanya.
-let aktif: Bahasa = "id";
-export function bahasaAktif(): Bahasa {
-  return aktif;
+let activeLanguage: Bahasa = "id";
+export function getActiveLanguage(): Bahasa {
+  return activeLanguage;
 }
 
 interface Ctx {
-  bahasa: Bahasa;
-  setBahasa: (b: Bahasa) => void;
+  language: Bahasa;
+  setLanguage: (b: Bahasa) => void;
 }
 
 const LanguageCtx = createContext<Ctx | null>(null);
 
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
-  const [bahasa, setBahasaState] = useState<Bahasa>("id");
+  const [language, setLanguageState] = useState<Bahasa>("id");
 
   useEffect(() => {
     AsyncStorage.getItem(KEY)
       .then((v) => {
         if (v === "id" || v === "en") {
-          aktif = v;
-          setBahasaState(v);
+          activeLanguage = v;
+          setLanguageState(v);
         }
       })
       .catch(() => {});
   }, []);
 
-  const setBahasa = useCallback((b: Bahasa) => {
-    aktif = b;
-    setBahasaState(b);
+  const setLanguage = useCallback((b: Bahasa) => {
+    activeLanguage = b;
+    setLanguageState(b);
     // Gagal menyimpan tidak boleh menggagalkan pergantian bahasa.
     AsyncStorage.setItem(KEY, b).catch(() => {});
   }, []);
 
-  const value = useMemo(() => ({ bahasa, setBahasa }), [bahasa, setBahasa]);
+  const value = useMemo(
+    () => ({ language, setLanguage }),
+    [language, setLanguage],
+  );
   return <LanguageCtx.Provider value={value}>{children}</LanguageCtx.Provider>;
 }
 
-export function useBahasa(): Ctx {
+export function useLanguage(): Ctx {
   const ctx = useContext(LanguageCtx);
   if (!ctx) throw new Error("useBahasa must be used within LanguageProvider");
   return ctx;
@@ -64,26 +67,26 @@ export function useBahasa(): Ctx {
 
 type Param = Record<string, string | number>;
 
-function isi(teks: string, param?: Param): string {
-  if (!param) return teks;
-  let hasil = teks;
+function content(text: string, param?: Param): string {
+  if (!param) return text;
+  let result = text;
   for (const [k, v] of Object.entries(param)) {
-    hasil = hasil.replace(`{${k}}`, String(v));
+    result = result.replace(`{${k}}`, String(v));
   }
-  return hasil;
+  return result;
 }
 
 // Versi tanpa hook untuk kode di luar komponen (mis. pesan galat API).
-export function tt(kunci: Kunci, param?: Param): string {
-  return isi(KAMUS[aktif][kunci], param);
+export function translate(cacheKey: Kunci, param?: Param): string {
+  return content(KAMUS[activeLanguage][cacheKey], param);
 }
 
 export function useT() {
-  const { bahasa } = useBahasa();
+  const { language } = useLanguage();
   return useCallback(
-    (kunci: Kunci, param?: Param): string => {
-      return isi(KAMUS[bahasa][kunci], param);
+    (cacheKey: Kunci, param?: Param): string => {
+      return content(KAMUS[language][cacheKey], param);
     },
-    [bahasa],
+    [language],
   );
 }

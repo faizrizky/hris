@@ -7,7 +7,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Skeleton } from "@/components/Skeleton";
-import { Palette, tombolUtama } from "@/theme/colors";
+import { Palette, primaryButtonStyle } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
 import { LEAVE_TYPE_LABEL, LEAVE_TYPE_TONE } from "@/constants/statusLabels";
 import { hrisApi } from "@/services/api";
@@ -17,47 +17,47 @@ import { useConfirm } from "@/components/ConfirmDialog";
 import { describeError } from "@/services/api/http";
 import { ErrorState } from "@/components/ErrorState";
 import { useT } from "@/i18n";
-import { LampiranList } from "./LampiranList";
+import { AttachmentList } from "./LampiranList";
 import { EmptyState } from "@/components/EmptyState";
 import { ICON } from "@/constants/icons";
-import { kembaliAtauBeranda } from "@/navigation/kembali";
+import { goBackOrHome } from "@/navigation/kembali";
 
 // Layar ini cuma di-mount untuk role mss/hr (lihat RootNavigator).
 export function LeaveApprovalScreen({ navigation }: ScreenProps) {
   const { employee } = useSession();
   const insets = useSafeAreaInsets();
   const [items, setItems] = useState<LeaveRequest[] | null>(null);
-  const [busy, setBusy] = useState(false);
+  const [isBusy, setIsBusy] = useState(false);
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
   const confirm = useConfirm();
   // Dialog konfirmasi tumbuh dari tombol ini, seperti dialog Keluar.
-  const pemicu = useRef<View>(null);
+  const triggerRef = useRef<View>(null);
   const t = useT();
-  const [galat, setGalat] = useState<string | null>(null);
-  const [dataMenunggu, setDataMenunggu] = useState(0);
-  const [dokMenunggu, setDokMenunggu] = useState(0);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [pendingData, setPendingData] = useState(0);
+  const [pendingDocs, setPendingDocs] = useState(0);
 
   const load = useCallback(() => {
     if (!employee) return;
-    setGalat(null);
+    setErrorMessage(null);
     hrisApi
       .getPendingApprovals(employee.id)
       .then(setItems)
-      .catch((e) => setGalat(describeError(e)));
+      .catch((e) => setErrorMessage(describeError(e)));
     // HR juga memutuskan permintaan perubahan data pribadi dan foto profil.
     if (employee.role === "hr") {
       hrisApi
         .getProfileChangesForReview("Pending")
-        .then((l) => setDataMenunggu(l.length))
-        .catch(() => setDataMenunggu(0));
+        .then((l) => setPendingData(l.length))
+        .catch(() => setPendingData(0));
       // Dokumen baru dan permintaan ubah dokumen sama-sama menunggu keputusan HR.
       Promise.all([
         hrisApi.getDocumentsForReview("Pending"),
         hrisApi.getDocumentsForReview("Change Requested"),
       ])
-        .then(([a, b]) => setDokMenunggu(a.length + b.length))
-        .catch(() => setDokMenunggu(0));
+        .then(([a, b]) => setPendingDocs(a.length + b.length))
+        .catch(() => setPendingDocs(0));
     }
   }, [employee]);
 
@@ -83,32 +83,32 @@ export function LeaveApprovalScreen({ navigation }: ScreenProps) {
 
   const approveAll = async () => {
     const antre = (items ?? []).filter((r) => r.decision === null);
-    const ya = await confirm({
+    const isConfirmed = await confirm({
       title: t("ap.setujuiN", { n: antre.length }),
       message: t("ap.setujuiPesan"),
       tone: "warn",
       confirmText: t("ap.setujuiSemua"),
       cancelText: t("umum.batal"),
-      from: pemicu,
+      from: triggerRef,
       fromColor: c.accent,
       fromTextColor: "#FFFFFF",
       fromLabel: t("ap.setujuiSemua"),
       fromRadius: 999,
     });
-    if (!ya) return;
-    setBusy(true);
+    if (!isConfirmed) return;
+    setIsBusy(true);
     try {
       for (const item of antre) {
         if (!(await decide(item.id, "approve"))) break; // berhenti di galat pertama
       }
     } finally {
-      setBusy(false);
+      setIsBusy(false);
     }
   };
 
   if (!employee) return null;
 
-  const memuat = items === null;
+  const isLoading = items === null;
   const pending = (items ?? []).filter((r) => r.decision === null).length;
 
   return (
@@ -116,7 +116,7 @@ export function LeaveApprovalScreen({ navigation }: ScreenProps) {
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
         <Pressable
           style={styles.backBtn}
-          onPress={() => kembaliAtauBeranda(navigation)}
+          onPress={() => goBackOrHome(navigation)}
         >
           <Ionicons name="chevron-back" size={18} color={c.ink} />
         </Pressable>
@@ -124,7 +124,7 @@ export function LeaveApprovalScreen({ navigation }: ScreenProps) {
         <View style={{ flex: 1, minWidth: 0 }}>
           <Text style={styles.headerTitle}>{t("ap.judul")}</Text>
           <Text style={styles.headerSub}>
-            {memuat
+            {isLoading
               ? t("umum.memuat")
               : pending > 0
                 ? t("ap.menunggu", { n: pending })
@@ -134,13 +134,13 @@ export function LeaveApprovalScreen({ navigation }: ScreenProps) {
 
         {pending > 0 && (
           <Pressable
-            ref={pemicu}
+            ref={triggerRef}
             style={styles.approveAll}
             onPress={approveAll}
-            disabled={busy}
+            disabled={isBusy}
           >
             <Text style={styles.approveAllText}>
-              {busy ? t("umum.memproses") : t("ap.setujuiSemua")}
+              {isBusy ? t("umum.memproses") : t("ap.setujuiSemua")}
             </Text>
           </Pressable>
         )}
@@ -151,9 +151,9 @@ export function LeaveApprovalScreen({ navigation }: ScreenProps) {
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.content}
         ListHeaderComponent={
-          dataMenunggu + dokMenunggu > 0 ? (
+          pendingData + pendingDocs > 0 ? (
             <View>
-              {dokMenunggu > 0 ? (
+              {pendingDocs > 0 ? (
                 <Pressable
                   style={styles.dataCard}
                   onPress={() => navigation.navigate("DocumentReview")}
@@ -167,7 +167,7 @@ export function LeaveApprovalScreen({ navigation }: ScreenProps) {
                   </View>
                   <View style={{ flex: 1, minWidth: 0 }}>
                     <Text style={styles.dataTitle}>
-                      {t("ap.dokMenunggu", { n: dokMenunggu })}
+                      {t("ap.dokMenunggu", { n: pendingDocs })}
                     </Text>
                     <Text style={styles.dataSub}>{t("ap.dokSub")}</Text>
                   </View>
@@ -178,7 +178,7 @@ export function LeaveApprovalScreen({ navigation }: ScreenProps) {
                   />
                 </Pressable>
               ) : null}
-              {dataMenunggu > 0 ? (
+              {pendingData > 0 ? (
                 <Pressable
                   style={styles.dataCard}
                   onPress={() => navigation.navigate("ProfileChangeReview")}
@@ -188,7 +188,7 @@ export function LeaveApprovalScreen({ navigation }: ScreenProps) {
                   </View>
                   <View style={{ flex: 1, minWidth: 0 }}>
                     <Text style={styles.dataTitle}>
-                      {t("ap.dataMenunggu", { n: dataMenunggu })}
+                      {t("ap.dataMenunggu", { n: pendingData })}
                     </Text>
                     <Text style={styles.dataSub}>{t("ap.dataSub")}</Text>
                   </View>
@@ -203,11 +203,11 @@ export function LeaveApprovalScreen({ navigation }: ScreenProps) {
           ) : null
         }
         ListEmptyComponent={
-          galat && items === null ? (
-            <ErrorState pesan={galat} onUlangi={load} />
-          ) : memuat ? (
+          errorMessage && items === null ? (
+            <ErrorState message={errorMessage} onRetry={load} />
+          ) : isLoading ? (
             <ApprovalCardSkeleton />
-          ) : dataMenunggu + dokMenunggu > 0 ? null : (
+          ) : pendingData + pendingDocs > 0 ? null : (
             <EmptyState icon={ICON.approval} title={t("ap.kosong")} />
           )
         }
@@ -237,7 +237,7 @@ export function LeaveApprovalScreen({ navigation }: ScreenProps) {
               <View style={styles.detailBox}>
                 <Text style={styles.detail}>{item.label}</Text>
                 <Text style={styles.reason}>{item.reason}</Text>
-                <LampiranList items={item.attachments} />
+                <AttachmentList items={item.attachments} />
                 <View style={styles.metaRow}>
                   <Text style={styles.stage}>{item.stage}</Text>
                   <Text style={styles.quota}>
@@ -375,7 +375,7 @@ const makeStyles = (c: Palette) =>
       marginTop: 2,
     },
     approveAll: {
-      ...tombolUtama(c),
+      ...primaryButtonStyle(c),
       paddingHorizontal: 14,
       paddingVertical: 9,
       borderRadius: 999,
@@ -445,7 +445,7 @@ const makeStyles = (c: Palette) =>
     },
     rejectText: { fontSize: 12.5, fontWeight: "700", color: c.bad.ink },
     approveBtn: {
-      ...tombolUtama(c),
+      ...primaryButtonStyle(c),
       flex: 2,
       paddingVertical: 12,
       borderRadius: 13,

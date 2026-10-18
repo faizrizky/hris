@@ -1,4 +1,4 @@
-import { tahanKunci } from "@/services/biometrik";
+import { holdLock } from "@/services/biometrik";
 import type { ScreenProps } from "@/navigation/types";
 import { useMemo, useState } from "react";
 import {
@@ -16,7 +16,11 @@ import * as ImagePicker from "expo-image-picker";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { Palette, tombolSekunder, tombolUtama } from "@/theme/colors";
+import {
+  Palette,
+  secondaryButtonStyle,
+  primaryButtonStyle,
+} from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
 import { hrisApi } from "@/services/api";
 import { describeError } from "@/services/api/http";
@@ -25,29 +29,29 @@ import { DocCategory } from "@/services/types";
 import { LineIcon } from "@/components/LineIcon";
 import { ICON } from "@/constants/icons";
 import { DateSheet } from "@/components/DateSheet";
-import { tanggalPendekTahun } from "@/utils/date";
+import { formatShortDateWithYear } from "@/utils/date";
 import { DOC_CATEGORY_LABEL } from "@/constants/statusLabels";
 import {
-  MAKS_BYTE,
-  ekstensiDari,
-  tanpaEkstensi,
-  ukuranFile,
+  MAX_BYTES,
+  extensionOf,
+  withoutExtension,
+  formatFileSize,
 } from "@/utils/file";
 import { useConfirm } from "@/components/ConfirmDialog";
 import { useT } from "@/i18n";
 import type { Kunci } from "@/i18n/id";
-import { kembali } from "@/navigation/kembali";
+import { goBackAnimated } from "@/navigation/kembali";
 
-const KATEGORI: DocCategory[] = ["kontrak", "sk", "sertifikat", "identitas"];
+const CATEGORIES: DocCategory[] = ["kontrak", "sk", "sertifikat", "identitas"];
 
-const CONTOH: Record<DocCategory, Kunci> = {
+const SAMPLE: Record<DocCategory, Kunci> = {
   kontrak: "up.cKontrak",
   sk: "up.cSk",
   sertifikat: "up.cSertifikat",
   identitas: "up.cIdentitas",
 };
 
-interface Berkas {
+interface FileEntry {
   name: string;
   ext: string;
   size: number;
@@ -62,52 +66,52 @@ export function ProfileUploadScreen({ navigation }: ScreenProps) {
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
 
-  const [kategori, setKategori] = useState<DocCategory>("sertifikat");
-  const [berkas, setBerkas] = useState<Berkas | null>(null);
+  const [categoryKey, setCategoryKey] = useState<DocCategory>("sertifikat");
+  const [pickedFile, setPickedFile] = useState<FileEntry | null>(null);
   const [nama, setNama] = useState("");
-  const [berlaku, setBerlaku] = useState<string | null>(null);
-  const [pickTanggal, setPickTanggal] = useState(false);
-  const [sending, setSending] = useState(false);
-  const [galat, setGalat] = useState<string | null>(null);
+  const [validUntil, setValidUntil] = useState<string | null>(null);
+  const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
+  const [isSending, setIsSending] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const confirm = useConfirm();
 
   // Satu pintu untuk kedua sumber file, supaya aturan ukuran dan penamaan
   // otomatis tidak ditulis dua kali.
-  const terima = (f: Berkas) => {
-    if (f.size > MAKS_BYTE) {
+  const accept = (f: FileEntry) => {
+    if (f.size > MAX_BYTES) {
       void confirm({
         title: t("up.besarJudul"),
-        message: t("up.besarPesan", { ukuran: ukuranFile(f.size) }),
+        message: t("up.besarPesan", { ukuran: formatFileSize(f.size) }),
         tone: "warn",
         confirmText: t("umum.mengerti"),
         cancelText: null,
       });
       return;
     }
-    setBerkas(f);
-    if (!nama.trim()) setNama(tanpaEkstensi(f.name));
+    setPickedFile(f);
+    if (!nama.trim()) setNama(withoutExtension(f.name));
   };
 
-  const pilihFile = async () => {
-    tahanKunci();
+  const pickFile = async () => {
+    holdLock();
     const r = await DocumentPicker.getDocumentAsync({
       type: ["application/pdf", "image/jpeg", "image/png"],
       copyToCacheDirectory: true,
     });
     if (r.canceled) return;
     const a = r.assets[0];
-    terima({
+    accept({
       name: a.name,
-      ext: ekstensiDari(a.name),
+      ext: extensionOf(a.name),
       size: a.size ?? 0,
       uri: a.uri,
       mimeType: a.mimeType ?? "application/octet-stream",
     });
   };
 
-  const ambilFoto = async () => {
-    const izin = await ImagePicker.requestCameraPermissionsAsync();
-    if (!izin.granted) {
+  const takePhoto = async () => {
+    const permission = await ImagePicker.requestCameraPermissionsAsync();
+    if (!permission.granted) {
       void confirm({
         title: t("up.izinJudul"),
         message: t("up.izinPesan"),
@@ -117,11 +121,11 @@ export function ProfileUploadScreen({ navigation }: ScreenProps) {
       });
       return;
     }
-    tahanKunci();
+    holdLock();
     const r = await ImagePicker.launchCameraAsync({ quality: 0.7 });
     if (r.canceled) return;
     const a = r.assets[0];
-    terima({
+    accept({
       name: a.fileName ?? t("up.fotoNama", { n: Date.now() }),
       ext: "JPG",
       size: a.fileSize ?? 0,
@@ -130,40 +134,47 @@ export function ProfileUploadScreen({ navigation }: ScreenProps) {
     });
   };
 
-  const blockMsg = !berkas
+  const blockMsg = !pickedFile
     ? t("up.blokFile")
     : !nama.trim()
       ? t("up.blokNama")
       : "";
-  const bisaUnggah = !blockMsg && !sending;
+  const canUpload = !blockMsg && !isSending;
 
-  const unggah = async () => {
-    if (!employee || !berkas || !bisaUnggah) return;
-    setSending(true);
-    setGalat(null);
+  const uploadPickedFile = async () => {
+    if (!employee || !pickedFile || !canUpload) return;
+    setIsSending(true);
+    setErrorMessage(null);
     try {
       await hrisApi.uploadDocument(employee.id, {
-        category: kategori,
-        ext: berkas.ext,
+        category: categoryKey,
+        ext: pickedFile.ext,
         name: nama.trim(),
-        sizeLabel: ukuranFile(berkas.size),
-        expiresOn: berlaku ?? undefined,
-        file: { uri: berkas.uri, name: berkas.name, mimeType: berkas.mimeType },
+        sizeLabel: formatFileSize(pickedFile.size),
+        expiresOn: validUntil ?? undefined,
+        file: {
+          uri: pickedFile.uri,
+          name: pickedFile.name,
+          mimeType: pickedFile.mimeType,
+        },
       });
-      kembali(navigation);
+      goBackAnimated(navigation);
     } catch (e) {
-      setGalat(describeError(e));
+      setErrorMessage(describeError(e));
     } finally {
-      setSending(false);
+      setIsSending(false);
     }
   };
 
-  const pdf = berkas?.ext === "PDF";
+  const isPdf = pickedFile?.ext === "PDF";
 
   return (
     <View style={styles.container}>
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
-        <Pressable style={styles.backBtn} onPress={() => kembali(navigation)}>
+        <Pressable
+          style={styles.backBtn}
+          onPress={() => goBackAnimated(navigation)}
+        >
           <Ionicons name="chevron-back" size={18} color={c.ink} />
         </Pressable>
         <Text style={styles.headerTitle}>{t("up.judul")}</Text>
@@ -177,15 +188,15 @@ export function ProfileUploadScreen({ navigation }: ScreenProps) {
           <View style={styles.card}>
             <Text style={styles.cardTitle}>{t("up.jenis")}</Text>
             <View style={styles.chipRow}>
-              {KATEGORI.map((k) => {
-                const on = kategori === k;
+              {CATEGORIES.map((k) => {
+                const isOn = categoryKey === k;
                 return (
                   <Pressable
                     key={k}
-                    onPress={() => setKategori(k)}
-                    style={[styles.chip, on && styles.chipOn]}
+                    onPress={() => setCategoryKey(k)}
+                    style={[styles.chip, isOn && styles.chipOn]}
                   >
-                    <Text style={[styles.chipText, on && styles.chipTextOn]}>
+                    <Text style={[styles.chipText, isOn && styles.chipTextOn]}>
                       {DOC_CATEGORY_LABEL[k]}
                     </Text>
                   </Pressable>
@@ -197,27 +208,27 @@ export function ProfileUploadScreen({ navigation }: ScreenProps) {
           <View style={[styles.card, { marginTop: 12 }]}>
             <Text style={styles.cardTitle}>{t("up.file")}</Text>
 
-            {berkas ? (
+            {pickedFile ? (
               <View style={styles.fileBox}>
                 <View
                   style={[
                     styles.extChip,
-                    { backgroundColor: pdf ? c.bad.bg : c.info.bg },
+                    { backgroundColor: isPdf ? c.bad.bg : c.info.bg },
                   ]}
                 >
                   <Text
                     style={[
                       styles.extText,
-                      { color: pdf ? c.bad.ink : c.info.ink },
+                      { color: isPdf ? c.bad.ink : c.info.ink },
                     ]}
                   >
-                    {berkas.ext}
+                    {pickedFile.ext}
                   </Text>
                 </View>
 
                 <View style={{ flex: 1, minWidth: 0 }}>
                   <Text style={styles.fileName} numberOfLines={1}>
-                    {berkas.name}
+                    {pickedFile.name}
                   </Text>
                   <View style={styles.fileOk}>
                     <LineIcon
@@ -226,14 +237,16 @@ export function ProfileUploadScreen({ navigation }: ScreenProps) {
                       size={13}
                     />
                     <Text style={styles.fileOkText}>
-                      {t("up.siap", { ukuran: ukuranFile(berkas.size) })}
+                      {t("up.siap", {
+                        ukuran: formatFileSize(pickedFile.size),
+                      })}
                     </Text>
                   </View>
                 </View>
 
                 <Pressable
                   style={styles.removeBtn}
-                  onPress={() => setBerkas(null)}
+                  onPress={() => setPickedFile(null)}
                 >
                   <Text style={styles.removeText}>{t("up.hapus")}</Text>
                 </Pressable>
@@ -246,12 +259,12 @@ export function ProfileUploadScreen({ navigation }: ScreenProps) {
                 <Text style={styles.dropTitle}>{t("up.pilihUntuk")}</Text>
                 <Text style={styles.dropSub}>{t("up.format")}</Text>
                 <View style={styles.dropActions}>
-                  <Pressable style={styles.primarySmall} onPress={pilihFile}>
+                  <Pressable style={styles.primarySmall} onPress={pickFile}>
                     <Text style={styles.primarySmallText}>
                       {t("up.pilihFile")}
                     </Text>
                   </Pressable>
-                  <Pressable style={styles.secondarySmall} onPress={ambilFoto}>
+                  <Pressable style={styles.secondarySmall} onPress={takePhoto}>
                     <Text style={styles.secondarySmallText}>
                       {t("up.ambilFoto")}
                     </Text>
@@ -269,7 +282,7 @@ export function ProfileUploadScreen({ navigation }: ScreenProps) {
               style={styles.input}
               value={nama}
               onChangeText={setNama}
-              placeholder={t(CONTOH[kategori])}
+              placeholder={t(SAMPLE[categoryKey])}
               placeholderTextColor={c.mutedLabel}
             />
 
@@ -278,13 +291,15 @@ export function ProfileUploadScreen({ navigation }: ScreenProps) {
               style={styles.dateField}
               onPress={() => {
                 Keyboard.dismiss();
-                setPickTanggal(true);
+                setIsDatePickerOpen(true);
               }}
             >
               <Text
-                style={[styles.dateText, !berlaku && styles.datePlaceholder]}
+                style={[styles.dateText, !validUntil && styles.datePlaceholder]}
               >
-                {berlaku ? tanggalPendekTahun(berlaku) : t("up.pilihTgl")}
+                {validUntil
+                  ? formatShortDateWithYear(validUntil)
+                  : t("up.pilihTgl")}
               </Text>
               <LineIcon d={ICON.calendar} color={c.muted} size={17} />
             </Pressable>
@@ -302,39 +317,39 @@ export function ProfileUploadScreen({ navigation }: ScreenProps) {
           <Text
             style={[
               styles.barLabel,
-              blockMsg || galat ? { color: c.bad.ink } : null,
+              blockMsg || errorMessage ? { color: c.bad.ink } : null,
             ]}
           >
-            {blockMsg || galat || DOC_CATEGORY_LABEL[kategori]}
+            {blockMsg || errorMessage || DOC_CATEGORY_LABEL[categoryKey]}
           </Text>
           <Text style={styles.barValue} numberOfLines={1}>
-            {berkas ? nama.trim() || berkas.name : t("up.belumFile")}
+            {pickedFile ? nama.trim() || pickedFile.name : t("up.belumFile")}
           </Text>
         </View>
-        <Pressable onPress={unggah} disabled={!bisaUnggah}>
+        <Pressable onPress={uploadPickedFile} disabled={!canUpload}>
           <View
             style={[
               styles.uploadBtn,
-              { backgroundColor: bisaUnggah ? c.accent : c.track },
+              { backgroundColor: canUpload ? c.accent : c.track },
             ]}
           >
             <Text
-              style={[styles.uploadText, bisaUnggah ? { color: "#fff" } : null]}
+              style={[styles.uploadText, canUpload ? { color: "#fff" } : null]}
             >
-              {sending ? t("up.mengunggah") : t("up.unggah")}
+              {isSending ? t("up.mengunggah") : t("up.unggah")}
             </Text>
           </View>
         </Pressable>
       </View>
       <DateSheet
-        visible={pickTanggal}
+        visible={isDatePickerOpen}
         title={t("up.berlakuJudul")}
         hint={t("up.berlakuHint")}
-        value={berlaku}
+        value={validUntil}
         allow="future"
-        onPick={setBerlaku}
-        onClear={() => setBerlaku(null)}
-        onClose={() => setPickTanggal(false)}
+        onPick={setValidUntil}
+        onClear={() => setValidUntil(null)}
+        onClose={() => setIsDatePickerOpen(false)}
       />
     </View>
   );
@@ -429,7 +444,7 @@ const makeStyles = (c: Palette) =>
       width: "100%",
     },
     primarySmall: {
-      ...tombolUtama(c),
+      ...primaryButtonStyle(c),
       flex: 1,
       paddingVertical: 11,
       borderRadius: 13,
@@ -441,7 +456,7 @@ const makeStyles = (c: Palette) =>
       flex: 1,
       paddingVertical: 11,
       borderRadius: 13,
-      ...tombolSekunder(c),
+      ...secondaryButtonStyle(c),
       alignItems: "center",
     },
     secondarySmallText: {

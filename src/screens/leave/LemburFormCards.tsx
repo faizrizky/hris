@@ -6,22 +6,22 @@ import { Palette } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
 import { useT } from "@/i18n";
 
-export interface BuktiFile {
+export interface ProofAttachment {
   name: string;
   size: string;
   uri?: string; // ada bila berkas sungguhan, kosong bila contoh
   mimeType?: string;
 }
 
-export function LemburJamCard({
-  holiday,
+export function OvertimeHoursCard({
+  isHoliday,
   startLabel,
   endLabel,
   rule,
   onMinus,
   onPlus,
 }: {
-  holiday: boolean;
+  isHoliday: boolean;
   startLabel: string;
   endLabel: string;
   rule: string;
@@ -39,16 +39,16 @@ export function LemburJamCard({
         <View
           style={[
             styles.badge,
-            { backgroundColor: holiday ? c.warn.bg : c.info.bg },
+            { backgroundColor: isHoliday ? c.warn.bg : c.info.bg },
           ]}
         >
           <Text
             style={[
               styles.badgeText,
-              { color: holiday ? c.warn.ink : c.info.ink },
+              { color: isHoliday ? c.warn.ink : c.info.ink },
             ]}
           >
-            {holiday ? t("lr.hariLibur") : t("lr.hariKerja")}
+            {isHoliday ? t("lr.hariLibur") : t("lr.hariKerja")}
           </Text>
         </View>
       </View>
@@ -79,11 +79,11 @@ export function LemburJamCard({
   );
 }
 
-export function LemburUraianCard({
-  uraian,
+export function OvertimeDescriptionCard({
+  description,
   onChange,
 }: {
-  uraian: string;
+  description: string;
   onChange: (v: string) => void;
 }) {
   const c = useTheme();
@@ -95,7 +95,7 @@ export function LemburUraianCard({
       <Text style={styles.cardTitle}>{t("fc.uraian")}</Text>
       <TextInput
         style={styles.textarea}
-        value={uraian}
+        value={description}
         onChangeText={onChange}
         placeholder={t("fc.uraianContoh")}
         placeholderTextColor={c.mutedLabel}
@@ -105,16 +105,16 @@ export function LemburUraianCard({
   );
 }
 
-export function LemburBuktiCard({
+export function OvertimeProofCard({
   files,
   onAdd,
   onRemove,
 }: {
-  files: BuktiFile[];
+  files: ProofAttachment[];
   onAdd: () => void;
   onRemove: (index: number) => void;
 }) {
-  const kosong = files.length === 0;
+  const isEmpty = files.length === 0;
   const c = useTheme();
   const t = useT();
   const styles = useMemo(() => makeStyles(c), [c]);
@@ -151,7 +151,7 @@ export function LemburBuktiCard({
           onPress={onAdd}
           style={[
             styles.addBox,
-            { borderColor: kosong ? c.bad.ink : c.fieldBorder },
+            { borderColor: isEmpty ? c.bad.ink : c.fieldBorder },
           ]}
         >
           <View style={styles.addIcon}>
@@ -159,7 +159,7 @@ export function LemburBuktiCard({
           </View>
           <View style={{ flex: 1, minWidth: 0 }}>
             <Text style={styles.fileName}>
-              {kosong ? t("fc.unggahBukti") : t("fc.tambahFile")}
+              {isEmpty ? t("fc.unggahBukti") : t("fc.tambahFile")}
             </Text>
             <Text style={styles.fileSize}>{t("fc.jpgPng")}</Text>
           </View>

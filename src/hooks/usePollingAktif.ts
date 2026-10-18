@@ -4,19 +4,19 @@ import { useIsFocused } from "@react-navigation/native";
 
 // Menjalankan `fn` berkala hanya saat layar terbuka (fokus), aplikasi di depan, dan `aktif` benar.
 // Berhenti sepenuhnya di latar belakang supaya tidak membebani baterai dan membuat HP panas.
-export function usePollingAktif(fn: () => void, ms: number, aktif = true) {
-  const terbaru = useRef(fn);
+export function useActivePolling(fn: () => void, ms: number, isActive = true) {
+  const latestCallback = useRef(fn);
   useEffect(() => {
-    terbaru.current = fn;
+    latestCallback.current = fn;
   });
-  const fokus = useIsFocused();
+  const isFocused = useIsFocused();
   useEffect(() => {
-    if (!aktif || !fokus) return;
+    if (!isActive || !isFocused) return;
     let id: ReturnType<typeof setInterval> | null = null;
     const mulai = () => {
-      if (id === null) id = setInterval(() => terbaru.current(), ms);
+      if (id === null) id = setInterval(() => latestCallback.current(), ms);
     };
-    const henti = () => {
+    const stopPolling = () => {
       if (id !== null) {
         clearInterval(id);
         id = null;
@@ -25,13 +25,13 @@ export function usePollingAktif(fn: () => void, ms: number, aktif = true) {
     if (AppState.currentState === "active") mulai();
     const sub = AppState.addEventListener("change", (s) => {
       if (s === "active") {
-        terbaru.current(); // segarkan sekali begitu kembali ke aplikasi
+        latestCallback.current(); // segarkan sekali begitu kembali ke aplikasi
         mulai();
-      } else henti();
+      } else stopPolling();
     });
     return () => {
-      henti();
+      stopPolling();
       sub.remove();
     };
-  }, [ms, aktif, fokus]);
+  }, [ms, isActive, isFocused]);
 }

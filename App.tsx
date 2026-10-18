@@ -3,7 +3,7 @@ import { StatusBar } from "expo-status-bar";
 import * as SplashScreen from "expo-splash-screen";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { SessionProvider } from "@/services/session";
-import { KunciProvider } from "@/services/kunciApp";
+import { AppLockProvider } from "@/services/kunciApp";
 import { RootNavigator } from "@/navigation/RootNavigator";
 import { ThemeProvider } from "@/theme/ThemeContext";
 import { ConfirmProvider } from "@/components/ConfirmDialog";
@@ -14,19 +14,19 @@ import { AnimatedSplash } from "@/components/AnimatedSplash";
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
 export default function App() {
-  const [splashSelesai, setSplashSelesai] = useState(false);
+  const [isSplashDone, setIsSplashDone] = useState(false);
   return (
     <SafeAreaProvider>
       <ThemeProvider>
         <LanguageProvider>
           <ConfirmProvider>
             <SessionProvider>
-              <KunciProvider>
+              <AppLockProvider>
                 <RootNavigator />
                 <StatusBar style="auto" />
-              </KunciProvider>
-              {splashSelesai ? null : (
-                <AnimatedSplash onSelesai={() => setSplashSelesai(true)} />
+              </AppLockProvider>
+              {isSplashDone ? null : (
+                <AnimatedSplash onDone={() => setIsSplashDone(true)} />
               )}
             </SessionProvider>
           </ConfirmProvider>

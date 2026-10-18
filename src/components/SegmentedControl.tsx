@@ -31,19 +31,19 @@ export function SegmentedControl<K extends string>({
     0,
     items.findIndex((x) => x.key === value),
   );
-  const [geser] = useState(() => new Animated.Value(idx));
+  const [slide] = useState(() => new Animated.Value(idx));
 
   useEffect(() => {
-    Animated.timing(geser, {
+    Animated.timing(slide, {
       toValue: idx,
       duration: 260,
       easing: Easing.out(Easing.cubic),
       useNativeDriver: true,
     }).start();
-  }, [idx, geser]);
+  }, [idx, slide]);
 
   const n = items.length;
-  const lebar = (w - 8 - 4 * (n - 1)) / n;
+  const trackWidth = (w - 8 - 4 * (n - 1)) / n;
 
   return (
     <View
@@ -56,12 +56,12 @@ export function SegmentedControl<K extends string>({
           style={[
             styles.indicator,
             {
-              width: lebar,
+              width: trackWidth,
               transform: [
                 {
-                  translateX: geser.interpolate({
+                  translateX: slide.interpolate({
                     inputRange: items.map((_, i) => i),
-                    outputRange: items.map((_, i) => i * (lebar + 4)),
+                    outputRange: items.map((_, i) => i * (trackWidth + 4)),
                   }),
                 },
               ],
@@ -70,14 +70,14 @@ export function SegmentedControl<K extends string>({
         />
       )}
       {items.map((it) => {
-        const on = it.key === value;
+        const isOn = it.key === value;
         return (
           <Pressable
             key={it.key}
             onPress={() => onChange(it.key)}
             style={styles.btn}
           >
-            <Text style={[styles.text, on && styles.textOn]}>{it.label}</Text>
+            <Text style={[styles.text, isOn && styles.textOn]}>{it.label}</Text>
           </Pressable>
         );
       })}

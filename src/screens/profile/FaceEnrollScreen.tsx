@@ -23,65 +23,65 @@ import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { Palette, tombolUtama } from "@/theme/colors";
+import { Palette, primaryButtonStyle } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
 import { hrisApi } from "@/services/api";
 import { describeError } from "@/services/api/http";
 import { useT } from "@/i18n";
 import type { Kunci } from "@/i18n/id";
-import { kembali } from "@/navigation/kembali";
+import { goBackAnimated } from "@/navigation/kembali";
 import { setTabBarHidden } from "@/navigation/tabBarVisibility";
 import { EmptyState } from "@/components/EmptyState";
-import { simpanLampiran } from "@/utils/lampiran";
+import { saveAttachment } from "@/utils/lampiran";
 import {
-  deteksiWajah,
-  embeddingWajah,
-  skorSpoof,
-  spoofTersedia,
-  wajahDidukung,
+  detectFace,
+  getFaceEmbedding,
+  getSpoofScore,
+  isSpoofAvailable,
+  isFaceSupported,
 } from "@/services/faceCheck";
-import type { FaceStatus, SpoofRingkas } from "@/services/types";
-import { CincinWajah } from "./CincinWajah";
-import { LingkaranSamsung, TICKS } from "./LingkaranSamsung";
+import type { FaceStatus, SpoofSummary } from "@/services/types";
+import { FaceRing } from "./CincinWajah";
+import { SamsungRing, TICKS } from "./LingkaranSamsung";
 
 // Sudut kepala (derajat) yang dianggap "sampai" ke tepi lingkaran. Mendongak/menunduk lebih sulit
 // daripada menoleh, jadi ambangnya lebih kecil; arah diagonal memakai kombinasi keduanya (elips).
 const YAW_MIN = 11;
 const PITCH_MIN = 7;
-const CUKUP = Math.round(TICKS * 0.92); // sisa celah kecil diisi otomatis
+const ENOUGH = Math.round(TICKS * 0.92); // sisa celah kecil diisi otomatis
 // Liveness saat pendaftaran: setelah cincin penuh, dua perintah dengan urutan acak yang baru muncul saat itu
 // (pejamkan mata, lalu/atau toleh ke samping). Foto atau video rekaman tidak tahu kapan dan apa perintahnya.
 // Kamera hanya beberapa frame per detik, jadi gerakannya dipilih yang bertahan lama (pejam, bukan kedip
 // sekejap) dan arah toleh bebas supaya tidak gagal karena salah sisi.
-type Tantangan = "pejam" | "toleh";
-const JUMLAH_TANTANGAN = 2;
-const PETUNJUK_MS = 8_000; // perintah belum terpenuhi selama ini: tampilkan petunjuk (tanpa mengulang)
-const BATAS_PERINTAH_MS = 60_000; // waktu tambahan untuk perintah, terpisah dari waktu memutar cincin
-const acakTantangan = (): Tantangan[] =>
+type Challenge = "pejam" | "toleh";
+const CHALLENGE_COUNT = 2;
+const HINT_MS = 8_000; // perintah belum terpenuhi selama ini: tampilkan petunjuk (tanpa mengulang)
+const COMMAND_TIMEOUT_MS = 60_000; // waktu tambahan untuk perintah, terpisah dari waktu memutar cincin
+const shuffleChallenges = (): Challenge[] =>
   Math.random() < 0.5 ? ["pejam", "toleh"] : ["toleh", "pejam"];
-const SAMPEL_MIN = 3; // sampel wajah menghadap depan (kualitas tinggi) yang dibutuhkan sebelum selesai
-const SAMPEL_MAKS = 6;
+const SAMPLE_MIN = 3; // sampel wajah menghadap depan (kualitas tinggi) yang dibutuhkan sebelum selesai
+const SAMPLE_MAX = 6;
 // Anti-spoofing (Minivision): dari foto kualitas tinggi saat menghadap depan. Foto/video di layar menghasilkan skor
 // rendah di sebagian besar frame, jadi keputusan memakai median beberapa frame, bukan satu frame.
-const SPOOF_MIN_SAMPEL = 4;
-const SPOOF_AMBANG = 0.5;
-const SPOOF_JENDELA = 8;
+const SPOOF_MIN_SAMPLES = 4;
+const SPOOF_THRESHOLD = 0.5;
+const SPOOF_WINDOW = 8;
 const median = (v: number[]) => {
   const s = [...v].sort((a, b) => a - b);
   const m = Math.floor(s.length / 2);
   return s.length % 2 ? s[m]! : (s[m - 1]! + s[m]!) / 2;
 };
-const JEDA_SAMPEL_MS = 1200;
-const KUALITAS_SAMPEL = 0.7; // frame deteksi 0.25 cukup untuk posisi, tapi embedding butuh gambar lebih tajam
-const BATAS_MS = 90_000;
+const SAMPLE_GAP_MS = 1200;
+const SAMPLE_QUALITY = 0.7; // frame deteksi 0.25 cukup untuk posisi, tapi embedding butuh gambar lebih tajam
+const TIME_LIMIT_MS = 90_000;
 
 // Warna layar Face ID: selalu gelap, apa pun tema aplikasinya.
-const HITAM = "#000000";
-const PUTIH = "#FFFFFF";
-const REDUP = "rgba(255,255,255,0.62)";
-const BIRU = "#0A84FF";
+const BLACK = "#000000";
+const WHITE = "#FFFFFF";
+const DIM = "rgba(255,255,255,0.62)";
+const BLUE = "#0A84FF";
 
-type Fase =
+type Phase =
   | "muat"
   | "intro"
   | "cek"
@@ -92,7 +92,7 @@ type Fase =
   | "selesai";
 
 // Pendaftaran wajah meniru alur Face ID: panduan, posisikan wajah di bingkai,
-// kamera mengecil menjadi lingkaran, putar kepala sampai cincin hijau penuh,
+// kamera mengecil menjadi lingkaran, spin kepala sampai cincin hijau penuh,
 // lalu "Pemindaian wajah selesai".
 export function FaceEnrollScreen({ navigation }: ScreenProps) {
   const t = useT();
@@ -100,57 +100,61 @@ export function FaceEnrollScreen({ navigation }: ScreenProps) {
   const insets = useSafeAreaInsets();
   const { width: W } = useWindowDimensions();
   const styles = useMemo(() => makeStyles(c), [c]);
-  const [izin, mintaIzin] = useCameraPermissions();
-  const kamera = useRef<CameraView>(null);
+  const [permission, requestPermission] = useCameraPermissions();
+  const cameraRef = useRef<CameraView>(null);
   const [status, setStatus] = useState<FaceStatus | null>(null);
-  const [fase, setFase] = useState<Fase>("muat");
-  const [siapKamera, setSiapKamera] = useState(false);
+  const [phase, setPhase] = useState<Phase>("muat");
+  const [isCameraReady, setIsCameraReady] = useState(false);
   // Resolusi foto kecil (sekitar 640 px) membuat ambil foto + deteksi jauh lebih cepat; wajah tetap cukup
   // besar untuk embedding 112x112.
-  const [ukuranFoto, setUkuranFoto] = useState<string | undefined>(undefined);
-  const siapkanKamera = async () => {
+  const [photoSize, setPhotoSize] = useState<string | undefined>(undefined);
+  const prepareCamera = async () => {
     try {
-      const daftar =
-        (await kamera.current?.getAvailablePictureSizesAsync()) ?? [];
-      const lebar = (u: string) => {
+      const list =
+        (await cameraRef.current?.getAvailablePictureSizesAsync()) ?? [];
+      const width = (u: string) => {
         const [a, b] = u.split("x").map(Number);
         return Math.min(a || 0, b || 0);
       };
-      const pilih = daftar
-        .filter((u) => /^\d+x\d+$/.test(u) && lebar(u) >= 480)
-        .sort((a, b) => lebar(a) - lebar(b))[0];
-      if (pilih) setUkuranFoto(pilih);
+      const pick = list
+        .filter((u) => /^\d+x\d+$/.test(u) && width(u) >= 480)
+        .sort((a, b) => width(a) - width(b))[0];
+      if (pick) setPhotoSize(pick);
     } catch {
       // pakai ukuran bawaan
     }
-    setSiapKamera(true);
+    setIsCameraReady(true);
   };
-  const [terisi, setTerisi] = useState<number[]>([]);
-  const [pesan, setPesan] = useState<string | null>(null);
-  const [galat, setGalat] = useState<string | null>(null);
-  const [selfie, setSelfie] = useState<string | null>(null);
-  const [adaWajah, setAdaWajah] = useState(false);
-  const [tantangan, setTantangan] = useState<{
-    jenis: Tantangan;
-    ke: number;
+  const [filledTickList, setFilledTicks] = useState<number[]>([]);
+  const [statusMessage, setStatusMessage] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [selfieUri, setSelfieUri] = useState<string | null>(null);
+  const [hasFace, setHasFace] = useState(false);
+  const [challenge, setChallenge] = useState<{
+    kind: Challenge;
+    to: number;
   } | null>(null);
-  const [peringatan, setPeringatan] = useState<string | null>(null);
+  const [warning, setWarning] = useState<string | null>(null);
   // Dipanggil dari dalam loop kamera: membaca `t` terbaru tanpa memulai ulang loop.
-  const tampilkanGalat = useEffectEvent((kunci: Kunci) => setGalat(t(kunci)));
-  const tampilkanPesan = useEffectEvent((kunci: Kunci) => setPesan(t(kunci)));
-  const tampilkanPeringatan = useEffectEvent((kunci: Kunci) =>
-    setPeringatan(t(kunci)),
+  const showError = useEffectEvent((cacheKey: Kunci) =>
+    setErrorMessage(t(cacheKey)),
   );
-  const [putaran, setPutaran] = useState(0);
+  const showMessage = useEffectEvent((cacheKey: Kunci) =>
+    setStatusMessage(t(cacheKey)),
+  );
+  const showWarning = useEffectEvent((cacheKey: Kunci) =>
+    setWarning(t(cacheKey)),
+  );
+  const [scanRound, setScanRound] = useState(0);
   // Embedding KTP dan foto profil dihitung SEBELUM pemindaian, supaya foto yang tidak berisi wajah
   // ketahuan sebelum karyawan memutar kepala.
   const acuan = useRef<{ ktp: number[]; prof: number[] } | null>(null);
-  const hasil = useRef<number[][]>([]);
-  const spoofHasil = useRef<SpoofRingkas | undefined>(undefined);
+  const embeddingSamples = useRef<number[][]>([]);
+  const spoofResult = useRef<SpoofSummary | undefined>(undefined);
 
   // Animasi: cincin panduan di layar pembuka berputar; pemindaian memakai lingkaran gaya Samsung.
-  const [denyut] = useState(() => new Animated.Value(0));
-  const [putar] = useState(() => new Animated.Value(0));
+  const [pulse] = useState(() => new Animated.Value(0));
+  const [spin] = useState(() => new Animated.Value(0));
   const [masuk] = useState(() => new Animated.Value(0));
 
   useFocusEffect(
@@ -165,221 +169,223 @@ export function FaceEnrollScreen({ navigation }: ScreenProps) {
       .getFaceStatus()
       .then((s) => {
         setStatus(s);
-        setFase("intro");
+        setPhase("intro");
       })
       .catch((e) => {
-        setGalat(describeError(e));
-        setFase("intro");
+        setErrorMessage(describeError(e));
+        setPhase("intro");
       });
   }, []);
 
-  useEnrollAnimations({ putar, denyut, masuk }, fase);
+  useEnrollAnimations({ spin, pulse, masuk }, phase);
 
-  const kirim = async () => {
-    setFase("kirim");
+  const submit = async () => {
+    setPhase("kirim");
     try {
       if (!acuan.current) throw new Error("syarat");
       await hrisApi.submitFaceEnrollment({
-        embeddings: hasil.current,
+        embeddings: embeddingSamples.current,
         ktpEmbedding: acuan.current.ktp,
         profileEmbedding: acuan.current.prof,
-        selfie: selfie
-          ? { uri: selfie, name: "selfie.jpg", mimeType: "image/jpeg" }
+        selfie: selfieUri
+          ? { uri: selfieUri, name: "selfie.jpg", mimeType: "image/jpeg" }
           : undefined,
-        spoof: spoofHasil.current,
+        spoof: spoofResult.current,
       });
-      setFase("selesai");
+      setPhase("selesai");
     } catch (e) {
-      setGalat(e instanceof Error ? e.message : describeError(e));
-      setFase("intro");
+      setErrorMessage(e instanceof Error ? e.message : describeError(e));
+      setPhase("intro");
     }
   };
 
   // Pemindaian: frame berkala, baca sudut kepala, nyalakan garis cincin, simpan embedding per sektor.
-  const aktif = fase === "posisi" || fase === "pindai";
+  const isActive = phase === "posisi" || phase === "pindai";
   useEffect(() => {
-    if (!aktif || !siapKamera) return;
-    let batal = false;
+    if (!isActive || !isCameraReady) return;
+    let isCancelled = false;
     const mulai = Date.now();
-    const sampel: number[][] = [];
-    const nyala = new Set<number>();
+    const samples: number[][] = [];
+    const litTicks = new Set<number>();
     // Liveness saat mendaftar: perintah acak setelah cincin penuh (lihat Tantangan di atas); foto diam
     // atau video rekaman tidak bisa tahu perintahnya lebih dulu.
-    let urutan: Tantangan[] = [];
-    let langkah = 0;
-    let mulaiLangkah = 0;
-    let mulaiPerintah = 0;
-    let netral = false; // pejam: mata terlihat terbuka; toleh: kepala di tengah, sejak perintah muncul
-    let sampelTerakhir = 0;
-    let sebelumnya: number | null = null;
-    let pusat: number[] | null = null;
-    const jarak = (x: number, y: number) => {
+    let order: Challenge[] = [];
+    let step = 0;
+    let stepStartedAt = 0;
+    let commandStartedAt = 0;
+    let isNeutral = false; // pejam: mata terlihat terbuka; toleh: kepala di tengah, sejak perintah muncul
+    let lastSampleAt = 0;
+    let previous: number | null = null;
+    let centerOf: number[] | null = null;
+    const distance = (x: number, y: number) => {
       const d = Math.abs(x - y) % TICKS;
       return Math.min(d, TICKS - d);
     };
-    const skorJendela: number[] = [];
-    const spoofLulus = () =>
-      !spoofTersedia() ||
-      (skorJendela.length >= SPOOF_MIN_SAMPEL &&
-        median(skorJendela) >= SPOOF_AMBANG);
-    const ambilSampel = async () => {
-      const f = await kamera.current?.takePictureAsync({
-        quality: KUALITAS_SAMPEL,
+    const windowScores: number[] = [];
+    const hasSpoofPassed = () =>
+      !isSpoofAvailable() ||
+      (windowScores.length >= SPOOF_MIN_SAMPLES &&
+        median(windowScores) >= SPOOF_THRESHOLD);
+    const takeSample = async () => {
+      const f = await cameraRef.current?.takePictureAsync({
+        quality: SAMPLE_QUALITY,
         skipProcessing: true,
         shutterSound: false,
       });
       if (!f) return null;
-      const vec = await embeddingWajah(f.uri);
-      const k = spoofTersedia() ? await skorSpoof(f.uri) : null;
+      const vec = await getFaceEmbedding(f.uri);
+      const k = isSpoofAvailable() ? await getSpoofScore(f.uri) : null;
       if (k !== null) {
-        skorJendela.push(Math.round(k * 100) / 100);
-        if (skorJendela.length > SPOOF_JENDELA) skorJendela.shift();
+        windowScores.push(Math.round(k * 100) / 100);
+        if (windowScores.length > SPOOF_WINDOW) windowScores.shift();
       }
       return vec;
     };
-    const tambah = (i: number) => nyala.add(((i % TICKS) + TICKS) % TICKS);
+    const increment = (i: number) =>
+      litTicks.add(((i % TICKS) + TICKS) % TICKS);
 
     (async () => {
-      while (!batal) {
-        const batas = mulaiPerintah
-          ? mulaiPerintah + BATAS_PERINTAH_MS
-          : mulai + BATAS_MS;
-        if (Date.now() > batas) {
-          tampilkanGalat("fe.habis");
-          setFase("intro");
+      while (!isCancelled) {
+        const limit = commandStartedAt
+          ? commandStartedAt + COMMAND_TIMEOUT_MS
+          : mulai + TIME_LIMIT_MS;
+        if (Date.now() > limit) {
+          showError("fe.habis");
+          setPhase("intro");
           return;
         }
         try {
-          const foto = await kamera.current?.takePictureAsync({
+          const photo = await cameraRef.current?.takePictureAsync({
             quality: 0.25,
             skipProcessing: true,
             shutterSound: false,
           });
-          if (batal || !foto) continue;
-          const d = await deteksiWajah(foto.uri);
-          if (batal) return;
+          if (isCancelled || !photo) continue;
+          const d = await detectFace(photo.uri);
+          if (isCancelled) return;
           if (d.count !== 1) {
-            setAdaWajah(false);
-            sebelumnya = null;
-            tampilkanPesan(d.count === 0 ? "face.tidakAda" : "face.banyak");
+            setHasFace(false);
+            previous = null;
+            showMessage(d.count === 0 ? "face.tidakAda" : "face.banyak");
             continue;
           }
           if (d.size < 0.15) {
-            tampilkanPesan("face.dekat");
+            showMessage("face.dekat");
             continue;
           }
-          setPesan(null);
+          setStatusMessage(null);
           // Pratinjau kamera depan seperti cermin: menoleh ke kiri tampak di kiri layar.
-          const kanan = -d.yaw / YAW_MIN;
-          const atas = d.pitch / PITCH_MIN;
-          const besar = Math.hypot(kanan, atas);
-          setAdaWajah(true);
-          if (!pusat) {
-            if (besar < 0.6 && (d.eyesOpen < 0 || d.eyesOpen >= 0.5)) {
-              pusat = await ambilSampel();
-              if (pusat && !batal) {
-                sampel.push(pusat);
-                setSelfie(foto.uri);
-                setFase("pindai");
+          const right = -d.yaw / YAW_MIN;
+          const top = d.pitch / PITCH_MIN;
+          const large = Math.hypot(right, top);
+          setHasFace(true);
+          if (!centerOf) {
+            if (large < 0.6 && (d.eyesOpen < 0 || d.eyesOpen >= 0.5)) {
+              centerOf = await takeSample();
+              if (centerOf && !isCancelled) {
+                samples.push(centerOf);
+                setSelfieUri(photo.uri);
+                setPhase("pindai");
               }
             }
             continue;
           }
-          if (besar >= 0.9) {
-            const sudut =
-              ((Math.atan2(kanan, atas) * 180) / Math.PI + 360) % 360;
-            const idx = Math.round(sudut / (360 / TICKS)) % TICKS;
+          if (large >= 0.9) {
+            const angle =
+              ((Math.atan2(right, top) * 180) / Math.PI + 360) % 360;
+            const idx = Math.round(angle / (360 / TICKS)) % TICKS;
             // Garis di antara arah frame sebelumnya dan sekarang ikut menyala, jadi gerakan melingkar
             // yang pelan mengisi cincin tanpa celah meski kamera hanya beberapa frame per detik.
-            if (sebelumnya !== null && jarak(sebelumnya, idx) <= 12) {
-              const maju = (idx - sebelumnya + TICKS) % TICKS <= TICKS / 2;
-              const n = jarak(sebelumnya, idx);
-              for (let k = 0; k <= n; k++) tambah(sebelumnya + (maju ? k : -k));
+            if (previous !== null && distance(previous, idx) <= 12) {
+              const isForward = (idx - previous + TICKS) % TICKS <= TICKS / 2;
+              const n = distance(previous, idx);
+              for (let k = 0; k <= n; k++)
+                increment(previous + (isForward ? k : -k));
             }
-            for (let k = -2; k <= 2; k++) tambah(idx + k);
-            sebelumnya = idx;
+            for (let k = -2; k <= 2; k++) increment(idx + k);
+            previous = idx;
             for (let i = 0; i < TICKS; i++) {
-              if (nyala.has(i)) continue;
-              const kiri =
-                nyala.has((i + TICKS - 1) % TICKS) ||
-                nyala.has((i + TICKS - 2) % TICKS);
-              const kanan2 =
-                nyala.has((i + 1) % TICKS) || nyala.has((i + 2) % TICKS);
-              if (kiri && kanan2) nyala.add(i);
+              if (litTicks.has(i)) continue;
+              const hasLeftNeighbor =
+                litTicks.has((i + TICKS - 1) % TICKS) ||
+                litTicks.has((i + TICKS - 2) % TICKS);
+              const hasRightNeighbor =
+                litTicks.has((i + 1) % TICKS) || litTicks.has((i + 2) % TICKS);
+              if (hasLeftNeighbor && hasRightNeighbor) litTicks.add(i);
             }
-            setTerisi([...nyala]);
+            setFilledTicks([...litTicks]);
           } else {
-            sebelumnya = null;
+            previous = null;
           }
           // Sampel untuk pencocokan: hanya saat wajah menghadap depan dan mata terbuka, dari foto kualitas tinggi.
           // Wajah miring atau frame berkualitas rendah menurunkan kemiripan orang yang sama.
           if (
-            besar < 0.5 &&
+            large < 0.5 &&
             (d.eyesOpen < 0 || d.eyesOpen >= 0.5) &&
-            (sampel.length < SAMPEL_MAKS || !spoofLulus()) &&
-            Date.now() - sampelTerakhir > JEDA_SAMPEL_MS
+            (samples.length < SAMPLE_MAX || !hasSpoofPassed()) &&
+            Date.now() - lastSampleAt > SAMPLE_GAP_MS
           ) {
-            sampelTerakhir = Date.now();
-            const v = await ambilSampel();
-            if (v && sampel.length < SAMPEL_MAKS) sampel.push(v);
+            lastSampleAt = Date.now();
+            const v = await takeSample();
+            if (v && samples.length < SAMPLE_MAX) samples.push(v);
           }
-          if (nyala.size >= CUKUP) {
-            if (urutan.length === 0) {
-              urutan = acakTantangan();
-              langkah = 0;
-              mulaiLangkah = mulaiPerintah = Date.now();
-              netral = false;
-              setPeringatan(null);
-              setTantangan({ jenis: urutan[0]!, ke: 1 });
-            } else if (langkah >= urutan.length) {
+          if (litTicks.size >= ENOUGH) {
+            if (order.length === 0) {
+              order = shuffleChallenges();
+              step = 0;
+              stepStartedAt = commandStartedAt = Date.now();
+              isNeutral = false;
+              setWarning(null);
+              setChallenge({ kind: order[0]!, to: 1 });
+            } else if (step >= order.length) {
               // Semua perintah beres; tinggal menunggu cukup sampel wajah menghadap depan.
-              setTantangan(null);
-              if (sampel.length >= SAMPEL_MIN && spoofLulus()) {
-                for (let i = 0; i < TICKS; i++) nyala.add(i);
-                setTerisi([...nyala]);
-                hasil.current = sampel;
-                spoofHasil.current = skorJendela.length
+              setChallenge(null);
+              if (samples.length >= SAMPLE_MIN && hasSpoofPassed()) {
+                for (let i = 0; i < TICKS; i++) litTicks.add(i);
+                setFilledTicks([...litTicks]);
+                embeddingSamples.current = samples;
+                spoofResult.current = windowScores.length
                   ? {
                       mean:
                         Math.round(
-                          (skorJendela.reduce((a, b) => a + b, 0) /
-                            skorJendela.length) *
+                          (windowScores.reduce((a, b) => a + b, 0) /
+                            windowScores.length) *
                             1000,
                         ) / 1000,
-                      scores: [...skorJendela],
+                      scores: [...windowScores],
                     }
                   : undefined;
                 await new Promise((r) => setTimeout(r, 500));
-                if (!batal) setFase("lengkap");
+                if (!isCancelled) setPhase("lengkap");
                 return;
               }
-              tampilkanPeringatan(
-                sampel.length >= SAMPEL_MIN && !spoofLulus()
+              showWarning(
+                samples.length >= SAMPLE_MIN && !hasSpoofPassed()
                   ? "fe.bukanAsli"
                   : "fe.hadapDepan",
               );
             } else {
-              const j = urutan[langkah]!;
-              let ok = false;
+              const j = order[step]!;
+              let isConfirmed = false;
               if (j === "pejam") {
                 // Mata harus terlihat terbuka dulu setelah perintah muncul, lalu tertutup.
-                if (d.eyesOpen >= 0.5) netral = true;
-                ok = netral && d.eyesOpen >= 0 && d.eyesOpen < 0.45;
+                if (d.eyesOpen >= 0.5) isNeutral = true;
+                isConfirmed = isNeutral && d.eyesOpen >= 0 && d.eyesOpen < 0.45;
               } else {
                 // Mulai dari tengah, lalu menoleh ke kiri atau kanan.
-                if (Math.abs(kanan) < 0.6) netral = true;
-                ok = netral && Math.abs(kanan) >= 0.75;
+                if (Math.abs(right) < 0.6) isNeutral = true;
+                isConfirmed = isNeutral && Math.abs(right) >= 0.75;
               }
-              if (ok) {
-                langkah += 1;
-                mulaiLangkah = Date.now();
-                netral = false;
-                setPeringatan(null);
-                if (langkah < urutan.length) {
-                  setTantangan({ jenis: urutan[langkah]!, ke: langkah + 1 });
+              if (isConfirmed) {
+                step += 1;
+                stepStartedAt = Date.now();
+                isNeutral = false;
+                setWarning(null);
+                if (step < order.length) {
+                  setChallenge({ kind: order[step]!, to: step + 1 });
                 }
-              } else if (Date.now() - mulaiLangkah > PETUNJUK_MS) {
-                tampilkanPeringatan(
+              } else if (Date.now() - stepStartedAt > HINT_MS) {
+                showWarning(
                   j === "pejam" ? "fe.petunjukPejam" : "fe.petunjukToleh",
                 );
               }
@@ -391,63 +397,66 @@ export function FaceEnrollScreen({ navigation }: ScreenProps) {
       }
     })();
     return () => {
-      batal = true;
+      isCancelled = true;
     };
-  }, [aktif, siapKamera, putaran]);
+  }, [isActive, isCameraReady, scanRound]);
 
   const mulai = async () => {
-    setGalat(null);
-    if (!izin?.granted) {
-      const r = await mintaIzin();
+    setErrorMessage(null);
+    if (!permission?.granted) {
+      const r = await requestPermission();
       if (!r.granted) return;
     }
-    setFase("cek");
+    setPhase("cek");
     try {
       if (!status?.ktpUrl || !status.profileUrl) throw new Error("syarat");
       const [ktpUri, profUri] = await Promise.all([
-        simpanLampiran(status.ktpUrl, "ktp"),
-        simpanLampiran(status.profileUrl, "profil"),
+        saveAttachment(status.ktpUrl, "ktp"),
+        saveAttachment(status.profileUrl, "profil"),
       ]);
-      const ktp = await embeddingWajah(ktpUri);
+      const ktp = await getFaceEmbedding(ktpUri);
       if (!ktp) throw new Error(t("fe.ktpTanpaWajah"));
-      const prof = await embeddingWajah(profUri);
+      const prof = await getFaceEmbedding(profUri);
       if (!prof) throw new Error(t("fe.profilTanpaWajah"));
       acuan.current = { ktp, prof };
     } catch (e) {
-      setGalat(e instanceof Error ? e.message : describeError(e));
-      setFase("intro");
+      setErrorMessage(e instanceof Error ? e.message : describeError(e));
+      setPhase("intro");
       return;
     }
-    setTantangan(null);
-    setPeringatan(null);
-    setTerisi([]);
-    setSelfie(null);
-    setPesan(null);
-    hasil.current = [];
-    spoofHasil.current = undefined;
-    setSiapKamera(false);
-    setPutaran((n) => n + 1);
-    setFase("posisi");
+    setChallenge(null);
+    setWarning(null);
+    setFilledTicks([]);
+    setSelfieUri(null);
+    setStatusMessage(null);
+    embeddingSamples.current = [];
+    spoofResult.current = undefined;
+    setIsCameraReady(false);
+    setScanRound((n) => n + 1);
+    setPhase("posisi");
   };
 
-  const batalPindai = () => {
-    setTerisi([]);
-    setFase("intro");
+  const cancelScan = () => {
+    setFilledTicks([]);
+    setPhase("intro");
   };
 
-  const headerTerang = (
+  const lightHeader = (
     <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
-      <Pressable style={styles.backBtn} onPress={() => kembali(navigation)}>
+      <Pressable
+        style={styles.backBtn}
+        onPress={() => goBackAnimated(navigation)}
+      >
         <Ionicons name="chevron-back" size={18} color={c.ink} />
       </Pressable>
       <Text style={styles.headerTitle}>{t("fe.judul")}</Text>
     </View>
   );
 
-  if (!wajahDidukung()) {
+  if (!isFaceSupported()) {
     return (
       <View style={styles.container}>
-        {headerTerang}
+        {lightHeader}
         <EmptyState
           title={t("fe.tidakDidukung")}
           text={t("face.tidakDidukung")}
@@ -456,28 +465,31 @@ export function FaceEnrollScreen({ navigation }: ScreenProps) {
     );
   }
 
-  if (fase === "muat") {
-    return <View style={[styles.container, { backgroundColor: HITAM }]} />;
+  if (phase === "muat") {
+    return <View style={[styles.container, { backgroundColor: BLACK }]} />;
   }
 
-  const syaratKurang = status && (!status.ktpUrl || !status.profileUrl);
-  if (syaratKurang && status) {
-    const butuhKtp = !status.ktpUrl;
+  const hasMissingRequirement =
+    status && (!status.ktpUrl || !status.profileUrl);
+  if (hasMissingRequirement && status) {
+    const isIdCardMissing = !status.ktpUrl;
     return (
       <View style={styles.container}>
-        {headerTerang}
+        {lightHeader}
         <EmptyState
-          title={t(butuhKtp ? "fe.butuhKtp" : "fe.butuhFoto")}
-          text={t(butuhKtp ? "fe.butuhKtpPesan" : "fe.butuhFotoPesan")}
+          title={t(isIdCardMissing ? "fe.butuhKtp" : "fe.butuhFoto")}
+          text={t(isIdCardMissing ? "fe.butuhKtpPesan" : "fe.butuhFotoPesan")}
         >
           <Pressable
-            style={styles.btnTerang}
+            style={styles.lightButton}
             onPress={() =>
-              navigation.navigate(butuhKtp ? "ProfileDocs" : "ProfilePhoto")
+              navigation.navigate(
+                isIdCardMissing ? "ProfileDocs" : "ProfilePhoto",
+              )
             }
           >
-            <Text style={styles.btnTerangText}>
-              {t(butuhKtp ? "fe.keDokumen" : "fe.keFoto")}
+            <Text style={styles.lightButtonText}>
+              {t(isIdCardMissing ? "fe.keDokumen" : "fe.keFoto")}
             </Text>
           </Pressable>
         </EmptyState>
@@ -485,10 +497,10 @@ export function FaceEnrollScreen({ navigation }: ScreenProps) {
     );
   }
 
-  if (fase === "selesai" || status?.state === "pending") {
+  if (phase === "selesai" || status?.state === "pending") {
     return (
       <View style={styles.container}>
-        {headerTerang}
+        {lightHeader}
         <EmptyState
           icon="M5 13l4 4L19 7"
           title={t("fe.menunggu")}
@@ -500,8 +512,8 @@ export function FaceEnrollScreen({ navigation }: ScreenProps) {
 
   // ---- Layar gelap ala Face ID ----
   const D = Math.min(W * 0.66, 270); // diameter lingkaran kamera
-  const atasLingkaran = insets.top + 96;
-  const munculkan = {
+  const aboveRing = insets.top + 96;
+  const reveal = {
     opacity: masuk,
     transform: [
       {
@@ -512,66 +524,65 @@ export function FaceEnrollScreen({ navigation }: ScreenProps) {
       },
     ],
   };
-  const kameraTampil =
-    fase === "posisi" ||
-    fase === "pindai" ||
-    fase === "lengkap" ||
-    fase === "kirim";
-  const persen =
-    fase === "lengkap" || fase === "kirim"
+  const isCameraVisible =
+    phase === "posisi" ||
+    phase === "pindai" ||
+    phase === "lengkap" ||
+    phase === "kirim";
+  const percent =
+    phase === "lengkap" || phase === "kirim"
       ? 100
-      : Math.min(100, Math.round((terisi.length / TICKS) * 100));
-  const teksBawahTop = atasLingkaran + D + 62;
+      : Math.min(100, Math.round((filledTickList.length / TICKS) * 100));
+  const bottomTextTop = aboveRing + D + 62;
 
   return (
-    <View style={[styles.container, { backgroundColor: HITAM }]}>
+    <View style={[styles.container, { backgroundColor: BLACK }]}>
       <StatusBar style="light" />
 
-      {kameraTampil ? (
+      {isCameraVisible ? (
         <Animated.View
           pointerEvents="none"
           style={{
             position: "absolute",
             left: (W - (D + 80)) / 2,
-            top: atasLingkaran - 40,
+            top: aboveRing - 40,
             opacity: masuk,
           }}
         >
-          <LingkaranSamsung
+          <SamsungRing
             D={D}
-            terisi={terisi}
-            selesai={fase === "lengkap" || fase === "kirim"}
-            adaWajah={adaWajah || fase === "lengkap" || fase === "kirim"}
-            anak={
-              <CameraView
-                ref={kamera}
-                style={StyleSheet.absoluteFill}
-                facing="front"
-                animateShutter={false}
-                pictureSize={ukuranFoto}
-                onCameraReady={siapkanKamera}
-              />
-            }
-          />
+            filledTicks={filledTickList}
+            isFinished={phase === "lengkap" || phase === "kirim"}
+            hasFace={hasFace || phase === "lengkap" || phase === "kirim"}
+          >
+            <CameraView
+              ref={cameraRef}
+              style={StyleSheet.absoluteFill}
+              facing="front"
+              animateShutter={false}
+              pictureSize={photoSize}
+              onCameraReady={prepareCamera}
+            />
+          </SamsungRing>
         </Animated.View>
       ) : null}
 
-      {fase === "intro" || fase === "cek" ? (
+      {phase === "intro" || phase === "cek" ? (
         <Animated.View
           style={[
-            styles.introWrap,
+            styles.introWrapper,
             { paddingTop: insets.top + 64, paddingBottom: insets.bottom + 24 },
-            munculkan,
+            reveal,
           ]}
         >
-          <View style={styles.introIkon}>
+          <View style={styles.introIcon}>
             <Animated.View
               style={[
                 StyleSheet.absoluteFill,
                 {
                   transform: [
                     {
-                      rotate: putar.interpolate({
+                      rotate: spin.interpolate({
                         inputRange: [0, 1],
                         outputRange: ["0deg", "360deg"],
                       }),
@@ -580,20 +591,20 @@ export function FaceEnrollScreen({ navigation }: ScreenProps) {
                 },
               ]}
             >
-              <CincinWajah size={200} rIn={70} terisi={[]} rFoto={60} />
+              <FaceRing size={200} rIn={70} filledTicks={[]} photoRadius={60} />
             </Animated.View>
-            <Ionicons name="happy-outline" size={78} color={PUTIH} />
+            <Ionicons name="happy-outline" size={78} color={WHITE} />
           </View>
-          {fase === "cek" ? null : (
-            <Text style={styles.introJudul}>{t("fe.introJudul")}</Text>
+          {phase === "cek" ? null : (
+            <Text style={styles.introTitle}>{t("fe.introJudul")}</Text>
           )}
-          {fase === "cek" ? (
-            <View style={styles.cekInfo}>
-              <ActivityIndicator color={PUTIH} />
-              <Text style={styles.introIsi}>{t("fe.memeriksa")}</Text>
+          {phase === "cek" ? (
+            <View style={styles.checkInfo}>
+              <ActivityIndicator color={WHITE} />
+              <Text style={styles.introBody}>{t("fe.memeriksa")}</Text>
             </View>
           ) : (
-            <Text style={styles.introIsi}>{t("fe.introIsi")}</Text>
+            <Text style={styles.introBody}>{t("fe.introIsi")}</Text>
           )}
           {status?.state === "active" ? (
             <Text style={styles.introStatus}>{t("fe.sudahAktif")}</Text>
@@ -606,11 +617,13 @@ export function FaceEnrollScreen({ navigation }: ScreenProps) {
               {t("fe.ditolak", { alasan: status.note ?? "-" })}
             </Text>
           ) : null}
-          {galat ? <Text style={styles.galat}>{galat}</Text> : null}
+          {errorMessage ? (
+            <Text style={styles.errorText}>{errorMessage}</Text>
+          ) : null}
           <View style={{ flex: 1 }} />
-          {fase === "cek" ? null : (
-            <Pressable style={styles.btnBiru} onPress={mulai}>
-              <Text style={styles.btnBiruText}>
+          {phase === "cek" ? null : (
+            <Pressable style={styles.blueButton} onPress={mulai}>
+              <Text style={styles.blueButtonText}>
                 {t(
                   status?.state === "active" ||
                     status?.state === "needs_reenroll"
@@ -625,40 +638,42 @@ export function FaceEnrollScreen({ navigation }: ScreenProps) {
         <Animated.View
           pointerEvents="box-none"
           style={[
-            styles.teksBawah,
-            { top: teksBawahTop, paddingBottom: insets.bottom + 24 },
-            munculkan,
+            styles.bottomText,
+            { top: bottomTextTop, paddingBottom: insets.bottom + 24 },
+            reveal,
           ]}
         >
-          <Text style={styles.persen}>{persen}%</Text>
-          <Text style={styles.instruksi}>
-            {fase === "posisi"
+          <Text style={styles.percent}>{percent}%</Text>
+          <Text style={styles.instruction}>
+            {phase === "posisi"
               ? t("fe.posisi")
-              : fase === "pindai"
+              : phase === "pindai"
                 ? t("fe.lingkarFaceId")
                 : t("fe.lengkap")}
           </Text>
-          {pesan && aktif ? <Text style={styles.petunjuk}>{pesan}</Text> : null}
-          {peringatan && fase === "pindai" ? (
-            <Text style={styles.peringatan}>{peringatan}</Text>
+          {statusMessage && isActive ? (
+            <Text style={styles.hint}>{statusMessage}</Text>
           ) : null}
-          {fase === "pindai" && tantangan ? (
-            <Text style={styles.perintah}>
-              {t(tantangan.jenis === "pejam" ? "fe.tantPejam" : "fe.tantToleh")}
-              {` (${tantangan.ke}/${JUMLAH_TANTANGAN})`}
+          {warning && phase === "pindai" ? (
+            <Text style={styles.warning}>{warning}</Text>
+          ) : null}
+          {phase === "pindai" && challenge ? (
+            <Text style={styles.command}>
+              {t(challenge.kind === "pejam" ? "fe.tantPejam" : "fe.tantToleh")}
+              {` (${challenge.to}/${CHALLENGE_COUNT})`}
             </Text>
           ) : null}
           <View style={{ flex: 1 }} />
-          {fase === "lengkap" || fase === "kirim" ? (
+          {phase === "lengkap" || phase === "kirim" ? (
             <Pressable
-              style={[styles.btnBiru, fase === "kirim" && { opacity: 0.6 }]}
-              onPress={kirim}
-              disabled={fase === "kirim"}
+              style={[styles.blueButton, phase === "kirim" && { opacity: 0.6 }]}
+              onPress={submit}
+              disabled={phase === "kirim"}
             >
-              {fase === "kirim" ? (
-                <ActivityIndicator color={PUTIH} />
+              {phase === "kirim" ? (
+                <ActivityIndicator color={WHITE} />
               ) : (
-                <Text style={styles.btnBiruText}>{t("fe.lanjutkan")}</Text>
+                <Text style={styles.blueButtonText}>{t("fe.lanjutkan")}</Text>
               )}
             </Pressable>
           ) : null}
@@ -666,15 +681,15 @@ export function FaceEnrollScreen({ navigation }: ScreenProps) {
       )}
 
       <Pressable
-        style={[styles.batal, { top: insets.top + 12 }]}
+        style={[styles.cancel, { top: insets.top + 12 }]}
         onPress={() =>
-          fase === "intro" || fase === "cek"
-            ? kembali(navigation)
-            : batalPindai()
+          phase === "intro" || phase === "cek"
+            ? goBackAnimated(navigation)
+            : cancelScan()
         }
         hitSlop={10}
       >
-        <Text style={styles.batalText}>{t("fe.batal")}</Text>
+        <Text style={styles.cancelText}>{t("fe.batal")}</Text>
       </Pressable>
     </View>
   );
@@ -702,41 +717,41 @@ const makeStyles = (c: Palette) =>
       justifyContent: "center",
     },
     headerTitle: { fontSize: 15, fontWeight: "700", color: c.ink },
-    btnTerang: {
+    lightButton: {
       marginTop: 16,
       paddingHorizontal: 22,
       paddingVertical: 12,
       borderRadius: 14,
       backgroundColor: c.accent,
     },
-    btnTerangText: { fontSize: 13, fontWeight: "700", color: "#fff" },
+    lightButtonText: { fontSize: 13, fontWeight: "700", color: "#fff" },
 
-    batal: { position: "absolute", left: 20 },
-    batalText: { fontSize: 16, fontWeight: "500", color: BIRU },
+    cancel: { position: "absolute", left: 20 },
+    cancelText: { fontSize: 16, fontWeight: "500", color: BLUE },
 
-    introWrap: {
+    introWrapper: {
       flex: 1,
       alignItems: "center",
       paddingHorizontal: 32,
     },
-    introIkon: {
+    introIcon: {
       width: 200,
       height: 200,
       alignItems: "center",
       justifyContent: "center",
       marginTop: 40,
     },
-    introJudul: {
+    introTitle: {
       fontSize: 20,
       fontWeight: "700",
-      color: PUTIH,
+      color: WHITE,
       textAlign: "center",
       marginTop: 40,
     },
-    introIsi: {
+    introBody: {
       fontSize: 14.5,
       lineHeight: 21,
-      color: PUTIH,
+      color: WHITE,
       textAlign: "center",
       marginTop: 10,
       maxWidth: 320,
@@ -749,7 +764,7 @@ const makeStyles = (c: Palette) =>
       marginTop: 14,
       maxWidth: 320,
     },
-    galat: {
+    errorText: {
       fontSize: 13,
       lineHeight: 19,
       color: "#FF6961",
@@ -757,20 +772,20 @@ const makeStyles = (c: Palette) =>
       marginTop: 14,
       maxWidth: 320,
     },
-    btnBiru: {
-      ...tombolUtama(c),
+    blueButton: {
+      ...primaryButtonStyle(c),
       alignSelf: "stretch",
       height: 52,
       borderRadius: 14,
-      backgroundColor: BIRU,
+      backgroundColor: BLUE,
       alignItems: "center",
       justifyContent: "center",
     },
-    btnBiruText: { fontSize: 16, fontWeight: "600", color: PUTIH },
-    cekInfo: { alignItems: "center", gap: 12, marginTop: 20 },
-    cekRow: { flexDirection: "row", alignItems: "center", gap: 10 },
+    blueButtonText: { fontSize: 16, fontWeight: "600", color: WHITE },
+    checkInfo: { alignItems: "center", gap: 12, marginTop: 20 },
+    checkRow: { flexDirection: "row", alignItems: "center", gap: 10 },
 
-    teksBawah: {
+    bottomText: {
       position: "absolute",
       left: 0,
       right: 0,
@@ -778,14 +793,14 @@ const makeStyles = (c: Palette) =>
       alignItems: "center",
       paddingHorizontal: 32,
     },
-    perintah: {
-      color: PUTIH,
+    command: {
+      color: WHITE,
       fontSize: 18,
       fontWeight: "700",
       textAlign: "center",
       marginTop: 8,
     },
-    peringatan: {
+    warning: {
       fontSize: 13,
       lineHeight: 19,
       fontWeight: "600",
@@ -794,24 +809,24 @@ const makeStyles = (c: Palette) =>
       marginTop: 10,
       maxWidth: 300,
     },
-    persen: {
+    percent: {
       fontSize: 34,
       fontWeight: "400",
-      color: PUTIH,
+      color: WHITE,
       textAlign: "center",
       marginBottom: 6,
     },
-    instruksi: {
+    instruction: {
       fontSize: 18,
       lineHeight: 24,
       fontWeight: "600",
-      color: PUTIH,
+      color: WHITE,
       textAlign: "center",
       maxWidth: 300,
     },
-    petunjuk: {
+    hint: {
       fontSize: 13,
-      color: REDUP,
+      color: DIM,
       textAlign: "center",
       marginTop: 8,
     },

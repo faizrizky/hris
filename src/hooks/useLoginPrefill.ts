@@ -3,11 +3,11 @@
 
 import { useEffect } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { alamatServer } from "@/services/api/http";
-import { namaBiometrik } from "@/services/biometrik";
+import { getServerAddress } from "@/services/api/http";
+import { getBiometricName } from "@/services/biometrik";
 
-export const KUNCI_USERNAME = "hris.username";
-const ALAMAT_SERVER_DIBACA_MS = 300; // alamat tersimpan dibaca asinkron; isi kolom setelah siap
+export const USERNAME_STORAGE_KEY = "hris.username";
+const SERVER_ADDRESS_READ_MS = 300; // alamat tersimpan dibaca asinkron; isi kolom setelah siap
 
 interface LoginPrefillHandlers {
   onSavedUsername: (username: string) => void;
@@ -22,7 +22,7 @@ export function useLoginPrefill({
 }: LoginPrefillHandlers) {
   // "Ingat saya": username terakhir diisi otomatis (password tidak pernah disimpan).
   useEffect(() => {
-    AsyncStorage.getItem(KUNCI_USERNAME)
+    AsyncStorage.getItem(USERNAME_STORAGE_KEY)
       .then((username) => {
         if (username) onSavedUsername(username);
       })
@@ -31,13 +31,13 @@ export function useLoginPrefill({
 
   // Biometrik hanya ditawarkan bila perangkat ini sudah punya sidik jari / wajah terdaftar.
   useEffect(() => {
-    namaBiometrik().then(onBiometricName);
+    getBiometricName().then(onBiometricName);
   }, [onBiometricName]);
 
   useEffect(() => {
     const timer = setTimeout(
-      () => onServerAddress(alamatServer()),
-      ALAMAT_SERVER_DIBACA_MS,
+      () => onServerAddress(getServerAddress()),
+      SERVER_ADDRESS_READ_MS,
     );
     return () => clearTimeout(timer);
   }, [onServerAddress]);

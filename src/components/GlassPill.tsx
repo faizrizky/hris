@@ -11,14 +11,14 @@ interface Props {
 export function GlassPill({ children, dark }: Props) {
   const c = useTheme();
   const { mode } = useThemeMode();
-  const gelap = dark ?? mode === "dark";
+  const isDark = dark ?? mode === "dark";
   return (
     <View
-      style={[styles.wrapper, gelap ? styles.shadowDark : styles.shadowLight]}
+      style={[styles.wrapper, isDark ? styles.shadowDark : styles.shadowLight]}
     >
       <BlurView
         intensity={40}
-        tint={gelap ? "dark" : "light"}
+        tint={isDark ? "dark" : "light"}
         style={StyleSheet.absoluteFill}
       />
       <View
@@ -26,7 +26,7 @@ export function GlassPill({ children, dark }: Props) {
           StyleSheet.absoluteFill,
           styles.pill,
           {
-            borderColor: gelap ? c.onDark.track : "rgba(0,0,0,0.06)",
+            borderColor: isDark ? c.onDark.track : "rgba(0,0,0,0.06)",
           },
         ]}
       />

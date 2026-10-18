@@ -1,98 +1,103 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { CameraView, useCameraPermissions } from "expo-camera";
-import { Palette, tombolUtama } from "@/theme/colors";
+import { Palette, primaryButtonStyle } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
 import { useT } from "@/i18n";
 import { hrisApi } from "@/services/api";
-import type { SpoofRingkas } from "@/services/types";
+import type { SpoofSummary } from "@/services/types";
 import {
-  awalUrutan,
-  BATAS_LANGKAH_MS,
-  deteksiWajah,
-  embeddingWajah,
-  skorSpoof,
-  spoofTersedia,
-  langkahUrutan,
-  LANGKAH_TOTAL,
-  type StatusUrutan,
+  initialSequence,
+  STEP_TIMEOUT_MS,
+  detectFace,
+  getFaceEmbedding,
+  getSpoofScore,
+  isSpoofAvailable,
+  advanceSequence,
+  TOTAL_STEPS,
+  type SequenceState,
 } from "@/services/faceCheck";
 
-const BATAS_MS = 45_000; // seluruh sesi liveness (tiga perintah)
+const TIME_LIMIT_MS = 45_000; // seluruh sesi liveness (tiga perintah)
 // Anti-spoofing membaca tekstur halus, jadi frame dibuat lebih tajam saat model tersedia.
-const KUALITAS_DETEKSI = spoofTersedia() ? 0.6 : 0.3;
+const DETECTION_QUALITY = isSpoofAvailable() ? 0.6 : 0.3;
 // Verifikasi hanya dengan anti-spoofing (tanpa perintah gerak): beberapa frame menghadap depan dinilai model, keputusan
 // memakai median supaya satu frame buruk tidak menggagalkan wajah asli dan satu frame bagus tidak meloloskan foto/layar.
-const SPOOF_BERUNTUN = 6; // lolos bila 6 frame BERUNTUN sama-sama di atas ambang (video di layar jarang konsisten)
-const SPOOF_MAKS_FRAME = 16;
-const SPOOF_AMBANG = 0.6;
-const SPOOF_BATAS_MS = 30_000;
-const KUALITAS_SAMPEL = 0.7; // foto untuk embedding wajah: lebih tajam supaya pencocokan akurat
+const SPOOF_CONSECUTIVE_FRAMES = 6; // lolos bila 6 frame BERUNTUN sama-sama di atas ambang (video di layar jarang konsisten)
+const SPOOF_MAX_FRAMES = 16;
+const SPOOF_THRESHOLD = 0.6;
+const SPOOF_TIMEOUT_MS = 30_000;
+const SAMPLE_QUALITY = 0.7; // foto untuk embedding wajah: lebih tajam supaya pencocokan akurat
 
 // Kamera depan + tantangan acak. onLulus dipanggil sekali saat liveness lolos.
 export function FaceCheck({
-  onLulus,
-  aksi,
+  onPass,
+  action,
 }: {
-  onLulus: (vec: number[] | null, spoof?: SpoofRingkas) => void;
-  aksi: "IN" | "OUT";
+  onPass: (vec: number[] | null, spoof?: SpoofSummary) => void;
+  action: "IN" | "OUT";
 }) {
   const t = useT();
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
-  const [izin, mintaIzin] = useCameraPermissions();
-  const kamera = useRef<CameraView>(null);
-  const [siapKamera, setSiapKamera] = useState(false);
-  const [putaran, setPutaran] = useState(0); // naik = ulang dari awal
-  const [status, setStatus] = useState<StatusUrutan>(awalUrutan);
-  const [waktuHabis, setWaktuHabis] = useState(false);
-  const [lulus, setLulus] = useState(false);
-  const [bukanAsli, setBukanAsli] = useState(false);
-  const [pesanSpoof, setPesanSpoof] = useState<string>("face.spoofCek");
+  const [permission, requestPermission] = useCameraPermissions();
+  const cameraRef = useRef<CameraView>(null);
+  const [isCameraReady, setIsCameraReady] = useState(false);
+  const [attemptRound, setAttemptRound] = useState(0); // naik = ulang dari awal
+  const [status, setStatus] = useState<SequenceState>(initialSequence);
+  const [hasTimedOut, setHasTimedOut] = useState(false);
+  const [isLulus, setIsLulus] = useState(false);
+  const [isNotGenuine, setIsNotGenuine] = useState(false);
+  const [spoofMessageKey, setSpoofMessageKey] =
+    useState<string>("face.spoofCek");
 
   useEffect(() => {
-    if (!izin?.granted || !siapKamera) return;
-    let batal = false;
-    let s = awalUrutan();
+    if (!permission?.granted || !isCameraReady) return;
+    let isCancelled = false;
+    let s = initialSequence();
     let vec: number[] | null = null;
-    const skorFrame: number[] = [];
+    const frameScores: number[] = [];
     const mulai = Date.now();
-    if (spoofTersedia()) {
+    if (isSpoofAvailable()) {
       // Hanya anti-spoofing: tanpa kedip/toleh.
       (async () => {
-        const skor: number[] = [];
-        const catat = (hasil: "Passed" | "Rejected" | "Timeout") => {
+        const score: number[] = [];
+        const logOutcome = (result: "Passed" | "Rejected" | "Timeout") => {
           hrisApi
             .logFaceCheck({
-              logType: aksi,
-              outcome: hasil,
-              scores: skor.slice(0, 40),
+              logType: action,
+              outcome: result,
+              scores: score.slice(0, 40),
             })
             .catch(() => {});
         };
-        const beruntun = () => {
+        const consecutiveCount = () => {
           let n = 0;
-          for (let i = skor.length - 1; i >= 0 && skor[i]! >= SPOOF_AMBANG; i--)
+          for (
+            let i = score.length - 1;
+            i >= 0 && score[i]! >= SPOOF_THRESHOLD;
+            i--
+          )
             n++;
           return n;
         };
-        while (!batal) {
-          if (Date.now() - mulai > SPOOF_BATAS_MS) {
-            catat("Timeout");
-            setWaktuHabis(true);
+        while (!isCancelled) {
+          if (Date.now() - mulai > SPOOF_TIMEOUT_MS) {
+            logOutcome("Timeout");
+            setHasTimedOut(true);
             return;
           }
           try {
-            const foto = await kamera.current?.takePictureAsync({
-              quality: KUALITAS_DETEKSI,
+            const photo = await cameraRef.current?.takePictureAsync({
+              quality: DETECTION_QUALITY,
               skipProcessing: true,
               shutterSound: false,
             });
-            if (batal || !foto) continue;
-            const d = await deteksiWajah(foto.uri);
-            if (batal) return;
+            if (isCancelled || !photo) continue;
+            const d = await detectFace(photo.uri);
+            if (isCancelled) return;
             if (d.count !== 1 || d.size < 0.25 || Math.abs(d.yaw) > 20) {
-              setPesanSpoof(
+              setSpoofMessageKey(
                 d.count === 0
                   ? "face.tidakAda"
                   : d.count > 1
@@ -103,35 +108,36 @@ export function FaceCheck({
               );
               continue;
             }
-            setPesanSpoof("face.spoofCek");
-            const k = await skorSpoof(foto.uri);
-            if (k !== null) skor.push(Math.round(k * 100) / 100);
+            setSpoofMessageKey("face.spoofCek");
+            const k = await getSpoofScore(photo.uri);
+            if (k !== null) score.push(Math.round(k * 100) / 100);
             // Embedding dari foto kualitas tinggi pada frame menghadap depan pertama.
             if (!vec) {
-              const tajam = await kamera.current?.takePictureAsync({
-                quality: KUALITAS_SAMPEL,
+              const sharpPhoto = await cameraRef.current?.takePictureAsync({
+                quality: SAMPLE_QUALITY,
                 skipProcessing: true,
                 shutterSound: false,
               });
-              vec = await embeddingWajah((tajam ?? foto).uri);
+              vec = await getFaceEmbedding((sharpPhoto ?? photo).uri);
             }
-            if (beruntun() >= SPOOF_BERUNTUN) {
-              const jendela = skor.slice(-SPOOF_BERUNTUN);
-              catat("Passed");
-              setLulus(true);
-              onLulus(vec, {
+            if (consecutiveCount() >= SPOOF_CONSECUTIVE_FRAMES) {
+              const lastScores = score.slice(-SPOOF_CONSECUTIVE_FRAMES);
+              logOutcome("Passed");
+              setIsLulus(true);
+              onPass(vec, {
                 mean:
                   Math.round(
-                    (jendela.reduce((a, b) => a + b, 0) / jendela.length) *
+                    (lastScores.reduce((a, b) => a + b, 0) /
+                      lastScores.length) *
                       1000,
                   ) / 1000,
-                scores: skor.slice(0, 40),
+                scores: score.slice(0, 40),
               });
               return;
             }
-            if (skor.length >= SPOOF_MAKS_FRAME) {
-              catat("Rejected");
-              setBukanAsli(true);
+            if (score.length >= SPOOF_MAX_FRAMES) {
+              logOutcome("Rejected");
+              setIsNotGenuine(true);
               return;
             }
           } catch {
@@ -140,57 +146,57 @@ export function FaceCheck({
         }
       })();
       return () => {
-        batal = true;
+        isCancelled = true;
       };
     }
     (async () => {
-      while (!batal) {
-        const sekarang = Date.now();
+      while (!isCancelled) {
+        const currentMs = Date.now();
         if (
-          sekarang - mulai > BATAS_MS ||
-          (s.siap && sekarang - s.mulaiLangkah > BATAS_LANGKAH_MS)
+          currentMs - mulai > TIME_LIMIT_MS ||
+          (s.isReady && currentMs - s.stepStartedAt > STEP_TIMEOUT_MS)
         ) {
-          setWaktuHabis(true);
+          setHasTimedOut(true);
           return;
         }
         try {
-          const foto = await kamera.current?.takePictureAsync({
-            quality: KUALITAS_DETEKSI,
+          const photo = await cameraRef.current?.takePictureAsync({
+            quality: DETECTION_QUALITY,
             skipProcessing: true,
             shutterSound: false,
           });
-          if (batal) return;
-          if (foto) {
-            const d = await deteksiWajah(foto.uri);
-            s = langkahUrutan(s, d, Date.now());
+          if (isCancelled) return;
+          if (photo) {
+            const d = await detectFace(photo.uri);
+            s = advanceSequence(s, d, Date.now());
             // Mode bayangan: skor anti-spoofing tiap frame selama perintah berjalan, hanya dicatat.
-            if (s.siap && d.count === 1 && skorFrame.length < 40) {
-              const k = await skorSpoof(foto.uri);
-              if (k !== null) skorFrame.push(Math.round(k * 100) / 100);
+            if (s.isReady && d.count === 1 && frameScores.length < 40) {
+              const k = await getSpoofScore(photo.uri);
+              if (k !== null) frameScores.push(Math.round(k * 100) / 100);
             }
             // Embedding dari foto kualitas tinggi saat menghadap depan, sebelum perintah pertama.
-            if (s.siap && !vec) {
-              const tajam = await kamera.current?.takePictureAsync({
-                quality: KUALITAS_SAMPEL,
+            if (s.isReady && !vec) {
+              const sharpPhoto = await cameraRef.current?.takePictureAsync({
+                quality: SAMPLE_QUALITY,
                 skipProcessing: true,
                 shutterSound: false,
               });
-              vec = await embeddingWajah((tajam ?? foto).uri);
+              vec = await getFaceEmbedding((sharpPhoto ?? photo).uri);
             }
-            if (!batal) setStatus(s);
-            if (s.lulus) {
-              setLulus(true);
-              onLulus(
+            if (!isCancelled) setStatus(s);
+            if (s.hasPassed) {
+              setIsLulus(true);
+              onPass(
                 vec,
-                skorFrame.length
+                frameScores.length
                   ? {
                       mean:
                         Math.round(
-                          (skorFrame.reduce((a, b) => a + b, 0) /
-                            skorFrame.length) *
+                          (frameScores.reduce((a, b) => a + b, 0) /
+                            frameScores.length) *
                             1000,
                         ) / 1000,
-                      scores: skorFrame,
+                      scores: frameScores,
                     }
                   : undefined,
               );
@@ -203,73 +209,73 @@ export function FaceCheck({
       }
     })();
     return () => {
-      batal = true;
+      isCancelled = true;
     };
-  }, [izin?.granted, siapKamera, putaran, onLulus, aksi]);
+  }, [permission?.granted, isCameraReady, attemptRound, onPass, action]);
 
-  const ulang = () => {
-    setStatus(awalUrutan());
-    setWaktuHabis(false);
-    setBukanAsli(false);
-    setPesanSpoof("face.spoofCek");
-    setPutaran((n) => n + 1);
+  const restart = () => {
+    setStatus(initialSequence());
+    setHasTimedOut(false);
+    setIsNotGenuine(false);
+    setSpoofMessageKey("face.spoofCek");
+    setAttemptRound((n) => n + 1);
   };
 
-  if (!izin) return <View style={styles.box} />;
-  if (!izin.granted) {
+  if (!permission) return <View style={styles.box} />;
+  if (!permission.granted) {
     return (
       <View style={styles.box}>
-        <Text style={styles.pesan}>{t("face.izin")}</Text>
-        <Pressable style={styles.tombol} onPress={mintaIzin}>
-          <Text style={styles.tombolText}>{t("face.beriIzin")}</Text>
+        <Text style={styles.message}>{t("face.izin")}</Text>
+        <Pressable style={styles.button} onPress={requestPermission}>
+          <Text style={styles.buttonText}>{t("face.beriIzin")}</Text>
         </Pressable>
       </View>
     );
   }
 
-  const instruksi = lulus
+  const instruction = isLulus
     ? t("face.lulus")
-    : bukanAsli
+    : isNotGenuine
       ? t("face.bukanAsli")
-      : waktuHabis
+      : hasTimedOut
         ? t("face.habis")
-        : spoofTersedia()
-          ? t(pesanSpoof as never)
-          : status.pesan === "tantangan" && status.siap
-            ? `${t("face.langkah", { n: Math.min(status.langkah + 1, LANGKAH_TOTAL), total: LANGKAH_TOTAL })}: ${t(
-                status.urutan[status.langkah] === "pejam"
+        : isSpoofAvailable()
+          ? t(spoofMessageKey as never)
+          : status.message === "tantangan" && status.isReady
+            ? `${t("face.langkah", { n: Math.min(status.step + 1, TOTAL_STEPS), total: TOTAL_STEPS })}: ${t(
+                status.order[status.step] === "pejam"
                   ? "face.pejam"
-                  : status.urutan[status.langkah] === "toleh"
+                  : status.order[status.step] === "toleh"
                     ? "face.toleh1"
                     : "face.toleh2",
               )}`
             : t(
-                `face.${status.pesan === "tantangan" ? "depan" : status.pesan}` as never,
+                `face.${status.message === "tantangan" ? "depan" : status.message}` as never,
               );
 
   return (
     <View style={{ alignItems: "center" }}>
-      <View style={[styles.oval, lulus && { borderColor: c.ok.ink }]}>
+      <View style={[styles.oval, isLulus && { borderColor: c.ok.ink }]}>
         <CameraView
-          ref={kamera}
+          ref={cameraRef}
           style={StyleSheet.absoluteFill}
           facing="front"
           animateShutter={false}
-          onCameraReady={() => setSiapKamera(true)}
+          onCameraReady={() => setIsCameraReady(true)}
         />
       </View>
       <Text
         style={[
-          styles.pesan,
-          lulus && { color: c.ok.ink },
-          (waktuHabis || bukanAsli) && { color: c.bad.ink },
+          styles.message,
+          isLulus && { color: c.ok.ink },
+          (hasTimedOut || isNotGenuine) && { color: c.bad.ink },
         ]}
       >
-        {instruksi}
+        {instruction}
       </Text>
-      {(waktuHabis || bukanAsli) && (
-        <Pressable style={styles.tombol} onPress={ulang}>
-          <Text style={styles.tombolText}>{t("face.ulang")}</Text>
+      {(hasTimedOut || isNotGenuine) && (
+        <Pressable style={styles.button} onPress={restart}>
+          <Text style={styles.buttonText}>{t("face.ulang")}</Text>
         </Pressable>
       )}
     </View>
@@ -289,7 +295,7 @@ const makeStyles = (c: Palette) =>
       backgroundColor: c.track,
       marginTop: 14,
     },
-    pesan: {
+    message: {
       fontSize: 12.5,
       fontWeight: "600",
       color: c.ink,
@@ -297,13 +303,13 @@ const makeStyles = (c: Palette) =>
       textAlign: "center",
       paddingHorizontal: 12,
     },
-    tombol: {
-      ...tombolUtama(c),
+    button: {
+      ...primaryButtonStyle(c),
       marginTop: 12,
       paddingHorizontal: 18,
       paddingVertical: 9,
       borderRadius: 12,
       backgroundColor: c.accent,
     },
-    tombolText: { color: "#fff", fontSize: 12.5, fontWeight: "700" },
+    buttonText: { color: "#fff", fontSize: 12.5, fontWeight: "700" },
   });

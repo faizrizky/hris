@@ -5,7 +5,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const KEY = "hris.checkinQueue";
 
-export interface ItemAntrean {
+export interface QueueItem {
   clientId: string; // kunci unik: server tidak membuat check-in dobel
   logType: "IN" | "OUT";
   capturedMs: number; // jam terpercaya saat ditekan (epoch UTC ms); 0 bila tidak
@@ -23,51 +23,51 @@ export interface ItemAntrean {
   };
 }
 
-type Pendengar = (jumlah: number) => void;
-const pendengar = new Set<Pendengar>();
-let cache: ItemAntrean[] | null = null;
+type Listener = (count: number) => void;
+const listeners = new Set<Listener>();
+let cache: QueueItem[] | null = null;
 
-async function baca(): Promise<ItemAntrean[]> {
+async function readQueue(): Promise<QueueItem[]> {
   if (cache) return cache;
   try {
     const raw = await AsyncStorage.getItem(KEY);
-    cache = raw ? (JSON.parse(raw) as ItemAntrean[]) : [];
+    cache = raw ? (JSON.parse(raw) as QueueItem[]) : [];
   } catch {
     cache = [];
   }
   return cache;
 }
 
-async function simpan(daftar: ItemAntrean[]): Promise<void> {
-  cache = daftar;
+async function save(list: QueueItem[]): Promise<void> {
+  cache = list;
   try {
-    await AsyncStorage.setItem(KEY, JSON.stringify(daftar));
+    await AsyncStorage.setItem(KEY, JSON.stringify(list));
   } catch {
     // Tetap ada di memori selama aplikasi hidup.
   }
-  pendengar.forEach((p) => p(daftar.length));
+  listeners.forEach((p) => p(list.length));
 }
 
-export const ambilAntrean = baca;
+export const getQueue = readQueue;
 
-export async function jumlahAntrean(): Promise<number> {
-  return (await baca()).length;
+export async function getQueueCount(): Promise<number> {
+  return (await readQueue()).length;
 }
 
-export async function antre(item: ItemAntrean): Promise<void> {
-  const daftar = await baca();
-  if (daftar.some((x) => x.clientId === item.clientId)) return;
-  await simpan([...daftar, item]);
+export async function antre(item: QueueItem): Promise<void> {
+  const list = await readQueue();
+  if (list.some((x) => x.clientId === item.clientId)) return;
+  await save([...list, item]);
 }
 
-export async function hapusDariAntrean(clientId: string): Promise<void> {
-  await simpan((await baca()).filter((x) => x.clientId !== clientId));
+export async function removeFromQueue(clientId: string): Promise<void> {
+  await save((await readQueue()).filter((x) => x.clientId !== clientId));
 }
 
-export function dengarkanAntrean(p: Pendengar): () => void {
-  pendengar.add(p);
-  void jumlahAntrean().then(p);
+export function listenToQueue(p: Listener): () => void {
+  listeners.add(p);
+  void getQueueCount().then(p);
   return () => {
-    pendengar.delete(p);
+    listeners.delete(p);
   };
 }

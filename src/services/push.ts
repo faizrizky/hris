@@ -7,8 +7,8 @@ import * as Device from "expo-device";
 import * as Notifications from "expo-notifications";
 import Constants from "expo-constants";
 
-let tokenTerdaftar: string | null = null;
-export const tokenPushSaatIni = () => tokenTerdaftar;
+let registeredToken: string | null = null;
+export const getCurrentPushToken = () => registeredToken;
 
 // Notifikasi yang datang saat aplikasi terbuka tetap ditampilkan sebagai banner.
 Notifications.setNotificationHandler({
@@ -27,7 +27,7 @@ export interface TokenPush {
 }
 
 // Meminta izin lalu mengambil Expo push token. null = tidak tersedia (bukan galat).
-export async function ambilTokenPush(): Promise<TokenPush | null> {
+export async function fetchPushToken(): Promise<TokenPush | null> {
   try {
     if (!Device.isDevice) return null;
 
@@ -50,7 +50,7 @@ export async function ambilTokenPush(): Promise<TokenPush | null> {
     if (!projectId) return null;
 
     const { data } = await Notifications.getExpoPushTokenAsync({ projectId });
-    tokenTerdaftar = data;
+    registeredToken = data;
     return {
       token: data,
       platform: Platform.OS,

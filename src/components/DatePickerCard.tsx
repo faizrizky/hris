@@ -3,7 +3,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Palette } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
-import { toISODate, fromISODate, labelBulan } from "@/utils/date";
+import { toISODate, fromISODate, getMonthLabel } from "@/utils/date";
 import { useT } from "@/i18n";
 
 type Cell = { iso: string; day: number } | null;
@@ -89,7 +89,7 @@ export function DatePickerCard({
           <Pressable onPress={() => shiftMonth(-1)} hitSlop={8}>
             <Ionicons name="chevron-back" size={15} color={c.muted} />
           </Pressable>
-          <Text style={styles.monthLabel}>{labelBulan(cursor)}</Text>
+          <Text style={styles.monthLabel}>{getMonthLabel(cursor)}</Text>
           <Pressable onPress={() => shiftMonth(1)} hitSlop={8}>
             <Ionicons name="chevron-forward" size={15} color={c.muted} />
           </Pressable>
@@ -111,33 +111,34 @@ export function DatePickerCard({
           {row.map((cell, j) => {
             if (!cell) return <View key={j} style={styles.cell} />;
 
-            const mati = allow === "past" ? cell.iso > today : cell.iso < today;
-            const edge = cell.iso === start || cell.iso === end;
-            const inRange =
+            const isDisabled =
+              allow === "past" ? cell.iso > today : cell.iso < today;
+            const isEdge = cell.iso === start || cell.iso === end;
+            const isInRange =
               !!start && !!end && cell.iso > start && cell.iso < end;
-            const weekend = [0, 6].includes(fromISODate(cell.iso).getDay());
+            const isWeekend = [0, 6].includes(fromISODate(cell.iso).getDay());
 
             return (
               <Pressable
                 key={j}
-                disabled={mati}
+                disabled={isDisabled}
                 onPress={() => pick(cell.iso)}
                 style={[
                   styles.cell,
-                  edge && styles.cellEdge,
-                  !edge && inRange && styles.cellInRange,
+                  isEdge && styles.cellEdge,
+                  !isEdge && isInRange && styles.cellInRange,
                 ]}
               >
                 <Text
                   style={[
                     styles.cellText,
-                    edge && styles.cellTextEdge,
-                    !edge && inRange && styles.cellTextInRange,
-                    !edge && !inRange && mati && styles.cellTextPast,
-                    !edge &&
-                      !inRange &&
-                      !mati &&
-                      weekend &&
+                    isEdge && styles.cellTextEdge,
+                    !isEdge && isInRange && styles.cellTextInRange,
+                    !isEdge && !isInRange && isDisabled && styles.cellTextPast,
+                    !isEdge &&
+                      !isInRange &&
+                      !isDisabled &&
+                      isWeekend &&
                       styles.cellTextWeekend,
                   ]}
                 >

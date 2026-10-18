@@ -5,7 +5,7 @@ import { useTheme } from "@/theme/ThemeContext";
 import { useT } from "@/i18n";
 import type { Kunci } from "@/i18n/id";
 import { ProfileChange } from "@/services/types";
-import { tanggalPendekTahun } from "@/utils/date";
+import { formatShortDateWithYear } from "@/utils/date";
 
 const FIELD: Record<string, Kunci> = {
   phone: "pc.f.phone",
@@ -20,10 +20,10 @@ const FIELD: Record<string, Kunci> = {
 // nilai sekarang dengan usulan per bidang. Dipakai riwayat karyawan dan tinjauan HR.
 export function ChangeSummary({
   p,
-  tanpaStatus,
+  hasNoStatus,
 }: {
   p: ProfileChange;
-  tanpaStatus?: boolean;
+  hasNoStatus?: boolean;
 }) {
   const c = useTheme();
   const t = useT();
@@ -40,10 +40,10 @@ export function ChangeSummary({
 
   return (
     <View style={styles.wrap}>
-      {!tanpaStatus && (
+      {!hasNoStatus && (
         <View style={styles.head}>
           <Text style={styles.date}>
-            {p.createdOn ? tanggalPendekTahun(p.createdOn) : "—"}
+            {p.createdOn ? formatShortDateWithYear(p.createdOn) : "—"}
           </Text>
           <View style={[styles.badge, { backgroundColor: tone.bg }]}>
             <Text style={[styles.badgeText, { color: tone.ink }]}>{label}</Text>

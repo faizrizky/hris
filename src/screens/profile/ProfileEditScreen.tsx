@@ -15,7 +15,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { Palette, tombolUtama } from "@/theme/colors";
+import { Palette, primaryButtonStyle } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
 import { hrisApi } from "@/services/api";
 import { describeError } from "@/services/api/http";
@@ -31,31 +31,45 @@ import { LineIcon } from "@/components/LineIcon";
 import { Skeleton } from "@/components/Skeleton";
 import { ICON } from "@/constants/icons";
 import {
-  emailValid,
-  kekurangan,
-  persenKelengkapan,
-  teleponValid,
+  isValidEmail,
+  findShortcomings,
+  completenessPercent,
+  isValidPhone,
 } from "@/utils/ProfileCompleteness";
 import { useT } from "@/i18n";
 import { DateSheet } from "@/components/DateSheet";
-import { tanggalPendekTahun } from "@/utils/date";
-import { terjemahkan } from "@/i18n/serverLabels";
+import { formatShortDateWithYear } from "@/utils/date";
+import { translateServerLabel } from "@/i18n/serverLabels";
 import { useConfirm } from "@/components/ConfirmDialog";
-import { kembali } from "@/navigation/kembali";
+import { goBackAnimated } from "@/navigation/kembali";
 import type { Kunci } from "@/i18n/id";
 
 // Nilai baku ERPNext; tampilannya mengikuti bahasa lewat terjemahkan().
-const HUBUNGAN = ["Mother", "Father", "Sibling", "Spouse", "Friend", "Other"];
-const MAKS_KONTAK = 5;
-const STATUS_NIKAH = ["Single", "Married", "Divorced", "Widowed"] as const;
-const NAMA_NIKAH: Record<(typeof STATUS_NIKAH)[number], Kunci> = {
+const RELATIONSHIPS = [
+  "Mother",
+  "Father",
+  "Sibling",
+  "Spouse",
+  "Friend",
+  "Other",
+];
+const MAX_CONTACTS = 5;
+const MARITAL_STATUSES = ["Single", "Married", "Divorced", "Widowed"] as const;
+const MARITAL_NAMES: Record<(typeof MARITAL_STATUSES)[number], Kunci> = {
   Single: "api.belumMenikah",
   Married: "api.menikah",
   Divorced: "api.ceraiHidup",
   Widowed: "api.ceraiMati",
 };
-const KELUARGA = ["Spouse", "Child", "Father", "Mother", "Sibling", "Other"];
-const MAKS_KELUARGA = 10;
+const FAMILY_ROLES = [
+  "Spouse",
+  "Child",
+  "Father",
+  "Mother",
+  "Sibling",
+  "Other",
+];
+const MAX_FAMILY = 10;
 
 export function ProfileEditScreen({ navigation }: ScreenProps) {
   const t = useT();
@@ -65,34 +79,35 @@ export function ProfileEditScreen({ navigation }: ScreenProps) {
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
 
-  const [profil, setProfil] = useState<PersonalProfile | null>(null);
+  const [profile, setProfile] = useState<PersonalProfile | null>(null);
   const [draft, setDraft] = useState<EditableProfile | null>(null);
-  const [sending, setSending] = useState(false);
-  const [galatMuat, setGalatMuat] = useState<string | null>(null);
-  const [galatSimpan, setGalatSimpan] = useState<string | null>(null);
-  const [coba, setCoba] = useState(0); // naik saat Coba lagi ditekan
+  const [isSending, setIsSending] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [attempt, setAttempt] = useState(0); // naik saat Coba lagi ditekan
 
   useEffect(() => {
     if (!employee) return;
     hrisApi
       .getPersonalProfile(employee.id)
       .then((p) => {
-        setProfil(p);
+        setProfile(p);
         // Draft terpisah dari data tersimpan: perubahan baru berlaku saat disimpan.
         setDraft(p.editable);
       })
-      .catch((e) => setGalatMuat(describeError(e)));
-  }, [employee, coba]);
+      .catch((e) => setLoadError(describeError(e)));
+  }, [employee, attempt]);
 
-  const ubah = (patch: Partial<EditableProfile>) =>
+  const update = (patch: Partial<EditableProfile>) =>
     setDraft((prev) => (prev ? { ...prev, ...patch } : prev));
 
-  const persen = draft ? persenKelengkapan(draft) : 0;
-  const kurang = draft ? kekurangan(draft) : [];
-  const emailSalah = !!draft?.personalEmail && !emailValid(draft.personalEmail);
+  const percent = draft ? completenessPercent(draft) : 0;
+  const shortcomings = draft ? findShortcomings(draft) : [];
+  const hasInvalidEmail =
+    !!draft?.personalEmail && !isValidEmail(draft.personalEmail);
 
-  const [pilihTgl, setPilihTgl] = useState<number | null>(null);
-  const ubahAnggota = (i: number, patch: Partial<FamilyMember>) =>
+  const [datePickerTarget, setDatePickerTarget] = useState<number | null>(null);
+  const updateMember = (i: number, patch: Partial<FamilyMember>) =>
     setDraft((prev) =>
       prev
         ? {
@@ -103,7 +118,7 @@ export function ProfileEditScreen({ navigation }: ScreenProps) {
           }
         : prev,
     );
-  const tambahAnggota = () =>
+  const addMember = () =>
     setDraft((prev) =>
       prev
         ? {
@@ -120,12 +135,12 @@ export function ProfileEditScreen({ navigation }: ScreenProps) {
           }
         : prev,
     );
-  const hapusAnggota = (i: number) =>
+  const removeMember = (i: number) =>
     setDraft((prev) =>
       prev ? { ...prev, family: prev.family.filter((_, j) => j !== i) } : prev,
     );
 
-  const ubahKontak = (i: number, patch: Partial<EmergencyContact>) =>
+  const updateContact = (i: number, patch: Partial<EmergencyContact>) =>
     setDraft((prev) =>
       prev
         ? {
@@ -136,7 +151,7 @@ export function ProfileEditScreen({ navigation }: ScreenProps) {
           }
         : prev,
     );
-  const tambahKontak = () =>
+  const appendContact = () =>
     setDraft((prev) =>
       prev
         ? {
@@ -148,7 +163,7 @@ export function ProfileEditScreen({ navigation }: ScreenProps) {
           }
         : prev,
     );
-  const hapusKontak = (i: number) =>
+  const removeContact = (i: number) =>
     setDraft((prev) =>
       prev
         ? { ...prev, contacts: prev.contacts.filter((_, j) => j !== i) }
@@ -156,33 +171,33 @@ export function ProfileEditScreen({ navigation }: ScreenProps) {
     );
 
   // Non-HR tidak menyimpan langsung: perubahan dikirim sebagai permintaan ke HR.
-  const ajuan = !!profil && !profil.canEditDirectly;
-  const [alasan, setAlasan] = useState("");
+  const isChangeRequest = !!profile && !profile.canEditDirectly;
+  const [reason, setReason] = useState("");
 
-  const simpan = async () => {
-    if (!employee || !draft || emailSalah) return;
-    if (ajuan && !alasan.trim()) {
-      setGalatSimpan(t("pc.alasanWajib"));
+  const save = async () => {
+    if (!employee || !draft || hasInvalidEmail) return;
+    if (isChangeRequest && !reason.trim()) {
+      setSaveError(t("pc.alasanWajib"));
       return;
     }
     // Baris yang benar-benar kosong dibuang; yang setengah terisi harus dilengkapi.
-    const kontak = draft.contacts.filter(
+    const contact = draft.contacts.filter(
       (k) => k.name.trim() || k.phone.trim(),
     );
-    if (kontak.some((k) => !k.name.trim() || !teleponValid(k.phone))) {
-      setGalatSimpan(t("pe.kontakTidakLengkap"));
+    if (contact.some((k) => !k.name.trim() || !isValidPhone(k.phone))) {
+      setSaveError(t("pe.kontakTidakLengkap"));
       return;
     }
     if (draft.family.some((m) => !m.name.trim())) {
-      setGalatSimpan(t("pe.keluargaTidakLengkap"));
+      setSaveError(t("pe.keluargaTidakLengkap"));
       return;
     }
-    setSending(true);
-    setGalatSimpan(null);
+    setIsSending(true);
+    setSaveError(null);
     try {
-      const data = { ...draft, contacts: kontak };
-      if (ajuan) {
-        await hrisApi.submitProfileChange(data, alasan.trim());
+      const data = { ...draft, contacts: contact };
+      if (isChangeRequest) {
+        await hrisApi.submitProfileChange(data, reason.trim());
         await confirm({
           title: t("pc.terkirimJudul"),
           message: t("pc.terkirimPesan"),
@@ -193,37 +208,40 @@ export function ProfileEditScreen({ navigation }: ScreenProps) {
       } else {
         await hrisApi.savePersonalProfile(employee.id, data);
       }
-      kembali(navigation);
+      goBackAnimated(navigation);
     } catch (e) {
-      setGalatSimpan(describeError(e));
+      setSaveError(describeError(e));
     } finally {
-      setSending(false);
+      setIsSending(false);
     }
   };
 
   const head = (
     <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
-      <Pressable style={styles.backBtn} onPress={() => kembali(navigation)}>
+      <Pressable
+        style={styles.backBtn}
+        onPress={() => goBackAnimated(navigation)}
+      >
         <Ionicons name="chevron-back" size={18} color={c.ink} />
       </Pressable>
       <Text style={styles.headerTitle}>
-        {t(ajuan ? "pc.judulEdit" : "pe.judul")}
+        {t(isChangeRequest ? "pc.judulEdit" : "pe.judul")}
       </Text>
     </View>
   );
 
   // Formnya sengaja tidak dirender kosong selama memuat: kalau dirender,
   // pengguna bisa mulai mengetik lalu ketikannya tertimpa begitu data datang.
-  if (!draft && galatMuat) {
+  if (!draft && loadError) {
     return (
       <View style={styles.container}>
         {head}
         <View style={styles.content}>
           <ErrorState
-            pesan={galatMuat}
-            onUlangi={() => {
-              setGalatMuat(null);
-              setCoba((n) => n + 1);
+            message={loadError}
+            onRetry={() => {
+              setLoadError(null);
+              setAttempt((n) => n + 1);
             }}
           />
         </View>
@@ -277,7 +295,7 @@ export function ProfileEditScreen({ navigation }: ScreenProps) {
           contentContainerStyle={styles.content}
           keyboardShouldPersistTaps="handled"
         >
-          {ajuan ? (
+          {isChangeRequest ? (
             <View style={styles.card}>
               <Text style={styles.noteTop}>{t("pc.catatanHr")}</Text>
               <Text style={[styles.label, { marginTop: 14 }]}>
@@ -285,8 +303,8 @@ export function ProfileEditScreen({ navigation }: ScreenProps) {
               </Text>
               <TextInput
                 style={[styles.input, styles.textarea]}
-                value={alasan}
-                onChangeText={setAlasan}
+                value={reason}
+                onChangeText={setReason}
                 placeholder={t("pc.alasanContoh")}
                 placeholderTextColor={c.mutedLabel}
                 multiline
@@ -294,20 +312,22 @@ export function ProfileEditScreen({ navigation }: ScreenProps) {
             </View>
           ) : null}
 
-          <View style={[styles.card, ajuan ? { marginTop: 12 } : null]}>
+          <View
+            style={[styles.card, isChangeRequest ? { marginTop: 12 } : null]}
+          >
             <View style={styles.cardHead}>
               <Text style={styles.cardTitle}>{t("pe.kelengkapan")}</Text>
-              <Text style={styles.pct}>{persen}%</Text>
+              <Text style={styles.pct}>{percent}%</Text>
             </View>
             <View style={styles.track}>
-              <View style={[styles.fill, { width: `${persen}%` }]} />
+              <View style={[styles.fill, { width: `${percent}%` }]} />
             </View>
             <Text style={styles.hint}>
-              {kurang.length === 0
+              {shortcomings.length === 0
                 ? t("pe.lengkap")
                 : t("pe.tersisa", {
-                    daftar: kurang
-                      .map((k) => k.judul.toLowerCase())
+                    daftar: shortcomings
+                      .map((k) => k.title.toLowerCase())
                       .join(t("pe.dan")),
                   })}
             </Text>
@@ -316,8 +336,14 @@ export function ProfileEditScreen({ navigation }: ScreenProps) {
           <View style={[styles.card, { marginTop: 12 }]}>
             <Text style={styles.cardTitle}>{t("pe.dataPribadi")}</Text>
             <View style={{ gap: 12, marginTop: 14 }}>
-              <LockedRow label={t("pe.nama")} value={profil?.fullName ?? "—"} />
-              <LockedRow label={t("pe.nik")} value={profil?.nikMasked ?? "—"} />
+              <LockedRow
+                label={t("pe.nama")}
+                value={profile?.fullName ?? "—"}
+              />
+              <LockedRow
+                label={t("pe.nik")}
+                value={profile?.nikMasked ?? "—"}
+              />
             </View>
             <Text style={styles.note}>{t("pe.catatanKunci")}</Text>
           </View>
@@ -329,7 +355,7 @@ export function ProfileEditScreen({ navigation }: ScreenProps) {
             <TextInput
               style={styles.input}
               value={draft?.phone ?? ""}
-              onChangeText={(v) => ubah({ phone: v })}
+              onChangeText={(v) => update({ phone: v })}
               placeholder="08xx xxxx xxxx"
               placeholderTextColor={c.mutedLabel}
               keyboardType="phone-pad"
@@ -337,16 +363,19 @@ export function ProfileEditScreen({ navigation }: ScreenProps) {
 
             <Text style={styles.label}>{t("pe.emailPribadi")}</Text>
             <TextInput
-              style={[styles.input, emailSalah && { borderColor: c.bad.ink }]}
+              style={[
+                styles.input,
+                hasInvalidEmail && { borderColor: c.bad.ink },
+              ]}
               value={draft?.personalEmail ?? ""}
-              onChangeText={(v) => ubah({ personalEmail: v })}
+              onChangeText={(v) => update({ personalEmail: v })}
               placeholder="nama@email.com"
               placeholderTextColor={c.mutedLabel}
               keyboardType="email-address"
               autoCapitalize="none"
               autoCorrect={false}
             />
-            {emailSalah && (
+            {hasInvalidEmail && (
               <Text style={styles.error}>{t("pe.emailSalah")}</Text>
             )}
 
@@ -354,7 +383,7 @@ export function ProfileEditScreen({ navigation }: ScreenProps) {
             <TextInput
               style={[styles.input, styles.textarea]}
               value={draft?.address ?? ""}
-              onChangeText={(v) => ubah({ address: v })}
+              onChangeText={(v) => update({ address: v })}
               placeholder={t("pe.alamatPh")}
               placeholderTextColor={c.mutedLabel}
               multiline
@@ -371,7 +400,7 @@ export function ProfileEditScreen({ navigation }: ScreenProps) {
                   <Text style={styles.contactTitle}>
                     {t("pe.kontakN", { n: i + 1 })}
                   </Text>
-                  <Pressable onPress={() => hapusKontak(i)} hitSlop={8}>
+                  <Pressable onPress={() => removeContact(i)} hitSlop={8}>
                     <Text style={styles.removeText}>{t("pe.hapusKontak")}</Text>
                   </Pressable>
                 </View>
@@ -380,25 +409,25 @@ export function ProfileEditScreen({ navigation }: ScreenProps) {
                 <TextInput
                   style={styles.input}
                   value={k.name}
-                  onChangeText={(v) => ubahKontak(i, { name: v })}
+                  onChangeText={(v) => updateContact(i, { name: v })}
                   placeholder={t("pe.namaPh")}
                   placeholderTextColor={c.mutedLabel}
                 />
 
                 <Text style={styles.label}>{t("pe.hubungan")}</Text>
                 <View style={styles.chipRow}>
-                  {HUBUNGAN.map((h) => {
-                    const on = k.relation === h;
+                  {RELATIONSHIPS.map((h) => {
+                    const isOn = k.relation === h;
                     return (
                       <Pressable
                         key={h}
-                        onPress={() => ubahKontak(i, { relation: h })}
-                        style={[styles.chip, on && styles.chipOn]}
+                        onPress={() => updateContact(i, { relation: h })}
+                        style={[styles.chip, isOn && styles.chipOn]}
                       >
                         <Text
-                          style={[styles.chipText, on && styles.chipTextOn]}
+                          style={[styles.chipText, isOn && styles.chipTextOn]}
                         >
-                          {terjemahkan("relation", h)}
+                          {translateServerLabel("relation", h)}
                         </Text>
                       </Pressable>
                     );
@@ -409,7 +438,7 @@ export function ProfileEditScreen({ navigation }: ScreenProps) {
                 <TextInput
                   style={styles.input}
                   value={k.phone}
-                  onChangeText={(v) => ubahKontak(i, { phone: v })}
+                  onChangeText={(v) => updateContact(i, { phone: v })}
                   placeholder="08xx xxxx xxxx"
                   placeholderTextColor={c.mutedLabel}
                   keyboardType="phone-pad"
@@ -417,8 +446,8 @@ export function ProfileEditScreen({ navigation }: ScreenProps) {
               </View>
             ))}
 
-            {draft.contacts.length < MAKS_KONTAK && (
-              <Pressable style={styles.addContact} onPress={tambahKontak}>
+            {draft.contacts.length < MAX_CONTACTS && (
+              <Pressable style={styles.addContact} onPress={appendContact}>
                 <Text style={styles.addContactText}>
                   {t("pe.tambahKontak")}
                 </Text>
@@ -429,16 +458,16 @@ export function ProfileEditScreen({ navigation }: ScreenProps) {
           <View style={[styles.card, { marginTop: 12 }]}>
             <Text style={styles.cardTitle}>{t("pe.statusNikah")}</Text>
             <View style={[styles.chipRow, { marginTop: 12 }]}>
-              {STATUS_NIKAH.map((st) => {
-                const on = draft.maritalStatus === st;
+              {MARITAL_STATUSES.map((st) => {
+                const isOn = draft.maritalStatus === st;
                 return (
                   <Pressable
                     key={st}
-                    onPress={() => ubah({ maritalStatus: st })}
-                    style={[styles.chip, on && styles.chipOn]}
+                    onPress={() => update({ maritalStatus: st })}
+                    style={[styles.chip, isOn && styles.chipOn]}
                   >
-                    <Text style={[styles.chipText, on && styles.chipTextOn]}>
-                      {t(NAMA_NIKAH[st])}
+                    <Text style={[styles.chipText, isOn && styles.chipTextOn]}>
+                      {t(MARITAL_NAMES[st])}
                     </Text>
                   </Pressable>
                 );
@@ -457,7 +486,7 @@ export function ProfileEditScreen({ navigation }: ScreenProps) {
                   <Text style={styles.contactTitle}>
                     {t("pe.anggotaN", { n: i + 1 })}
                   </Text>
-                  <Pressable onPress={() => hapusAnggota(i)} hitSlop={8}>
+                  <Pressable onPress={() => removeMember(i)} hitSlop={8}>
                     <Text style={styles.removeText}>{t("pe.hapusKontak")}</Text>
                   </Pressable>
                 </View>
@@ -466,25 +495,25 @@ export function ProfileEditScreen({ navigation }: ScreenProps) {
                 <TextInput
                   style={styles.input}
                   value={m.name}
-                  onChangeText={(v) => ubahAnggota(i, { name: v })}
+                  onChangeText={(v) => updateMember(i, { name: v })}
                   placeholder={t("pe.namaPh")}
                   placeholderTextColor={c.mutedLabel}
                 />
 
                 <Text style={styles.label}>{t("pe.hubungan")}</Text>
                 <View style={styles.chipRow}>
-                  {KELUARGA.map((h) => {
-                    const on = m.relation === h;
+                  {FAMILY_ROLES.map((h) => {
+                    const isOn = m.relation === h;
                     return (
                       <Pressable
                         key={h}
-                        onPress={() => ubahAnggota(i, { relation: h })}
-                        style={[styles.chip, on && styles.chipOn]}
+                        onPress={() => updateMember(i, { relation: h })}
+                        style={[styles.chip, isOn && styles.chipOn]}
                       >
                         <Text
-                          style={[styles.chipText, on && styles.chipTextOn]}
+                          style={[styles.chipText, isOn && styles.chipTextOn]}
                         >
-                          {terjemahkan("relation", h)}
+                          {translateServerLabel("relation", h)}
                         </Text>
                       </Pressable>
                     );
@@ -496,7 +525,7 @@ export function ProfileEditScreen({ navigation }: ScreenProps) {
                   style={styles.input}
                   onPress={() => {
                     Keyboard.dismiss();
-                    setPilihTgl(i);
+                    setDatePickerTarget(i);
                   }}
                 >
                   <Text
@@ -506,7 +535,7 @@ export function ProfileEditScreen({ navigation }: ScreenProps) {
                     }}
                   >
                     {m.birthDate
-                      ? tanggalPendekTahun(m.birthDate)
+                      ? formatShortDateWithYear(m.birthDate)
                       : t("pe.pilihTgl")}
                   </Text>
                 </Pressable>
@@ -515,7 +544,7 @@ export function ProfileEditScreen({ navigation }: ScreenProps) {
                   <Text style={styles.contactTitle}>{t("pe.tanggungan")}</Text>
                   <Switch
                     value={m.dependent}
-                    onValueChange={(v) => ubahAnggota(i, { dependent: v })}
+                    onValueChange={(v) => updateMember(i, { dependent: v })}
                     trackColor={{ false: c.track, true: c.accent }}
                     thumbColor="#fff"
                   />
@@ -523,8 +552,8 @@ export function ProfileEditScreen({ navigation }: ScreenProps) {
               </View>
             ))}
 
-            {draft.family.length < MAKS_KELUARGA && (
-              <Pressable style={styles.addContact} onPress={tambahAnggota}>
+            {draft.family.length < MAX_FAMILY && (
+              <Pressable style={styles.addContact} onPress={addMember}>
                 <Text style={styles.addContactText}>
                   {t("pe.tambahAnggota")}
                 </Text>
@@ -535,36 +564,42 @@ export function ProfileEditScreen({ navigation }: ScreenProps) {
       </KeyboardAvoidingView>
 
       <DateSheet
-        visible={pilihTgl !== null}
+        visible={datePickerTarget !== null}
         title={t("pe.tglLahir")}
         hint={t("pe.tglLahirHint")}
         value={
-          pilihTgl !== null ? (draft.family[pilihTgl]?.birthDate ?? null) : null
+          datePickerTarget !== null
+            ? (draft.family[datePickerTarget]?.birthDate ?? null)
+            : null
         }
         allow="past"
         onPick={(iso) =>
-          pilihTgl !== null && ubahAnggota(pilihTgl, { birthDate: iso })
+          datePickerTarget !== null &&
+          updateMember(datePickerTarget, { birthDate: iso })
         }
         onClear={() =>
-          pilihTgl !== null && ubahAnggota(pilihTgl, { birthDate: null })
+          datePickerTarget !== null &&
+          updateMember(datePickerTarget, { birthDate: null })
         }
-        onClose={() => setPilihTgl(null)}
+        onClose={() => setDatePickerTarget(null)}
       />
 
       <View style={[styles.actionBar, { paddingBottom: insets.bottom + 14 }]}>
         <View style={{ flex: 1, minWidth: 0 }}>
           <Text
-            style={[styles.barLabel, galatSimpan ? { color: c.bad.ink } : null]}
+            style={[styles.barLabel, saveError ? { color: c.bad.ink } : null]}
           >
-            {galatSimpan ??
-              t(ajuan ? "pc.catatanBar" : "pe.kelengkapanSetelah")}
+            {saveError ??
+              t(isChangeRequest ? "pc.catatanBar" : "pe.kelengkapanSetelah")}
           </Text>
-          <Text style={styles.barValue}>{persen}%</Text>
+          <Text style={styles.barValue}>{percent}%</Text>
         </View>
-        <Pressable onPress={simpan} disabled={emailSalah || sending}>
+        <Pressable onPress={save} disabled={hasInvalidEmail || isSending}>
           <LinearGradient
             colors={
-              emailSalah || sending ? [c.track, c.track] : [c.accent, c.accent2]
+              hasInvalidEmail || isSending
+                ? [c.track, c.track]
+                : [c.accent, c.accent2]
             }
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
@@ -573,12 +608,12 @@ export function ProfileEditScreen({ navigation }: ScreenProps) {
             <Text
               style={[
                 styles.saveText,
-                !emailSalah && !sending ? { color: "#fff" } : null,
+                !hasInvalidEmail && !isSending ? { color: "#fff" } : null,
               ]}
             >
-              {sending
+              {isSending
                 ? t("pw.menyimpan")
-                : t(ajuan ? "pc.kirim" : "pe.simpan")}
+                : t(isChangeRequest ? "pc.kirim" : "pe.simpan")}
             </Text>
           </LinearGradient>
         </Pressable>
@@ -773,7 +808,7 @@ const makeStyles = (c: Palette) =>
       marginTop: 3,
     },
     saveBtn: {
-      ...tombolUtama(c),
+      ...primaryButtonStyle(c),
       paddingHorizontal: 22,
       paddingVertical: 14,
       borderRadius: 16,

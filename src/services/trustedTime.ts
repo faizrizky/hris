@@ -29,11 +29,11 @@ interface Anchor {
 }
 
 let anchor: Anchor | null = null;
-let terakhirSimpan = 0;
+let lastSavedAt = 0;
 
 // Dipanggil sekali saat aplikasi mulai, supaya jangkar bertahan antar peluncuran
 // (selama HP tidak restart).
-export async function muatJangkar(): Promise<void> {
+export async function loadAnchor(): Promise<void> {
   try {
     const raw = await AsyncStorage.getItem(KEY);
     if (raw && !anchor) anchor = JSON.parse(raw) as Anchor;
@@ -43,7 +43,7 @@ export async function muatJangkar(): Promise<void> {
 }
 
 // Dipanggil dari lapisan HTTP setiap respons sukses, dengan header `Date` server.
-export function catatKontakServer(headerDate: string | null): void {
+export function recordServerContact(headerDate: string | null): void {
   if (!Native || !headerDate) return;
   const serverMs = Date.parse(headerDate);
   if (Number.isNaN(serverMs)) return;
@@ -54,9 +54,9 @@ export function catatKontakServer(headerDate: string | null): void {
       boot: Native.bootCount(),
     };
     // Cukup disimpan sesekali; yang terpenting nilai di memori selalu terbaru.
-    const sekarang = Date.now();
-    if (sekarang - terakhirSimpan > 60_000) {
-      terakhirSimpan = sekarang;
+    const nowMs = Date.now();
+    if (nowMs - lastSavedAt > 60_000) {
+      lastSavedAt = nowMs;
       void AsyncStorage.setItem(KEY, JSON.stringify(anchor)).catch(() => {});
     }
   } catch {
@@ -64,30 +64,30 @@ export function catatKontakServer(headerDate: string | null): void {
   }
 }
 
-export interface WaktuTerpercaya {
+export interface TrustedTime {
   ms: number; // epoch UTC ms
   trusted: boolean;
   anchorAgeS: number; // detik sejak kontak server terakhir; -1 bila tidak diketahui
 }
 
-export function waktuTerpercaya(): WaktuTerpercaya {
+export function getTrustedTime(): TrustedTime {
   if (!Native || !anchor) {
     return { ms: Date.now(), trusted: false, anchorAgeS: -1 };
   }
   try {
-    const elapsed = Native.elapsedRealtimeMs();
+    const elapsedNow = Native.elapsedRealtimeMs();
     const boot = Native.bootCount();
     // Restart terdeteksi dari identitas boot, atau (bila tidak ada) dari
     // penghitung yang mengecil. Setelah restart jangkar tidak berlaku.
-    const restart =
+    const isRestart =
       (boot !== -1 && anchor.boot !== -1 && boot !== anchor.boot) ||
-      elapsed < anchor.elapsedMs;
-    if (restart) return { ms: Date.now(), trusted: false, anchorAgeS: -1 };
-    const selisih = elapsed - anchor.elapsedMs;
+      elapsedNow < anchor.elapsedMs;
+    if (isRestart) return { ms: Date.now(), trusted: false, anchorAgeS: -1 };
+    const difference = elapsedNow - anchor.elapsedMs;
     return {
-      ms: anchor.serverMs + selisih,
+      ms: anchor.serverMs + difference,
       trusted: true,
-      anchorAgeS: Math.round(selisih / 1000),
+      anchorAgeS: Math.round(difference / 1000),
     };
   } catch {
     return { ms: Date.now(), trusted: false, anchorAgeS: -1 };
@@ -95,7 +95,7 @@ export function waktuTerpercaya(): WaktuTerpercaya {
 }
 
 // "Tanggal & waktu otomatis" menyala? null = tidak diketahui (iOS / tanpa modul).
-export function autoWaktuAktif(): boolean | null {
+export function isAutoTimeEnabled(): boolean | null {
   try {
     return Native?.autoTimeEnabled() ?? null;
   } catch {
@@ -103,4 +103,4 @@ export function autoWaktuAktif(): boolean | null {
   }
 }
 
-export const modulJamTersedia = () => Native !== null;
+export const isClockModuleAvailable = () => Native !== null;

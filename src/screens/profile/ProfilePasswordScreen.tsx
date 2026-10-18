@@ -13,22 +13,22 @@ import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { Palette, tombolUtama } from "@/theme/colors";
+import { Palette, primaryButtonStyle } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
 import { hrisApi } from "@/services/api";
 import { ApiError, describeError } from "@/services/api/http";
 import { useSession } from "@/services/session";
 import {
-  TOTAL_SYARAT,
-  labelKekuatan,
-  skorPassword,
-  syaratPassword,
-  toneKekuatan,
+  TOTAL_REQUIREMENTS,
+  getStrengthLabel,
+  scorePassword,
+  getPasswordRequirements,
+  getStrengthTone,
 } from "@/utils/password";
 import { useT } from "@/i18n";
 import { useConfirm } from "@/components/ConfirmDialog";
-import { kembali } from "@/navigation/kembali";
-import { hapusKredensial } from "@/services/biometrik";
+import { goBackAnimated } from "@/navigation/kembali";
+import { deleteCredentials } from "@/services/biometrik";
 
 export function ProfilePasswordScreen({ navigation }: ScreenProps) {
   const t = useT();
@@ -40,36 +40,36 @@ export function ProfilePasswordScreen({ navigation }: ScreenProps) {
 
   const [lama, setLama] = useState("");
   const [baru, setBaru] = useState("");
-  const [konfirmasi, setKonfirmasi] = useState("");
-  const [tampil, setTampil] = useState(false);
-  const [sending, setSending] = useState(false);
-  const [selesai, setSelesai] = useState(false);
-  const [galat, setGalat] = useState<string | null>(null);
+  const [confirmation, setConfirmation] = useState("");
+  const [isPasswordShown, setIsPasswordShown] = useState(false);
+  const [isSending, setIsSending] = useState(false);
+  const [isFinished, setIsFinished] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const syarat = syaratPassword(baru);
-  const skor = skorPassword(baru);
-  const tone = c[toneKekuatan(baru)];
-  const cocok = konfirmasi.length > 0 && konfirmasi === baru;
+  const requirement = getPasswordRequirements(baru);
+  const score = scorePassword(baru);
+  const tone = c[getStrengthTone(baru)];
+  const isMatching = confirmation.length > 0 && confirmation === baru;
 
   const blockMsg = !lama
     ? t("pw.blokLama")
-    : skor < TOTAL_SYARAT
+    : score < TOTAL_REQUIREMENTS
       ? t("pw.blokSyarat")
       : baru === lama
         ? t("pw.blokSama")
-        : !cocok
+        : !isMatching
           ? t("pw.blokKonfirmasi")
           : "";
-  const bisaSimpan = !blockMsg && !sending;
+  const canSave = !blockMsg && !isSending;
 
-  const simpan = async () => {
-    if (!employee || !bisaSimpan) return;
-    setSending(true);
-    setGalat(null);
+  const save = async () => {
+    if (!employee || !canSave) return;
+    setIsSending(true);
+    setErrorMessage(null);
     try {
       await hrisApi.changePassword(employee.id, lama, baru);
-      await hapusKredensial(); // login biometrik memakai password lama; aktifkan lagi dengan password baru
-      setSelesai(true);
+      await deleteCredentials(); // login biometrik memakai password lama; aktifkan lagi dengan password baru
+      setIsFinished(true);
     } catch (e) {
       // Frappe menghapus sesi bila password lama salah (cookie sid dikosongkan),
       // jadi percobaan berikutnya selalu ditolak. Pengguna harus masuk lagi.
@@ -84,22 +84,25 @@ export function ProfilePasswordScreen({ navigation }: ScreenProps) {
         setEmployee(null);
         return;
       }
-      setGalat(describeError(e));
+      setErrorMessage(describeError(e));
     } finally {
-      setSending(false);
+      setIsSending(false);
     }
   };
 
   const header = (
     <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
-      <Pressable style={styles.backBtn} onPress={() => kembali(navigation)}>
+      <Pressable
+        style={styles.backBtn}
+        onPress={() => goBackAnimated(navigation)}
+      >
         <Ionicons name="chevron-back" size={18} color={c.ink} />
       </Pressable>
       <Text style={styles.headerTitle}>{t("pw.judul")}</Text>
     </View>
   );
 
-  if (selesai) {
+  if (isFinished) {
     return (
       <View style={styles.container}>
         {header}
@@ -140,9 +143,12 @@ export function ProfilePasswordScreen({ navigation }: ScreenProps) {
           <View style={styles.card}>
             <View style={styles.cardHead}>
               <Text style={styles.cardTitle}>{t("pw.password")}</Text>
-              <Pressable onPress={() => setTampil((v) => !v)} hitSlop={8}>
+              <Pressable
+                onPress={() => setIsPasswordShown((v) => !v)}
+                hitSlop={8}
+              >
                 <Text style={styles.link}>
-                  {tampil ? t("pw.sembunyikan") : t("pw.tampilkan")}
+                  {isPasswordShown ? t("pw.sembunyikan") : t("pw.tampilkan")}
                 </Text>
               </Pressable>
             </View>
@@ -154,7 +160,7 @@ export function ProfilePasswordScreen({ navigation }: ScreenProps) {
               onChangeText={setLama}
               placeholder={t("pw.masukkanLama")}
               placeholderTextColor={c.mutedLabel}
-              secureTextEntry={!tampil}
+              secureTextEntry={!isPasswordShown}
               autoCapitalize="none"
             />
 
@@ -165,7 +171,7 @@ export function ProfilePasswordScreen({ navigation }: ScreenProps) {
               onChangeText={setBaru}
               placeholder={t("pw.min8Ph")}
               placeholderTextColor={c.mutedLabel}
-              secureTextEntry={!tampil}
+              secureTextEntry={!isPasswordShown}
               autoCapitalize="none"
             />
 
@@ -176,7 +182,7 @@ export function ProfilePasswordScreen({ navigation }: ScreenProps) {
                   style={[
                     styles.strengthSeg,
                     {
-                      backgroundColor: baru && skor >= i ? tone.ink : c.track,
+                      backgroundColor: baru && score >= i ? tone.ink : c.track,
                     },
                   ]}
                 />
@@ -188,27 +194,27 @@ export function ProfilePasswordScreen({ navigation }: ScreenProps) {
                 { color: baru ? tone.ink : c.mutedLabel },
               ]}
             >
-              {labelKekuatan(baru)}
+              {getStrengthLabel(baru)}
             </Text>
 
             <Text style={styles.label}>{t("pw.konfirmasi")}</Text>
             <TextInput
               style={styles.input}
-              value={konfirmasi}
-              onChangeText={setKonfirmasi}
+              value={confirmation}
+              onChangeText={setConfirmation}
               placeholder={t("pw.ulangi")}
               placeholderTextColor={c.mutedLabel}
-              secureTextEntry={!tampil}
+              secureTextEntry={!isPasswordShown}
               autoCapitalize="none"
             />
-            {konfirmasi.length > 0 && (
+            {confirmation.length > 0 && (
               <Text
                 style={[
                   styles.matchLabel,
-                  { color: cocok ? c.ok.ink : c.bad.ink },
+                  { color: isMatching ? c.ok.ink : c.bad.ink },
                 ]}
               >
-                {cocok ? t("pw.cocok") : t("pw.tidakCocok")}
+                {isMatching ? t("pw.cocok") : t("pw.tidakCocok")}
               </Text>
             )}
           </View>
@@ -216,7 +222,7 @@ export function ProfilePasswordScreen({ navigation }: ScreenProps) {
           <View style={[styles.card, { marginTop: 12 }]}>
             <Text style={styles.cardTitle}>{t("pw.syarat")}</Text>
             <View style={{ gap: 11, marginTop: 13 }}>
-              {syarat.map((s) => (
+              {requirement.map((s) => (
                 <View key={s.label} style={styles.ruleRow}>
                   <View
                     style={[
@@ -246,23 +252,21 @@ export function ProfilePasswordScreen({ navigation }: ScreenProps) {
           <Text
             style={[
               styles.barLabel,
-              blockMsg || galat ? { color: c.bad.ink } : null,
+              blockMsg || errorMessage ? { color: c.bad.ink } : null,
             ]}
           >
-            {blockMsg || galat || t("pw.siap")}
+            {blockMsg || errorMessage || t("pw.siap")}
           </Text>
         </View>
-        <Pressable onPress={simpan} disabled={!bisaSimpan}>
+        <Pressable onPress={save} disabled={!canSave}>
           <LinearGradient
-            colors={bisaSimpan ? [c.accent, c.accent2] : [c.track, c.track]}
+            colors={canSave ? [c.accent, c.accent2] : [c.track, c.track]}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={styles.saveBtn}
           >
-            <Text
-              style={[styles.saveText, bisaSimpan ? { color: "#fff" } : null]}
-            >
-              {sending ? t("pw.menyimpan") : t("pw.simpan")}
+            <Text style={[styles.saveText, canSave ? { color: "#fff" } : null]}>
+              {isSending ? t("pw.menyimpan") : t("pw.simpan")}
             </Text>
           </LinearGradient>
         </Pressable>
@@ -392,7 +396,7 @@ const makeStyles = (c: Palette) =>
       textAlign: "center",
     },
     primaryBtn: {
-      ...tombolUtama(c),
+      ...primaryButtonStyle(c),
       marginTop: 12,
       paddingVertical: 14,
       borderRadius: 22,
@@ -413,7 +417,7 @@ const makeStyles = (c: Palette) =>
     },
     barLabel: { fontSize: 11, fontWeight: "600", color: c.muted },
     saveBtn: {
-      ...tombolUtama(c),
+      ...primaryButtonStyle(c),
       paddingHorizontal: 22,
       paddingVertical: 14,
       borderRadius: 16,

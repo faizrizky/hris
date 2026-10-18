@@ -12,7 +12,11 @@ import { RevealScrollView as ScrollView } from "@/components/Reveal";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Palette, tombolSekunder, tombolUtama } from "@/theme/colors";
+import {
+  Palette,
+  secondaryButtonStyle,
+  primaryButtonStyle,
+} from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
 import { hrisApi } from "@/services/api";
 import { describeError } from "@/services/api/http";
@@ -20,7 +24,7 @@ import { ProfileChange } from "@/services/types";
 import { useConfirm } from "@/components/ConfirmDialog";
 import { useT } from "@/i18n";
 import { ChangeSummary } from "./ChangeSummary";
-import { kembali } from "@/navigation/kembali";
+import { goBackAnimated } from "@/navigation/kembali";
 
 // HR: perbandingan data sekarang dengan usulan karyawan, lalu menyetujui
 // (usulan diterapkan ke data karyawan) atau menolak dengan catatan.
@@ -37,54 +41,57 @@ export function ProfileChangeReviewDetailScreen({
   const styles = useMemo(() => makeStyles(c), [c]);
   const confirm = useConfirm();
   // Dialog konfirmasi tumbuh dari tombol ini, seperti dialog Keluar.
-  const pemicu = useRef<View>(null);
+  const triggerRef = useRef<View>(null);
 
-  const [tolak, setTolak] = useState(false);
-  const [catatan, setCatatan] = useState("");
-  const [sending, setSending] = useState(false);
-  const [galat, setGalat] = useState<string | null>(null);
-  const menunggu = p.status === "Pending";
+  const [isRejecting, setIsRejecting] = useState(false);
+  const [note, setNote] = useState("");
+  const [isSending, setIsSending] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const isPending = p.status === "Pending";
 
-  const putuskan = async (decision: "approve" | "reject") => {
-    if (decision === "reject" && !catatan.trim()) {
-      setGalat(t("pcr.alasanTolakWajib"));
+  const decide = async (decision: "approve" | "reject") => {
+    if (decision === "reject" && !note.trim()) {
+      setErrorMessage(t("pcr.alasanTolakWajib"));
       return;
     }
     if (decision === "approve") {
-      const ya = await confirm({
+      const isConfirmed = await confirm({
         title: t("pcr.setujuiJudul"),
         message: t("pcr.setujuiPesan", { nama: p.employeeName ?? "—" }),
         tone: "info",
         confirmText: t("pcr.setujui"),
         cancelText: t("umum.batal"),
-        from: pemicu,
+        from: triggerRef,
         fromColor: c.accent,
         fromTextColor: "#FFFFFF",
         fromLabel: t("pcr.setujui"),
         fromRadius: 14,
       });
-      if (!ya) return;
+      if (!isConfirmed) return;
     }
-    setSending(true);
-    setGalat(null);
+    setIsSending(true);
+    setErrorMessage(null);
     try {
       await hrisApi.decideProfileChange(
         p.id,
         decision,
-        catatan.trim() || undefined,
+        note.trim() || undefined,
       );
-      kembali(navigation);
+      goBackAnimated(navigation);
     } catch (e) {
-      setGalat(describeError(e));
+      setErrorMessage(describeError(e));
     } finally {
-      setSending(false);
+      setIsSending(false);
     }
   };
 
   return (
     <View style={styles.container}>
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
-        <Pressable style={styles.backBtn} onPress={() => kembali(navigation)}>
+        <Pressable
+          style={styles.backBtn}
+          onPress={() => goBackAnimated(navigation)}
+        >
           <Ionicons name="chevron-back" size={18} color={c.ink} />
         </Pressable>
         <View style={{ flex: 1, minWidth: 0 }}>
@@ -102,45 +109,47 @@ export function ProfileChangeReviewDetailScreen({
         <ScrollView contentContainerStyle={styles.content}>
           <View style={styles.card}>
             <Text style={styles.label}>{t("pcr.alasanKaryawan")}</Text>
-            <ChangeSummary p={p} tanpaStatus={menunggu} />
+            <ChangeSummary p={p} hasNoStatus={isPending} />
           </View>
         </ScrollView>
 
-        {menunggu ? (
+        {isPending ? (
           <View
             style={[styles.actionBar, { paddingBottom: insets.bottom + 14 }]}
           >
-            {tolak ? (
+            {isRejecting ? (
               <TextInput
                 style={styles.textarea}
-                value={catatan}
-                onChangeText={setCatatan}
+                value={note}
+                onChangeText={setNote}
                 placeholder={t("pcr.alasanTolak")}
                 placeholderTextColor={c.mutedLabel}
                 multiline
                 autoFocus
               />
             ) : null}
-            {galat ? <Text style={styles.galat}>{galat}</Text> : null}
+            {errorMessage ? (
+              <Text style={styles.errorText}>{errorMessage}</Text>
+            ) : null}
             <View style={styles.btnRow}>
-              {tolak ? (
+              {isRejecting ? (
                 <>
                   <Pressable
                     style={styles.secondaryBtn}
                     onPress={() => {
-                      setTolak(false);
-                      setGalat(null);
+                      setIsRejecting(false);
+                      setErrorMessage(null);
                     }}
                   >
                     <Text style={styles.secondaryText}>{t("umum.batal")}</Text>
                   </Pressable>
                   <Pressable
                     style={[styles.rejectBtn, { flex: 2 }]}
-                    disabled={sending}
-                    onPress={() => putuskan("reject")}
+                    disabled={isSending}
+                    onPress={() => decide("reject")}
                   >
                     <Text style={styles.rejectText}>
-                      {sending ? t("umum.memproses") : t("pcr.kirimTolak")}
+                      {isSending ? t("umum.memproses") : t("pcr.kirimTolak")}
                     </Text>
                   </Pressable>
                 </>
@@ -148,15 +157,15 @@ export function ProfileChangeReviewDetailScreen({
                 <>
                   <Pressable
                     style={styles.rejectBtn}
-                    onPress={() => setTolak(true)}
+                    onPress={() => setIsRejecting(true)}
                   >
                     <Text style={styles.rejectText}>{t("pcr.tolak")}</Text>
                   </Pressable>
                   <Pressable
-                    ref={pemicu}
+                    ref={triggerRef}
                     style={{ flex: 2 }}
-                    disabled={sending}
-                    onPress={() => putuskan("approve")}
+                    disabled={isSending}
+                    onPress={() => decide("approve")}
                   >
                     <LinearGradient
                       colors={[c.accent, c.accent2]}
@@ -165,7 +174,7 @@ export function ProfileChangeReviewDetailScreen({
                       style={styles.approveBtn}
                     >
                       <Text style={styles.approveText}>
-                        {sending ? t("umum.memproses") : t("pcr.setujui")}
+                        {isSending ? t("umum.memproses") : t("pcr.setujui")}
                       </Text>
                     </LinearGradient>
                   </Pressable>
@@ -232,7 +241,7 @@ const makeStyles = (c: Palette) =>
       color: c.ink,
       textAlignVertical: "top",
     },
-    galat: {
+    errorText: {
       marginBottom: 10,
       fontSize: 12,
       fontWeight: "600",
@@ -244,7 +253,7 @@ const makeStyles = (c: Palette) =>
       flex: 1,
       paddingVertical: 14,
       borderRadius: 14,
-      ...tombolSekunder(c),
+      ...secondaryButtonStyle(c),
       alignItems: "center",
     },
     secondaryText: { fontSize: 13, fontWeight: "700", color: c.btnSoftInk },
@@ -257,7 +266,7 @@ const makeStyles = (c: Palette) =>
     },
     rejectText: { fontSize: 13, fontWeight: "700", color: c.bad.ink },
     approveBtn: {
-      ...tombolUtama(c),
+      ...primaryButtonStyle(c),
       paddingVertical: 14,
       borderRadius: 14,
       alignItems: "center",

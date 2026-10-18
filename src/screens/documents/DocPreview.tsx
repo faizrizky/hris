@@ -13,7 +13,7 @@ import { ICON } from "@/constants/icons";
 import { Palette } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
 import { useT } from "@/i18n";
-import { adalahGambar, bukaLampiran, simpanLampiran } from "@/utils/lampiran";
+import { isImage, openAttachment, saveAttachment } from "@/utils/lampiran";
 
 // Pratinjau satu dokumen: gambar ditampilkan langsung, PDF/lainnya lewat
 // pratinjau sistem. Dipakai layar verifikasi HR dan layar dokumen karyawan.
@@ -32,26 +32,26 @@ export function DocPreview({
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
   const confirm = useConfirm();
-  const gambar = !!fileUrl && adalahGambar(fileUrl);
+  const isImageFile = !!fileUrl && isImage(fileUrl);
   const [uri, setUri] = useState<string | null>(null);
-  const [gagal, setGagal] = useState(false);
+  const [hasFailed, setHasFailed] = useState(false);
 
   // Gambar diunduh dengan sesi aplikasi lalu ditampilkan dari cache lokal.
   useEffect(() => {
-    if (!gambar || !fileUrl) return;
-    let batal = false;
-    simpanLampiran(fileUrl, fileName ?? name)
-      .then((u) => !batal && setUri(u))
-      .catch(() => !batal && setGagal(true));
+    if (!isImageFile || !fileUrl) return;
+    let isCancelled = false;
+    saveAttachment(fileUrl, fileName ?? name)
+      .then((u) => !isCancelled && setUri(u))
+      .catch(() => !isCancelled && setHasFailed(true));
     return () => {
-      batal = true;
+      isCancelled = true;
     };
-  }, [gambar, fileUrl, fileName, name]);
+  }, [isImageFile, fileUrl, fileName, name]);
 
-  const buka = async () => {
+  const open = async () => {
     if (!fileUrl) return;
     try {
-      if (!(await bukaLampiran(fileUrl, fileName ?? name)))
+      if (!(await openAttachment(fileUrl, fileName ?? name)))
         throw new Error("unavailable");
     } catch {
       void confirm({
@@ -71,12 +71,12 @@ export function DocPreview({
           <LineIcon d={ICON.document} color={c.muted} size={26} />
           <Text style={styles.text}>{t("rv.tanpaFile")}</Text>
         </View>
-      ) : gambar ? (
+      ) : isImageFile ? (
         uri ? (
-          <Pressable onPress={buka}>
+          <Pressable onPress={open}>
             <Image source={{ uri }} style={styles.image} resizeMode="contain" />
           </Pressable>
-        ) : gagal ? (
+        ) : hasFailed ? (
           <View style={styles.empty}>
             <Text style={styles.text}>{t("lamp.gagalJudul")}</Text>
           </View>
@@ -96,7 +96,7 @@ export function DocPreview({
         </View>
       )}
       {fileUrl ? (
-        <Pressable style={styles.openBtn} onPress={buka}>
+        <Pressable style={styles.openBtn} onPress={open}>
           <Text style={styles.openText}>{t("rv.buka")}</Text>
         </Pressable>
       ) : null}

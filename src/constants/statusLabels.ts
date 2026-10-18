@@ -8,33 +8,35 @@ import {
   DocStatus,
 } from "@/services/types";
 import { SemanticTone } from "@/theme/colors";
-import { tt } from "@/i18n";
+import { translate } from "@/i18n";
 import type { Kunci } from "@/i18n/id";
 
 // Label dibaca saat dipakai (bukan saat modul dimuat) supaya mengikuti bahasa aktif.
-function labelBahasa<K extends string>(
-  peta: Record<K, Kunci>,
+function localizeLabels<K extends string>(
+  labelMap: Record<K, Kunci>,
 ): Record<K, string> {
-  const hasil = {} as Record<K, string>;
-  for (const k of Object.keys(peta) as K[]) {
-    Object.defineProperty(hasil, k, {
+  const result = {} as Record<K, string>;
+  for (const k of Object.keys(labelMap) as K[]) {
+    Object.defineProperty(result, k, {
       enumerable: true,
-      get: () => tt(peta[k]),
+      get: () => translate(labelMap[k]),
     });
   }
-  return hasil;
+  return result;
 }
 
 export function leaveDecisionBadge(decision: LeaveDecision): {
   label: string;
   tone: SemanticTone;
 } {
-  if (decision === "approve") return { label: tt("st.disetujui"), tone: "ok" };
-  if (decision === "reject") return { label: tt("st.ditolak"), tone: "bad" };
-  return { label: tt("st.menunggu"), tone: "warn" };
+  if (decision === "approve")
+    return { label: translate("st.disetujui"), tone: "ok" };
+  if (decision === "reject")
+    return { label: translate("st.ditolak"), tone: "bad" };
+  return { label: translate("st.menunggu"), tone: "warn" };
 }
 
-export const ATTENDANCE_STATUS_LABEL = labelBahasa<AttendanceStatus>({
+export const ATTENDANCE_STATUS_LABEL = localizeLabels<AttendanceStatus>({
   hadir: "st.hadir",
   telat: "st.telat",
   izin: "st.izin",
@@ -46,11 +48,12 @@ export const ATTENDANCE_STATUS_TONE: Record<AttendanceStatus, SemanticTone> = {
   izin: "info",
 };
 
-export const CORRECTION_STATUS_LABEL = labelBahasa<AttendanceRequestedStatus>({
-  pending: "st.menunggu",
-  approved: "st.disetujui",
-  rejected: "st.ditolak",
-});
+export const CORRECTION_STATUS_LABEL =
+  localizeLabels<AttendanceRequestedStatus>({
+    pending: "st.menunggu",
+    approved: "st.disetujui",
+    rejected: "st.ditolak",
+  });
 
 export const CORRECTION_STATUS_TONE: Record<
   AttendanceRequestedStatus,
@@ -61,7 +64,7 @@ export const CORRECTION_STATUS_TONE: Record<
   rejected: "bad",
 };
 
-export const LEAVE_TYPE_LABEL = labelBahasa<LeaveType>({
+export const LEAVE_TYPE_LABEL = localizeLabels<LeaveType>({
   cuti: "jenis.cuti",
   lembur: "jenis.lembur",
   dinas_luar: "jenis.dinas",
@@ -77,7 +80,7 @@ export const LEAVE_TYPE_TONE: Record<LeaveType, SemanticTone> = {
   wfh: "info",
 };
 
-export const OVERTIME_STATUS_LABEL = labelBahasa<OvertimeStatus>({
+export const OVERTIME_STATUS_LABEL = localizeLabels<OvertimeStatus>({
   pending: "st.menunggu",
   approved: "st.disetujui",
   paid: "st.dibayar",
@@ -91,7 +94,7 @@ export const OVERTIME_STATUS_TONE: Record<OvertimeStatus, SemanticTone> = {
   rejected: "bad",
 };
 
-export const DOC_STATUS_LABEL = labelBahasa<DocStatus>({
+export const DOC_STATUS_LABEL = localizeLabels<DocStatus>({
   verified: "st.terverifikasi",
   pending: "st.menungguVerifikasi",
   expiring: "st.segeraBerakhir",
@@ -107,7 +110,7 @@ export const DOC_STATUS_TONE: Record<DocStatus, SemanticTone> = {
   changeRequested: "info",
 };
 
-export const DOC_CATEGORY_LABEL = labelBahasa<DocCategory>({
+export const DOC_CATEGORY_LABEL = localizeLabels<DocCategory>({
   kontrak: "dok.kontrak",
   sk: "dok.sk",
   sertifikat: "dok.sertifikat",

@@ -1,45 +1,46 @@
 // Lapisan HTTP tunggal untuk semua panggilan ke ERPNext.
 // Auth memakai cookie `sid` yang dikelola cookie jar native (credentials: "include").
 
-import { tt } from "@/i18n";
+import { translate } from "@/i18n";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { catatKontakServer } from "@/services/trustedTime";
+import { recordServerContact } from "@/services/trustedTime";
 
 // Alamat server bawaan dari build; pengguna bisa menggantinya di layar login
 // (disimpan di HP) supaya pindah IP/jaringan tidak perlu build ulang.
-export const ALAMAT_BAWAAN = process.env.EXPO_PUBLIC_API_BASE_URL ?? "";
-const KUNCI_ALAMAT = "hris.serverUrl";
-let BASE_URL = ALAMAT_BAWAAN;
-const siapAlamat = AsyncStorage.getItem(KUNCI_ALAMAT)
+export const DEFAULT_SERVER_ADDRESS =
+  process.env.EXPO_PUBLIC_API_BASE_URL ?? "";
+const ADDRESS_STORAGE_KEY = "hris.serverUrl";
+let BASE_URL = DEFAULT_SERVER_ADDRESS;
+const addressReady = AsyncStorage.getItem(ADDRESS_STORAGE_KEY)
   .then((v) => {
     if (v) BASE_URL = v;
   })
   .catch(() => {});
 
 // Alamat server siap dipakai setelah alamat tersimpan (jika ada) selesai dibaca.
-export async function muatAlamatServer(): Promise<string> {
-  await siapAlamat;
+export async function loadServerAddress(): Promise<string> {
+  await addressReady;
   return BASE_URL;
 }
 
-export function alamatServer(): string {
+export function getServerAddress(): string {
   return BASE_URL;
 }
 
 // Kosong = kembali ke alamat bawaan build. Mengembalikan alamat yang dipakai.
-export async function aturAlamatServer(input: string): Promise<string> {
+export async function setServerAddress(input: string): Promise<string> {
   let url = input.trim().replace(/\/+$/, "");
   if (url && !/^https?:\/\//i.test(url)) url = `http://${url}`;
-  BASE_URL = url || ALAMAT_BAWAAN;
+  BASE_URL = url || DEFAULT_SERVER_ADDRESS;
   try {
-    if (url) await AsyncStorage.setItem(KUNCI_ALAMAT, url);
-    else await AsyncStorage.removeItem(KUNCI_ALAMAT);
+    if (url) await AsyncStorage.setItem(ADDRESS_STORAGE_KEY, url);
+    else await AsyncStorage.removeItem(ADDRESS_STORAGE_KEY);
   } catch {
     // penyimpanan gagal: alamat tetap dipakai selama aplikasi terbuka
   }
   return BASE_URL;
 }
-const TIMEOUT_MS = 15_000;
+const REQUEST_TIMEOUT_MS = 15_000;
 
 let onSessionExpired: (() => void) | null = null;
 export function setSessionExpiredHandler(handler: (() => void) | null) {
@@ -58,22 +59,22 @@ export class ApiError extends Error {
 }
 
 // Frappe menaruh alasan penolakan di `_server_messages` (JSON berlapis, bisa berisi HTML).
-function pesanServer(obj: Record<string, unknown>): string | null {
+function serverMessage(obj: Record<string, unknown>): string | null {
   if (typeof obj._server_messages !== "string") return null;
   try {
-    const daftar = JSON.parse(obj._server_messages) as string[];
+    const list = JSON.parse(obj._server_messages) as string[];
     // Frappe bisa mengirim beberapa pesan (peringatan lalu galat). Pakai yang
     // memicu galat; bila tidak ada, yang terakhir.
-    const semua = daftar.map(
+    const all = list.map(
       (m) => JSON.parse(m) as { message?: string; raise_exception?: number },
     );
-    const pertama =
-      semua.find((m) => m.raise_exception) ?? semua[semua.length - 1] ?? {};
-    const teks = (pertama.message ?? "")
+    const first =
+      all.find((m) => m.raise_exception) ?? all[all.length - 1] ?? {};
+    const text = (first.message ?? "")
       .replace(/<[^>]+>/g, " ")
       .replace(/\s+/g, " ")
       .trim();
-    return teks || null;
+    return text || null;
   } catch {
     return null;
   }
@@ -98,16 +99,16 @@ async function request<T>(
   params?: Params,
   formData?: FormData,
 ): Promise<T> {
-  await siapAlamat;
+  await addressReady;
   if (!BASE_URL) {
-    throw new ApiError(tt("err.noBase"), 0, null);
+    throw new ApiError(translate("err.noBase"), 0, null);
   }
 
   const query = method === "GET" && params ? `?${encode(params)}` : "";
   const isForm = method !== "GET" && params !== undefined;
 
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
+  const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
 
   let res: Response;
   try {
@@ -127,7 +128,7 @@ async function request<T>(
   } catch (e) {
     const timeout = e instanceof Error && e.name === "AbortError";
     throw new ApiError(
-      timeout ? tt("err.timeout") : tt("err.network"),
+      timeout ? translate("err.timeout") : translate("err.network"),
       0,
       timeout ? "Timeout" : "Network",
     );
@@ -136,7 +137,7 @@ async function request<T>(
   }
 
   // Setiap kontak berhasil memperbarui jangkar jam terpercaya (lihat trustedTime.ts).
-  if (res.ok) catatKontakServer(res.headers.get("date"));
+  if (res.ok) recordServerContact(res.headers.get("date"));
 
   // Frappe selalu membalas JSON, tapi jangan percaya buta (mis. halaman 502 dari nginx).
   let body: unknown = null;
@@ -150,15 +151,15 @@ async function request<T>(
   if (!res.ok) {
     if (res.status === 403 && obj.session_expired === 1) {
       onSessionExpired?.();
-      throw new ApiError(tt("err.sesiBerakhir"), 403, "SessionExpired");
+      throw new ApiError(translate("err.sesiBerakhir"), 403, "SessionExpired");
     }
     const excType = typeof obj.exc_type === "string" ? obj.exc_type : null;
     // Nginx menolak file terlalu besar dengan halaman HTML, bukan JSON.
     if (res.status === 413) {
-      throw new ApiError(tt("err.fileBesar"), 413, "TooLarge");
+      throw new ApiError(translate("err.fileBesar"), 413, "TooLarge");
     }
     const message =
-      pesanServer(obj) ??
+      serverMessage(obj) ??
       (typeof obj.message === "string" ? obj.message : `HTTP ${res.status}`);
     throw new ApiError(message, res.status, excType);
   }
@@ -177,14 +178,14 @@ export const upload = <T>(path: string, form: FormData) =>
   request<T>("POST", path, undefined, form);
 
 // Mengunduh berkas privat dengan sesi aplikasi (cookie yang sama dengan panggilan API).
-export async function unduhBerkas(path: string): Promise<Uint8Array> {
-  await siapAlamat;
-  if (!BASE_URL) throw new ApiError(tt("err.noBase"), 0, null);
+export async function downloadFile(path: string): Promise<Uint8Array> {
+  await addressReady;
+  if (!BASE_URL) throw new ApiError(translate("err.noBase"), 0, null);
   let res: Response;
   try {
     res = await fetch(`${BASE_URL}${path}`, { credentials: "include" });
   } catch {
-    throw new ApiError(tt("err.network"), 0, "Network");
+    throw new ApiError(translate("err.network"), 0, "Network");
   }
   if (!res.ok) throw new ApiError(`HTTP ${res.status}`, res.status, null);
   return new Uint8Array(await res.arrayBuffer());
@@ -197,16 +198,16 @@ export const put = <T>(path: string, params?: Params) =>
 export function describeError(e: unknown): string {
   if (e instanceof ApiError) {
     if (e.excType === "NoEmployeeLinked") {
-      return tt("err.tanpaKaryawanUser");
+      return translate("err.tanpaKaryawanUser");
     }
     if (e.excType === "SessionExpired") return e.message;
     if (e.excType === "RoleFetchFailed")
-      return tt("err.peranCoba", { pesan: e.message });
+      return translate("err.peranCoba", { pesan: e.message });
     if (e.excType === "NoApprover") {
-      return tt("err.tanpaApprover");
+      return translate("err.tanpaApprover");
     }
     if (e.excType === "OverlapError") {
-      return tt("err.bentrokCuti");
+      return translate("err.bentrokCuti");
     }
     if (e.excType === "TooLarge" || e.excType === "NoAppraisal") {
       return e.message;
@@ -217,13 +218,13 @@ export function describeError(e: unknown): string {
     if (e.status === 417) {
       // Alasan asli dari server (bahasa Inggris) lebih berguna daripada pesan umum.
       return e.message && !e.message.startsWith("HTTP ")
-        ? tt("err.ditolakServer", { pesan: e.message })
-        : tt("err.ditolak");
+        ? translate("err.ditolakServer", { pesan: e.message })
+        : translate("err.ditolak");
     }
-    if (e.status === 401) return tt("err.loginSalah");
+    if (e.status === 401) return translate("err.loginSalah");
     if (e.status === 0) return e.message;
-    const kode = __DEV__ ? ` [${e.status} ${e.excType ?? ""}]` : "";
-    return tt("err.server", { kode });
+    const code = __DEV__ ? ` [${e.status} ${e.excType ?? ""}]` : "";
+    return translate("err.server", { kode: code });
   }
-  return tt("err.takTerduga");
+  return translate("err.takTerduga");
 }

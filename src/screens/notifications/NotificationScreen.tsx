@@ -16,10 +16,10 @@ import { ICON } from "@/constants/icons";
 import { Skeleton } from "@/components/Skeleton";
 import { useT } from "@/i18n";
 import { EmptyState } from "@/components/EmptyState";
-import { setBelumDibaca } from "@/navigation/notifBadge";
-import { kembaliAtauBeranda } from "@/navigation/kembali";
+import { setUnreadCount } from "@/navigation/notifBadge";
+import { goBackOrHome } from "@/navigation/kembali";
 
-const ICON_KATEGORI: Record<NotifCategory, keyof typeof Ionicons.glyphMap> = {
+const CATEGORY_ICONS: Record<NotifCategory, keyof typeof Ionicons.glyphMap> = {
   Approval: "checkmark-done-outline",
   Payroll: "wallet-outline",
   Presensi: "finger-print-outline",
@@ -35,26 +35,26 @@ export function NotificationScreen({ navigation }: ScreenProps) {
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
 
-  const [galat, setGalat] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const muat = useCallback(() => {
+  const load = useCallback(() => {
     if (!employee) return;
-    setGalat(null);
+    setErrorMessage(null);
     hrisApi
       .getNotificationInbox(employee.id)
       .then(setItems)
-      .catch((e) => setGalat(describeError(e)));
+      .catch((e) => setErrorMessage(describeError(e)));
   }, [employee]);
 
-  useFocusEffect(muat);
+  useFocusEffect(load);
 
-  const belumDibaca = items === null ? 0 : items.filter((n) => !n.read).length;
+  const unreadCount = items === null ? 0 : items.filter((n) => !n.read).length;
 
   useEffect(() => {
-    if (items !== null) setBelumDibaca(belumDibaca);
-  }, [items, belumDibaca]);
+    if (items !== null) setUnreadCount(unreadCount);
+  }, [items, unreadCount]);
 
-  const tandai = (ids?: string[]) => {
+  const markRead = (ids?: string[]) => {
     if (!employee) return;
     hrisApi
       .markNotificationsRead(employee.id, ids)
@@ -66,10 +66,10 @@ export function NotificationScreen({ navigation }: ScreenProps) {
   // Mengetuk notifikasi menandainya dibaca lalu membuka tempat yang dirujuk.
   // Nada "warn" dipakai server untuk "menunggu keputusanmu"; selain itu kabar
   // tentang pengajuan milik sendiri.
-  const buka = async (n: AppNotification) => {
-    if (!n.read) tandai([n.id]);
-    const atasan = employee?.role === "mss" || employee?.role === "hr";
-    const menunggu = n.tone === "warn" && atasan;
+  const open = async (n: AppNotification) => {
+    if (!n.read) markRead([n.id]);
+    const isSupervisor = employee?.role === "mss" || employee?.role === "hr";
+    const isPending = n.tone === "warn" && isSupervisor;
     switch (n.documentType) {
       case "Employee Document":
         // HR meninjau di layar verifikasi; karyawan melihat daftar dokumennya.
@@ -86,7 +86,7 @@ export function NotificationScreen({ navigation }: ScreenProps) {
         }
         return;
       case "Employee Checkin":
-        if (menunggu) navigation.navigate("OfflineReview");
+        if (isPending) navigation.navigate("OfflineReview");
         return;
       case "Face Enrollment":
         // HR meninjau di web; karyawan membuka layar pendaftaran wajahnya.
@@ -109,7 +109,7 @@ export function NotificationScreen({ navigation }: ScreenProps) {
       case "Travel Request":
       case "WFH Schedule":
       case "Attendance Request":
-        if (menunggu) {
+        if (isPending) {
           navigation.navigate("Approval");
           return;
         }
@@ -126,28 +126,29 @@ export function NotificationScreen({ navigation }: ScreenProps) {
 
   // Judul seksi diturunkan dari datanya, bukan daftar tetap: urutan grup
   // mengikuti urutan kemunculan pertamanya di list.
-  const grup: string[] = [];
-  for (const n of items ?? []) if (!grup.includes(n.group)) grup.push(n.group);
+  const groups: string[] = [];
+  for (const n of items ?? [])
+    if (!groups.includes(n.group)) groups.push(n.group);
 
   return (
     <View style={styles.container}>
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
         <Pressable
           style={styles.backBtn}
-          onPress={() => kembaliAtauBeranda(navigation)}
+          onPress={() => goBackOrHome(navigation)}
         >
           <Ionicons name="chevron-back" size={18} color={c.ink} />
         </Pressable>
         <Text style={styles.headerTitle}>{t("nt.judul")}</Text>
         <Pressable
-          onPress={() => tandai()}
-          disabled={belumDibaca === 0}
+          onPress={() => markRead()}
+          disabled={unreadCount === 0}
           hitSlop={8}
         >
           <Text
             style={[
               styles.markAll,
-              belumDibaca === 0 && { color: c.mutedLabel },
+              unreadCount === 0 && { color: c.mutedLabel },
             ]}
           >
             {t("nt.tandai")}
@@ -156,12 +157,12 @@ export function NotificationScreen({ navigation }: ScreenProps) {
       </View>
 
       <ScrollView contentContainerStyle={styles.content}>
-        {galat && items === null ? (
-          <ErrorState pesan={galat} onUlangi={muat} />
+        {errorMessage && items === null ? (
+          <ErrorState message={errorMessage} onRetry={load} />
         ) : items === null ? (
           <View style={{ gap: 9 }}>
             {[0, 1, 2, 3].map((i) => (
-              <NotifCardSkeleton key={i} />
+              <NotificationCardSkeleton key={i} />
             ))}
           </View>
         ) : items.length === 0 ? (
@@ -171,7 +172,7 @@ export function NotificationScreen({ navigation }: ScreenProps) {
             text={t("nt.kosongIsi")}
           />
         ) : (
-          grup.map((g) => (
+          groups.map((g) => (
             <View key={g}>
               <Text style={styles.groupLabel}>{g}</Text>
               <View style={{ gap: 9 }}>
@@ -182,7 +183,7 @@ export function NotificationScreen({ navigation }: ScreenProps) {
                     return (
                       <Pressable
                         key={n.id}
-                        onPress={() => buka(n)}
+                        onPress={() => open(n)}
                         style={[
                           styles.card,
                           !n.read && { backgroundColor: c.unread },
@@ -195,7 +196,7 @@ export function NotificationScreen({ navigation }: ScreenProps) {
                           ]}
                         >
                           <Ionicons
-                            name={ICON_KATEGORI[n.category]}
+                            name={CATEGORY_ICONS[n.category]}
                             color={tone.ink}
                             size={26}
                           />
@@ -222,7 +223,7 @@ export function NotificationScreen({ navigation }: ScreenProps) {
   );
 }
 
-function NotifCardSkeleton() {
+function NotificationCardSkeleton() {
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
 

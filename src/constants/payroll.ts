@@ -1,2 +1,2 @@
-export const BATAS_LEMBUR_JAM = 18;
-export const UPAH_LEMBUR_PER_JAM = 75000;
+export const OVERTIME_LIMIT_HOURS = 18;
+export const OVERTIME_PAY_PER_HOUR = 75000;

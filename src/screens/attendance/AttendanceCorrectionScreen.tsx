@@ -11,8 +11,8 @@ import { RevealScrollView as ScrollView } from "@/components/Reveal";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { gabungAlasan } from "@/utils/Correction";
-import { Palette, tombolUtama } from "@/theme/colors";
+import { joinReason } from "@/utils/Correction";
+import { Palette, primaryButtonStyle } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
 import { hrisApi } from "@/services/api";
 import { useSession } from "@/services/session";
@@ -24,34 +24,34 @@ import {
   ApprovalStep,
   FormDoneView,
 } from "@/screens/leave/FormFlowCards";
-import { BuktiFile } from "@/screens/leave/LemburFormCards";
+import { ProofAttachment } from "@/screens/leave/LemburFormCards";
 import {
-  AlasanKoreksiCard,
-  BuktiKoreksiCard,
-  JamAjuanCard,
-  JenisKoreksi,
-  TercatatCard,
-  namaJenisKoreksi,
+  CorrectionReasonCard,
+  CorrectionProofCard,
+  RequestedTimeCard,
+  CorrectionKind,
+  RecordedCard,
+  getCorrectionKindName,
 } from "./KoreksiCards";
 import {
-  durasiJam,
-  jamMenit,
-  menitDari,
-  namaHari,
-  tanggalPendek,
+  formatHourDuration,
+  formatHoursMinutes,
+  minutesOf,
+  getWeekdayName,
+  formatShortDate,
 } from "@/utils/date";
 import { describeError } from "@/services/api/http";
 import { useT } from "@/i18n";
 import { useConfirm } from "@/components/ConfirmDialog";
-import { pilihBukti } from "@/utils/pilihBukti";
-import { kembali, keBeranda } from "@/navigation/kembali";
+import { pickProof } from "@/utils/pilihBukti";
+import { goBackAnimated, goHome } from "@/navigation/kembali";
 
-const JAM_MASUK_BAWAAN = 8 * 60; // menit sejak 00:00
-const JAM_KELUAR_BAWAAN = 17 * 60;
-const MASUK_MIN = 5 * 60;
-const MASUK_MAKS = 12 * 60;
-const KELUAR_MIN = 6 * 60;
-const KELUAR_MAKS = 23 * 60 + 45;
+const DEFAULT_CHECKIN_MINUTES = 8 * 60; // menit sejak 00:00
+const DEFAULT_CHECKOUT_MINUTES = 17 * 60;
+const CHECKIN_MIN_MINUTES = 5 * 60;
+const CHECKIN_MAX_MINUTES = 12 * 60;
+const CHECKOUT_MIN_MINUTES = 6 * 60;
+const CHECKOUT_MAX_MINUTES = 23 * 60 + 45;
 
 export function AttendanceCorrectionScreen({ navigation }: ScreenProps) {
   const t = useT();
@@ -61,18 +61,18 @@ export function AttendanceCorrectionScreen({ navigation }: ScreenProps) {
   const insets = useSafeAreaInsets();
 
   const [history, setHistory] = useState<AttendanceRecord[]>([]);
-  const [tanggal, setTanggal] = useState<string | null>(null);
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
   // Jam yang diubah pengguna; null = pakai jam tercatat tanggal itu (atau bawaan).
-  const [masukUbah, setMasukUbah] = useState<number | null>(null);
-  const [keluarUbah, setKeluarUbah] = useState<number | null>(null);
-  const [jenis, setJenis] = useState<JenisKoreksi>("Forgot check-in");
-  const [alasan, setAlasan] = useState("");
-  const [files, setFiles] = useState<BuktiFile[]>([]);
-  const [sending, setSending] = useState(false);
+  const [editedCheckIn, setEditedCheckIn] = useState<number | null>(null);
+  const [editedCheckOut, setEditedCheckOut] = useState<number | null>(null);
+  const [kind, setKind] = useState<CorrectionKind>("Forgot check-in");
+  const [reasonText, setReasonText] = useState("");
+  const [files, setFiles] = useState<ProofAttachment[]>([]);
+  const [isSending, setIsSending] = useState(false);
   const [done, setDone] = useState<string | null>(null);
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
-  const [galat, setGalat] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
     if (!employee) return;
@@ -88,49 +88,53 @@ export function AttendanceCorrectionScreen({ navigation }: ScreenProps) {
       .catch(() => setHistory([]));
   }, [employee]);
 
-  const record = tanggal
-    ? (history.find((r) => r.date === tanggal) ?? null)
+  const record = selectedDate
+    ? (history.find((r) => r.date === selectedDate) ?? null)
     : null;
 
   const masuk =
-    masukUbah ??
-    (record?.checkIn ? menitDari(record.checkIn) : JAM_MASUK_BAWAAN);
+    editedCheckIn ??
+    (record?.checkIn ? minutesOf(record.checkIn) : DEFAULT_CHECKIN_MINUTES);
   const keluar =
-    keluarUbah ??
-    (record?.checkOut ? menitDari(record.checkOut) : JAM_KELUAR_BAWAAN);
+    editedCheckOut ??
+    (record?.checkOut ? minutesOf(record.checkOut) : DEFAULT_CHECKOUT_MINUTES);
 
   // Clamp di setter: dua nilai ini independen, hubungannya diurus validasi.
-  const setMasuk = (menit: number) =>
-    setMasukUbah(Math.min(Math.max(menit, MASUK_MIN), MASUK_MAKS));
-  const setKeluar = (menit: number) =>
-    setKeluarUbah(Math.min(Math.max(menit, KELUAR_MIN), KELUAR_MAKS));
+  const setCheckIn = (minutes: number) =>
+    setEditedCheckIn(
+      Math.min(Math.max(minutes, CHECKIN_MIN_MINUTES), CHECKIN_MAX_MINUTES),
+    );
+  const setCheckOut = (minutes: number) =>
+    setEditedCheckOut(
+      Math.min(Math.max(minutes, CHECKOUT_MIN_MINUTES), CHECKOUT_MAX_MINUTES),
+    );
 
   // Ganti tanggal membuang jam yang diubah, supaya jam tercatat tanggal baru yang tampil.
-  const handlePilihTanggal = (tanggalBaru: string | null) => {
-    setTanggal(tanggalBaru);
-    setMasukUbah(null);
-    setKeluarUbah(null);
+  const handlePickDate = (nextDate: string | null) => {
+    setSelectedDate(nextDate);
+    setEditedCheckIn(null);
+    setEditedCheckOut(null);
   };
 
-  const buktiWajib = !!tanggal && !record;
+  const isProofRequired = !!selectedDate && !record;
 
-  const blockMsg = !tanggal
+  const blockMsg = !selectedDate
     ? t("kor.blokTgl")
     : keluar < masuk + 60
       ? t("kor.blokJam")
-      : alasan.trim().length < 15
+      : reasonText.trim().length < 15
         ? t("kor.blokPenjelasan")
-        : buktiWajib && files.length === 0
+        : isProofRequired && files.length === 0
           ? t("kor.blokBukti")
           : "";
 
-  const bisaKirim = !blockMsg && !sending;
+  const canSubmit = !blockMsg && !isSending;
 
-  const footer = tanggal
+  const footer = selectedDate
     ? [
         {
           label: t("kor.tanggal"),
-          value: `${namaHari(tanggal)}, ${tanggalPendek(tanggal)}`,
+          value: `${getWeekdayName(selectedDate)}, ${formatShortDate(selectedDate)}`,
         },
         {
           label: t("kor.logTercatat"),
@@ -145,54 +149,54 @@ export function AttendanceCorrectionScreen({ navigation }: ScreenProps) {
         { label: t("kor.logTercatat"), value: "—" },
       ];
 
-  const buatDoneRows = () => {
-    if (!tanggal) return [];
+  const buildDoneRows = () => {
+    if (!selectedDate) return [];
     return [
       {
         k: t("kor.tanggal"),
-        v: `${namaHari(tanggal)}, ${tanggalPendek(tanggal)}`,
+        v: `${getWeekdayName(selectedDate)}, ${formatShortDate(selectedDate)}`,
       },
       {
         k: t("kor.jamDiajukan"),
-        v: `${jamMenit(masuk)} – ${jamMenit(keluar)}`,
+        v: `${formatHoursMinutes(masuk)} – ${formatHoursMinutes(keluar)}`,
       },
-      { k: t("kor.jenis"), v: namaJenisKoreksi(jenis) },
+      { k: t("kor.jenis"), v: getCorrectionKindName(kind) },
       { k: t("kor.bukti"), v: t("kor.nFile", { n: files.length }) },
     ];
   };
 
-  const langkahApproval: ApprovalStep[] = approver
+  const approvalSteps: ApprovalStep[] = approver
     ? [
         {
-          ini: approver.initials,
+          stepLabel: approver.initials,
           name: approver.fullName,
           role: t("lr.atasan"),
         },
       ]
     : [];
 
-  const tambahBukti = async () => {
-    const r = await pilihBukti();
+  const addProof = async () => {
+    const r = await pickProof();
     if (!r) return;
-    if ("terlaluBesar" in r) {
-      setGalat(t("up.besarPesan", { ukuran: r.terlaluBesar }));
+    if ("tooLargeSizeLabel" in r) {
+      setErrorMessage(t("up.besarPesan", { ukuran: r.tooLargeSizeLabel }));
       return;
     }
-    setGalat(null);
-    setFiles((prev) => [...prev, r.berkas]);
+    setErrorMessage(null);
+    setFiles((prev) => [...prev, r.file]);
   };
 
   const handleSubmit = async () => {
-    if (!employee || !tanggal || !bisaKirim) return;
-    setSending(true);
-    setGalat(null);
+    if (!employee || !selectedDate || !canSubmit) return;
+    setIsSending(true);
+    setErrorMessage(null);
     try {
       const res = await hrisApi.submitAttendanceCorrection({
         employeeId: employee.id,
-        date: tanggal,
-        requestedCheckIn: jamMenit(masuk),
-        requestedCheckOut: jamMenit(keluar),
-        reason: gabungAlasan(jenis, alasan),
+        date: selectedDate,
+        requestedCheckIn: formatHoursMinutes(masuk),
+        requestedCheckOut: formatHoursMinutes(keluar),
+        reason: joinReason(kind, reasonText),
         attachments: files.flatMap((f) =>
           f.uri
             ? [{ uri: f.uri, name: f.name, mimeType: f.mimeType ?? "" }]
@@ -200,19 +204,19 @@ export function AttendanceCorrectionScreen({ navigation }: ScreenProps) {
         ),
       });
       setDone(res.id);
-      if (res.buktiGagal) {
+      if (res.failedProofCount) {
         void confirm({
           title: t("lr.buktiGagalJudul"),
-          message: t("lr.buktiGagalPesan", { n: res.buktiGagal }),
+          message: t("lr.buktiGagalPesan", { n: res.failedProofCount }),
           tone: "warn",
           confirmText: t("umum.mengerti"),
           cancelText: null,
         });
       }
     } catch (e) {
-      setGalat(describeError(e));
+      setErrorMessage(describeError(e));
     } finally {
-      setSending(false);
+      setIsSending(false);
     }
   };
 
@@ -220,7 +224,10 @@ export function AttendanceCorrectionScreen({ navigation }: ScreenProps) {
     <View style={styles.container}>
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
         <View style={styles.headerRow}>
-          <Pressable style={styles.backBtn} onPress={() => kembali(navigation)}>
+          <Pressable
+            style={styles.backBtn}
+            onPress={() => goBackAnimated(navigation)}
+          >
             <Ionicons name="chevron-back" size={18} color={c.ink} />
           </Pressable>
           <View style={{ flex: 1, minWidth: 0 }}>
@@ -239,10 +246,10 @@ export function AttendanceCorrectionScreen({ navigation }: ScreenProps) {
             <FormDoneView
               title={t("kor.terkirim")}
               waitingOn={approver?.fullName ?? t("lr.approver")}
-              rows={buatDoneRows()}
+              rows={buildDoneRows()}
               doc={`Attendance Request · HR-ATR-${done}`}
-              onLihat={() => navigation.navigate("AttendanceCorrectionHistory")}
-              onHome={() => keBeranda(navigation)}
+              onView={() => navigation.navigate("AttendanceCorrectionHistory")}
+              onHome={() => goHome(navigation)}
             />
           ) : (
             <>
@@ -251,38 +258,38 @@ export function AttendanceCorrectionScreen({ navigation }: ScreenProps) {
                 allow="past"
                 title={t("kor.tglKoreksi")}
                 hint={t("kor.hintTgl")}
-                start={tanggal}
-                end={tanggal}
-                onChange={handlePilihTanggal}
+                start={selectedDate}
+                end={selectedDate}
+                onChange={handlePickDate}
                 footer={footer}
               />
 
-              {tanggal && <TercatatCard record={record} />}
+              {selectedDate && <RecordedCard record={record} />}
 
-              <JamAjuanCard
+              <RequestedTimeCard
                 masuk={masuk}
                 keluar={keluar}
-                onChangeMasuk={setMasuk}
-                onChangeKeluar={setKeluar}
+                onChangeCheckIn={setCheckIn}
+                onChangeCheckOut={setCheckOut}
               />
 
-              <AlasanKoreksiCard
-                jenis={jenis}
-                onPickJenis={setJenis}
-                alasan={alasan}
-                onChangeAlasan={setAlasan}
+              <CorrectionReasonCard
+                kind={kind}
+                onPickKind={setKind}
+                reason={reasonText}
+                onChangeReason={setReasonText}
               />
 
-              <BuktiKoreksiCard
+              <CorrectionProofCard
                 files={files}
-                wajib={buktiWajib}
-                onAdd={tambahBukti}
+                isRequired={isProofRequired}
+                onAdd={addProof}
                 onRemove={(i) =>
                   setFiles((prev) => prev.filter((_, idx) => idx !== i))
                 }
               />
 
-              <ApprovalFlowCard steps={langkahApproval} />
+              <ApprovalFlowCard steps={approvalSteps} />
             </>
           )}
         </ScrollView>
@@ -294,20 +301,20 @@ export function AttendanceCorrectionScreen({ navigation }: ScreenProps) {
             <Text
               style={[
                 styles.sumSub,
-                blockMsg || galat ? { color: c.bad.ink } : null,
+                blockMsg || errorMessage ? { color: c.bad.ink } : null,
               ]}
             >
-              {blockMsg || galat || t("kor.siap")}
+              {blockMsg || errorMessage || t("kor.siap")}
             </Text>
             <Text style={styles.sumTop}>
-              {tanggal && keluar > masuk
-                ? durasiJam((keluar - masuk) / 60)
+              {selectedDate && keluar > masuk
+                ? formatHourDuration((keluar - masuk) / 60)
                 : "—"}
             </Text>
           </View>
-          <Pressable onPress={handleSubmit} disabled={!bisaKirim}>
+          <Pressable onPress={handleSubmit} disabled={!canSubmit}>
             <LinearGradient
-              colors={bisaKirim ? [c.accent, c.accent2] : [c.track, c.track]}
+              colors={canSubmit ? [c.accent, c.accent2] : [c.track, c.track]}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
               style={styles.submitBtn}
@@ -315,10 +322,10 @@ export function AttendanceCorrectionScreen({ navigation }: ScreenProps) {
               <Text
                 style={[
                   styles.submitText,
-                  bisaKirim ? { color: "#fff" } : null,
+                  canSubmit ? { color: "#fff" } : null,
                 ]}
               >
-                {sending ? t("kor.mengirim") : t("kor.kirim")}
+                {isSending ? t("kor.mengirim") : t("kor.kirim")}
               </Text>
             </LinearGradient>
           </Pressable>
@@ -376,7 +383,7 @@ const makeStyles = (c: Palette) =>
       marginTop: 3,
     },
     submitBtn: {
-      ...tombolUtama(c),
+      ...primaryButtonStyle(c),
       paddingHorizontal: 22,
       paddingVertical: 14,
       borderRadius: 16,

@@ -1,4 +1,4 @@
-import { bahasaAktif } from "@/i18n";
+import { getActiveLanguage } from "@/i18n";
 
 /** 9263750 -> "9.263.750" */
 
@@ -14,6 +14,8 @@ export function rupiah(value: number) {
 }
 
 /** 4.2 -> "4,2" · 5 -> "5,0" — desimal gaya Indonesia */
-export function desimal(n: number, digit = 1) {
-  return n.toFixed(digit).replace(".", bahasaAktif() === "en" ? "." : ",");
+export function formatDecimal(n: number, digit = 1) {
+  return n
+    .toFixed(digit)
+    .replace(".", getActiveLanguage() === "en" ? "." : ",");
 }

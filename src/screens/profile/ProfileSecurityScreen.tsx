@@ -16,18 +16,18 @@ import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
 import {
-  adaLoginBiometrik,
-  autentikasi,
-  hapusKredensial,
-  kesiapanBiometrik,
-  namaBiometrik,
-  simpanKredensial,
-  type KesiapanBiometrik,
+  hasBiometricLogin,
+  authenticate,
+  deleteCredentials,
+  getBiometricReadiness,
+  getBiometricName,
+  saveCredentials,
+  type BiometricReadiness,
 } from "@/services/biometrik";
-import { useKunci } from "@/services/kunciApp";
+import { useAppLock } from "@/services/kunciApp";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useConfirm } from "@/components/ConfirmDialog";
-import { Palette, tombolSekunder } from "@/theme/colors";
+import { Palette, secondaryButtonStyle } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
 import { hrisApi } from "@/services/api";
 import { ApiError, describeError } from "@/services/api/http";
@@ -44,9 +44,9 @@ import { RadialGlow } from "@/components/RadialGlow";
 import { LineIcon } from "@/components/LineIcon";
 import { ICON } from "@/constants/icons";
 import { Skeleton } from "@/components/Skeleton";
-import { tanggalPendekTahun } from "@/utils/date";
+import { formatShortDateWithYear } from "@/utils/date";
 import { useT } from "@/i18n";
-import { kembali } from "@/navigation/kembali";
+import { goBackAnimated } from "@/navigation/kembali";
 
 // Warna pil status wajah di atas kartu gelap.
 const PILL: Record<FaceState, { bg: string; ink: string }> = {
@@ -66,95 +66,97 @@ export function ProfileSecurityScreen({ navigation }: ScreenProps) {
   const confirm = useConfirm();
 
   const [info, setInfo] = useState<SecurityInfo | null>(null);
-  const [galat, setGalat] = useState<string | null>(null);
-  const [wajah, setWajah] = useState<FaceStatus | null>(null);
-  const kunci = useKunci();
-  const [bio, setBio] = useState<KesiapanBiometrik>("siap");
-  const [loginBio, setLoginBio] = useState(false);
-  const [pesanBio, setPesanBio] = useState<string | null>(null);
-  const [namaBio, setNamaBio] = useState("sidik jari / wajah");
-  const [dialogBio, setDialogBio] = useState(false);
-  const [akunBio, setAkunBio] = useState("");
-  const [pwBio, setPwBio] = useState("");
-  const [galatBio, setGalatBio] = useState<string | null>(null);
-  const [prosesBio, setProsesBio] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [face, setFace] = useState<FaceStatus | null>(null);
+  const cacheKey = useAppLock();
+  const [biometric, setBiometric] = useState<BiometricReadiness>("siap");
+  const [isBiometricLogin, setIsBiometricLogin] = useState(false);
+  const [biometricMessage, setBiometricMessage] = useState<string | null>(null);
+  const [biometricName, setBiometricName] = useState("sidik jari / wajah");
+  const [isBiometricDialog, setIsBiometricDialog] = useState(false);
+  const [biometricAccount, setBiometricAccount] = useState("");
+  const [biometricPassword, setBiometricPassword] = useState("");
+  const [biometricError, setBiometricError] = useState<string | null>(null);
+  const [isBiometricBusy, setIsBiometricBusy] = useState(false);
 
-  const muat = useCallback(() => {
+  const load = useCallback(() => {
     if (!employee) return;
-    setGalat(null);
+    setErrorMessage(null);
     hrisApi
       .getSecurityInfo(employee.id)
       .then(setInfo)
-      .catch((e) => setGalat(describeError(e)));
+      .catch((e) => setErrorMessage(describeError(e)));
     hrisApi
       .getFaceStatus()
-      .then(setWajah)
-      .catch(() => setWajah(null));
+      .then(setFace)
+      .catch(() => setFace(null));
   }, [employee]);
 
-  useFocusEffect(muat);
+  useFocusEffect(load);
   useFocusEffect(
     useCallback(() => {
-      kesiapanBiometrik().then(setBio);
-      namaBiometrik().then(setNamaBio);
-      adaLoginBiometrik().then(setLoginBio);
+      getBiometricReadiness().then(setBiometric);
+      getBiometricName().then(setBiometricName);
+      hasBiometricLogin().then(setIsBiometricLogin);
     }, []),
   );
 
   // Dua pengalih yang saling mengikat: Biometrik (login tanpa password) dan Kunci otomatis. Kunci otomatis hanya bisa
   // dinyalakan saat Biometrik aktif, dan mematikan Biometrik otomatis mematikan Kunci otomatis.
-  const ubahBiometrik = async (nyala: boolean) => {
-    setPesanBio(null);
-    if (!nyala) {
-      await hapusKredensial();
-      setLoginBio(false);
-      kunci.ubah({ ...kunci.pengaturan, aktif: false });
+  const toggleBiometric = async (isEnabled: boolean) => {
+    setBiometricMessage(null);
+    if (!isEnabled) {
+      await deleteCredentials();
+      setIsBiometricLogin(false);
+      cacheKey.update({ ...cacheKey.settings, isActive: false });
       return;
     }
-    if (bio === "tidakAda") return setPesanBio(t("bio.tidakAda"));
-    if (bio === "belumDaftar") return setPesanBio(t("bio.belumDaftar"));
-    kunci.abaikanLatar(15_000);
-    if (!(await autentikasi(t("bio.konfirmasi"), t("kunci.batal")))) return;
-    setAkunBio(
+    if (biometric === "tidakAda") return setBiometricMessage(t("bio.tidakAda"));
+    if (biometric === "belumDaftar")
+      return setBiometricMessage(t("bio.belumDaftar"));
+    cacheKey.ignoreBackground(15_000);
+    if (!(await authenticate(t("bio.konfirmasi"), t("kunci.batal")))) return;
+    setBiometricAccount(
       (await AsyncStorage.getItem("hris.username").catch(() => null)) ?? "",
     );
-    setPwBio("");
-    setGalatBio(null);
-    setDialogBio(true); // password diminta satu kali untuk login biometrik
+    setBiometricPassword("");
+    setBiometricError(null);
+    setIsBiometricDialog(true); // password diminta satu kali untuk login biometrik
   };
-  const aktifkanLoginBio = async () => {
-    setProsesBio(true);
-    setGalatBio(null);
+  const enableBiometricLogin = async () => {
+    setIsBiometricBusy(true);
+    setBiometricError(null);
     try {
-      await hrisApi.login(akunBio.trim(), pwBio); // memastikan akun dan password benar
-      kunci.abaikanLatar(15_000);
-      await simpanKredensial(akunBio.trim(), pwBio);
-      setLoginBio(true);
-      setDialogBio(false);
-      setPwBio("");
+      await hrisApi.login(biometricAccount.trim(), biometricPassword); // memastikan akun dan password benar
+      cacheKey.ignoreBackground(15_000);
+      await saveCredentials(biometricAccount.trim(), biometricPassword);
+      setIsBiometricLogin(true);
+      setIsBiometricDialog(false);
+      setBiometricPassword("");
     } catch (e) {
-      setGalatBio(
+      setBiometricError(
         e instanceof ApiError
           ? describeError(e)
           : t("bio.gagalSimpan", { pesan: (e as Error)?.message ?? "" }),
       );
     } finally {
-      setProsesBio(false);
+      setIsBiometricBusy(false);
     }
   };
 
-  const ubahKunci = (nyala: boolean) => {
-    setPesanBio(null);
-    if (nyala && !loginBio) return setPesanBio(t("bio.kunciButuhBiometrik"));
-    kunci.ubah({ ...kunci.pengaturan, aktif: nyala });
+  const changeLock = (isEnabled: boolean) => {
+    setBiometricMessage(null);
+    if (isEnabled && !isBiometricLogin)
+      return setBiometricMessage(t("bio.kunciButuhBiometrik"));
+    cacheKey.update({ ...cacheKey.settings, isActive: isEnabled });
   };
-  const PILIHAN_TIMEOUT: [number, string][] = [
+  const TIMEOUT_OPTIONS: [number, string][] = [
     [0, t("bio.segera")],
     [60_000, t("bio.satuMenit")],
     [300_000, t("bio.limaMenit")],
   ];
 
-  const gagalAksi = (e: unknown) => {
+  const actionFailed = (e: unknown) => {
     void confirm({
       title: t("umum.gagalMemproses"),
       message: describeError(e),
@@ -164,34 +166,37 @@ export function ProfileSecurityScreen({ navigation }: ScreenProps) {
     });
   };
 
-  const ubahToggle = (key: SecurityToggleKey, enabled: boolean) => {
+  const changeToggle = (key: SecurityToggleKey, isEnabled: boolean) => {
     if (!employee) return;
     hrisApi
-      .setSecurityToggle(employee.id, key, enabled)
+      .setSecurityToggle(employee.id, key, isEnabled)
       .then(setInfo)
-      .catch(gagalAksi);
+      .catch(actionFailed);
   };
 
-  const keluarkanPerangkat = async (d: ActiveDevice) => {
+  const signOutDevice = async (d: ActiveDevice) => {
     if (!employee) return;
-    const ya = await confirm({
+    const isConfirmed = await confirm({
       title: t("sec.keluarkanJudul"),
       message: t("sec.keluarkanPesan", { nama: d.name }),
       tone: "bad",
       confirmText: t("sec.keluarkan"),
       cancelText: t("umum.batal"),
     });
-    if (ya) {
+    if (isConfirmed) {
       hrisApi
         .logoutDevice(employee.id, d.sessionIds)
         .then(setInfo)
-        .catch(gagalAksi);
+        .catch(actionFailed);
     }
   };
 
   const header = (
     <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
-      <Pressable style={styles.backBtn} onPress={() => kembali(navigation)}>
+      <Pressable
+        style={styles.backBtn}
+        onPress={() => goBackAnimated(navigation)}
+      >
         <Ionicons name="chevron-back" size={18} color={c.ink} />
       </Pressable>
       <Text style={styles.headerTitle}>{t("sec.judul")}</Text>
@@ -199,12 +204,12 @@ export function ProfileSecurityScreen({ navigation }: ScreenProps) {
   );
 
   if (!info) {
-    if (galat) {
+    if (errorMessage) {
       return (
         <View style={styles.container}>
           {header}
           <View style={styles.content}>
-            <ErrorState pesan={galat} onUlangi={muat} />
+            <ErrorState message={errorMessage} onRetry={load} />
           </View>
         </View>
       );
@@ -249,30 +254,30 @@ export function ProfileSecurityScreen({ navigation }: ScreenProps) {
             <View style={{ flex: 1, minWidth: 0 }}>
               <Text style={styles.faceTitle}>{t("profil.wajah")}</Text>
               <Text style={styles.faceSub}>
-                {wajah ? t(`sec.wajahSub.${wajah.state}` as never) : "…"}
+                {face ? t(`sec.wajahSub.${face.state}` as never) : "…"}
               </Text>
             </View>
             <Ionicons name="chevron-forward" size={18} color={c.onDark.muted} />
           </View>
 
-          {wajah ? (
+          {face ? (
             <View style={styles.facePills}>
               <View
-                style={[styles.pill, { backgroundColor: PILL[wajah.state].bg }]}
+                style={[styles.pill, { backgroundColor: PILL[face.state].bg }]}
               >
                 <Text
-                  style={[styles.pillText, { color: PILL[wajah.state].ink }]}
+                  style={[styles.pillText, { color: PILL[face.state].ink }]}
                 >
-                  {t(`sec.wajah.${wajah.state}` as never)}
+                  {t(`sec.wajah.${face.state}` as never)}
                 </Text>
               </View>
-              {wajah.state === "needs_reenroll" && wajah.graceUntil ? (
+              {face.state === "needs_reenroll" && face.graceUntil ? (
                 <View
                   style={[styles.pill, { backgroundColor: PILL.pending.bg }]}
                 >
                   <Text style={[styles.pillText, { color: PILL.pending.ink }]}>
                     {t("sec.batas", {
-                      tgl: tanggalPendekTahun(wajah.graceUntil),
+                      tgl: formatShortDateWithYear(face.graceUntil),
                     })}
                   </Text>
                 </View>
@@ -284,51 +289,53 @@ export function ProfileSecurityScreen({ navigation }: ScreenProps) {
         <View style={styles.card}>
           <Text style={styles.cardTitle}>{t("sec.keamananAkun")}</Text>
 
-          <Text style={styles.grupLabel}>{t("sec.grupBiometrik")}</Text>
+          <Text style={styles.groupLabel}>{t("sec.grupBiometrik")}</Text>
           <View style={styles.baris}>
             <View style={{ flex: 1, minWidth: 0 }}>
               <Text style={styles.rowTitle}>
-                {t("bio.loginBio", { nama: namaBio })}
+                {t("bio.loginBio", { nama: biometricName })}
               </Text>
               <Text style={styles.rowSub}>
-                {loginBio ? t("bio.loginBioAktif") : t("bio.loginBioMati")}
+                {isBiometricLogin
+                  ? t("bio.loginBioAktif")
+                  : t("bio.loginBioMati")}
               </Text>
             </View>
             <Switch
-              value={loginBio}
-              onValueChange={ubahBiometrik}
+              value={isBiometricLogin}
+              onValueChange={toggleBiometric}
               trackColor={{ false: c.track, true: c.accent }}
               thumbColor="#fff"
             />
           </View>
-          <View style={[styles.baris, !loginBio && { opacity: 0.45 }]}>
+          <View style={[styles.baris, !isBiometricLogin && { opacity: 0.45 }]}>
             <View style={{ flex: 1, minWidth: 0 }}>
               <Text style={styles.rowTitle}>{t("bio.kunciOtomatis")}</Text>
               <Text style={styles.rowSub}>
-                {loginBio
-                  ? t("bio.kunciSub", { nama: namaBio })
+                {isBiometricLogin
+                  ? t("bio.kunciSub", { nama: biometricName })
                   : t("bio.kunciButuhBiometrik")}
               </Text>
             </View>
             <Switch
-              value={loginBio && kunci.pengaturan.aktif}
-              onValueChange={ubahKunci}
-              disabled={!loginBio}
+              value={isBiometricLogin && cacheKey.settings.isActive}
+              onValueChange={changeLock}
+              disabled={!isBiometricLogin}
               trackColor={{ false: c.track, true: c.accent }}
               thumbColor="#fff"
             />
           </View>
-          {loginBio && kunci.pengaturan.aktif ? (
+          {isBiometricLogin && cacheKey.settings.isActive ? (
             <View style={{ paddingVertical: 8 }}>
               <Text style={styles.rowSub}>{t("bio.timeout")}</Text>
               <View style={{ flexDirection: "row", gap: 8, marginTop: 8 }}>
-                {PILIHAN_TIMEOUT.map(([ms, label]) => {
-                  const on = kunci.pengaturan.timeoutMs === ms;
+                {TIMEOUT_OPTIONS.map(([ms, label]) => {
+                  const isOn = cacheKey.settings.timeoutMs === ms;
                   return (
                     <Pressable
                       key={ms}
                       onPress={() =>
-                        kunci.ubah({ ...kunci.pengaturan, timeoutMs: ms })
+                        cacheKey.update({ ...cacheKey.settings, timeoutMs: ms })
                       }
                       style={{
                         flex: 1,
@@ -336,15 +343,15 @@ export function ProfileSecurityScreen({ navigation }: ScreenProps) {
                         paddingVertical: 10,
                         borderRadius: 12,
                         borderWidth: 1,
-                        borderColor: on ? c.accent : c.fieldBorder,
-                        backgroundColor: on ? c.accent : "transparent",
+                        borderColor: isOn ? c.accent : c.fieldBorder,
+                        backgroundColor: isOn ? c.accent : "transparent",
                       }}
                     >
                       <Text
                         style={{
                           fontSize: 12.5,
                           fontWeight: "600",
-                          color: on ? "#fff" : c.ink,
+                          color: isOn ? "#fff" : c.ink,
                         }}
                       >
                         {label}
@@ -355,13 +362,13 @@ export function ProfileSecurityScreen({ navigation }: ScreenProps) {
               </View>
             </View>
           ) : null}
-          {pesanBio ? (
+          {biometricMessage ? (
             <Text style={[styles.rowSub, { color: c.bad.ink, marginTop: 8 }]}>
-              {pesanBio}
+              {biometricMessage}
             </Text>
           ) : null}
 
-          <Text style={[styles.grupLabel, { marginTop: 18 }]}>
+          <Text style={[styles.groupLabel, { marginTop: 18 }]}>
             {t("sec.grupAkun")}
           </Text>
           <Pressable
@@ -378,21 +385,21 @@ export function ProfileSecurityScreen({ navigation }: ScreenProps) {
             </View>
             <Ionicons name="chevron-forward" size={16} color={c.mutedLabel} />
           </Pressable>
-          {info.toggles.map((tg, i) => (
+          {info.toggles.map((toggle, i) => (
             <View
-              key={tg.key}
+              key={toggle.key}
               style={[
                 styles.baris,
-                i === info.toggles.length - 1 && styles.barisAkhir,
+                i === info.toggles.length - 1 && styles.finalRow,
               ]}
             >
               <View style={{ flex: 1, minWidth: 0 }}>
-                <Text style={styles.rowTitle}>{tg.title}</Text>
-                <Text style={styles.rowSub}>{tg.subtitle}</Text>
+                <Text style={styles.rowTitle}>{toggle.title}</Text>
+                <Text style={styles.rowSub}>{toggle.subtitle}</Text>
               </View>
               <Switch
-                value={tg.enabled}
-                onValueChange={(v) => ubahToggle(tg.key, v)}
+                value={toggle.enabled}
+                onValueChange={(v) => changeToggle(toggle.key, v)}
                 trackColor={{ false: c.track, true: c.accent }}
                 thumbColor="#fff"
               />
@@ -422,11 +429,11 @@ export function ProfileSecurityScreen({ navigation }: ScreenProps) {
                 </View>
                 {!d.current ? (
                   <Pressable
-                    onPress={() => keluarkanPerangkat(d)}
+                    onPress={() => signOutDevice(d)}
                     hitSlop={8}
-                    style={styles.devKeluar}
+                    style={styles.devSignOut}
                   >
-                    <Text style={styles.devKeluarText}>
+                    <Text style={styles.devSignOutText}>
                       {t("sec.keluarkan")}
                     </Text>
                   </Pressable>
@@ -457,23 +464,23 @@ export function ProfileSecurityScreen({ navigation }: ScreenProps) {
       </ScrollView>
 
       <Modal
-        visible={dialogBio}
+        visible={isBiometricDialog}
         transparent
         animationType="fade"
-        onRequestClose={() => setDialogBio(false)}
+        onRequestClose={() => setIsBiometricDialog(false)}
       >
-        <View style={styles.modalLatar}>
-          <View style={styles.modalKartu}>
+        <View style={styles.modalBackdrop}>
+          <View style={styles.modalCard}>
             <Text style={styles.cardTitle}>
-              {t("bio.pwJudul", { nama: namaBio })}
+              {t("bio.pwJudul", { nama: biometricName })}
             </Text>
             <Text style={[styles.rowSub, { marginTop: 6 }]}>
-              {t("bio.pwSub", { nama: namaBio })}
+              {t("bio.pwSub", { nama: biometricName })}
             </Text>
             <TextInput
               style={styles.modalInput}
-              value={akunBio}
-              onChangeText={setAkunBio}
+              value={biometricAccount}
+              onChangeText={setBiometricAccount}
               placeholder={t("bio.akun")}
               placeholderTextColor={c.mutedLabel}
               autoCapitalize="none"
@@ -481,28 +488,28 @@ export function ProfileSecurityScreen({ navigation }: ScreenProps) {
             />
             <TextInput
               style={styles.modalInput}
-              value={pwBio}
-              onChangeText={setPwBio}
+              value={biometricPassword}
+              onChangeText={setBiometricPassword}
               placeholder={t("bio.password")}
               placeholderTextColor={c.mutedLabel}
               secureTextEntry
               autoCapitalize="none"
             />
-            {galatBio ? (
+            {biometricError ? (
               <Text style={[styles.rowSub, { color: c.bad.ink, marginTop: 8 }]}>
-                {galatBio}
+                {biometricError}
               </Text>
             ) : null}
             <View style={{ flexDirection: "row", gap: 10, marginTop: 16 }}>
               <Pressable
                 style={[
-                  styles.modalTombol,
+                  styles.modalButton,
                   {
-                    ...tombolSekunder(c),
+                    ...secondaryButtonStyle(c),
                   },
                 ]}
-                onPress={() => setDialogBio(false)}
-                disabled={prosesBio}
+                onPress={() => setIsBiometricDialog(false)}
+                disabled={isBiometricBusy}
               >
                 <Text style={{ fontWeight: "700", color: c.btnSoftInk }}>
                   {t("kunci.batal")}
@@ -510,16 +517,18 @@ export function ProfileSecurityScreen({ navigation }: ScreenProps) {
               </Pressable>
               <Pressable
                 style={[
-                  styles.modalTombol,
+                  styles.modalButton,
                   {
                     backgroundColor: c.accent,
-                    opacity: akunBio && pwBio ? 1 : 0.5,
+                    opacity: biometricAccount && biometricPassword ? 1 : 0.5,
                   },
                 ]}
-                onPress={aktifkanLoginBio}
-                disabled={prosesBio || !akunBio || !pwBio}
+                onPress={enableBiometricLogin}
+                disabled={
+                  isBiometricBusy || !biometricAccount || !biometricPassword
+                }
               >
-                {prosesBio ? (
+                {isBiometricBusy ? (
                   <ActivityIndicator color="#fff" />
                 ) : (
                   <Text style={{ fontWeight: "700", color: "#fff" }}>
@@ -615,7 +624,7 @@ const makeStyles = (c: Palette) =>
       marginTop: 3,
     },
 
-    grupLabel: {
+    groupLabel: {
       fontSize: 10.5,
       fontWeight: "700",
       letterSpacing: 0.6,
@@ -632,15 +641,15 @@ const makeStyles = (c: Palette) =>
       borderBottomWidth: 1,
       borderBottomColor: c.hair,
     },
-    barisAkhir: { borderBottomWidth: 0 },
-    modalLatar: {
+    finalRow: { borderBottomWidth: 0 },
+    modalBackdrop: {
       flex: 1,
       backgroundColor: "rgba(0,0,0,0.5)",
       alignItems: "center",
       justifyContent: "center",
       padding: 24,
     },
-    modalKartu: {
+    modalCard: {
       width: "100%",
       maxWidth: 380,
       backgroundColor: c.card,
@@ -657,7 +666,7 @@ const makeStyles = (c: Palette) =>
       fontSize: 14,
       color: c.ink,
     },
-    modalTombol: {
+    modalButton: {
       flex: 1,
       alignItems: "center",
       justifyContent: "center",
@@ -698,7 +707,7 @@ const makeStyles = (c: Palette) =>
     devTag: { paddingHorizontal: 9, paddingVertical: 4, borderRadius: 8 },
     devTagText: { fontSize: 10, fontWeight: "700" },
 
-    devKeluar: {
+    devSignOut: {
       borderWidth: 1,
       borderColor: c.bad.ink,
       borderRadius: 999,
@@ -706,7 +715,7 @@ const makeStyles = (c: Palette) =>
       paddingVertical: 5,
       marginRight: 6,
     },
-    devKeluarText: { fontSize: 11, fontWeight: "700", color: c.bad.ink },
+    devSignOutText: { fontSize: 11, fontWeight: "700", color: c.bad.ink },
     dangerBtn: {
       marginTop: 12,
       paddingVertical: 14,

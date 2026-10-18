@@ -1,24 +1,24 @@
-import { tahanKunci } from "@/services/biometrik";
+import { holdLock } from "@/services/biometrik";
 import * as DocumentPicker from "expo-document-picker";
 import { File } from "expo-file-system";
-import { jadikanJpeg } from "@/utils/jadikanJpeg";
-import { MAKS_BYTE, ukuranFile } from "@/utils/file";
+import { toJpeg } from "@/utils/jadikanJpeg";
+import { MAX_BYTES, formatFileSize } from "@/utils/file";
 
-export interface BuktiBerkas {
+export interface ProofFile {
   name: string;
   size: string; // "1,2 MB"
   uri: string;
   mimeType: string;
 }
 
-export type HasilPilih =
-  | { berkas: BuktiBerkas }
-  | { terlaluBesar: string } // ukuran berkas, untuk pesan galat
+export type PickResult =
+  | { file: ProofFile }
+  | { tooLargeSizeLabel: string } // ukuran berkas, untuk pesan galat
   | null; // dibatalkan
 
 // Memilih satu bukti (PDF/JPG/PNG, maks. 5 MB). Batas yang sama dijaga juga oleh server.
-export async function pilihBukti(): Promise<HasilPilih> {
-  tahanKunci();
+export async function pickProof(): Promise<PickResult> {
+  holdLock();
   const r = await DocumentPicker.getDocumentAsync({
     type: ["application/pdf", "image/*"],
     copyToCacheDirectory: true,
@@ -28,19 +28,20 @@ export async function pilihBukti(): Promise<HasilPilih> {
   let uri = a.uri;
   let name = a.name;
   let mimeType = a.mimeType ?? "application/octet-stream";
-  let ukuran = a.size ?? 0;
+  let fileSize = a.size ?? 0;
   // HEIC/WebP dan sejenisnya tidak diterima server: ubah ke JPEG di HP.
   if (mimeType.startsWith("image/") && !/^image\/(jpeg|png)$/.test(mimeType)) {
-    uri = await jadikanJpeg(uri);
+    uri = await toJpeg(uri);
     name = `${name.replace(/\.[^.]+$/, "")}.jpg`;
     mimeType = "image/jpeg";
-    ukuran = new File(uri).size ?? 0;
+    fileSize = new File(uri).size ?? 0;
   }
-  if (ukuran > MAKS_BYTE) return { terlaluBesar: ukuranFile(ukuran) };
+  if (fileSize > MAX_BYTES)
+    return { tooLargeSizeLabel: formatFileSize(fileSize) };
   return {
-    berkas: {
+    file: {
       name,
-      size: ukuranFile(ukuran),
+      size: formatFileSize(fileSize),
       uri,
       mimeType,
     },

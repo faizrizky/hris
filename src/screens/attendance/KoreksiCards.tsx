@@ -12,12 +12,12 @@ import {
   ATTENDANCE_STATUS_LABEL,
   ATTENDANCE_STATUS_TONE,
 } from "@/constants/statusLabels";
-import { jamMenit } from "@/utils/date";
-import { BuktiFile } from "@/screens/leave/LemburFormCards";
-import { useT, tt } from "@/i18n";
+import { formatHoursMinutes } from "@/utils/date";
+import { ProofAttachment } from "@/screens/leave/LemburFormCards";
+import { useT, translate } from "@/i18n";
 
 // Nilai ini ikut tersimpan di ERPNext (bahasa Inggris); tampilannya diterjemahkan.
-export const JENIS_KOREKSI = [
+export const CORRECTION_KINDS = [
   "Forgot check-in",
   "Forgot check-out",
   "App error",
@@ -27,7 +27,7 @@ export const JENIS_KOREKSI = [
 ] as const;
 
 // Pengajuan lama tersimpan dengan teks Indonesia.
-const JENIS_LAMA: Record<string, JenisKoreksi> = {
+const LEGACY_KINDS: Record<string, CorrectionKind> = {
   "Lupa absen masuk": "Forgot check-in",
   "Lupa absen keluar": "Forgot check-out",
   "Aplikasi gagal / error": "App error",
@@ -36,20 +36,20 @@ const JENIS_LAMA: Record<string, JenisKoreksi> = {
   Lainnya: "Other",
 };
 
-export function namaJenisKoreksi(v: string): string {
-  const baku = (JENIS_KOREKSI as readonly string[]).includes(v)
-    ? (v as JenisKoreksi)
-    : JENIS_LAMA[v];
-  return baku ? tt(`kor.${baku}`) : v;
+export function getCorrectionKindName(v: string): string {
+  const baku = (CORRECTION_KINDS as readonly string[]).includes(v)
+    ? (v as CorrectionKind)
+    : LEGACY_KINDS[v];
+  return baku ? translate(`kor.${baku}`) : v;
 }
 
-export type JenisKoreksi = (typeof JENIS_KOREKSI)[number];
+export type CorrectionKind = (typeof CORRECTION_KINDS)[number];
 
 const STEP = 15;
 
 /* ---------- Data tercatat (read-only) ---------- */
 
-export function TercatatCard({ record }: { record: AttendanceRecord | null }) {
+export function RecordedCard({ record }: { record: AttendanceRecord | null }) {
   const t = useT();
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
@@ -90,11 +90,11 @@ export function TercatatCard({ record }: { record: AttendanceRecord | null }) {
 
 function StepBox({
   label,
-  nilai,
+  value,
   onChange,
 }: {
   label: string;
-  nilai: number;
+  value: number;
   onChange: (v: number) => void;
 }) {
   const c = useTheme();
@@ -103,14 +103,14 @@ function StepBox({
     <View style={styles.stepBox}>
       <View style={{ flex: 1, minWidth: 0 }}>
         <Text style={styles.label}>{label}</Text>
-        <Text style={styles.timeValue}>{jamMenit(nilai)}</Text>
+        <Text style={styles.timeValue}>{formatHoursMinutes(value)}</Text>
       </View>
-      <Pressable style={styles.stepBtn} onPress={() => onChange(nilai - STEP)}>
+      <Pressable style={styles.stepBtn} onPress={() => onChange(value - STEP)}>
         <Ionicons name="remove" size={15} color={c.ink} />
       </Pressable>
       <Pressable
         style={[styles.stepBtn, styles.stepBtnOn]}
-        onPress={() => onChange(nilai + STEP)}
+        onPress={() => onChange(value + STEP)}
       >
         <Ionicons name="add" size={15} color="#fff" />
       </Pressable>
@@ -118,16 +118,16 @@ function StepBox({
   );
 }
 
-export function JamAjuanCard({
+export function RequestedTimeCard({
   masuk,
   keluar,
-  onChangeMasuk,
-  onChangeKeluar,
+  onChangeCheckIn,
+  onChangeCheckOut,
 }: {
   masuk: number;
   keluar: number;
-  onChangeMasuk: (v: number) => void;
-  onChangeKeluar: (v: number) => void;
+  onChangeCheckIn: (v: number) => void;
+  onChangeCheckOut: (v: number) => void;
 }) {
   const t = useT();
   const c = useTheme();
@@ -146,13 +146,13 @@ export function JamAjuanCard({
       <View style={styles.timeRow}>
         <StepBox
           label={t("kor.masuk")}
-          nilai={masuk}
-          onChange={onChangeMasuk}
+          value={masuk}
+          onChange={onChangeCheckIn}
         />
         <StepBox
           label={t("kor.keluar")}
-          nilai={keluar}
-          onChange={onChangeKeluar}
+          value={keluar}
+          onChange={onChangeCheckOut}
         />
       </View>
 
@@ -163,19 +163,19 @@ export function JamAjuanCard({
 
 /* ---------- Alasan ---------- */
 
-export function AlasanKoreksiCard({
-  jenis,
-  onPickJenis,
-  alasan,
-  onChangeAlasan,
+export function CorrectionReasonCard({
+  kind,
+  onPickKind,
+  reason,
+  onChangeReason,
 }: {
-  jenis: JenisKoreksi;
-  onPickJenis: (v: JenisKoreksi) => void;
-  alasan: string;
-  onChangeAlasan: (v: string) => void;
+  kind: CorrectionKind;
+  onPickKind: (v: CorrectionKind) => void;
+  reason: string;
+  onChangeReason: (v: string) => void;
 }) {
-  const [buka, setBuka] = useState(false);
-  const panjang = alasan.trim().length;
+  const [isOpen, setIsOpen] = useState(false);
+  const textLength = reason.trim().length;
   const t = useT();
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
@@ -185,8 +185,8 @@ export function AlasanKoreksiCard({
       <Text style={styles.cardTitle}>{t("kor.alasan")}</Text>
 
       <Text style={[styles.label, { marginTop: 14 }]}>{t("kor.jenis")}</Text>
-      <Pressable style={styles.selectBox} onPress={() => setBuka(true)}>
-        <Text style={styles.selectText}>{namaJenisKoreksi(jenis)}</Text>
+      <Pressable style={styles.selectBox} onPress={() => setIsOpen(true)}>
+        <Text style={styles.selectText}>{getCorrectionKindName(kind)}</Text>
         <Ionicons name="chevron-down" size={15} color={c.muted} />
       </Pressable>
 
@@ -195,24 +195,24 @@ export function AlasanKoreksiCard({
       </Text>
       <TextInput
         style={styles.textarea}
-        value={alasan}
-        onChangeText={onChangeAlasan}
+        value={reason}
+        onChangeText={onChangeReason}
         placeholder={t("kor.contoh")}
         placeholderTextColor={c.mutedLabel}
         multiline
       />
-      <Text style={[styles.counter, panjang < 15 && { color: c.bad.ink }]}>
-        {t("kor.minimum", { n: panjang })}
+      <Text style={[styles.counter, textLength < 15 && { color: c.bad.ink }]}>
+        {t("kor.minimum", { n: textLength })}
       </Text>
 
       <PickerSheet
-        visible={buka}
+        visible={isOpen}
         title={t("kor.jenisKoreksi")}
-        options={JENIS_KOREKSI}
-        labelOf={namaJenisKoreksi}
-        value={jenis}
-        onSelect={(v) => onPickJenis(v as JenisKoreksi)}
-        onClose={() => setBuka(false)}
+        options={CORRECTION_KINDS}
+        labelOf={getCorrectionKindName}
+        value={kind}
+        onSelect={(v) => onPickKind(v as CorrectionKind)}
+        onClose={() => setIsOpen(false)}
       />
     </View>
   );
@@ -220,18 +220,18 @@ export function AlasanKoreksiCard({
 
 /* ---------- Bukti pendukung ---------- */
 
-export function BuktiKoreksiCard({
+export function CorrectionProofCard({
   files,
-  wajib,
+  isRequired,
   onAdd,
   onRemove,
 }: {
-  files: BuktiFile[];
-  wajib: boolean;
+  files: ProofAttachment[];
+  isRequired: boolean;
   onAdd: () => void;
   onRemove: (index: number) => void;
 }) {
-  const kurang = wajib && files.length === 0;
+  const isMissing = isRequired && files.length === 0;
   const t = useT();
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
@@ -241,12 +241,18 @@ export function BuktiKoreksiCard({
       <View style={styles.headRow}>
         <Text style={styles.cardTitle}>{t("kor.buktiPendukung")}</Text>
         <View
-          style={[styles.badge, { backgroundColor: wajib ? c.bad.bg : c.chip }]}
+          style={[
+            styles.badge,
+            { backgroundColor: isRequired ? c.bad.bg : c.chip },
+          ]}
         >
           <Text
-            style={[styles.badgeText, { color: wajib ? c.bad.ink : c.muted }]}
+            style={[
+              styles.badgeText,
+              { color: isRequired ? c.bad.ink : c.muted },
+            ]}
           >
-            {wajib ? t("kor.wajib") : t("kor.opsional")}
+            {isRequired ? t("kor.wajib") : t("kor.opsional")}
           </Text>
         </View>
       </View>
@@ -272,15 +278,17 @@ export function BuktiKoreksiCard({
           onPress={onAdd}
           style={[
             styles.addBox,
-            { borderColor: kurang ? c.bad.ink : c.fieldBorder },
+            { borderColor: isMissing ? c.bad.ink : c.fieldBorder },
           ]}
         >
           <LineIcon
             d={ICON.upload}
-            color={kurang ? c.bad.ink : c.muted}
+            color={isMissing ? c.bad.ink : c.muted}
             size={18}
           />
-          <Text style={[styles.addText, kurang ? { color: c.bad.ink } : null]}>
+          <Text
+            style={[styles.addText, isMissing ? { color: c.bad.ink } : null]}
+          >
             {t("kor.tambahLampiran")}
           </Text>
         </Pressable>

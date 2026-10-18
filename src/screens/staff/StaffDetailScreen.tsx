@@ -4,7 +4,11 @@ import { Linking, Pressable, StyleSheet, Text, View } from "react-native";
 import { RevealScrollView as ScrollView } from "@/components/Reveal";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Palette, tombolSekunder, tombolUtama } from "@/theme/colors";
+import {
+  Palette,
+  secondaryButtonStyle,
+  primaryButtonStyle,
+} from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
 import { hrisApi } from "@/services/api";
 import { describeError } from "@/services/api/http";
@@ -17,10 +21,14 @@ import {
   ATTENDANCE_STATUS_LABEL,
   ATTENDANCE_STATUS_TONE,
 } from "@/constants/statusLabels";
-import { desimal } from "@/utils/currency";
-import { bulanSingkat, tanggalAngka, tanggalPendekTahun } from "@/utils/date";
+import { formatDecimal } from "@/utils/currency";
+import {
+  getShortMonth,
+  formatNumericDate,
+  formatShortDateWithYear,
+} from "@/utils/date";
 import { useT } from "@/i18n";
-import { kembali } from "@/navigation/kembali";
+import { goBackAnimated } from "@/navigation/kembali";
 
 export function StaffDetailScreen({ navigation, route }: ScreenProps) {
   const t = useT();
@@ -29,53 +37,56 @@ export function StaffDetailScreen({ navigation, route }: ScreenProps) {
   const { staffId } = getRouteParams<{ staffId: string }>(route);
 
   const [staff, setStaff] = useState<Staff | null>(null);
-  const [absensi, setAbsensi] = useState<AttendanceRecord[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [galat, setGalat] = useState<string | null>(null);
-  const [coba, setCoba] = useState(0); // naik saat Coba lagi ditekan
+  const [attendance, setAttendance] = useState<AttendanceRecord[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [attempt, setAttempt] = useState(0); // naik saat Coba lagi ditekan
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
 
   useEffect(() => {
     if (!employee) return;
-    let batal = false;
+    let isCancelled = false;
 
     Promise.all([
       hrisApi.getStaffDirectory(employee.id),
       hrisApi.getStaffAttendanceHistory(staffId),
     ])
-      .then(([dir, riwayat]) => {
-        if (batal) return;
-        setStaff(dir.items.find((s) => s.id === staffId) ?? null);
-        setAbsensi(riwayat.slice(0, 5));
-        setLoading(false);
+      .then(([directory, history]) => {
+        if (isCancelled) return;
+        setStaff(directory.items.find((s) => s.id === staffId) ?? null);
+        setAttendance(history.slice(0, 5));
+        setIsLoading(false);
       })
       .catch((e) => {
-        if (batal) return;
-        setGalat(describeError(e));
-        setLoading(false);
+        if (isCancelled) return;
+        setErrorMessage(describeError(e));
+        setIsLoading(false);
       });
 
     // Kalau layar ditutup sebelum data datang, setState pada komponen yang
     // sudah dilepas percuma — flag ini membatalkannya.
     return () => {
-      batal = true;
+      isCancelled = true;
     };
-  }, [employee, staffId, coba]);
+  }, [employee, staffId, attempt]);
 
   const header = (
     <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
       <RadialGlow size={250} color={c.glowHeader} top={-80} right={-50} />
 
       <View style={styles.headerRow}>
-        <Pressable style={styles.backBtn} onPress={() => kembali(navigation)}>
+        <Pressable
+          style={styles.backBtn}
+          onPress={() => goBackAnimated(navigation)}
+        >
           <Ionicons name="chevron-back" size={18} color="#fff" />
         </Pressable>
         <Text style={styles.headerTitle}>{t("stf.detail")}</Text>
       </View>
 
       <View style={styles.identity}>
-        {loading ? (
+        {isLoading ? (
           <>
             <Skeleton
               width={96}
@@ -116,17 +127,17 @@ export function StaffDetailScreen({ navigation, route }: ScreenProps) {
     </View>
   );
 
-  if (galat) {
+  if (errorMessage) {
     return (
       <View style={styles.container}>
         {header}
         <View style={[styles.body, styles.content]}>
           <ErrorState
-            pesan={galat}
-            onUlangi={() => {
-              setGalat(null);
-              setLoading(true);
-              setCoba((n) => n + 1);
+            message={errorMessage}
+            onRetry={() => {
+              setErrorMessage(null);
+              setIsLoading(true);
+              setAttempt((n) => n + 1);
             }}
           />
         </View>
@@ -134,11 +145,11 @@ export function StaffDetailScreen({ navigation, route }: ScreenProps) {
     );
   }
 
-  if (loading || !staff) {
+  if (isLoading || !staff) {
     return (
       <View style={styles.container}>
         {header}
-        {loading && (
+        {isLoading && (
           <View style={[styles.body, styles.content]}>
             <View style={styles.sheet}>
               <Skeleton width="100%" height={44} radius={10} />
@@ -154,14 +165,14 @@ export function StaffDetailScreen({ navigation, route }: ScreenProps) {
     );
   }
 
-  const kepegawaian = [
+  const employmentInfo = [
     { k: t("stf.status"), v: staff.employment },
-    { k: t("stf.tglMasuk"), v: tanggalPendekTahun(staff.joinDate) },
+    { k: t("stf.tglMasuk"), v: formatShortDateWithYear(staff.joinDate) },
     { k: t("stf.atasan"), v: staff.manager },
     { k: t("stf.shift"), v: staff.shift },
   ];
 
-  const kontak = [
+  const contact = [
     { k: t("stf.emailKantor"), v: staff.email },
     { k: t("stf.telepon"), v: staff.phone },
   ];
@@ -173,7 +184,7 @@ export function StaffDetailScreen({ navigation, route }: ScreenProps) {
       <ScrollView style={styles.body} contentContainerStyle={styles.content}>
         <View style={styles.statCard}>
           <Stat
-            value={`${desimal(staff.attendanceRate)}%`}
+            value={`${formatDecimal(staff.attendanceRate)}%`}
             label={t("stf.kehadiran")}
           />
           <View style={styles.statDivider} />
@@ -182,17 +193,20 @@ export function StaffDetailScreen({ navigation, route }: ScreenProps) {
             label={t("stf.sisaCuti")}
           />
           <View style={styles.statDivider} />
-          <Stat value={desimal(staff.kpiScore)} label={t("stf.skorKpi")} />
+          <Stat
+            value={formatDecimal(staff.kpiScore)}
+            label={t("stf.skorKpi")}
+          />
         </View>
 
         <View style={[styles.sheet, { marginTop: 12 }]}>
           <Text style={styles.sheetTitle}>{t("stf.dataKepeg")}</Text>
           <View style={styles.lines}>
-            {kepegawaian.map((r) => (
+            {employmentInfo.map((r) => (
               <Row key={r.k} k={r.k} v={r.v} />
             ))}
             <View style={styles.divider} />
-            {kontak.map((r) => (
+            {contact.map((r) => (
               <Row key={r.k} k={r.k} v={r.v} />
             ))}
           </View>
@@ -212,13 +226,17 @@ export function StaffDetailScreen({ navigation, route }: ScreenProps) {
           </View>
 
           <View style={{ gap: 10, marginTop: 13 }}>
-            {absensi.map((a) => {
+            {attendance.map((a) => {
               const tone = c[ATTENDANCE_STATUS_TONE[a.status]];
               return (
                 <View key={a.id} style={styles.attRow}>
                   <View style={styles.dateChip}>
-                    <Text style={styles.dateDay}>{tanggalAngka(a.date)}</Text>
-                    <Text style={styles.dateMonth}>{bulanSingkat(a.date)}</Text>
+                    <Text style={styles.dateDay}>
+                      {formatNumericDate(a.date)}
+                    </Text>
+                    <Text style={styles.dateMonth}>
+                      {getShortMonth(a.date)}
+                    </Text>
                   </View>
 
                   <View style={{ flex: 1, minWidth: 0 }}>
@@ -440,12 +458,12 @@ const makeStyles = (c: Palette) =>
       flex: 1,
       paddingVertical: 14,
       borderRadius: 22,
-      ...tombolSekunder(c),
+      ...secondaryButtonStyle(c),
       alignItems: "center",
     },
     secondaryText: { fontSize: 12.5, fontWeight: "700", color: c.btnSoftInk },
     primaryBtn: {
-      ...tombolUtama(c),
+      ...primaryButtonStyle(c),
       flex: 1,
       paddingVertical: 14,
       borderRadius: 22,

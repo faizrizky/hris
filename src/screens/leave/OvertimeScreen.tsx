@@ -6,7 +6,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Palette, tombolUtama } from "@/theme/colors";
+import { Palette, primaryButtonStyle } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
 import { hrisApi } from "@/services/api";
 import { describeError } from "@/services/api/http";
@@ -20,52 +20,55 @@ import {
   OVERTIME_STATUS_LABEL,
   OVERTIME_STATUS_TONE,
 } from "@/constants/statusLabels";
-import { BATAS_LEMBUR_JAM, UPAH_LEMBUR_PER_JAM } from "@/constants/payroll";
+import {
+  OVERTIME_LIMIT_HOURS,
+  OVERTIME_PAY_PER_HOUR,
+} from "@/constants/payroll";
 import { rupiah } from "@/utils/currency";
 import {
-  durasiSingkat,
-  jamMenit,
-  namaBulan,
-  namaHari,
-  tanggalPendekTahun,
+  formatShortDuration,
+  formatHoursMinutes,
+  getMonthName,
+  getWeekdayName,
+  formatShortDateWithYear,
   toISODate,
 } from "@/utils/date";
 import { Skeleton } from "@/components/Skeleton";
 import { EmptyState } from "@/components/EmptyState";
-import { kembali } from "@/navigation/kembali";
+import { goBackAnimated } from "@/navigation/kembali";
 
 export function OvertimeScreen({ navigation }: ScreenProps) {
   const { employee } = useSession();
   const insets = useSafeAreaInsets();
   const [records, setRecords] = useState<OvertimeRecord[] | null>(null);
 
-  const [galat, setGalat] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const muat = useCallback(() => {
+  const load = useCallback(() => {
     if (!employee) return;
-    setGalat(null);
+    setErrorMessage(null);
     hrisApi
       .getOvertimes(employee.id)
       .then(setRecords)
-      .catch((e) => setGalat(describeError(e)));
+      .catch((e) => setErrorMessage(describeError(e)));
   }, [employee]);
 
-  useFocusEffect(muat);
+  useFocusEffect(load);
 
   // Ringkasan hanya bulan ini. String ISO "2026-09-12" cukup dipotong 7
   // karakter jadi "2026-09" untuk dibandingkan — tidak perlu parse tanggal.
-  const bulanIni = toISODate(new Date()).slice(0, 7);
-  const bulanan =
+  const thisMonth = toISODate(new Date()).slice(0, 7);
+  const monthly =
     records === null
       ? []
-      : records.filter((r) => r.date.slice(0, 7) === bulanIni);
+      : records.filter((r) => r.date.slice(0, 7) === thisMonth);
 
-  const totalJam = bulanan.reduce((a, r) => a + r.hours, 0);
+  const totalJam = monthly.reduce((a, r) => a + r.hours, 0);
   const jam = Math.floor(totalJam);
-  const menit = Math.round((totalJam % 1) * 60);
-  const persen = Math.min(100, (totalJam / BATAS_LEMBUR_JAM) * 100);
-  const estimasi = totalJam * UPAH_LEMBUR_PER_JAM;
-  const mepet = totalJam >= BATAS_LEMBUR_JAM * 0.8;
+  const minutes = Math.round((totalJam % 1) * 60);
+  const percent = Math.min(100, (totalJam / OVERTIME_LIMIT_HOURS) * 100);
+  const estimate = totalJam * OVERTIME_PAY_PER_HOUR;
+  const isTight = totalJam >= OVERTIME_LIMIT_HOURS * 0.8;
   const c = useTheme();
   const t = useT();
   const styles = useMemo(() => makeStyles(c), [c]);
@@ -73,7 +76,10 @@ export function OvertimeScreen({ navigation }: ScreenProps) {
   return (
     <View style={styles.container}>
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
-        <Pressable style={styles.backBtn} onPress={() => kembali(navigation)}>
+        <Pressable
+          style={styles.backBtn}
+          onPress={() => goBackAnimated(navigation)}
+        >
           <Ionicons name="chevron-back" size={18} color={c.ink} />
         </Pressable>
         <Text style={styles.headerTitle}>{t("ot.judul")}</Text>
@@ -83,16 +89,18 @@ export function OvertimeScreen({ navigation }: ScreenProps) {
         <View style={styles.sheet}>
           <View style={styles.sheetHead}>
             <Text style={styles.sheetLabel}>
-              {t("ot.totalJam", { bulan: namaBulan() })}
+              {t("ot.totalJam", { bulan: getMonthName() })}
             </Text>
             <View
               style={[
                 styles.limitBadge,
-                mepet && { backgroundColor: c.warn.bg },
+                isTight && { backgroundColor: c.warn.bg },
               ]}
             >
-              <Text style={[styles.limitText, mepet && { color: c.warn.ink }]}>
-                {t("ot.batas", { n: BATAS_LEMBUR_JAM })}
+              <Text
+                style={[styles.limitText, isTight && { color: c.warn.ink }]}
+              >
+                {t("ot.batas", { n: OVERTIME_LIMIT_HOURS })}
               </Text>
             </View>
           </View>
@@ -105,7 +113,7 @@ export function OvertimeScreen({ navigation }: ScreenProps) {
                 <Text style={styles.bigValue}>{jam}</Text>
                 <Text style={styles.bigUnit}>
                   {t("ot.jam")}
-                  {menit > 0 ? ` ${t("ot.mnt", { n: menit })}` : ""}
+                  {minutes > 0 ? ` ${t("ot.mnt", { n: minutes })}` : ""}
                 </Text>
               </>
             )}
@@ -116,8 +124,8 @@ export function OvertimeScreen({ navigation }: ScreenProps) {
               style={[
                 styles.fill,
                 {
-                  width: `${persen}%`,
-                  backgroundColor: mepet ? c.warn.ink : c.accent,
+                  width: `${percent}%`,
+                  backgroundColor: isTight ? c.warn.ink : c.accent,
                 },
               ]}
             />
@@ -128,7 +136,7 @@ export function OvertimeScreen({ navigation }: ScreenProps) {
             {records === null ? (
               <Skeleton width={96} height={14} radius={5} />
             ) : (
-              <Text style={styles.payValue}>{rupiah(estimasi)}</Text>
+              <Text style={styles.payValue}>{rupiah(estimate)}</Text>
             )}
           </View>
         </View>
@@ -153,8 +161,8 @@ export function OvertimeScreen({ navigation }: ScreenProps) {
 
         <Text style={styles.sectionTitle}>{t("ot.riwayat")}</Text>
 
-        {galat && records === null ? (
-          <ErrorState pesan={galat} onUlangi={muat} />
+        {errorMessage && records === null ? (
+          <ErrorState message={errorMessage} onRetry={load} />
         ) : records === null ? (
           <View style={{ gap: 10 }}>
             {[0, 1, 2].map((i) => (
@@ -164,7 +172,7 @@ export function OvertimeScreen({ navigation }: ScreenProps) {
         ) : records.length === 0 ? (
           <EmptyState
             icon={ICON.overtime}
-            tinggi={260}
+            height={260}
             title={t("ot.kosongJudul")}
             text={t("ot.kosongIsi")}
           />
@@ -173,15 +181,18 @@ export function OvertimeScreen({ navigation }: ScreenProps) {
             {records.map((r) => (
               <View key={r.id} style={styles.row}>
                 <View style={styles.hourChip}>
-                  <Text style={styles.hourText}>{durasiSingkat(r.hours)}</Text>
+                  <Text style={styles.hourText}>
+                    {formatShortDuration(r.hours)}
+                  </Text>
                 </View>
 
                 <View style={{ flex: 1, minWidth: 0 }}>
                   <Text style={styles.rowTitle}>
-                    {tanggalPendekTahun(r.date)} · {namaHari(r.date)}
+                    {formatShortDateWithYear(r.date)} · {getWeekdayName(r.date)}
                   </Text>
                   <Text style={styles.rowNote} numberOfLines={1}>
-                    {jamMenit(r.startMinute)}–{jamMenit(r.endMinute)} · {r.note}
+                    {formatHoursMinutes(r.startMinute)}–
+                    {formatHoursMinutes(r.endMinute)} · {r.note}
                   </Text>
                 </View>
 
@@ -306,7 +317,7 @@ const makeStyles = (c: Palette) =>
     payValue: { fontSize: 11.5, fontWeight: "700", color: c.ink },
 
     cta: {
-      ...tombolUtama(c),
+      ...primaryButtonStyle(c),
       borderRadius: 22,
       paddingVertical: 15,
       alignItems: "center",

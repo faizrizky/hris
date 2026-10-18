@@ -44,7 +44,7 @@ import {
   MOCK_TAX,
   MOCK_APPRAISAL,
   MOCK_STAFF,
-  TOTAL_KARYAWAN_AKTIF,
+  TOTAL_ACTIVE_EMPLOYEES,
   MOCK_PROFILE,
   MOCK_DOCUMENTS,
   MOCK_SECURITY,
@@ -238,13 +238,13 @@ export const mockApi: HrisApi = {
 
   async submitLeaveRequest(input): Promise<LeaveRequest> {
     await delay();
-    const pemohon = MOCK_EMPLOYEES[input.employeeId];
+    const requester = MOCK_EMPLOYEES[input.employeeId];
     const created: LeaveRequest = {
       id: `l${Date.now()}`,
       employeeId: input.employeeId,
-      employeeName: pemohon?.fullName ?? "—",
-      employeeInitials: pemohon?.avatarInitials ?? "—",
-      employeeJobTitle: pemohon?.jobTitle ?? "—",
+      employeeName: requester?.fullName ?? "—",
+      employeeInitials: requester?.avatarInitials ?? "—",
+      employeeJobTitle: requester?.jobTitle ?? "—",
       type: input.type,
       label: input.label,
       reason: input.reason,
@@ -312,38 +312,38 @@ export const mockApi: HrisApi = {
 
   async getStaffDirectory(employeeId: string): Promise<StaffDirectory> {
     await delay();
-    const pemanggil = Object.values(MOCK_EMPLOYEES).find(
+    const caller = Object.values(MOCK_EMPLOYEES).find(
       (e) => e.id === employeeId,
     );
 
     // HR melihat semua; atasan hanya bawahan langsungnya. Penyaringan hak
     // akses ada di service, bukan di layar — di Fase 2 ini jadi tugas backend.
     const items: Staff[] =
-      pemanggil?.role === "hr"
+      caller?.role === "hr"
         ? MOCK_STAFF
-        : MOCK_STAFF.filter((s) => s.manager === pemanggil?.fullName);
+        : MOCK_STAFF.filter((s) => s.manager === caller?.fullName);
 
-    return { totalActive: TOTAL_KARYAWAN_AKTIF, items };
+    return { totalActive: TOTAL_ACTIVE_EMPLOYEES, items };
   },
 
   async getEmploymentSummary(
     employeeId: string,
   ): Promise<EmploymentSlice[] | null> {
     await delay();
-    const pemanggil = Object.values(MOCK_EMPLOYEES).find(
+    const caller = Object.values(MOCK_EMPLOYEES).find(
       (e) => e.id === employeeId,
     );
-    if (pemanggil?.role !== "hr") return null;
+    if (caller?.role !== "hr") return null;
     return MOCK_EMPLOYMENT;
   },
 
   async getColleagues(employeeId: string): Promise<Colleague[]> {
     await delay();
-    const pemanggil = MOCK_EMPLOYEES[employeeId];
-    if (!pemanggil) return [];
+    const caller = MOCK_EMPLOYEES[employeeId];
+    if (!caller) return [];
 
     return MOCK_STAFF.filter(
-      (s) => s.department === pemanggil.department && s.id !== employeeId,
+      (s) => s.department === caller.department && s.id !== employeeId,
     ).map((s) => ({
       id: s.id,
       initials: s.initials,
@@ -455,13 +455,13 @@ export const mockApi: HrisApi = {
   async setSecurityToggle(
     _employeeId: string,
     key: SecurityToggleKey,
-    enabled: boolean,
+    isEnabled: boolean,
   ): Promise<SecurityInfo> {
     await delay(120);
     security = {
       ...security,
       toggles: security.toggles.map((t) =>
-        t.key === key ? { ...t, enabled } : t,
+        t.key === key ? { ...t, isEnabled } : t,
       ),
     };
     return security;

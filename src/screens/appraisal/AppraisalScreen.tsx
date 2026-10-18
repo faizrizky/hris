@@ -15,11 +15,11 @@ import { useSession } from "@/services/session";
 import { AppraisalGoal, AppraisalRater } from "@/services/types";
 import { useLoad } from "@/hooks/useLoad";
 import { ErrorState } from "@/components/ErrorState";
-import { desimal } from "@/utils/currency";
+import { formatDecimal } from "@/utils/currency";
 import { Skeleton } from "@/components/Skeleton";
 import { useT } from "@/i18n";
 import { ICON } from "@/constants/icons";
-import { kembali } from "@/navigation/kembali";
+import { goBackAnimated } from "@/navigation/kembali";
 
 const RING = 104;
 const STROKE = 13;
@@ -33,7 +33,7 @@ export function AppraisalScreen({ navigation }: ScreenProps) {
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
   const [tab, setTab] = useState<"saya" | "tim">("saya");
-  const bisaTim = employee?.role === "mss" || employee?.role === "hr";
+  const canSeeTeam = employee?.role === "mss" || employee?.role === "hr";
 
   const insets = useSafeAreaInsets();
 
@@ -41,12 +41,15 @@ export function AppraisalScreen({ navigation }: ScreenProps) {
     <View style={styles.container}>
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
         <View style={styles.headerRow}>
-          <Pressable style={styles.backBtn} onPress={() => kembali(navigation)}>
+          <Pressable
+            style={styles.backBtn}
+            onPress={() => goBackAnimated(navigation)}
+          >
             <Ionicons name="chevron-back" size={18} color={c.ink} />
           </Pressable>
           <Text style={styles.headerTitle}>{t("ap2.judul")}</Text>
         </View>
-        {bisaTim && (
+        {canSeeTeam && (
           <SegmentedControl
             style={{ marginTop: 14 }}
             items={[
@@ -70,26 +73,29 @@ export function AppraisalScreen({ navigation }: ScreenProps) {
 function AppraisalSaya() {
   const t = useT();
   const { employee } = useSession();
-  const penilaian = useLoad(
+  const appraisalData = useLoad(
     () =>
       employee ? hrisApi.getAppraisal(employee.id) : Promise.resolve(null),
     employee?.id,
   );
-  const data = penilaian.data;
+  const data = appraisalData.data;
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
 
   if (!data) {
-    if (penilaian.error) {
+    if (appraisalData.error) {
       return (
         <>
           <ScrollView contentContainerStyle={styles.content}>
-            <ErrorState pesan={penilaian.error} onUlangi={penilaian.ulangi} />
+            <ErrorState
+              message={appraisalData.error}
+              onRetry={appraisalData.retry}
+            />
           </ScrollView>
         </>
       );
     }
-    if (!penilaian.memuat) {
+    if (!appraisalData.isLoading) {
       return (
         <>
           <ScrollView contentContainerStyle={styles.content}>
@@ -194,8 +200,8 @@ function ScoreRing({ score, max }: { score: number; max: number }) {
 
   // Sudut cincin diturunkan dari skor, jadi tidak ada persen yang disimpan
   // terpisah dan bisa melenceng dari angka di tengahnya.
-  const rasio = Math.min(1, Math.max(0, score / max));
-  const isi = CIRC * rasio;
+  const ratio = Math.min(1, Math.max(0, score / max));
+  const content = CIRC * ratio;
 
   return (
     <View style={styles.ring}>
@@ -216,14 +222,16 @@ function ScoreRing({ score, max }: { score: number; max: number }) {
             fill="none"
             stroke={c.accent}
             strokeWidth={STROKE}
-            strokeDasharray={`${isi} ${CIRC - isi}`}
+            strokeDasharray={`${content} ${CIRC - content}`}
           />
         </G>
       </Svg>
 
       <View style={styles.ringHole}>
-        <Text style={styles.ringScore}>{desimal(score)}</Text>
-        <Text style={styles.ringMax}>{t("ap2.dari", { n: desimal(max) })}</Text>
+        <Text style={styles.ringScore}>{formatDecimal(score)}</Text>
+        <Text style={styles.ringMax}>
+          {t("ap2.dari", { n: formatDecimal(max) })}
+        </Text>
       </View>
     </View>
   );
@@ -234,7 +242,7 @@ function RaterRow({ rater, max }: { rater: AppraisalRater; max: number }) {
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
 
-  const pct = Math.min(100, (rater.score / max) * 100);
+  const percent = Math.min(100, (rater.score / max) * 100);
 
   return (
     <View>
@@ -243,11 +251,14 @@ function RaterRow({ rater, max }: { rater: AppraisalRater; max: number }) {
           {rater.name}
         </Text>
         <Text style={styles.raterScore}>
-          {t("ap2.bobot", { skor: desimal(rater.score), w: rater.weight })}
+          {t("ap2.bobot", {
+            skor: formatDecimal(rater.score),
+            w: rater.weight,
+          })}
         </Text>
       </View>
       <View style={styles.track}>
-        <View style={[styles.fill, { width: `${pct}%` }]} />
+        <View style={[styles.fill, { width: `${percent}%` }]} />
       </View>
     </View>
   );

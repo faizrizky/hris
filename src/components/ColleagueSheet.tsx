@@ -37,7 +37,7 @@ export function ColleagueSheet({
   const insets = useSafeAreaInsets();
 
   const [anim] = useState(() => new Animated.Value(0));
-  const [tinggi, setTinggi] = useState(400);
+  const [sheetHeight, setSheetHeight] = useState(400);
 
   useEffect(() => {
     if (!visible) return;
@@ -52,7 +52,7 @@ export function ColleagueSheet({
 
   const translateY = anim.interpolate({
     inputRange: [0, 1],
-    outputRange: [tinggi, 0],
+    outputRange: [sheetHeight, 0],
   });
 
   return (
@@ -67,7 +67,7 @@ export function ColleagueSheet({
       </Animated.View>
 
       <Animated.View
-        onLayout={(e) => setTinggi(e.nativeEvent.layout.height)}
+        onLayout={(e) => setSheetHeight(e.nativeEvent.layout.height)}
         style={[
           styles.sheet,
           { paddingBottom: insets.bottom + 20, transform: [{ translateY }] },
@@ -81,7 +81,7 @@ export function ColleagueSheet({
           <Text style={styles.empty}>{t("cmp.kosongRekan")}</Text>
         ) : (
           options.map((o) => {
-            const on = o.id === value?.id;
+            const isOn = o.id === value?.id;
             return (
               <Pressable
                 key={o.id}
@@ -95,12 +95,14 @@ export function ColleagueSheet({
                   <Text style={styles.avatarText}>{o.initials}</Text>
                 </View>
                 <View style={{ flex: 1, minWidth: 0 }}>
-                  <Text style={[styles.name, on && styles.nameOn]}>
+                  <Text style={[styles.name, isOn && styles.nameOn]}>
                     {o.fullName}
                   </Text>
                   <Text style={styles.job}>{o.jobTitle}</Text>
                 </View>
-                {on && <Ionicons name="checkmark" size={18} color={c.accent} />}
+                {isOn && (
+                  <Ionicons name="checkmark" size={18} color={c.accent} />
+                )}
               </Pressable>
             );
           })

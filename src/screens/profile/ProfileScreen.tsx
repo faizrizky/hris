@@ -17,31 +17,31 @@ import { RadialGlow } from "@/components/RadialGlow";
 import { Skeleton } from "@/components/Skeleton";
 import { Palette } from "@/theme/colors";
 import { useTheme, useThemeMode } from "@/theme/ThemeContext";
-import { tahunSejak } from "@/utils/date";
+import { yearsSince } from "@/utils/date";
 import { hrisApi } from "@/services/api";
-import { keluarAman, useSession } from "@/services/session";
+import { signOutSafely, useSession } from "@/services/session";
 import { LeaveBalance } from "@/services/types";
 import { useConfirm } from "@/components/ConfirmDialog";
 import { useT } from "@/i18n";
 import { LanguagePicker } from "@/components/LanguagePicker";
-import { useFotoProfil } from "@/hooks/useFotoProfil";
+import { useProfilePhoto } from "@/hooks/useFotoProfil";
 
 export function ProfileScreen({ navigation }: ScreenProps) {
   const { employee, setEmployee } = useSession();
   const insets = useSafeAreaInsets();
   const [balances, setBalances] = useState<LeaveBalance[] | null>(null);
-  const [pushOn, setPushOn] = useState(true);
+  const [isPushOn, setIsPushOn] = useState(true);
   const { mode, toggle } = useThemeMode();
   const t = useT();
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
   const confirm = useConfirm();
-  const keluarRef = useRef<View>(null);
-  const foto = useFotoProfil();
+  const exitRef = useRef<View>(null);
+  const photo = useProfilePhoto();
   // Foto memudar masuk sambil sedikit mengecil, selaras animasi halaman lain.
-  const [fotoMuncul] = useState(() => new Animated.Value(0));
-  const munculkanFoto = () =>
-    Animated.timing(fotoMuncul, {
+  const [photoAppear] = useState(() => new Animated.Value(0));
+  const revealPhoto = () =>
+    Animated.timing(photoAppear, {
       toValue: 1,
       duration: 520,
       easing: Easing.bezier(0.25, 0.1, 0.25, 1),
@@ -60,22 +60,22 @@ export function ProfileScreen({ navigation }: ScreenProps) {
 
   if (!employee) return null;
 
-  const cuti = (balances ?? []).find((b) => b.type === "cuti");
+  const leave = (balances ?? []).find((b) => b.type === "cuti");
 
   return (
     <View style={styles.container}>
-      {foto ? (
+      {photo ? (
         <View style={[styles.photoHero, { height: 340 + insets.top }]}>
           <Animated.Image
-            source={{ uri: foto }}
-            onLoad={munculkanFoto}
+            source={{ uri: photo }}
+            onLoad={revealPhoto}
             style={[
               StyleSheet.absoluteFill,
               {
-                opacity: fotoMuncul,
+                opacity: photoAppear,
                 transform: [
                   {
-                    scale: fotoMuncul.interpolate({
+                    scale: photoAppear.interpolate({
                       inputRange: [0, 1],
                       outputRange: [1.06, 1],
                     }),
@@ -146,14 +146,14 @@ export function ProfileScreen({ navigation }: ScreenProps) {
       <ScrollView style={styles.body} contentContainerStyle={styles.content}>
         <View style={styles.statCard}>
           <Stat
-            value={`${tahunSejak(employee.joinDate)} ${t("profil.th")}`}
+            value={`${yearsSince(employee.joinDate)} ${t("profil.th")}`}
             label={t("profil.masaKerja")}
           />
           <View style={styles.statDivider} />
           <Stat
-            value={`${cuti?.remaining ?? "–"}`}
+            value={`${leave?.remaining ?? "–"}`}
             label={t("profil.sisaCuti")}
-            memuat={balances === null}
+            isLoading={balances === null}
           />
           <View style={styles.statDivider} />
           <Stat
@@ -187,8 +187,8 @@ export function ProfileScreen({ navigation }: ScreenProps) {
             subtitle={t("profil.pushSub")}
             trailing={
               <Switch
-                value={pushOn}
-                onValueChange={setPushOn}
+                value={isPushOn}
+                onValueChange={setIsPushOn}
                 trackColor={{ false: c.track, true: c.accent }}
                 thumbColor="#fff"
               />
@@ -233,23 +233,23 @@ export function ProfileScreen({ navigation }: ScreenProps) {
         </View>
 
         <Pressable
-          ref={keluarRef}
+          ref={exitRef}
           style={styles.logout}
           onPress={async () => {
-            const ya = await confirm({
+            const isConfirmed = await confirm({
               title: t("profil.keluarJudul"),
               message: t("profil.keluarPesan"),
               tone: "bad",
               confirmText: t("umum.keluar"),
               cancelText: t("umum.batal"),
-              from: keluarRef,
+              from: exitRef,
               fromColor: c.bad.bg,
               fromTextColor: c.bad.ink,
               fromLabel: t("umum.keluar"),
               fromRadius: 22,
             });
-            if (!ya) return;
-            await keluarAman();
+            if (!isConfirmed) return;
+            await signOutSafely();
             setEmployee(null);
           }}
         >
@@ -263,17 +263,17 @@ export function ProfileScreen({ navigation }: ScreenProps) {
 function Stat({
   value,
   label,
-  memuat,
+  isLoading,
 }: {
   value: string;
   label: string;
-  memuat?: boolean;
+  isLoading?: boolean;
 }) {
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
   return (
     <View style={styles.stat}>
-      {memuat ? (
+      {isLoading ? (
         <Skeleton width={34} height={17} radius={5} />
       ) : (
         <Text style={styles.statValue}>{value}</Text>

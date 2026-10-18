@@ -162,8 +162,8 @@ export function PayslipCompareCard({
   const styles = useMemo(() => makeStyles(c), [c]);
 
   const delta = current.netPay - previous.netPay;
-  const naik = delta >= 0;
-  const persen =
+  const isIncrease = delta >= 0;
+  const percent =
     previous.netPay === 0 ? 0 : Math.abs(delta / previous.netPay) * 100;
 
   return (
@@ -174,12 +174,15 @@ export function PayslipCompareCard({
 
       <View style={styles.compareRow}>
         <View
-          style={[styles.arrow, { backgroundColor: naik ? c.ok.bg : c.bad.bg }]}
+          style={[
+            styles.arrow,
+            { backgroundColor: isIncrease ? c.ok.bg : c.bad.bg },
+          ]}
         >
           <Ionicons
-            name={naik ? "arrow-up" : "arrow-down"}
+            name={isIncrease ? "arrow-up" : "arrow-down"}
             size={16}
-            color={naik ? c.ok.ink : c.bad.ink}
+            color={isIncrease ? c.ok.ink : c.bad.ink}
           />
         </View>
 
@@ -187,17 +190,17 @@ export function PayslipCompareCard({
           <Text
             style={[
               styles.compareValue,
-              { color: naik ? c.ok.ink : c.bad.ink },
+              { color: isIncrease ? c.ok.ink : c.bad.ink },
             ]}
           >
-            {delta === 0 ? "" : naik ? "+ " : "− "}
+            {delta === 0 ? "" : isIncrease ? "+ " : "− "}
             {rupiah(Math.abs(delta))}
           </Text>
           <Text style={styles.compareNote}>
             {delta === 0
               ? t("pay.sama")
-              : t(naik ? "pay.lebihTinggi" : "pay.lebihRendah", {
-                  p: persen.toFixed(1),
+              : t(isIncrease ? "pay.lebihTinggi" : "pay.lebihRendah", {
+                  p: percent.toFixed(1),
                   note: previous.note,
                 })}
           </Text>

@@ -1,45 +1,45 @@
 import { EditableProfile } from "@/services/types";
-import { tt } from "@/i18n";
+import { translate } from "@/i18n";
 
-export interface Kekurangan {
-  judul: string;
-  alasan: string;
+export interface Shortcoming {
+  title: string;
+  reason: string;
 }
 
-export function emailValid(v: string) {
+export function isValidEmail(v: string) {
   return /^\S+@\S+\.\S+$/.test(v.trim());
 }
 
-export function teleponValid(v: string) {
+export function isValidPhone(v: string) {
   return v.replace(/\D/g, "").length >= 8;
 }
 
 /** Satu-satunya tempat yang tahu apa saja yang kurang. */
-export function kekurangan(e: EditableProfile): Kekurangan[] {
-  const out: Kekurangan[] = [];
-  if (!emailValid(e.personalEmail))
+export function findShortcomings(e: EditableProfile): Shortcoming[] {
+  const out: Shortcoming[] = [];
+  if (!isValidEmail(e.personalEmail))
     out.push({
-      judul: tt("kl.email"),
-      alasan: tt("kl.emailAlasan"),
+      title: translate("kl.email"),
+      reason: translate("kl.emailAlasan"),
     });
-  if (!e.contacts.some((k) => k.name.trim() && teleponValid(k.phone)))
+  if (!e.contacts.some((k) => k.name.trim() && isValidPhone(k.phone)))
     out.push({
-      judul: tt("kl.kontak2"),
-      alasan: tt("kl.kontak2Alasan"),
+      title: translate("kl.kontak2"),
+      reason: translate("kl.kontak2Alasan"),
     });
   return out;
 }
 
 // 72% sudah terisi HR dan tidak bisa diubah karyawan; sisanya dua item di atas.
-const DASAR = 72;
+const BASE_FIELDS = 72;
 const PER_ITEM = 14;
 export const TOTAL_ITEM = 2;
 
-export function persenKelengkapan(e: EditableProfile) {
-  return DASAR + (TOTAL_ITEM - kekurangan(e).length) * PER_ITEM;
+export function completenessPercent(e: EditableProfile) {
+  return BASE_FIELDS + (TOTAL_ITEM - findShortcomings(e).length) * PER_ITEM;
 }
 
-export function inisial(nama: string) {
+export function initialsOf(nama: string) {
   return (
     nama
       .trim()

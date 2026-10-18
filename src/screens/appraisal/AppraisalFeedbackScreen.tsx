@@ -12,7 +12,11 @@ import { RevealScrollView as ScrollView } from "@/components/Reveal";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Palette, tombolSekunder, tombolUtama } from "@/theme/colors";
+import {
+  Palette,
+  secondaryButtonStyle,
+  primaryButtonStyle,
+} from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
 import { hrisApi } from "@/services/api";
 import { describeError } from "@/services/api/http";
@@ -20,11 +24,11 @@ import { FeedbackForm } from "@/services/types";
 import { useConfirm } from "@/components/ConfirmDialog";
 import { ErrorState } from "@/components/ErrorState";
 import { Skeleton } from "@/components/Skeleton";
-import { desimal } from "@/utils/currency";
+import { formatDecimal } from "@/utils/currency";
 import { useT } from "@/i18n";
-import { kembali } from "@/navigation/kembali";
+import { goBackAnimated } from "@/navigation/kembali";
 
-const LANGKAH = 0.5;
+const STEPS = 0.5;
 
 // Atasan/HR menilai satu anggota tim: nilai 0–5 per kriteria dan catatan.
 // Bisa disimpan sebagai draft; setelah dikirim tidak bisa diubah lagi.
@@ -39,91 +43,96 @@ export function AppraisalFeedbackScreen({ navigation, route }: ScreenProps) {
   const styles = useMemo(() => makeStyles(c), [c]);
   const confirm = useConfirm();
   // Dialog konfirmasi tumbuh dari tombol ini, seperti dialog Keluar.
-  const pemicu = useRef<View>(null);
+  const triggerRef = useRef<View>(null);
 
   const [form, setForm] = useState<FeedbackForm | null>(null);
-  const [galatMuat, setGalatMuat] = useState<string | null>(null);
-  const [coba, setCoba] = useState(0);
-  const [nilai, setNilai] = useState<Record<string, number>>({});
-  const [catatan, setCatatan] = useState("");
-  const [sending, setSending] = useState(false);
-  const [galat, setGalat] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [attempt, setAttempt] = useState(0);
+  const [ratingValue, setRatingValue] = useState<Record<string, number>>({});
+  const [note, setNote] = useState("");
+  const [isSending, setIsSending] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
-    let batal = false;
+    let isCancelled = false;
     hrisApi
       .getFeedbackForm(employeeId)
       .then((f) => {
-        if (batal) return;
+        if (isCancelled) return;
         setForm(f);
-        setNilai(
+        setRatingValue(
           f.mine?.ratings ??
             Object.fromEntries(f.criteria.map((k) => [k.name, 3])),
         );
-        setCatatan(f.mine?.feedback ?? "");
+        setNote(f.mine?.feedback ?? "");
       })
-      .catch((e) => !batal && setGalatMuat(describeError(e)));
+      .catch((e) => !isCancelled && setLoadError(describeError(e)));
     return () => {
-      batal = true;
+      isCancelled = true;
     };
-  }, [employeeId, coba]);
+  }, [employeeId, attempt]);
 
-  const terkirim = form?.mine?.status === "submitted";
-  const totalBobot = form?.criteria.reduce((a, k) => a + k.weight, 0) ?? 0;
-  const skor = form
+  const isSubmitted = form?.mine?.status === "submitted";
+  const totalWeight = form?.criteria.reduce((a, k) => a + k.weight, 0) ?? 0;
+  const score = form
     ? form.criteria.reduce(
         (a, k) =>
-          a + (nilai[k.name] ?? 0) * (totalBobot ? k.weight / totalBobot : 0),
+          a +
+          (ratingValue[k.name] ?? 0) *
+            (totalWeight ? k.weight / totalWeight : 0),
         0,
       )
     : 0;
 
-  const ubah = (k: string, d: number) =>
-    setNilai((p) => ({
+  const update = (k: string, d: number) =>
+    setRatingValue((p) => ({
       ...p,
       [k]: Math.min(5, Math.max(0, (p[k] ?? 0) + d)),
     }));
 
-  const simpan = async (submit: boolean) => {
-    if (!catatan.trim()) {
-      setGalat(t("fb.catatanWajib"));
+  const save = async (shouldSubmit: boolean) => {
+    if (!note.trim()) {
+      setErrorMessage(t("fb.catatanWajib"));
       return;
     }
-    if (submit) {
-      const ya = await confirm({
+    if (shouldSubmit) {
+      const isConfirmed = await confirm({
         title: t("fb.kirimJudul"),
         message: t("fb.kirimPesan", { nama: employeeName }),
         tone: "warn",
         confirmText: t("fb.kirim"),
         cancelText: t("umum.batal"),
-        from: pemicu,
+        from: triggerRef,
         fromColor: c.accent,
         fromTextColor: "#FFFFFF",
         fromLabel: t("fb.kirim"),
         fromRadius: 14,
       });
-      if (!ya) return;
+      if (!isConfirmed) return;
     }
-    setSending(true);
-    setGalat(null);
+    setIsSending(true);
+    setErrorMessage(null);
     try {
       await hrisApi.submitFeedback({
         employeeId,
-        ratings: nilai,
-        feedback: catatan.trim(),
-        submit,
+        ratings: ratingValue,
+        feedback: note.trim(),
+        submit: shouldSubmit,
       });
-      kembali(navigation);
+      goBackAnimated(navigation);
     } catch (e) {
-      setGalat(describeError(e));
+      setErrorMessage(describeError(e));
     } finally {
-      setSending(false);
+      setIsSending(false);
     }
   };
 
   const header = (
     <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
-      <Pressable style={styles.backBtn} onPress={() => kembali(navigation)}>
+      <Pressable
+        style={styles.backBtn}
+        onPress={() => goBackAnimated(navigation)}
+      >
         <Ionicons name="chevron-back" size={18} color={c.ink} />
       </Pressable>
       <View style={{ flex: 1, minWidth: 0 }}>
@@ -140,12 +149,12 @@ export function AppraisalFeedbackScreen({ navigation, route }: ScreenProps) {
       <View style={styles.container}>
         {header}
         <View style={styles.content}>
-          {galatMuat ? (
+          {loadError ? (
             <ErrorState
-              pesan={galatMuat}
-              onUlangi={() => {
-                setGalatMuat(null);
-                setCoba((n) => n + 1);
+              message={loadError}
+              onRetry={() => {
+                setLoadError(null);
+                setAttempt((n) => n + 1);
               }}
             />
           ) : (
@@ -180,10 +189,10 @@ export function AppraisalFeedbackScreen({ navigation, route }: ScreenProps) {
           >
             <Text style={styles.heroLabel}>{t("fb.skorKamu")}</Text>
             <Text style={styles.heroValue}>
-              {desimal(skor)} <Text style={styles.heroMax}>/ 5</Text>
+              {formatDecimal(score)} <Text style={styles.heroMax}>/ 5</Text>
             </Text>
             <Text style={styles.heroLabel}>
-              {terkirim
+              {isSubmitted
                 ? t("fb.sudahTerkirim")
                 : form.mine
                   ? t("fb.draftTersimpan")
@@ -219,7 +228,7 @@ export function AppraisalFeedbackScreen({ navigation, route }: ScreenProps) {
             <Text style={styles.cardTitle}>{t("fb.kriteria")}</Text>
             <View style={{ gap: 14, marginTop: 12 }}>
               {form.criteria.map((k) => {
-                const v = nilai[k.name] ?? 0;
+                const v = ratingValue[k.name] ?? 0;
                 return (
                   <View key={k.name}>
                     <View style={styles.critHead}>
@@ -229,19 +238,19 @@ export function AppraisalFeedbackScreen({ navigation, route }: ScreenProps) {
                           {t("fb.bobot", { n: k.weight })}
                         </Text>
                       </View>
-                      {!terkirim && (
+                      {!isSubmitted && (
                         <Pressable
                           style={styles.stepBtn}
-                          onPress={() => ubah(k.name, -LANGKAH)}
+                          onPress={() => update(k.name, -STEPS)}
                         >
                           <Ionicons name="remove" size={15} color={c.ink} />
                         </Pressable>
                       )}
-                      <Text style={styles.critValue}>{desimal(v)}</Text>
-                      {!terkirim && (
+                      <Text style={styles.critValue}>{formatDecimal(v)}</Text>
+                      {!isSubmitted && (
                         <Pressable
                           style={[styles.stepBtn, styles.stepBtnOn]}
-                          onPress={() => ubah(k.name, LANGKAH)}
+                          onPress={() => update(k.name, STEPS)}
                         >
                           <Ionicons name="add" size={15} color="#fff" />
                         </Pressable>
@@ -262,32 +271,34 @@ export function AppraisalFeedbackScreen({ navigation, route }: ScreenProps) {
             <Text style={styles.cardTitle}>{t("fb.catatan")}</Text>
             <TextInput
               style={styles.textarea}
-              value={catatan}
-              onChangeText={setCatatan}
-              editable={!terkirim}
+              value={note}
+              onChangeText={setNote}
+              editable={!isSubmitted}
               placeholder={t("fb.catatanContoh")}
               placeholderTextColor={c.mutedLabel}
               multiline
             />
           </View>
-          {galat ? <Text style={styles.galat}>{galat}</Text> : null}
+          {errorMessage ? (
+            <Text style={styles.errorText}>{errorMessage}</Text>
+          ) : null}
         </ScrollView>
       </KeyboardAvoidingView>
 
-      {!terkirim && (
+      {!isSubmitted && (
         <View style={[styles.actionBar, { paddingBottom: insets.bottom + 14 }]}>
           <Pressable
             style={styles.draftBtn}
-            disabled={sending}
-            onPress={() => simpan(false)}
+            disabled={isSending}
+            onPress={() => save(false)}
           >
             <Text style={styles.draftText}>{t("fb.simpanDraft")}</Text>
           </Pressable>
           <Pressable
-            ref={pemicu}
+            ref={triggerRef}
             style={{ flex: 2 }}
-            disabled={sending}
-            onPress={() => simpan(true)}
+            disabled={isSending}
+            onPress={() => save(true)}
           >
             <LinearGradient
               colors={[c.accent, c.accent2]}
@@ -296,7 +307,7 @@ export function AppraisalFeedbackScreen({ navigation, route }: ScreenProps) {
               style={styles.sendBtn}
             >
               <Text style={styles.sendText}>
-                {sending ? t("umum.memproses") : t("fb.kirim")}
+                {isSending ? t("umum.memproses") : t("fb.kirim")}
               </Text>
             </LinearGradient>
           </Pressable>
@@ -407,7 +418,7 @@ const makeStyles = (c: Palette) =>
       color: c.ink,
       textAlignVertical: "top",
     },
-    galat: {
+    errorText: {
       marginTop: 12,
       fontSize: 12,
       fontWeight: "600",
@@ -427,12 +438,12 @@ const makeStyles = (c: Palette) =>
       flex: 1,
       paddingVertical: 14,
       borderRadius: 14,
-      ...tombolSekunder(c),
+      ...secondaryButtonStyle(c),
       alignItems: "center",
     },
     draftText: { fontSize: 13, fontWeight: "700", color: c.btnSoftInk },
     sendBtn: {
-      ...tombolUtama(c),
+      ...primaryButtonStyle(c),
       paddingVertical: 14,
       borderRadius: 14,
       alignItems: "center",

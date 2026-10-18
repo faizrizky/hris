@@ -12,18 +12,18 @@ export function EmptyState({
   title,
   text,
   children,
-  tinggi = 380,
+  height = 380,
 }: {
   icon?: string;
   title: string;
   text?: string;
   children?: React.ReactNode; // mis. tombol aksi
-  tinggi?: number; // lebih pendek bila di atasnya sudah ada kartu ringkasan
+  height?: number; // lebih pendek bila di atasnya sudah ada kartu ringkasan
 }) {
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
   return (
-    <View style={[styles.wrap, { minHeight: tinggi }]}>
+    <View style={[styles.wrap, { minHeight: height }]}>
       <View style={styles.icon}>
         <LineIcon d={icon} color={c.accent} size={26} />
       </View>

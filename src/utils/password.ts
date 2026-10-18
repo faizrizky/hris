@@ -1,38 +1,38 @@
 import { SemanticTone } from "@/theme/colors";
-import { tt } from "@/i18n";
+import { translate } from "@/i18n";
 
-export interface SyaratPassword {
+export interface PasswordRequirement {
   label: string;
   ok: boolean;
 }
 
 /** Satu-satunya definisi syarat password. */
-export function syaratPassword(pw: string): SyaratPassword[] {
+export function getPasswordRequirements(pw: string): PasswordRequirement[] {
   return [
-    { label: tt("pw.min8"), ok: pw.length >= 8 },
-    { label: tt("pw.besar"), ok: /[A-Z]/.test(pw) },
-    { label: tt("pw.angka"), ok: /\d/.test(pw) },
-    { label: tt("pw.simbol"), ok: /[^A-Za-z0-9]/.test(pw) },
+    { label: translate("pw.min8"), ok: pw.length >= 8 },
+    { label: translate("pw.besar"), ok: /[A-Z]/.test(pw) },
+    { label: translate("pw.angka"), ok: /\d/.test(pw) },
+    { label: translate("pw.simbol"), ok: /[^A-Za-z0-9]/.test(pw) },
   ];
 }
 
-export const TOTAL_SYARAT = 4;
+export const TOTAL_REQUIREMENTS = 4;
 
-export function skorPassword(pw: string) {
-  return syaratPassword(pw).filter((s) => s.ok).length;
+export function scorePassword(pw: string) {
+  return getPasswordRequirements(pw).filter((s) => s.ok).length;
 }
 
-export function labelKekuatan(pw: string) {
-  if (!pw) return tt("pw.kosong");
-  return tt(
+export function getStrengthLabel(pw: string) {
+  if (!pw) return translate("pw.kosong");
+  return translate(
     (["pw.lemah", "pw.lemah", "pw.cukup", "pw.kuat", "pw.sangatKuat"] as const)[
-      Math.max(skorPassword(pw), 1)
+      Math.max(scorePassword(pw), 1)
     ],
   );
 }
 
-export function toneKekuatan(pw: string): SemanticTone {
-  const s = skorPassword(pw);
+export function getStrengthTone(pw: string): SemanticTone {
+  const s = scorePassword(pw);
   if (s <= 1) return "bad";
   if (s === 2) return "warn";
   if (s === 3) return "info";

@@ -18,9 +18,14 @@ import {
   ATTENDANCE_STATUS_LABEL as STATUS_LABEL,
   ATTENDANCE_STATUS_TONE as STATUS_TONE,
 } from "@/constants/statusLabels";
-import { namaHari, tanggalAngka, bulanSingkat, namaBulan } from "@/utils/date";
-import { useT, bahasaAktif } from "@/i18n";
-import { kembali } from "@/navigation/kembali";
+import {
+  getWeekdayName,
+  formatNumericDate,
+  getShortMonth,
+  getMonthName,
+} from "@/utils/date";
+import { useT, getActiveLanguage } from "@/i18n";
+import { goBackAnimated } from "@/navigation/kembali";
 
 type Filter = "semua" | "telat" | "izin";
 
@@ -28,46 +33,47 @@ export function AttendanceHistoryScreen({ navigation }: ScreenProps) {
   const t = useT();
   const { employee } = useSession();
   const insets = useSafeAreaInsets();
-  const riwayat = useLoad(
+  const history = useLoad(
     () =>
       employee
         ? hrisApi.getAttendanceHistory(employee.id)
         : Promise.resolve([]),
     employee?.id,
   );
-  const records = riwayat.data;
+  const records = history.data;
   const [filter, setFilter] = useState<Filter>("semua");
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
 
-  const memuat = riwayat.memuat;
-  const semua = records ?? [];
+  const isMemuat = history.isLoading;
+  const all = records ?? [];
 
   const count = (s: AttendanceStatus) =>
-    semua.filter((r) => r.status === s).length;
+    all.filter((r) => r.status === s).length;
 
-  const hadir = count("hadir");
-  const telat = count("telat");
-  const izin = count("izin");
+  const presentCount = count("hadir");
+  const lateMinutes = count("telat");
+  const permission = count("izin");
 
-  const persen = semua.length
-    ? `${(((hadir + telat) / semua.length) * 100).toFixed(1).replace(".", bahasaAktif() === "en" ? "." : ",")}%`
+  const percent = all.length
+    ? `${(((presentCount + lateMinutes) / all.length) * 100).toFixed(1).replace(".", getActiveLanguage() === "en" ? "." : ",")}%`
     : "–";
 
-  const filtered = semua.filter(
-    (r) => filter === "semua" || r.status === filter,
-  );
+  const filtered = all.filter((r) => filter === "semua" || r.status === filter);
 
   const chips: { key: Filter; label: string }[] = [
-    { key: "semua", label: namaBulan() },
-    { key: "telat", label: t("ab.telatN", { n: telat }) },
-    { key: "izin", label: t("ab.izinN", { n: izin }) },
+    { key: "semua", label: getMonthName() },
+    { key: "telat", label: t("ab.telatN", { n: lateMinutes }) },
+    { key: "izin", label: t("ab.izinN", { n: permission }) },
   ];
 
   return (
     <View style={styles.container}>
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
-        <Pressable style={styles.backBtn} onPress={() => kembali(navigation)}>
+        <Pressable
+          style={styles.backBtn}
+          onPress={() => goBackAnimated(navigation)}
+        >
           <Ionicons name="chevron-back" size={18} color={c.ink} />
         </Pressable>
         <Text style={styles.headerTitle}>{t("ab.hTitle")}</Text>
@@ -79,14 +85,14 @@ export function AttendanceHistoryScreen({ navigation }: ScreenProps) {
 
       <View style={styles.chipRow}>
         {chips.map((c) => {
-          const on = filter === c.key;
+          const isOn = filter === c.key;
           return (
             <Pressable
               key={c.key}
               onPress={() => setFilter(c.key)}
-              style={[styles.chip, on && styles.chipOn]}
+              style={[styles.chip, isOn && styles.chipOn]}
             >
-              <Text style={[styles.chipText, on && styles.chipTextOn]}>
+              <Text style={[styles.chipText, isOn && styles.chipTextOn]}>
                 {c.label}
               </Text>
             </Pressable>
@@ -103,7 +109,7 @@ export function AttendanceHistoryScreen({ navigation }: ScreenProps) {
             <View style={{ flex: 1 }}>
               <Text style={styles.recapLabel}>{t("ab.rekap")}</Text>
               <View style={styles.recapRow}>
-                {memuat ? (
+                {isMemuat ? (
                   ["hadir", "telat", "izin", "alpha"].map((l) => (
                     <View key={l} style={{ gap: 6 }}>
                       <Skeleton width={26} height={20} radius={6} />
@@ -112,14 +118,18 @@ export function AttendanceHistoryScreen({ navigation }: ScreenProps) {
                   ))
                 ) : (
                   <>
-                    <Recap value={hadir} label={t("st.hadir")} color={c.ink} />
                     <Recap
-                      value={telat}
+                      value={presentCount}
+                      label={t("st.hadir")}
+                      color={c.ink}
+                    />
+                    <Recap
+                      value={lateMinutes}
                       label={t("st.telat")}
                       color={c.warn.ink}
                     />
                     <Recap
-                      value={izin}
+                      value={permission}
                       label={t("st.izin")}
                       color={c.info.ink}
                     />
@@ -129,27 +139,27 @@ export function AttendanceHistoryScreen({ navigation }: ScreenProps) {
               </View>
             </View>
 
-            {memuat ? (
+            {isMemuat ? (
               <Skeleton width={70} height={70} radius={35} />
             ) : (
               <DonutChart
                 size={70}
                 stroke={11}
                 segments={[
-                  { value: hadir, color: c.accent },
-                  { value: telat, color: c.warn.ink },
-                  { value: izin, color: c.accentLight },
+                  { value: presentCount, color: c.accent },
+                  { value: lateMinutes, color: c.warn.ink },
+                  { value: permission, color: c.accentLight },
                 ]}
               >
-                <Text style={styles.donutText}>{persen}</Text>
+                <Text style={styles.donutText}>{percent}</Text>
               </DonutChart>
             )}
           </View>
         }
         ListEmptyComponent={
-          riwayat.error && !records ? (
-            <ErrorState pesan={riwayat.error} onUlangi={riwayat.ulangi} />
-          ) : memuat ? (
+          history.error && !records ? (
+            <ErrorState message={history.error} onRetry={history.retry} />
+          ) : isMemuat ? (
             <>
               {[0, 1, 2, 3].map((i) => (
                 <View key={i} style={styles.row}>
@@ -167,12 +177,12 @@ export function AttendanceHistoryScreen({ navigation }: ScreenProps) {
         renderItem={({ item }) => (
           <View style={styles.row}>
             <View style={styles.dateChip}>
-              <Text style={styles.dateDay}>{tanggalAngka(item.date)}</Text>
-              <Text style={styles.dateMonth}>{bulanSingkat(item.date)}</Text>
+              <Text style={styles.dateDay}>{formatNumericDate(item.date)}</Text>
+              <Text style={styles.dateMonth}>{getShortMonth(item.date)}</Text>
             </View>
 
             <View style={{ flex: 1, minWidth: 0 }}>
-              <Text style={styles.dow}>{namaHari(item.date)}</Text>
+              <Text style={styles.dow}>{getWeekdayName(item.date)}</Text>
               <Text style={styles.detail}>
                 {item.checkIn ?? "—"} — {item.checkOut ?? "—"} ·{" "}
                 {item.durationLabel ?? "—"}

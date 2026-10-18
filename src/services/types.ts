@@ -37,7 +37,7 @@ export interface AttendanceCorrectionRequest {
   reason: string;
   status: AttendanceRequestedStatus;
   attachments?: { name: string; url: string }[];
-  buktiGagal?: number;
+  failedProofCount?: number;
 }
 
 export type OvertimeStatus = "pending" | "approved" | "paid" | "rejected";
@@ -69,7 +69,7 @@ export interface FaceStatus {
 }
 
 // Lokasi saat check-in; server menilai jarak, akurasi, dan keaslian lokasinya.
-export interface LokasiCheckin {
+export interface CheckinLocation {
   lat: number;
   lng: number;
   accuracyM: number;
@@ -86,7 +86,7 @@ export interface WorkLocation {
 }
 
 // Aturan lokasi untuk presensi hari ini, dari server.
-export interface AturanLokasi {
+export interface GeofenceRule {
   locations: WorkLocation[];
   mode: "Off" | "Flag" | "Block";
   maxAccuracyM: number;
@@ -95,7 +95,7 @@ export interface AturanLokasi {
 }
 
 // Ringkasan skor anti-spoofing (mode bayangan) selama liveness; hanya dicatat server.
-export interface SpoofRingkas {
+export interface SpoofSummary {
   mean: number;
   scores: number[]; // skor per frame (0..1), maksimal 40
 }
@@ -151,10 +151,10 @@ export interface LeaveRequest {
   decision: LeaveDecision;
   createdAt: string;
   attachments?: { name: string; url: string }[];
-  buktiGagal?: number; // jumlah lampiran yang gagal diunggah setelah pengajuan terkirim
+  failedProofCount?: number; // jumlah lampiran yang gagal diunggah setelah pengajuan terkirim
 }
 
-export interface BerkasLampiran {
+export interface AttachmentFile {
   uri: string;
   name: string;
   mimeType: string;
@@ -510,15 +510,15 @@ export interface HrisApi {
   getClockState(employeeId: string): Promise<ClockState>;
   clockIn(
     employeeId: string,
-    lokasi?: LokasiCheckin,
+    lokasi?: CheckinLocation,
     faceVec?: number[],
-    spoof?: SpoofRingkas,
+    spoof?: SpoofSummary,
   ): Promise<ClockState>;
   clockOut(
     employeeId: string,
-    lokasi?: LokasiCheckin,
+    lokasi?: CheckinLocation,
     faceVec?: number[],
-    spoof?: SpoofRingkas,
+    spoof?: SpoofSummary,
   ): Promise<ClockState>;
   getFaceStatus(): Promise<FaceStatus>;
   // Mencatat percobaan verifikasi wajah (skor saja) untuk penyetelan ambang; gagal dicatat tidak boleh mengganggu absen.
@@ -542,12 +542,12 @@ export interface HrisApi {
     embeddings: number[][];
     ktpEmbedding: number[];
     profileEmbedding: number[];
-    selfie?: BerkasLampiran;
-    spoof?: SpoofRingkas;
+    selfie?: AttachmentFile;
+    spoof?: SpoofSummary;
   }): Promise<{ scoreKtp: number; scoreProfile: number }>;
   // dryRun: hanya menghitung kemiripan (untuk peringatan dini), tanpa mengajukan.
   submitProfilePhoto(input: {
-    photo?: BerkasLampiran;
+    photo?: AttachmentFile;
     embedding: number[];
     ktpEmbedding?: number[];
     dryRun?: boolean;
@@ -556,7 +556,7 @@ export interface HrisApi {
     scoreKtp: number | null;
     belowMin: boolean;
   }>;
-  getWorkLocations(): Promise<AturanLokasi>;
+  getWorkLocations(): Promise<GeofenceRule>;
   getAttendanceHistory(employeeId: string): Promise<AttendanceRecord[]>;
   // Riwayat karyawan lain, untuk atasan/HR (server membatasi hak aksesnya).
   getStaffAttendanceHistory(staffId: string): Promise<AttendanceRecord[]>;
@@ -584,7 +584,7 @@ export interface HrisApi {
   ): Promise<void>;
   // Karyawan: minta mengubah dokumen yang sudah terverifikasi, atau ganti berkasnya.
   requestDocumentChange(id: string, reason: string): Promise<void>;
-  replaceDocumentFile(id: string, file: BerkasLampiran): Promise<void>;
+  replaceDocumentFile(id: string, file: AttachmentFile): Promise<void>;
 
   // Atasan/HR: penilaian kinerja tim.
   getTeamAppraisals(): Promise<TeamAppraisal[]>;
@@ -621,7 +621,7 @@ export interface HrisApi {
     leaveType?: string; // nama Leave Type ERPNext bila bukan Tahunan/Sakit
     overtimeEnd?: string; // lembur: "HH:MM"
     wfhDays?: string[]; // wfh: mon..sun
-    attachments?: BerkasLampiran[]; // lembur: bukti
+    attachments?: AttachmentFile[]; // lembur: bukti
     travel?: {
       destination: string;
       transport: string; // nilai TRANSPORTASI di aplikasi
@@ -630,7 +630,7 @@ export interface HrisApi {
         category: string;
         description: string;
         amount: number;
-        proof?: BerkasLampiran;
+        proof?: AttachmentFile;
       }[];
     };
   }): Promise<LeaveRequest>;
@@ -643,7 +643,7 @@ export interface HrisApi {
     requestedCheckIn: string;
     requestedCheckOut: string;
     reason: string;
-    attachments?: BerkasLampiran[];
+    attachments?: AttachmentFile[];
   }): Promise<AttendanceCorrectionRequest>;
 
   getPendingApprovals(approverId: string): Promise<LeaveRequest[]>;

@@ -1,4 +1,4 @@
-import { tahanKunci } from "@/services/biometrik";
+import { holdLock } from "@/services/biometrik";
 import type { ScreenProps } from "@/navigation/types";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
@@ -18,7 +18,11 @@ import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { Palette, tombolSekunder, tombolUtama } from "@/theme/colors";
+import {
+  Palette,
+  secondaryButtonStyle,
+  primaryButtonStyle,
+} from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
 import { hrisApi } from "@/services/api";
 import { describeError } from "@/services/api/http";
@@ -26,23 +30,23 @@ import { useSession } from "@/services/session";
 import { useT } from "@/i18n";
 import { useConfirm } from "@/components/ConfirmDialog";
 import { EmptyState } from "@/components/EmptyState";
-import { kembali } from "@/navigation/kembali";
-import { simpanLampiran } from "@/utils/lampiran";
-import { jadikanJpeg } from "@/utils/jadikanJpeg";
-import { inisial } from "@/utils/ProfileCompleteness";
-import { useFotoProfil } from "@/hooks/useFotoProfil";
-import { embeddingWajah, wajahDidukung } from "@/services/faceCheck";
-import { Kepala, type VarianKepala } from "./KepalaIlustrasi";
+import { goBackAnimated } from "@/navigation/kembali";
+import { saveAttachment } from "@/utils/lampiran";
+import { toJpeg } from "@/utils/jadikanJpeg";
+import { initialsOf } from "@/utils/ProfileCompleteness";
+import { useProfilePhoto } from "@/hooks/useFotoProfil";
+import { getFaceEmbedding, isFaceSupported } from "@/services/faceCheck";
+import { Head, type HeadVariant } from "./KepalaIlustrasi";
 
-const SLIDES: { judul: string; isi: string; salah: VarianKepala }[] = [
-  { judul: "pf.t1", isi: "pf.t1Isi", salah: "gelap" },
-  { judul: "pf.t2", isi: "pf.t2Isi", salah: "menoleh" },
-  { judul: "pf.t3", isi: "pf.t3Isi", salah: "kacamata" },
+const SLIDES: { title: string; content: string; headVariant: HeadVariant }[] = [
+  { title: "pf.t1", content: "pf.t1Isi", headVariant: "gelap" },
+  { title: "pf.t2", content: "pf.t2Isi", headVariant: "menoleh" },
+  { title: "pf.t3", content: "pf.t3Isi", headVariant: "kacamata" },
 ];
 
 const EASE = Easing.bezier(0.25, 0.1, 0.25, 1);
 
-type Tahap = "panduan" | "pilih" | "tinjau" | "selesai";
+type UpdateStage = "panduan" | "pilih" | "tinjau" | "selesai";
 
 // Ganti foto profil: panduan (slide), pilih/ambil foto, tinjau, lalu ajukan
 // ke HR. Sebelum dikirim, kemiripannya dengan wajah terdaftar dihitung dan
@@ -54,19 +58,19 @@ export function ProfilePhotoScreen({ navigation }: ScreenProps) {
   const c = useTheme();
   const insets = useSafeAreaInsets();
   const styles = useMemo(() => makeStyles(c), [c]);
-  const sekarang = useFotoProfil();
-  const [tahap, setTahap] = useState<Tahap>("panduan");
+  const now = useProfilePhoto();
+  const [stage, setStage] = useState<UpdateStage>("panduan");
   const [baru, setBaru] = useState<string | null>(null);
-  const [sibuk, setSibuk] = useState(false);
-  const [galat, setGalat] = useState<string | null>(null);
+  const [isBusy, setIsBusy] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   // Setiap ganti tahap, isi memudar masuk sambil naik sedikit.
-  const [muncul] = useState(() => new Animated.Value(1));
-  const keTahap = (next: Tahap) => {
-    setGalat(null);
-    setTahap(next);
-    muncul.setValue(0);
-    Animated.timing(muncul, {
+  const [appear] = useState(() => new Animated.Value(1));
+  const goToStep = (next: UpdateStage) => {
+    setErrorMessage(null);
+    setStage(next);
+    appear.setValue(0);
+    Animated.timing(appear, {
       toValue: 1,
       duration: 320,
       easing: EASE,
@@ -74,20 +78,20 @@ export function ProfilePhotoScreen({ navigation }: ScreenProps) {
     }).start();
   };
 
-  const pilih = async (kamera: boolean) => {
-    setGalat(null);
-    const izin = kamera
+  const pick = async (isFromCamera: boolean) => {
+    setErrorMessage(null);
+    const permission = isFromCamera
       ? await ImagePicker.requestCameraPermissionsAsync()
       : await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!izin.granted) {
-      setGalat(t("pf.izin"));
+    if (!permission.granted) {
+      setErrorMessage(t("pf.izin"));
       return;
     }
-    tahanKunci();
-    const buka = kamera
+    holdLock();
+    const launchPicker = isFromCamera
       ? ImagePicker.launchCameraAsync
       : ImagePicker.launchImageLibraryAsync;
-    const r = await buka({
+    const r = await launchPicker({
       mediaTypes: ["images"],
       quality: 0.7,
       allowsEditing: true,
@@ -96,92 +100,92 @@ export function ProfilePhotoScreen({ navigation }: ScreenProps) {
     });
     if (r.canceled) return;
     try {
-      setBaru(await jadikanJpeg(r.assets[0]!.uri));
-      keTahap("tinjau");
+      setBaru(await toJpeg(r.assets[0]!.uri));
+      goToStep("tinjau");
     } catch {
-      setGalat(t("pf.formatGagal"));
+      setErrorMessage(t("pf.formatGagal"));
     }
   };
 
-  const ajukan = async () => {
+  const submitRequest = async () => {
     if (!baru) return;
-    setSibuk(true);
-    setGalat(null);
+    setIsBusy(true);
+    setErrorMessage(null);
     try {
-      const emb = await embeddingWajah(baru);
-      if (!emb) {
-        setGalat(t("pf.tanpaWajah"));
+      const faceEmbedding = await getFaceEmbedding(baru);
+      if (!faceEmbedding) {
+        setErrorMessage(t("pf.tanpaWajah"));
         return;
       }
       const status = await hrisApi.getFaceStatus();
-      let ktpEmb: number[] | undefined;
+      let idCardEmbedding: number[] | undefined;
       if (status.ktpUrl) {
         try {
-          const k = await embeddingWajah(
-            await simpanLampiran(status.ktpUrl, "ktp"),
+          const k = await getFaceEmbedding(
+            await saveAttachment(status.ktpUrl, "ktp"),
           );
-          if (k) ktpEmb = k;
+          if (k) idCardEmbedding = k;
         } catch {
           // pembanding KTP opsional
         }
       }
-      const cek = await hrisApi.submitProfilePhoto({
-        embedding: emb,
-        ktpEmbedding: ktpEmb,
+      const checkResult = await hrisApi.submitProfilePhoto({
+        embedding: faceEmbedding,
+        ktpEmbedding: idCardEmbedding,
         dryRun: true,
       });
-      if (cek.belowMin) {
-        const lanjut = await confirm({
+      if (checkResult.belowMin) {
+        const isConfirmed = await confirm({
           title: t("pf.rendahJudul"),
           message: t("pf.rendahPesan"),
           tone: "warn",
           confirmText: t("pf.tetapAjukan"),
           cancelText: t("pf.pilihLain"),
         });
-        if (!lanjut) return;
+        if (!isConfirmed) return;
       }
       await hrisApi.submitProfilePhoto({
         photo: { uri: baru, name: "profil.jpg", mimeType: "image/jpeg" },
-        embedding: emb,
-        ktpEmbedding: ktpEmb,
+        embedding: faceEmbedding,
+        ktpEmbedding: idCardEmbedding,
       });
-      keTahap("selesai");
+      goToStep("selesai");
     } catch (e) {
-      setGalat(describeError(e));
+      setErrorMessage(describeError(e));
     } finally {
-      setSibuk(false);
+      setIsBusy(false);
     }
   };
 
-  const mundur = () => {
-    if (tahap === "tinjau") keTahap("pilih");
-    else if (tahap === "pilih") keTahap("panduan");
-    else kembali(navigation);
+  const stepBack = () => {
+    if (stage === "tinjau") goToStep("pilih");
+    else if (stage === "pilih") goToStep("panduan");
+    else goBackAnimated(navigation);
   };
 
   const header = (
     <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
-      <Pressable style={styles.backBtn} onPress={mundur}>
+      <Pressable style={styles.backBtn} onPress={stepBack}>
         <Ionicons name="chevron-back" size={18} color={c.ink} />
       </Pressable>
       <View style={{ flex: 1, minWidth: 0 }}>
         <Text style={styles.headerTitle}>{t("pf.judul")}</Text>
         <Text style={styles.headerSub}>{t("pf.sub")}</Text>
       </View>
-      {tahap === "panduan" ? (
-        <Pressable onPress={() => keTahap("pilih")} hitSlop={10}>
+      {stage === "panduan" ? (
+        <Pressable onPress={() => goToStep("pilih")} hitSlop={10}>
           <Text style={styles.skip}>{t("pf.lewati")}</Text>
         </Pressable>
       ) : null}
     </View>
   );
 
-  const gaya = {
+  const styleVariant = {
     flex: 1,
-    opacity: muncul,
+    opacity: appear,
     transform: [
       {
-        translateY: muncul.interpolate({
+        translateY: appear.interpolate({
           inputRange: [0, 1],
           outputRange: [14, 0],
         }),
@@ -192,20 +196,20 @@ export function ProfilePhotoScreen({ navigation }: ScreenProps) {
   return (
     <View style={styles.container}>
       {header}
-      <Animated.View style={gaya}>
-        {tahap === "panduan" ? (
-          <Panduan
-            onSelesai={() => keTahap("pilih")}
+      <Animated.View style={styleVariant}>
+        {stage === "panduan" ? (
+          <Guide
+            onDone={() => goToStep("pilih")}
             styles={styles}
             c={c}
-            bawah={insets.bottom}
+            bottom={insets.bottom}
           />
-        ) : tahap === "pilih" ? (
+        ) : stage === "pilih" ? (
           <ScrollView contentContainerStyle={styles.content}>
             <View style={[styles.card, { alignItems: "center" }]}>
               <View style={styles.currentWrap}>
-                {sekarang ? (
-                  <Image source={{ uri: sekarang }} style={styles.currentImg} />
+                {now ? (
+                  <Image source={{ uri: now }} style={styles.currentImg} />
                 ) : (
                   <LinearGradient
                     colors={[c.accent, c.accent2]}
@@ -214,7 +218,7 @@ export function ProfilePhotoScreen({ navigation }: ScreenProps) {
                     style={styles.currentImg}
                   >
                     <Text style={styles.currentInitial}>
-                      {inisial(employee?.fullName ?? "")}
+                      {initialsOf(employee?.fullName ?? "")}
                     </Text>
                   </LinearGradient>
                 )}
@@ -222,27 +226,29 @@ export function ProfilePhotoScreen({ navigation }: ScreenProps) {
                   <Ionicons name="camera" size={16} color="#fff" />
                 </View>
               </View>
-              <Text style={styles.pilihTitle}>
-                {sekarang ? t("pf.fotoSekarang") : t("pf.belumAdaFoto")}
+              <Text style={styles.pickTitle}>
+                {now ? t("pf.fotoSekarang") : t("pf.belumAdaFoto")}
               </Text>
-              <Text style={styles.pilihSub}>{t("pf.pilihSub")}</Text>
+              <Text style={styles.pickSubtitle}>{t("pf.pilihSub")}</Text>
             </View>
 
-            {galat ? <GalatBox teks={galat} styles={styles} c={c} /> : null}
+            {errorMessage ? (
+              <ErrorBox text={errorMessage} styles={styles} c={c} />
+            ) : null}
 
-            <Tombol
+            <Button
               label={t("pf.bukaKamera")}
               icon="camera-outline"
-              onPress={() => pilih(true)}
+              onPress={() => pick(true)}
               styles={styles}
               c={c}
             />
-            <Pressable style={styles.secondary} onPress={() => pilih(false)}>
+            <Pressable style={styles.secondary} onPress={() => pick(false)}>
               <Ionicons name="images-outline" size={17} color={c.accent} />
               <Text style={styles.secondaryText}>{t("pf.galeri")}</Text>
             </Pressable>
           </ScrollView>
-        ) : tahap === "tinjau" && baru ? (
+        ) : stage === "tinjau" && baru ? (
           <ScrollView contentContainerStyle={styles.content}>
             <View style={styles.card}>
               <View style={styles.preview}>
@@ -253,8 +259,8 @@ export function ProfilePhotoScreen({ navigation }: ScreenProps) {
               </View>
               <View style={styles.compareRow}>
                 <View style={styles.miniWrap}>
-                  {sekarang ? (
-                    <Image source={{ uri: sekarang }} style={styles.mini} />
+                  {now ? (
+                    <Image source={{ uri: now }} style={styles.mini} />
                   ) : (
                     <LinearGradient
                       colors={[c.accent, c.accent2]}
@@ -263,7 +269,7 @@ export function ProfilePhotoScreen({ navigation }: ScreenProps) {
                       style={styles.mini}
                     >
                       <Text style={styles.miniText}>
-                        {inisial(employee?.fullName ?? "")}
+                        {initialsOf(employee?.fullName ?? "")}
                       </Text>
                     </LinearGradient>
                   )}
@@ -275,25 +281,25 @@ export function ProfilePhotoScreen({ navigation }: ScreenProps) {
               </View>
             </View>
 
-            {galat || !wajahDidukung() ? (
-              <GalatBox
-                teks={galat ?? t("face.tidakDidukung")}
+            {errorMessage || !isFaceSupported() ? (
+              <ErrorBox
+                text={errorMessage ?? t("face.tidakDidukung")}
                 styles={styles}
                 c={c}
               />
             ) : null}
 
-            <Tombol
-              label={sibuk ? t("umum.memproses") : t("pf.ajukan")}
-              onPress={ajukan}
-              disabled={sibuk || !wajahDidukung()}
+            <Button
+              label={isBusy ? t("umum.memproses") : t("pf.ajukan")}
+              onPress={submitRequest}
+              disabled={isBusy || !isFaceSupported()}
               styles={styles}
               c={c}
             />
             <Pressable
               style={styles.secondary}
-              onPress={() => keTahap("pilih")}
-              disabled={sibuk}
+              onPress={() => goToStep("pilih")}
+              disabled={isBusy}
             >
               <Text style={styles.secondaryText}>{t("pf.ulang")}</Text>
             </Pressable>
@@ -306,10 +312,10 @@ export function ProfilePhotoScreen({ navigation }: ScreenProps) {
               text={t("pf.terkirim")}
             >
               <Pressable
-                style={styles.kembaliBtn}
-                onPress={() => kembali(navigation)}
+                style={styles.goBackButton}
+                onPress={() => goBackAnimated(navigation)}
               >
-                <Text style={styles.kembaliText}>{t("pf.kembali")}</Text>
+                <Text style={styles.goBackText}>{t("pf.kembali")}</Text>
               </Pressable>
             </EmptyState>
           </ScrollView>
@@ -320,36 +326,36 @@ export function ProfilePhotoScreen({ navigation }: ScreenProps) {
 }
 
 // Panduan foto bergaya onboarding: slide geser, titik penanda, tombol Lanjut.
-function Panduan({
-  onSelesai,
+function Guide({
+  onDone,
   styles,
   c,
-  bawah,
+  bottom,
 }: {
-  onSelesai: () => void;
+  onDone: () => void;
   styles: ReturnType<typeof makeStyles>;
   c: Palette;
-  bawah: number;
+  bottom: number;
 }) {
   const t = useT();
   const { width } = useWindowDimensions();
-  const [geser] = useState(() => new Animated.Value(0));
+  const [slideValue] = useState(() => new Animated.Value(0));
   const pager = useRef<RNScrollView>(null);
   const [hal, setHal] = useState(0);
-  const terakhir = hal === SLIDES.length - 1;
+  const isLastSlide = hal === SLIDES.length - 1;
 
   // Ilustrasi slide pertama ikut "mengapung" pelan supaya halaman terasa hidup.
-  const [apung] = useState(() => new Animated.Value(0));
+  const [floating] = useState(() => new Animated.Value(0));
   useEffect(() => {
     const loop = Animated.loop(
       Animated.sequence([
-        Animated.timing(apung, {
+        Animated.timing(floating, {
           toValue: 1,
           duration: 1800,
           easing: Easing.inOut(Easing.ease),
           useNativeDriver: true,
         }),
-        Animated.timing(apung, {
+        Animated.timing(floating, {
           toValue: 0,
           duration: 1800,
           easing: Easing.inOut(Easing.ease),
@@ -359,11 +365,11 @@ function Panduan({
     );
     loop.start();
     return () => loop.stop();
-  }, [apung]);
+  }, [floating]);
 
-  const lanjut = () => {
-    if (terakhir) {
-      onSelesai();
+  const proceed = () => {
+    if (isLastSlide) {
+      onDone();
       return;
     }
     pager.current?.scrollTo({ x: (hal + 1) * width, animated: true });
@@ -378,7 +384,7 @@ function Panduan({
         pagingEnabled
         showsHorizontalScrollIndicator={false}
         onScroll={Animated.event(
-          [{ nativeEvent: { contentOffset: { x: geser } } }],
+          [{ nativeEvent: { contentOffset: { x: slideValue } } }],
           { useNativeDriver: true },
         )}
         scrollEventThrottle={16}
@@ -387,13 +393,13 @@ function Panduan({
         }
       >
         {SLIDES.map((s, i) => {
-          const masuk = geser.interpolate({
+          const masuk = slideValue.interpolate({
             inputRange: [(i - 1) * width, i * width, (i + 1) * width],
             outputRange: [0, 1, 0],
             extrapolate: "clamp",
           });
           return (
-            <View key={s.judul} style={[styles.slide, { width }]}>
+            <View key={s.title} style={[styles.slide, { width }]}>
               <Animated.View
                 style={[
                   styles.stage,
@@ -407,7 +413,7 @@ function Panduan({
                         }),
                       },
                       {
-                        translateY: apung.interpolate({
+                        translateY: floating.interpolate({
                           inputRange: [0, 1],
                           outputRange: [0, -6],
                         }),
@@ -423,52 +429,52 @@ function Panduan({
                   style={StyleSheet.absoluteFill}
                 />
                 <View style={styles.exampleRow}>
-                  <Kepala varian="benar" ukuran={96} c={c} />
-                  <Tanda ok c={c} />
+                  <Head variant="benar" size={96} c={c} />
+                  <Mark ok c={c} />
                 </View>
                 <View style={styles.exampleRow}>
-                  <Kepala varian={s.salah} ukuran={96} c={c} />
-                  <Tanda c={c} />
+                  <Head variant={s.headVariant} size={96} c={c} />
+                  <Mark c={c} />
                 </View>
               </Animated.View>
               <Animated.Text style={[styles.slideTitle, { opacity: masuk }]}>
-                {t(s.judul as never)}
+                {t(s.title as never)}
               </Animated.Text>
               <Animated.Text style={[styles.slideText, { opacity: masuk }]}>
-                {t(s.isi as never)}
+                {t(s.content as never)}
               </Animated.Text>
             </View>
           );
         })}
       </Animated.ScrollView>
 
-      <View style={[styles.pagerBar, { paddingBottom: bawah + 20 }]}>
+      <View style={[styles.pagerBar, { paddingBottom: bottom + 20 }]}>
         <View style={styles.dots}>
           {SLIDES.map((s, i) => {
-            const aktif = geser.interpolate({
+            const dotProgress = slideValue.interpolate({
               inputRange: [(i - 1) * width, i * width, (i + 1) * width],
               outputRange: [0, 1, 0],
               extrapolate: "clamp",
             });
             return (
-              <View key={s.judul} style={styles.dotSlot}>
+              <View key={s.title} style={styles.dotSlot}>
                 <View style={styles.dot} />
                 <Animated.View
                   style={[
                     styles.dot,
                     styles.dotOn,
                     StyleSheet.absoluteFill,
-                    { opacity: aktif },
+                    { opacity: dotProgress },
                   ]}
                 />
               </View>
             );
           })}
         </View>
-        <Tombol
-          label={terakhir ? t("pf.mulai") : t("pf.lanjut")}
-          icon={terakhir ? "camera-outline" : undefined}
-          onPress={lanjut}
+        <Button
+          label={isLastSlide ? t("pf.mulai") : t("pf.lanjut")}
+          icon={isLastSlide ? "camera-outline" : undefined}
+          onPress={proceed}
           styles={styles}
           c={c}
         />
@@ -477,8 +483,8 @@ function Panduan({
   );
 }
 
-function Tanda({ ok, c }: { ok?: boolean; c: Palette }) {
-  const warna = ok ? c.ok.ink : c.bad.ink;
+function Mark({ ok, c }: { ok?: boolean; c: Palette }) {
+  const accentColor = ok ? c.ok.ink : c.bad.ink;
   return (
     <View
       style={{
@@ -486,35 +492,39 @@ function Tanda({ ok, c }: { ok?: boolean; c: Palette }) {
         height: 54,
         borderRadius: 27,
         borderWidth: 3,
-        borderColor: warna,
+        borderColor: accentColor,
         alignItems: "center",
         justifyContent: "center",
         backgroundColor: c.card,
       }}
     >
-      <Ionicons name={ok ? "checkmark" : "close"} size={28} color={warna} />
+      <Ionicons
+        name={ok ? "checkmark" : "close"}
+        size={28}
+        color={accentColor}
+      />
     </View>
   );
 }
 
-function GalatBox({
-  teks,
+function ErrorBox({
+  text,
   styles,
   c,
 }: {
-  teks: string;
+  text: string;
   styles: ReturnType<typeof makeStyles>;
   c: Palette;
 }) {
   return (
-    <View style={styles.galatBox}>
+    <View style={styles.errorBox}>
       <Ionicons name="alert-circle" size={17} color={c.bad.ink} />
-      <Text style={styles.galatText}>{teks}</Text>
+      <Text style={styles.errorText}>{text}</Text>
     </View>
   );
 }
 
-function Tombol({
+function Button({
   label,
   icon,
   onPress,
@@ -649,14 +659,14 @@ const makeStyles = (c: Palette) =>
       alignItems: "center",
       justifyContent: "center",
     },
-    pilihTitle: {
+    pickTitle: {
       fontSize: 16,
       fontWeight: "800",
       color: c.ink,
       marginTop: 16,
       textAlign: "center",
     },
-    pilihSub: {
+    pickSubtitle: {
       fontSize: 12,
       lineHeight: 18,
       fontWeight: "500",
@@ -705,7 +715,7 @@ const makeStyles = (c: Palette) =>
       marginTop: 2,
     },
 
-    galatBox: {
+    errorBox: {
       flexDirection: "row",
       gap: 8,
       alignItems: "flex-start",
@@ -713,7 +723,7 @@ const makeStyles = (c: Palette) =>
       borderRadius: 14,
       backgroundColor: c.bad.bg,
     },
-    galatText: {
+    errorText: {
       flex: 1,
       fontSize: 12,
       lineHeight: 17,
@@ -722,7 +732,7 @@ const makeStyles = (c: Palette) =>
     },
 
     primary: {
-      ...tombolUtama(c),
+      ...primaryButtonStyle(c),
       flexDirection: "row",
       gap: 8,
       paddingVertical: 15,
@@ -739,16 +749,16 @@ const makeStyles = (c: Palette) =>
       borderRadius: 16,
       alignItems: "center",
       justifyContent: "center",
-      ...tombolSekunder(c),
+      ...secondaryButtonStyle(c),
     },
     secondaryText: { fontSize: 13.5, fontWeight: "700", color: c.btnSoftInk },
 
-    kembaliBtn: {
+    goBackButton: {
       marginTop: 16,
       paddingHorizontal: 22,
       paddingVertical: 12,
       borderRadius: 14,
       backgroundColor: c.accent,
     },
-    kembaliText: { fontSize: 13, fontWeight: "700", color: "#fff" },
+    goBackText: { fontSize: 13, fontWeight: "700", color: "#fff" },
   });

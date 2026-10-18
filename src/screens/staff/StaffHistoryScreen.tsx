@@ -17,9 +17,9 @@ import {
   ATTENDANCE_STATUS_LABEL,
   ATTENDANCE_STATUS_TONE,
 } from "@/constants/statusLabels";
-import { bulanSingkat, namaHari, tanggalAngka } from "@/utils/date";
+import { getShortMonth, getWeekdayName, formatNumericDate } from "@/utils/date";
 import { useT } from "@/i18n";
-import { kembali } from "@/navigation/kembali";
+import { goBackAnimated } from "@/navigation/kembali";
 
 export function StaffHistoryScreen({ navigation, route }: ScreenProps) {
   const t = useT();
@@ -29,46 +29,49 @@ export function StaffHistoryScreen({ navigation, route }: ScreenProps) {
 
   const [staff, setStaff] = useState<Staff | null>(null);
   const [records, setRecords] = useState<AttendanceRecord[] | null>(null);
-  const [galat, setGalat] = useState<string | null>(null);
-  const [coba, setCoba] = useState(0); // naik saat Coba lagi ditekan
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [attempt, setAttempt] = useState(0); // naik saat Coba lagi ditekan
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
 
   useEffect(() => {
     if (!employee) return;
-    let batal = false;
+    let isCancelled = false;
 
     Promise.all([
       hrisApi.getStaffDirectory(employee.id),
       hrisApi.getStaffAttendanceHistory(staffId),
     ])
-      .then(([dir, riwayat]) => {
-        if (batal) return;
-        setStaff(dir.items.find((s) => s.id === staffId) ?? null);
-        setRecords(riwayat);
+      .then(([directory, history]) => {
+        if (isCancelled) return;
+        setStaff(directory.items.find((s) => s.id === staffId) ?? null);
+        setRecords(history);
       })
       .catch((e) => {
-        if (!batal) setGalat(describeError(e));
+        if (!isCancelled) setErrorMessage(describeError(e));
       });
 
     return () => {
-      batal = true;
+      isCancelled = true;
     };
-  }, [employee, staffId, coba]);
+  }, [employee, staffId, attempt]);
 
-  const loading = records === null && !galat;
+  const isLoading = records === null && !errorMessage;
   const items = records ?? [];
-  const hitung = (s: AttendanceRecord["status"]) =>
+  const countBy = (s: AttendanceRecord["status"]) =>
     items.filter((r) => r.status === s).length;
 
   return (
     <View style={styles.container}>
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
-        <Pressable style={styles.backBtn} onPress={() => kembali(navigation)}>
+        <Pressable
+          style={styles.backBtn}
+          onPress={() => goBackAnimated(navigation)}
+        >
           <Ionicons name="chevron-back" size={18} color={c.ink} />
         </Pressable>
         <View style={{ flex: 1, minWidth: 0 }}>
-          {loading ? (
+          {isLoading ? (
             <Skeleton width={140} height={15} radius={5} />
           ) : (
             <Text style={styles.headerTitle} numberOfLines={1}>
@@ -80,37 +83,37 @@ export function StaffHistoryScreen({ navigation, route }: ScreenProps) {
       </View>
 
       <ScrollView contentContainerStyle={styles.content}>
-        {galat ? (
+        {errorMessage ? (
           <ErrorState
-            pesan={galat}
-            onUlangi={() => {
-              setGalat(null);
-              setCoba((n) => n + 1);
+            message={errorMessage}
+            onRetry={() => {
+              setErrorMessage(null);
+              setAttempt((n) => n + 1);
             }}
           />
         ) : null}
         <View style={styles.recapCard}>
           <Recap
-            value={loading ? "–" : hitung("hadir")}
+            value={isLoading ? "–" : countBy("hadir")}
             label={t("st.hadir")}
             tone={c.ok.ink}
           />
           <View style={styles.recapDivider} />
           <Recap
-            value={loading ? "–" : hitung("telat")}
+            value={isLoading ? "–" : countBy("telat")}
             label={t("st.telat")}
             tone={c.warn.ink}
           />
           <View style={styles.recapDivider} />
           <Recap
-            value={loading ? "–" : hitung("izin")}
+            value={isLoading ? "–" : countBy("izin")}
             label={t("st.izin")}
             tone={c.info.ink}
           />
         </View>
 
         <View style={{ gap: 10, marginTop: 12 }}>
-          {loading
+          {isLoading
             ? [0, 1, 2, 3, 4].map((i) => (
                 <View key={i} style={styles.row}>
                   <Skeleton width={40} height={40} radius={13} />
@@ -126,14 +129,16 @@ export function StaffHistoryScreen({ navigation, route }: ScreenProps) {
                 return (
                   <View key={r.id} style={styles.row}>
                     <View style={styles.dateChip}>
-                      <Text style={styles.dateDay}>{tanggalAngka(r.date)}</Text>
+                      <Text style={styles.dateDay}>
+                        {formatNumericDate(r.date)}
+                      </Text>
                       <Text style={styles.dateMonth}>
-                        {bulanSingkat(r.date)}
+                        {getShortMonth(r.date)}
                       </Text>
                     </View>
 
                     <View style={{ flex: 1, minWidth: 0 }}>
-                      <Text style={styles.dow}>{namaHari(r.date)}</Text>
+                      <Text style={styles.dow}>{getWeekdayName(r.date)}</Text>
                       <Text style={styles.detail}>
                         {r.checkIn ?? "—"} — {r.checkOut ?? "—"} ·{" "}
                         {r.durationLabel ?? "—"}

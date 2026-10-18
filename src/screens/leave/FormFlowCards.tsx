@@ -2,12 +2,16 @@ import React, { useMemo } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
-import { Palette, tombolSekunder, tombolUtama } from "@/theme/colors";
+import {
+  Palette,
+  secondaryButtonStyle,
+  primaryButtonStyle,
+} from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
 import { useT } from "@/i18n";
 
 export interface ApprovalStep {
-  ini: string;
+  stepLabel: string;
   name: string;
   role: string;
 }
@@ -22,10 +26,10 @@ export function ApprovalFlowCard({ steps }: { steps: ApprovalStep[] }) {
 
       <View style={{ marginTop: 14 }}>
         {steps.map((s, i) => (
-          <View key={s.ini} style={styles.stepRow}>
+          <View key={s.stepLabel} style={styles.stepRow}>
             <View style={styles.rail}>
               <View style={styles.avatar}>
-                <Text style={styles.avatarText}>{s.ini}</Text>
+                <Text style={styles.avatarText}>{s.stepLabel}</Text>
               </View>
               {i < steps.length - 1 && <View style={styles.line} />}
             </View>
@@ -48,14 +52,14 @@ export function FormDoneView({
   waitingOn,
   rows,
   doc,
-  onLihat,
+  onView,
   onHome,
 }: {
   title: string;
   waitingOn: string;
   rows: { k: string; v: string }[];
   doc: string;
-  onLihat: () => void;
+  onView: () => void;
   onHome: () => void;
 }) {
   const c = useTheme();
@@ -95,7 +99,7 @@ export function FormDoneView({
       </View>
 
       <View style={styles.doneActions}>
-        <Pressable style={styles.secondaryBtn} onPress={onLihat}>
+        <Pressable style={styles.secondaryBtn} onPress={onView}>
           <Text style={styles.secondaryText}>{t("ff.lihat")}</Text>
         </Pressable>
         <Pressable style={styles.primaryBtn} onPress={onHome}>
@@ -203,12 +207,12 @@ const makeStyles = (c: Palette) =>
       flex: 1,
       paddingVertical: 14,
       borderRadius: 22,
-      ...tombolSekunder(c),
+      ...secondaryButtonStyle(c),
       alignItems: "center",
     },
     secondaryText: { fontSize: 12.5, fontWeight: "700", color: c.btnSoftInk },
     primaryBtn: {
-      ...tombolUtama(c),
+      ...primaryButtonStyle(c),
       flex: 1,
       paddingVertical: 14,
       borderRadius: 22,

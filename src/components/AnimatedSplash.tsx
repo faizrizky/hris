@@ -20,38 +20,38 @@ import { LogoHris } from "@/components/LogoHris";
 import { Palette } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
 import {
-  cekDanTerapkanOta,
-  cekPembaruan,
-  MODE_PEMBARUAN,
-  unduhDanPasang,
-  type InfoPembaruan,
+  checkAndApplyOta,
+  checkAppUpdate,
+  UPDATE_MODE,
+  downloadAndInstall,
+  type UpdateInfo,
 } from "@/services/appUpdate";
 import { useT } from "@/i18n";
 
 const EASE = Easing.bezier(0.25, 0.1, 0.25, 1);
 const NAMA = "HRIS".split("");
-const UKURAN = 120;
-export const DURASI_SPLASH_MS = 2500;
+const LOGO_SIZE = 120;
+export const SPLASH_DURATION_MS = 2500;
 
-type Tahap = "animasi" | "cek" | "ota" | "unduh" | "pasang" | "galat";
+type UpdateStage = "animasi" | "cek" | "ota" | "unduh" | "pasang" | "galat";
 
 // Layar pembuka beranimasi, menyambung dari layar pembuka native (logo yang sama
 // di tengah, latar putih): logo membesar dengan pegas, riak cahaya menyebar,
 // huruf "HRIS" naik satu per satu, garis aksen tergambar, lalu seluruh layar
 // memudar membuka aplikasi.
-export function AnimatedSplash({ onSelesai }: { onSelesai: () => void }) {
+export function AnimatedSplash({ onDone }: { onDone: () => void }) {
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
   const [logo] = useState(() => new Animated.Value(0));
-  const [riak] = useState(() => new Animated.Value(0));
-  const [huruf] = useState(() => NAMA.map(() => new Animated.Value(0)));
-  const [garis] = useState(() => new Animated.Value(0));
+  const [ripple] = useState(() => new Animated.Value(0));
+  const [letters] = useState(() => NAMA.map(() => new Animated.Value(0)));
+  const [underline] = useState(() => new Animated.Value(0));
   const [tagline] = useState(() => new Animated.Value(0));
   const [keluar] = useState(() => new Animated.Value(0));
   const [status] = useState(() => new Animated.Value(0));
-  const [tahap, setTahap] = useState<Tahap>("animasi");
-  const [info, setInfo] = useState<InfoPembaruan | null>(null);
-  const [progres, setProgres] = useState(0);
+  const [stage, setStage] = useState<UpdateStage>("animasi");
+  const [updateInfo, setUpdateInfo] = useState<UpdateInfo | null>(null);
+  const [progress, setProgress] = useState(0);
   const t = useT();
 
   useEffect(() => {
@@ -65,7 +65,7 @@ export function AnimatedSplash({ onSelesai }: { onSelesai: () => void }) {
           tension: 70,
           useNativeDriver: true,
         }),
-        Animated.timing(riak, {
+        Animated.timing(ripple, {
           toValue: 1,
           duration: 1100,
           easing: Easing.out(Easing.cubic),
@@ -75,7 +75,7 @@ export function AnimatedSplash({ onSelesai }: { onSelesai: () => void }) {
           Animated.delay(380),
           Animated.stagger(
             90,
-            huruf.map((v) =>
+            letters.map((v) =>
               Animated.timing(v, {
                 toValue: 1,
                 duration: 480,
@@ -87,7 +87,7 @@ export function AnimatedSplash({ onSelesai }: { onSelesai: () => void }) {
         ]),
         Animated.sequence([
           Animated.delay(800),
-          Animated.timing(garis, {
+          Animated.timing(underline, {
             toValue: 1,
             duration: 520,
             easing: EASE,
@@ -104,42 +104,42 @@ export function AnimatedSplash({ onSelesai }: { onSelesai: () => void }) {
           }),
         ]),
       ]),
-      Animated.delay(DURASI_SPLASH_MS - 1900),
+      Animated.delay(SPLASH_DURATION_MS - 1900),
     ]);
     anim.start(({ finished }) => {
-      if (finished) setTahap("cek");
+      if (finished) setStage("cek");
     });
     return () => anim.stop();
-  }, [garis, huruf, logo, riak, tagline]);
+  }, [underline, letters, logo, ripple, tagline]);
 
-  const keluarSplash = useCallback(() => {
+  const exitSplash = useCallback(() => {
     Animated.timing(keluar, {
       toValue: 1,
       duration: 420,
       easing: EASE,
       useNativeDriver: true,
-    }).start(() => onSelesai());
-  }, [keluar, onSelesai]);
+    }).start(() => onDone());
+  }, [keluar, onDone]);
 
-  const mulaiUnduh = async (b: InfoPembaruan) => {
-    setProgres(0);
-    setTahap("unduh");
+  const startDownload = async (b: UpdateInfo) => {
+    setProgress(0);
+    setStage("unduh");
     try {
-      await unduhDanPasang(b, setProgres);
+      await downloadAndInstall(b, setProgress);
       // Pemasang Android terbuka. Bila pengguna membatalkannya, layar ini menawarkan coba lagi.
-      setTahap("pasang");
+      setStage("pasang");
     } catch {
-      setTahap("galat");
+      setStage("galat");
     }
   };
 
   // Setelah animasi selesai: periksa pembaruan. Pembaruan wajib menahan layar ini sampai terpasang.
-  const isTahapCek = tahap === "cek";
-  const handleKeluarSplash = useEffectEvent(keluarSplash);
-  const handleMulaiUnduh = useEffectEvent(mulaiUnduh);
+  const isCheckingStage = stage === "cek";
+  const handleExitSplash = useEffectEvent(exitSplash);
+  const handleStartDownload = useEffectEvent(startDownload);
   useEffect(() => {
-    if (!isTahapCek) return;
-    let batal = false;
+    if (!isCheckingStage) return;
+    let isCancelled = false;
     status.setValue(0);
     Animated.timing(status, {
       toValue: 1,
@@ -147,36 +147,36 @@ export function AnimatedSplash({ onSelesai }: { onSelesai: () => void }) {
       useNativeDriver: true,
     }).start();
     (async () => {
-      const baru = await cekPembaruan();
-      if (batal) return;
+      const baru = await checkAppUpdate();
+      if (isCancelled) return;
       if (!baru || !baru.mandatory) {
         // Tidak ada APK baru: cek paket JavaScript (EAS Update); bila ada, aplikasi dimuat ulang sendiri.
-        await cekDanTerapkanOta(() => setTahap("ota"));
-        handleKeluarSplash();
+        await checkAndApplyOta(() => setStage("ota"));
+        handleExitSplash();
         return;
       }
-      setInfo(baru);
-      void handleMulaiUnduh(baru);
+      setUpdateInfo(baru);
+      void handleStartDownload(baru);
     })();
     return () => {
-      batal = true;
+      isCancelled = true;
     };
-  }, [isTahapCek, status]);
+  }, [isCheckingStage, status]);
 
-  const tampilStatus = tahap !== "animasi";
-  const teksStatus =
-    tahap === "cek"
+  const shouldShowStatus = stage !== "animasi";
+  const statusLabel =
+    stage === "cek"
       ? t("up.memeriksa")
-      : tahap === "ota"
+      : stage === "ota"
         ? t("up.memperbarui")
-        : tahap === "unduh"
+        : stage === "unduh"
           ? t("up.mengunduh", {
-              v: info?.versionName ?? "",
-              p: Math.round(progres * 100),
+              v: updateInfo?.versionName ?? "",
+              p: Math.round(progress * 100),
             })
-          : tahap === "pasang"
+          : stage === "pasang"
             ? t("up.siapPasang")
-            : tahap === "galat"
+            : stage === "galat"
               ? t("up.galat")
               : "";
 
@@ -204,19 +204,19 @@ export function AnimatedSplash({ onSelesai }: { onSelesai: () => void }) {
       <RadialGlow size={380} color={c.glowTop} top={-150} right={-110} />
       <RadialGlow size={340} color={c.glowBottom} bottom={-150} left={-120} />
 
-      <View style={styles.tengah}>
+      <View style={styles.center}>
         <View style={styles.logoWrap}>
           <Animated.View
             style={[
-              styles.riak,
+              styles.ripple,
               {
-                opacity: riak.interpolate({
+                opacity: ripple.interpolate({
                   inputRange: [0, 0.2, 1],
                   outputRange: [0, 0.35, 0],
                 }),
                 transform: [
                   {
-                    scale: riak.interpolate({
+                    scale: ripple.interpolate({
                       inputRange: [0, 1],
                       outputRange: [0.8, 2.6],
                     }),
@@ -242,8 +242,8 @@ export function AnimatedSplash({ onSelesai }: { onSelesai: () => void }) {
               ],
             }}
           >
-            <View style={styles.bayangan}>
-              <LogoHris size={UKURAN} />
+            <View style={styles.shadow}>
+              <LogoHris size={LOGO_SIZE} />
             </View>
           </Animated.View>
         </View>
@@ -255,10 +255,10 @@ export function AnimatedSplash({ onSelesai }: { onSelesai: () => void }) {
               style={[
                 styles.nama,
                 {
-                  opacity: huruf[i],
+                  opacity: letters[i],
                   transform: [
                     {
-                      translateY: huruf[i]!.interpolate({
+                      translateY: letters[i]!.interpolate({
                         inputRange: [0, 1],
                         outputRange: [18, 0],
                       }),
@@ -274,9 +274,9 @@ export function AnimatedSplash({ onSelesai }: { onSelesai: () => void }) {
 
         <Animated.View
           style={[
-            styles.garis,
+            styles.underline,
             {
-              transform: [{ scaleX: garis }],
+              transform: [{ scaleX: underline }],
             },
           ]}
         >
@@ -308,33 +308,33 @@ export function AnimatedSplash({ onSelesai }: { onSelesai: () => void }) {
         </Animated.Text>
       </View>
 
-      {tampilStatus ? (
+      {shouldShowStatus ? (
         <Animated.View style={[styles.statusWrap, { opacity: status }]}>
-          <Text style={styles.statusText}>{teksStatus}</Text>
-          {tahap === "unduh" ? (
-            <View style={styles.progresTrack}>
+          <Text style={styles.statusText}>{statusLabel}</Text>
+          {stage === "unduh" ? (
+            <View style={styles.progressTrack}>
               <View
                 style={[
-                  styles.progresIsi,
-                  { width: `${Math.max(4, progres * 100)}%` },
+                  styles.progressFill,
+                  { width: `${Math.max(4, progress * 100)}%` },
                 ]}
               />
             </View>
           ) : null}
-          {info?.notes && (tahap === "unduh" || tahap === "pasang") ? (
-            <Text style={styles.catatan} numberOfLines={3}>
-              {info.notes}
+          {updateInfo?.notes && (stage === "unduh" || stage === "pasang") ? (
+            <Text style={styles.note} numberOfLines={3}>
+              {updateInfo.notes}
             </Text>
           ) : null}
-          {tahap === "pasang" || tahap === "galat" ? (
+          {stage === "pasang" || stage === "galat" ? (
             <Pressable
-              style={styles.tombol}
-              onPress={() => info && mulaiUnduh(info)}
+              style={styles.button}
+              onPress={() => updateInfo && startDownload(updateInfo)}
             >
-              <Text style={styles.tombolText}>
+              <Text style={styles.buttonText}>
                 {t(
-                  tahap === "pasang"
-                    ? MODE_PEMBARUAN === "toko"
+                  stage === "pasang"
+                    ? UPDATE_MODE === "toko"
                       ? "up.bukaToko"
                       : "up.pasangLagi"
                     : "up.cobaLagi",
@@ -359,22 +359,22 @@ const makeStyles = (c: Palette) =>
     },
     // Grup digeser ke bawah setengah tinggi bagian di bawah logo, sehingga logo tepat di tengah layar
     // dan menyambung mulus dari layar pembuka native (logo yang sama di titik yang sama).
-    tengah: { alignItems: "center", marginTop: 124 },
+    center: { alignItems: "center", marginTop: 124 },
     logoWrap: {
-      width: UKURAN,
-      height: UKURAN,
+      width: LOGO_SIZE,
+      height: LOGO_SIZE,
       alignItems: "center",
       justifyContent: "center",
     },
-    riak: {
+    ripple: {
       position: "absolute",
-      width: UKURAN,
-      height: UKURAN,
-      borderRadius: UKURAN * 0.3,
+      width: LOGO_SIZE,
+      height: LOGO_SIZE,
+      borderRadius: LOGO_SIZE * 0.3,
       backgroundColor: c.accent,
     },
-    bayangan: {
-      borderRadius: UKURAN * 0.225,
+    shadow: {
+      borderRadius: LOGO_SIZE * 0.225,
       shadowColor: c.accent,
       shadowOffset: { width: 0, height: 14 },
       shadowOpacity: 0.35,
@@ -388,7 +388,7 @@ const makeStyles = (c: Palette) =>
       letterSpacing: 6,
       color: c.ink,
     },
-    garis: {
+    underline: {
       width: 56,
       height: 4,
       borderRadius: 2,
@@ -416,7 +416,7 @@ const makeStyles = (c: Palette) =>
       color: c.muted,
       textAlign: "center",
     },
-    progresTrack: {
+    progressTrack: {
       alignSelf: "stretch",
       height: 6,
       borderRadius: 3,
@@ -424,20 +424,24 @@ const makeStyles = (c: Palette) =>
       overflow: "hidden",
       marginTop: 12,
     },
-    progresIsi: { height: "100%", borderRadius: 3, backgroundColor: c.accent },
-    catatan: {
+    progressFill: {
+      height: "100%",
+      borderRadius: 3,
+      backgroundColor: c.accent,
+    },
+    note: {
       fontSize: 11.5,
       lineHeight: 17,
       color: c.mutedLabel,
       textAlign: "center",
       marginTop: 12,
     },
-    tombol: {
+    button: {
       marginTop: 14,
       paddingHorizontal: 22,
       paddingVertical: 11,
       borderRadius: 14,
       backgroundColor: c.accent,
     },
-    tombolText: { fontSize: 13, fontWeight: "700", color: "#fff" },
+    buttonText: { fontSize: 13, fontWeight: "700", color: "#fff" },
   });

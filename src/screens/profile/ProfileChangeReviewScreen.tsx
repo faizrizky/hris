@@ -13,11 +13,11 @@ import { ErrorState } from "@/components/ErrorState";
 import { EmptyState } from "@/components/EmptyState";
 import { Skeleton } from "@/components/Skeleton";
 import { ICON } from "@/constants/icons";
-import { inisial } from "@/utils/ProfileCompleteness";
-import { tanggalPendekTahun } from "@/utils/date";
+import { initialsOf } from "@/utils/ProfileCompleteness";
+import { formatShortDateWithYear } from "@/utils/date";
 import { useT } from "@/i18n";
 import type { Kunci } from "@/i18n/id";
-import { kembali } from "@/navigation/kembali";
+import { goBackAnimated } from "@/navigation/kembali";
 
 const FILTER: { key: ChangeStatus | "all"; label: Kunci }[] = [
   { key: "all", label: "pcr.semua" },
@@ -33,16 +33,19 @@ export function ProfileChangeReviewScreen({ navigation }: ScreenProps) {
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
   const [status, setStatus] = useState<ChangeStatus | "all">("Pending");
-  const daftar = useLoad(
+  const changeList = useLoad(
     () => hrisApi.getProfileChangesForReview(status),
     status,
   );
-  const items = daftar.data ?? [];
+  const items = changeList.data ?? [];
 
   return (
     <View style={styles.container}>
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
-        <Pressable style={styles.backBtn} onPress={() => kembali(navigation)}>
+        <Pressable
+          style={styles.backBtn}
+          onPress={() => goBackAnimated(navigation)}
+        >
           <Ionicons name="chevron-back" size={18} color={c.ink} />
         </Pressable>
         <View style={{ flex: 1, minWidth: 0 }}>
@@ -53,14 +56,14 @@ export function ProfileChangeReviewScreen({ navigation }: ScreenProps) {
 
       <View style={styles.chipRow}>
         {FILTER.map((f) => {
-          const on = status === f.key;
+          const isOn = status === f.key;
           return (
             <Pressable
               key={f.key}
               onPress={() => setStatus(f.key)}
-              style={[styles.chip, on && styles.chipOn]}
+              style={[styles.chip, isOn && styles.chipOn]}
             >
-              <Text style={[styles.chipText, on && styles.chipTextOn]}>
+              <Text style={[styles.chipText, isOn && styles.chipTextOn]}>
                 {t(f.label)}
               </Text>
             </Pressable>
@@ -69,9 +72,9 @@ export function ProfileChangeReviewScreen({ navigation }: ScreenProps) {
       </View>
 
       <ScrollView contentContainerStyle={styles.list}>
-        {daftar.error && !daftar.data ? (
-          <ErrorState pesan={daftar.error} onUlangi={daftar.ulangi} />
-        ) : daftar.memuat ? (
+        {changeList.error && !changeList.data ? (
+          <ErrorState message={changeList.error} onRetry={changeList.retry} />
+        ) : changeList.isLoading ? (
           <View style={{ gap: 10 }}>
             {[0, 1, 2].map((i) => (
               <View key={i} style={styles.row}>
@@ -114,7 +117,9 @@ function Baris({ p, onPress }: { p: ProfileChange; onPress: () => void }) {
   return (
     <Pressable style={styles.row} onPress={onPress}>
       <View style={styles.avatar}>
-        <Text style={styles.avatarText}>{inisial(p.employeeName ?? "?")}</Text>
+        <Text style={styles.avatarText}>
+          {initialsOf(p.employeeName ?? "?")}
+        </Text>
       </View>
       <View style={{ flex: 1, minWidth: 0 }}>
         <Text style={styles.name} numberOfLines={1}>
@@ -124,7 +129,7 @@ function Baris({ p, onPress }: { p: ProfileChange; onPress: () => void }) {
           {p.reason}
         </Text>
         <Text style={styles.meta}>
-          {p.createdOn ? tanggalPendekTahun(p.createdOn) : "—"} ·{" "}
+          {p.createdOn ? formatShortDateWithYear(p.createdOn) : "—"} ·{" "}
           {p.changes.length}
         </Text>
       </View>
