@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import type { ScreenProps } from "@/navigation/types";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { RevealScrollView as ScrollView } from "@/components/Reveal";
 import { Ionicons } from "@expo/vector-icons";
@@ -21,7 +22,7 @@ function persen(n: number) {
 }
 const TINGGI_BAR = [44, 60, 38, 96, 50, 64, 42, 72, 55, 48, 68];
 
-export function TaxScreen({ navigation }: any) {
+export function TaxScreen({ navigation }: ScreenProps) {
   const t = useT();
   const { employee } = useSession();
   const insets = useSafeAreaInsets();

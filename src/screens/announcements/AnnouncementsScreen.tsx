@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from "react";
+import { getRouteParams, type ScreenProps } from "@/navigation/types";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { RevealScrollView as ScrollView } from "@/components/Reveal";
 import { Ionicons } from "@expo/vector-icons";
@@ -18,14 +19,14 @@ import { LampiranList } from "@/screens/leave/LampiranList";
 import { useT } from "@/i18n";
 
 // Pengumuman dari HR (doctype HR Announcement di ERPNext).
-export function AnnouncementsScreen({ navigation, route }: any) {
+export function AnnouncementsScreen({ navigation, route }: ScreenProps) {
   const t = useT();
   const insets = useSafeAreaInsets();
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
   const daftar = useLoad(() => hrisApi.getAnnouncements(), "pengumuman");
   const [terbuka, setTerbuka] = useState<string | null>(
-    route?.params?.id ?? null,
+    getRouteParams<{ id?: string }>(route).id ?? null,
   );
   const items = daftar.data ?? [];
 

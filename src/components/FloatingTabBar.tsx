@@ -61,7 +61,7 @@ export function FloatingTabBar({ state, navigation }: BottomTabBarProps) {
   const { employee } = useSession();
   const t = useT();
   const currentRoute = state.routes[state.index].name;
-  const active = state.routes[state.index] as any;
+  const active = state.routes[state.index];
   const nested = active.state;
   // Saat tab baru pertama kali dibuka lewat { screen }, state bersarangnya belum
   // ada; getFocusedRouteNameFromRoute membaca params.screen sebagai gantinya.

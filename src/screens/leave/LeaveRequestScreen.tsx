@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useMemo } from "react";
+import { getRouteParams, type ScreenProps } from "@/navigation/types";
 import {
   Animated,
   Easing,
@@ -81,17 +82,23 @@ const DOC_NAMA: Record<FormKind, string> = {
 
 // Setiap kali dibuka dari menu (+), daftar cuti, atau layar lembur, form dimulai
 // bersih: `n` di params berbeda tiap navigasi, jadi state lama tidak terbawa.
-export function LeaveRequestScreen({ navigation, route }: any) {
+interface LeaveRequestParams {
+  kind?: FormKind;
+  n?: number;
+}
+
+export function LeaveRequestScreen({ navigation, route }: ScreenProps) {
+  const { kind, n } = getRouteParams<LeaveRequestParams>(route);
   return (
     <LeaveRequestForm
-      key={`${route?.params?.kind ?? "cuti"}-${route?.params?.n ?? 0}`}
+      key={`${kind ?? "cuti"}-${n ?? 0}`}
       navigation={navigation}
       route={route}
     />
   );
 }
 
-function LeaveRequestForm({ navigation, route }: any) {
+function LeaveRequestForm({ navigation, route }: ScreenProps) {
   const t = useT();
   const confirm = useConfirm();
   const { employee } = useSession();
@@ -102,7 +109,9 @@ function LeaveRequestForm({ navigation, route }: any) {
   const [rekan, setRekan] = useState<Colleague[]>([]);
   const [delegasi, setDelegasi] = useState<Colleague | null>(null);
   const insets = useSafeAreaInsets();
-  const [kind, setKind] = useState<FormKind>(route?.params?.kind ?? "cuti");
+  const [kind, setKind] = useState<FormKind>(
+    getRouteParams<LeaveRequestParams>(route).kind ?? "cuti",
+  );
   const [segW, setSegW] = useState(0);
   const [geser] = useState(
     () => new Animated.Value(SEGMENTS.findIndex((x) => x.key === kind)),

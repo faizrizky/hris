@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useMemo, useRef } from "react";
+import type { ScreenProps } from "@/navigation/types";
 import {
   Animated,
   Easing,
@@ -25,7 +26,7 @@ import { useT } from "@/i18n";
 import { LanguagePicker } from "@/components/LanguagePicker";
 import { useFotoProfil } from "@/hooks/useFotoProfil";
 
-export function ProfileScreen({ navigation }: any) {
+export function ProfileScreen({ navigation }: ScreenProps) {
   const { employee, setEmployee } = useSession();
   const insets = useSafeAreaInsets();
   const [balances, setBalances] = useState<LeaveBalance[] | null>(null);

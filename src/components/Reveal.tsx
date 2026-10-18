@@ -220,7 +220,7 @@ function bungkus(child: React.ReactNode): React.ReactNode {
 
   const wrapper: ViewStyle = {};
   for (const k of LAYOUT_KEYS) {
-    if (flat[k] !== undefined) (wrapper as any)[k] = flat[k];
+    if (flat[k] !== undefined) Object.assign(wrapper, { [k]: flat[k] });
   }
   // Lebar persen dihitung terhadap pembungkus, jadi dipindah ke pembungkus.
   let isi: React.ReactNode = el;

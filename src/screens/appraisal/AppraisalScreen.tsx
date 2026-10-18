@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from "react";
+import type { ScreenProps } from "@/navigation/types";
 import { TimAppraisal } from "./TimAppraisal";
 import { SegmentedControl } from "@/components/SegmentedControl";
 import { EmptyState } from "@/components/EmptyState";
@@ -26,7 +27,7 @@ const R = (RING - STROKE) / 2;
 const CIRC = 2 * Math.PI * R;
 
 // Atasan dan HR mendapat dua tab: penilaian diri sendiri dan penilaian tim.
-export function AppraisalScreen({ navigation }: any) {
+export function AppraisalScreen({ navigation }: ScreenProps) {
   const { employee } = useSession();
   const t = useT();
   const c = useTheme();

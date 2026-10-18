@@ -1,4 +1,5 @@
 import React, { useCallback, useState, useMemo, useRef } from "react";
+import type { ScreenProps } from "@/navigation/types";
 import { useFocusEffect } from "@react-navigation/native";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { RevealFlatList as FlatList } from "@/components/Reveal";
@@ -22,7 +23,7 @@ import { ICON } from "@/constants/icons";
 import { kembaliAtauBeranda } from "@/navigation/kembali";
 
 // Layar ini cuma di-mount untuk role mss/hr (lihat RootNavigator).
-export function LeaveApprovalScreen({ navigation }: any) {
+export function LeaveApprovalScreen({ navigation }: ScreenProps) {
   const { employee } = useSession();
   const insets = useSafeAreaInsets();
   const [items, setItems] = useState<LeaveRequest[] | null>(null);

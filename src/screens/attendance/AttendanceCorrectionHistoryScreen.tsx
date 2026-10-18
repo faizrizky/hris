@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import type { ScreenProps } from "@/navigation/types";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { RevealFlatList as FlatList } from "@/components/Reveal";
 import { Ionicons } from "@expo/vector-icons";
@@ -36,7 +37,7 @@ const CHIPS: { key: Filter; label: Kunci }[] = [
   { key: "rejected", label: "st.ditolak" },
 ];
 
-export function AttendanceCorrectionHistoryScreen({ navigation }: any) {
+export function AttendanceCorrectionHistoryScreen({ navigation }: ScreenProps) {
   const t = useT();
   const { employee } = useSession();
   const insets = useSafeAreaInsets();

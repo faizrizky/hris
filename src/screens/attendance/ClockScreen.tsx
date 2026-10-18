@@ -1,4 +1,5 @@
 import React, { useCallback, useState, useMemo } from "react";
+import type { ScreenProps } from "@/navigation/types";
 import { formatDurasi, statusPresensi } from "@/utils/statusPresensi";
 import { useFocusEffect } from "@react-navigation/native";
 import { Pressable, StyleSheet, Text, View } from "react-native";
@@ -24,7 +25,7 @@ import { setTabBarHidden } from "@/navigation/tabBarVisibility";
 import type { FaceStatus, SpoofRingkas } from "@/services/types";
 import { kembaliAtauBeranda, keBeranda } from "@/navigation/kembali";
 
-export function ClockScreen({ navigation }: any) {
+export function ClockScreen({ navigation }: ScreenProps) {
   const t = useT();
   const { employee } = useSession();
   const insets = useSafeAreaInsets();

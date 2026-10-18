@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo } from "react";
+import { getRouteParams, type ScreenProps } from "@/navigation/types";
 import { Linking, Pressable, StyleSheet, Text, View } from "react-native";
 import { RevealScrollView as ScrollView } from "@/components/Reveal";
 import { Ionicons } from "@expo/vector-icons";
@@ -21,11 +22,11 @@ import { bulanSingkat, tanggalAngka, tanggalPendekTahun } from "@/utils/date";
 import { useT } from "@/i18n";
 import { kembali } from "@/navigation/kembali";
 
-export function StaffDetailScreen({ navigation, route }: any) {
+export function StaffDetailScreen({ navigation, route }: ScreenProps) {
   const t = useT();
   const { employee } = useSession();
   const insets = useSafeAreaInsets();
-  const { staffId } = route.params;
+  const { staffId } = getRouteParams<{ staffId: string }>(route);
 
   const [staff, setStaff] = useState<Staff | null>(null);
   const [absensi, setAbsensi] = useState<AttendanceRecord[]>([]);

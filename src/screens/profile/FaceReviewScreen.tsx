@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import type { ScreenProps } from "@/navigation/types";
 import {
   ActivityIndicator,
   Image,
@@ -28,7 +29,7 @@ import { kembali } from "@/navigation/kembali";
 import { bukaLampiran, simpanLampiran } from "@/utils/lampiran";
 
 // HR: tinjau pendaftaran wajah yang menunggu (selfie, KTP, foto profil, skor kemiripan) lalu setujui atau tolak.
-export function FaceReviewScreen({ navigation }: any) {
+export function FaceReviewScreen({ navigation }: ScreenProps) {
   const t = useT();
   const insets = useSafeAreaInsets();
   const c = useTheme();

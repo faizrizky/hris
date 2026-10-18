@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from "react";
+import { getRouteParams, type ScreenProps } from "@/navigation/types";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { RevealScrollView as ScrollView } from "@/components/Reveal";
 import { Ionicons } from "@expo/vector-icons";
@@ -27,12 +28,14 @@ const FILTER: { key: ReviewStatus | "all"; label: Kunci }[] = [
 ];
 
 // HR: daftar Dokumen Digital karyawan yang perlu (atau sudah) diverifikasi.
-export function DocumentReviewScreen({ navigation, route }: any) {
+export function DocumentReviewScreen({ navigation, route }: ScreenProps) {
   const t = useT();
   const insets = useSafeAreaInsets();
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
-  const awal: ReviewStatus | "all" = route?.params?.status ?? "Pending";
+  const awal: ReviewStatus | "all" =
+    getRouteParams<{ status?: ReviewStatus | "all" }>(route).status ??
+    "Pending";
   const [status, setStatus] = useState<ReviewStatus | "all">(awal);
   // Dibuka lagi dari notifikasi lain saat layar sudah terpasang: ikuti konteks barunya.
   const [awalLama, setAwalLama] = useState(awal);

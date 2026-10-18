@@ -1,4 +1,5 @@
 import { useCallback, useState, useMemo } from "react";
+import type { ScreenProps } from "@/navigation/types";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { RevealScrollView as ScrollView } from "@/components/Reveal";
 import { LinearGradient } from "expo-linear-gradient";
@@ -33,7 +34,7 @@ import { Skeleton } from "@/components/Skeleton";
 import { EmptyState } from "@/components/EmptyState";
 import { kembali } from "@/navigation/kembali";
 
-export function OvertimeScreen({ navigation }: any) {
+export function OvertimeScreen({ navigation }: ScreenProps) {
   const { employee } = useSession();
   const insets = useSafeAreaInsets();
   const [records, setRecords] = useState<OvertimeRecord[] | null>(null);

@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useState } from "react";
+import type { ScreenProps } from "@/navigation/types";
 import { useFocusEffect } from "@react-navigation/native";
 import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { RevealScrollView as ScrollView } from "@/components/Reveal";
@@ -19,7 +20,7 @@ import { kembali } from "@/navigation/kembali";
 
 const SEMUA = "Semua";
 
-export function StaffListScreen({ navigation }: any) {
+export function StaffListScreen({ navigation }: ScreenProps) {
   const t = useT();
   const { employee } = useSession();
   const insets = useSafeAreaInsets();

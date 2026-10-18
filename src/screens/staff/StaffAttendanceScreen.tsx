@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useState } from "react";
+import type { ScreenProps } from "@/navigation/types";
 import { useFocusEffect } from "@react-navigation/native";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { RevealScrollView as ScrollView } from "@/components/Reveal";
@@ -40,7 +41,7 @@ const TONE: Record<StaffAttendanceState, SemanticTone> = {
   belum: "bad",
 };
 
-export function StaffAttendanceScreen({ navigation }: any) {
+export function StaffAttendanceScreen({ navigation }: ScreenProps) {
   const t = useT();
   const { employee } = useSession();
   const insets = useSafeAreaInsets();

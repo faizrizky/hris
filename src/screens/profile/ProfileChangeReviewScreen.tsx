@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from "react";
+import type { ScreenProps } from "@/navigation/types";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { RevealScrollView as ScrollView } from "@/components/Reveal";
 import { Ionicons } from "@expo/vector-icons";
@@ -26,7 +27,7 @@ const FILTER: { key: ChangeStatus | "all"; label: Kunci }[] = [
 ];
 
 // HR: daftar permintaan perubahan data pribadi dari karyawan.
-export function ProfileChangeReviewScreen({ navigation }: any) {
+export function ProfileChangeReviewScreen({ navigation }: ScreenProps) {
   const t = useT();
   const insets = useSafeAreaInsets();
   const c = useTheme();

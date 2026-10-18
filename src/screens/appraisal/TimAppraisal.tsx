@@ -1,4 +1,5 @@
 import React, { useMemo } from "react";
+import type { ScreenProps } from "@/navigation/types";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { RevealScrollView as ScrollView } from "@/components/Reveal";
 import { Palette } from "@/theme/colors";
@@ -15,7 +16,7 @@ import { EmptyState } from "@/components/EmptyState";
 import { ICON } from "@/constants/icons";
 
 // Tab "Tim": karyawan yang bisa dinilai pemanggil (bawahan langsung, atau semua untuk HR).
-export function TimAppraisal({ navigation }: { navigation: any }) {
+export function TimAppraisal({ navigation }: Pick<ScreenProps, "navigation">) {
   const t = useT();
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);

@@ -1,3 +1,6 @@
+import { StackActions } from "@react-navigation/native";
+import type { AppNavigation } from "@/navigation/types";
+
 // Bantuan navigasi kembali.
 //
 // Tombol kembali di layar menandai bahwa kepulangan ini disengaja, supaya
@@ -13,7 +16,7 @@ export function tandaiKembali() {
   lewatTombolSampai = Date.now() + 1200;
 }
 
-export function kembali(navigation: any) {
+export function kembali(navigation: AppNavigation) {
   tandaiKembali();
   navigation.goBack();
 }
@@ -26,18 +29,18 @@ export function ambilTandaKembali(): boolean {
 }
 
 // Kembali ke halaman sebelumnya bila ada; bila ini akar sebuah tab, ke Beranda.
-export function kembaliAtauBeranda(navigation: any) {
+export function kembaliAtauBeranda(navigation: AppNavigation) {
   if (navigation.canGoBack()) kembali(navigation);
   else navigation.getParent()?.navigate("Beranda");
 }
 
 // Ke Beranda: bila halaman ini ada di tumpukan Beranda, kembali ke akarnya;
 // bila di tab lain, pindah ke tab Beranda.
-export function keBeranda(navigation: any) {
+export function keBeranda(navigation: AppNavigation) {
   const nama: string[] = navigation.getState()?.routeNames ?? [];
   if (nama.includes("HomeMain")) {
     tandaiKembali();
-    navigation.popToTop();
+    navigation.dispatch(StackActions.popToTop());
   } else {
     navigation.getParent()?.navigate("Beranda");
   }

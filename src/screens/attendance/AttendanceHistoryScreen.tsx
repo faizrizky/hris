@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from "react";
+import type { ScreenProps } from "@/navigation/types";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { RevealFlatList as FlatList } from "@/components/Reveal";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -23,7 +24,7 @@ import { kembali } from "@/navigation/kembali";
 
 type Filter = "semua" | "telat" | "izin";
 
-export function AttendanceHistoryScreen({ navigation }: any) {
+export function AttendanceHistoryScreen({ navigation }: ScreenProps) {
   const t = useT();
   const { employee } = useSession();
   const insets = useSafeAreaInsets();

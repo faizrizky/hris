@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import type { ScreenProps } from "@/navigation/types";
 import {
   ActivityIndicator,
   Animated,
@@ -86,7 +87,7 @@ type Fase =
 // Pendaftaran wajah meniru alur Face ID: panduan, posisikan wajah di bingkai,
 // kamera mengecil menjadi lingkaran, putar kepala sampai cincin hijau penuh,
 // lalu "Pemindaian wajah selesai".
-export function FaceEnrollScreen({ navigation }: any) {
+export function FaceEnrollScreen({ navigation }: ScreenProps) {
   const t = useT();
   const c = useTheme();
   const insets = useSafeAreaInsets();

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import type { ScreenProps } from "@/navigation/types";
 import {
   Keyboard,
   KeyboardAvoidingView,
@@ -56,7 +57,7 @@ const NAMA_NIKAH: Record<(typeof STATUS_NIKAH)[number], Kunci> = {
 const KELUARGA = ["Spouse", "Child", "Father", "Mother", "Sibling", "Other"];
 const MAKS_KELUARGA = 10;
 
-export function ProfileEditScreen({ navigation }: any) {
+export function ProfileEditScreen({ navigation }: ScreenProps) {
   const t = useT();
   const confirm = useConfirm();
   const { employee } = useSession();

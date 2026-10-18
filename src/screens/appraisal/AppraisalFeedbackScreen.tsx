@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState, useRef } from "react";
+import { getRouteParams, type ScreenProps } from "@/navigation/types";
 import {
   KeyboardAvoidingView,
   Pressable,
@@ -27,8 +28,11 @@ const LANGKAH = 0.5;
 
 // Atasan/HR menilai satu anggota tim: nilai 0–5 per kriteria dan catatan.
 // Bisa disimpan sebagai draft; setelah dikirim tidak bisa diubah lagi.
-export function AppraisalFeedbackScreen({ navigation, route }: any) {
-  const { employeeId, employeeName } = route.params;
+export function AppraisalFeedbackScreen({ navigation, route }: ScreenProps) {
+  const { employeeId, employeeName } = getRouteParams<{
+    employeeId: string;
+    employeeName: string;
+  }>(route);
   const t = useT();
   const insets = useSafeAreaInsets();
   const c = useTheme();

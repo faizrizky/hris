@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import type { ScreenProps } from "@/navigation/types";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { RevealScrollView as ScrollView } from "@/components/Reveal";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -19,7 +20,7 @@ import { ErrorState } from "@/components/ErrorState";
 import { useT } from "@/i18n";
 import { kembaliAtauBeranda } from "@/navigation/kembali";
 
-export function PayslipListScreen({ navigation }: any) {
+export function PayslipListScreen({ navigation }: ScreenProps) {
   const t = useT();
   const { employee } = useSession();
   const insets = useSafeAreaInsets();

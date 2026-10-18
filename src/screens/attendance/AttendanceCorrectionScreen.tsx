@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo } from "react";
+import type { ScreenProps } from "@/navigation/types";
 import {
   KeyboardAvoidingView,
   Pressable,
@@ -45,7 +46,7 @@ import { useConfirm } from "@/components/ConfirmDialog";
 import { pilihBukti } from "@/utils/pilihBukti";
 import { kembali, keBeranda } from "@/navigation/kembali";
 
-export function AttendanceCorrectionScreen({ navigation }: any) {
+export function AttendanceCorrectionScreen({ navigation }: ScreenProps) {
   const t = useT();
   const confirm = useConfirm();
   const [approver, setApprover] = useState<LeaveApprover | null>(null);

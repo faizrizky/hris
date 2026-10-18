@@ -1,4 +1,5 @@
 import React, { useCallback, useMemo, useState } from "react";
+import { getRouteParams, type ScreenProps } from "@/navigation/types";
 import {
   KeyboardAvoidingView,
   Pressable,
@@ -34,10 +35,15 @@ import { kembali } from "@/navigation/kembali";
 // Karyawan: pratinjau dokumennya sendiri. Dokumen terverifikasi tidak bisa
 // diubah langsung; yang bisa dilakukan adalah mengajukan perubahan dengan alasan.
 // Dokumen yang menunggu atau ditolak boleh langsung diganti berkasnya.
-export function EmployeeDocumentDetailScreen({ navigation, route }: any) {
+export function EmployeeDocumentDetailScreen({
+  navigation,
+  route,
+}: ScreenProps) {
   const { employee } = useSession();
   // Salinan dari layar sebelumnya; diperbarui berkala supaya status yang diubah HR langsung tampil.
-  const [doc, setDoc] = useState<EmployeeDocument>(route.params.doc);
+  const [doc, setDoc] = useState<EmployeeDocument>(
+    getRouteParams<{ doc: EmployeeDocument }>(route).doc,
+  );
   const t = useT();
   const insets = useSafeAreaInsets();
   const c = useTheme();

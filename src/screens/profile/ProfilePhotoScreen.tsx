@@ -1,4 +1,5 @@
 import { tahanKunci } from "@/services/biometrik";
+import type { ScreenProps } from "@/navigation/types";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Animated,
@@ -46,7 +47,7 @@ type Tahap = "panduan" | "pilih" | "tinjau" | "selesai";
 // Ganti foto profil: panduan (slide), pilih/ambil foto, tinjau, lalu ajukan
 // ke HR. Sebelum dikirim, kemiripannya dengan wajah terdaftar dihitung dan
 // karyawan diperingatkan bila rendah.
-export function ProfilePhotoScreen({ navigation }: any) {
+export function ProfilePhotoScreen({ navigation }: ScreenProps) {
   const t = useT();
   const confirm = useConfirm();
   const { employee } = useSession();

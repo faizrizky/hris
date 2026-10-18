@@ -1,4 +1,5 @@
 import React, { useCallback, useState, useMemo } from "react";
+import type { AppNavigation } from "@/navigation/types";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { Reveal, RevealScrollView as ScrollView } from "@/components/Reveal";
 import { Ionicons } from "@expo/vector-icons";
@@ -42,7 +43,7 @@ export function HomeScreen() {
   const [now, setNow] = useState(() => new Date());
   const [menuTerbuka, setMenuTerbuka] = useState(false);
   const { employee } = useSession();
-  const navigation = useNavigation<any>();
+  const navigation = useNavigation<AppNavigation>();
   const [notifications, setNotifications] = useState<FeedItem[] | null>(null);
   const [clock, setClock] = useState<ClockState | null>(null);
   const [balances, setBalances] = useState<LeaveBalance[] | null>(null);

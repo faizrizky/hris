@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from "react";
+import type { ScreenProps } from "@/navigation/types";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { RevealScrollView as ScrollView } from "@/components/Reveal";
 import { Ionicons } from "@expo/vector-icons";
@@ -37,7 +38,7 @@ function waktu(s: string | null): string {
 // Atasan/HR: check-in offline yang ditandai server (jam HP berubah, tidak
 // terverifikasi, kuota, dsb.). Menyetujui memakai jam yang diklaim karyawan;
 // menolak membiarkan jam saat server menerimanya.
-export function OfflineReviewScreen({ navigation }: any) {
+export function OfflineReviewScreen({ navigation }: ScreenProps) {
   const t = useT();
   const { employee } = useSession();
   const insets = useSafeAreaInsets();

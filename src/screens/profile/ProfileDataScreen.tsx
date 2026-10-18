@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import type { ScreenProps } from "@/navigation/types";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   Image,
@@ -36,7 +37,7 @@ import { terjemahkan } from "@/i18n/serverLabels";
 import { kembali } from "@/navigation/kembali";
 import { useFotoProfil } from "@/hooks/useFotoProfil";
 
-export function ProfileDataScreen({ navigation }: any) {
+export function ProfileDataScreen({ navigation }: ScreenProps) {
   const t = useT();
   const { employee } = useSession();
   const insets = useSafeAreaInsets();

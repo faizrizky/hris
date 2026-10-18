@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useState } from "react";
+import type { ScreenProps } from "@/navigation/types";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { RevealScrollView as ScrollView } from "@/components/Reveal";
 import { LinearGradient } from "expo-linear-gradient";
@@ -29,7 +30,7 @@ const SEMUA = "semua";
 const KATEGORI: DocCategory[] = ["kontrak", "sk", "sertifikat", "identitas"];
 const TAB: (DocCategory | typeof SEMUA)[] = [SEMUA, ...KATEGORI];
 
-export function ProfileDocsScreen({ navigation }: any) {
+export function ProfileDocsScreen({ navigation }: ScreenProps) {
   const t = useT();
   const { employee } = useSession();
   const insets = useSafeAreaInsets();

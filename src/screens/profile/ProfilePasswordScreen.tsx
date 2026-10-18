@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import type { ScreenProps } from "@/navigation/types";
 import {
   KeyboardAvoidingView,
   Pressable,
@@ -29,7 +30,7 @@ import { useConfirm } from "@/components/ConfirmDialog";
 import { kembali } from "@/navigation/kembali";
 import { hapusKredensial } from "@/services/biometrik";
 
-export function ProfilePasswordScreen({ navigation }: any) {
+export function ProfilePasswordScreen({ navigation }: ScreenProps) {
   const t = useT();
   const confirm = useConfirm();
   const { employee, setEmployee } = useSession();

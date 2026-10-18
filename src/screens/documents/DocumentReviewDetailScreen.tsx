@@ -1,4 +1,5 @@
 import React, { useMemo, useState, useRef } from "react";
+import { getRouteParams, type ScreenProps } from "@/navigation/types";
 import {
   KeyboardAvoidingView,
   Pressable,
@@ -24,8 +25,10 @@ import { useT } from "@/i18n";
 import { kembali } from "@/navigation/kembali";
 
 // HR: pratinjau satu dokumen lalu memverifikasi atau menolaknya (dengan alasan).
-export function DocumentReviewDetailScreen({ navigation, route }: any) {
-  const doc: ReviewDocument = route.params.doc;
+export function DocumentReviewDetailScreen({ navigation, route }: ScreenProps) {
+  const doc: ReviewDocument = getRouteParams<{ doc: ReviewDocument }>(
+    route,
+  ).doc;
   const t = useT();
   const insets = useSafeAreaInsets();
   const c = useTheme();

@@ -1,4 +1,5 @@
 import React, { useMemo, useState, useRef } from "react";
+import { getRouteParams, type ScreenProps } from "@/navigation/types";
 import {
   KeyboardAvoidingView,
   Pressable,
@@ -23,8 +24,13 @@ import { kembali } from "@/navigation/kembali";
 
 // HR: perbandingan data sekarang dengan usulan karyawan, lalu menyetujui
 // (usulan diterapkan ke data karyawan) atau menolak dengan catatan.
-export function ProfileChangeReviewDetailScreen({ navigation, route }: any) {
-  const p: ProfileChange = route.params.change;
+export function ProfileChangeReviewDetailScreen({
+  navigation,
+  route,
+}: ScreenProps) {
+  const p: ProfileChange = getRouteParams<{ change: ProfileChange }>(
+    route,
+  ).change;
   const t = useT();
   const insets = useSafeAreaInsets();
   const c = useTheme();

@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useState } from "react";
+import type { ScreenProps } from "@/navigation/types";
 import {
   ActivityIndicator,
   Modal,
@@ -56,7 +57,7 @@ const PILL: Record<FaceState, { bg: string; ink: string }> = {
   none: { bg: "rgba(148,163,184,0.18)", ink: "#CBD5E1" },
 };
 
-export function ProfileSecurityScreen({ navigation }: any) {
+export function ProfileSecurityScreen({ navigation }: ScreenProps) {
   const t = useT();
   const { employee } = useSession();
   const insets = useSafeAreaInsets();

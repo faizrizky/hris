@@ -1,4 +1,5 @@
 import { tahanKunci } from "@/services/biometrik";
+import type { ScreenProps } from "@/navigation/types";
 import { useMemo, useState } from "react";
 import {
   Keyboard,
@@ -54,7 +55,7 @@ interface Berkas {
   mimeType: string;
 }
 
-export function ProfileUploadScreen({ navigation }: any) {
+export function ProfileUploadScreen({ navigation }: ScreenProps) {
   const t = useT();
   const { employee } = useSession();
   const insets = useSafeAreaInsets();

@@ -1,4 +1,5 @@
 import React, { useMemo } from "react";
+import type { ScreenProps } from "@/navigation/types";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { RevealFlatList as FlatList } from "@/components/Reveal";
 import { LinearGradient } from "expo-linear-gradient";
@@ -19,7 +20,7 @@ import { LampiranList } from "./LampiranList";
 import { EmptyState } from "@/components/EmptyState";
 import { kembaliAtauBeranda } from "@/navigation/kembali";
 
-export function LeaveListScreen({ navigation }: any) {
+export function LeaveListScreen({ navigation }: ScreenProps) {
   const { employee } = useSession();
   const insets = useSafeAreaInsets();
   const c = useTheme();
