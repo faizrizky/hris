@@ -7,6 +7,8 @@
  "field_order": [
   "source",
   "status",
+  "fetch_mode_used",
+  "robots_ignored_count",
   "items_found",
   "started_on",
   "finished_on",
@@ -28,6 +30,20 @@
    "in_list_view": 1,
    "label": "Status",
    "options": "Pending\nCrawling\nDone\nFailed\nSkipped"
+  },
+  {
+   "fieldname": "fetch_mode_used",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Fetch Mode Used",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "robots_ignored_count",
+   "fieldtype": "Int",
+   "label": "Robots Ignored Count",
+   "read_only": 1
   },
   {
    "default": "0",

@@ -14,6 +14,17 @@
   "column_break_sources",
   "enable_case_history",
   "enable_posts",
+  "section_break_fetch_mode",
+  "fetch_respect_robots",
+  "fetch_identity",
+  "fetch_user_agent",
+  "column_break_fetch_mode",
+  "fetch_stealth_mode",
+  "fetch_stealth_domains",
+  "fetch_browser_status",
+  "fetch_risk_acknowledged",
+  "fetch_risk_ack_by",
+  "fetch_risk_ack_on",
   "section_break_providers",
   "search_provider",
   "search_api_key",
@@ -82,6 +93,82 @@
    "fieldname": "enable_posts",
    "fieldtype": "Check",
    "label": "Enable Public Posts API"
+  },
+  {
+   "fieldname": "section_break_fetch_mode",
+   "fieldtype": "Section Break",
+   "label": "Mode Pengambilan Halaman",
+   "permlevel": 1
+  },
+  {
+   "default": "1",
+   "fieldname": "fetch_respect_robots",
+   "fieldtype": "Check",
+   "label": "Respect robots.txt",
+   "permlevel": 1
+  },
+  {
+   "default": "Company",
+   "fieldname": "fetch_identity",
+   "fieldtype": "Select",
+   "label": "Fetch Identity",
+   "options": "Company\nBrowser",
+   "permlevel": 1
+  },
+  {
+   "default": "HRIS Background Check (+hr@example.com)",
+   "fieldname": "fetch_user_agent",
+   "fieldtype": "Data",
+   "label": "User Agent",
+   "permlevel": 1
+  },
+  {
+   "fieldname": "column_break_fetch_mode",
+   "fieldtype": "Column Break",
+   "permlevel": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "fetch_stealth_mode",
+   "fieldtype": "Check",
+   "label": "Enable Stealth Mode",
+   "permlevel": 1
+  },
+  {
+   "fieldname": "fetch_stealth_domains",
+   "fieldtype": "Small Text",
+   "label": "Stealth Domains",
+   "permlevel": 1
+  },
+  {
+   "fieldname": "fetch_browser_status",
+   "fieldtype": "Data",
+   "label": "Browser Status",
+   "read_only": 1,
+   "permlevel": 1
+  },
+  {
+   "default": "0",
+   "description": "1. Menembus proteksi anti-bot dapat dianggap \"menerobos atau menjebol sistem pengamanan\" menurut UU ITE Pasal 30 ayat (3), dan melanggar ketentuan layanan situs sumber.\n2. Mengabaikan robots.txt dan menyamar sebagai browser melanggar ketentuan layanan banyak situs dan bisa membuat IP server diblokir, termasuk untuk layanan lain yang berjalan di server yang sama.\n3. Keputusan mengaktifkannya sebaiknya disetujui Legal dan dicatat.",
+   "fieldname": "fetch_risk_acknowledged",
+   "fieldtype": "Check",
+   "label": "Acknowledge Legal and Technical Risks",
+   "permlevel": 1
+  },
+  {
+   "fieldname": "fetch_risk_ack_by",
+   "fieldtype": "Link",
+   "label": "Risk Acknowledged By",
+   "options": "User",
+   "read_only": 1,
+   "permlevel": 1
+  },
+  {
+   "fieldname": "fetch_risk_ack_on",
+   "fieldtype": "Datetime",
+   "label": "Risk Acknowledged On",
+   "read_only": 1,
+   "permlevel": 1
   },
   {
    "fieldname": "section_break_providers",
@@ -187,6 +274,18 @@
    "print": 1,
    "read": 1,
    "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 0,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
    "role": "HR Manager",
    "share": 1,
    "write": 1
@@ -202,9 +301,22 @@
    "role": "Background Check Officer",
    "share": 0,
    "write": 1
+  },
+  {
+   "permlevel": 1,
+   "read": 1,
+   "write": 1,
+   "role": "System Manager"
+  },
+  {
+   "permlevel": 1,
+   "read": 1,
+   "write": 0,
+   "role": "HR Manager"
   }
  ],
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "track_changes": 1
 }
