@@ -107,8 +107,11 @@ export function NotificationScreen({ navigation }: ScreenProps) {
               text={t("nt.kosongIsi")}
             />
           ) : (
-            groups.map((g) => (
-              <View key={g}>
+            groups.map((g, groupIndex) => (
+              <View
+                key={g}
+                style={groupIndex > 0 ? styles.groupGap : undefined}
+              >
                 <Text style={styles.groupLabel}>{g}</Text>
                 <View style={{ gap: 9 }}>
                   {items
@@ -206,8 +209,9 @@ const makeStyles = (c: Palette) =>
     },
     markAll: { fontSize: 11.5, fontWeight: "600", color: c.accent },
 
-    content: { paddingHorizontal: 18, paddingTop: 14, paddingBottom: 170 },
+    content: { paddingHorizontal: 18, paddingBottom: 170 },
 
+    groupGap: { marginTop: 16 },
     groupLabel: {
       fontSize: 11,
       fontWeight: "700",
@@ -216,7 +220,6 @@ const makeStyles = (c: Palette) =>
       color: c.muted,
       marginHorizontal: 2,
       marginBottom: 9,
-      marginTop: 14,
     },
 
     card: {
