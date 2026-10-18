@@ -275,6 +275,12 @@ scheduler_events = {
 
 # Translation
 # ------------
-# List of apps whose translatable strings should be excluded from this app's translations.
-# ignore_translatable_strings_from = []
+
+# Website Route Rules
+# -------------------
+website_route_rules = [
+	{"from_route": "/bgc_consent", "to_route": "ats_consent"},
+	{"from_route": "/bgc-consent", "to_route": "ats_consent"},
+	{"from_route": "/ats-consent", "to_route": "ats_consent"},
+]
 
