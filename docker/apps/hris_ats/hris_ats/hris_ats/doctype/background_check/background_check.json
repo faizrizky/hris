@@ -6,6 +6,8 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
+  "tab_overview",
+  "section_break_applicant_header",
   "naming_series",
   "job_applicant",
   "full_name",
@@ -16,6 +18,28 @@
   "risk_level_auto",
   "risk_level_final",
   "purge_after",
+  "is_purged",
+  "section_break_summary",
+  "summary_auto",
+  "politeness_score",
+  "summary_hr",
+  "hr_conclusion",
+  "section_break_source_runs",
+  "source_runs",
+  "section_break_skck",
+  "skck_file",
+  "skck_status",
+  "column_break_skck",
+  "skck_number",
+  "skck_valid_until",
+  "tab_platform",
+  "section_break_accounts",
+  "accounts",
+  "tab_name_trace",
+  "name_findings_html",
+  "tab_account_trace",
+  "account_findings_html",
+  "tab_consent_audit",
   "section_break_consent",
   "consent_status",
   "consent_method",
@@ -31,25 +55,21 @@
   "section_break_identity",
   "name_variants",
   "context_terms",
-  "section_break_accounts",
-  "accounts",
-  "section_break_source_runs",
-  "source_runs",
-  "section_break_summary",
-  "summary_auto",
-  "summary_hr",
-  "hr_conclusion",
-  "section_break_skck",
-  "skck_file",
-  "skck_status",
-  "column_break_skck",
-  "skck_number",
-  "skck_valid_until",
   "section_break_audit",
   "reviewed_by",
   "reviewed_on"
  ],
  "fields": [
+  {
+   "fieldname": "tab_overview",
+   "fieldtype": "Tab Break",
+   "label": "Ringkasan"
+  },
+  {
+   "fieldname": "section_break_applicant_header",
+   "fieldtype": "Section Break",
+   "label": "Informasi Kandidat"
+  },
   {
    "default": "BGC-.YYYY.-.#####",
    "fieldname": "naming_series",
@@ -114,6 +134,125 @@
    "fieldtype": "Date",
    "label": "Purge Raw Findings After",
    "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "is_purged",
+   "fieldtype": "Check",
+   "label": "Is Purged",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_summary",
+   "fieldtype": "Section Break",
+   "label": "Profile Summary & HR Conclusion"
+  },
+  {
+   "fieldname": "summary_auto",
+   "fieldtype": "Small Text",
+   "label": "Automated Summary",
+   "read_only": 1
+  },
+  {
+   "fieldname": "politeness_score",
+   "fieldtype": "Int",
+   "label": "Politeness Score (0-100)",
+   "read_only": 1
+  },
+  {
+   "fieldname": "summary_hr",
+   "fieldtype": "Text Editor",
+   "label": "HR Summary Review"
+  },
+  {
+   "fieldname": "hr_conclusion",
+   "fieldtype": "Small Text",
+   "label": "HR Conclusion (Wajib sebelum Interview)"
+  },
+  {
+   "fieldname": "section_break_source_runs",
+   "fieldtype": "Section Break",
+   "label": "Source Status"
+  },
+  {
+   "fieldname": "source_runs",
+   "fieldtype": "Table",
+   "label": "Source Runs",
+   "options": "Background Check Source Run"
+  },
+  {
+   "fieldname": "section_break_skck",
+   "fieldtype": "Section Break",
+   "label": "SKCK Verification (Opsional)"
+  },
+  {
+   "fieldname": "skck_file",
+   "fieldtype": "Attach",
+   "label": "SKCK Document"
+  },
+  {
+   "default": "Tidak diunggah",
+   "fieldname": "skck_status",
+   "fieldtype": "Select",
+   "label": "SKCK Status",
+   "options": "Tidak diunggah\nBelum diperiksa\nBersih\nAda catatan\nKedaluwarsa"
+  },
+  {
+   "fieldname": "column_break_skck",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval:doc.skck_file",
+   "fieldname": "skck_number",
+   "fieldtype": "Data",
+   "label": "SKCK Number"
+  },
+  {
+   "depends_on": "eval:doc.skck_file",
+   "fieldname": "skck_valid_until",
+   "fieldtype": "Date",
+   "label": "SKCK Valid Until"
+  },
+  {
+   "fieldname": "tab_platform",
+   "fieldtype": "Tab Break",
+   "label": "Platform"
+  },
+  {
+   "fieldname": "section_break_accounts",
+   "fieldtype": "Section Break",
+   "label": "Registered Accounts"
+  },
+  {
+   "fieldname": "accounts",
+   "fieldtype": "Table",
+   "label": "Accounts",
+   "options": "Background Check Account"
+  },
+  {
+   "fieldname": "tab_name_trace",
+   "fieldtype": "Tab Break",
+   "label": "Jejak Digital Nama"
+  },
+  {
+   "fieldname": "name_findings_html",
+   "fieldtype": "HTML",
+   "label": "Temuan Jejak Digital Nama"
+  },
+  {
+   "fieldname": "tab_account_trace",
+   "fieldtype": "Tab Break",
+   "label": "Jejak Digital Akun"
+  },
+  {
+   "fieldname": "account_findings_html",
+   "fieldtype": "HTML",
+   "label": "Temuan Jejak Digital Akun"
+  },
+  {
+   "fieldname": "tab_consent_audit",
+   "fieldtype": "Tab Break",
+   "label": "Persetujuan & Audit"
   },
   {
    "fieldname": "section_break_consent",
@@ -202,82 +341,6 @@
    "read_only": 1
   },
   {
-   "fieldname": "section_break_accounts",
-   "fieldtype": "Section Break",
-   "label": "Registered Accounts"
-  },
-  {
-   "fieldname": "accounts",
-   "fieldtype": "Table",
-   "label": "Accounts",
-   "options": "Background Check Account"
-  },
-  {
-   "fieldname": "section_break_source_runs",
-   "fieldtype": "Section Break",
-   "label": "Source Status"
-  },
-  {
-   "fieldname": "source_runs",
-   "fieldtype": "Table",
-   "label": "Source Runs",
-   "options": "Background Check Source Run"
-  },
-  {
-   "fieldname": "section_break_summary",
-   "fieldtype": "Section Break",
-   "label": "Profile Summary & HR Conclusion"
-  },
-  {
-   "fieldname": "summary_auto",
-   "fieldtype": "Small Text",
-   "label": "Automated Summary",
-   "read_only": 1
-  },
-  {
-   "fieldname": "summary_hr",
-   "fieldtype": "Text Editor",
-   "label": "HR Summary Review"
-  },
-  {
-   "fieldname": "hr_conclusion",
-   "fieldtype": "Small Text",
-   "label": "HR Conclusion (Wajib sebelum Interview)"
-  },
-  {
-   "fieldname": "section_break_skck",
-   "fieldtype": "Section Break",
-   "label": "SKCK Verification (Opsional)"
-  },
-  {
-   "fieldname": "skck_file",
-   "fieldtype": "Attach",
-   "label": "SKCK Document"
-  },
-  {
-   "default": "Tidak diunggah",
-   "fieldname": "skck_status",
-   "fieldtype": "Select",
-   "label": "SKCK Status",
-   "options": "Tidak diunggah\nBelum diperiksa\nBersih\nAda catatan\nKedaluwarsa"
-  },
-  {
-   "fieldname": "column_break_skck",
-   "fieldtype": "Column Break"
-  },
-  {
-   "depends_on": "eval:doc.skck_file",
-   "fieldname": "skck_number",
-   "fieldtype": "Data",
-   "label": "SKCK Number"
-  },
-  {
-   "depends_on": "eval:doc.skck_file",
-   "fieldname": "skck_valid_until",
-   "fieldtype": "Date",
-   "label": "SKCK Valid Until"
-  },
-  {
    "fieldname": "section_break_audit",
    "fieldtype": "Section Break",
    "label": "Review Audit"
@@ -301,6 +364,7 @@
  "module": "HRIS ATS",
  "name": "Background Check",
  "owner": "Administrator",
+ "default_print_format": "Background Check Report",
  "permissions": [
   {
    "create": 1,

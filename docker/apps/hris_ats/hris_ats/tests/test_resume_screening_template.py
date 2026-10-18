@@ -83,10 +83,12 @@ class TestResumeScreeningTemplate(FrappeTestCase):
 
 	def test_validate_active_designation_unique(self):
 		"""Satu Designation hanya boleh dipakai di satu template aktif."""
-		designation = frappe.db.get_value("Designation", {}, "name")
-		if not designation:
-			des = frappe.get_doc({"doctype": "Designation", "designation_name": "Test Engineer"}).insert()
+		des_name = "Unique Test Designation"
+		if not frappe.db.exists("Designation", des_name):
+			des = frappe.get_doc({"doctype": "Designation", "designation_name": des_name}).insert(ignore_permissions=True)
 			designation = des.name
+		else:
+			designation = des_name
 
 		# Template aktif pertama
 		t1 = frappe.new_doc("Resume Screening Template")

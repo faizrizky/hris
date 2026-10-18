@@ -243,6 +243,7 @@ def run_all_sources(bgc_name: str) -> None:
 	)
 
 	bgc.risk_level_auto = calculated_risk
+	bgc.politeness_score = politeness_score
 	bgc.summary_auto = summary_text
 	bgc.status = "Done"
 	bgc.purge_after = add_days(nowdate(), retention_days)
@@ -259,11 +260,27 @@ def run_all_sources(bgc_name: str) -> None:
 
 
 def _save_findings(bgc_name: str, findings: list[FindingData]) -> None:
-	"""Menyimpan list FindingData ke DocType Background Check Finding."""
+	"""Menyimpan list FindingData ke DocType Background Check Finding tanpa duplikasi."""
 	for item in findings:
-		doc = frappe.new_doc("Background Check Finding")
-		doc.background_check = bgc_name
+		filters = {
+			"background_check": bgc_name,
+			"finding_type": item.finding_type,
+			"title": item.title,
+		}
+		if item.url:
+			filters["url"] = item.url
+
+		existing = frappe.db.get_value("Background Check Finding", filters, "name")
+		if existing:
+			doc = frappe.get_doc("Background Check Finding", existing)
+		else:
+			doc = frappe.new_doc("Background Check Finding")
+			doc.background_check = bgc_name
+
 		for key, val in item.as_dict().items():
 			if hasattr(doc, key):
+				# Pertahankan verdict dan catatan HR jika sudah pernah diisi
+				if key in ("hr_verdict", "hr_note") and getattr(doc, key, None) and getattr(doc, key) != "Belum ditinjau":
+					continue
 				setattr(doc, key, val)
-		doc.insert(ignore_permissions=True)
+		doc.save(ignore_permissions=True)

@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+	body {
+		font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+		color: #2d3748;
+		margin: 0;
+		padding: 24px;
+		font-size: 13px;
+		line-height: 1.5;
+	}
+	.header {
+		border-bottom: 2px solid #2b6cb0;
+		padding-bottom: 16px;
+		margin-bottom: 24px;
+		display: flex;
+		justify-content: space-between;
+		align-items: flex-end;
+	}
+	.header h1 {
+		margin: 0 0 4px 0;
+		font-size: 20px;
+		color: #1a365d;
+	}
+	.header .doc-id {
+		font-size: 12px;
+		color: #718096;
+	}
+	.section {
+		margin-bottom: 20px;
+	}
+	.section-title {
+		font-size: 14px;
+		font-weight: 700;
+		text-transform: uppercase;
+		color: #2b6cb0;
+		border-bottom: 1px solid #e2e8f0;
+		padding-bottom: 4px;
+		margin-bottom: 12px;
+		letter-spacing: 0.5px;
+	}
+	.grid-table {
+		width: 100%;
+		border-collapse: collapse;
+		margin-bottom: 16px;
+	}
+	.grid-table td {
+		padding: 6px 10px;
+		vertical-align: top;
+	}
+	.grid-table td.label-col {
+		width: 25%;
+		font-weight: 600;
+		color: #4a5568;
+		background-color: #f7fafc;
+		border: 1px solid #e2e8f0;
+	}
+	.grid-table td.val-col {
+		width: 75%;
+		border: 1px solid #e2e8f0;
+	}
+	.badge {
+		display: inline-block;
+		padding: 3px 8px;
+		border-radius: 4px;
+		font-size: 11px;
+		font-weight: 700;
+		text-transform: uppercase;
+	}
+	.badge-danger { background-color: #fed7d7; color: #9b2c2c; }
+	.badge-warning { background-color: #feebc8; color: #9c4221; }
+	.badge-success { background-color: #c6f6d5; color: #22543d; }
+	.badge-info { background-color: #bee3f8; color: #2b6cb0; }
+	.badge-secondary { background-color: #edf2f7; color: #4a5568; }
+
+	.findings-table {
+		width: 100%;
+		border-collapse: collapse;
+		margin-top: 8px;
+	}
+	.findings-table th {
+		background-color: #edf2f7;
+		padding: 8px 10px;
+		text-align: left;
+		font-size: 11px;
+		font-weight: 700;
+		text-transform: uppercase;
+		color: #4a5568;
+		border: 1px solid #cbd5e0;
+	}
+	.findings-table td {
+		padding: 8px 10px;
+		border: 1px solid #cbd5e0;
+		vertical-align: top;
+	}
+	.footer {
+		margin-top: 32px;
+		padding-top: 12px;
+		border-top: 1px solid #e2e8f0;
+		font-size: 11px;
+		color: #a0aec0;
+		text-align: center;
+	}
+</style>
+</head>
+<body>
+
+<div class="header">
+	<div>
+		<h1>LAPORAN PEMERIKSAAN LATAR BELAKANG</h1>
+		<div class="doc-id">Dokumen ID: {{ doc.name }} &bull; Tanggal: {{ frappe.utils.formatdate(doc.creation, "dd MMMM yyyy") }}</div>
+	</div>
+	<div style="text-align: right;">
+		{% set level = doc.risk_level_final or doc.risk_level_auto or "Rendah" %}
+		<span class="badge {% if level == 'Tinggi' %}badge-danger{% elif level == 'Sedang' %}badge-warning{% elif level == 'Perlu verifikasi' %}badge-warning{% else %}badge-success{% endif %}" style="font-size: 14px; padding: 6px 12px;">
+			TINGKAT RISIKO: {{ level }}
+		</span>
+	</div>
+</div>
+
+<div class="section">
+	<div class="section-title">1. Profil Kandidat</div>
+	<table class="grid-table">
+		<tr>
+			<td class="label-col">Nama Lengkap</td>
+			<td class="val-col"><strong>{{ doc.full_name }}</strong></td>
+		</tr>
+		<tr>
+			<td class="label-col">Posisi yang Dilamar</td>
+			<td class="val-col">
+				{% if doc.job_applicant %}
+					{{ frappe.db.get_value("Job Applicant", doc.job_applicant, "job_title") or "-" }}
+				{% else %}
+					-
+				{% endif %}
+			</td>
+		</tr>
+		<tr>
+			<td class="label-col">Kontak</td>
+			<td class="val-col">Email: {{ doc.email or '-' }} &bull; Telepon: {{ doc.phone or '-' }}</td>
+		</tr>
+		<tr>
+			<td class="label-col">Persetujuan Kandidat (UU PDP)</td>
+			<td class="val-col">
+				Status: <strong>{{ doc.consent_status }}</strong> (Metode: {{ doc.consent_method }}) &bull;
+				Waktu: {{ frappe.utils.format_datetime(doc.consent_at, "dd/MM/yyyy HH:mm") if doc.consent_at else '-' }} &bull;
+				Versi Teks: {{ doc.consent_text_version or '-' }}
+			</td>
+		</tr>
+	</table>
+</div>
+
+<div class="section">
+	<div class="section-title">2. Kesimpulan & Ringkasan Evaluasi HR</div>
+	<div style="background-color: #f7fafc; border: 1px solid #e2e8f0; border-radius: 4px; padding: 12px; margin-bottom: 12px;">
+		<p style="margin: 0 0 8px 0; font-size: 13px; line-height: 1.6;">
+			{{ doc.summary_hr or doc.summary_auto or "Pemeriksaan selesai tanpa temuan khusus." }}
+		</p>
+		{% if doc.hr_conclusion %}
+		<p style="margin: 8px 0 0 0; padding-top: 8px; border-top: 1px dashed #cbd5e0; font-weight: 600; color: #1a202c;">
+			<strong>Kesimpulan Akhir HR:</strong> {{ doc.hr_conclusion }}
+		</p>
+		{% endif %}
+	</div>
+	<div style="font-size: 11px; color: #718096; text-align: right;">
+		Ditinjau oleh: {{ doc.reviewed_by or "Tim Background Check Officer" }} &bull;
+		Tanggal Review: {{ frappe.utils.format_datetime(doc.reviewed_on, "dd/MM/yyyy HH:mm") if doc.reviewed_on else '-' }}
+	</div>
+</div>
+
+<div class="section">
+	<div class="section-title">3. Temuan Terverifikasi Relevan</div>
+	<p style="font-size: 11px; color: #718096; margin-top: -6px; margin-bottom: 8px;">
+		Sesuai kepatuhan UU PDP dan prinsip akurasi, hanya temuan yang telah diverifikasi sebagai <strong>Relevan</strong> oleh HR yang dicantumkan dalam laporan ini.
+	</p>
+	{% set relevant_findings = frappe.get_all("Background Check Finding", filters={"background_check": doc.name, "hr_verdict": "Relevan"}, fields=["finding_type", "title", "source_name", "url", "category", "severity", "snippet", "hr_note"]) %}
+	{% if relevant_findings and relevant_findings|length > 0 %}
+	<table class="findings-table">
+		<thead>
+			<tr>
+				<th style="width: 15%;">Tipe / Kategori</th>
+				<th style="width: 25%;">Judul & Sumber</th>
+				<th style="width: 40%;">Ringkasan Temuan</th>
+				<th style="width: 20%;">Catatan HR</th>
+			</tr>
+		</thead>
+		<tbody>
+			{% for f in relevant_findings %}
+			<tr>
+				<td>
+					<span class="badge badge-secondary">{{ f.finding_type }}</span><br>
+					<span class="badge {% if f.severity == 'Tinggi' %}badge-danger{% elif f.severity == 'Sedang' %}badge-warning{% else %}badge-info{% endif %}" style="margin-top: 4px;">{{ f.severity }}</span>
+				</td>
+				<td>
+					<strong>{{ f.title }}</strong><br>
+					<small class="text-muted">{{ f.source_name or '-' }}</small>
+				</td>
+				<td>{{ f.snippet or '-' }}</td>
+				<td>{{ f.hr_note or '-' }}</td>
+			</tr>
+			{% endfor %}
+		</tbody>
+	</table>
+	{% else %}
+	<div style="padding: 12px; border: 1px dashed #cbd5e0; border-radius: 4px; color: #718096; text-align: center; font-style: italic;">
+		Tidak ada temuan yang dikategorikan relevan atau berisiko pada pemeriksaan ini.
+	</div>
+	{% endif %}
+</div>
+
+<div class="footer">
+	Dokumen rahasia ini diterbitkan oleh Sistem HRIS ATS untuk keperluan proses rekrutmen internal perusahaan.<br>
+	Kandidat berhak memperoleh salinan atau mengajukan koreksi atas data ini sesuai UU No. 27 Tahun 2022 tentang Perlindungan Data Pribadi.
+</div>
+
+</body>
+</html>

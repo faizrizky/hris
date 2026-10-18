@@ -2029,4 +2029,163 @@ for _sl in frappe.get_all("Shift Location", filters={"geolocation": ["is", "not 
     frappe.get_doc("Shift Location", _sl).save(ignore_permissions=True)
     frappe.db.commit()
     log(f"Shift Location {_sl}: peta diisi dari koordinat")
+
+# 11. ATS Resume Screening & Background Check Seed -------------------------
+log("memulai seed HRIS ATS & Background Check...")
+
+if not exists("Designation", "Senior Product Designer"):
+    make(dict(doctype="Designation", designation_name="Senior Product Designer"))
+
+if not exists("Resume Screening Template", "Template Desainer Produk"):
+    _t = frappe.new_doc("Resume Screening Template")
+    _t.template_name = "Template Desainer Produk"
+    _t.enabled = 1
+    _t.append("job_roles", {"designation": "Senior Product Designer"})
+    _t.pass_description = "Kualifikasi dan portofolio desainer produk memenuhi standar tim."
+    _t.fail_description = "Kualifikasi belum memenuhi standar kebutuhan saat ini."
+    _t.insert(ignore_permissions=True)
+    log("dibuat Resume Screening Template: Template Desainer Produk")
+
+_jo_name = "Senior Product Designer - Tech"
+if not exists("Job Opening", {"job_title": _jo_name}):
+    _jo = make(dict(
+        doctype="Job Opening",
+        job_title=_jo_name,
+        designation="Senior Product Designer",
+        status="Open",
+        company=C,
+        screening_template="Template Desainer Produk",
+        min_education="D4/S1",
+        education_majors="Desain Komunikasi Visual, Desain Produk, Teknik Informatika",
+        min_years_experience=3.0,
+        relevant_titles="Product Designer, UI/UX Designer, Interaction Designer",
+        required_skills="Figma\nUI/UX\nDesign System\nUser Research",
+        preferred_skills="React\nPrototyping\nDesign Ops",
+        certification_keywords="Google UX\nNN/g",
+    ))
+else:
+    _jo = frappe.get_doc("Job Opening", {"job_title": _jo_name})
+
+import shutil
+cv_fixtures = [
+    ("cv_01_single_column.pdf", "Ronald Richard", "ronald.richard@example.com", "08123456781", "Jakarta"),
+    ("cv_02_two_column.pdf", "Siti Rahma", "siti.rahma@example.com", "08123456782", "Bandung"),
+    ("cv_04_docx.docx", "Budi Santoso", "budi.santoso@example.com", "08123456783", "Surabaya"),
+]
+
+fixtures_src_dir = "/home/frappe/frappe-bench/apps/hris_ats/hris_ats/tests/fixtures"
+files_dest_dir = frappe.get_site_path("public", "files")
+os.makedirs(files_dest_dir, exist_ok=True)
+
+from hris_ats.scoring.workflow import process_resume_screening
+from hris_ats.bgc.consent import initiate_background_check, submit_candidate_consent
+from hris_ats.bgc.runner import run_all_sources
+
+applicant_docs = {}
+
+for cv_file, cand_name, cand_email, cand_phone, cand_city in cv_fixtures:
+    src_f = os.path.join(fixtures_src_dir, cv_file)
+    dst_f = os.path.join(files_dest_dir, cv_file)
+    if not os.path.exists(src_f) and cv_file == "cv_04_docx.docx":
+        sample_src = os.path.join(fixtures_src_dir, "cv_04_sample.docx")
+        if os.path.exists(sample_src):
+            src_f = sample_src
+
+    if os.path.exists(src_f) and not os.path.exists(dst_f):
+        shutil.copyfile(src_f, dst_f)
+
+    file_url = f"/files/{cv_file}"
+
+    if not exists("Job Applicant", {"email_id": cand_email}):
+        app_doc = make(dict(
+            doctype="Job Applicant",
+            applicant_name=cand_name,
+            email_id=cand_email,
+            phone_number=cand_phone,
+            job_title=_jo.name,
+            resume_attachment=file_url,
+            city=cand_city,
+            source="Website",
+        ))
+        applicant_docs[cand_name] = app_doc
+
+        scr_name = frappe.db.get_value("Resume Screening", {"job_applicant": app_doc.name}, "name")
+        if scr_name:
+            process_resume_screening(scr_name)
+    else:
+        app_doc = frappe.get_doc("Job Applicant", {"email_id": cand_email})
+        applicant_docs[cand_name] = app_doc
+        scr_name = frappe.db.get_value("Resume Screening", {"job_applicant": app_doc.name}, "name")
+        if scr_name:
+            scr_status = frappe.db.get_value("Resume Screening", scr_name, "status")
+            if scr_status != "Done" or not app_doc.resume_score:
+                if app_doc.resume_attachment != file_url:
+                    app_doc.resume_attachment = file_url
+                    app_doc.save(ignore_permissions=True)
+                scr = frappe.get_doc("Resume Screening", scr_name)
+                scr.resume_file = file_url
+                scr.save(ignore_permissions=True)
+                process_resume_screening(scr_name)
+
+# Satu Background Check fiktif memakai provider mock untuk Ronald Richard
+ronald_app = applicant_docs.get("Ronald Richard")
+if ronald_app:
+    bgc_name = frappe.db.get_value("Background Check", {"job_applicant": ronald_app.name}, "name")
+    if not bgc_name:
+        init_res = initiate_background_check(ronald_app.name)
+        token = init_res["token"]
+        accounts = [
+            {"platform": "GitHub", "username": "ronaldrichard"},
+            {"platform": "LinkedIn", "username": "ronaldrichard"},
+            {"platform": "Instagram", "username": "ronaldrichard"},
+        ]
+        submit_candidate_consent(
+            token=token,
+            granted_sources=["Platform", "Article", "File", "Case history", "Posts"],
+            accounts=accounts,
+        )
+        run_all_sources(init_res["name"])
+        bgc = frappe.get_doc("Background Check", init_res["name"])
+        bgc.hr_conclusion = "Kandidat memiliki rekam jejak publik dan prestasi yang sangat baik, direkomendasikan lanjut ke wawancara."
+        bgc.risk_level_final = "Rendah"
+        bgc.reviewed_by = "Administrator"
+        bgc.reviewed_on = frappe.utils.now_datetime()
+        bgc.save(ignore_permissions=True)
+
+        finding_name = frappe.db.get_value(
+            "Background Check Finding",
+            {"background_check": bgc.name, "category": "Prestasi"},
+            "name",
+        )
+        if finding_name:
+            frappe.db.set_value(
+                "Background Check Finding",
+                finding_name,
+                {
+                    "hr_verdict": "Relevan",
+                    "hr_note": "Prestasi relevan dengan bidang desain produk.",
+                },
+                update_modified=False,
+            )
+        log(f"dibuat Background Check: {bgc.name}")
+    else:
+        bgc = frappe.get_doc("Background Check", bgc_name)
+        finding_name = frappe.db.get_value(
+            "Background Check Finding",
+            {"background_check": bgc.name, "category": "Prestasi"},
+            "name",
+        )
+        if finding_name:
+            frappe.db.set_value(
+                "Background Check Finding",
+                finding_name,
+                {
+                    "hr_verdict": "Relevan",
+                    "hr_note": "Prestasi relevan dengan bidang desain produk.",
+                },
+                update_modified=False,
+            )
+
+frappe.db.commit()
+log("seed HRIS ATS & Background Check selesai")
 log("selesai")

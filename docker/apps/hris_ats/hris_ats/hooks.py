@@ -53,11 +53,11 @@ required_apps = ["erpnext", "hrms"]
 
 # include js in doctype views
 doctype_js = {
-	"Job Applicant": "public/js/job_applicant.js"
+	"Job Applicant": "public/js/job_applicant.js",
 }
 
 doctype_list_js = {
-	"Job Applicant": "public/js/job_applicant_list.js"
+	"Job Applicant": "public/js/job_applicant_list.js",
 }
 
 website_route_rules = [
@@ -168,6 +168,7 @@ doc_events = {
 		"on_update": "hris_ats.scoring.workflow.on_job_applicant_update",
 	},
 	"Interview": {
+		"validate": "hris_ats.scoring.workflow.validate_interview",
 		"on_update": "hris_ats.scoring.workflow.on_interview_update",
 	},
 	"Job Offer": {
@@ -179,20 +180,11 @@ doc_events = {
 # Scheduled Tasks
 # ---------------
 
-# scheduler_events = {
-# 	"all": [
-# 		"hris_ats.tasks.all"
-# 	],
-# 	"daily": [
-# 		"hris_ats.tasks.daily"
-# 	],
-# 	"hourly": [
-# 		"hris_ats.tasks.hourly"
-# 	],
-# 	"weekly": [
-# 		"hris_ats.tasks.weekly"
-# 	],
-# 	"monthly": [
+scheduler_events = {
+	"daily": [
+		"hris_ats.tasks.daily_retention_purge"
+	],
+}
 # 		"hris_ats.tasks.monthly"
 # 	],
 # }

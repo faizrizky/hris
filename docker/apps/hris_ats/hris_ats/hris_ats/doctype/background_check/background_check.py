@@ -3,10 +3,13 @@
 
 import secrets
 from datetime import datetime, timedelta
+from typing import Any
 import frappe
 from frappe import _
 from frappe.model.document import Document
 from frappe.utils import now_datetime, getdate, nowdate
+
+from hris_ats.bgc.analysis.risk import calculate_risk_level
 
 
 class BackgroundCheck(Document):
@@ -69,3 +72,99 @@ class BackgroundCheck(Document):
 		elif not clean.startswith("+"):
 			return "+62" + clean
 		return clean
+
+
+@frappe.whitelist()
+def update_finding_verdict(finding_name: str, verdict: str, note: str = "") -> dict[str, Any]:
+	"""Memperbarui HR verdict pada temuan dan menghitung ulang tingkat risiko otomatis."""
+	if not frappe.db.exists("Background Check Finding", finding_name):
+		frappe.throw(_("Temuan {0} tidak ditemukan.").format(finding_name))
+
+	finding = frappe.get_doc("Background Check Finding", finding_name)
+	finding.hr_verdict = verdict
+	if note:
+		finding.hr_note = note
+	finding.save(ignore_permissions=True)
+
+	bgc = frappe.get_doc("Background Check", finding.background_check)
+	all_findings = frappe.get_all(
+		"Background Check Finding",
+		filters={"background_check": bgc.name},
+		fields=["severity", "match_confidence", "hr_verdict", "category", "finding_type"],
+	)
+	settings = frappe.get_single("Background Check Settings")
+	min_confidence = settings.min_match_confidence or 50
+	new_risk = calculate_risk_level(
+		findings=all_findings,
+		politeness_score=bgc.politeness_score or 100,
+		min_confidence=min_confidence,
+	)
+	bgc.risk_level_auto = new_risk
+	bgc.save(ignore_permissions=True)
+
+	return {
+		"success": True,
+		"new_risk": new_risk,
+		"verdict": verdict,
+	}
+
+
+@frappe.whitelist()
+def get_findings_data(bgc_name: str) -> dict[str, Any]:
+	"""Mengambil data temuan terstruktur untuk dirender di tab form."""
+	if not frappe.db.exists("Background Check", bgc_name):
+		return {"name_findings": [], "post_findings": []}
+
+	name_findings = frappe.get_all(
+		"Background Check Finding",
+		filters={"background_check": bgc_name, "finding_type": ["in", ["Article", "File", "Case"]]},
+		fields=[
+			"name", "finding_type", "title", "snippet", "url", "source_name",
+			"file_type", "match_confidence", "match_reasons", "category",
+			"risk_flags", "severity", "case_type", "case_number", "court",
+			"party_role", "hr_verdict", "hr_note", "published_on"
+		],
+		order_by="match_confidence desc, creation desc",
+	)
+
+	post_findings = frappe.get_all(
+		"Background Check Finding",
+		filters={"background_check": bgc_name, "finding_type": "Post"},
+		fields=[
+			"name", "finding_type", "title", "snippet", "url", "source_name",
+			"match_confidence", "category", "risk_flags", "severity",
+			"hr_verdict", "hr_note", "published_on"
+		],
+		order_by="creation desc",
+	)
+
+	return {
+		"name_findings": name_findings,
+		"post_findings": post_findings,
+	}
+
+
+@frappe.whitelist()
+def rerun_background_check(bgc_name: str) -> dict[str, Any]:
+	"""HR memicu eksekusi ulang Background Check."""
+	if not frappe.db.exists("Background Check", bgc_name):
+		frappe.throw(_("Dokumen {0} tidak ditemukan.").format(bgc_name))
+
+	bgc = frappe.get_doc("Background Check", bgc_name)
+	if bgc.consent_status != "Granted":
+		frappe.throw(_("Background Check tidak dapat dijalankan tanpa persetujuan kandidat (status saat ini: {0}).").format(bgc.consent_status))
+
+	bgc.status = "Queued"
+	for row in bgc.source_runs:
+		row.status = "Pending"
+		row.items_found = 0
+		row.error = ""
+	bgc.save(ignore_permissions=True)
+
+	frappe.enqueue(
+		"hris_ats.bgc.runner.run_all_sources",
+		queue="long",
+		bgc_name=bgc.name,
+	)
+
+	return {"message": _("Pemeriksaan ulang Background Check telah dijadwalkan."), "name": bgc.name}

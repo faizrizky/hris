@@ -269,6 +269,7 @@ def process_resume_screening(screening_name: str):
 	screening.result_indicator = total_calc["result_indicator"]
 	screening.screened_on = frappe.utils.now_datetime()
 	screening.status = "Done"
+	screening.error = None
 	screening.save(ignore_permissions=True)
 
 	# 6. Salin hasil ke Job Applicant dan transisi stage ke 'Screening'
@@ -347,6 +348,42 @@ def bulk_rescreen(applicant_names: list[str] | str) -> dict[str, Any]:
 			queued.append(app_name)
 
 	return {"message": _("{0} pelamar dijadwalkan untuk screening ulang.").format(len(queued)), "count": len(queued)}
+
+
+def validate_interview(doc, method=None):
+	"""Validasi sebelum Interview disimpan:
+	Jika pelamar memiliki berkas Background Check, hr_conclusion wajib diisi terlebih dahulu.
+	"""
+	if not doc.get("job_applicant"):
+		return
+
+	# Prioritaskan BGC yang terhubung langsung di Job Applicant
+	bgc_name = frappe.db.get_value("Job Applicant", doc.job_applicant, "background_check")
+	if not bgc_name:
+		# Jika belum ditautkan di field, cari BGC aktif terbaru
+		bgc_records = frappe.get_all(
+			"Background Check",
+			filters={"job_applicant": doc.job_applicant, "consent_status": ["!=", "Withdrawn"]},
+			fields=["name"],
+			order_by="creation desc",
+			limit=1,
+		)
+		if bgc_records:
+			bgc_name = bgc_records[0].name
+
+	if bgc_name:
+		bgc = frappe.db.get_value(
+			"Background Check",
+			bgc_name,
+			["name", "hr_conclusion", "status", "consent_status"],
+			as_dict=True,
+		)
+		if bgc and bgc.consent_status != "Withdrawn":
+			if not bgc.hr_conclusion or not bgc.hr_conclusion.strip():
+				frappe.throw(
+					_("Wawancara tidak dapat dibuat sebelum Kesimpulan HR (hr_conclusion) pada berkas Background Check {0} diisi.").format(bgc.name),
+					frappe.ValidationError,
+				)
 
 
 def on_interview_update(doc, method=None):
