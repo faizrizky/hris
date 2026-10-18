@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { IconBox } from "@/components/IconBox";
 import type { ScreenProps } from "@/navigation/types";
 import {
   ActivityIndicator,
@@ -251,6 +252,7 @@ export function ProfileSecurityScreen({ navigation }: ScreenProps) {
             style={styles.baris}
             onPress={() => navigation.navigate("ProfilePassword")}
           >
+            <IconBox icon="lock-closed-outline" color={c.info.ink} />
             <View style={{ flex: 1, minWidth: 0 }}>
               <Text style={styles.rowTitle}>{t("sec.ubahPw")}</Text>
               <Text style={styles.rowSub}>
@@ -269,6 +271,7 @@ export function ProfileSecurityScreen({ navigation }: ScreenProps) {
                 i === info.toggles.length - 1 && styles.finalRow,
               ]}
             >
+              <IconBox icon="notifications-outline" color={c.warn.ink} />
               <View style={{ flex: 1, minWidth: 0 }}>
                 <Text style={styles.rowTitle}>{toggle.title}</Text>
                 <Text style={styles.rowSub}>{toggle.subtitle}</Text>
@@ -288,17 +291,14 @@ export function ProfileSecurityScreen({ navigation }: ScreenProps) {
           <View style={{ gap: 13, marginTop: 14 }}>
             {info.devices.map((d) => (
               <View key={d.id} style={styles.devRow}>
-                <View style={styles.devIcon}>
-                  <Ionicons
-                    name={
-                      d.kind === "mobile"
-                        ? "phone-portrait-outline"
-                        : "desktop-outline"
-                    }
-                    color={c.info.ink}
-                    size={26}
-                  />
-                </View>
+                <IconBox
+                  icon={
+                    d.kind === "mobile"
+                      ? "phone-portrait-outline"
+                      : "desktop-outline"
+                  }
+                  color={c.info.ink}
+                />
                 <View style={{ flex: 1, minWidth: 0 }}>
                   <Text style={styles.devName}>{d.name}</Text>
                   <Text style={styles.devMeta}>{d.meta}</Text>
@@ -565,14 +565,6 @@ const makeStyles = (c: Palette) =>
     cardTitle: { fontSize: 13.5, fontWeight: "700", color: c.ink },
 
     devRow: { flexDirection: "row", alignItems: "center", gap: 12 },
-    devIcon: {
-      width: 38,
-      height: 38,
-      borderRadius: 12,
-      backgroundColor: "transparent",
-      alignItems: "center",
-      justifyContent: "center",
-    },
     devName: { fontSize: 12.5, fontWeight: "600", color: c.ink },
     devMeta: {
       fontSize: 10.5,

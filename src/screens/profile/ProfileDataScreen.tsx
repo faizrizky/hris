@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { IconBox } from "@/components/IconBox";
 import type { ScreenProps } from "@/navigation/types";
 import {
   Image,
@@ -96,6 +97,7 @@ export function ProfileDataScreen({ navigation }: ScreenProps) {
 
   const sections = [
     {
+      icon: "person-outline" as const,
       title: t("pd.dataPribadi"),
       rows: [
         [t("pd.nama"), profile.fullName],
@@ -118,6 +120,7 @@ export function ProfileDataScreen({ navigation }: ScreenProps) {
       ],
     },
     {
+      icon: "call-outline" as const,
       title: t("pd.kontakAlamat"),
       rows: [
         [t("pd.telepon"), e.phone || unfilledText],
@@ -250,6 +253,7 @@ export function ProfileDataScreen({ navigation }: ScreenProps) {
         {sections.map((s, idx) => (
           <View key={s.title} style={[styles.card, { marginTop: 12 }]}>
             <View style={styles.cardHead}>
+              <IconBox icon={s.icon} color={c.info.ink} size={34} />
               <Text style={styles.cardTitle}>{s.title}</Text>
               {idx === 0 && isComplete ? (
                 <View style={styles.okPill}>
@@ -282,6 +286,7 @@ export function ProfileDataScreen({ navigation }: ScreenProps) {
 
         <View style={[styles.card, { marginTop: 12 }]}>
           <View style={styles.cardHead}>
+            <IconBox icon="people-outline" color={c.ok.ink} size={34} />
             <Text style={styles.cardTitle}>{t("pd.keluarga")}</Text>
             <View style={styles.softBadge}>
               <Text style={styles.softBadgeText}>
@@ -332,6 +337,7 @@ export function ProfileDataScreen({ navigation }: ScreenProps) {
 
         <View style={[styles.card, { marginTop: 12 }]}>
           <View style={styles.cardHead}>
+            <IconBox icon="medkit-outline" color={c.bad.ink} size={34} />
             <Text style={styles.cardTitle}>{t("pd.kontakDarurat")}</Text>
             <View style={styles.softBadge}>
               <Text style={styles.softBadgeText}>
@@ -512,7 +518,12 @@ const makeStyles = (c: Palette) =>
       alignItems: "center",
       gap: 10,
     },
-    cardTitle: { fontSize: 13.5, fontWeight: "700", color: c.ink },
+    cardTitle: {
+      fontSize: 13.5,
+      fontWeight: "700",
+      color: c.ink,
+      marginRight: "auto",
+    },
 
     okPill: {
       flexDirection: "row",

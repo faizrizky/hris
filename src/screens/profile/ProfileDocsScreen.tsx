@@ -150,7 +150,11 @@ export function ProfileDocsScreen({ navigation }: ScreenProps) {
                 <View
                   style={[
                     styles.extChip,
-                    { backgroundColor: isPdf ? c.bad.bg : c.info.bg },
+                    {
+                      backgroundColor: c.card,
+                      borderWidth: 1,
+                      borderColor: c.panelBorder,
+                    },
                   ]}
                 >
                   <Text

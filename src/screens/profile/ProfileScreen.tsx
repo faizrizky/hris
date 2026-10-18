@@ -1,4 +1,5 @@
 import React, { useMemo } from "react";
+import { IconBox } from "@/components/IconBox";
 import type { ScreenProps } from "@/navigation/types";
 import {
   Animated,
@@ -319,9 +320,7 @@ function MenuRow({
       style={[styles.menuRow, !isLast && styles.menuDivider]}
       onPress={onPress}
     >
-      <View style={[styles.menuIcon, { backgroundColor: "transparent" }]}>
-        <Ionicons name={icon} size={24} color={ink} />
-      </View>
+      <IconBox icon={icon} color={ink} />
 
       <View style={{ flex: 1, minWidth: 0 }}>
         <Text style={styles.menuTitle}>{title}</Text>
@@ -467,13 +466,6 @@ const makeStyles = (c: Palette) =>
       paddingVertical: 14,
     },
     menuDivider: { borderBottomWidth: 1, borderBottomColor: c.hair },
-    menuIcon: {
-      width: 32,
-      height: 32,
-      borderRadius: 11,
-      alignItems: "center",
-      justifyContent: "center",
-    },
     menuTitle: { fontSize: 13, fontWeight: "600", color: c.ink },
     menuSub: {
       fontSize: 10.5,
