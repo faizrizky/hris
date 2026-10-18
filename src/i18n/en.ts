@@ -9,7 +9,7 @@ export const en: Record<Kunci, string> = {
   "tab.absensi": "Attendance",
   "tab.absensiKry": "Team",
   "tab.approval": "Approvals",
-  "tab.notifikasi": "Notifications",
+  "tab.notifikasi": "Inbox",
   "tab.payroll": "Payroll",
   "tab.profil": "Profile",
 
@@ -444,7 +444,7 @@ export const en: Record<Kunci, string> = {
   "cat.Presensi": "Attendance",
   "cat.Appraisal": "Appraisal",
   "cat.Pengumuman": "Company News",
-  "nt.judul": "Notifications",
+  "nt.judul": "Inbox",
   "nt.tandai": "Mark as read",
   "nt.kosongJudul": "No notifications",
   "nt.kosongIsi":

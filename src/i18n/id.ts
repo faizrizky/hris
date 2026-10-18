@@ -12,7 +12,7 @@ export const id = {
   "tab.absensi": "Absensi",
   "tab.absensiKry": "Absensi Kry",
   "tab.approval": "Approval",
-  "tab.notifikasi": "Notifikasi",
+  "tab.notifikasi": "Kotak Masuk",
   "tab.payroll": "Payroll",
   "tab.profil": "Profil",
 
@@ -451,7 +451,7 @@ export const id = {
   "cat.Presensi": "Presensi",
   "cat.Appraisal": "Appraisal",
   "cat.Pengumuman": "Info Kantor",
-  "nt.judul": "Notifikasi",
+  "nt.judul": "Kotak Masuk",
   "nt.tandai": "Tandai dibaca",
   "nt.kosongJudul": "Tidak ada notifikasi",
   "nt.kosongIsi":
