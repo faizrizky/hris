@@ -1227,6 +1227,9 @@ export const id = {
   "hm.aKoreksi": "Koreksi Absensi",
   "cr.wfh": "Ajukan WFH",
   "login.usernameIsi": "Masukkan username",
+  "list.cari": "Cari…",
+  "list.muatLagi": "Muat lagi ({n} lagi)",
+  "list.tanpaHasil": "Tidak ada hasil untuk pencarian ini",
 } as const;
 
 export type TranslationKey = keyof typeof id;

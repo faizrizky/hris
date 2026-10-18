@@ -1,4 +1,5 @@
 import React, { useMemo } from "react";
+import { PagedList } from "@/components/PagedList";
 import type { ScreenProps } from "@/navigation/types";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { RevealScrollView as ScrollView } from "@/components/Reveal";
@@ -46,18 +47,21 @@ export function TimAppraisal({ navigation }: Pick<ScreenProps, "navigation">) {
           text={t("ap2.timKosongIsi")}
         />
       ) : (
-        items.map((a) => (
-          <Baris
-            key={a.employeeId}
-            a={a}
-            onPress={() =>
-              navigation.navigate("AppraisalFeedback", {
-                employeeId: a.employeeId,
-                employeeName: a.employeeName,
-              })
-            }
-          />
-        ))
+        <PagedList
+          items={items}
+          renderItem={(a) => (
+            <Baris
+              key={a.employeeId}
+              a={a}
+              onPress={() =>
+                navigation.navigate("AppraisalFeedback", {
+                  employeeId: a.employeeId,
+                  employeeName: a.employeeName,
+                })
+              }
+            />
+          )}
+        />
       )}
     </ScrollView>
   );

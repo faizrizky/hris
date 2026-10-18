@@ -1223,4 +1223,7 @@ export const en: Record<TranslationKey, string> = {
   "hm.aKoreksi": "Attendance Correction",
   "cr.wfh": "Request WFH",
   "login.usernameIsi": "Enter your username",
+  "list.cari": "Search…",
+  "list.muatLagi": "Load more ({n} more)",
+  "list.tanpaHasil": "No results for this search",
 };

@@ -1,4 +1,8 @@
 import { useMemo } from "react";
+import { usePagedList } from "@/hooks/usePagedList";
+import { searchableText } from "@/utils/searchText";
+import { ListSearchBar } from "@/components/ListSearchBar";
+import { LoadMoreButton } from "@/components/LoadMoreButton";
 import type { ScreenProps } from "@/navigation/types";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { RevealScrollView as ScrollView } from "@/components/Reveal";
@@ -39,6 +43,10 @@ export function NotificationScreen({ navigation }: ScreenProps) {
     announcementOpenId,
   } = useNotification({ navigation });
   const t = useT();
+  const paged = usePagedList(items ?? [], searchableText);
+  const visibleGroups = groups.filter((g) =>
+    paged.visibleItems.some((n) => n.group === g),
+  );
   const insets = useSafeAreaInsets();
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
@@ -92,6 +100,12 @@ export function NotificationScreen({ navigation }: ScreenProps) {
         />
       ) : (
         <ScrollView contentContainerStyle={styles.content}>
+          {items !== null && items.length > 0 ? (
+            <ListSearchBar
+              value={paged.query}
+              onChangeText={paged.changeQuery}
+            />
+          ) : null}
           {errorMessage && items === null ? (
             <ErrorState message={errorMessage} onRetry={load} />
           ) : items === null ? (
@@ -107,7 +121,7 @@ export function NotificationScreen({ navigation }: ScreenProps) {
               text={t("nt.kosongIsi")}
             />
           ) : (
-            groups.map((g, groupIndex) => (
+            visibleGroups.map((g, groupIndex) => (
               <View
                 key={g}
                 style={groupIndex > 0 ? styles.groupGap : undefined}
@@ -156,6 +170,15 @@ export function NotificationScreen({ navigation }: ScreenProps) {
               </View>
             ))
           )}
+          {items !== null && items.length > 0 && paged.matchedCount === 0 ? (
+            <Text style={styles.noResult}>{t("list.tanpaHasil")}</Text>
+          ) : null}
+          {paged.hasMore ? (
+            <LoadMoreButton
+              remainingCount={paged.remainingCount}
+              onPress={paged.loadMore}
+            />
+          ) : null}
         </ScrollView>
       )}
     </View>
@@ -212,6 +235,13 @@ const makeStyles = (c: Palette) =>
     content: { paddingHorizontal: 18, paddingBottom: 170 },
 
     groupGap: { marginTop: 16 },
+    noResult: {
+      textAlign: "center",
+      fontSize: 12.5,
+      fontWeight: "500",
+      color: c.muted,
+      paddingVertical: 28,
+    },
     groupLabel: {
       fontSize: 11,
       fontWeight: "700",

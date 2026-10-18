@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { PagedList } from "@/components/PagedList";
 import type { ScreenProps } from "@/navigation/types";
 import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { RevealScrollView as ScrollView } from "@/components/Reveal";
@@ -133,15 +134,22 @@ export function StaffListScreen({ navigation }: ScreenProps) {
           />
         ) : (
           <View style={{ gap: 9 }}>
-            {filtered.map((s) => (
-              <StaffRow
-                key={s.id}
-                staff={s}
-                onPress={() =>
-                  navigation.navigate("StaffDetail", { staffId: s.id })
-                }
+            {
+              <PagedList
+                hideSearch
+                gap={9}
+                items={filtered}
+                renderItem={(s) => (
+                  <StaffRow
+                    key={s.id}
+                    staff={s}
+                    onPress={() =>
+                      navigation.navigate("StaffDetail", { staffId: s.id })
+                    }
+                  />
+                )}
               />
-            ))}
+            }
           </View>
         )}
       </ScrollView>

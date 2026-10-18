@@ -1,4 +1,8 @@
 import { useMemo } from "react";
+import { usePagedList } from "@/hooks/usePagedList";
+import { searchableText } from "@/utils/searchText";
+import { ListSearchBar } from "@/components/ListSearchBar";
+import { LoadMoreButton } from "@/components/LoadMoreButton";
 import type { ScreenProps } from "@/navigation/types";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { RevealFlatList as FlatList } from "@/components/Reveal";
@@ -26,6 +30,7 @@ export function LeaveListScreen({ navigation }: ScreenProps) {
   const c = useTheme();
   const t = useT();
   const styles = useMemo(() => makeStyles(c), [c]);
+  const paged = usePagedList(requests ?? [], searchableText);
   if (!employee) return null;
 
   const isLoading = balances === null || requests === null;
@@ -53,143 +58,166 @@ export function LeaveListScreen({ navigation }: ScreenProps) {
       </View>
 
       <FlatList
-        data={requests ?? []}
+        data={paged.visibleItems}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.content}
         ListHeaderComponent={
           <>
-            <View style={styles.heroShadow}>
-              <LinearGradient
-                colors={[c.accent, c.accent2]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={styles.heroCard}
-              >
-                <View style={styles.heroBlob} />
+            <>
+              <View style={styles.heroShadow}>
+                <LinearGradient
+                  colors={[c.accent, c.accent2]}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={styles.heroCard}
+                >
+                  <View style={styles.heroBlob} />
 
-                <Text style={styles.heroLabel}>
-                  {t("cl.saldoTahunan", { y: new Date().getFullYear() })}
-                </Text>
+                  <Text style={styles.heroLabel}>
+                    {t("cl.saldoTahunan", { y: new Date().getFullYear() })}
+                  </Text>
 
-                {isLoading ? (
-                  <Skeleton
-                    width={132}
-                    height={30}
-                    radius={8}
-                    color={c.onDark.pill}
-                    style={{ marginTop: 10 }}
-                  />
-                ) : (
-                  <View style={styles.balanceRow}>
-                    <Text style={styles.balanceBig}>
-                      {leaveBalance?.remaining ?? "–"}
-                    </Text>
-                    <Text style={styles.balanceTotal}>
-                      / {leaveBalance?.total ?? "–"}{" "}
-                      {t(`unit.${leaveBalance?.unit ?? "hari"}`)}
-                    </Text>
+                  {isLoading ? (
+                    <Skeleton
+                      width={132}
+                      height={30}
+                      radius={8}
+                      color={c.onDark.pill}
+                      style={{ marginTop: 10 }}
+                    />
+                  ) : (
+                    <View style={styles.balanceRow}>
+                      <Text style={styles.balanceBig}>
+                        {leaveBalance?.remaining ?? "–"}
+                      </Text>
+                      <Text style={styles.balanceTotal}>
+                        / {leaveBalance?.total ?? "–"}{" "}
+                        {t(`unit.${leaveBalance?.unit ?? "hari"}`)}
+                      </Text>
+                    </View>
+                  )}
+
+                  <View style={styles.bar}>
+                    <View
+                      style={[
+                        styles.barFill,
+                        { width: `${remainingPercent}%` },
+                      ]}
+                    />
                   </View>
-                )}
 
-                <View style={styles.bar}>
+                  <View style={styles.heroBoxes}>
+                    <View style={styles.heroBox}>
+                      <Text style={styles.heroBoxLabel}>
+                        {t("cl.terpakai")}
+                      </Text>
+                      {isLoading ? (
+                        <Skeleton
+                          width={62}
+                          height={14}
+                          radius={5}
+                          color={c.onDark.pill}
+                          style={{ marginTop: 6 }}
+                        />
+                      ) : (
+                        <Text style={styles.heroBoxValue}>
+                          {usedAmount}{" "}
+                          {t(`unit.${leaveBalance?.unit ?? "hari"}`)}
+                        </Text>
+                      )}
+                    </View>
+                    <View style={styles.heroBox}>
+                      <Text style={styles.heroBoxLabel}>
+                        {t("cl.sisaSakit")}
+                      </Text>
+                      {isLoading ? (
+                        <Skeleton
+                          width={62}
+                          height={14}
+                          radius={5}
+                          color={c.onDark.pill}
+                          style={{ marginTop: 6 }}
+                        />
+                      ) : (
+                        <Text style={styles.heroBoxValue}>
+                          {sickBalance
+                            ? `${sickBalance.remaining} ${t(`unit.${sickBalance.unit}`)}`
+                            : "–"}
+                        </Text>
+                      )}
+                    </View>
+                  </View>
+                </LinearGradient>
+              </View>
+
+              <View style={styles.actionGrid}>
+                <Pressable
+                  style={styles.actionCard}
+                  onPress={() =>
+                    navigation.navigate("LeaveRequest", {
+                      kind: "cuti",
+                      n: Date.now(),
+                    })
+                  }
+                >
                   <View
-                    style={[styles.barFill, { width: `${remainingPercent}%` }]}
-                  />
-                </View>
-
-                <View style={styles.heroBoxes}>
-                  <View style={styles.heroBox}>
-                    <Text style={styles.heroBoxLabel}>{t("cl.terpakai")}</Text>
-                    {isLoading ? (
-                      <Skeleton
-                        width={62}
-                        height={14}
-                        radius={5}
-                        color={c.onDark.pill}
-                        style={{ marginTop: 6 }}
-                      />
-                    ) : (
-                      <Text style={styles.heroBoxValue}>
-                        {usedAmount} {t(`unit.${leaveBalance?.unit ?? "hari"}`)}
-                      </Text>
-                    )}
+                    style={[
+                      styles.actionIcon,
+                      { backgroundColor: "transparent" },
+                    ]}
+                  >
+                    <Ionicons
+                      name="add-circle-outline"
+                      size={26}
+                      color={c.info.ink}
+                    />
                   </View>
-                  <View style={styles.heroBox}>
-                    <Text style={styles.heroBoxLabel}>{t("cl.sisaSakit")}</Text>
-                    {isLoading ? (
-                      <Skeleton
-                        width={62}
-                        height={14}
-                        radius={5}
-                        color={c.onDark.pill}
-                        style={{ marginTop: 6 }}
-                      />
-                    ) : (
-                      <Text style={styles.heroBoxValue}>
-                        {sickBalance
-                          ? `${sickBalance.remaining} ${t(`unit.${sickBalance.unit}`)}`
-                          : "–"}
-                      </Text>
-                    )}
+                  <Text style={styles.actionTitle}>{t("cl.ajukanCuti")}</Text>
+                  <Text style={styles.actionSub}>{t("cl.ajukanCutiSub")}</Text>
+                </Pressable>
+
+                <Pressable
+                  style={styles.actionCard}
+                  onPress={() =>
+                    navigation.navigate("LeaveRequest", {
+                      kind: "dinas",
+                      n: Date.now(),
+                    })
+                  }
+                >
+                  <View
+                    style={[
+                      styles.actionIcon,
+                      { backgroundColor: "transparent" },
+                    ]}
+                  >
+                    <Ionicons
+                      name="airplane-outline"
+                      size={26}
+                      color={c.purple.ink}
+                    />
                   </View>
-                </View>
-              </LinearGradient>
-            </View>
+                  <Text style={styles.actionTitle}>{t("cl.dinasLuar")}</Text>
+                  <Text style={styles.actionSub}>{t("cl.dinasLuarSub")}</Text>
+                </Pressable>
+              </View>
 
-            <View style={styles.actionGrid}>
-              <Pressable
-                style={styles.actionCard}
-                onPress={() =>
-                  navigation.navigate("LeaveRequest", {
-                    kind: "cuti",
-                    n: Date.now(),
-                  })
-                }
-              >
-                <View
-                  style={[
-                    styles.actionIcon,
-                    { backgroundColor: "transparent" },
-                  ]}
-                >
-                  <Ionicons
-                    name="add-circle-outline"
-                    size={26}
-                    color={c.info.ink}
-                  />
-                </View>
-                <Text style={styles.actionTitle}>{t("cl.ajukanCuti")}</Text>
-                <Text style={styles.actionSub}>{t("cl.ajukanCutiSub")}</Text>
-              </Pressable>
+              <Text style={styles.sectionTitle}>{t("cl.pengajuanSaya")}</Text>
+            </>
 
-              <Pressable
-                style={styles.actionCard}
-                onPress={() =>
-                  navigation.navigate("LeaveRequest", {
-                    kind: "dinas",
-                    n: Date.now(),
-                  })
-                }
-              >
-                <View
-                  style={[
-                    styles.actionIcon,
-                    { backgroundColor: "transparent" },
-                  ]}
-                >
-                  <Ionicons
-                    name="airplane-outline"
-                    size={26}
-                    color={c.purple.ink}
-                  />
-                </View>
-                <Text style={styles.actionTitle}>{t("cl.dinasLuar")}</Text>
-                <Text style={styles.actionSub}>{t("cl.dinasLuarSub")}</Text>
-              </Pressable>
-            </View>
-
-            <Text style={styles.sectionTitle}>{t("cl.pengajuanSaya")}</Text>
+            <ListSearchBar
+              value={paged.query}
+              onChangeText={paged.changeQuery}
+            />
           </>
+        }
+        ListFooterComponent={
+          paged.hasMore ? (
+            <LoadMoreButton
+              remainingCount={paged.remainingCount}
+              onPress={paged.loadMore}
+            />
+          ) : null
         }
         ListEmptyComponent={
           errorMessage && !requests ? (

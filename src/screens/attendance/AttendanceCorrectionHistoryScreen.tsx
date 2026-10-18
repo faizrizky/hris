@@ -1,4 +1,8 @@
 import { useMemo } from "react";
+import { usePagedList } from "@/hooks/usePagedList";
+import { searchableText } from "@/utils/searchText";
+import { ListSearchBar } from "@/components/ListSearchBar";
+import { LoadMoreButton } from "@/components/LoadMoreButton";
 import type { ScreenProps } from "@/navigation/types";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { RevealFlatList as FlatList } from "@/components/Reveal";
@@ -59,6 +63,7 @@ export function AttendanceCorrectionHistoryScreen({ navigation }: ScreenProps) {
 
   // useLoad memuat ulang tiap layar kembali fokus, jadi koreksi yang baru
   // dikirim langsung muncul.
+  const paged = usePagedList(filtered, searchableText);
   return (
     <View style={styles.container}>
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
@@ -102,54 +107,70 @@ export function AttendanceCorrectionHistoryScreen({ navigation }: ScreenProps) {
       </View>
 
       <FlatList
-        data={filtered}
+        data={paged.visibleItems}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.list}
         ListHeaderComponent={
-          total > 0 ? (
-            <View style={styles.recapCard}>
-              <Text style={styles.recapLabel}>{t("kor.ringkasan")}</Text>
+          <>
+            {total > 0 ? (
+              <View style={styles.recapCard}>
+                <Text style={styles.recapLabel}>{t("kor.ringkasan")}</Text>
 
-              <View style={styles.recapRow}>
-                <Recap
-                  value={pending}
-                  label={t("st.menunggu")}
-                  color={c.warn.ink}
-                />
-                <Recap
-                  value={approved}
-                  label={t("st.disetujui")}
-                  color={c.ok.ink}
-                />
-                <Recap
-                  value={rejected}
-                  label={t("st.ditolak")}
-                  color={c.bad.ink}
-                />
-              </View>
-
-              <View style={styles.bar}>
-                {approved > 0 && (
-                  <View style={{ flex: approved, backgroundColor: c.ok.ink }} />
-                )}
-                {pending > 0 && (
-                  <View
-                    style={{ flex: pending, backgroundColor: c.warn.ink }}
+                <View style={styles.recapRow}>
+                  <Recap
+                    value={pending}
+                    label={t("st.menunggu")}
+                    color={c.warn.ink}
                   />
-                )}
-                {rejected > 0 && (
-                  <View
-                    style={{ flex: rejected, backgroundColor: c.bad.ink }}
+                  <Recap
+                    value={approved}
+                    label={t("st.disetujui")}
+                    color={c.ok.ink}
                   />
-                )}
-              </View>
+                  <Recap
+                    value={rejected}
+                    label={t("st.ditolak")}
+                    color={c.bad.ink}
+                  />
+                </View>
 
-              <Text style={styles.recapNote}>
-                {pending > 0
-                  ? t("kor.masihMenunggu", { n: pending })
-                  : t("kor.semuaPutus")}
-              </Text>
-            </View>
+                <View style={styles.bar}>
+                  {approved > 0 && (
+                    <View
+                      style={{ flex: approved, backgroundColor: c.ok.ink }}
+                    />
+                  )}
+                  {pending > 0 && (
+                    <View
+                      style={{ flex: pending, backgroundColor: c.warn.ink }}
+                    />
+                  )}
+                  {rejected > 0 && (
+                    <View
+                      style={{ flex: rejected, backgroundColor: c.bad.ink }}
+                    />
+                  )}
+                </View>
+
+                <Text style={styles.recapNote}>
+                  {pending > 0
+                    ? t("kor.masihMenunggu", { n: pending })
+                    : t("kor.semuaPutus")}
+                </Text>
+              </View>
+            ) : null}
+            <ListSearchBar
+              value={paged.query}
+              onChangeText={paged.changeQuery}
+            />
+          </>
+        }
+        ListFooterComponent={
+          paged.hasMore ? (
+            <LoadMoreButton
+              remainingCount={paged.remainingCount}
+              onPress={paged.loadMore}
+            />
           ) : null
         }
         ListEmptyComponent={

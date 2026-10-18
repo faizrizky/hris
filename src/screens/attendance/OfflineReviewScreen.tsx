@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { PagedList } from "@/components/PagedList";
 import type { ScreenProps } from "@/navigation/types";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { RevealScrollView as ScrollView } from "@/components/Reveal";
@@ -93,101 +94,106 @@ export function OfflineReviewScreen({ navigation }: ScreenProps) {
             text={t("ofr.kosongIsi")}
           />
         ) : (
-          items.map((x) => (
-            <View key={x.id} style={styles.card}>
-              <View style={styles.head}>
-                <View style={{ flex: 1, minWidth: 0 }}>
-                  <Text style={styles.name}>{x.employeeName}</Text>
-                  <Text style={styles.meta}>
-                    {x.logType === "IN" ? t("hm.clockIn") : t("hm.clockOut")}
-                    {x.designation ? ` · ${x.designation}` : ""}
-                  </Text>
-                </View>
-                <Text
-                  style={[
-                    styles.badge,
-                    {
-                      backgroundColor:
-                        x.status === "Approved"
-                          ? c.ok.bg
-                          : x.status === "Rejected"
-                            ? c.bad.bg
-                            : c.warn.bg,
-                      color:
-                        x.status === "Approved"
-                          ? c.ok.ink
-                          : x.status === "Rejected"
-                            ? c.bad.ink
-                            : c.warn.ink,
-                    },
-                  ]}
-                >
-                  {t(
-                    x.status === "Approved"
-                      ? "pcr.disetujui"
-                      : x.status === "Rejected"
-                        ? "pcr.ditolak"
-                        : "ofr.perlu",
-                  )}
-                </Text>
-              </View>
-
-              <View style={styles.box}>
-                {x.claimedTime ? (
-                  <Text style={styles.row}>
-                    {t("ofr.diklaim")}:{" "}
-                    <Text style={styles.bold}>{formatTime(x.claimedTime)}</Text>
-                  </Text>
-                ) : null}
-                <Text style={styles.row}>
-                  {t("ofr.tercatat")}:{" "}
-                  <Text style={styles.bold}>{formatTime(x.time)}</Text>
-                </Text>
-                {x.skewSeconds !== 0 ? (
-                  <Text style={styles.row}>
-                    {t("ofr.selisihJam", {
-                      n: Math.round(Math.abs(x.skewSeconds) / 60),
-                    })}
-                  </Text>
-                ) : null}
-                {x.geoStatus === "Outside" && x.distanceM !== null ? (
-                  <Text style={styles.row}>
-                    {t("ofr.jarak", {
-                      m: x.distanceM,
-                      lokasi: x.workLocation ?? "—",
-                    })}
-                  </Text>
-                ) : null}
-                {x.mocked ? (
-                  <Text style={styles.flags}>{t("ofr.lokasiPalsu")}</Text>
-                ) : null}
-                {x.flags ? <Text style={styles.flags}>{x.flags}</Text> : null}
-              </View>
-
-              {x.status === "Needs Review" ? (
-                <View style={styles.actions}>
-                  <Pressable
-                    style={styles.rejectBtn}
-                    disabled={busy === x.id}
-                    onPress={() => decide(x, "reject")}
-                  >
-                    <Text style={styles.rejectText}>{t("pcr.tolak")}</Text>
-                  </Pressable>
-                  <Pressable
-                    style={styles.approveBtn}
-                    disabled={busy === x.id}
-                    onPress={() => decide(x, "approve")}
-                  >
-                    <Text style={styles.approveText}>
-                      {busy === x.id
-                        ? t("umum.memproses")
-                        : t("ofr.pakaiJamKlaim")}
+          <PagedList
+            items={items}
+            renderItem={(x) => (
+              <View key={x.id} style={styles.card}>
+                <View style={styles.head}>
+                  <View style={{ flex: 1, minWidth: 0 }}>
+                    <Text style={styles.name}>{x.employeeName}</Text>
+                    <Text style={styles.meta}>
+                      {x.logType === "IN" ? t("hm.clockIn") : t("hm.clockOut")}
+                      {x.designation ? ` · ${x.designation}` : ""}
                     </Text>
-                  </Pressable>
+                  </View>
+                  <Text
+                    style={[
+                      styles.badge,
+                      {
+                        backgroundColor:
+                          x.status === "Approved"
+                            ? c.ok.bg
+                            : x.status === "Rejected"
+                              ? c.bad.bg
+                              : c.warn.bg,
+                        color:
+                          x.status === "Approved"
+                            ? c.ok.ink
+                            : x.status === "Rejected"
+                              ? c.bad.ink
+                              : c.warn.ink,
+                      },
+                    ]}
+                  >
+                    {t(
+                      x.status === "Approved"
+                        ? "pcr.disetujui"
+                        : x.status === "Rejected"
+                          ? "pcr.ditolak"
+                          : "ofr.perlu",
+                    )}
+                  </Text>
                 </View>
-              ) : null}
-            </View>
-          ))
+
+                <View style={styles.box}>
+                  {x.claimedTime ? (
+                    <Text style={styles.row}>
+                      {t("ofr.diklaim")}:{" "}
+                      <Text style={styles.bold}>
+                        {formatTime(x.claimedTime)}
+                      </Text>
+                    </Text>
+                  ) : null}
+                  <Text style={styles.row}>
+                    {t("ofr.tercatat")}:{" "}
+                    <Text style={styles.bold}>{formatTime(x.time)}</Text>
+                  </Text>
+                  {x.skewSeconds !== 0 ? (
+                    <Text style={styles.row}>
+                      {t("ofr.selisihJam", {
+                        n: Math.round(Math.abs(x.skewSeconds) / 60),
+                      })}
+                    </Text>
+                  ) : null}
+                  {x.geoStatus === "Outside" && x.distanceM !== null ? (
+                    <Text style={styles.row}>
+                      {t("ofr.jarak", {
+                        m: x.distanceM,
+                        lokasi: x.workLocation ?? "—",
+                      })}
+                    </Text>
+                  ) : null}
+                  {x.mocked ? (
+                    <Text style={styles.flags}>{t("ofr.lokasiPalsu")}</Text>
+                  ) : null}
+                  {x.flags ? <Text style={styles.flags}>{x.flags}</Text> : null}
+                </View>
+
+                {x.status === "Needs Review" ? (
+                  <View style={styles.actions}>
+                    <Pressable
+                      style={styles.rejectBtn}
+                      disabled={busy === x.id}
+                      onPress={() => decide(x, "reject")}
+                    >
+                      <Text style={styles.rejectText}>{t("pcr.tolak")}</Text>
+                    </Pressable>
+                    <Pressable
+                      style={styles.approveBtn}
+                      disabled={busy === x.id}
+                      onPress={() => decide(x, "approve")}
+                    >
+                      <Text style={styles.approveText}>
+                        {busy === x.id
+                          ? t("umum.memproses")
+                          : t("ofr.pakaiJamKlaim")}
+                      </Text>
+                    </Pressable>
+                  </View>
+                ) : null}
+              </View>
+            )}
+          />
         )}
       </ScrollView>
     </View>

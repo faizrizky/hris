@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from "react";
+import { PagedList } from "@/components/PagedList";
 import type { ScreenProps } from "@/navigation/types";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { RevealScrollView as ScrollView } from "@/components/Reveal";
@@ -93,15 +94,20 @@ export function ProfileChangeReviewScreen({ navigation }: ScreenProps) {
             text={t("pcr.kosongIsi")}
           />
         ) : (
-          items.map((p) => (
-            <Baris
-              key={p.id}
-              p={p}
-              onPress={() =>
-                navigation.navigate("ProfileChangeReviewDetail", { change: p })
-              }
-            />
-          ))
+          <PagedList
+            items={items}
+            renderItem={(p) => (
+              <Baris
+                key={p.id}
+                p={p}
+                onPress={() =>
+                  navigation.navigate("ProfileChangeReviewDetail", {
+                    change: p,
+                  })
+                }
+              />
+            )}
+          />
         )}
       </ScrollView>
     </View>

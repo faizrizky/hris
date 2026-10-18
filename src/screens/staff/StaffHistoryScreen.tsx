@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { PagedList } from "@/components/PagedList";
 import { type ScreenProps } from "@/navigation/types";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { RevealScrollView as ScrollView } from "@/components/Reveal";
@@ -84,18 +85,21 @@ export function StaffHistoryScreen({ navigation, route }: ScreenProps) {
         </View>
 
         <View style={{ gap: 10, marginTop: 12 }}>
-          {isLoading
-            ? [0, 1, 2, 3, 4].map((i) => (
-                <View key={i} style={styles.row}>
-                  <Skeleton width={40} height={40} radius={13} />
-                  <View style={{ flex: 1, gap: 7 }}>
-                    <Skeleton width="45%" height={12} radius={4} />
-                    <Skeleton width="70%" height={10} radius={4} />
-                  </View>
-                  <Skeleton width={48} height={20} radius={8} />
+          {isLoading ? (
+            [0, 1, 2, 3, 4].map((i) => (
+              <View key={i} style={styles.row}>
+                <Skeleton width={40} height={40} radius={13} />
+                <View style={{ flex: 1, gap: 7 }}>
+                  <Skeleton width="45%" height={12} radius={4} />
+                  <Skeleton width="70%" height={10} radius={4} />
                 </View>
-              ))
-            : items.map((r) => {
+                <Skeleton width={48} height={20} radius={8} />
+              </View>
+            ))
+          ) : (
+            <PagedList
+              items={items}
+              renderItem={(r) => {
                 const tone = c[ATTENDANCE_STATUS_TONE[r.status]];
                 return (
                   <View key={r.id} style={styles.row}>
@@ -123,7 +127,9 @@ export function StaffHistoryScreen({ navigation, route }: ScreenProps) {
                     </View>
                   </View>
                 );
-              })}
+              }}
+            />
+          )}
         </View>
       </ScrollView>
     </View>

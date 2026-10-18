@@ -1,4 +1,8 @@
 import { useMemo } from "react";
+import { usePagedList } from "@/hooks/usePagedList";
+import { searchableText } from "@/utils/searchText";
+import { ListSearchBar } from "@/components/ListSearchBar";
+import { LoadMoreButton } from "@/components/LoadMoreButton";
 import type { ScreenProps } from "@/navigation/types";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { RevealFlatList as FlatList } from "@/components/Reveal";
@@ -37,6 +41,7 @@ export function AttendanceHistoryScreen({ navigation }: ScreenProps) {
   const insets = useSafeAreaInsets();
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
+  const paged = usePagedList(filtered, searchableText);
   return (
     <View style={styles.container}>
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
@@ -71,60 +76,79 @@ export function AttendanceHistoryScreen({ navigation }: ScreenProps) {
       </View>
 
       <FlatList
-        data={filtered}
+        data={paged.visibleItems}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.list}
         ListHeaderComponent={
-          <View style={styles.recapCard}>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.recapLabel}>{t("ab.rekap")}</Text>
-              <View style={styles.recapRow}>
-                {isHistoryLoading ? (
-                  ["hadir", "telat", "izin", "alpha"].map((l) => (
-                    <View key={l} style={{ gap: 6 }}>
-                      <Skeleton width={26} height={20} radius={6} />
-                      <Skeleton width={30} height={9} radius={4} />
-                    </View>
-                  ))
-                ) : (
-                  <>
-                    <Recap
-                      value={presentCount}
-                      label={t("st.hadir")}
-                      color={c.ink}
-                    />
-                    <Recap
-                      value={lateMinutes}
-                      label={t("st.telat")}
-                      color={c.warn.ink}
-                    />
-                    <Recap
-                      value={permission}
-                      label={t("st.izin")}
-                      color={c.info.ink}
-                    />
-                    <Recap value={0} label={t("ab.alpha")} color={c.bad.ink} />
-                  </>
-                )}
+          <>
+            <View style={styles.recapCard}>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.recapLabel}>{t("ab.rekap")}</Text>
+                <View style={styles.recapRow}>
+                  {isHistoryLoading ? (
+                    ["hadir", "telat", "izin", "alpha"].map((l) => (
+                      <View key={l} style={{ gap: 6 }}>
+                        <Skeleton width={26} height={20} radius={6} />
+                        <Skeleton width={30} height={9} radius={4} />
+                      </View>
+                    ))
+                  ) : (
+                    <>
+                      <Recap
+                        value={presentCount}
+                        label={t("st.hadir")}
+                        color={c.ink}
+                      />
+                      <Recap
+                        value={lateMinutes}
+                        label={t("st.telat")}
+                        color={c.warn.ink}
+                      />
+                      <Recap
+                        value={permission}
+                        label={t("st.izin")}
+                        color={c.info.ink}
+                      />
+                      <Recap
+                        value={0}
+                        label={t("ab.alpha")}
+                        color={c.bad.ink}
+                      />
+                    </>
+                  )}
+                </View>
               </View>
+
+              {isHistoryLoading ? (
+                <Skeleton width={70} height={70} radius={35} />
+              ) : (
+                <DonutChart
+                  size={70}
+                  stroke={11}
+                  segments={[
+                    { value: presentCount, color: c.accent },
+                    { value: lateMinutes, color: c.warn.ink },
+                    { value: permission, color: c.accentLight },
+                  ]}
+                >
+                  <Text style={styles.donutText}>{percent}</Text>
+                </DonutChart>
+              )}
             </View>
 
-            {isHistoryLoading ? (
-              <Skeleton width={70} height={70} radius={35} />
-            ) : (
-              <DonutChart
-                size={70}
-                stroke={11}
-                segments={[
-                  { value: presentCount, color: c.accent },
-                  { value: lateMinutes, color: c.warn.ink },
-                  { value: permission, color: c.accentLight },
-                ]}
-              >
-                <Text style={styles.donutText}>{percent}</Text>
-              </DonutChart>
-            )}
-          </View>
+            <ListSearchBar
+              value={paged.query}
+              onChangeText={paged.changeQuery}
+            />
+          </>
+        }
+        ListFooterComponent={
+          paged.hasMore ? (
+            <LoadMoreButton
+              remainingCount={paged.remainingCount}
+              onPress={paged.loadMore}
+            />
+          ) : null
         }
         ListEmptyComponent={
           history.error && !records ? (

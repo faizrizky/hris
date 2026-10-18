@@ -1,4 +1,8 @@
 import React, { useMemo } from "react";
+import { usePagedList } from "@/hooks/usePagedList";
+import { searchableText } from "@/utils/searchText";
+import { ListSearchBar } from "@/components/ListSearchBar";
+import { LoadMoreButton } from "@/components/LoadMoreButton";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
@@ -218,26 +222,39 @@ export function PayslipHistoryCard({ items }: { items: Payslip[] }) {
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
 
+  const paged = usePagedList(items, searchableText);
+
   return (
-    <View style={styles.historyCard}>
-      {items.map((p, i) => (
-        <View
-          key={p.id}
-          style={[
-            styles.historyRow,
-            i < items.length - 1 && styles.historyDivider,
-          ]}
-        >
-          <View style={styles.monthChip}>
-            <Text style={styles.monthText}>{p.monthShort}</Text>
+    <View>
+      <ListSearchBar value={paged.query} onChangeText={paged.changeQuery} />
+      <View style={styles.historyCard}>
+        {paged.visibleItems.map((p, i) => (
+          <View
+            key={p.id}
+            style={[
+              styles.historyRow,
+              i < paged.visibleItems.length - 1 && styles.historyDivider,
+            ]}
+          >
+            <View style={styles.monthChip}>
+              <Text style={styles.monthText}>{p.monthShort}</Text>
+            </View>
+            <View style={{ flex: 1, minWidth: 0 }}>
+              <Text style={styles.historyPeriod}>{p.period}</Text>
+              <Text style={styles.historyNote}>{p.note}</Text>
+            </View>
+            <Text style={styles.historyAmount}>{angka(p.netPay)}</Text>
           </View>
-          <View style={{ flex: 1, minWidth: 0 }}>
-            <Text style={styles.historyPeriod}>{p.period}</Text>
-            <Text style={styles.historyNote}>{p.note}</Text>
-          </View>
-          <Text style={styles.historyAmount}>{angka(p.netPay)}</Text>
+        ))}
+      </View>
+      {paged.hasMore ? (
+        <View style={{ marginTop: 10 }}>
+          <LoadMoreButton
+            remainingCount={paged.remainingCount}
+            onPress={paged.loadMore}
+          />
         </View>
-      ))}
+      ) : null}
     </View>
   );
 }

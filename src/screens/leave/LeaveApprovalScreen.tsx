@@ -1,4 +1,8 @@
 import { useMemo } from "react";
+import { usePagedList } from "@/hooks/usePagedList";
+import { searchableText } from "@/utils/searchText";
+import { ListSearchBar } from "@/components/ListSearchBar";
+import { LoadMoreButton } from "@/components/LoadMoreButton";
 import type { ScreenProps } from "@/navigation/types";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { RevealFlatList as FlatList } from "@/components/Reveal";
@@ -38,6 +42,7 @@ export function LeaveApprovalScreen({ navigation }: ScreenProps) {
   // Dialog konfirmasi tumbuh dari tombol ini, seperti dialog Keluar.
   const t = useT();
   // Dimuat ulang tiap layar mendapat fokus, supaya pengajuan baru langsung masuk.
+  const paged = usePagedList(items ?? [], searchableText);
   if (!employee) return null;
 
   const isLoading = items === null;
@@ -79,59 +84,73 @@ export function LeaveApprovalScreen({ navigation }: ScreenProps) {
       </View>
 
       <FlatList
-        data={items ?? []}
+        data={paged.visibleItems}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.content}
         ListHeaderComponent={
-          pendingData + pendingDocs > 0 ? (
-            <View>
-              {pendingDocs > 0 ? (
-                <Pressable
-                  style={styles.dataCard}
-                  onPress={() => navigation.navigate("DocumentReview")}
-                >
-                  <View style={styles.dataIcon}>
+          <>
+            {pendingData + pendingDocs > 0 ? (
+              <View>
+                {pendingDocs > 0 ? (
+                  <Pressable
+                    style={styles.dataCard}
+                    onPress={() => navigation.navigate("DocumentReview")}
+                  >
+                    <View style={styles.dataIcon}>
+                      <Ionicons
+                        name="document-text"
+                        size={18}
+                        color={c.purple.ink}
+                      />
+                    </View>
+                    <View style={{ flex: 1, minWidth: 0 }}>
+                      <Text style={styles.dataTitle}>
+                        {t("ap.dokMenunggu", { n: pendingDocs })}
+                      </Text>
+                      <Text style={styles.dataSub}>{t("ap.dokSub")}</Text>
+                    </View>
                     <Ionicons
-                      name="document-text"
-                      size={18}
-                      color={c.purple.ink}
+                      name="chevron-forward"
+                      size={16}
+                      color={c.mutedLabel}
                     />
-                  </View>
-                  <View style={{ flex: 1, minWidth: 0 }}>
-                    <Text style={styles.dataTitle}>
-                      {t("ap.dokMenunggu", { n: pendingDocs })}
-                    </Text>
-                    <Text style={styles.dataSub}>{t("ap.dokSub")}</Text>
-                  </View>
-                  <Ionicons
-                    name="chevron-forward"
-                    size={16}
-                    color={c.mutedLabel}
-                  />
-                </Pressable>
-              ) : null}
-              {pendingData > 0 ? (
-                <Pressable
-                  style={styles.dataCard}
-                  onPress={() => navigation.navigate("ProfileChangeReview")}
-                >
-                  <View style={styles.dataIcon}>
-                    <Ionicons name="person" size={18} color={c.purple.ink} />
-                  </View>
-                  <View style={{ flex: 1, minWidth: 0 }}>
-                    <Text style={styles.dataTitle}>
-                      {t("ap.dataMenunggu", { n: pendingData })}
-                    </Text>
-                    <Text style={styles.dataSub}>{t("ap.dataSub")}</Text>
-                  </View>
-                  <Ionicons
-                    name="chevron-forward"
-                    size={16}
-                    color={c.mutedLabel}
-                  />
-                </Pressable>
-              ) : null}
-            </View>
+                  </Pressable>
+                ) : null}
+                {pendingData > 0 ? (
+                  <Pressable
+                    style={styles.dataCard}
+                    onPress={() => navigation.navigate("ProfileChangeReview")}
+                  >
+                    <View style={styles.dataIcon}>
+                      <Ionicons name="person" size={18} color={c.purple.ink} />
+                    </View>
+                    <View style={{ flex: 1, minWidth: 0 }}>
+                      <Text style={styles.dataTitle}>
+                        {t("ap.dataMenunggu", { n: pendingData })}
+                      </Text>
+                      <Text style={styles.dataSub}>{t("ap.dataSub")}</Text>
+                    </View>
+                    <Ionicons
+                      name="chevron-forward"
+                      size={16}
+                      color={c.mutedLabel}
+                    />
+                  </Pressable>
+                ) : null}
+              </View>
+            ) : null}
+            <ListSearchBar
+              value={paged.query}
+              onChangeText={paged.changeQuery}
+            />
+          </>
+        }
+        ListFooterComponent={
+          paged.hasMore ? (
+            <LoadMoreButton
+              remainingCount={paged.remainingCount}
+              onPress={paged.loadMore}
+            />
           ) : null
         }
         ListEmptyComponent={

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { PagedList } from "@/components/PagedList";
 import type { ScreenProps } from "@/navigation/types";
 import {
   ActivityIndicator,
@@ -77,19 +78,22 @@ export function FaceReviewScreen({ navigation }: ScreenProps) {
             text={t("fr.kosongIsi")}
           />
         ) : (
-          items.map((f) => (
-            <Card
-              key={f.name}
-              f={f}
-              isBusy={busyId === f.name}
-              onApprove={() => approve(f)}
-              onReject={() => {
-                setReason("");
-                setErrorMessage(null);
-                setRejectTarget(f);
-              }}
-            />
-          ))
+          <PagedList
+            items={items}
+            renderItem={(f) => (
+              <Card
+                key={f.name}
+                f={f}
+                isBusy={busyId === f.name}
+                onApprove={() => approve(f)}
+                onReject={() => {
+                  setReason("");
+                  setErrorMessage(null);
+                  setRejectTarget(f);
+                }}
+              />
+            )}
+          />
         )}
       </ScrollView>
 

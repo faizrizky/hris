@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { PagedList } from "@/components/PagedList";
 import type { ScreenProps } from "@/navigation/types";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { RevealScrollView as ScrollView } from "@/components/Reveal";
@@ -136,61 +137,64 @@ export function ProfileDocsScreen({ navigation }: ScreenProps) {
             text={t("doc.kosongIsi")}
           />
         ) : (
-          filtered.map((d) => {
-            const tone = c[DOC_STATUS_TONE[d.status]];
-            const isPdf = d.ext === "PDF";
-            return (
-              <Pressable
-                key={d.id}
-                style={styles.row}
-                onPress={() =>
-                  navigation.navigate("EmployeeDocumentDetail", { doc: d })
-                }
-              >
-                <View
-                  style={[
-                    styles.extChip,
-                    {
-                      backgroundColor: c.card,
-                      borderWidth: 1,
-                      borderColor: c.panelBorder,
-                    },
-                  ]}
+          <PagedList
+            items={filtered}
+            renderItem={(d) => {
+              const tone = c[DOC_STATUS_TONE[d.status]];
+              const isPdf = d.ext === "PDF";
+              return (
+                <Pressable
+                  key={d.id}
+                  style={styles.row}
+                  onPress={() =>
+                    navigation.navigate("EmployeeDocumentDetail", { doc: d })
+                  }
                 >
-                  <Text
+                  <View
                     style={[
-                      styles.extText,
-                      { color: isPdf ? c.bad.ink : c.info.ink },
+                      styles.extChip,
+                      {
+                        backgroundColor: c.card,
+                        borderWidth: 1,
+                        borderColor: c.panelBorder,
+                      },
                     ]}
                   >
-                    {d.ext}
-                  </Text>
-                </View>
-
-                <View style={{ flex: 1, minWidth: 0 }}>
-                  <Text style={styles.docName}>{d.name}</Text>
-                  <Text style={styles.docMeta}>
-                    {d.sizeLabel} · {d.dateLabel}
-                  </Text>
-                  <View
-                    style={[styles.statusBadge, { backgroundColor: tone.bg }]}
-                  >
-                    <Text style={[styles.statusText, { color: tone.ink }]}>
-                      {DOC_STATUS_LABEL[d.status]}
+                    <Text
+                      style={[
+                        styles.extText,
+                        { color: isPdf ? c.bad.ink : c.info.ink },
+                      ]}
+                    >
+                      {d.ext}
                     </Text>
                   </View>
-                  {d.status === "rejected" && d.rejectionReason ? (
-                    <Text style={styles.reason}>{d.rejectionReason}</Text>
-                  ) : null}
-                </View>
-                <Ionicons
-                  name="chevron-forward"
-                  size={14}
-                  color={c.mutedLabel}
-                />
-              </Pressable>
-            );
-          })
+
+                  <View style={{ flex: 1, minWidth: 0 }}>
+                    <Text style={styles.docName}>{d.name}</Text>
+                    <Text style={styles.docMeta}>
+                      {d.sizeLabel} · {d.dateLabel}
+                    </Text>
+                    <View
+                      style={[styles.statusBadge, { backgroundColor: tone.bg }]}
+                    >
+                      <Text style={[styles.statusText, { color: tone.ink }]}>
+                        {DOC_STATUS_LABEL[d.status]}
+                      </Text>
+                    </View>
+                    {d.status === "rejected" && d.rejectionReason ? (
+                      <Text style={styles.reason}>{d.rejectionReason}</Text>
+                    ) : null}
+                  </View>
+                  <Ionicons
+                    name="chevron-forward"
+                    size={14}
+                    color={c.mutedLabel}
+                  />
+                </Pressable>
+              );
+            }}
+          />
         )}
       </ScrollView>
     </View>

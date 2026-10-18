@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { PagedList } from "@/components/PagedList";
 import { type ScreenProps } from "@/navigation/types";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { RevealScrollView as ScrollView } from "@/components/Reveal";
@@ -93,15 +94,18 @@ export function DocumentReviewScreen({ navigation, route }: ScreenProps) {
             text={t("rv.kosongIsi")}
           />
         ) : (
-          items.map((d) => (
-            <DocRow
-              key={d.id}
-              doc={d}
-              onPress={() =>
-                navigation.navigate("DocumentReviewDetail", { doc: d })
-              }
-            />
-          ))
+          <PagedList
+            items={items}
+            renderItem={(d) => (
+              <DocRow
+                key={d.id}
+                doc={d}
+                onPress={() =>
+                  navigation.navigate("DocumentReviewDetail", { doc: d })
+                }
+              />
+            )}
+          />
         )}
       </ScrollView>
     </View>

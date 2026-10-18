@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { PagedList } from "@/components/PagedList";
 import type { ScreenProps } from "@/navigation/types";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { RevealScrollView as ScrollView } from "@/components/Reveal";
@@ -152,31 +153,38 @@ export function OvertimeScreen({ navigation }: ScreenProps) {
           />
         ) : (
           <View style={{ gap: 10 }}>
-            {records.map((r) => (
-              <View key={r.id} style={styles.row}>
-                <View style={styles.hourChip}>
-                  <Text style={styles.hourText}>
-                    {formatShortDuration(r.hours)}
-                  </Text>
-                </View>
+            {
+              <PagedList
+                gap={10}
+                items={records}
+                renderItem={(r) => (
+                  <View key={r.id} style={styles.row}>
+                    <View style={styles.hourChip}>
+                      <Text style={styles.hourText}>
+                        {formatShortDuration(r.hours)}
+                      </Text>
+                    </View>
 
-                <View style={{ flex: 1, minWidth: 0 }}>
-                  <Text style={styles.rowTitle}>
-                    {formatShortDateWithYear(r.date)} · {getWeekdayName(r.date)}
-                  </Text>
-                  <Text style={styles.rowNote} numberOfLines={1}>
-                    {formatHoursMinutes(r.startMinute)}–
-                    {formatHoursMinutes(r.endMinute)} · {r.note}
-                  </Text>
-                </View>
+                    <View style={{ flex: 1, minWidth: 0 }}>
+                      <Text style={styles.rowTitle}>
+                        {formatShortDateWithYear(r.date)} ·{" "}
+                        {getWeekdayName(r.date)}
+                      </Text>
+                      <Text style={styles.rowNote} numberOfLines={1}>
+                        {formatHoursMinutes(r.startMinute)}–
+                        {formatHoursMinutes(r.endMinute)} · {r.note}
+                      </Text>
+                    </View>
 
-                <StatusBadge
-                  label={OVERTIME_STATUS_LABEL[r.status]}
-                  tone={OVERTIME_STATUS_TONE[r.status]}
-                  variant="compact"
-                />
-              </View>
-            ))}
+                    <StatusBadge
+                      label={OVERTIME_STATUS_LABEL[r.status]}
+                      tone={OVERTIME_STATUS_TONE[r.status]}
+                      variant="compact"
+                    />
+                  </View>
+                )}
+              />
+            }
           </View>
         )}
       </ScrollView>

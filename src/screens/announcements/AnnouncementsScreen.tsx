@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from "react";
+import { PagedList } from "@/components/PagedList";
 import { getRouteParams, type ScreenProps } from "@/navigation/types";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { RevealScrollView as ScrollView } from "@/components/Reveal";
@@ -95,14 +96,17 @@ export function AnnouncementsList({
           text={t("an.kosongIsi")}
         />
       ) : (
-        items.map((a) => (
-          <Card
-            key={a.id}
-            a={a}
-            openId={openId === a.id}
-            onPress={() => setOpenId(openId === a.id ? null : a.id)}
-          />
-        ))
+        <PagedList
+          items={items}
+          renderItem={(a) => (
+            <Card
+              key={a.id}
+              a={a}
+              openId={openId === a.id}
+              onPress={() => setOpenId(openId === a.id ? null : a.id)}
+            />
+          )}
+        />
       )}
     </ScrollView>
   );
