@@ -38,7 +38,6 @@
   "44": "hris_get_overtimes.py",
   "45": "hris_submit_attendance_correction.py",
   "46": "hris_submit_overtime.py",
-  "47": "PayslipCards.tsx",
   "48": "hris_checkin.py",
   "49": "hris_create_my_document.py",
   "50": "hris_decide_attendance_correction.py",

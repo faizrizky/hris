@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect, useEffectEvent } from "react";
+import { KUNCI_USERNAME, useLoginPrefill } from "@/hooks/useLoginPrefill";
 import {
   KeyboardAvoidingView,
   Pressable,
@@ -30,10 +31,7 @@ import {
   bacaKredensial,
   hapusKredensial,
   kesiapanBiometrik,
-  namaBiometrik,
 } from "@/services/biometrik";
-
-const KUNCI_USERNAME = "hris.username";
 
 export function LoginScreen() {
   const { setEmployee, pesanLogin, bersihkanPesanLogin } = useSession();
@@ -52,15 +50,11 @@ export function LoginScreen() {
   const [server, setServer] = useState(alamatServer());
   const [bukaServer, setBukaServer] = useState(false);
 
-  // "Ingat saya": username terakhir diisi otomatis (password tidak pernah disimpan). Tersimpan di
-  // penyimpanan aplikasi sehingga tetap ada setelah pembaruan.
-  useEffect(() => {
-    AsyncStorage.getItem(KUNCI_USERNAME)
-      .then((v) => {
-        if (v) setEmail(v);
-      })
-      .catch(() => {});
-  }, []);
+  useLoginPrefill({
+    onSavedUsername: setEmail,
+    onBiometricName: setNamaBio,
+    onServerAddress: setServer,
+  });
 
   // Dikeluarkan dari luar (sesi berakhir / login di perangkat lain / dikeluarkan lewat Keamanan): beri tahu sekali.
   const tampilkanPesanSesi = useEffectEvent(() => {
@@ -75,17 +69,6 @@ export function LoginScreen() {
   useEffect(() => {
     if (pesanLogin) tampilkanPesanSesi();
   }, [pesanLogin]);
-
-  // Biometrik hanya ditawarkan bila perangkat ini sudah punya sidik jari / wajah terdaftar.
-  useEffect(() => {
-    namaBiometrik().then(setNamaBio);
-  }, []);
-
-  // Alamat tersimpan dibaca asinkron; isi kolom setelah siap.
-  useEffect(() => {
-    const id = setTimeout(() => setServer(alamatServer()), 300);
-    return () => clearTimeout(id);
-  }, []);
 
   const masukDenganBiometrik = async () => {
     setError(null);

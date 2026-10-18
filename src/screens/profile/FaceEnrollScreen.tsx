@@ -6,11 +6,11 @@ import {
   useRef,
   useState,
 } from "react";
+import { useEnrollAnimations } from "@/hooks/useEnrollAnimations";
 import type { ScreenProps } from "@/navigation/types";
 import {
   ActivityIndicator,
   Animated,
-  Easing,
   Pressable,
   StyleSheet,
   Text,
@@ -74,7 +74,6 @@ const median = (v: number[]) => {
 const JEDA_SAMPEL_MS = 1200;
 const KUALITAS_SAMPEL = 0.7; // frame deteksi 0.25 cukup untuk posisi, tapi embedding butuh gambar lebih tajam
 const BATAS_MS = 90_000;
-const EASE = Easing.bezier(0.25, 0.1, 0.25, 1);
 
 // Warna layar Face ID: selalu gelap, apa pun tema aplikasinya.
 const HITAM = "#000000";
@@ -174,47 +173,7 @@ export function FaceEnrollScreen({ navigation }: ScreenProps) {
       });
   }, []);
 
-  useEffect(() => {
-    const loops = [
-      Animated.loop(
-        Animated.timing(putar, {
-          toValue: 1,
-          duration: 14000,
-          easing: Easing.linear,
-          useNativeDriver: true,
-        }),
-      ),
-      Animated.loop(
-        Animated.sequence([
-          Animated.timing(denyut, {
-            toValue: 1,
-            duration: 900,
-            easing: Easing.inOut(Easing.ease),
-            useNativeDriver: true,
-          }),
-          Animated.timing(denyut, {
-            toValue: 0,
-            duration: 900,
-            easing: Easing.inOut(Easing.ease),
-            useNativeDriver: true,
-          }),
-        ]),
-      ),
-    ];
-    loops.forEach((l) => l.start());
-    return () => loops.forEach((l) => l.stop());
-  }, [putar, denyut]);
-
-  // Setiap ganti tahap: isi memudar masuk; kamera berubah bentuk saat pemindaian dimulai.
-  useEffect(() => {
-    masuk.setValue(0);
-    Animated.timing(masuk, {
-      toValue: 1,
-      duration: 420,
-      easing: EASE,
-      useNativeDriver: true,
-    }).start();
-  }, [fase, masuk]);
+  useEnrollAnimations({ putar, denyut, masuk }, fase);
 
   const kirim = async () => {
     setFase("kirim");
