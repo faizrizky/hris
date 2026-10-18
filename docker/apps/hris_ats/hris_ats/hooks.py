@@ -155,13 +155,19 @@ after_migrate = "hris_ats.setup.after_migrate"
 # ---------------
 # Hook on document methods and events
 
-# doc_events = {
-# 	"*": {
-# 		"on_update": "method",
-# 		"on_cancel": "method",
-# 		"on_trash": "method"
-# 	}
-# }
+doc_events = {
+	"Job Applicant": {
+		"after_insert": "hris_ats.scoring.workflow.on_job_applicant_insert",
+		"on_update": "hris_ats.scoring.workflow.on_job_applicant_update",
+	},
+	"Interview": {
+		"on_update": "hris_ats.scoring.workflow.on_interview_update",
+	},
+	"Job Offer": {
+		"on_update": "hris_ats.scoring.workflow.on_job_offer_update",
+	},
+}
+
 
 # Scheduled Tasks
 # ---------------
