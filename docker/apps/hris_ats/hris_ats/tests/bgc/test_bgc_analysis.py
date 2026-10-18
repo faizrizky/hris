@@ -3,8 +3,6 @@
 
 """Pengujian unit murni untuk modul analisis Background Check (tanpa ketergantungan frappe)."""
 
-import pytest
-
 from hris_ats.bgc.analysis.identity import (
 	normalize_name,
 	generate_name_variants,

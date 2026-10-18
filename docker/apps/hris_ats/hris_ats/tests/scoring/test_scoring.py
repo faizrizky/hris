@@ -6,7 +6,6 @@ Dapat dijalankan tanpa frappe: python -m pytest apps/hris_ats/hris_ats/tests/sco
 """
 
 import os
-import pytest
 from hris_ats.scoring.extract import extract_cv, normalize_text
 from hris_ats.scoring.sections import split_sections, count_recognized_sections
 from hris_ats.scoring.engine import run_screening, METRIC_MODULES

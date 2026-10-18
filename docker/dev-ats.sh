@@ -40,6 +40,8 @@ for svc in "${PYTHON_SERVICES[@]}"; do
     docker compose exec -T "$svc" env/bin/scrapling install
   fi
 done
+echo "[dev-ats] Memastikan dependensi pengujian (pytest) terpasang di service backend..."
+docker compose exec -T backend env/bin/pip install -q pytest
 
 # 3. Pastikan hris_ats tercantum di sites/apps.txt
 echo "[dev-ats] Memastikan hris_ats ada di sites/apps.txt..."
