@@ -6,7 +6,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Card } from "@/components/Card";
 import { StatusBadge } from "@/components/StatusBadge";
 import { RadialGlow } from "@/components/RadialGlow";
-import { Palette } from "@/theme/colors";
+import { Palette, secondaryButtonStyle } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
 import { useSession } from "@/services/session";
 import { LinearGradient } from "expo-linear-gradient";
@@ -602,7 +602,7 @@ function QuickAction({
   return (
     <Reveal style={styles.quickCell}>
       <Pressable style={styles.quickCard} onPress={onPress}>
-        <View style={[styles.quickIcon, { backgroundColor: iconBg }]}>
+        <View style={styles.quickIcon}>
           <Ionicons name={icon} size={26} color={ink} />
         </View>
         <Text style={styles.quickLabel} numberOfLines={2}>
@@ -893,7 +893,9 @@ const makeStyles = (c: Palette) =>
     quickGrid: { flexDirection: "row", flexWrap: "wrap", marginBottom: 6 },
     quickCell: { width: "25%", alignItems: "center", marginBottom: 14 },
     quickCard: { alignItems: "center", gap: 7, width: "100%" },
+    // Kotak putih berbingkai tipis + bayangan lembut, supaya tidak menyatu dengan latar halaman.
     quickIcon: {
+      ...secondaryButtonStyle(c),
       width: 62,
       height: 62,
       borderRadius: 18,
