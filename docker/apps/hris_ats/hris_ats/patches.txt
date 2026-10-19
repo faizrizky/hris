@@ -8,3 +8,4 @@ hris_ats.patches.v1_0.init_phase5_fields
 hris_ats.patches.v1_0.migrate_select_to_english
 hris_ats.patches.v1_0.set_default_social_platforms
 hris_ats.patches.v1_0.populate_crawler_login_urls
+hris_ats.patches.v1_0.set_default_social_and_export_settings

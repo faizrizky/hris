@@ -1,5 +1,6 @@
-# Copyright (c) 2026, HRIS Team and contributors
-# For license information, please see license.txt
+import json
+import time
+from unittest.mock import patch
 
 import frappe
 from frappe.tests.utils import FrappeTestCase
@@ -244,4 +245,191 @@ class TestBackgroundCheckSettings(FrappeTestCase):
 		self.assertEqual(company_res["title"], "Sample Profile (@user)")
 		self.assertIn("Public profile description", company_res["preview_text"])
 		self.assertFalse(company_res["is_login_page"])
+
+	def test_settings_thresholds_validation(self):
+		"""Validasi batasan setting: social_max_posts >= 1, social_lookback_months >= 1, export_max_mb >= 1."""
+		self.settings.reload()
+
+		# Nilai 0 ditolak
+		self.settings.social_max_posts = 0
+		with self.assertRaises(frappe.ValidationError):
+			self.settings.save()
+		self.settings.reload()
+
+		self.settings.social_lookback_months = 0
+		with self.assertRaises(frappe.ValidationError):
+			self.settings.save()
+		self.settings.reload()
+
+		self.settings.export_max_mb = 0
+		with self.assertRaises(frappe.ValidationError):
+			self.settings.save()
+		self.settings.reload()
+
+		# Nilai valid tersimpan
+		self.settings.social_max_posts = 150
+		self.settings.social_lookback_months = 6
+		self.settings.export_max_mb = 50
+		self.settings.save()
+		self.settings.reload()
+		self.assertEqual(self.settings.social_max_posts, 150)
+		self.assertEqual(self.settings.social_lookback_months, 6)
+		self.assertEqual(self.settings.export_max_mb, 50)
+
+	def test_settings_defaults_patch_idempotency(self):
+		"""Patch mengisi default pada Single tanpa baris / 0 dan tidak menimpa nilai positif yang sudah diubah."""
+		from hris_ats.patches.v1_0.set_default_social_and_export_settings import execute as run_patch
+
+		# 1. Simulasikan nilai belum ada atau 0
+		self.settings.reload()
+		self.settings.social_max_posts = 0
+		self.settings.social_lookback_months = 0
+		self.settings.export_max_mb = 0
+		self.settings.enable_social_media = 0
+		self.settings.flags.ignore_validate = True
+		self.settings.save()
+
+		# Jalankan patch
+		run_patch()
+
+		reloaded = frappe.get_doc("Background Check Settings")
+		self.assertEqual(reloaded.social_max_posts, 200)
+		self.assertEqual(reloaded.social_lookback_months, 12)
+		self.assertEqual(reloaded.export_max_mb, 100)
+		self.assertEqual(reloaded.enable_social_media, 1)
+
+		# 2. Ubah salah satu nilai ke angka positif
+		reloaded.social_max_posts = 350
+		reloaded.save()
+
+		# Jalankan patch lagi -> nilai positif (350) tidak boleh ditimpa
+		run_patch()
+
+		reloaded_again = frappe.get_doc("Background Check Settings")
+		self.assertEqual(reloaded_again.social_max_posts, 350)
+		self.assertEqual(reloaded_again.social_lookback_months, 12)
+		self.assertEqual(reloaded_again.export_max_mb, 100)
+
+	def test_test_fetch_session_mode_eligibility_and_comparison(self):
+		"""Mode Session muncul hanya bila ada akun crawler Connected + risk acknowledged, membandingkan data dengan Browser mode, dan tidak membocorkan cookie."""
+		from hris_ats.bgc.crawler_session import save_crawler_storage_state
+		from hris_ats.bgc.fetch import FetchResult
+		from hris_ats.hris_ats.doctype.background_check_settings.background_check_settings import test_fetch
+
+		# Pastikan platform Instagram ada
+		if not frappe.db.exists("Background Check Platform", "Instagram"):
+			p = frappe.new_doc("Background Check Platform")
+			p.platform_name = "Instagram"
+			p.session_domains = "instagram.com\n.instagram.com"
+			p.insert(ignore_permissions=True)
+
+		# Bersihkan akun lama
+		for name in frappe.get_all("Background Check Crawler Account", filters={"platform": "Instagram"}, pluck="name"):
+			frappe.delete_doc("Background Check Crawler Account", name, force=True)
+
+		self.settings.reload()
+		self.settings.fetch_blocked_domains = ""
+		self.settings.fetch_risk_acknowledged = 1
+		self.settings.save(ignore_permissions=True)
+
+		# 1. Tanpa akun crawler connected -> mode Session TIDAK muncul
+		fake_browser_html = "<html><title>User (@testuser) • Instagram photos</title><body><h1>User</h1><p>414 Following, 1,367 Followers, 25 Posts</p></body></html>"
+		with patch("hris_ats.bgc.fetch.fetch", return_value=FetchResult(url="https://www.instagram.com/testuser/", status=200, body=fake_browser_html, mode_used="browser")):
+			res1 = test_fetch("https://www.instagram.com/testuser/", consent_acknowledged=1)
+		modes1 = [r["mode"] for r in res1["results"]]
+		self.assertNotIn("Session", " ".join(modes1))
+
+		# 2. Buat akun crawler tetapi risk_acknowledged = 0 -> mode Session TIDAK muncul
+		acc = frappe.new_doc("Background Check Crawler Account")
+		acc.platform = "Instagram"
+		acc.account_label = "IG Crawler Test"
+		acc.account_handle = "ig_crawler"
+		acc.enabled = 1
+		acc.risk_acknowledged = 0
+		acc.insert(ignore_permissions=True)
+
+		secret_cookie = "secret_session_token_xyz"
+		save_crawler_storage_state(acc.name, json.dumps({
+			"cookies": [{"name": "sessionid", "value": secret_cookie, "domain": ".instagram.com", "expires": time.time() + 86400}]
+		}))
+
+		with patch("hris_ats.bgc.fetch.fetch", return_value=FetchResult(url="https://www.instagram.com/testuser/", status=200, body=fake_browser_html, mode_used="browser")):
+			res2 = test_fetch("https://www.instagram.com/testuser/", consent_acknowledged=1)
+		modes2 = [r["mode"] for r in res2["results"]]
+		self.assertNotIn("Session", " ".join(modes2))
+
+		# 3. Sekarang beri risk_acknowledged = 1 pada akun dan Settings -> mode Session MUNCUL
+		acc.reload()
+		acc.risk_acknowledged = 1
+		acc.save()
+
+		self.settings.reload()
+		self.settings.fetch_risk_acknowledged = 1
+		self.settings.save(ignore_permissions=True)
+
+		fake_session_html = "<html><title>User (@testuser) • Instagram photos</title><body><h1>User</h1><p>Bio details</p><article>Post 1</article><article>Post 2</article></body></html>"
+
+		def mocked_fetch(url, *args, **kwargs):
+			cfg = kwargs.get("config")
+			if cfg and cfg.storage_state:
+				# Mode session
+				return FetchResult(url=url, status=200, body=fake_session_html, mode_used="browser", from_cache=False)
+			return FetchResult(url=url, status=200, body=fake_browser_html, mode_used="browser", from_cache=False)
+
+		with patch("hris_ats.bgc.fetch.fetch", side_effect=mocked_fetch):
+			res3 = test_fetch("https://www.instagram.com/testuser/", consent_acknowledged=1)
+
+		modes3 = [r["mode"] for r in res3["results"]]
+		session_mode_found = any("Session" in m for m in modes3)
+		self.assertTrue(session_mode_found, f"Mode Session harus muncul di {modes3}")
+
+		session_res = next(r for r in res3["results"] if "Session" in r["mode"])
+		self.assertEqual(session_res["account_label"], "IG Crawler Test")
+		self.assertIsNotNone(session_res.get("comparison_with_browser"))
+		self.assertIn("posts_count", session_res["comparison_with_browser"])
+		self.assertIn("has_name", session_res["comparison_with_browser"])
+
+		# Pastikan TIDAK ADA cookie rahasia yang bocor di respons
+		res_json = json.dumps(res3)
+		self.assertNotIn(secret_cookie, res_json)
+
+	def test_test_fetch_session_challenge_marks_account_status(self):
+		"""Mode Session yang menemui checkpoint/challenge mengubah status akun ke Challenge."""
+		from hris_ats.bgc.crawler_session import save_crawler_storage_state
+		from hris_ats.bgc.fetch import FetchResult
+		from hris_ats.hris_ats.doctype.background_check_settings.background_check_settings import test_fetch
+
+		self.settings.reload()
+		self.settings.fetch_blocked_domains = ""
+		self.settings.fetch_risk_acknowledged = 1
+		self.settings.save(ignore_permissions=True)
+
+		acc = frappe.new_doc("Background Check Crawler Account")
+		acc.platform = "Instagram"
+		acc.account_label = "IG Challenge Test"
+		acc.account_handle = "ig_chall"
+		acc.enabled = 1
+		acc.risk_acknowledged = 1
+		acc.insert(ignore_permissions=True)
+
+		save_crawler_storage_state(acc.name, json.dumps({
+			"cookies": [{"name": "sessionid", "value": "val123", "domain": ".instagram.com", "expires": time.time() + 86400}]
+		}))
+
+		challenge_url = "https://www.instagram.com/challenge/action/?challenge_context=xyz"
+		challenge_html = "<html><title>Instagram • Challenge Required</title><body><form action='/checkpoint'></form></body></html>"
+
+		def mock_challenge(url, *args, **kwargs):
+			cfg = kwargs.get("config")
+			if cfg and cfg.storage_state:
+				return FetchResult(url=challenge_url, status=403, body=challenge_html, mode_used="browser")
+			return FetchResult(url=url, status=200, body="<html><title>Profile</title></html>", mode_used="browser")
+
+		with patch("hris_ats.bgc.fetch.fetch", side_effect=mock_challenge):
+			test_fetch("https://www.instagram.com/robbyimamp/", consent_acknowledged=1)
+
+		acc.reload()
+		self.assertEqual(acc.status, "Challenge")
+		self.assertIn("challenge", (acc.last_error or "").lower())
+
 

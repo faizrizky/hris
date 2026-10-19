@@ -513,6 +513,18 @@ def setup_default_settings():
 			"in compliance with Law No. 27 of 2022 on Personal Data Protection (PDP Law)."
 		)
 		dirty = True
+	if not getattr(settings, "social_max_posts", None) or settings.social_max_posts < 1:
+		settings.social_max_posts = 200
+		dirty = True
+	if not getattr(settings, "social_lookback_months", None) or settings.social_lookback_months < 1:
+		settings.social_lookback_months = 12
+		dirty = True
+	if not getattr(settings, "export_max_mb", None) or settings.export_max_mb < 1:
+		settings.export_max_mb = 100
+		dirty = True
+	if getattr(settings, "enable_social_media", None) is None or settings.enable_social_media == 0:
+		settings.enable_social_media = 1
+		dirty = True
 	# Hanya diisi bila belum pernah disimpan. Daftar yang sengaja dikosongkan System Manager
 	# tidak boleh diisi ulang setiap migrate.
 	from hris_ats.bgc.fetch import DEFAULT_BLOCKED_DOMAINS, blocked_domains_row_exists
@@ -522,6 +534,7 @@ def setup_default_settings():
 		dirty = True
 	if dirty:
 		settings.save(ignore_permissions=True)
+
 
 
 def setup_job_applicant_source():

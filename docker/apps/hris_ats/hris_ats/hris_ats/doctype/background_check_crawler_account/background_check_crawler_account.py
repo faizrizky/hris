@@ -14,6 +14,17 @@ class BackgroundCheckCrawlerAccount(Document):
 		self.validate_single_active_per_platform()
 		self.validate_risk_acknowledgment()
 		self.validate_status_on_enable_toggle()
+		self.validate_crawler_limits()
+
+	def validate_crawler_limits(self):
+		if self.hourly_limit is not None and self.hourly_limit < 1:
+			frappe.throw(_("Hourly limit must be at least 1."))
+		if self.daily_limit is not None and self.daily_limit < 1:
+			frappe.throw(_("Daily limit must be at least 1."))
+		if self.min_delay_seconds is not None and self.min_delay_seconds < 0:
+			frappe.throw(_("Min delay seconds must be at least 0."))
+		if self.jitter_seconds is not None and self.jitter_seconds < 0:
+			frappe.throw(_("Jitter seconds must be at least 0."))
 
 	def validate_single_active_per_platform(self):
 		if not bool(self.enabled):
