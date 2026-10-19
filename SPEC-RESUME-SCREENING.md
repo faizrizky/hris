@@ -1,6 +1,8 @@
 # Spesifikasi: Resume Screening (ATS) di ERPNext
 
-Status: draf untuk ditinjau, belum ada yang dibangun. Sumber desain: `~/Downloads/Resume Screening List/01_Resume_Screening/` (11 layar). Keputusan awal: hanya web (ERPNext Desk), skor dihitung algoritma berbasis aturan tanpa LLM.
+Status: sudah dibangun di branch `feat/hris-ats` (`docker/apps/hris_ats/`). Dokumen ini diperbarui sesuai keputusan terbaru, termasuk bahasa UI (bagian 12). Sumber desain: `~/Downloads/Resume Screening List/01_Resume_Screening/` (11 layar). Hanya web (ERPNext Desk). Skor dihitung algoritma berbasis aturan tanpa LLM.
+
+**Konvensi penulisan.** Nilai Select, nama field, dan nama doctype ditulis dalam Bahasa Inggris (nilai tersimpan di database); tampilan Indonesia lewat terjemahan. Penjelasan tetap berbahasa Indonesia.
 
 ## 1. Posisi di alur rekrutmen
 
@@ -89,7 +91,7 @@ Satu dokumen per pelamar per penilaian. Padanan layar 01 (tabel), 10 dan 11 (det
 | `experience_level` | Select `Fresh Graduate` / `Experienced`, read only | Teks "Experienced" di panel kandidat. Dihitung dari total tahun pengalaman (≥ 1 tahun = Experienced). |
 | `hr_override_label`, `hr_override_note` | Data, Small Text | Ikon pensil di banner layar 11: HR boleh mengganti label hasil. Skor asli tetap tersimpan. |
 
-Child `Resume Screening Result`: `metric`, `weight` (bobot efektif setelah normalisasi), `score` (0–100), `passed` (Check), `applicable` (Check), `metric_status` (Select `Pending` / `Done`), `reason` (Small Text, mis. "Unstructured resume", "Format tanggal tidak konsisten").
+Child `Resume Screening Result`: `metric`, `weight` (bobot efektif setelah normalisasi), `score` (0–100), `passed` (Check), `applicable` (Check), `metric_status` (Select `Pending` / `Done`), `reason_template` (Small Text, string Inggris bertanda `{param}`), `reason_params` (JSON), `reason` (Small Text, read only; hasil render Inggris sebagai cadangan). Teks dirender dalam bahasa pembaca saat ditampilkan (bagian 12).
 
 Metrik dinilai satu per satu dan setiap metrik yang selesai langsung disimpan, lalu dikabarkan ke browser lewat `frappe.publish_realtime`. Dengan begitu layar detail bisa menampilkan sebagian metrik "Done" dan sisanya "Screening..." seperti layar 10.
 
@@ -148,17 +150,17 @@ Perpindahan `recruitment_stage` otomatis (doc_events di custom app):
 
 ### 5.2 Metrik (masing-masing 0–100)
 
-| Metrik | Cara hitung | Contoh alasan |
+| Metrik | Cara hitung | Contoh alasan (sumber Inggris; terjemahan Indonesia di `id.csv`) |
 |---|---|---|
-| ATS friendly | Rata-rata cek: teks bisa diekstrak; ≥ 3 judul bagian standar dikenali; email dan telepon terbaca; tidak ada tata letak multi-kolom (posisi x kata mengelompok ke ≥ 2 kolom pada > 50% halaman); tidak ada tabel besar; 1–3 halaman. | "Tata letak dua kolom", "Judul bagian tidak dikenali" |
-| Grammar (kerapian tulisan) | Heuristik, bukan pemeriksa tata bahasa: kata berulang ("the the"), spasi/tanda baca ganda, awal kalimat bukan huruf besar, kalimat > 40 kata, rasio huruf kapital semua, daftar salah ketik umum. Skor = 100 − penalti per 100 kata. | "Banyak kata berulang dan spasi ganda" |
-| Date consistency | Cari tanggal dengan regex (`Jan 2021`, `Januari 2021`, `01/2021`, `2021`, `sekarang/present`). Cek: satu format dominan (≥ 80%), mulai ≤ selesai, tidak ada tanggal di masa depan, urutan kronologis dalam satu bagian, dan pekerjaan yang tanggalnya tumpang tindih (layar 10). Tumpang tindih diberi penalti ringan, karena bisa jadi kerja paruh waktu yang sah. Celah > 12 bulan dicatat di alasan, tidak mengurangi skor. | "Format tanggal campuran", "Tanggal Jabatan A dan Jabatan B tumpang tindih" |
-| Information completeness | Bobot cek: nama 15, email 20, telepon 20, domisili 10, bagian pendidikan 15, bagian pengalaman 15, bagian keahlian 5. | "Nomor telepon tidak ditemukan" |
-| Education relevance | Deteksi jenjang tertinggi (SMA/SMK, D3, D4/S1/Sarjana/Bachelor, S2/Master, S3/PhD). Jenjang ≥ `min_education` = 60 poin; jurusan cocok `education_majors` (rapidfuzz `partial_ratio` ≥ 85) = 40 poin. | "Jenjang D3, lowongan minta S1" |
-| Skill relevance | Cocokkan `required_skills` (bobot 2) dan `preferred_skills` (bobot 1) ke teks dengan rapidfuzz `token_set_ratio` ≥ 85. Skor = poin cocok / poin maksimal. | "Cocok 4 dari 6 skill wajib: belum ada Figma, SQL" |
-| Experience relevance | Gabungkan rentang tanggal di bagian pengalaman (rentang tumpang tindih dihitung sekali) → total tahun. 70 poin = min(total / `min_years_experience`, 1); 30 poin = ada judul jabatan yang cocok `relevant_titles`. | "Pengalaman 1,5 tahun dari minimal 3 tahun" |
-| Achievement relevance | Hitung poin pengalaman yang terukur (angka dengan %, Rp, x, juta, orang, proyek) dan kata kerja aksi. Skor naik per temuan, maksimal 100 di 5 temuan. | "Belum ada pencapaian yang terukur" |
-| Certification relevance | Cocokkan `certification_keywords` ke bagian sertifikat/seluruh teks. | "Tidak ada sertifikasi yang diminta" |
+| ATS friendly | Rata-rata cek: teks bisa diekstrak; ≥ 3 judul bagian standar dikenali; email dan telepon terbaca; tidak ada tata letak multi-kolom (posisi x kata mengelompok ke ≥ 2 kolom pada > 50% halaman); tidak ada tabel besar; 1–3 halaman. | "Two-column layout", "Section headings not recognized" |
+| Grammar (kerapian tulisan) | Heuristik, bukan pemeriksa tata bahasa: kata berulang ("the the"), spasi/tanda baca ganda, awal kalimat bukan huruf besar, kalimat > 40 kata, rasio huruf kapital semua, daftar salah ketik umum. Skor = 100 − penalti per 100 kata. | "Many repeated words and double spaces" |
+| Date consistency | Cari tanggal dengan regex (`Jan 2021`, `Januari 2021`, `01/2021`, `2021`, `sekarang/present`). Cek: satu format dominan (≥ 80%), mulai ≤ selesai, tidak ada tanggal di masa depan, urutan kronologis dalam satu bagian, dan pekerjaan yang tanggalnya tumpang tindih (layar 10). Tumpang tindih diberi penalti ringan, karena bisa jadi kerja paruh waktu yang sah. Celah > 12 bulan dicatat di alasan, tidak mengurangi skor. | "Mixed date formats", "Dates of role A and role B overlap" |
+| Information completeness | Bobot cek: nama 15, email 20, telepon 20, domisili 10, bagian pendidikan 15, bagian pengalaman 15, bagian keahlian 5. | "Phone number not found" |
+| Education relevance | Deteksi jenjang tertinggi (SMA/SMK, D3, D4/S1/Sarjana/Bachelor, S2/Master, S3/PhD). Jenjang ≥ `min_education` = 60 poin; jurusan cocok `education_majors` (rapidfuzz `partial_ratio` ≥ 85) = 40 poin. | "Education level D3, job requires S1" |
+| Skill relevance | Cocokkan `required_skills` (bobot 2) dan `preferred_skills` (bobot 1) ke teks dengan rapidfuzz `token_set_ratio` ≥ 85. Skor = poin cocok / poin maksimal. | "Matched 4 of 6 required skills: missing Figma, SQL" |
+| Experience relevance | Gabungkan rentang tanggal di bagian pengalaman (rentang tumpang tindih dihitung sekali) → total tahun. 70 poin = min(total / `min_years_experience`, 1); 30 poin = ada judul jabatan yang cocok `relevant_titles`. | "1.5 years of experience out of a minimum of 3" |
+| Achievement relevance | Hitung poin pengalaman yang terukur (angka dengan %, Rp, x, juta, orang, proyek) dan kata kerja aksi. Skor naik per temuan, maksimal 100 di 5 temuan. | "No measurable achievements yet" |
+| Certification relevance | Cocokkan `certification_keywords` ke bagian sertifikat/seluruh teks. | "No requested certifications" |
 
 ### 5.3 Skor total dan label
 - Metrik dianggap **tidak berlaku** bila lowongan tidak mengisi kriterianya (mis. `certification_keywords` kosong). Bobotnya dibagi ulang secara proporsional ke metrik lain yang berlaku, supaya kandidat tidak dihukum karena kriteria yang tidak ada.
@@ -230,3 +232,12 @@ Perpindahan `recruitment_stage` otomatis (doc_events di custom app):
 4. Doctype Resume Screening, background job, pemicu dan aksi massal.
 5. Kanban, workspace, print format, hak akses.
 6. Seed contoh (lowongan + template + pelamar) di `seed.py`, lalu deploy ke srv-vllm.
+
+## 12. Bahasa dan terjemahan
+
+Aturan lengkap ada di `SPEC-BACKGROUND-CHECK.md` bagian 12. Ringkasan untuk modul ini:
+
+- UI mengikuti bahasa pengguna ERPNext. Semua string sumber (label, pesan, template, nilai Select) berbahasa Inggris; Indonesia lewat `translations/id.csv` dengan kunci persis sama.
+- **Alasan skor** tidak disimpan sebagai kalimat jadi, tetapi sebagai `reason_template` + `reason_params` dan dirender dalam bahasa pembaca saat ditampilkan (`hris_ats/i18n.py`). Data lama tidak di-backfill; "Screen again" membuat ulang dalam format baru.
+- **Kosakata isi CV** (judul bagian CV dalam Indonesia dan Inggris, sinonim, regex tanggal, kata kerja aksi, nama jenjang pendidikan lokal `SMA/SMK`, `D3`, `D4/S1`) adalah data tentang bahasa dokumen yang dinilai. Tetap dua bahasa dan tidak diterjemahkan.
+- Deskripsi hasil template (`pass_description`, `fail_description`, deskripsi label skor) adalah isi yang ditulis HR, bukan string sistem. Tampil apa adanya dalam bahasa yang ditulis HR.
