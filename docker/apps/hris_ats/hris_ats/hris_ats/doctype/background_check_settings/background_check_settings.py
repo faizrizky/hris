@@ -8,16 +8,7 @@ import frappe
 from frappe import _
 from frappe.model.document import Document
 
-DEFAULT_BLOCKED_DOMAINS = (
-	"instagram.com",
-	"instagr.am",
-	"facebook.com",
-	"fb.com",
-	"fb.me",
-	"tiktok.com",
-	"linkedin.com",
-	"lnkd.in",
-)
+from hris_ats.bgc.fetch import DEFAULT_BLOCKED_DOMAINS, blocked_domains_row_exists
 
 
 def get_scrapling_browser_status() -> str:
@@ -153,15 +144,15 @@ class BackgroundCheckSettings(Document):
 		self.fetch_browser_status = get_scrapling_browser_status()
 		if not self.fetch_user_agent:
 			self.fetch_user_agent = self.get_default_user_agent()
-		if not getattr(self, "fetch_blocked_domains", None):
+		# Daftar bawaan hanya ditampilkan bila belum pernah disimpan. Daftar yang sengaja
+		# dikosongkan tidak boleh diisi ulang.
+		if not blocked_domains_row_exists():
 			self.fetch_blocked_domains = "\n".join(DEFAULT_BLOCKED_DOMAINS)
 
 	def validate(self):
 		self.fetch_browser_status = get_scrapling_browser_status()
 		if not self.fetch_user_agent:
 			self.fetch_user_agent = self.get_default_user_agent()
-		if not getattr(self, "fetch_blocked_domains", None):
-			self.fetch_blocked_domains = "\n".join(DEFAULT_BLOCKED_DOMAINS)
 
 		self.validate_risk_acknowledgment()
 		self.validate_consent_text_version()

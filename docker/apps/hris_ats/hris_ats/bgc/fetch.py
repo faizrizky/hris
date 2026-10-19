@@ -228,14 +228,44 @@ def get_domain(url: str) -> str:
 	return netloc.strip(".")
 
 
+def read_stored_blocked_domains() -> str | None:
+	"""Nilai mentah `fetch_blocked_domains` di tabSingles.
+
+	None = belum pernah disimpan (pakai daftar bawaan). String kosong = sengaja dikosongkan
+	oleh System Manager (tidak ada domain yang diblokir). Dibedakan lewat keberadaan barisnya,
+	bukan dari nilainya, karena NULL dan "" sama-sama dibaca sebagai kosong oleh Frappe.
+	"""
+	import frappe
+
+	rows = frappe.db.sql(
+		"select value from `tabSingles` where doctype=%s and field=%s limit 1",
+		("Background Check Settings", "fetch_blocked_domains"),
+	)
+	if not rows:
+		return None
+	return rows[0][0] or ""
+
+
+def blocked_domains_row_exists() -> bool:
+	return read_stored_blocked_domains() is not None
+
+
+def parse_blocked_domains(raw: str | None) -> list[str]:
+	return [line.strip().lower() for line in (raw or "").splitlines() if line.strip()]
+
+
 def get_blocked_domains() -> list[str]:
-	"""Membaca daftar domain terlarang dari Background Check Settings."""
+	"""Membaca daftar domain terlarang dari Background Check Settings.
+
+	Daftar kosong yang sengaja disimpan dihormati (tidak diisi ulang dengan daftar bawaan).
+	"""
 	try:
 		import frappe
+
 		if hasattr(frappe, "db") and frappe.db:
-			val = frappe.db.get_single_value("Background Check Settings", "fetch_blocked_domains")
-			if val is not None:
-				return [line.strip().lower() for line in val.splitlines() if line.strip()]
+			raw = read_stored_blocked_domains()
+			if raw is not None:
+				return parse_blocked_domains(raw)
 	except Exception:
 		pass
 	return list(DEFAULT_BLOCKED_DOMAINS)
@@ -619,11 +649,7 @@ def get_fetch_config_from_settings() -> FetchConfig:
 		settings = frappe.get_single("Background Check Settings")
 		stealth_domains_raw = settings.fetch_stealth_domains or ""
 		stealth_domains = [d.strip() for d in stealth_domains_raw.split("\n") if d.strip()]
-		blocked_domains_raw = getattr(settings, "fetch_blocked_domains", None)
-		if blocked_domains_raw is not None:
-			blocked_domains = [d.strip().lower() for d in blocked_domains_raw.splitlines() if d.strip()]
-		else:
-			blocked_domains = list(DEFAULT_BLOCKED_DOMAINS)
+		blocked_domains = get_blocked_domains()
 
 		return FetchConfig(
 			respect_robots=bool(settings.fetch_respect_robots),

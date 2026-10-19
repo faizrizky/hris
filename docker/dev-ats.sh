@@ -35,11 +35,23 @@ PYTHON_SERVICES=("backend" "queue-short" "queue-long" "scheduler")
 for svc in "${PYTHON_SERVICES[@]}"; do
   echo "[dev-ats] Memasang hris_ats di virtualenv service $svc..."
   docker compose exec -T "$svc" env/bin/pip install -q -e apps/hris_ats
-  if [ "$WITH_BROWSERS" -eq 1 ]; then
-    echo "[dev-ats] Memasang browser Scrapling di virtualenv service $svc..."
-    docker compose exec -T "$svc" env/bin/scrapling install
-  fi
 done
+
+if [ "$WITH_BROWSERS" -eq 1 ]; then
+  BROWSER_SERVICES=("backend" "queue-long")
+  for svc in "${BROWSER_SERVICES[@]}"; do
+    echo "[dev-ats] Memasang dependensi sistem browser (root) di service $svc..."
+    docker compose exec -T -u root "$svc" env/bin/python -m playwright install-deps chromium
+    echo "[dev-ats] Memasang browser Chromium (user frappe) di service $svc..."
+    docker compose exec -T "$svc" env/bin/python -m playwright install chromium
+    docker compose exec -T "$svc" env/bin/python -c '
+from scrapling.cli import __PACKAGE_DIR__
+from tld.utils import update_tld_names
+update_tld_names(fail_silently=True)
+__PACKAGE_DIR__.joinpath(".scrapling_dependencies_installed").touch()
+'
+  done
+fi
 echo "[dev-ats] Memastikan dependensi pengujian (pytest) terpasang di service backend..."
 docker compose exec -T backend env/bin/pip install -q pytest
 

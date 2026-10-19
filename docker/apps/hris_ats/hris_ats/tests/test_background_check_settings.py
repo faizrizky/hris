@@ -159,6 +159,33 @@ class TestBackgroundCheckSettings(FrappeTestCase):
 		self.assertNotIn("instagram.com", self.settings.fetch_blocked_domains)
 		self.assertEqual(self.settings.fetch_risk_acknowledged, 1)
 
+	def test_emptied_blocked_domains_stay_empty_after_save_and_setup(self):
+		"""Daftar yang sengaja dikosongkan tidak diisi ulang oleh validate, onload, maupun setup."""
+		from hris_ats.bgc.fetch import get_blocked_domains, is_forbidden_domain
+		from hris_ats.setup import setup_default_settings
+
+		# Mengosongkan seluruh daftar tanpa pengakuan risiko ditolak
+		self.settings.fetch_blocked_domains = ""
+		self.settings.fetch_risk_acknowledged = 0
+		with self.assertRaises(frappe.ValidationError):
+			self.settings.save()
+
+		# Dengan pengakuan risiko: tersimpan kosong dan tetap kosong
+		self.settings.reload()
+		self.settings.fetch_blocked_domains = ""
+		self.settings.fetch_risk_acknowledged = 1
+		self.settings.save()
+
+		reloaded = frappe.get_doc("Background Check Settings")
+		reloaded.onload()
+		self.assertEqual(reloaded.fetch_blocked_domains or "", "")
+		self.assertEqual(get_blocked_domains(), [])
+		self.assertFalse(is_forbidden_domain("https://www.instagram.com/tim"))
+
+		# Migrate/setup berikutnya tidak boleh mengisinya kembali
+		setup_default_settings()
+		self.assertEqual(get_blocked_domains(), [])
+
 	def test_test_fetch_permissions_and_validation(self):
 		"""3c: Uji tombol Test Fetch - hak akses dan validasi input."""
 		from hris_ats.hris_ats.doctype.background_check_settings.background_check_settings import test_fetch

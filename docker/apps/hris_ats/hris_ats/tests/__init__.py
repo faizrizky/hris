@@ -59,3 +59,23 @@ def ensure_test_company(company_name: str = "_Test Company") -> str:
 	if not default_comp:
 		frappe.db.set_single_value("Global Defaults", "default_company", company_name)
 	return company_name
+
+
+def ensure_test_encryption_key() -> str:
+	"""Memastikan site pengujian memiliki encryption_key acak unik (Fernet.generate_key()) dan bukan salinan dari site lain."""
+	if hasattr(frappe, "local") and frappe.local:
+		conf = getattr(frappe.local, "conf", None) or {}
+		if not conf.get("encryption_key") and not conf.get("secret_key"):
+			from cryptography.fernet import Fernet
+
+			key = Fernet.generate_key().decode("utf-8")
+			conf["encryption_key"] = key
+			try:
+				from frappe.installer import update_site_config
+
+				update_site_config("encryption_key", key)
+			except Exception:
+				pass
+			return key
+		return conf.get("encryption_key") or conf.get("secret_key") or ""
+	return ""

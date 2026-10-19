@@ -447,3 +447,19 @@ def test_get_default_cache_backend_fail_closed_in_live():
 		assert "Redis not available" in str(exc_info.value)
 
 
+def test_get_blocked_domains_honors_intentionally_empty_list(monkeypatch):
+	"""Belum pernah disimpan -> bawaan; sengaja dikosongkan -> kosong; selain itu -> isi daftar."""
+	import frappe
+
+	import hris_ats.bgc.fetch as fetch_mod
+
+	monkeypatch.setattr(frappe, "db", object(), raising=False)
+
+	monkeypatch.setattr(fetch_mod, "read_stored_blocked_domains", lambda: None)
+	assert fetch_mod.get_blocked_domains() == list(fetch_mod.DEFAULT_BLOCKED_DOMAINS)
+
+	monkeypatch.setattr(fetch_mod, "read_stored_blocked_domains", lambda: "")
+	assert fetch_mod.get_blocked_domains() == []
+
+	monkeypatch.setattr(fetch_mod, "read_stored_blocked_domains", lambda: "Facebook.com\n\n tiktok.com ")
+	assert fetch_mod.get_blocked_domains() == ["facebook.com", "tiktok.com"]

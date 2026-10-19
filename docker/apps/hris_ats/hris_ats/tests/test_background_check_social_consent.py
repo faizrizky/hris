@@ -21,6 +21,8 @@ from hris_ats.bgc.runner import run_all_sources
 class TestBackgroundCheckSocialConsent(FrappeTestCase):
 	def setUp(self):
 		frappe.set_user("Administrator")
+		from hris_ats.tests import ensure_test_encryption_key
+		ensure_test_encryption_key()
 		# Pastikan pelamar uji tersedia
 		self.applicant_name = "test.social.consent@example.com"
 		if not frappe.db.exists("Job Applicant", self.applicant_name):
