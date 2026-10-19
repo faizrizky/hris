@@ -358,9 +358,10 @@ def run_all_sources(bgc_name: str) -> None:
 						acc.profile_url = prof_url
 
 					# Conditions: scope granted + social_consent == 1 + domain not blocked
-					if not acc.social_consent or (prof_url and is_forbidden_domain(prof_url)):
+					blocked = is_forbidden_domain(prof_url, blocked_domains=getattr(fetch_config, "blocked_domains", None)) if prof_url else False
+					if not acc.social_consent or blocked:
 						skipped_accounts += 1
-						if prof_url and is_forbidden_domain(prof_url) and acc.social_consent:
+						if prof_url and blocked and acc.social_consent:
 							acc.exists = 1
 							acc.identity_match = None
 							acc.display_name = ""
@@ -448,6 +449,11 @@ def run_all_sources(bgc_name: str) -> None:
 				run_row.accounts_skipped = skipped_accounts
 				run_row.fetch_mode_used = ", ".join(sorted(modes_used)) if modes_used else ("mock" if is_mock else "company")
 				run_row.robots_ignored_count = robots_ignored_count
+				if skipped_accounts > 0:
+					msg = _("{0} social media accounts skipped due to missing consent or blocked domain.").format(skipped_accounts)
+					run_row.error = msg
+					run_row.error_template = "{count} social media accounts skipped due to missing consent or blocked domain."
+					run_row.error_params = json.dumps({"count": skipped_accounts})
 				run_row.status = "Done"
 
 			run_row.finished_on = now_datetime()

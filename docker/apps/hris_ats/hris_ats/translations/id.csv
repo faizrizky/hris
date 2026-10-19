@@ -657,3 +657,33 @@ Applicants (Kanban),Pelamar (Kanban)
 Prohibited platform for automated scraping: manual verification,Platform terlarang untuk scraping otomatis: verifikasi manual
 Account not declared by candidate on prohibited platform,Akun tidak dinyatakan kandidat pada platform terlarang
 Simulation mode (mock),Mode simulasi (mock)
+Blocked Social Media Domains,Domain Media Sosial Terblokir
+"Fetching pages from these platforms violates their terms of service and, with stealth mode, may be considered bypassing security systems (UU ITE Article 30 paragraph (3)); results are often just login pages; should be approved by Legal.","Mengambil halaman dari platform ini melanggar ketentuan layanannya dan, dengan mode stealth, dapat dianggap menerobos sistem pengamanan (UU ITE Pasal 30 ayat (3)); hasilnya sering hanya halaman login; sebaiknya disetujui Legal."
+"Saving settings with robots.txt ignored, Browser identity, stealth mode, or removed default blocked domains requires risk acknowledgment (fetch_risk_acknowledged).","Menyimpan pengaturan dengan robots.txt diabaikan, identitas Browser, mode stealth, atau menghapus domain terblokir bawaan memerlukan pengakuan risiko (fetch_risk_acknowledged)."
+Only System Manager can perform test fetch.,Hanya System Manager yang dapat melakukan uji pengambilan.
+You must confirm profile ownership or permission before proceeding.,Anda harus mengonfirmasi kepemilikan profil atau izin sebelum melanjutkan.
+Permission Required,Izin Diperlukan
+Invalid URL,URL Tidak Valid
+URL must start with http:// or https://.,URL harus diawali dengan http:// atau https://.
+"Domain {0} is currently blocked in Settings. Remove it from blocked domains and acknowledge risk first to test.","Domain {0} saat ini diblokir di Pengaturan. Hapus dari domain terblokir dan akui risiko terlebih dahulu untuk menguji."
+Blocked Domain,Domain Terblokir
+Stealth mode skipped: browser is not installed.,Mode stealth dilewati: browser belum terpasang.
+Test Fetch,Uji Pengambilan
+Test Profile Fetch,Uji Pengambilan Profil
+Test URL,URL Uji
+Only public URLs starting with http:// or https://,Hanya URL publik yang diawali http:// atau https://
+I am the owner of this profile or have the owner's permission,Saya pemilik profil ini atau punya izin pemiliknya
+Fetch,Ambil
+Fetching...,Mengambil...
+"Testing fetch in 3 modes (Company, Browser, Stealth)...","Menguji pengambilan dalam 3 mode (Company, Browser, Stealth)..."
+Mode,Mode
+Target Domain,Domain Target
+Likely login page,Kemungkinan halaman login
+First 300 characters of display text,300 karakter pertama teks tampilan
+Signed consent document (consent_file) is mandatory when consent_method is 'Uploaded document'.,Dokumen persetujuan bertanda tangan (consent_file) wajib dilampirkan bila consent_method adalah 'Dokumen diunggah'.
+Attachment of consent_file is mandatory before social media consent can be granted for accounts.,Lampiran consent_file wajib ada sebelum persetujuan media sosial dapat diberikan untuk akun.
+Consent File Mandatory,Berkas Persetujuan Wajib
+"{0} social media accounts skipped due to missing consent or blocked domain.","{0} akun media sosial dilewati karena tidak adanya persetujuan atau domain diblokir."
+"{count} social media accounts skipped due to missing consent or blocked domain.","{count} akun media sosial dilewati karena tidak adanya persetujuan atau domain diblokir."
+This account belongs to me.,Akun ini milik saya.
+Public profile page will be fetched automatically.,Halaman profil publik akan diambil otomatis.

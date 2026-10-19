@@ -54,8 +54,9 @@ class PlatformCheckProvider(BaseProvider):
 		if platform_name in ("GitHub", "YouTube", "Reddit", "Mastodon"):
 			post_access = "API"
 
-		# Domain terlarang (Instagram, Facebook, TikTok, LinkedIn) tidak pernah diambil halamannya
-		if is_forbidden_domain(profile_url) or platform_name in ("Instagram", "Facebook", "TikTok", "LinkedIn"):
+		# Domain terlarang tidak pernah diambil halamannya
+		blocked_domains = getattr(self.config, "blocked_domains", None) if self.config else None
+		if is_forbidden_domain(profile_url, blocked_domains=blocked_domains):
 			return {
 				"exists": 1 if (declared_by == "Candidate" and bool(clean_user)) else 0,
 				"profile_url": profile_url,

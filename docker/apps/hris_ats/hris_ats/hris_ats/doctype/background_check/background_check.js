@@ -7,6 +7,18 @@ frappe.ui.form.on("Background Check", {
 		frm.trigger("setup_realtime_listener");
 		frm.trigger("render_name_findings");
 		frm.trigger("render_account_findings");
+		frm.trigger("toggle_social_consent_editing");
+	},
+
+	consent_method(frm) {
+		frm.trigger("toggle_social_consent_editing");
+	},
+
+	toggle_social_consent_editing(frm) {
+		let is_uploaded_doc = frm.doc.consent_method === "Uploaded document";
+		if (frm.fields_dict.accounts && frm.fields_dict.accounts.grid) {
+			frm.fields_dict.accounts.grid.toggle_enable("social_consent", is_uploaded_doc);
+		}
 
 		if (!frm.is_new() && frm.doc.consent_status === "Granted" && frm.doc.status !== "Crawling") {
 			frm.add_custom_button(__("Rerun"), function () {

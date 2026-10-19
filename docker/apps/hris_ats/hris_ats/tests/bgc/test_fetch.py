@@ -236,3 +236,72 @@ def test_rate_limiting_enforced():
 	# Harus tidur selama 2.0 - 0.5 = 1.5 detik
 	assert len(slept_durations) == 1
 	assert pytest.approx(slept_durations[0], 0.01) == 1.5
+
+
+def test_dynamic_blocked_domains_and_subdomains():
+	"""Pengujian 3a: domain dikeluarkan -> bisa diambil, ditambahkan lagi -> ditolak, subdomain ikut."""
+	# 1. Custom list memblokir linkedin.com dan instagram.com
+	custom_blocked = ["instagram.com", "linkedin.com"]
+
+	# Subdomain harus ikut terblokir
+	assert is_forbidden_domain("https://sub.instagram.com/user", blocked_domains=custom_blocked) is True
+	assert is_forbidden_domain("https://api.linkedin.com/v1", blocked_domains=custom_blocked) is True
+	assert is_forbidden_domain("https://instagram.com/user", blocked_domains=custom_blocked) is True
+
+	# Domain yang dikeluarkan dari daftar (misal facebook.com tidak ada di custom_blocked) -> BISA diambil
+	assert is_forbidden_domain("https://facebook.com/profile", blocked_domains=custom_blocked) is False
+
+	# Ditambahkan lagi -> Ditolak
+	updated_blocked = custom_blocked + ["facebook.com"]
+	assert is_forbidden_domain("https://facebook.com/profile", blocked_domains=updated_blocked) is True
+	assert is_forbidden_domain("https://m.facebook.com/profile", blocked_domains=updated_blocked) is True
+
+	# 2. Pengujian integrasi fetch() dengan blocked_domains di FetchConfig
+	cache = MemoryCacheBackend()
+
+	def fake_raw_fetch(url, mode, config, method):
+		return 200, "<html><title>Profile</title><body>Public User Profile</body></html>", None
+
+	# Saat instagram.com terdaftar di config -> ditolak
+	cfg_blocked = FetchConfig(identity="Company", blocked_domains=["instagram.com"])
+	with pytest.raises(ForbiddenDomainError):
+		fetch("https://instagram.com/user", config=cfg_blocked, cache_backend=cache, raw_fetch_fn=fake_raw_fetch)
+
+	# Saat instagram.com dikeluarkan dari blocked_domains -> berhasil diambil
+	cfg_allowed = FetchConfig(identity="Company", blocked_domains=["tiktok.com"])
+	res = fetch("https://instagram.com/user", config=cfg_allowed, cache_backend=cache, raw_fetch_fn=fake_raw_fetch)
+	assert res.status == 200
+	assert "Public User Profile" in res.body
+
+
+def test_login_page_detection_and_title_extraction():
+	"""Pengujian 3c: deteksi halaman login dan ekstraksi title serta 300 char display text."""
+	from hris_ats.hris_ats.doctype.background_check_settings.background_check_settings import (
+		detect_login_page,
+		extract_title_and_text,
+	)
+
+	# 1. Deteksi berbasis URL login/checkpoint
+	assert detect_login_page("https://www.instagram.com/accounts/login/", "any content", "any text") is True
+	assert detect_login_page("https://linkedin.com/checkpoint/challenge", "any content", "any text") is True
+	assert detect_login_page("https://example.com/authwall", "any content", "any text") is True
+	assert detect_login_page("https://example.com/signin", "any content", "any text") is True
+
+	# 2. Deteksi berbasis teks pendek berisi instruksi login tanpa profil
+	short_login_page = "Please log in to continue or sign in with your username and password."
+	assert detect_login_page("https://example.com/user", short_login_page, short_login_page) is True
+
+	# 3. Halaman profil normal dengan posts dan bio BUKAN halaman login
+	profile_html = "<html><title>Budi Santoso (@budis)</title><body><h1>Budi Santoso</h1><p>Software Engineer in Jakarta. Posts: 120. Followers: 1500.</p></body></html>"
+	title, preview = extract_title_and_text(profile_html)
+	assert title == "Budi Santoso (@budis)"
+	assert "Software Engineer in Jakarta" in preview
+	assert detect_login_page("https://example.com/budis", profile_html, preview) is False
+
+	# 4. Cuplikan teks bersih terpotong pada maksimal 300 karakter tanpa script/style
+	long_html = "<html><style>.btn{color:red}</style><script>alert(1)</script><body>" + ("Kata " * 100) + "</body></html>"
+	_, clean_300 = extract_title_and_text(long_html)
+	assert len(clean_300) <= 300
+	assert ".btn" not in clean_300
+	assert "alert" not in clean_300
+

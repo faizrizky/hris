@@ -488,6 +488,10 @@ def setup_default_settings():
 			"in compliance with Law No. 27 of 2022 on Personal Data Protection (PDP Law)."
 		)
 		dirty = True
+	if not getattr(settings, "fetch_blocked_domains", None):
+		from hris_ats.bgc.fetch import DEFAULT_BLOCKED_DOMAINS
+		settings.fetch_blocked_domains = "\n".join(DEFAULT_BLOCKED_DOMAINS)
+		dirty = True
 	if dirty:
 		settings.save(ignore_permissions=True)
 

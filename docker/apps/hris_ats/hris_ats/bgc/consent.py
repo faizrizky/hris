@@ -156,6 +156,7 @@ def submit_candidate_consent(
 
 	# Save social media and other accounts declared by candidate
 	is_social_granted = "Social Media" in granted_sources
+	submitted_consented_keys = set()
 	if accounts:
 		existing_accounts_map = {
 			(acc.platform, acc.username): acc for acc in bgc.accounts
@@ -167,6 +168,8 @@ def submit_candidate_consent(
 				continue
 			has_consent = 1 if (is_social_granted and acc.get("social_consent")) else 0
 			key = (plat, user)
+			if has_consent:
+				submitted_consented_keys.add(key)
 			prof_url = ""
 			if frappe.db.exists("Background Check Platform", plat):
 				tmpl = frappe.db.get_value("Background Check Platform", plat, "profile_url_template")
@@ -186,10 +189,11 @@ def submit_candidate_consent(
 					"post_access": "Manual review only",
 					"social_consent": has_consent,
 				})
-	else:
-		if not is_social_granted:
-			for acc in bgc.accounts:
-				acc.social_consent = 0
+
+	# Ensure any account not explicitly consented by candidate has social_consent = 0
+	for acc in bgc.accounts:
+		if (acc.platform, acc.username) not in submitted_consented_keys:
+			acc.social_consent = 0
 
 	# Optional SKCK file
 	if skck_file:
@@ -224,9 +228,36 @@ def submit_candidate_consent(
 	}
 
 
+def clean_bgc_crawldir(bgc_name: str) -> None:
+	"""Hapus direktori crawl untuk dokumen Background Check."""
+	try:
+		import os
+		import shutil
+		from hris_ats.bgc.providers.court_ma import get_crawldir
+		cdir = get_crawldir(bgc_name)
+		if os.path.exists(cdir):
+			shutil.rmtree(cdir, ignore_errors=True)
+	except Exception:
+		pass
+
+
+def clean_bgc_cache(bgc_doc: Any) -> None:
+	"""Bersihkan entri cache Redis yang terkait dengan akun Background Check."""
+	try:
+		if hasattr(frappe, "cache") and frappe.cache:
+			for acc in getattr(bgc_doc, "accounts", []):
+				prof_url = getattr(acc, "profile_url", None)
+				if prof_url:
+					for mode in ("company+robots", "company", "browser+robots", "browser", "stealth+robots", "stealth", "mock"):
+						key = f"hris_ats:fetch_cache:{mode}:GET:{prof_url}"
+						frappe.cache.delete_value(key)
+	except Exception:
+		pass
+
+
 @frappe.whitelist()
 def revoke_consent(bgc_name: str) -> dict[str, Any]:
-	"""Revoke consent: delete all raw findings in accordance with PDP regulations."""
+	"""Revoke consent: delete all raw findings, crawl directory, and Redis cache in accordance with PDP regulations."""
 	if not frappe.db.exists("Background Check", bgc_name):
 		frappe.throw(_("Document {0} not found.").format(bgc_name))
 
@@ -247,6 +278,9 @@ def revoke_consent(bgc_name: str) -> dict[str, Any]:
 		acc.identity_reasons_template = ""
 		acc.identity_reasons_params = "{}"
 		acc.social_consent = 0
+
+	clean_bgc_crawldir(bgc.name)
+	clean_bgc_cache(bgc)
 
 	bgc.save(ignore_permissions=True)
 

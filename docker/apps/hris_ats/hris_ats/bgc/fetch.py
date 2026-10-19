@@ -24,9 +24,8 @@ except ImportError:
 	Adaptor = None
 
 
-# 1. Konstanta Domain Terlarang (UU PDP & Ketentuan Layanan)
-# Platform ini dilarang keras di-scrape dalam bentuk apa pun.
-FORBIDDEN_DOMAINS = (
+# 1. Konstanta Domain Terlarang Bawaan (UU PDP & Ketentuan Layanan)
+DEFAULT_BLOCKED_DOMAINS = (
 	"instagram.com",
 	"instagr.am",
 	"facebook.com",
@@ -36,6 +35,7 @@ FORBIDDEN_DOMAINS = (
 	"linkedin.com",
 	"lnkd.in",
 )
+FORBIDDEN_DOMAINS = DEFAULT_BLOCKED_DOMAINS
 
 
 # 2. Exception Khusus
@@ -73,6 +73,7 @@ class FetchConfig:
 	user_agent: str = "HRIS Background Check (+hr@example.com)"
 	stealth: bool = False
 	stealth_domains: list[str] = field(default_factory=list)
+	blocked_domains: list[str] | tuple[str, ...] | None = None
 	rate_limit_per_minute: int = 30
 	cache_ttl_seconds: int = 86400
 	timeout_seconds: int = 15
@@ -158,12 +159,28 @@ def get_domain(url: str) -> str:
 	return netloc.strip(".")
 
 
-def is_forbidden_domain(url: str) -> bool:
+def get_blocked_domains() -> list[str]:
+	"""Membaca daftar domain terlarang dari Background Check Settings."""
+	try:
+		import frappe
+		if hasattr(frappe, "db") and frappe.db:
+			val = frappe.db.get_single_value("Background Check Settings", "fetch_blocked_domains")
+			if val is not None:
+				return [line.strip().lower() for line in val.splitlines() if line.strip()]
+	except Exception:
+		pass
+	return list(DEFAULT_BLOCKED_DOMAINS)
+
+
+def is_forbidden_domain(url: str, blocked_domains: list[str] | tuple[str, ...] | None = None) -> bool:
 	"""Memeriksa apakah domain URL termasuk dalam daftar platform terlarang."""
 	domain = get_domain(url)
 	if not domain:
 		return False
-	for forbidden in FORBIDDEN_DOMAINS:
+	if blocked_domains is None:
+		blocked_domains = get_blocked_domains()
+	for forbidden in blocked_domains:
+		forbidden = forbidden.lower().strip()
 		if domain == forbidden or domain.endswith("." + forbidden):
 			return True
 	return False
@@ -349,13 +366,14 @@ def fetch(
 	- Batas laju per domain via Redis/Memory.
 	- Cache hasil GET 24 jam.
 	"""
-	if is_forbidden_domain(url):
+	if config is None:
+		config = get_fetch_config_from_settings()
+
+	blocked_domains = getattr(config, "blocked_domains", None)
+	if is_forbidden_domain(url, blocked_domains=blocked_domains):
 		raise ForbiddenDomainError(
 			f"Akses pengambilan halaman ke domain '{get_domain(url)}' dilarang keras oleh kebijakan privasi & ketentuan layanan."
 		)
-
-	if config is None:
-		config = get_fetch_config_from_settings()
 
 	domain = get_domain(url)
 	fetcher_type, mode_used = determine_mode(config, domain)
@@ -526,6 +544,11 @@ def get_fetch_config_from_settings() -> FetchConfig:
 		settings = frappe.get_single("Background Check Settings")
 		stealth_domains_raw = settings.fetch_stealth_domains or ""
 		stealth_domains = [d.strip() for d in stealth_domains_raw.split("\n") if d.strip()]
+		blocked_domains_raw = getattr(settings, "fetch_blocked_domains", None)
+		if blocked_domains_raw is not None:
+			blocked_domains = [d.strip().lower() for d in blocked_domains_raw.splitlines() if d.strip()]
+		else:
+			blocked_domains = list(DEFAULT_BLOCKED_DOMAINS)
 
 		return FetchConfig(
 			respect_robots=bool(settings.fetch_respect_robots),
@@ -533,9 +556,10 @@ def get_fetch_config_from_settings() -> FetchConfig:
 			user_agent=settings.fetch_user_agent or "HRIS Background Check (+hr@example.com)",
 			stealth=bool(settings.fetch_stealth_mode),
 			stealth_domains=stealth_domains,
+			blocked_domains=blocked_domains,
 			rate_limit_per_minute=settings.rate_limit_per_minute or 30,
 			cache_ttl_seconds=86400,
 			timeout_seconds=15,
 		)
 	except Exception:
-		return FetchConfig()
+		return FetchConfig(blocked_domains=list(DEFAULT_BLOCKED_DOMAINS))

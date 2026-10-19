@@ -21,6 +21,7 @@
   "column_break_fetch_mode",
   "fetch_stealth_mode",
   "fetch_stealth_domains",
+  "fetch_blocked_domains",
   "fetch_browser_status",
   "fetch_risk_acknowledged",
   "fetch_risk_ack_by",
@@ -139,6 +140,14 @@
    "fieldname": "fetch_stealth_domains",
    "fieldtype": "Small Text",
    "label": "Stealth Domains",
+   "permlevel": 1
+  },
+  {
+   "default": "instagram.com\ninstagr.am\nfacebook.com\nfb.com\nfb.me\ntiktok.com\nlinkedin.com\nlnkd.in",
+   "description": "Fetching pages from these platforms violates their terms of service and, with stealth mode, may be considered bypassing security systems (UU ITE Article 30 paragraph (3)); results are often just login pages; should be approved by Legal.",
+   "fieldname": "fetch_blocked_domains",
+   "fieldtype": "Small Text",
+   "label": "Blocked Social Media Domains",
    "permlevel": 1
   },
   {

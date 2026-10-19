@@ -134,3 +134,82 @@ class TestBackgroundCheckSettings(FrappeTestCase):
 
 		admin_reloaded = frappe.get_doc("Background Check Settings")
 		self.assertEqual(admin_reloaded.fetch_respect_robots, 0)
+
+	def test_removing_default_blocked_domain_rejected_without_risk_ack(self):
+		"""3a: Menghapus domain bawaan dari daftar terblokir ditolak tanpa pengakuan risiko."""
+		# Hapus instagram.com dari fetch_blocked_domains
+		curr_domains = [d for d in self.settings.fetch_blocked_domains.splitlines() if d.strip() and d.strip() != "instagram.com"]
+		self.settings.fetch_blocked_domains = "\n".join(curr_domains)
+		self.settings.fetch_risk_acknowledged = 0
+
+		with self.assertRaises(frappe.ValidationError):
+			self.settings.save()
+
+		# Reset dan coba dengan fetch_risk_acknowledged = 1
+		self.settings.reload()
+		self.settings.fetch_blocked_domains = "\n".join(curr_domains)
+		self.settings.fetch_risk_acknowledged = 1
+		self.settings.save()
+
+		self.settings.reload()
+		self.assertNotIn("instagram.com", self.settings.fetch_blocked_domains)
+		self.assertEqual(self.settings.fetch_risk_acknowledged, 1)
+
+	def test_test_fetch_permissions_and_validation(self):
+		"""3c: Uji tombol Test Fetch - hak akses dan validasi input."""
+		from hris_ats.hris_ats.doctype.background_check_settings.background_check_settings import test_fetch
+
+		# 1. Non-System Manager ditolak
+		frappe.set_user("hr.test@example.com")
+		with self.assertRaises(frappe.PermissionError):
+			test_fetch("https://example.com/user", consent_acknowledged=1)
+
+		# 2. Administrator (System Manager) tanpa centang persetujuan ditolak
+		frappe.set_user("Administrator")
+		with self.assertRaises(frappe.ValidationError):
+			test_fetch("https://example.com/user", consent_acknowledged=0)
+
+		# 3. URL tanpa skema http/https ditolak
+		with self.assertRaises(frappe.ValidationError):
+			test_fetch("ftp://example.com/user", consent_acknowledged=1)
+
+		# 4. Domain yang masih diblokir di Settings ditolak
+		with self.assertRaises(frappe.ValidationError):
+			test_fetch("https://www.instagram.com/user", consent_acknowledged=1)
+
+	def test_test_fetch_execution_with_mocked_network(self):
+		"""3c: Uji tombol Test Fetch dengan jaringan di-mock pada 3 mode (Company, Browser, Stealth)."""
+		from unittest.mock import patch
+		from hris_ats.bgc.fetch import FetchResult
+		from hris_ats.hris_ats.doctype.background_check_settings.background_check_settings import test_fetch
+
+		fake_html = "<html><title>Sample Profile (@user)</title><body><h1>Sample User</h1><p>Public profile description.</p></body></html>"
+
+		def fake_fetch(url, *args, **kwargs):
+			cfg = kwargs.get("config")
+			mode = cfg.identity.lower() if cfg else "company"
+			if cfg and cfg.stealth:
+				mode = "stealth"
+			return FetchResult(
+				url=url,
+				status=200,
+				body=fake_html,
+				mode_used=mode,
+				robots_ignored=False,
+				from_cache=False,
+			)
+
+		frappe.set_user("Administrator")
+		with patch("hris_ats.bgc.fetch.fetch", side_effect=fake_fetch):
+			res = test_fetch("https://example.com/sampleuser", consent_acknowledged=1)
+
+		self.assertEqual(res["url"], "https://example.com/sampleuser")
+		self.assertEqual(res["domain"], "example.com")
+		self.assertGreaterEqual(len(res["results"]), 2)
+
+		company_res = next(r for r in res["results"] if r["mode"] == "Company")
+		self.assertEqual(company_res["status"], 200)
+		self.assertEqual(company_res["title"], "Sample Profile (@user)")
+		self.assertIn("Public profile description", company_res["preview_text"])
+		self.assertFalse(company_res["is_login_page"])
+

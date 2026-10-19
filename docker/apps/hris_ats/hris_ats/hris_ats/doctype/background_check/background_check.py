@@ -40,11 +40,48 @@ class BackgroundCheck(Document):
 			self.skck_status = "Expired"
 
 		# Jalur alternatif unggah dokumen persetujuan oleh HR
-		if self.consent_method == "Uploaded document" and self.consent_file:
-			if self.consent_status in ("Pending", None):
-				self.consent_status = "Granted"
-				self.consent_at = now_datetime()
-				self.consent_ip = "uploaded_by_hr"
+		if self.consent_method == "Uploaded document":
+			if self.consent_file:
+				if self.consent_status in ("Pending", None):
+					self.consent_status = "Granted"
+					self.consent_at = now_datetime()
+					self.consent_ip = "uploaded_by_hr"
+			elif self.consent_status == "Granted":
+				frappe.throw(
+					_("Signed consent document (consent_file) is mandatory when consent_method is 'Uploaded document'."),
+					title=_("Consent File Mandatory"),
+				)
+
+			# Validasi konfirmasi per akun pada jalur dokumen
+			for acc in self.accounts:
+				if acc.social_consent:
+					if not self.consent_file:
+						frappe.throw(
+							_("Attachment of consent_file is mandatory before social media consent can be granted for accounts."),
+							title=_("Consent File Mandatory"),
+						)
+					if not acc.social_consent_attested_by:
+						acc.social_consent_attested_by = getattr(frappe.session, "user", None) or "Administrator"
+						acc.social_consent_attested_on = now_datetime()
+		else:
+			for acc in self.accounts:
+				if acc.social_consent and not acc.social_consent_attested_by and self.consent_method != "Web form":
+					if not self.consent_file:
+						frappe.throw(
+							_("Attachment of consent_file is mandatory before social media consent can be granted for accounts."),
+							title=_("Consent File Mandatory"),
+						)
+
+		if self.consent_status == "Withdrawn":
+			for acc in self.accounts:
+				acc.display_name = ""
+				acc.bio_snippet = ""
+				acc.profile_location = ""
+				acc.identity_match = None
+				acc.identity_reasons = ""
+				acc.identity_reasons_template = ""
+				acc.identity_reasons_params = "{}"
+				acc.social_consent = 0
 
 		if self.consent_status == "Granted" and self.status == "Waiting Consent":
 			self.status = "Queued"
@@ -57,9 +94,12 @@ class BackgroundCheck(Document):
 						acc.profile_url = tmpl.replace("{username}", acc.username.strip().lstrip("@"))
 
 	def on_update(self):
-		# Penarikan persetujuan -> Hapus semua temuan (Finding) milik dokumen ini
+		# Penarikan persetujuan -> Hapus semua temuan (Finding), folder crawl, dan cache Redis
 		if self.consent_status == "Withdrawn":
 			frappe.db.delete("Background Check Finding", {"background_check": self.name})
+			from hris_ats.bgc.consent import clean_bgc_cache, clean_bgc_crawldir
+			clean_bgc_crawldir(self.name)
+			clean_bgc_cache(self)
 
 		# Sinkronkan kesimpulan dan tingkat risiko ke Job Applicant
 		if self.job_applicant and frappe.db.exists("Job Applicant", self.job_applicant):
