@@ -369,6 +369,111 @@ def test_login_page_detection_and_title_extraction():
 	assert "alert" not in clean_300
 
 
+def test_instagram_and_social_login_detection_signals():
+	"""Pengujian deteksi login bertingkat: fixture profil bergaya Instagram dengan form login tersembunyi,
+	halaman login sungguhan, LinkedIn authwall, Facebook checkpoint, dan decoding entitas HTML.
+	"""
+	from hris_ats.hris_ats.doctype.background_check_settings.background_check_settings import (
+		detect_login_page,
+		extract_page_signals,
+	)
+
+	# 1. Profil publik bergaya Instagram
+	instagram_profile_html = """
+	<!DOCTYPE html>
+	<html>
+	<head>
+		<title>Nama (&#064;handle) &amp; Co • Instagram photos and videos</title>
+		<meta property="og:title" content="Nama (&#064;handle) • Instagram photos and videos">
+		<meta property="og:description" content="1,367 Followers, 414 Following, 25 Posts - See Instagram photos and videos from Nama (@handle)">
+	</head>
+	<body>
+		<header>
+			Instagram Log In Sign Up Meta About Blog Jobs Help API Privacy Terms
+		</header>
+		<div style="display:none" class="login-dialog-modal">
+			<form action="/accounts/login" method="post">
+				<input type="text" name="username">
+				<input type="password" name="password">
+				<button type="submit">Log in</button>
+			</form>
+		</div>
+		<main>
+			<h1>Nama</h1>
+			<span>@handle</span>
+			<div class="user-bio">Product Designer based in Jakarta. Creating user-centric experiences.</div>
+			<div>1,367 followers, 414 following, 25 posts</div>
+			<div>""" + ("Public post caption and media details for candidate. " * 100) + """</div>
+		</main>
+		<footer>
+			Meta About Blog Jobs Help API Privacy Terms
+		</footer>
+	</body>
+	</html>
+	"""
+	signals = extract_page_signals(instagram_profile_html)
+	# Judul ter-unescape dengan benar
+	assert signals["title"] == "Nama (@handle) & Co • Instagram photos and videos"
+	assert "&#064;" not in signals["title"]
+	assert "&amp;" not in signals["title"]
+	assert "@handle" in signals["title"]
+	# og:description ter-unescape
+	assert "1,367 Followers, 414 Following, 25 Posts" in signals["og_description"]
+	# Preview diambil dari konten utama (<main>), bukan menu awal
+	assert "Instagram Log In Sign Up" not in signals["preview"]
+	assert "Nama" in signals["preview"] or "Product Designer" in signals["preview"]
+	# Form password terdeteksi di DOM
+	assert signals["has_password_input"] is True
+	# Teks penuh > 5000 karakter
+	assert signals["text_len"] > 5000
+	# Profil publik bukan halaman login
+	assert detect_login_page("https://www.instagram.com/handle/", instagram_profile_html, signals["preview"]) is False
+
+	# 2. Halaman login sungguhan Instagram
+	real_ig_login_html = """
+	<!DOCTYPE html>
+	<html>
+	<head><title>Login • Instagram</title></head>
+	<body>
+		<form action="/accounts/login" method="post">
+			<input type="text" name="username">
+			<input type="password" name="password">
+			<button type="submit">Log in</button>
+		</form>
+		<p>Don't have an account? Sign up</p>
+	</body>
+	</html>
+	"""
+	ig_signals = extract_page_signals(real_ig_login_html)
+	assert detect_login_page("https://www.instagram.com/accounts/login/", real_ig_login_html, ig_signals["preview"]) is True
+	assert detect_login_page("https://www.instagram.com/", real_ig_login_html, ig_signals["preview"]) is True
+
+	# 3. Authwall LinkedIn
+	linkedin_authwall_html = """
+	<!DOCTYPE html>
+	<html>
+	<head><title>Sign Up | LinkedIn</title></head>
+	<body>
+		<h2>Join LinkedIn or sign in to view this profile</h2>
+		<p>Sign in to see full profile, connections, and posts.</p>
+	</body>
+	</html>
+	"""
+	assert detect_login_page("https://www.linkedin.com/authwall", linkedin_authwall_html, "Join LinkedIn") is True
+
+	# 4. Checkpoint Facebook
+	fb_checkpoint_html = """
+	<!DOCTYPE html>
+	<html>
+	<head><title>Security Check Required | Facebook</title></head>
+	<body>
+		<h2>Please confirm your identity to continue</h2>
+	</body>
+	</html>
+	"""
+	assert detect_login_page("https://www.facebook.com/checkpoint/12345", fb_checkpoint_html, "Security Check") is True
+
+
 def test_hmac_cache_key_generation():
 	"""Pengujian kunci cache HMAC-SHA256: tidak membocorkan nama kandidat / URL mentah ke Redis, dan gagal tertutup bila rahasia tidak ada."""
 	import types
