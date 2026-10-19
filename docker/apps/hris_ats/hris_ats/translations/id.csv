@@ -869,4 +869,40 @@ Social Max Comments must be at least 1.,Batas Maksimal Komentar Sosial minimal 1
 "Crawler encountered challenge or checkpoint: {reason}","Crawler mendapati tantangan atau checkpoint: {reason}"
 "Crawler Account Challenge: {0}","Tantangan Akun Crawler: {0}"
 Signed consent document file is missing.,Berkas dokumen persetujuan bertanda tangan tidak ditemukan.
+Connection Method,Metode Koneksi
+Public page,Halaman publik
+Logged-in session,Sesi login
+Data export,Ekspor data
+OAuth,OAuth
+Upload my data export (recommended),Unggah ekspor data saya (disarankan)
+Upload Candidate Data Export,Unggah Ekspor Data Kandidat
+"Invalid or unrecognized export archive format for {0}.","Format arsip ekspor tidak valid atau tidak dikenali untuk {0}."
+"Archive file size exceeds maximum limit of {0} MB.","Ukuran berkas arsip melebihi batas maksimum {0} MB."
+Potential zip-slip path traversal detected in archive.,Potensi zip-slip path traversal terdeteksi dalam arsip.
+Zip-bomb compression ratio or uncompressed size limit exceeded.,Batas rasio kompresi atau ukuran tidak terkompresi zip-bomb terlampaui.
+Export data archive file is required.,Berkas arsip data ekspor wajib dilampirkan.
+Candidate export data successfully parsed and saved.,Data ekspor kandidat berhasil diurai dan disimpan.
+Download a copy of your information on Instagram,Unduh salinan informasi Anda di Instagram
+Access and download your Facebook information,Akses dan unduh informasi Facebook Anda
+Request your TikTok data,Ajukan permintaan data TikTok Anda
+Export your LinkedIn account data,Ekspor data akun LinkedIn Anda
+"Invalid or unrecognized export archive format for Instagram. Please upload the official JSON archive from 'Download your information'.","Format arsip ekspor tidak valid atau tidak dikenali untuk Instagram. Pastikan mengunggah arsip JSON resmi dari fitur 'Download your information'."
+"Invalid or unrecognized export archive format for Facebook. Please upload the official JSON archive from 'Download your information'.","Format arsip ekspor tidak valid atau tidak dikenali untuk Facebook. Pastikan mengunggah arsip JSON resmi dari fitur 'Download your information'."
+"Invalid or unrecognized export archive format for TikTok. Please upload the official 'user_data.json' file from 'Download your data'.","Format arsip ekspor tidak valid atau tidak dikenali untuk TikTok. Pastikan mengunggah berkas 'user_data.json' resmi dari fitur unduh data TikTok."
+"Corrupt or invalid TikTok JSON file: {0}","Berkas JSON TikTok rusak atau tidak valid: {0}"
+"Invalid or unrecognized export archive format for LinkedIn. Please upload the official archive containing Profile.csv, Shares.csv, or Comments.csv.","Format arsip ekspor tidak valid atau tidak dikenali untuk LinkedIn. Pastikan mengunggah arsip resmi berisi 'Profile.csv', 'Shares.csv', atau 'Comments.csv'."
+"Unsupported export platform: {0}","Platform ekspor tidak didukung: {0}"
+All Platforms,Semua Platform
+Filter Platform,Saring Platform
+"Download your official data archive from platform settings, then upload it here.","Unduh arsip data resmi Anda dari pengaturan platform, lalu unggah di sini."
+"Allowed: ZIP, JSON, CSV. Max size: {0} MB.","Diizinkan: ZIP, JSON, CSV. Ukuran maks: {0} MB."
+Please select an export file or uncheck the export option.,Silakan pilih berkas ekspor atau hapus centang opsi ekspor.
+"File size exceeds maximum limit of {0} MB.","Ukuran berkas melebihi batas maksimum {0} MB."
+Error reading export file.,Gagal membaca berkas ekspor.
+Export Processing Error,Kesalahan Pemrosesan Ekspor
+Invalid Format,Format Tidak Valid
+Missing File,Berkas Tidak Ditemukan
+Parsing Error,Kesalahan Penguraian
+Security Error,Kesalahan Keamanan
+Size Limit Exceeded,Batas Ukuran Terlampaui
 

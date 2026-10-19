@@ -90,7 +90,7 @@
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Text Source",
-   "options": "Snippet\nFull text\nDecision PDF"
+   "options": "Snippet\nFull text\nDecision PDF\nCandidate export\nOAuth API"
   },
   {
    "default": "Not reviewed",

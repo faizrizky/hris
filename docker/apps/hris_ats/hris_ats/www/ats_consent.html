@@ -78,6 +78,28 @@
 									</div>
 									<button type="button" class="btn btn-sm btn-outline-danger btn-remove-social-acc" title="{{ _("Remove") }}">✕</button>
 								</div>
+								<div class="mt-2 ms-4 pt-2 border-top">
+									<div class="form-check">
+										<input class="form-check-input account-upload-export-toggle" type="checkbox" id="export-toggle-{{ loop.index }}">
+										<label class="form-check-label small font-weight-bold text-primary cursor-pointer" for="export-toggle-{{ loop.index }}">
+											{{ _("Upload my data export (recommended)") }}
+										</label>
+									</div>
+									<div class="export-upload-panel mt-2 d-none">
+										<p class="small text-muted mb-2">
+											{{ _("Download your official data archive from platform settings, then upload it here.") }}
+											{% if acc.platform in export_guides %}
+											<a href="{{ export_guides[acc.platform].url }}" target="_blank" rel="noopener noreferrer" class="text-decoration-underline ms-1 font-weight-bold">
+												{{ export_guides[acc.platform].title }} ↗
+											</a>
+											{% endif %}
+										</p>
+										<input type="file" class="form-control form-control-sm account-export-file" accept=".zip,.json,.csv,.txt">
+										<div class="form-text small text-muted">
+											{{ _("Allowed: ZIP, JSON, CSV. Max size: {0} MB.").format(export_max_mb) }}
+										</div>
+									</div>
+								</div>
 							</div>
 							{% endfor %}
 						</div>
@@ -253,6 +275,26 @@ document.addEventListener("DOMContentLoaded", function () {
 	toggleSocialSection();
 	updateSubmitState();
 
+	const exportGuides = {{ export_guides | tojson }};
+	const exportMaxMb = {{ export_max_mb }};
+
+	// Toggle export panel when checkbox is changed
+	if (socialAccountsList) {
+		socialAccountsList.addEventListener("change", function (e) {
+			if (e.target && e.target.classList.contains("account-upload-export-toggle")) {
+				const card = e.target.closest(".social-account-item");
+				const panel = card ? card.querySelector(".export-upload-panel") : null;
+				if (panel) {
+					if (e.target.checked) {
+						panel.classList.remove("d-none");
+					} else {
+						panel.classList.add("d-none");
+					}
+				}
+			}
+		});
+	}
+
 	// Add new social account
 	if (btnAddSocial && socialAccountsList) {
 		btnAddSocial.addEventListener("click", function () {
@@ -270,6 +312,10 @@ document.addEventListener("DOMContentLoaded", function () {
 			card.dataset.platform = plat;
 			card.dataset.username = user;
 			const randId = "soc-acc-" + Date.now();
+			const expId = "export-toggle-" + Date.now();
+			const guide = exportGuides[plat];
+			const guideLink = guide ? `<a href="${guide.url}" target="_blank" rel="noopener noreferrer" class="text-decoration-underline ms-1 font-weight-bold">${guide.title} ↗</a>` : "";
+
 			card.innerHTML = `
 				<div class="d-flex align-items-start justify-content-between">
 					<div class="form-check mb-0">
@@ -282,6 +328,24 @@ document.addEventListener("DOMContentLoaded", function () {
 						</div>
 					</div>
 					<button type="button" class="btn btn-sm btn-outline-danger btn-remove-social-acc" title="{{ _("Remove") }}">✕</button>
+				</div>
+				<div class="mt-2 ms-4 pt-2 border-top">
+					<div class="form-check">
+						<input class="form-check-input account-upload-export-toggle" type="checkbox" id="${expId}">
+						<label class="form-check-label small font-weight-bold text-primary cursor-pointer" for="${expId}">
+							{{ _("Upload my data export (recommended)") }}
+						</label>
+					</div>
+					<div class="export-upload-panel mt-2 d-none">
+						<p class="small text-muted mb-2">
+							{{ _("Download your official data archive from platform settings, then upload it here.") }}
+							${guideLink}
+						</p>
+						<input type="file" class="form-control form-control-sm account-export-file" accept=".zip,.json,.csv,.txt">
+						<div class="form-text small text-muted">
+							{{ _("Allowed: ZIP, JSON, CSV. Max size: {0} MB.").format(export_max_mb) }}
+						</div>
+					</div>
 				</div>
 			`;
 			socialAccountsList.appendChild(card);
@@ -322,8 +386,17 @@ document.addEventListener("DOMContentLoaded", function () {
 		});
 	}
 
+	function readFileAsBase64(file) {
+		return new Promise((resolve, reject) => {
+			const reader = new FileReader();
+			reader.onload = () => resolve(reader.result);
+			reader.onerror = error => reject(error);
+			reader.readAsDataURL(file);
+		});
+	}
+
 	if (form) {
-		form.addEventListener("submit", function (e) {
+		form.addEventListener("submit", async function (e) {
 			e.preventDefault();
 			const anySource = document.querySelectorAll(".source-checkbox:checked").length > 0;
 			if (!agreeCheck.checked || !anySource) return;
@@ -341,22 +414,50 @@ document.addEventListener("DOMContentLoaded", function () {
 
 			// Collect accounts
 			const accounts = [];
+			const filePromises = [];
 
 			// 1. Social accounts (per-account consent)
 			if (isSocialGranted && socialAccountsList) {
-				socialAccountsList.querySelectorAll(".social-account-item").forEach(item => {
+				const socialItems = socialAccountsList.querySelectorAll(".social-account-item");
+				for (const item of socialItems) {
 					const plat = item.dataset.platform;
 					const user = item.dataset.username;
 					const consentCb = item.querySelector(".social-account-consent");
 					const isConsented = consentCb && consentCb.checked ? 1 : 0;
-					if (plat && user) {
-						accounts.push({
-							platform: plat,
-							username: user,
-							social_consent: isConsented
-						});
+					if (!plat || !user) continue;
+
+					const accObj = {
+						platform: plat,
+						username: user,
+						social_consent: isConsented
+					};
+
+					if (isConsented) {
+						const expToggle = item.querySelector(".account-upload-export-toggle");
+						if (expToggle && expToggle.checked) {
+							const fileInput = item.querySelector(".account-export-file");
+							if (!fileInput || !fileInput.files || !fileInput.files.length) {
+								frappe.msgprint(__("Please select an export file or uncheck the export option."));
+								submitBtn.disabled = false;
+								submitBtn.innerText = "{{ _('Submit Consent') }}";
+								return;
+							}
+							const file = fileInput.files[0];
+							if (file.size > exportMaxMb * 1024 * 1024) {
+								frappe.msgprint(__("File size exceeds maximum limit of {0} MB.").replace("{0}", exportMaxMb));
+								submitBtn.disabled = false;
+								submitBtn.innerText = "{{ _('Submit Consent') }}";
+								return;
+							}
+							accObj.export_filename = file.name;
+							const p = readFileAsBase64(file).then(b64 => {
+								accObj.export_base64 = b64;
+							});
+							filePromises.push(p);
+						}
 					}
-				});
+					accounts.push(accObj);
+				}
 			}
 
 			// 2. Other non-social accounts
@@ -372,6 +473,17 @@ document.addEventListener("DOMContentLoaded", function () {
 						});
 					}
 				});
+			}
+
+			try {
+				if (filePromises.length > 0) {
+					await Promise.all(filePromises);
+				}
+			} catch (err) {
+				submitBtn.disabled = false;
+				submitBtn.innerText = "{{ _('Submit Consent') }}";
+				frappe.msgprint(__("Error reading export file."));
+				return;
 			}
 
 			const token = form.querySelector('input[name="token"]').value;

@@ -227,6 +227,33 @@ def submit_candidate_consent(
 
 	bgc.save(ignore_permissions=True)
 
+	# Process candidate export data if uploaded alongside consent
+	if is_social_granted and accounts:
+		import base64
+
+		from hris_ats.bgc.export_processor import process_candidate_export_data
+		for acc in accounts:
+			if not acc.get("social_consent"):
+				continue
+			plat = acc.get("platform")
+			user = acc.get("username")
+			export_b64 = acc.get("export_base64")
+			if plat and user and export_b64:
+				raw_b64 = export_b64
+				if "," in raw_b64:
+					raw_b64 = raw_b64.split(",", 1)[1]
+				try:
+					archive_bytes = base64.b64decode(raw_b64)
+					process_candidate_export_data(
+						bgc_name=bgc.name,
+						platform=plat,
+						username=user,
+						archive_bytes=archive_bytes,
+					)
+				except Exception:
+					frappe.log_error(title=f"BGC Export Processing Error: {plat}", message=frappe.get_traceback())
+					raise
+
 	# Enqueue crawling/analysis in long queue
 	frappe.enqueue(
 		"hris_ats.bgc.runner.run_all_sources",

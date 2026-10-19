@@ -16,6 +16,7 @@
   "identity_reasons_params",
   "bio_snippet",
   "declared_by",
+  "connection_method",
   "exists",
   "last_active",
   "post_access",
@@ -90,6 +91,14 @@
    "fieldtype": "Select",
    "label": "Declared By",
    "options": "Candidate\nHR"
+  },
+  {
+   "default": "Public page",
+   "fieldname": "connection_method",
+   "fieldtype": "Select",
+   "label": "Connection Method",
+   "options": "Public page\nLogged-in session\nData export\nOAuth",
+   "read_only": 1
   },
   {
    "columns": 1,

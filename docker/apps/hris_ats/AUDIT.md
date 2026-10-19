@@ -672,4 +672,29 @@ Seluruh temuan berkeparahan tinggi dan sedang dari audit baseline telah diperbai
    - Frappe v16 mengaktifkan validasi tipe Pydantic saat request/test. Fungsi `hrms.hr.doctype.staffing_plan.staffing_plan.get_active_staffing_plan_details` melempar `FrappeTypeError` jika argumen `company` bernilai `None`. Pembuatan dokumen `Job Opening` pada pengujian harus selalu menyertakan atribut `company` yang valid.
 
 ---
-*Laporan audit ini disiapkan secara otomatis sebagai dasar pelaksanaan Fase 2 (Bahasa yang Konsisten), Fase 3 (Domain Sosmed & Persetujuan), dan Fase 4 (Perbaikan Audit).*
+
+## 6. Audit Akhir & Verifikasi Fase 3 s.d. 6 (Media Sosial, Komentar, Ekspor, & Kepatuhan Penuh)
+
+> **Tanggal Audit Akhir:** 20 Oktober 2026  
+> **Hasil Pengujian Unit Murni (pytest):** **122 LULUS, 0 GAGAL** (11.37s)  
+> **Hasil Pengujian Integrasi (FrappeTestCase di ats-test.localhost):** **66 LULUS, 0 GAGAL** (12.54s)  
+> **Linter Ruff (`ruff check apps/hris_ats`):** **0 TEMUAN (All checks passed)**  
+> **Audit Bahasa (`test_i18n.py` - Guard A s.d. I):** **9 LULUS, 0 GAGAL** (0.55s)  
+
+### 6.1 Matriks Verifikasi Fitur Fase 3, 3e, 4, 5, dan 6
+
+| No | Komponen / Fase | Status | Bukti Teknis & Lokasi Kode |
+|---|---|---|---|
+| 1 | **Penjaga Persetujuan Terpusat (`assert_social_consent`)** (Fase 3 & 3b) | **LULUS** | Ditegakkan seragam di `bgc/consent.py:355-456`. Memeriksa status persetujuan `Granted`, dokumen fisik bertanda tangan bila menggunakan metode formulir dokumen, scope `Social Media`, centang per akun `social_consent`, serta domain tidak terblokir. Akun tanpa izin dilewati seketika dengan 0 permintaan jaringan. |
+| 2 | **Eskalasi Pengambil Halaman (`fetch.py`)** (Fase 3 & 3a) | **LULUS** | Rantai eskalasi otomatis berjenjang `Company` -> `Browser` -> `stealth` -> `session`. Mematuhi batas harian/jam akun crawler, jeda acak manusia (human-like jitter), dan locking terdistribusi Redis. Mode session hanya aktif jika akun `Connected`, `enabled`, dan `risk_acknowledged`. |
+| 3 | **Ekstraksi Komentar Kandidat dari Crawl (5.6)** (Fase 3e) | **LULUS** | Diterapkan pada 4 platform adapter (`bgc/providers/social/`). Pembuktian kepastian penulis (`author == username`). Komentar pihak ketiga, isi post orang lain, dan daftar likes tidak diambil. Mention disamarkan menjadi `@[user]`, teks dibatasi maks 500 karakter. Jika platform menyembunyikan komentar dari profil, batasan dicatat apa adanya (`not exposed by platform`). |
+| 4 | **Ekspor Data Resmi Kandidat (5.3)** (Fase 4) | **LULUS** | Parser fungsi murni tanpa Frappe di `bgc/export_parsers/` (`instagram.py`, `facebook.py`, `tiktok.py`, `linkedin.py`). Menerapkan **allowlist jalur berkas ketat**: hanya profil, post sendiri, dan komentar sendiri yang dibaca. Pesan pribadi (DM/Messenger), kontak, like/reaksi, riwayat pencarian, dan data iklan diabaikan mutlak. |
+| 5 | **Pengamanan Arsip Ekspor (Zip-Slip & Zip-Bomb)** (Fase 4) | **LULUS** | Diuji di `bgc/export_parsers/security.py`. Menolak path traversal (`ZipSlipError`), membatasi uncompressed size (maks 500 MB), rasio kompresi (maks 50), dan jumlah berkas (maks 1000) (`ZipBombError`), serta batas ukuran mentah `export_max_mb` (`ArchiveSizeExceededError`). Arsip diproses di temp directory dan dibersihkan di blok `finally`. |
+| 6 | **Penyimpanan Temuan Ekspor & Tampilan Desk** (Fase 4) | **LULUS** | Disimpan sebagai Finding bertipe `Post` atau `Comment` dengan `provenance = "Candidate export"`, `text_source = "Candidate export"`, dan akun `connection_method = "Data export"`. Tab Desk "Digital footprint by account" dilengkapi sub-tab **Posts** dan **Comments**, dropdown penyaring platform, badge provenance, dan hitungan per sumber. Print format memuat komentar berkategori `Relevant`. |
+| 7 | **Koneksi OAuth Resmi (5.4)** (Fase 5) | **DILEWATI** | Sesuai instruksi spesifikasi baris 179: Fase 5 dilewati dan dilaporkan "dilewati" karena belum tersedianya client ID / secret resmi dari platform. |
+| 8 | **Audit Larangan Keras (Strict Prohibitions)** (Fase 6) | **LULUS** | Pemindaian AST dan regex terhadap seluruh kode produksi: **Nol** penyimpanan password mentah, **nol** otomatisasi bypass 2FA/CAPTCHA/checkpoint, **nol** aksi tulis (like/follow/post/comment), **nol** `ProxyRotator`, **nol** analisis politik/psikologis, **nol** pengunduhan media fisik. |
+| 9 | **Audit Rahasia Sesi (Session Confidentiality)** (Fase 6) | **LULUS** | Sesi crawler terenkripsi simetris Fernet; field `session` memiliki `permlevel 1` (hanya System Manager). Tidak pernah muncul di log (`Error Log`), respons API, cache Redis, `as_dict()` untuk non-admin, Finding, maupun Source Run. |
+| 10 | **Audit Bahasa & Standar Internasionalisasi** (Fase 6) | **LULUS** | Seluruh string kode sumber menggunakan Bahasa Inggris baku. Seluruh 8 UI/error string baru terdaftar dengan terjemahan resmi di `translations/id.csv`. Lulus seluruh 9 pengujian otomatis pada `test_i18n.py`. |
+
+---
+*Laporan audit akhir disahkan pada tanggal 20 Oktober 2026 sebagai pemenuhan seluruh tahapan dari Fase 1 hingga Fase 6 HRIS ATS.*

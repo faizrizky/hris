@@ -327,8 +327,39 @@ frappe.ui.form.on("Background Check", {
 					</div>
 				`;
 
+				let allItems = [...posts, ...comments];
+				let provCounts = {};
+				let platSet = new Set();
+				allItems.forEach(item => {
+					let p = item.provenance || "Crawled";
+					provCounts[p] = (provCounts[p] || 0) + 1;
+					if (item.account) {
+						platSet.add(item.account);
+					}
+				});
+
+				let provBadges = Object.keys(provCounts).map(k => `
+					<span class="badge badge-secondary mr-1">${__(k)}: ${provCounts[k]}</span>
+				`).join("");
+
+				let platOptions = Array.from(platSet).map(plat => `
+					<option value="${plat}">${plat}</option>
+				`).join("");
+
 				container.html(`
 					<div class="mb-3">
+						<div class="d-flex justify-content-between align-items-center mb-3 p-2 bg-light rounded border">
+							<div class="d-flex align-items-center">
+								<span class="small font-weight-bold text-secondary mr-2">${__("Filter Platform")}:</span>
+								<select class="form-control form-control-sm filter-account-platform" style="max-width: 220px; display: inline-block;">
+									<option value="">-- ${__("All Platforms")} --</option>
+									${platOptions}
+								</select>
+							</div>
+							<div>
+								${provBadges}
+							</div>
+						</div>
 						<ul class="nav nav-pills mb-3" role="tablist">
 							<li class="nav-item">
 								<a class="nav-link active font-weight-bold" data-toggle="pill" href="#tab-bgc-posts" role="tab">
@@ -353,6 +384,19 @@ frappe.ui.form.on("Background Check", {
 						</div>
 					</div>
 				`);
+
+				// Handler platform filter
+				container.find(".filter-account-platform").on("change", function () {
+					let sel = $(this).val();
+					container.find(".finding-card").each(function () {
+						let acc = $(this).data("account") || "";
+						if (!sel || acc === sel) {
+							$(this).show();
+						} else {
+							$(this).hide();
+						}
+					});
+				});
 
 				// Handler update verdict on post/comment findings
 				container.find(".hr-verdict-select").on("change", function () {

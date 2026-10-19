@@ -65,6 +65,25 @@ def get_context(context):
 	else:
 		context.consent_text = getattr(settings, "consent_text_id", None) or getattr(settings, "consent_text_en", None) or ""
 	context.retention_days = settings.retention_days or 90
+	context.export_max_mb = settings.export_max_mb or 100
+	context.export_guides = {
+		"Instagram": {
+			"title": _("Download a copy of your information on Instagram"),
+			"url": "https://help.instagram.com/181231772500920",
+		},
+		"Facebook": {
+			"title": _("Access and download your Facebook information"),
+			"url": "https://www.facebook.com/help/212802592074644",
+		},
+		"TikTok": {
+			"title": _("Request your TikTok data"),
+			"url": "https://support.tiktok.com/en/account-and-privacy/personalized-ads-and-data/requesting-your-data",
+		},
+		"LinkedIn": {
+			"title": _("Export your LinkedIn account data"),
+			"url": "https://www.linkedin.com/help/linkedin/answer/a1339364/downloading-your-account-data",
+		},
+	}
 	context.platforms = frappe.get_all(
 		"Background Check Platform",
 		filters={"enabled": 1},

@@ -415,6 +415,10 @@ def run_all_sources(bgc_name: str) -> None:
 
 					valid_social_accounts.append(acc)
 
+					if getattr(acc, "connection_method", "") == "Data export":
+						modes_used.add("export")
+						continue
+
 					try:
 						c_res = social_provider.crawl_account(
 							bgc,
@@ -601,6 +605,11 @@ def run_all_sources(bgc_name: str) -> None:
 	case_count = frappe.db.count("Background Check Finding", {"background_check": bgc.name, "finding_type": "Case"})
 
 	account_platforms = [a.platform for a in bgc.accounts if a.platform]
+
+	post_findings = [f for f in all_findings_raw if f.finding_type in ("Post", "Comment")]
+	if post_findings and not total_posts_analyzed:
+		total_posts_analyzed = len(post_findings)
+		risk_posts_count = len([f for f in post_findings if f.category == "Risky"])
 
 	summary_text = generate_automated_summary(
 		candidate_name=bgc.full_name,
