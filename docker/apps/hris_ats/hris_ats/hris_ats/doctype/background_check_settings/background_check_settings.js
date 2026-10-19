@@ -127,6 +127,9 @@ function render_test_fetch_results(dialog, data) {
 				</div>
 		`;
 
+		if (res.account_label) {
+			html += `<div class="small text-muted mb-1"><strong>${__("Crawler Account")}:</strong> ${frappe.utils.escape_html(res.account_label)}</div>`;
+		}
 		if (res.message) {
 			html += `<div class="small text-muted mb-1">${frappe.utils.escape_html(res.message)}</div>`;
 		}
@@ -142,6 +145,12 @@ function render_test_fetch_results(dialog, data) {
 		if (res.title) {
 			html += `<div class="small text-dark mb-1"><strong>&lt;title&gt;:</strong> ${frappe.utils.escape_html(res.title)}</div>`;
 		}
+		if (res.og_title) {
+			html += `<div class="small text-muted mb-1"><strong>og:title:</strong> ${frappe.utils.escape_html(res.og_title)}</div>`;
+		}
+		if (res.og_description) {
+			html += `<div class="small text-muted mb-1"><strong>og:description:</strong> ${frappe.utils.escape_html(res.og_description)}</div>`;
+		}
 		if (res.preview_text) {
 			html += `
 				<div class="mt-2">
@@ -149,6 +158,45 @@ function render_test_fetch_results(dialog, data) {
 					<div class="p-2 bg-light border rounded small text-monospace" style="white-space: pre-wrap; max-height: 100px; overflow-y: auto;">
 						${frappe.utils.escape_html(res.preview_text)}
 					</div>
+				</div>
+			`;
+		}
+		if (res.comparison_with_browser) {
+			let cmp = res.comparison_with_browser;
+			html += `
+				<div class="mt-3 border rounded p-2 bg-light">
+					<div class="small font-weight-bold text-dark mb-1">📊 ${__("Comparison: Session vs Browser Mode (Without Session)")}:</div>
+					<table class="table table-sm table-bordered bg-white mb-0 small">
+						<thead>
+							<tr class="table-light">
+								<th>${__("Profile Attribute")}</th>
+								<th>${__("Browser Mode (No Session)")}</th>
+								<th>${__("Session Mode")}</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr>
+								<td>${__("Name detected")}</td>
+								<td>${cmp.has_name.browser ? "✅ " + __("Yes") : "❌ " + __("No")}</td>
+								<td>${cmp.has_name.session ? "✅ " + __("Yes") : "❌ " + __("No")}</td>
+							</tr>
+							<tr>
+								<td>${__("Bio detected")}</td>
+								<td>${cmp.has_bio.browser ? "✅ " + __("Yes") : "❌ " + __("No")}</td>
+								<td>${cmp.has_bio.session ? "✅ " + __("Yes") : "❌ " + __("No")}</td>
+							</tr>
+							<tr>
+								<td>${__("Followers detected")}</td>
+								<td>${cmp.has_followers.browser ? "✅ " + __("Yes") : "❌ " + __("No")}</td>
+								<td>${cmp.has_followers.session ? "✅ " + __("Yes") : "❌ " + __("No")}</td>
+							</tr>
+							<tr>
+								<td>${__("Visible Posts Count")}</td>
+								<td><code>${cmp.posts_count.browser}</code></td>
+								<td><code>${cmp.posts_count.session}</code></td>
+							</tr>
+						</tbody>
+					</table>
 				</div>
 			`;
 		}

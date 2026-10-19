@@ -85,6 +85,7 @@ class FetchConfig:
 	rate_limit_per_minute: int = 30
 	cache_ttl_seconds: int = 86400
 	timeout_seconds: int = 15
+	storage_state: dict[str, Any] | None = None
 
 
 @dataclass
@@ -481,10 +482,14 @@ def fetch(
 	mock_mode = is_mock or bool(getattr(config, "is_mock", False))
 	cache = cache_backend or get_default_cache_backend(is_mock=mock_mode)
 
-	# Cek Cache 24 jam (hanya untuk request GET)
+	has_session = bool(config.storage_state)
+	if has_session:
+		mode_used = f"{mode_used}+session"
+
+	# Cek Cache 24 jam (hanya untuk request GET tanpa sesi)
 	norm_method = method.upper()
 	cache_key = get_cache_key(url, mode_used, norm_method)
-	if norm_method == "GET":
+	if norm_method == "GET" and not has_session:
 		cached_data = cache.get(cache_key)
 		if cached_data is not None and isinstance(cached_data, dict):
 			body = cached_data.get("body", "")
@@ -524,6 +529,10 @@ def fetch(
 		if not is_scrapling_browser_installed():
 			raise StealthBrowserNotInstalledError("Stealth mode active but browser is not installed")
 
+	# Prepare cookies if session is provided
+	cookies_list = config.storage_state.get("cookies", []) if isinstance(config.storage_state, dict) else []
+	cookie_dict = {c["name"]: c["value"] for c in cookies_list if "name" in c and "value" in c}
+
 	# Eksekusi Pengambilan Konten
 	if raw_fetch_fn:
 		# Custom mock hook untuk testing
@@ -535,34 +544,42 @@ def fetch(
 		try:
 			if fetcher_type == "stealth":
 				from scrapling.fetchers import StealthyFetcher
-				res = StealthyFetcher.fetch(
-					url,
-					timeout=config.timeout_seconds * 1000,
-					headless=True,
-				)
+				stealth_kwargs: dict[str, Any] = {
+					"timeout": config.timeout_seconds * 1000,
+					"headless": True,
+				}
+				if cookies_list:
+					stealth_kwargs["cookies"] = cookies_list
+				res = StealthyFetcher.fetch(url, **stealth_kwargs)
 				status = res.status
 				body = res.text if hasattr(res, "text") else str(res.body, errors="ignore")
 				res_page = res
 			elif fetcher_type == "browser":
 				from scrapling.fetchers import Fetcher
+				browser_kwargs: dict[str, Any] = {
+					"impersonate": "chrome",
+					"stealthy_headers": True,
+					"timeout": config.timeout_seconds,
+				}
+				if cookie_dict:
+					browser_kwargs["cookies"] = cookie_dict
+
 				if norm_method == "GET":
-					res = Fetcher.get(
-						url,
-						impersonate="chrome",
-						stealthy_headers=True,
-						timeout=config.timeout_seconds,
-					)
+					res = Fetcher.get(url, **browser_kwargs)
 				elif norm_method == "HEAD":
 					from scrapling.fetchers.requests import __FetcherClientInstance__
+					head_kwargs = dict(browser_kwargs)
+					impersonate = head_kwargs.pop("impersonate", "chrome")
+					stealth = head_kwargs.pop("stealthy_headers", True)
 					res = __FetcherClientInstance__._make_request(
 						"HEAD",
 						url=url,
-						impersonate="chrome",
-						stealth=True,
-						timeout=config.timeout_seconds,
+						impersonate=impersonate,
+						stealth=stealth,
+						**head_kwargs,
 					)
 				else:
-					res = Fetcher.get(url, impersonate="chrome", stealthy_headers=True, timeout=config.timeout_seconds)
+					res = Fetcher.get(url, **browser_kwargs)
 
 				status = res.status
 				body = res.text if hasattr(res, "text") else str(getattr(res, "body", b""), errors="ignore")
@@ -571,32 +588,29 @@ def fetch(
 				# Mode Company (identitas resmi)
 				from scrapling.fetchers import Fetcher
 				req_headers = {"User-Agent": config.user_agent}
+				company_kwargs: dict[str, Any] = {
+					"impersonate": None,
+					"stealthy_headers": False,
+					"headers": req_headers,
+					"timeout": config.timeout_seconds,
+				}
+				if cookie_dict:
+					company_kwargs["cookies"] = cookie_dict
+
 				if norm_method == "GET":
-					res = Fetcher.get(
-						url,
-						impersonate=None,
-						stealthy_headers=False,
-						headers=req_headers,
-						timeout=config.timeout_seconds,
-					)
+					res = Fetcher.get(url, **company_kwargs)
 				elif norm_method == "HEAD":
 					from scrapling.fetchers.requests import __FetcherClientInstance__
+					head_kwargs = dict(company_kwargs)
+					head_kwargs.pop("stealthy_headers", None)
 					res = __FetcherClientInstance__._make_request(
 						"HEAD",
 						url=url,
-						impersonate=None,
 						stealth=False,
-						headers=req_headers,
-						timeout=config.timeout_seconds,
+						**head_kwargs,
 					)
 				else:
-					res = Fetcher.get(
-						url,
-						impersonate=None,
-						stealthy_headers=False,
-						headers=req_headers,
-						timeout=config.timeout_seconds,
-					)
+					res = Fetcher.get(url, **company_kwargs)
 
 				status = res.status
 				body = res.text if hasattr(res, "text") else str(getattr(res, "body", b""), errors="ignore")
@@ -622,8 +636,8 @@ def fetch(
 	if res_page is None and Adaptor:
 		res_page = Adaptor(body)
 
-	# Simpan ke cache bila GET dan berhasil (status 200)
-	if norm_method == "GET" and status == 200:
+	# Simpan ke cache bila GET dan berhasil (status 200) tanpa sesi
+	if norm_method == "GET" and status == 200 and not has_session:
 		cache.set(
 			cache_key,
 			{"status": status, "body": body, "robots_ignored": robots_ignored, "content": content_bytes},

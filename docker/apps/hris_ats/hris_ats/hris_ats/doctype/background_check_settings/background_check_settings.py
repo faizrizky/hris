@@ -51,58 +51,187 @@ def validate_consent_text_version(doc: Any) -> None:
 		doc.consent_text_version = "v1.0"
 
 
-def detect_login_page(final_url: str, html_or_text: str, display_text: str) -> bool:
+def extract_page_signals(html: str) -> dict[str, Any]:
+	"""Ekstrak sinyal halaman lengkap: title, full_text, og:title, og:description,
+	meta_description, input password, JSON-LD profile, dan preview dari konten utama.
+	"""
+	import html as html_module
+
+	if not html:
+		return {
+			"title": "",
+			"full_text": "",
+			"text_len": 0,
+			"og_title": "",
+			"og_description": "",
+			"meta_description": "",
+			"has_password_input": False,
+			"has_profile_jsonld": False,
+			"preview": "",
+		}
+
+	# 1. Title
+	title = ""
+	m_title = re.search(r"<title[^>]*>(.*?)</title>", html, re.IGNORECASE | re.DOTALL)
+	if m_title:
+		title = html_module.unescape(re.sub(r"\s+", " ", m_title.group(1)).strip())
+
+	# 2. Meta tags helper
+	def get_meta(attr_name: str, attr_val: str) -> str:
+		pattern1 = rf'<meta\s+[^>]*?{attr_name}=["\']?{re.escape(attr_val)}["\']?[^>]*?content=["\'](.*?)["\']'
+		m = re.search(pattern1, html, re.IGNORECASE | re.DOTALL)
+		if not m:
+			pattern2 = rf'<meta\s+[^>]*?content=["\'](.*?)["\'][^>]*?{attr_name}=["\']?{re.escape(attr_val)}["\']?'
+			m = re.search(pattern2, html, re.IGNORECASE | re.DOTALL)
+		if m:
+			return html_module.unescape(m.group(1).strip())
+		return ""
+
+	og_title = get_meta("property", "og:title") or get_meta("name", "og:title")
+	og_description = get_meta("property", "og:description") or get_meta("name", "og:description")
+	meta_description = get_meta("name", "description") or get_meta("property", "description")
+
+	# 3. Form input type="password"
+	has_password_input = bool(re.search(r'<input[^>]+type=["\']?password["\']?', html, re.IGNORECASE))
+
+	# 4. JSON-LD Person or ProfilePage
+	has_profile_jsonld = False
+	jsonld_matches = re.findall(
+		r'<script[^>]+type=["\']application/ld\+json["\'][^>]*>(.*?)</script>',
+		html,
+		re.IGNORECASE | re.DOTALL,
+	)
+	for j_text in jsonld_matches:
+		if re.search(r'["\']@type["\']\s*:\s*["\'](Person|ProfilePage)["\']', j_text, re.IGNORECASE):
+			has_profile_jsonld = True
+			break
+
+	# 5. Full clean text
+	clean_html = re.sub(r"<(script|style)[^>]*>.*?</\1>", " ", html, flags=re.IGNORECASE | re.DOTALL)
+	full_text = re.sub(r"<[^>]+>", " ", clean_html)
+	full_text = html_module.unescape(re.sub(r"\s+", " ", full_text).strip())
+	text_len = len(full_text)
+
+	# 6. Preview text: prefer <main> or role="main" if present
+	main_text = ""
+	m_main = re.search(r"<main[^>]*>(.*?)</main>", clean_html, re.IGNORECASE | re.DOTALL)
+	if not m_main:
+		m_main = re.search(r'<[a-z0-9]+\s+[^>]*?role=["\']main["\'][^>]*>(.*?)</[a-z0-9]+>', clean_html, re.IGNORECASE | re.DOTALL)
+	if m_main:
+		m_content = re.sub(r"<[^>]+>", " ", m_main.group(1))
+		main_text = html_module.unescape(re.sub(r"\s+", " ", m_content).strip())
+
+	preview_source = main_text if len(main_text) >= 50 else full_text
+	preview = preview_source[:300]
+
+	return {
+		"title": title,
+		"full_text": full_text,
+		"text_len": text_len,
+		"og_title": og_title,
+		"og_description": og_description,
+		"meta_description": meta_description,
+		"has_password_input": has_password_input,
+		"has_profile_jsonld": has_profile_jsonld,
+		"preview": preview,
+	}
+
+
+def detect_login_page(final_url: str, html_or_text: str, display_text: str = "") -> bool:
 	"""Mendeteksi apakah respons kemungkinan adalah halaman login/checkpoint/authwall.
 
-	Kriteria:
-	1. URL akhir mengarah ke jalur login (mis. /login, /signin, /checkpoint, /authwall, accounts/login).
-	2. Tag <title> mengandung kata login / sign in / masuk.
-	3. Ada form dengan input password (<input type="password">).
-	4. Isi sangat pendek (< 500 karakter) yang memuat ajakan login dan tanpa konten profil.
-
-	Halaman publik panjang dengan tautan 'Sign in' di navigasi BUKAN halaman login.
+	Memakai sinyal bertingkat dan teks penuh:
+	1. Sinyal kuat (cukup sendirian):
+	   - Jalur URL akhir ke login/checkpoint/authwall/signin.
+	   - Tag <title> yang intinya halaman login (tanpa nama profil (@handle)).
+	2. Sinyal profil positif (menetralkan sinyal lemah):
+	   - og:title/og:description/meta description memuat kata profil.
+	   - Judul memuat handle (@handle).
+	   - JSON-LD Person atau ProfilePage.
+	   - Teks penuh panjang (> 2000 karakter) yang memuat kata profil.
+	3. Sinyal lemah (berlaku hanya bila tanpa sinyal profil dan teks penuh < 1500 karakter):
+	   - Ada form input password.
+	   - Ada frasa login pada teks.
 	"""
 	raw_html = html_or_text or ""
 	url_lower = (final_url or "").lower()
 
-	# 1. Jalur URL akhir ke login / checkpoint / authwall
-	login_url_patterns = ("/login", "/signin", "/sign-in", "accounts/login", "checkpoint", "authwall", "/session/new")
+	signals = extract_page_signals(raw_html)
+	title = signals["title"]
+	full_text = signals["full_text"] or display_text
+	text_len = signals["text_len"] or len(full_text)
+
+	# 1. Sinyal kuat (cukup sendirian)
+	# A. Jalur URL akhir
+	login_url_patterns = (
+		"/login",
+		"/signin",
+		"/sign-in",
+		"accounts/login",
+		"/checkpoint",
+		"checkpoint",
+		"/authwall",
+		"authwall",
+		"/session/new",
+		"/challenge",
+	)
 	parsed = urllib.parse.urlsplit(final_url or "")
 	path_lower = parsed.path.lower()
 	if any(p in path_lower or p in url_lower for p in login_url_patterns):
 		return True
 
-	# 2. Tag <title> mengandung frasa login
-	m_title = re.search(r"<title[^>]*>(.*?)</title>", raw_html, re.IGNORECASE | re.DOTALL)
-	if m_title:
-		title_lower = m_title.group(1).lower().strip()
-		title_login_phrases = ("log in", "login", "sign in", "signin", "masuk")
-		if any(w in title_lower for w in title_login_phrases):
-			return True
+	# B. Tag <title> yang intinya halaman login
+	title_lower = title.lower().strip()
+	has_profile_handle = bool(
+		re.search(r"\(@[a-zA-Z0-9._-]+\)", title) or re.search(r"\([a-zA-Z0-9._-]+\)", title)
+	)
 
-	# 3. Terdapat input bertipe password
-	if re.search(r'<input[^>]+type=["\']?password["\']?', raw_html, re.IGNORECASE):
+	is_pure_login_title = False
+	if title_lower:
+		if title_lower.startswith(("log in", "login", "sign in", "signin", "masuk")):
+			is_pure_login_title = True
+		elif title_lower in ("instagram", "meta", "facebook", "linkedin", "tiktok") and not has_profile_handle:
+			is_pure_login_title = True
+
+	if is_pure_login_title:
 		return True
 
-	# 4. Halaman sangat pendek (< 500 karakter) tanpa konten profil namun berisi frasa login
-	clean_text = (display_text or "").lower()
-	text_len = len(clean_text)
-	profile_indicators = (
-		"posts",
+	# 2. Sinyal profil positif (menetralkan sinyal lemah)
+	profile_keywords = (
 		"followers",
 		"following",
 		"pengikut",
+		"mengikuti",
+		"posts",
 		"postingan",
-		"profile",
 		"repositories",
 		"contributions",
-		"starred",
+		"connections",
+		"photos and videos",
+		"foto dan video",
 	)
-	has_profile_content = any(ind in clean_text for ind in profile_indicators)
-	login_phrases = ("log in", "sign in", "masuk", "login")
-	has_login_phrase = any(phrase in clean_text for phrase in login_phrases)
+	meta_combined = f"{signals['og_title']} {signals['og_description']} {signals['meta_description']}".lower()
+	has_meta_profile = any(kw in meta_combined for kw in profile_keywords)
+	has_jsonld_profile = signals["has_profile_jsonld"]
+	full_text_lower = full_text.lower()
+	has_long_profile_text = (text_len > 2000) and any(kw in full_text_lower for kw in profile_keywords)
 
-	if text_len < 500 and has_login_phrase and not has_profile_content:
+	has_positive_profile = (
+		has_meta_profile
+		or has_jsonld_profile
+		or has_profile_handle
+		or has_long_profile_text
+	)
+
+	if has_positive_profile:
+		return False
+
+	# 3. Sinyal lemah (hanya berlaku jika TIDAK ada sinyal profil positif DAN text_len < 1500)
+	has_password = signals["has_password_input"]
+	login_phrases = ("log in", "sign in", "masuk", "login", "create an account", "daftar akun")
+	has_login_phrase = any(phrase in full_text_lower for phrase in login_phrases)
+
+	if (has_password or has_login_phrase) and text_len < 1500:
 		return True
 
 	return False
@@ -110,17 +239,8 @@ def detect_login_page(final_url: str, html_or_text: str, display_text: str) -> b
 
 def extract_title_and_text(html: str) -> tuple[str, str]:
 	"""Ekstrak judul halaman dan 300 karakter pertama teks bersih."""
-	title = ""
-	if not html:
-		return "", ""
-	m = re.search(r"<title[^>]*>(.*?)</title>", html, re.IGNORECASE | re.DOTALL)
-	if m:
-		title = re.sub(r"\s+", " ", m.group(1)).strip()
-
-	clean_html = re.sub(r"<(script|style)[^>]*>.*?</\1>", " ", html, flags=re.IGNORECASE | re.DOTALL)
-	clean_text = re.sub(r"<[^>]+>", " ", clean_html)
-	clean_text = re.sub(r"\s+", " ", clean_text).strip()
-	return title, clean_text[:300]
+	signals = extract_page_signals(html)
+	return signals["title"], signals["preview"]
 
 
 def _log_test_fetch(user: str, domain: str, mode: str, status: str, is_login: bool) -> None:
@@ -156,6 +276,15 @@ class BackgroundCheckSettings(Document):
 
 		self.validate_risk_acknowledgment()
 		self.validate_consent_text_version()
+		self.validate_thresholds()
+
+	def validate_thresholds(self):
+		if self.social_max_posts is not None and self.social_max_posts < 1:
+			frappe.throw(_("Social Max Posts must be at least 1."))
+		if self.social_lookback_months is not None and self.social_lookback_months < 1:
+			frappe.throw(_("Social Lookback Months must be at least 1."))
+		if self.export_max_mb is not None and self.export_max_mb < 1:
+			frappe.throw(_("Max Candidate Export Size (MB) must be at least 1."))
 
 	def validate_consent_text_version(self):
 		validate_consent_text_version(self)
@@ -204,7 +333,9 @@ class BackgroundCheckSettings(Document):
 
 @frappe.whitelist()
 def test_fetch(url: str, consent_acknowledged: int = 0) -> dict[str, Any]:
-	"""Uji pengambilan profil publik dalam 3 mode Scrapling (hanya System Manager)."""
+	"""Uji pengambilan profil publik Scrapling (hanya System Manager).
+	Mendukung mode Company, Browser, Stealth, dan mode keempat Session bila ada akun crawler Connected.
+	"""
 	if "System Manager" not in frappe.get_roles():
 		frappe.throw(_("Only System Manager can perform test fetch."), frappe.PermissionError)
 
@@ -217,6 +348,13 @@ def test_fetch(url: str, consent_acknowledged: int = 0) -> dict[str, Any]:
 	if not url or not (url.startswith("http://") or url.startswith("https://")):
 		frappe.throw(_("URL must start with http:// or https://."), title=_("Invalid URL"))
 
+	from hris_ats.bgc.crawler_session import (
+		check_and_update_crawler_rate_limits,
+		extract_profile_data_summary,
+		get_decrypted_storage_state,
+		get_eligible_crawler_account_for_url,
+		mark_crawler_account_challenge,
+	)
 	from hris_ats.bgc.fetch import (
 		FetchConfig,
 		ForbiddenDomainError,
@@ -236,48 +374,137 @@ def test_fetch(url: str, consent_acknowledged: int = 0) -> dict[str, Any]:
 	settings = frappe.get_single("Background Check Settings")
 	respect_robots = bool(settings.fetch_respect_robots)
 
-	modes = [
-		("Company", FetchConfig(identity="Company", stealth=False, respect_robots=respect_robots)),
-		("Browser", FetchConfig(identity="Browser", stealth=False, respect_robots=respect_robots)),
-		("Stealth", FetchConfig(identity="Browser", stealth=True, respect_robots=respect_robots)),
+	crawler_account = get_eligible_crawler_account_for_url(url)
+
+	modes: list[tuple[str, str, FetchConfig | None, dict | None]] = [
+		("Company", "Company", FetchConfig(identity="Company", stealth=False, respect_robots=respect_robots), None),
+		("Browser", "Browser", FetchConfig(identity="Browser", stealth=False, respect_robots=respect_robots), None),
+		("Stealth", "Stealth", FetchConfig(identity="Browser", stealth=True, respect_robots=respect_robots), None),
 	]
+
+	if crawler_account:
+		modes.append((
+			"Session",
+			f"Session ({crawler_account['account_label']})",
+			None,
+			crawler_account,
+		))
 
 	browser_installed = is_scrapling_browser_installed()
 	results = []
+	browser_body = None
 
-	for mode_name, config in modes:
-		if mode_name == "Stealth" and not browser_installed:
+	for mode_key, mode_label, config, acc_info in modes:
+		if mode_key == "Stealth" and not browser_installed:
 			results.append({
-				"mode": mode_name,
+				"mode": mode_label,
 				"status": "Skipped",
 				"message": _("Stealth mode skipped: browser is not installed."),
 				"is_login_page": False,
 			})
-			_log_test_fetch(user=frappe.session.user, domain=domain, mode=mode_name, status="Skipped", is_login=False)
+			_log_test_fetch(user=frappe.session.user, domain=domain, mode=mode_label, status="Skipped", is_login=False)
+			continue
+
+		if mode_key == "Session" and acc_info:
+			try:
+				# Enforce crawler account rate limits
+				check_and_update_crawler_rate_limits(acc_info["name"])
+
+				# Decrypt session strictly in process; never logged, cached, or returned
+				decrypted_state = get_decrypted_storage_state(acc_info["name"])
+				if not decrypted_state:
+					results.append({
+						"mode": mode_label,
+						"account_label": acc_info["account_label"],
+						"status": "Error",
+						"error": _("Stored session state is empty or invalid."),
+						"is_login_page": False,
+					})
+					_log_test_fetch(user=frappe.session.user, domain=domain, mode=mode_label, status="Error: empty session", is_login=False)
+					continue
+
+				session_config = FetchConfig(
+					identity="Browser",
+					stealth=browser_installed,
+					respect_robots=respect_robots,
+					storage_state=decrypted_state,
+				)
+
+				res = fetch(url, config=session_config)
+				signals = extract_page_signals(res.body)
+				is_login = detect_login_page(res.url, res.body, signals["preview"])
+
+				# Challenge / checkpoint detection on crawler account
+				is_challenge = is_login and any(cp in res.url.lower() for cp in ("checkpoint", "challenge", "authwall"))
+				if is_challenge or res.status in (401, 403, 429):
+					mark_crawler_account_challenge(acc_info["name"], f"Crawler session encountered challenge/checkpoint at {res.url}")
+
+				session_summary = extract_profile_data_summary(res.body)
+				browser_summary = extract_profile_data_summary(browser_body) if browser_body else None
+
+				comparison = None
+				if browser_summary:
+					comparison = {
+						"posts_count": {"session": session_summary["posts_count"], "browser": browser_summary["posts_count"]},
+						"has_name": {"session": session_summary["has_name"], "browser": browser_summary["has_name"]},
+						"has_bio": {"session": session_summary["has_bio"], "browser": browser_summary["has_bio"]},
+						"has_followers": {"session": session_summary["has_followers"], "browser": browser_summary["has_followers"]},
+					}
+
+				results.append({
+					"mode": mode_label,
+					"account_label": acc_info["account_label"],
+					"status": res.status,
+					"final_url": res.url,
+					"mode_used": res.mode_used,
+					"size_bytes": len(res.content) if res.content is not None else len(res.body.encode("utf-8")),
+					"title": signals["title"],
+					"og_title": signals["og_title"],
+					"og_description": signals["og_description"],
+					"preview_text": signals["preview"],
+					"is_login_page": is_login,
+					"comparison_with_browser": comparison,
+					"profile_summary": session_summary,
+				})
+				_log_test_fetch(user=frappe.session.user, domain=domain, mode=mode_label, status=str(res.status), is_login=is_login)
+			except Exception as e:
+				results.append({
+					"mode": mode_label,
+					"account_label": acc_info["account_label"],
+					"status": "Error",
+					"error": str(e),
+					"is_login_page": False,
+				})
+				_log_test_fetch(user=frappe.session.user, domain=domain, mode=mode_label, status=f"Error: {e}", is_login=False)
 			continue
 
 		try:
 			res = fetch(url, config=config)
-			title, preview = extract_title_and_text(res.body)
-			is_login = detect_login_page(res.url, res.body, preview)
+			signals = extract_page_signals(res.body)
+			is_login = detect_login_page(res.url, res.body, signals["preview"])
+			if mode_key == "Browser":
+				browser_body = res.body
+
 			results.append({
-				"mode": mode_name,
+				"mode": mode_label,
 				"status": res.status,
 				"final_url": res.url,
 				"mode_used": res.mode_used,
 				"size_bytes": len(res.content) if res.content is not None else len(res.body.encode("utf-8")),
-				"title": title,
-				"preview_text": preview,
+				"title": signals["title"],
+				"og_title": signals["og_title"],
+				"og_description": signals["og_description"],
+				"preview_text": signals["preview"],
 				"is_login_page": is_login,
 			})
-			_log_test_fetch(user=frappe.session.user, domain=domain, mode=mode_name, status=str(res.status), is_login=is_login)
+			_log_test_fetch(user=frappe.session.user, domain=domain, mode=mode_label, status=str(res.status), is_login=is_login)
 		except Exception as e:
 			results.append({
-				"mode": mode_name,
+				"mode": mode_label,
 				"status": "Error",
 				"error": str(e),
 				"is_login_page": False,
 			})
-			_log_test_fetch(user=frappe.session.user, domain=domain, mode=mode_name, status=f"Error: {e}", is_login=False)
+			_log_test_fetch(user=frappe.session.user, domain=domain, mode=mode_label, status=f"Error: {e}", is_login=False)
 
 	return {"url": url, "domain": domain, "results": results}
