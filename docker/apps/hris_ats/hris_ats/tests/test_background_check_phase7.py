@@ -2,9 +2,10 @@
 # For license information, please see license.txt
 
 from datetime import timedelta
+
 import frappe
 from frappe.tests.utils import FrappeTestCase
-from frappe.utils import nowdate, getdate, add_days
+from frappe.utils import add_days, getdate, nowdate
 
 from hris_ats.bgc.consent import initiate_background_check, submit_candidate_consent
 from hris_ats.tasks import daily_retention_purge
@@ -48,7 +49,13 @@ class TestBackgroundCheckPhase7(FrappeTestCase):
 		self.applicant.screening_status = "Done"
 		self.applicant.insert(ignore_permissions=True)
 
+		# Jalankan pengujian sebagai HR Manager / BGC Officer sesuai Spesifikasi 8
+		from hris_ats.tests import ensure_test_hr_user
+		self.hr_user = ensure_test_hr_user("hr.test@example.com")
+		frappe.set_user(self.hr_user)
+
 	def tearDown(self):
+		frappe.set_user("Administrator")
 		frappe.db.rollback()
 		# Bersihkan pelamar uji dan BGC terkait agar database uji tidak tercemar
 		for b in frappe.get_all("Background Check", filters={"full_name": "Pelamar Uji Wawancara"}, pluck="name"):

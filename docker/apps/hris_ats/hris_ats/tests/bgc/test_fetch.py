@@ -11,9 +11,9 @@ from hris_ats.bgc.fetch import (
 	FetchConfig,
 	FetchResult,
 	ForbiddenDomainError,
+	MemoryCacheBackend,
 	RobotsDisallowedError,
 	StealthBrowserNotInstalledError,
-	MemoryCacheBackend,
 	determine_mode,
 	fetch,
 	get_domain,
@@ -252,7 +252,7 @@ def test_dynamic_blocked_domains_and_subdomains():
 	assert is_forbidden_domain("https://facebook.com/profile", blocked_domains=custom_blocked) is False
 
 	# Ditambahkan lagi -> Ditolak
-	updated_blocked = custom_blocked + ["facebook.com"]
+	updated_blocked = [*custom_blocked, "facebook.com"]
 	assert is_forbidden_domain("https://facebook.com/profile", blocked_domains=updated_blocked) is True
 	assert is_forbidden_domain("https://m.facebook.com/profile", blocked_domains=updated_blocked) is True
 
@@ -304,4 +304,68 @@ def test_login_page_detection_and_title_extraction():
 	assert len(clean_300) <= 300
 	assert ".btn" not in clean_300
 	assert "alert" not in clean_300
+
+
+def test_hmac_cache_key_generation():
+	"""Pengujian kunci cache HMAC-SHA256: tidak membocorkan nama kandidat / URL mentah ke Redis."""
+	from hris_ats.bgc.fetch import get_cache_key, hash_url
+
+	url1 = "https://putusan3.mahkamahagung.go.id/direktori/search/q/Budi%20Santoso.html"
+	url2 = "https://putusan3.mahkamahagung.go.id/direktori/search/q/Joko%20Widodo.html"
+
+	key1 = get_cache_key(url1, "company", "GET")
+	key2 = get_cache_key(url2, "company", "GET")
+
+	# Pastikan format kunci terstruktur
+	assert key1.startswith("hris_ats:fetch_cache:company:GET:")
+	assert key2.startswith("hris_ats:fetch_cache:company:GET:")
+
+	# Pastikan nama kandidat dan URL mentah TIDAK muncul dalam kunci cache
+	assert "Budi" not in key1
+	assert "Santoso" not in key1
+	assert "mahkamahagung" not in key1
+	assert "http" not in key1.split(":", 4)[-1]
+
+	# Pastikan hash adalah SHA-256 (64 hex characters)
+	hash_part1 = key1.split(":")[-1]
+	assert len(hash_part1) == 64
+	assert int(hash_part1, 16) > 0
+
+	# URL berbeda menghasilkan hash berbeda
+	assert key1 != key2
+
+	# URL sama menghasilkan hash yang identik
+	assert get_cache_key(url1, "company", "GET") == key1
+
+
+def test_get_default_cache_backend_fail_closed_in_live():
+	"""Pengujian fallback cache: live mode gagal tertutup (fail-closed), test/mock fallback ke memory."""
+	import types
+	from unittest.mock import patch
+
+	from hris_ats.bgc.fetch import (
+		MemoryCacheBackend,
+		RedisUnavailableError,
+		get_default_cache_backend,
+	)
+
+	# 1. Saat mock=True -> MemoryCacheBackend diizinkan
+	with patch("hris_ats.bgc.fetch.is_redis_available", return_value=False):
+		backend_mock = get_default_cache_backend(is_mock=True)
+		assert isinstance(backend_mock, MemoryCacheBackend)
+
+	# 2. Saat in_test=True -> MemoryCacheBackend diizinkan
+	fake_frappe = types.ModuleType("frappe")
+	fake_frappe.flags = types.SimpleNamespace(in_test=True)
+	with patch("hris_ats.bgc.fetch.is_redis_available", return_value=False):
+		with patch.dict("sys.modules", {"frappe": fake_frappe}):
+			backend_test = get_default_cache_backend(is_mock=False)
+			assert isinstance(backend_test, MemoryCacheBackend)
+
+	# 3. Saat mode live (bukan mock, bukan in_test) dan Redis mati -> RedisUnavailableError
+	with patch("hris_ats.bgc.fetch.is_redis_available", return_value=False):
+		with pytest.raises(RedisUnavailableError) as exc_info:
+			get_default_cache_backend(is_mock=False)
+		assert "Redis not available" in str(exc_info.value)
+
 

@@ -1,5 +1,6 @@
 import frappe
 
+
 def execute():
 	"""Pastikan platform media sosial bawaan memiliki requires_social_consent = 1."""
 	social_platforms = ("Instagram", "Facebook", "TikTok", "LinkedIn", "Twitter/X")

@@ -9,10 +9,10 @@ import json
 import os
 from typing import Any
 
-from hris_ats.bgc.providers.base import BaseProvider, FindingData
-from hris_ats.bgc.analysis.identity import calculate_match_confidence
-from hris_ats.bgc.analysis.classify import classify_text, CAT_NORM_MAP, SEV_NORM_MAP
 from hris_ats.bgc.analysis.case import evaluate_case_severity
+from hris_ats.bgc.analysis.classify import CAT_NORM_MAP, SEV_NORM_MAP, classify_text
+from hris_ats.bgc.analysis.identity import calculate_match_confidence
+from hris_ats.bgc.providers.base import BaseProvider, FindingData
 
 
 class MockProvider(BaseProvider):
@@ -33,7 +33,7 @@ class MockProvider(BaseProvider):
 
 	def _load_fixtures(self) -> None:
 		if os.path.exists(self.fixture_path):
-			with open(self.fixture_path, "r", encoding="utf-8") as f:
+			with open(self.fixture_path, encoding="utf-8") as f:
 				self._mock_data = json.load(f)
 
 	def run(

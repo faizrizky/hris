@@ -3,6 +3,7 @@
 
 import frappe
 from frappe.tests.utils import FrappeTestCase
+
 from hris_ats.bgc.consent import initiate_background_check, submit_candidate_consent
 from hris_ats.bgc.runner import run_all_sources
 
@@ -40,7 +41,13 @@ class TestBackgroundCheckRunner(FrappeTestCase):
 		self.applicant.city = "Jakarta"
 		self.applicant.insert(ignore_permissions=True)
 
+		# Jalankan pengujian sebagai HR Manager / BGC Officer sesuai Spesifikasi 8
+		from hris_ats.tests import ensure_test_hr_user
+		self.hr_user = ensure_test_hr_user("hr.test@example.com")
+		frappe.set_user(self.hr_user)
+
 	def tearDown(self):
+		frappe.set_user("Administrator")
 		frappe.db.rollback()
 
 	def test_runner_aborts_without_granted_consent(self):
@@ -136,7 +143,9 @@ class TestBackgroundCheckRunner(FrappeTestCase):
 		"""
 		import os
 		from unittest.mock import patch
+
 		from scrapling.parser import Adaptor
+
 		from hris_ats.bgc.fetch import FetchResult
 
 		# 1. Pastikan mock_provider = 0 di Settings
@@ -166,9 +175,9 @@ class TestBackgroundCheckRunner(FrappeTestCase):
 				"fixtures",
 				"court_ma",
 			)
-			with open(os.path.join(fixtures_dir, "search_page_1.html"), "r", encoding="utf-8") as f:
+			with open(os.path.join(fixtures_dir, "search_page_1.html"), encoding="utf-8") as f:
 				search_html = f.read()
-			with open(os.path.join(fixtures_dir, "detail_case_1.html"), "r", encoding="utf-8") as f:
+			with open(os.path.join(fixtures_dir, "detail_case_1.html"), encoding="utf-8") as f:
 				detail_html = f.read()
 
 			def fake_fetch(url, *args, **kwargs):
@@ -247,6 +256,40 @@ class TestBackgroundCheckRunner(FrappeTestCase):
 			self.assertEqual(post_run.status, "Skipped")
 			self.assertIn("Social media API credentials not configured", post_run.error)
 
+		finally:
+			settings.reload()
+			settings.mock_provider = old_mock
+			settings.save()
+
+	def test_runner_live_mode_fails_closed_when_redis_unavailable(self):
+		"""Pengujian fail-closed: pada mode live tanpa Redis, runner menandai sumber Failed dengan error_template 'Redis not available'."""
+		from unittest.mock import patch
+		res = initiate_background_check(self.applicant.name)
+		bgc_name = res["name"]
+		token = res["token"]
+		submit_candidate_consent(token=token, granted_sources=["Platform", "Case history"])
+
+		settings = frappe.get_single("Background Check Settings")
+		old_mock = settings.mock_provider
+		settings.mock_provider = 0
+		settings.save()
+
+		try:
+			# Simulasikan Redis tidak tersedia pada mode live
+			with patch("hris_ats.bgc.runner.is_redis_available", return_value=False):
+				old_in_test = getattr(frappe.flags, "in_test", False)
+				frappe.flags.in_test = False
+				try:
+					run_all_sources(bgc_name)
+				finally:
+					frappe.flags.in_test = old_in_test
+
+			bgc = frappe.get_doc("Background Check", bgc_name)
+			for sr in bgc.source_runs:
+				if sr.source in ["Platform", "Case history"]:
+					self.assertEqual(sr.status, "Failed")
+					self.assertIn("Redis not available", sr.error_template)
+					self.assertEqual(sr.error_params, "{}")
 		finally:
 			settings.reload()
 			settings.mock_provider = old_mock

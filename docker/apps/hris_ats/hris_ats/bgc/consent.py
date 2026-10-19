@@ -10,9 +10,10 @@ from __future__ import annotations
 
 import json
 from typing import Any
+
 import frappe
 from frappe import _
-from frappe.utils import now_datetime, get_url
+from frappe.utils import get_url, now_datetime
 
 
 @frappe.whitelist()
@@ -245,6 +246,7 @@ def clean_bgc_crawldir(bgc_name: str) -> None:
 	try:
 		import os
 		import shutil
+
 		from hris_ats.bgc.providers.court_ma import get_crawldir
 		cdir = get_crawldir(bgc_name)
 		if os.path.exists(cdir):
@@ -257,6 +259,7 @@ def clean_bgc_cache(bgc_doc: Any) -> None:
 	"""Bersihkan entri cache Redis yang terkait dengan akun Background Check."""
 	try:
 		if hasattr(frappe, "cache") and frappe.cache:
+			from hris_ats.bgc.fetch import get_cache_key
 			for acc in getattr(bgc_doc, "accounts", []):
 				prof_url = getattr(acc, "profile_url", None)
 				if not prof_url and getattr(acc, "platform", None) and getattr(acc, "username", None):
@@ -270,7 +273,7 @@ def clean_bgc_cache(bgc_doc: Any) -> None:
 					for u in urls_to_clean:
 						for mode in modes:
 							for method in methods:
-								key = f"hris_ats:fetch_cache:{mode}:{method}:{u}"
+								key = get_cache_key(u, mode, method)
 								frappe.cache.delete_value(key)
 	except Exception:
 		pass

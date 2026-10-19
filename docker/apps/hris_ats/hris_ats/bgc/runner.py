@@ -20,7 +20,13 @@ from frappe.utils import add_days, now_datetime, nowdate
 from hris_ats.bgc.analysis.posts import analyze_posts
 from hris_ats.bgc.analysis.risk import calculate_risk_level
 from hris_ats.bgc.analysis.summary import generate_automated_summary
-from hris_ats.bgc.fetch import FetchConfig, get_fetch_config_from_settings, is_forbidden_domain
+from hris_ats.bgc.fetch import (
+	FetchConfig,
+	RedisUnavailableError,
+	get_fetch_config_from_settings,
+	is_forbidden_domain,
+	is_redis_available,
+)
 from hris_ats.bgc.providers.base import FindingData
 from hris_ats.bgc.providers.court_ma import CourtMAProvider
 from hris_ats.bgc.providers.mock import MockProvider
@@ -122,6 +128,16 @@ def run_all_sources(bgc_name: str) -> None:
 			run_row.error_template = "Source not granted by candidate."
 			run_row.error_params = "{}"
 			continue
+
+		# Mode live: jika Redis tidak tersedia, gagal tertutup (fail-closed)
+		if not is_mock and not getattr(getattr(frappe, "flags", None), "in_test", False):
+			if not is_redis_available():
+				run_row.status = "Failed"
+				run_row.error = _("Redis not available")
+				run_row.error_template = "Redis not available"
+				run_row.error_params = "{}"
+				run_row.finished_on = now_datetime()
+				continue
 
 		# Update status Crawling
 		run_row.status = "Crawling"
@@ -482,6 +498,14 @@ def run_all_sources(bgc_name: str) -> None:
 				run_row.status = "Done"
 
 			run_row.finished_on = now_datetime()
+
+		except RedisUnavailableError:
+			run_row.status = "Failed"
+			run_row.error = _("Redis not available")
+			run_row.error_template = "Redis not available"
+			run_row.error_params = "{}"
+			run_row.finished_on = now_datetime()
+			frappe.log_error(title=f"BGC Source Error: {source_name}", message=frappe.get_traceback())
 
 		except Exception as e:
 			err_str = str(e)

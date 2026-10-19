@@ -14,7 +14,6 @@ from scrapling.parser import Adaptor
 from hris_ats.bgc.article import extract_article_text
 from hris_ats.bgc.fetch import FetchConfig, FetchResult
 
-
 FIXTURE_HTML_PATH = os.path.join(
 	os.path.dirname(os.path.dirname(__file__)),
 	"fixtures",
@@ -24,7 +23,7 @@ FIXTURE_HTML_PATH = os.path.join(
 
 
 def test_extract_article_text_with_sample_fixture():
-	with open(FIXTURE_HTML_PATH, "r", encoding="utf-8") as f:
+	with open(FIXTURE_HTML_PATH, encoding="utf-8") as f:
 		html_content = f.read()
 
 	fake_page = Adaptor(html_content)

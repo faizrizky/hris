@@ -20,6 +20,7 @@ import re
 from typing import Any
 
 import pytest
+
 from hris_ats.i18n import LocalizedText, render
 
 BASE_APP_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -45,7 +46,7 @@ def load_translations() -> dict[str, str]:
 	"""Loads source -> target translations from translations/id.csv."""
 	translations: dict[str, str] = {}
 	if os.path.exists(ID_CSV_PATH):
-		with open(ID_CSV_PATH, "r", encoding="utf-8") as f:
+		with open(ID_CSV_PATH, encoding="utf-8") as f:
 			reader = csv.reader(f)
 			for row in reader:
 				if row and len(row) >= 2:
@@ -56,13 +57,13 @@ def load_translations() -> dict[str, str]:
 def extract_python_source_strings(app_dir: str) -> list[tuple[str, str]]:
 	"""Extracts literal string arguments from _("...") or frappe._("...") in Python files."""
 	strings: list[tuple[str, str]] = []
-	for root, dirs, files in os.walk(app_dir):
+	for root, _dirs, files in os.walk(app_dir):
 		if "tests" in root or "__pycache__" in root:
 			continue
 		for f in files:
 			if f.endswith(".py"):
 				path = os.path.join(root, f)
-				with open(path, "r", encoding="utf-8") as pyf:
+				with open(path, encoding="utf-8") as pyf:
 					try:
 						tree = ast.parse(pyf.read(), filename=path)
 					except Exception:
@@ -89,16 +90,16 @@ def extract_python_source_strings(app_dir: str) -> list[tuple[str, str]]:
 def extract_js_source_strings(app_dir: str) -> list[tuple[str, str]]:
 	"""Extracts literal string arguments from __("...") in JS files."""
 	strings: list[tuple[str, str]] = []
-	for root, dirs, files in os.walk(app_dir):
+	for root, _dirs, files in os.walk(app_dir):
 		if "tests" in root or "node_modules" in root:
 			continue
 		for f in files:
 			if f.endswith(".js"):
 				path = os.path.join(root, f)
-				with open(path, "r", encoding="utf-8") as jsf:
+				with open(path, encoding="utf-8") as jsf:
 					content = jsf.read()
 					matches = re.findall(r"__\(\s*([\"\x27])((?:\\.|(?!\1).)*?)\1\s*[,)]", content)
-					for q, s in matches:
+					for _q, s in matches:
 						try:
 							s_clean = s.encode().decode("unicode-escape").strip()
 						except Exception:
@@ -111,16 +112,16 @@ def extract_js_source_strings(app_dir: str) -> list[tuple[str, str]]:
 def extract_html_source_strings(app_dir: str) -> list[tuple[str, str]]:
 	"""Extracts literal string arguments from _("...") or __("...") in HTML files."""
 	strings: list[tuple[str, str]] = []
-	for root, dirs, files in os.walk(app_dir):
+	for root, _dirs, files in os.walk(app_dir):
 		if "tests" in root:
 			continue
 		for f in files:
 			if f.endswith(".html"):
 				path = os.path.join(root, f)
-				with open(path, "r", encoding="utf-8") as hf:
+				with open(path, encoding="utf-8") as hf:
 					content = hf.read()
 					matches = re.findall(r"(?:__|_)\(\s*([\"\x27])((?:\\.|(?!\1).)*?)\1\s*[,)]", content)
-					for q, s in matches:
+					for _q, s in matches:
 						try:
 							s_clean = s.encode().decode("unicode-escape").strip()
 						except Exception:
@@ -151,7 +152,7 @@ def test_guard_a_source_strings_have_id_csv_translations():
 			missing.append((os.path.basename(file_path), string_val))
 
 	if missing:
-		sample_missing = "\n".join(f"  [{f}] {repr(s)}" for f, s in sorted(set(missing))[:20])
+		sample_missing = "\n".join(f"  [{f}] {s!r}" for f, s in sorted(set(missing))[:20])
 		pytest.fail(f"Found {len(missing)} UI source strings missing from translations/id.csv:\n{sample_missing}")
 
 
@@ -179,7 +180,7 @@ def test_guard_b_no_indonesian_source_strings_outside_allowlist():
 			violations.append((filename, string_val, list(set(hits))))
 
 	if violations:
-		sample = "\n".join(f"  [{f}] {repr(s)} (detected ID words: {h})" for f, s, h in violations[:15])
+		sample = "\n".join(f"  [{f}] {s!r} (detected ID words: {h})" for f, s, h in violations[:15])
 		pytest.fail(f"Found {len(violations)} source strings with common Indonesian words outside allowlist:\n{sample}")
 
 
@@ -200,7 +201,7 @@ def test_guard_c_doctype_schemas_english_and_covered_in_id_csv():
 
 	for json_file in json_files:
 		dt_name = os.path.basename(os.path.dirname(json_file))
-		with open(json_file, "r", encoding="utf-8") as f:
+		with open(json_file, encoding="utf-8") as f:
 			data = json.load(f)
 
 		for field in data.get("fields", []):
@@ -349,7 +350,7 @@ def test_guard_f_ats_consent_template_and_language_flow():
 	consent_html_path = os.path.join(BASE_APP_DIR, "www", "ats_consent.html")
 	assert os.path.exists(consent_html_path), "ats_consent.html must exist"
 
-	with open(consent_html_path, "r", encoding="utf-8") as f:
+	with open(consent_html_path, encoding="utf-8") as f:
 		html = f.read()
 
 	# 1. Verify visible ID | EN toggle
@@ -367,7 +368,7 @@ def test_guard_f_ats_consent_template_and_language_flow():
 
 	# 4. Verify ats_consent.py implements priority: ?lang= -> candidate_language -> Accept-Language -> id
 	consent_py_path = os.path.join(BASE_APP_DIR, "www", "ats_consent.py")
-	with open(consent_py_path, "r", encoding="utf-8") as f:
+	with open(consent_py_path, encoding="utf-8") as f:
 		py_code = f.read()
 
 	assert 'frappe.form_dict.get("lang")' in py_code
@@ -390,10 +391,10 @@ def test_guard_g_metric_templates_translated_and_render_bilingual():
 		if not fname.endswith(".py"):
 			continue
 		path = os.path.join(metrics_dir, fname)
-		with open(path, "r", encoding="utf-8") as f:
+		with open(path, encoding="utf-8") as f:
 			content = f.read()
 		parts = re.findall(r"(?:template_parts\.append\(|final_template\s*=\s*)([\"\x27])((?:\\.|(?!\1).)+)\1", content)
-		for q, s in parts:
+		for _q, s in parts:
 			s_clean = s.strip()
 			if s_clean and not s_clean.startswith("; ") and s_clean != ";":
 				template_strings.append((fname, s_clean))
@@ -442,7 +443,10 @@ def test_guard_g_metric_templates_translated_and_render_bilingual():
 
 def test_guard_h_consent_text_version_auto_increment():
 	from unittest.mock import MagicMock
-	from hris_ats.hris_ats.doctype.background_check_settings.background_check_settings import validate_consent_text_version
+
+	from hris_ats.hris_ats.doctype.background_check_settings.background_check_settings import (
+		validate_consent_text_version,
+	)
 
 	# Case 1: Initial version v1.0
 	doc = MagicMock()

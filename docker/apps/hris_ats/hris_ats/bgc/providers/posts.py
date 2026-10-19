@@ -11,6 +11,7 @@ from __future__ import annotations
 import json
 import os
 from typing import Any
+
 from hris_ats.bgc.providers.base import BaseProvider
 
 
@@ -28,7 +29,7 @@ class PostsProvider(BaseProvider):
 		)
 		self._mock_data = {}
 		if os.path.exists(fixture_path):
-			with open(fixture_path, "r", encoding="utf-8") as f:
+			with open(fixture_path, encoding="utf-8") as f:
 				self._mock_data = json.load(f)
 
 	def fetch_posts(
@@ -39,7 +40,7 @@ class PostsProvider(BaseProvider):
 	) -> list[dict[str, Any]]:
 		"""Mengambil post publik dari akun terdaftar."""
 		if self.is_mock:
-			for key, val in self._mock_data.items():
+			for _key, val in self._mock_data.items():
 				if "posts" in val:
 					# Cocokkan nama kandidat atau username jika ada
 					for acc in val.get("accounts", []):

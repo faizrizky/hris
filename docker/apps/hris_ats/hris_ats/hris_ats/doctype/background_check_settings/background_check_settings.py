@@ -7,8 +7,6 @@ import frappe
 from frappe import _
 from frappe.model.document import Document
 
-
-
 DEFAULT_BLOCKED_DOMAINS = (
 	"instagram.com",
 	"instagr.am",
@@ -33,6 +31,7 @@ def get_scrapling_browser_status() -> str:
 
 	try:
 		import os
+
 		from patchright.sync_api import sync_playwright
 
 		with sync_playwright() as p:

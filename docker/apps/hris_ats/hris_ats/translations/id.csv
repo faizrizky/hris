@@ -688,3 +688,5 @@ Consent File Mandatory,Berkas Persetujuan Wajib
 This account belongs to me.,Akun ini milik saya.
 Public profile page will be fetched automatically.,Halaman profil publik akan diambil otomatis.
 Confirmed by candidate in document,Dikonfirmasi kandidat di dokumen
+Redis not available,Redis tidak tersedia
+Redis cache is not available,Cache Redis tidak tersedia

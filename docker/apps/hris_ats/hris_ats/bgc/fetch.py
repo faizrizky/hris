@@ -8,10 +8,13 @@ caching 24 jam, serta mode identitas (Company / Browser / Stealth).
 
 from __future__ import annotations
 
+import hashlib
+import hmac
 import time
 import urllib.parse
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import Any, Callable
+from typing import Any
 
 try:
 	from protego import Protego
@@ -51,6 +54,11 @@ class ForbiddenDomainError(FetchError):
 
 class RobotsDisallowedError(FetchError):
 	"""Dilemparkan bila URL dilarang oleh robots.txt saat respect_robots=True."""
+	pass
+
+
+class RedisUnavailableError(FetchError):
+	"""Dilemparkan bila cache Redis tidak tersedia dan mode live menolak fallback memori."""
 	pass
 
 
@@ -126,8 +134,12 @@ class FrappeRedisCacheBackend(BaseCacheBackend):
 			import frappe
 			if hasattr(frappe, "cache") and frappe.cache:
 				return frappe.cache.get_value(key)
-		except Exception:
-			pass
+		except Exception as e:
+			try:
+				import frappe
+				frappe.log_error(title="Redis Cache Get Error", message=str(e))
+			except Exception:
+				pass
 		return None
 
 	def set(self, key: str, value: Any, ttl: int | None = None) -> None:
@@ -135,18 +147,73 @@ class FrappeRedisCacheBackend(BaseCacheBackend):
 			import frappe
 			if hasattr(frappe, "cache") and frappe.cache:
 				frappe.cache.set_value(key, value, expires_in_sec=ttl)
-		except Exception:
-			pass
+		except Exception as e:
+			try:
+				import frappe
+				frappe.log_error(title="Redis Cache Set Error", message=str(e))
+			except Exception:
+				pass
 
 
-def get_default_cache_backend() -> BaseCacheBackend:
+def is_redis_available() -> bool:
+	"""Memeriksa ketersediaan koneksi Redis/frappe.cache."""
 	try:
 		import frappe
 		if hasattr(frappe, "cache") and frappe.cache:
-			return FrappeRedisCacheBackend()
+			if hasattr(frappe.cache, "ping"):
+				return bool(frappe.cache.ping())
+			return True
+	except Exception:
+		return False
+	return False
+
+
+def get_default_cache_backend(is_mock: bool = False) -> BaseCacheBackend:
+	"""
+	Mengembalikan cache backend default.
+	Mode live: gagal tertutup (fail-closed) jika Redis tidak tersedia, melempar RedisUnavailableError.
+	Fallback ke MemoryCacheBackend hanya diizinkan saat pengujian (frappe.flags.in_test) atau mock.
+	"""
+	try:
+		import frappe
+		in_test = bool(getattr(getattr(frappe, "flags", None), "in_test", False))
+	except Exception:
+		in_test = False
+
+	if is_redis_available():
+		return FrappeRedisCacheBackend()
+
+	if in_test or is_mock:
+		return MemoryCacheBackend()
+
+	raise RedisUnavailableError("Redis not available")
+
+
+def get_site_secret() -> bytes:
+	"""Mengambil rahasia site untuk HMAC hashing kunci cache (tidak membocorkan nama kandidat / URL polos ke Redis)."""
+	try:
+		import frappe
+		if hasattr(frappe, "local") and frappe.local:
+			conf = getattr(frappe.local, "conf", None) or {}
+			secret = conf.get("secret_key") or conf.get("encryption_key") or getattr(frappe.local, "site", None)
+			if secret:
+				return str(secret).encode("utf-8")
 	except Exception:
 		pass
-	return MemoryCacheBackend()
+	return b"hris_ats_cache_secret"
+
+
+def hash_url(url: str) -> str:
+	"""HMAC-SHA256 hash URL dengan secret site."""
+	secret = get_site_secret()
+	return hmac.new(secret, url.strip().encode("utf-8"), hashlib.sha256).hexdigest()
+
+
+def get_cache_key(url: str, mode: str, method: str = "GET") -> str:
+	"""Menghasilkan kunci cache Redis dengan URL ter-hash HMAC-SHA256."""
+	norm_method = method.upper()
+	url_hash = hash_url(url)
+	return f"hris_ats:fetch_cache:{mode}:{norm_method}:{url_hash}"
 
 
 # 5. Helper Pengecekan Domain & Status Browser
@@ -197,6 +264,7 @@ def is_scrapling_browser_installed() -> bool:
 
 	try:
 		import os
+
 		from patchright.sync_api import sync_playwright
 		with sync_playwright() as p:
 			if os.path.exists(p.chromium.executable_path):
@@ -357,6 +425,7 @@ def fetch(
 	raw_fetch_fn: Callable[..., Any] | None = None,
 	sleep_fn: Callable[[float], None] = time.sleep,
 	time_fn: Callable[[], float] = time.time,
+	is_mock: bool = False,
 ) -> FetchResult:
 	"""
 	Mengambil konten web melalui Scrapling dengan penegakan aturan:
@@ -377,16 +446,19 @@ def fetch(
 
 	domain = get_domain(url)
 	fetcher_type, mode_used = determine_mode(config, domain)
-	cache = cache_backend or get_default_cache_backend()
+	mock_mode = is_mock or bool(getattr(config, "is_mock", False))
+	cache = cache_backend or get_default_cache_backend(is_mock=mock_mode)
 
 	# Cek Cache 24 jam (hanya untuk request GET)
 	norm_method = method.upper()
-	cache_key = f"hris_ats:fetch_cache:{mode_used}:{norm_method}:{url}"
+	cache_key = get_cache_key(url, mode_used, norm_method)
 	if norm_method == "GET":
 		cached_data = cache.get(cache_key)
 		if cached_data is not None and isinstance(cached_data, dict):
 			body = cached_data.get("body", "")
 			content_bytes = cached_data.get("content") or (body.encode("utf-8") if isinstance(body, str) else b"")
+			if not body and content_bytes:
+				body = content_bytes.decode("utf-8", errors="ignore")
 			if max_size_bytes and len(content_bytes) > max_size_bytes:
 				raise FetchError(f"Ukuran berkas {len(content_bytes)} bytes melebihi batas {max_size_bytes} bytes")
 			page = Adaptor(body) if Adaptor else None
@@ -504,6 +576,7 @@ def fetch(
 	content_bytes = b""
 	if hasattr(res_page, "body") and isinstance(res_page.body, bytes):
 		content_bytes = res_page.body
+		body = content_bytes.decode("utf-8", errors="ignore")
 	elif isinstance(body, bytes):
 		content_bytes = body
 		body = body.decode("utf-8", errors="ignore")

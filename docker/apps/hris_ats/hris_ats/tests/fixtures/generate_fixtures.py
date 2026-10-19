@@ -1,12 +1,13 @@
 # Copyright (c) 2026, HRIS Team and contributors
 # For license information, please see license.txt
 
+import io
 import os
 import zipfile
-import io
+
+from reportlab.lib import colors
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
-from reportlab.lib import colors
 
 
 def create_single_column_pdf(path: str):

@@ -8,6 +8,7 @@ Mati secara default sampai kredensial diisi di Background Check Settings.
 from __future__ import annotations
 
 from typing import Any
+
 from hris_ats.bgc.providers.base import BaseProvider, FindingData
 from hris_ats.bgc.providers.mock import MockProvider
 

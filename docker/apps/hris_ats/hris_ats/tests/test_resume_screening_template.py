@@ -2,12 +2,19 @@
 # For license information, please see license.txt
 
 import frappe
-from frappe.tests.utils import FrappeTestCase
 from frappe.exceptions import ValidationError
+from frappe.tests.utils import FrappeTestCase
 
 
 class TestResumeScreeningTemplate(FrappeTestCase):
+	def setUp(self):
+		# Jalankan pengujian sebagai HR Manager sesuai Spesifikasi 8
+		from hris_ats.tests import ensure_test_hr_user
+		self.hr_user = ensure_test_hr_user("hr.test@example.com")
+		frappe.set_user(self.hr_user)
+
 	def tearDown(self):
+		frappe.set_user("Administrator")
 		frappe.db.rollback()
 
 	def test_default_metric_weights_populated(self):

@@ -1,15 +1,17 @@
 # Copyright (c) 2026, HRIS Team and contributors
 # For license information, please see license.txt
 
-from datetime import timedelta
 import json
+from datetime import timedelta
+
 import frappe
 from frappe.tests.utils import FrappeTestCase
 from frappe.utils import now_datetime
+
 from hris_ats.bgc.consent import (
 	initiate_background_check,
-	submit_candidate_consent,
 	revoke_consent,
+	submit_candidate_consent,
 )
 
 
@@ -31,6 +33,9 @@ class TestBackgroundCheckConsent(FrappeTestCase):
 		self.applicant.recruitment_stage = "Screening"
 		self.applicant.insert(ignore_permissions=True)
 
+		# Jalankan pengujian sebagai HR Manager sesuai Spesifikasi 8
+		frappe.set_user("test_hr_manager@example.com")
+
 	def tearDown(self):
 		frappe.set_user("Administrator")
 		frappe.db.rollback()
@@ -50,18 +55,32 @@ class TestBackgroundCheckConsent(FrappeTestCase):
 				u.append("roles", {"role": "Background Check Officer"})
 				u.save(ignore_permissions=True)
 
-		# User Interviewer
-		if not frappe.db.exists("User", "test_interviewer@example.com"):
+		# User HR Manager
+		if not frappe.db.exists("User", "test_hr_manager@example.com"):
 			user = frappe.new_doc("User")
-			user.email = "test_interviewer@example.com"
-			user.first_name = "Test Interviewer"
-			user.append("roles", {"role": "Interviewer"})
+			user.email = "test_hr_manager@example.com"
+			user.first_name = "Test HR Manager"
+			user.append("roles", {"role": "HR Manager"})
 			user.flags.no_welcome_mail = True
 			user.insert(ignore_permissions=True)
 		else:
-			u = frappe.get_doc("User", "test_interviewer@example.com")
-			if not any(r.role == "Interviewer" for r in u.roles):
-				u.append("roles", {"role": "Interviewer"})
+			u = frappe.get_doc("User", "test_hr_manager@example.com")
+			if not any(r.role == "HR Manager" for r in u.roles):
+				u.append("roles", {"role": "HR Manager"})
+				u.save(ignore_permissions=True)
+
+		# User System Manager (Spesifikasi 8: dilarang membaca/menulis BGC & Finding)
+		if not frappe.db.exists("User", "test_sys_manager@example.com"):
+			user = frappe.new_doc("User")
+			user.email = "test_sys_manager@example.com"
+			user.first_name = "Test System Manager"
+			user.append("roles", {"role": "System Manager"})
+			user.flags.no_welcome_mail = True
+			user.insert(ignore_permissions=True)
+		else:
+			u = frappe.get_doc("User", "test_sys_manager@example.com")
+			if not any(r.role == "System Manager" for r in u.roles):
+				u.append("roles", {"role": "System Manager"})
 				u.save(ignore_permissions=True)
 
 	def test_initiate_blocked_if_screening_not_done(self):
@@ -177,7 +196,7 @@ class TestBackgroundCheckConsent(FrappeTestCase):
 		self.assertEqual(frappe.db.count("Background Check Finding", {"background_check": bgc.name}), 0)
 
 	def test_permissions_officer_vs_interviewer(self):
-		"""Background Check Officer dapat membaca BGC & Finding, Interviewer dilarang."""
+		"""Spesifikasi 8: Hanya Background Check Officer & HR Manager yang dapat mengakses BGC & Finding. System Manager & Interviewer dilarang."""
 		res = initiate_background_check(self.applicant.name)
 		bgc_name = res["name"]
 
@@ -189,12 +208,26 @@ class TestBackgroundCheckConsent(FrappeTestCase):
 			"severity": "Info",
 		}).insert(ignore_permissions=True)
 
-		# Officer dapat membaca BGC dan Finding
+		# 1. Officer dapat membaca BGC dan Finding
 		frappe.set_user("test_officer@example.com")
 		self.assertTrue(frappe.has_permission("Background Check", "read", bgc_name))
 		self.assertTrue(frappe.has_permission("Background Check Finding", "read", finding.name))
 
-		# Interviewer dilarang membaca BGC dan Finding
+		# 2. HR Manager dapat membaca dan menulis BGC dan Finding
+		frappe.set_user("test_hr_manager@example.com")
+		self.assertTrue(frappe.has_permission("Background Check", "read", bgc_name))
+		self.assertTrue(frappe.has_permission("Background Check Finding", "read", finding.name))
+		self.assertTrue(frappe.has_permission("Background Check", "write", bgc_name))
+		self.assertTrue(frappe.has_permission("Background Check Finding", "write", finding.name))
+
+		# 3. Interviewer dilarang membaca BGC dan Finding
 		frappe.set_user("test_interviewer@example.com")
 		self.assertFalse(frappe.has_permission("Background Check", "read", bgc_name))
 		self.assertFalse(frappe.has_permission("Background Check Finding", "read", finding.name))
+
+		# 4. System Manager dilarang mengakses BGC dan Finding (Spesifikasi 8: isolasi privasi & UU PDP)
+		frappe.set_user("test_sys_manager@example.com")
+		self.assertFalse(frappe.has_permission("Background Check", "read", bgc_name))
+		self.assertFalse(frappe.has_permission("Background Check Finding", "read", finding.name))
+		self.assertFalse(frappe.has_permission("Background Check", "write", bgc_name))
+		self.assertFalse(frappe.has_permission("Background Check Finding", "write", finding.name))

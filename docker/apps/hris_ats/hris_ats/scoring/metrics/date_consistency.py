@@ -17,6 +17,7 @@ import json
 import re
 from datetime import datetime
 from typing import Any
+
 from hris_ats.scoring.extract import ExtractionResult
 
 MONTH_MAP = {
@@ -181,8 +182,8 @@ def evaluate(extraction: ExtractionResult, sections: dict[str, str], criteria: d
 		for j in range(i + 1, len(sorted_ranges)):
 			r1 = sorted_ranges[i]
 			r2 = sorted_ranges[j]
-			s1, e1 = r1["start"], r1["end"]
-			s2, e2 = r2["start"], r2["end"]
+			_s1, e1 = r1["start"], r1["end"]
+			s2, _e2 = r2["start"], r2["end"]
 
 			overlap_months = (e1[0] - s2[0]) * 12 + (e1[1] - s2[1])
 			if overlap_months > 1:

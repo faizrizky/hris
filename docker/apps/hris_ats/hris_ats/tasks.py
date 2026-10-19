@@ -9,7 +9,7 @@ serta memperbarui status SKCK yang telah lewat masa berlakunya.
 from __future__ import annotations
 
 import frappe
-from frappe.utils import nowdate, getdate
+from frappe.utils import getdate, nowdate
 
 
 def daily_retention_purge() -> dict[str, int]:

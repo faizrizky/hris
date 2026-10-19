@@ -35,7 +35,6 @@ from hris_ats.bgc.providers.court_ma import (
 	parse_court_ma_search_page,
 )
 
-
 SAMPLE_VALID_PDF_BYTES = b"""%PDF-1.4
 1 0 obj
 << /Type /Catalog /Pages 2 0 R >>
@@ -325,13 +324,13 @@ def test_court_ma_pagination_all_three_pages_and_crawldir_lifecycle():
 		"fixtures",
 		"court_ma",
 	)
-	with open(os.path.join(fixtures_dir, "search_page_1.html"), "r", encoding="utf-8") as f:
+	with open(os.path.join(fixtures_dir, "search_page_1.html"), encoding="utf-8") as f:
 		search_p1_html = f.read()
-	with open(os.path.join(fixtures_dir, "search_page_2.html"), "r", encoding="utf-8") as f:
+	with open(os.path.join(fixtures_dir, "search_page_2.html"), encoding="utf-8") as f:
 		search_p2_html = f.read()
-	with open(os.path.join(fixtures_dir, "search_page_3.html"), "r", encoding="utf-8") as f:
+	with open(os.path.join(fixtures_dir, "search_page_3.html"), encoding="utf-8") as f:
 		search_p3_html = f.read()
-	with open(os.path.join(fixtures_dir, "detail_case_1.html"), "r", encoding="utf-8") as f:
+	with open(os.path.join(fixtures_dir, "detail_case_1.html"), encoding="utf-8") as f:
 		detail_html = f.read()
 
 	provider = CourtMAProvider(is_mock=False)
@@ -421,11 +420,11 @@ def test_court_ma_pagination_stops_at_max_results():
 		"fixtures",
 		"court_ma",
 	)
-	with open(os.path.join(fixtures_dir, "search_page_1.html"), "r", encoding="utf-8") as f:
+	with open(os.path.join(fixtures_dir, "search_page_1.html"), encoding="utf-8") as f:
 		search_p1_html = f.read()
-	with open(os.path.join(fixtures_dir, "search_page_2.html"), "r", encoding="utf-8") as f:
+	with open(os.path.join(fixtures_dir, "search_page_2.html"), encoding="utf-8") as f:
 		search_p2_html = f.read()
-	with open(os.path.join(fixtures_dir, "search_page_3.html"), "r", encoding="utf-8") as f:
+	with open(os.path.join(fixtures_dir, "search_page_3.html"), encoding="utf-8") as f:
 		search_p3_html = f.read()
 
 	provider = CourtMAProvider(is_mock=False)
@@ -477,13 +476,13 @@ def test_court_ma_adaptive_selectors_on_altered_structure():
 		"fixtures",
 		"court_ma",
 	)
-	with open(os.path.join(fixtures_dir, "search_page_1.html"), "r", encoding="utf-8") as f:
+	with open(os.path.join(fixtures_dir, "search_page_1.html"), encoding="utf-8") as f:
 		s_orig = f.read()
-	with open(os.path.join(fixtures_dir, "search_page_changed.html"), "r", encoding="utf-8") as f:
+	with open(os.path.join(fixtures_dir, "search_page_changed.html"), encoding="utf-8") as f:
 		s_changed = f.read()
-	with open(os.path.join(fixtures_dir, "detail_case_1.html"), "r", encoding="utf-8") as f:
+	with open(os.path.join(fixtures_dir, "detail_case_1.html"), encoding="utf-8") as f:
 		d_orig = f.read()
-	with open(os.path.join(fixtures_dir, "detail_case_changed.html"), "r", encoding="utf-8") as f:
+	with open(os.path.join(fixtures_dir, "detail_case_changed.html"), encoding="utf-8") as f:
 		d_changed = f.read()
 
 	# 1. Eksekusi baseline struktur asli
@@ -529,7 +528,7 @@ def test_court_ma_name_twins_discrimination():
 
 	# Putusan 1: Kandidat asli (Jakarta Selatan, Karyawan Swasta)
 	text_cand = "PENGGUGAT: Ronald Richard, pekerjaan Karyawan Swasta, bertempat tinggal di Jakarta Selatan;"
-	conf_cand, reasons_cand, exc_cand = evaluate_match_with_excerpt(
+	conf_cand, _reasons_cand, exc_cand = evaluate_match_with_excerpt(
 		candidate_name=candidate,
 		candidate_variants=variants,
 		context_terms=context_terms,
@@ -542,7 +541,7 @@ def test_court_ma_name_twins_discrimination():
 
 	# Putusan 2: Kembaran identitas di kota dan profesi berbeda (Nelayan di Surabaya)
 	text_twin = "PENGGUGAT: Ronald Richard, pekerjaan Nelayan, bertempat tinggal di Surabaya;"
-	conf_twin, reasons_twin, _ = evaluate_match_with_excerpt(
+	conf_twin, _reasons_twin, _ = evaluate_match_with_excerpt(
 		candidate_name=candidate,
 		candidate_variants=variants,
 		context_terms=context_terms,

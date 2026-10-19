@@ -6,21 +6,22 @@ Dapat dijalankan tanpa frappe: python -m pytest apps/hris_ats/hris_ats/tests/sco
 """
 
 import os
+
+from hris_ats.scoring.engine import METRIC_MODULES, run_screening
 from hris_ats.scoring.extract import extract_cv, normalize_text
-from hris_ats.scoring.sections import split_sections, count_recognized_sections
-from hris_ats.scoring.engine import run_screening, METRIC_MODULES
-from hris_ats.scoring.total import calculate_total_score
 from hris_ats.scoring.metrics import (
-	ats_friendly,
-	grammar,
-	date_consistency,
-	information_completeness,
-	education_relevance,
-	skill_relevance,
-	experience_relevance,
 	achievement_relevance,
+	ats_friendly,
 	certification_relevance,
+	date_consistency,
+	education_relevance,
+	experience_relevance,
+	grammar,
+	information_completeness,
+	skill_relevance,
 )
+from hris_ats.scoring.sections import count_recognized_sections, split_sections
+from hris_ats.scoring.total import calculate_total_score
 
 FIXTURES_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "fixtures")
 
@@ -249,3 +250,42 @@ def test_all_10_fixtures_end_to_end():
 	print("\n=== RINGKASAN SKOR 10 CV FIKTIF ===")
 	for row in results_summary:
 		print(f"{row[0]:<30} | {row[1]:<7} | Skor: {row[2]:>4.1f} | {row[3]:<15} | Label: {row[4]}")
+
+
+def test_workflow_typing_and_any_defined():
+	"""Regression test: Ensure scoring/workflow.py imports and defines Any for annotations (Ruff F821 regression)."""
+	import ast
+
+	workflow_path = os.path.join(
+		os.path.dirname(os.path.dirname(os.path.dirname(__file__))),
+		"scoring",
+		"workflow.py",
+	)
+	assert os.path.exists(workflow_path), f"workflow.py not found at {workflow_path}"
+
+	with open(workflow_path, encoding="utf-8") as f:
+		tree = ast.parse(f.read(), filename=workflow_path)
+
+	# Verify typing.Any is explicitly imported
+	has_any_import = False
+	for node in ast.walk(tree):
+		if isinstance(node, ast.ImportFrom) and node.module == "typing":
+			for alias in node.names:
+				if alias.name == "Any":
+					has_any_import = True
+					break
+
+	assert has_any_import, "scoring/workflow.py must import 'Any' from 'typing'"
+
+	# Verify that functions using Any in annotations have valid AST nodes
+	annotated_funcs = []
+	for node in tree.body:
+		if isinstance(node, ast.FunctionDef):
+			for n in ast.walk(node):
+				if isinstance(n, ast.Name) and n.id == "Any":
+					annotated_funcs.append(node.name)
+					break
+
+	assert "rescreen" in annotated_funcs
+	assert "bulk_rescreen" in annotated_funcs
+	assert "rescreen_applicant" in annotated_funcs

@@ -50,6 +50,11 @@ class TestBackgroundCheckSocialConsent(FrappeTestCase):
 		self.settings.fetch_risk_acknowledged = 1
 		self.settings.save()
 
+		# Jalankan pengujian sebagai HR Manager / BGC Officer sesuai Spesifikasi 8
+		from hris_ats.tests import ensure_test_hr_user
+		self.hr_user = ensure_test_hr_user("hr.test@example.com")
+		frappe.set_user(self.hr_user)
+
 	def tearDown(self):
 		frappe.set_user("Administrator")
 		self.settings.reload()
@@ -224,7 +229,7 @@ class TestBackgroundCheckSocialConsent(FrappeTestCase):
 		self.assertEqual(bgc.consent_status, "Granted")
 		acc = bgc.accounts[0]
 		self.assertEqual(acc.social_consent, 1)
-		self.assertEqual(acc.social_consent_attested_by, "Administrator")
+		self.assertEqual(acc.social_consent_attested_by, self.hr_user)
 		self.assertIsNotNone(acc.social_consent_attested_on)
 
 	def test_consent_revocation_clears_derived_data_crawldir_and_cache(self):
@@ -268,7 +273,8 @@ class TestBackgroundCheckSocialConsent(FrappeTestCase):
 
 		# Simulasikan cache Redis
 		if hasattr(frappe, "cache") and frappe.cache:
-			cache_key = "hris_ats:fetch_cache:company:GET:https://www.linkedin.com/in/ronaldrichard"
+			from hris_ats.bgc.fetch import get_cache_key
+			cache_key = get_cache_key("https://www.linkedin.com/in/ronaldrichard", "company", "GET")
 			frappe.cache.set_value(cache_key, {"body": "cached content"})
 
 		self.assertTrue(os.path.exists(crawldir))
@@ -293,7 +299,9 @@ class TestBackgroundCheckSocialConsent(FrappeTestCase):
 
 		# Cache Redis harus terhapus
 		if hasattr(frappe, "cache") and frappe.cache:
-			cached = frappe.cache.get_value("hris_ats:fetch_cache:company:GET:https://www.linkedin.com/in/ronaldrichard")
+			from hris_ats.bgc.fetch import get_cache_key
+			cache_key = get_cache_key("https://www.linkedin.com/in/ronaldrichard", "company", "GET")
+			cached = frappe.cache.get_value(cache_key)
 			self.assertIsNone(cached)
 
 	def test_candidate_declaring_and_removing_own_account(self):
@@ -368,7 +376,7 @@ class TestBackgroundCheckSocialConsent(FrappeTestCase):
 
 		acc = bgc.accounts[0]
 		self.assertEqual(acc.social_consent, 1)
-		self.assertEqual(acc.social_consent_attested_by, "Administrator")
+		self.assertEqual(acc.social_consent_attested_by, self.hr_user)
 
 		# Hapus centang social_consent
 		acc.social_consent = 0

@@ -3,21 +3,20 @@
 
 """Pengujian unit murni untuk modul analisis Background Check (tanpa ketergantungan frappe)."""
 
+from hris_ats.bgc.analysis.case import detect_party_role, evaluate_case_severity
+from hris_ats.bgc.analysis.classify import classify_text
 from hris_ats.bgc.analysis.identity import (
-	normalize_name,
+	calculate_account_identity_match,
+	calculate_match_confidence,
+	evaluate_match_with_excerpt,
 	generate_name_variants,
 	is_mononym,
-	calculate_match_confidence,
-	calculate_account_identity_match,
-	evaluate_match_with_excerpt,
+	normalize_name,
 )
-from hris_ats.bgc.analysis.classify import classify_text
-from hris_ats.bgc.analysis.case import detect_party_role, evaluate_case_severity
 from hris_ats.bgc.analysis.posts import analyze_posts
 from hris_ats.bgc.analysis.risk import calculate_risk_level
 from hris_ats.bgc.analysis.summary import generate_automated_summary
 from hris_ats.bgc.providers.mock import MockProvider
-
 
 # =====================================================================
 # 1. Identity Analysis Tests
@@ -175,7 +174,7 @@ def test_evaluate_match_with_excerpt_cuplikan_capped_at_70():
 	text = "Ronald Richard meraih medali emas UI/UX Jakarta."
 	# Exact name (+50) + 2 context (+30) + unique bonus (+10) = 90
 	# But text_source = "Cuplikan" / "Snippet" capped at 70
-	conf, reasons, excerpt = evaluate_match_with_excerpt(
+	conf, reasons, _excerpt = evaluate_match_with_excerpt(
 		candidate_name="Ronald Richard",
 		candidate_variants=["ronald richard"],
 		context_terms=["UI/UX", "Jakarta"],
@@ -220,7 +219,7 @@ def test_evaluate_match_with_excerpt_picks_best_context_occurrence():
 		+ ("x " * 100)
 		+ "Sidang perkara Ronald Richard pekerjaan Karyawan Swasta di Jakarta Selatan terkait sengketa."
 	)
-	conf, reasons, excerpt = evaluate_match_with_excerpt(
+	_conf, _reasons, excerpt = evaluate_match_with_excerpt(
 		candidate_name="Ronald Richard",
 		candidate_variants=["ronald richard"],
 		context_terms=["Jakarta Selatan", "Karyawan Swasta"],
@@ -360,7 +359,7 @@ def test_calculate_risk_level_medium_threshold():
 	assert calculate_risk_level(findings_2, politeness_score=90) == "Low"
 
 	# >= 3 Medium relevant findings -> Medium
-	findings_3 = findings_2 + [{"severity": "Medium", "match_confidence": 80, "hr_verdict": "Relevant"}]
+	findings_3 = [*findings_2, {"severity": "Medium", "match_confidence": 80, "hr_verdict": "Relevant"}]
 	assert calculate_risk_level(findings_3, politeness_score=90) == "Medium"
 
 	# Politeness score < 60 -> Medium
@@ -417,9 +416,11 @@ def test_mock_provider_runs_offline():
 
 def test_platform_check_provider_profile_matching_and_threshold():
 	from unittest.mock import patch
+
+	from scrapling.parser import Adaptor
+
 	from hris_ats.bgc.fetch import FetchResult
 	from hris_ats.bgc.providers.platform_check import PlatformCheckProvider
-	from scrapling.parser import Adaptor
 
 	provider = PlatformCheckProvider()
 

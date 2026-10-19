@@ -9,11 +9,11 @@ Mendeteksi perubahan struktur situs dan mendeteksi relokasi dengan kemiripan ren
 from __future__ import annotations
 
 import os
-from typing import Any, Tuple
+from typing import Any
 
 try:
-	from scrapling.parser import Adaptor
 	from scrapling.core.storage import SQLiteStorageSystem
+	from scrapling.parser import Adaptor
 except ImportError:
 	Adaptor = None
 	SQLiteStorageSystem = None
@@ -85,7 +85,7 @@ def query_adaptive_element(
 	identifier: str,
 	min_acceptable_similarity: float = 65.0,
 	warning_threshold: float = 85.0,
-) -> Tuple[Any, float, str | None]:
+) -> tuple[Any, float, str | None]:
 	"""
 	Menjalankan pencarian selektor CSS dengan pelacakan adaptif.
 	Mengembalikan: (elements, similarity_score, warning_message)

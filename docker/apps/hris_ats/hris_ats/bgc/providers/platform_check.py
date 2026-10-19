@@ -213,5 +213,5 @@ class PlatformCheckProvider(BaseProvider):
 				"bio_snippet": "",
 				"profile_location": "",
 				"identity_match": 0,
-				"identity_reasons": [f"Gagal memeriksa profil: {str(e)}"],
+				"identity_reasons": [f"Gagal memeriksa profil: {e!s}"],
 			}

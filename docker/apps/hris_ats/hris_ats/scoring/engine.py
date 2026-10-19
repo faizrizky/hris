@@ -8,22 +8,23 @@ Menggabungkan ekstraksi teks, segmentasi bagian, evaluasi 9 metrik, dan kalkulas
 from __future__ import annotations
 
 from typing import Any
-from hris_ats.scoring.extract import extract_cv, ExtractionResult
-from hris_ats.scoring.sections import split_sections
-from hris_ats.scoring.total import calculate_total_score
+
+from hris_ats.scoring.extract import ExtractionResult, extract_cv
 
 # 9 modul metrik
 from hris_ats.scoring.metrics import (
-	ats_friendly,
-	grammar,
-	date_consistency,
-	information_completeness,
-	education_relevance,
-	skill_relevance,
-	experience_relevance,
 	achievement_relevance,
+	ats_friendly,
 	certification_relevance,
+	date_consistency,
+	education_relevance,
+	experience_relevance,
+	grammar,
+	information_completeness,
+	skill_relevance,
 )
+from hris_ats.scoring.sections import split_sections
+from hris_ats.scoring.total import calculate_total_score
 
 METRIC_MODULES = [
 	("ATS friendly", ats_friendly),

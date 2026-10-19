@@ -3,6 +3,7 @@
 
 import json
 import os
+
 import frappe
 from frappe.custom.doctype.custom_field.custom_field import create_custom_fields
 
@@ -448,7 +449,7 @@ def setup_default_lexicon():
 		return
 	fixture_path = frappe.get_app_path("hris_ats", "fixtures", "background_check_lexicon.json")
 	if os.path.exists(fixture_path):
-		with open(fixture_path, "r", encoding="utf-8") as f:
+		with open(fixture_path, encoding="utf-8") as f:
 			items = json.load(f)
 		for item in items:
 			if not frappe.db.exists("Background Check Lexicon", {"category": item["category"], "term": item["term"]}):

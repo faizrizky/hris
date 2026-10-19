@@ -32,7 +32,6 @@ def calculate_total_score(
 			weights_map[w["metric"]] = float(w.get("weight", 0.0))
 
 	# Identifikasi metrik yang aktif dan applicable
-	applicable_results = []
 	sum_applicable_weights = 0.0
 
 	for res in metric_results:
@@ -74,7 +73,7 @@ def calculate_total_score(
 			"reason_params": res.get("reason_params", "{}"),
 		})
 
-	total_score_int = int(round(weighted_sum))
+	total_score_int = round(weighted_sum)
 	total_score_int = max(0, min(100, total_score_int))
 	passed = 1 if total_score_int >= min_score_to_pass else 0
 

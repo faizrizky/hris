@@ -3,13 +3,15 @@
 
 import os
 import shutil
+
 import frappe
 from frappe.tests.utils import FrappeTestCase
+
 from hris_ats.scoring.workflow import (
-	process_resume_screening,
-	get_template_for_job,
-	rescreen,
 	bulk_rescreen,
+	get_template_for_job,
+	process_resume_screening,
+	rescreen,
 )
 
 FIXTURES_DIR = os.path.join(os.path.dirname(__file__), "fixtures")
@@ -57,8 +59,13 @@ class TestResumeScreeningWorkflow(FrappeTestCase):
 		else:
 			self.job_opening = jo
 
+		# Jalankan pengujian sebagai HR Manager sesuai Spesifikasi 8
+		from hris_ats.tests import ensure_test_hr_user
+		self.hr_user = ensure_test_hr_user("hr.test@example.com")
+		frappe.set_user(self.hr_user)
 
 	def tearDown(self):
+		frappe.set_user("Administrator")
 		frappe.db.rollback()
 
 	def _copy_cv_to_public_files(self, filename: str) -> str:
@@ -145,3 +152,18 @@ class TestResumeScreeningWorkflow(FrappeTestCase):
 		# Aksi bulk rescreen
 		res_bulk = bulk_rescreen([applicant.name])
 		self.assertEqual(res_bulk["count"], 1)
+
+	def test_workflow_typing_and_any_runtime_resolution(self):
+		"""Regression test: Ensure Any is properly defined so typing.get_type_hints succeeds without NameError."""
+		import typing
+
+		from hris_ats.scoring import workflow
+
+		hints_rescreen = typing.get_type_hints(workflow.rescreen)
+		self.assertIn("return", hints_rescreen)
+
+		hints_bulk = typing.get_type_hints(workflow.bulk_rescreen)
+		self.assertIn("return", hints_bulk)
+
+		hints_app = typing.get_type_hints(workflow.rescreen_applicant)
+		self.assertIn("return", hints_app)

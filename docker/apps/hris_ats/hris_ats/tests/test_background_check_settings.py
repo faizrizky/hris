@@ -3,6 +3,7 @@
 
 import frappe
 from frappe.tests.utils import FrappeTestCase
+
 from hris_ats.hris_ats.doctype.background_check_settings.background_check_settings import (
 	get_scrapling_browser_status,
 )
@@ -180,6 +181,7 @@ class TestBackgroundCheckSettings(FrappeTestCase):
 	def test_test_fetch_execution_with_mocked_network(self):
 		"""3c: Uji tombol Test Fetch dengan jaringan di-mock pada 3 mode (Company, Browser, Stealth)."""
 		from unittest.mock import patch
+
 		from hris_ats.bgc.fetch import FetchResult
 		from hris_ats.hris_ats.doctype.background_check_settings.background_check_settings import test_fetch
 

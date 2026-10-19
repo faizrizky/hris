@@ -9,12 +9,14 @@ from __future__ import annotations
 import json
 import os
 from typing import Any
+
 import frappe
 from frappe import _
+
+from hris_ats.scoring.engine import METRIC_MODULES
 from hris_ats.scoring.extract import extract_cv
 from hris_ats.scoring.sections import split_sections
 from hris_ats.scoring.total import calculate_total_score
-from hris_ats.scoring.engine import METRIC_MODULES
 
 
 def resolve_file_path(file_url: str | None) -> str:

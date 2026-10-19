@@ -1004,3 +1004,29 @@ Untuk image produksi / staging:
 - **Langkah build browser untuk mode stealth:** Jika lingkungan produksi membutuhkan mode stealth Scrapling, build image produksi memerlukan langkah tambahan di Containerfile/Dockerfile produksi untuk menjalankan `scrapling install` (atau `playwright install chromium && playwright install-deps chromium`) agar browser tersedia di dalam image akhir. Tanpa langkah ini, image hanya mendukung mode fetcher biasa (non-stealth).
 - **Penting:** Jangan menambahkan `hris_ats` ke `docker/apps.json` selama fase pengembangan lokal saat ini.
 
+### Arsitektur Kepatuhan, Keamanan & Fitur ATS
+
+Modul `hris_ats` dibangun dengan standar keamanan dan privasi data yang ketat:
+
+- **Internasionalisasi (i18n)**:
+  - Sumber teks baku menggunakan Bahasa Inggris untuk seluruh DocType JSON, Python, dan JavaScript.
+  - Teks terjemahan dinamis menggunakan pola netral bahasa `*_template` (template berparameter) dan `*_params` (JSON) yang dirender runtime via `hris_ats.i18n.render()`, menghindari anti-pattern f-string di dalam `_()`.
+  - Terjemahan Bahasa Indonesia dikelola di `apps/hris_ats/hris_ats/translations/id.csv`.
+- **Pengaturan Domain & Legal Risk**:
+  - Pengambilan data dibatasi oleh `fetch_blocked_domains` pada `Background Check Settings` (permlevel 1) untuk mencegah akses ke domain berisiko hukum tinggi (misal: Instagram, Facebook, LinkedIn).
+  - Perubahan daftar domain atau pengaktifan mode stealth memerlukan centang pengakuan risiko hukum (`fetch_risk_acknowledged`).
+- **Kepatuhan UU PDP (Persetujuan Kandidat)**:
+  - Kandidat memberikan persetujuan eksplisit (opt-in aktif tanpa checkbox pre-checked) via web portal `/ats_consent`.
+  - Persetujuan per-akun media sosial (`social_consent`) wajib sebelum data postingan diperiksa.
+  - Penarikan persetujuan (`revoke_consent`) secara otomatis menghapus dokumen `Background Check Finding`, data turunan akun, folder artefak crawl pada disk (`crawldir`), dan cache Redis.
+- **Dialog Test Fetch**:
+  - Tombol aksi **Test Fetch** pada `Background Check Settings` memfasilitasi pengujian koneksi ke URL target secara interaktif (Company, Browser, Stealth modes).
+- **Keamanan Cache & Hak Akses (Spesifikasi 8)**:
+  - Cache Redis menggunakan hash HMAC-SHA256 dengan *site secret key* agar nama kandidat dan URL tidak terekspos dalam keyspace Redis.
+  - Mode live menerapkan fail-closed jika Redis tidak tersedia.
+  - Akses dokumen `Background Check` dan `Finding` dibatasi secara ketat hanya untuk role `Background Check Officer` dan `HR Manager`; akses bagi `System Manager` ditolak untuk menjaga kerahasiaan data investigasi.
+
+Rujukan lengkap dan laporan audit perbaikan:
+- Dokumentasi modul: [apps/hris_ats/README.md](apps/hris_ats/README.md)
+- Rekapitulasi temuan audit: [apps/hris_ats/AUDIT.md](apps/hris_ats/AUDIT.md)
+

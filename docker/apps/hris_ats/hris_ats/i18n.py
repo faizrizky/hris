@@ -8,6 +8,7 @@ import json
 import os
 import re
 from typing import Any
+
 import frappe
 from frappe import _
 
@@ -21,7 +22,7 @@ def _load_csv_translations() -> dict[str, str]:
 		try:
 			csv_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "translations", "id.csv")
 			if os.path.exists(csv_path):
-				with open(csv_path, "r", encoding="utf-8") as f:
+				with open(csv_path, encoding="utf-8") as f:
 					for row in csv.reader(f):
 						if row and len(row) >= 2:
 							_CSV_TRANSLATIONS[row[0]] = row[1]

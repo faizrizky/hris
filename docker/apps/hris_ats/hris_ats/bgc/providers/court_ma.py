@@ -34,11 +34,6 @@ try:
 except ImportError:
 	Adaptor = None
 
-try:
-	from scrapling.spiders.spider import Spider
-except ImportError:
-	Spider = object
-
 
 ID_MONTHS = {
 	"januari": "01",
@@ -404,16 +399,11 @@ def parse_court_ma_detail_page(
 	return data
 
 
-class CourtMASpider(Spider):
-	"""Spider Scrapling untuk penelusuran Direktori Putusan MA (referensi arsitektur Spider)."""
-	name: str = "court_ma_spider"
-	concurrent_requests: int = 1
-	concurrent_requests_per_domain: int = 1
-	robots_txt_obey: bool = True
-
-	def __init__(self, *args, **kwargs):
-		super().__init__(*args, **kwargs)
-		self.findings: list[FindingData] = []
+# Catatan Arsitektur:
+# Penelusuran halaman direktori putusan Mahkamah Agung dilakukan secara prosedural lewat
+# CourtMAProvider dan fetch.py (bukan Scrapling Spider), untuk memastikan penegakan batas
+# laju domain terdistribusi di Redis, kepatuhan robots.txt, stealth browsing, dan secret cache
+# HMAC tetap seragam di seluruh pipeline BGC. Kelas Spider kosong (CourtMASpider) telah dihapus.
 
 
 class CourtMAProvider(BaseProvider):
@@ -473,7 +463,7 @@ class CourtMAProvider(BaseProvider):
 				result["pdf_url"] = pdf_url
 				result["is_scan"] = False
 				return result
-			except Exception as e:
+			except Exception:
 				return {"is_scan": False, "role": "", "occupation": "", "city": "", "excerpt": "", "pdf_url": pdf_url}
 
 	def run(
@@ -496,7 +486,7 @@ class CourtMAProvider(BaseProvider):
 			context_terms = [t.strip() for t in context_terms.split(",") if t.strip()]
 		candidate_city = candidate_data.get("city") or candidate_data.get("candidate_city")
 		if candidate_city and candidate_city not in context_terms:
-			context_terms = list(context_terms) + [candidate_city]
+			context_terms = [*list(context_terms), candidate_city]
 
 		max_results = 50
 		if settings and isinstance(settings, dict):

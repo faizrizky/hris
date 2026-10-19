@@ -9,7 +9,9 @@ serta kecocokan akun platform profil publik (identity_match).
 from __future__ import annotations
 
 import re
+
 from rapidfuzz import fuzz
+
 from hris_ats.i18n import LocalizedText
 
 TITLES = [
@@ -311,12 +313,10 @@ def calculate_account_identity_match(
 
 	if clean_display and all_variants:
 		best_ratio = 0.0
-		best_v = ""
 		for v in all_variants:
 			ratio = fuzz.token_sort_ratio(v, clean_display)
 			if ratio > best_ratio:
 				best_ratio = ratio
-				best_v = v
 
 		if clean_display == clean_cand or best_ratio >= 99.0:
 			name_score = 50

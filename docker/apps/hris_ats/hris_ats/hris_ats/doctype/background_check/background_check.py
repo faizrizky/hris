@@ -4,10 +4,11 @@
 import secrets
 from datetime import datetime, timedelta
 from typing import Any
+
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import now_datetime, getdate, nowdate
+from frappe.utils import getdate, now_datetime, nowdate
 
 from hris_ats.bgc.analysis.risk import calculate_risk_level
 from hris_ats.i18n import render

@@ -6,6 +6,7 @@
 from __future__ import annotations
 
 import os
+
 import pytest
 
 from hris_ats.bgc.providers.court_ma import (
@@ -14,7 +15,6 @@ from hris_ats.bgc.providers.court_ma import (
 	parse_court_ma_search_page,
 	parse_indonesian_date,
 )
-
 
 FIXTURES_DIR = os.path.join(
 	os.path.dirname(os.path.dirname(__file__)),
@@ -33,7 +33,7 @@ def test_parse_indonesian_date():
 
 def test_parse_court_ma_search_page_fixture():
 	search_file = os.path.join(FIXTURES_DIR, "search_page_1.html")
-	with open(search_file, "r", encoding="utf-8") as f:
+	with open(search_file, encoding="utf-8") as f:
 		html = f.read()
 
 	items = parse_court_ma_search_page(html)
@@ -61,7 +61,7 @@ def test_parse_court_ma_search_page_fixture():
 
 def test_parse_court_ma_detail_page_fixture():
 	detail_file = os.path.join(FIXTURES_DIR, "detail_case_1.html")
-	with open(detail_file, "r", encoding="utf-8") as f:
+	with open(detail_file, encoding="utf-8") as f:
 		html = f.read()
 
 	data = parse_court_ma_detail_page(html)

@@ -13,7 +13,9 @@ from __future__ import annotations
 import json
 import re
 from typing import Any
+
 from rapidfuzz import fuzz
+
 from hris_ats.scoring.extract import ExtractionResult
 
 DEGREE_LEVELS = {

@@ -14,7 +14,9 @@ from __future__ import annotations
 import json
 import re
 from typing import Any
+
 from rapidfuzz import fuzz
+
 from hris_ats.scoring.extract import ExtractionResult
 from hris_ats.scoring.metrics.date_consistency import extract_date_ranges
 
