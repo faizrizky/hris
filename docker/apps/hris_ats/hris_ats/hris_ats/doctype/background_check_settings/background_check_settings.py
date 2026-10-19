@@ -180,6 +180,7 @@ class BackgroundCheckSettings(Document):
 			not bool(self.fetch_respect_robots)
 			or self.fetch_identity == "Browser"
 			or bool(self.fetch_stealth_mode)
+			or bool(getattr(self, "fetch_use_login_session", 0))
 			or has_removed_blocked_domains
 		)
 

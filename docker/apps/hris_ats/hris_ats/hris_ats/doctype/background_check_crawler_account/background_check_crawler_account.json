@@ -1,0 +1,252 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "autoname": "format:CRAWLER-{platform}-{###}",
+ "creation": "2026-10-19 00:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "platform",
+  "account_label",
+  "account_handle",
+  "enabled",
+  "column_break_basic",
+  "status",
+  "connected_by",
+  "connected_on",
+  "session_expires_on",
+  "section_break_risk",
+  "risk_acknowledged",
+  "legal_reference",
+  "column_break_risk",
+  "risk_ack_by",
+  "risk_ack_on",
+  "section_break_limits",
+  "hourly_limit",
+  "daily_limit",
+  "column_break_limits",
+  "min_delay_seconds",
+  "jitter_seconds",
+  "section_break_usage",
+  "last_checked_on",
+  "last_used_on",
+  "column_break_usage",
+  "last_error",
+  "last_error_template",
+  "last_error_params",
+  "section_break_session",
+  "session"
+ ],
+ "fields": [
+  {
+   "fieldname": "platform",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Platform",
+   "options": "Background Check Platform",
+   "reqd": 1
+  },
+  {
+   "fieldname": "account_label",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Account Label",
+   "reqd": 1
+  },
+  {
+   "fieldname": "account_handle",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Account Handle"
+  },
+  {
+   "default": "1",
+   "fieldname": "enabled",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Enabled"
+  },
+  {
+   "fieldname": "column_break_basic",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "Not connected",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Status",
+   "options": "Not connected\nConnected\nChallenge\nExpired\nDisabled",
+   "read_only": 1
+  },
+  {
+   "fieldname": "connected_by",
+   "fieldtype": "Link",
+   "label": "Connected By",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "fieldname": "connected_on",
+   "fieldtype": "Datetime",
+   "label": "Connected On",
+   "read_only": 1
+  },
+  {
+   "fieldname": "session_expires_on",
+   "fieldtype": "Datetime",
+   "label": "Session Expires On",
+   "read_only": 1
+  },
+  {
+   "description": "Risk acknowledgment required before initiating login or utilizing crawler sessions.",
+   "fieldname": "section_break_risk",
+   "fieldtype": "Section Break",
+   "label": "Legal & Technical Risk Acknowledgment"
+  },
+  {
+   "default": "0",
+   "description": "1. Bypassing anti-bot protection may be considered breaching or bypassing security systems under UU ITE Article 30 paragraph (3), and violates terms of service of source sites.\n2. Ignoring robots.txt and impersonating a browser violates terms of service of many sites and may cause server IP bans, including for other services on the same server.\n3. The decision to enable it should be approved by Legal and formally recorded.",
+   "fieldname": "risk_acknowledged",
+   "fieldtype": "Check",
+   "label": "Acknowledge Legal and Technical Risks"
+  },
+  {
+   "fieldname": "legal_reference",
+   "fieldtype": "Data",
+   "label": "Legal Reference"
+  },
+  {
+   "fieldname": "column_break_risk",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "risk_ack_by",
+   "fieldtype": "Link",
+   "label": "Risk Acknowledged By",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "fieldname": "risk_ack_on",
+   "fieldtype": "Datetime",
+   "label": "Risk Acknowledged On",
+   "read_only": 1
+  },
+  {
+   "description": "Configure rate limits and randomized delay jitter for crawler requests.",
+   "fieldname": "section_break_limits",
+   "fieldtype": "Section Break",
+   "label": "Rate Limits & Delays"
+  },
+  {
+   "default": "5",
+   "fieldname": "hourly_limit",
+   "fieldtype": "Int",
+   "label": "Hourly Limit"
+  },
+  {
+   "default": "40",
+   "fieldname": "daily_limit",
+   "fieldtype": "Int",
+   "label": "Daily Limit"
+  },
+  {
+   "fieldname": "column_break_limits",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "20",
+   "fieldname": "min_delay_seconds",
+   "fieldtype": "Int",
+   "label": "Min Delay Seconds"
+  },
+  {
+   "default": "25",
+   "fieldname": "jitter_seconds",
+   "fieldtype": "Int",
+   "label": "Jitter Seconds"
+  },
+  {
+   "collapsible": 1,
+   "description": "Audit timestamps and last encountered crawler errors.",
+   "fieldname": "section_break_usage",
+   "fieldtype": "Section Break",
+   "label": "Last Error Details"
+  },
+  {
+   "fieldname": "last_checked_on",
+   "fieldtype": "Datetime",
+   "label": "Last Checked On",
+   "read_only": 1
+  },
+  {
+   "fieldname": "last_used_on",
+   "fieldtype": "Datetime",
+   "label": "Last Used On",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_usage",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "last_error",
+   "fieldtype": "Small Text",
+   "label": "Last Error",
+   "read_only": 1
+  },
+  {
+   "fieldname": "last_error_template",
+   "fieldtype": "Small Text",
+   "label": "Last Error Template",
+   "read_only": 1
+  },
+  {
+   "fieldname": "last_error_params",
+   "fieldtype": "Small Text",
+   "label": "Last Error Parameters",
+   "read_only": 1
+  },
+  {
+   "description": "Encrypted session authentication state storage.",
+   "fieldname": "section_break_session",
+   "fieldtype": "Section Break",
+   "hidden": 1,
+   "label": "Stored Session"
+  },
+  {
+   "fieldname": "session",
+   "fieldtype": "Password",
+   "hidden": 1,
+   "label": "Session",
+   "no_copy": 1,
+   "print_hide": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-10-19 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "HRIS ATS",
+ "name": "Background Check Crawler Account",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 0,
+   "print": 0,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 0,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

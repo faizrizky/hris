@@ -334,6 +334,8 @@ DEFAULT_PLATFORMS = [
 		"check_value": "200",
 		"post_api": "None",
 		"requires_social_consent": 1,
+		"login_url": "https://www.linkedin.com/login",
+		"session_domains": ".linkedin.com\nlinkedin.com",
 		"enabled": 1,
 	},
 	{
@@ -356,6 +358,8 @@ DEFAULT_PLATFORMS = [
 		"check_value": "200",
 		"post_api": "None",
 		"requires_social_consent": 1,
+		"login_url": "https://www.instagram.com/accounts/login/",
+		"session_domains": ".instagram.com\ninstagram.com",
 		"enabled": 1,
 	},
 	{
@@ -367,6 +371,8 @@ DEFAULT_PLATFORMS = [
 		"check_value": "200",
 		"post_api": "None",
 		"requires_social_consent": 1,
+		"login_url": "https://www.facebook.com/login/",
+		"session_domains": ".facebook.com\nfacebook.com",
 		"enabled": 1,
 	},
 	{
@@ -378,6 +384,8 @@ DEFAULT_PLATFORMS = [
 		"check_value": "200",
 		"post_api": "None",
 		"requires_social_consent": 1,
+		"login_url": "https://www.tiktok.com/login",
+		"session_domains": ".tiktok.com\ntiktok.com",
 		"enabled": 1,
 	},
 	{
@@ -437,10 +445,21 @@ def setup_default_platforms():
 			doc.update(p)
 			doc.insert(ignore_permissions=True)
 		else:
+			update_vals = {}
 			if p.get("requires_social_consent"):
 				val = frappe.db.get_value("Background Check Platform", p["platform_name"], "requires_social_consent")
 				if not val:
-					frappe.db.set_value("Background Check Platform", p["platform_name"], "requires_social_consent", 1, update_modified=False)
+					update_vals["requires_social_consent"] = 1
+			if p.get("login_url"):
+				curr_url = frappe.db.get_value("Background Check Platform", p["platform_name"], "login_url")
+				if not curr_url:
+					update_vals["login_url"] = p["login_url"]
+			if p.get("session_domains"):
+				curr_doms = frappe.db.get_value("Background Check Platform", p["platform_name"], "session_domains")
+				if not curr_doms:
+					update_vals["session_domains"] = p["session_domains"]
+			if update_vals:
+				frappe.db.set_value("Background Check Platform", p["platform_name"], update_vals, update_modified=False)
 
 
 def setup_default_lexicon():

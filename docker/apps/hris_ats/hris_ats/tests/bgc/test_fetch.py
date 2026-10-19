@@ -356,7 +356,7 @@ def test_login_page_detection_and_title_extraction():
 	</body>
 	</html>
 	"""
-	gh_login_title, gh_login_preview = extract_title_and_text(github_login_html)
+	_gh_login_title, gh_login_preview = extract_title_and_text(github_login_html)
 	assert detect_login_page("https://github.com/login", github_login_html, gh_login_preview) is True
 	# Bahkan jika URL tidak ada kata login, form password tetap terdeteksi
 	assert detect_login_page("https://github.com/session_check", github_login_html, gh_login_preview) is True
@@ -371,9 +371,11 @@ def test_login_page_detection_and_title_extraction():
 
 def test_hmac_cache_key_generation():
 	"""Pengujian kunci cache HMAC-SHA256: tidak membocorkan nama kandidat / URL mentah ke Redis, dan gagal tertutup bila rahasia tidak ada."""
-	from unittest.mock import patch
 	import types
+	from unittest.mock import patch
+
 	import pytest
+
 	from hris_ats.bgc.fetch import get_cache_key, get_site_secret, hash_url
 
 	# 1. Gagal tertutup (fail-closed) jika tidak ada secret_key maupun encryption_key

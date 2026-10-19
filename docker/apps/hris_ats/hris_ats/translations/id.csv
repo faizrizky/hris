@@ -713,4 +713,109 @@ Crawler Accounts,Akun Crawler
 No crawler accounts configured yet. Authenticated crawler accounts will be set up in Phase 2.,Belum ada akun crawler yang dikonfigurasi. Akun crawler terotentikasi akan disiapkan pada Fase 2.
 Consent Terms & Versioning,Ketentuan Persetujuan & Penomoran Versi
 Bilingual consent terms presented to candidates on the candidate consent portal.,Ketentuan persetujuan dwibahasa yang ditampilkan kepada kandidat pada portal persetujuan kandidat.
+Background Check Crawler Account,Akun Crawler Pemeriksaan Latar Belakang
+Account Label,Label Akun
+Account Handle,Handle Akun
+Session Status,Status Sesi
+Rate Limits & Delays,Batas Laju & Jeda
+Hourly Limit,Batas Per Jam
+Daily Limit,Batas Harian
+Min Delay Seconds,Jeda Minimal Detik
+Jitter Seconds,Jitter Detik
+Legal Reference,Rujukan Legal
+Not connected,Belum terhubung
+Connected,Terhubung
+Challenge,Tantangan Keamanan
+Disabled,Dinonaktifkan
+Last Error Details,Rincian Galat Terakhir
+Stored Session,Sesi Tersimpan
+Connected By,Dihubungkan Oleh
+Connected On,Dihubungkan Pada
+Session Expires On,Sesi Kedaluwarsa Pada
+Last Checked On,Terakhir Diperiksa Pada
+Last Used On,Terakhir Digunakan Pada
+Risk acknowledgment required before initiating login or utilizing crawler sessions.,Pengakuan risiko wajib dilakukan sebelum memulai login atau menggunakan sesi crawler.
+Configure rate limits and randomized delay jitter for crawler requests.,Konfigurasikan batas laju dan variasi jeda acak untuk permintaan crawler.
+Audit timestamps and last encountered crawler errors.,Stempel waktu audit dan galat crawler terakhir yang ditemui.
+Encrypted session authentication state storage.,Penyimpanan status otentikasi sesi terenkripsi.
+Crawler & Login Configuration,Konfigurasi Crawler & Login
+Login URL,URL Login
+Session Cookie Domains,Domain Cookie Sesi
+"Cookie domains saved from crawler login session, one per line.","Domain cookie yang disimpan dari sesi login crawler, satu per baris."
+Configure login URL and session cookie domains for crawler sessions.,Konfigurasikan URL login dan domain cookie sesi untuk sesi crawler.
+Enable Social Media Accounts,Aktifkan Akun Media Sosial
+Social Max Posts,Batas Maksimal Postingan Media Sosial
+Limit social posts collected per candidate account.,Batasi postingan media sosial yang dikumpulkan per akun kandidat.
+Social Lookback Months,Periode Mundur Media Sosial (Bulan)
+Lookback period in months for historical social posts.,Periode peninjauan ke belakang dalam bulan untuk riwayat postingan media sosial.
+Max Candidate Export Size (MB),Batas Ukuran Ekspor Kandidat (MB)
+Maximum allowed file size for candidate data export packages in megabytes.,Batas ukuran berkas maksimal untuk paket ekspor data kandidat dalam megabita.
+Use Crawler Account Login Session,Gunakan Sesi Login Akun Crawler
+Use authenticated crawler account sessions for platforms requiring login.,Gunakan sesi akun crawler terotentikasi untuk platform yang membutuhkan login.
+Duplicate Active Account,Akun Aktif Duplikat
+"Only one active crawler account is allowed per platform ({0}). Existing active account: {1}","Hanya satu akun crawler aktif yang diizinkan per platform ({0}). Akun aktif yang sudah ada: {1}"
+Test Session,Uji Sesi
+Disconnect,Putuskan
+Login,Masuk
+Testing crawler account session...,Menguji sesi akun crawler...
+Are you sure you want to disconnect this crawler account? Stored session credentials will be permanently erased.,Apakah Anda yakin ingin memutuskan akun crawler ini? Kredensial sesi tersimpan akan dihapus secara permanen.
+Crawler account disconnected.,Akun crawler berhasil diputuskan.
+You must check 'Acknowledge Legal and Technical Risks' before initiating interactive login.,Anda harus mencentang 'Konfirmasi Pengakuan Risiko Hukum dan Teknis' sebelum memulai login interaktif.
+Last Error,Galat Terakhir
+Last Error Template,Template Galat Terakhir
+Last Error Parameters,Parameter Galat Terakhir
+Session,Sesi
+"Account is not connected (current status: {0}).","Akun tidak terhubung (status saat ini: {0})."
+Account risk acknowledgment is required before starting login session.,Persetujuan risiko akun wajib dicentang sebelum memulai sesi login.
+Active,Aktif
+Add Crawler Account,Tambah Akun Crawler
+All session cookies have expired.,Semua cookie sesi telah kedaluwarsa.
+Browser Not Installed,Browser Belum Terpasang
+"Click 'Add Crawler Account' to set up an account per platform.","Klik 'Tambah Akun Crawler' untuk menyiapkan akun per platform."
+Complete Login,Selesaikan Login
+Configured Crawler Accounts,Daftar Akun Crawler yang Dikonfigurasi
+Connecting...,Menghubungkan...
+Crawler Account {0} is disabled.,Akun Crawler {0} dinonaktifkan.
+Crawler Account {0} not found.,Akun Crawler {0} tidak ditemukan.
+Crawler account connected successfully.,Akun crawler berhasil terhubung.
+Crawler account session saved successfully.,Sesi akun crawler berhasil disimpan.
+Dedicated company accounts used to access restricted social profile views.,Akun resmi perusahaan khusus untuk mengakses tampilan profil media sosial yang dibatasi.
+Discovered cookie domains,Domain cookie yang ditemukan
+Enabling crawler login sessions requires acknowledging legal and technical risks.,Mengaktifkan sesi login crawler memerlukan pengakuan risiko hukum dan teknis.
+Encrypting and saving session...,Menenkripsi dan menyimpan sesi...
+Fixed viewport: 1024x768,Viewport tetap: 1024x768
+"Human interactive login. Click and type directly into the browser view. Credentials are never logged by the system.","Login interaktif manusia. Klik dan ketik langsung di tampilan browser. Kredensial tidak pernah dicatat oleh sistem."
+Import and Save,Impor dan Simpan
+"Interactive Login: {0} ({1})","Login Interaktif: {0} ({1})"
+"Invalid JSON format for session storage state: {0}","Format JSON status penyimpanan sesi tidak valid: {0}"
+Last Login,Terakhir Login
+Last Used,Terakhir Dipakai
+Loading crawler accounts...,Memuat akun crawler...
+Loading remote browser session...,Memuat sesi browser jarak jauh...
+Login Successful,Login Berhasil
+Login session has expired or closed.,Sesi login telah kedaluwarsa atau ditutup.
+"Manual Cookie / Storage State Import: {0}","Impor Cookie / Storage State Manual: {0}"
+Manual Cookie Import,Impor Cookie Manual
+Manual session imported successfully.,Sesi manual berhasil diimpor.
+No crawler accounts configured.,Belum ada akun crawler yang dikonfigurasi.
+"No valid authentication cookies found matching platform session domains: {0}","Tidak ditemukan cookie otentikasi valid yang cocok dengan domain sesi platform: {0}"
+Only System Manager can manage crawler accounts and sessions.,Hanya System Manager yang dapat mengelola akun dan sesi crawler.
+"Paste the exported JSON storage state or array of cookies from your browser session. Only cookies matching the platform session domains will be retained and securely encrypted.","Tempelkan status penyimpanan JSON atau daftar cookie hasil ekspor dari sesi browser Anda. Hanya cookie yang cocok dengan domain sesi platform yang akan disimpan dan dienkripsi secara aman."
+Platform {0} does not have a login URL configured.,Platform {0} belum memiliki URL login yang dikonfigurasi.
+"Playwright/Chromium browser is not installed on the server. Run './dev-ats.sh --with-browsers' first.","Browser Playwright/Chromium belum terpasang di server. Jalankan './dev-ats.sh --with-browsers' terlebih dahulu."
+Risk acknowledgment in Background Check Settings is required before using crawler accounts.,Pengakuan risiko di Pengaturan Background Check wajib disetujui sebelum menggunakan akun crawler.
+Risk acknowledgment is required before saving crawler session.,Pengakuan risiko wajib disetujui sebelum menyimpan sesi crawler.
+Session Expiry,Kedaluwarsa Sesi
+Session Saved,Sesi Disimpan
+Session expires on,Sesi kedaluwarsa pada
+"Session valid: {0} active cookies found.","Sesi valid: ditemukan {0} cookie aktif."
+Session {0} not found or expired.,Sesi {0} tidak ditemukan atau telah kedaluwarsa.
+Starting remote browser on server...,Memulai browser jarak jauh di server...
+Storage State / Cookies (JSON),Status Penyimpanan / Cookie (JSON)
+Stored session state is empty or invalid.,Status sesi tersimpan kosong atau tidak valid.
+Testing...,Menguji...
+Timeout waiting for crawler browser to capture session state.,Batas waktu habis saat menunggu browser crawler mengambil status sesi.
+Verifying & saving session...,Memverifikasi & menyimpan sesi...
+"You must open the Crawler Account record and check 'Acknowledge Legal and Technical Risks' before initiating interactive login.","Anda harus membuka data Akun Crawler dan mencentang 'Akui Risiko Hukum dan Teknis' sebelum memulai login interaktif."
+none,tidak ada
 

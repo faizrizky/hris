@@ -21,7 +21,10 @@
   "section_break_adaptive",
   "display_name_selector",
   "bio_selector",
-  "location_selector"
+  "location_selector",
+  "section_break_crawler",
+  "login_url",
+  "session_domains"
  ],
  "fields": [
   {
@@ -116,6 +119,23 @@
    "fieldname": "requires_social_consent",
    "fieldtype": "Check",
    "label": "Requires Social Media Consent"
+  },
+  {
+   "description": "Configure login URL and session cookie domains for crawler sessions.",
+   "fieldname": "section_break_crawler",
+   "fieldtype": "Section Break",
+   "label": "Crawler & Login Configuration"
+  },
+  {
+   "fieldname": "login_url",
+   "fieldtype": "Data",
+   "label": "Login URL"
+  },
+  {
+   "description": "Cookie domains saved from crawler login session, one per line.",
+   "fieldname": "session_domains",
+   "fieldtype": "Small Text",
+   "label": "Session Cookie Domains"
   }
  ],
  "index_web_pages_for_search": 1,

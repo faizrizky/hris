@@ -16,12 +16,15 @@
   "column_break_sources",
   "enable_case_history",
   "enable_posts",
+  "enable_social_media",
   "section_break_thresholds",
   "min_match_confidence",
   "max_results_per_source",
+  "social_max_posts",
   "column_break_param",
   "rate_limit_per_minute",
   "retention_days",
+  "social_lookback_months",
   "tab_providers",
   "section_web_search",
   "search_provider",
@@ -31,6 +34,7 @@
   "youtube_api_key",
   "column_break_cred",
   "github_token",
+  "export_max_mb",
   "tab_page_fetching",
   "section_break_fetch_mode",
   "fetch_respect_robots",
@@ -51,7 +55,8 @@
   "fetch_risk_ack_on",
   "tab_social_accounts",
   "section_social_accounts",
-  "social_accounts_placeholder",
+  "fetch_use_login_session",
+  "crawler_accounts_html",
   "tab_consent",
   "section_break_consent",
   "consent_text_version",
@@ -124,6 +129,12 @@
    "label": "Enable Public Posts API"
   },
   {
+   "default": "1",
+   "fieldname": "enable_social_media",
+   "fieldtype": "Check",
+   "label": "Enable Social Media Accounts"
+  },
+  {
    "description": "Confidence thresholds, rate limits, and raw data retention periods.",
    "fieldname": "section_break_thresholds",
    "fieldtype": "Section Break",
@@ -142,6 +153,13 @@
    "label": "Max Results Per Source"
   },
   {
+   "default": "200",
+   "description": "Limit social posts collected per candidate account.",
+   "fieldname": "social_max_posts",
+   "fieldtype": "Int",
+   "label": "Social Max Posts"
+  },
+  {
    "fieldname": "column_break_param",
    "fieldtype": "Column Break"
   },
@@ -156,6 +174,13 @@
    "fieldname": "retention_days",
    "fieldtype": "Int",
    "label": "Retention Days (Purge Raw Findings)"
+  },
+  {
+   "default": "12",
+   "description": "Lookback period in months for historical social posts.",
+   "fieldname": "social_lookback_months",
+   "fieldtype": "Int",
+   "label": "Social Lookback Months"
   },
   {
    "fieldname": "tab_providers",
@@ -204,6 +229,13 @@
    "fieldname": "github_token",
    "fieldtype": "Password",
    "label": "GitHub Personal Access Token"
+  },
+  {
+   "default": "100",
+   "description": "Maximum allowed file size for candidate data export packages in megabytes.",
+   "fieldname": "export_max_mb",
+   "fieldtype": "Int",
+   "label": "Max Candidate Export Size (MB)"
   },
   {
    "fieldname": "tab_page_fetching",
@@ -341,7 +373,15 @@
    "permlevel": 1
   },
   {
-   "fieldname": "social_accounts_placeholder",
+   "default": "0",
+   "description": "Use authenticated crawler account sessions for platforms requiring login.",
+   "fieldname": "fetch_use_login_session",
+   "fieldtype": "Check",
+   "label": "Use Crawler Account Login Session",
+   "permlevel": 1
+  },
+  {
+   "fieldname": "crawler_accounts_html",
    "fieldtype": "HTML",
    "label": "Crawler Accounts",
    "permlevel": 1

@@ -76,6 +76,7 @@ fi
 # 5. Bangun aset frontend hris_ats
 echo "[dev-ats] Membangun aset hris_ats..."
 docker compose exec -T backend bench build --app hris_ats
+docker compose exec -T -u root frontend ln -sf /home/frappe/frappe-bench/apps/hris_ats/hris_ats/public /home/frappe/frappe-bench/assets/hris_ats 2>/dev/null || true
 
 # 6. Bersihkan cache site
 echo "[dev-ats] Membersihkan cache site..."

@@ -33,3 +33,7 @@ services:
   websocket:
     volumes:
       - ./apps/hris_ats:/home/frappe/frappe-bench/apps/hris_ats
+
+  frontend:
+    volumes:
+      - ./apps/hris_ats:/home/frappe/frappe-bench/apps/hris_ats

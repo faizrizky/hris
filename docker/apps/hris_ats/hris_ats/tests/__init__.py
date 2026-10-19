@@ -31,6 +31,25 @@ def ensure_test_hr_user(email: str = "hr.test@example.com") -> str:
 	return email
 
 
+def ensure_test_bgc_officer_user(email: str = "bgc.officer.test@example.com") -> str:
+	"""Memastikan user test Background Check Officer murni tersedia."""
+	if not frappe.db.exists("User", email):
+		user = frappe.new_doc("User")
+		user.email = email
+		user.first_name = "BGC Officer Test"
+		user.flags.no_welcome_mail = True
+		user.append("roles", {"role": "Background Check Officer"})
+		user.append("roles", {"role": "Employee"})
+		user.insert(ignore_permissions=True)
+	else:
+		u = frappe.get_doc("User", email)
+		existing_roles = {r.role for r in u.roles}
+		if "Background Check Officer" not in existing_roles:
+			u.append("roles", {"role": "Background Check Officer"})
+			u.save(ignore_permissions=True)
+	return email
+
+
 def ensure_test_company(company_name: str = "_Test Company") -> str:
 	"""Memastikan default company tersedia di site pengujian untuk DocType HRMS seperti Job Opening."""
 	if not frappe.db.exists("Company", company_name):

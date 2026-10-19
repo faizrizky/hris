@@ -9,14 +9,24 @@ frappe.ui.form.on("Background Check Settings", {
 			});
 		}
 
-		if (frm.fields_dict.social_accounts_placeholder) {
-			frm.fields_dict.social_accounts_placeholder.$wrapper.html(
-				`<div class="text-muted text-center py-5 border rounded bg-light">
-					<i class="fa fa-users fa-2x mb-2 text-secondary"></i>
-					<div class="font-weight-bold">${__("Social Media Crawler Accounts")}</div>
-					<div class="small mt-1 text-muted">${__("No crawler accounts configured yet. Authenticated crawler accounts will be set up in Phase 2.")}</div>
-				</div>`
-			);
+		if (frm.doc.fetch_browser_status && frm.fields_dict.fetch_browser_status) {
+			let disp = frm.fields_dict.fetch_browser_status.$wrapper.find(".control-value");
+			if (disp.length) {
+				disp.text(__(frm.doc.fetch_browser_status));
+			}
+		}
+
+		if (frm.fields_dict.crawler_accounts_html) {
+			render_crawler_accounts_table(frm);
+		}
+	},
+	fetch_use_login_session: function (frm) {
+		if (frm.doc.fetch_use_login_session && !frm.doc.fetch_risk_acknowledged) {
+			frappe.msgprint({
+				title: __("Risk Acknowledgment Required"),
+				message: __("Enabling crawler login sessions requires acknowledging legal and technical risks."),
+				indicator: "orange"
+			});
 		}
 	},
 	test_fetch_btn: function (frm) {
@@ -152,4 +162,193 @@ function render_test_fetch_results(dialog, data) {
 	`;
 
 	wrapper.html(html);
+}
+
+function render_crawler_accounts_table(frm) {
+	let wrapper = frm.fields_dict.crawler_accounts_html.$wrapper;
+	wrapper.html(`<div class="text-center py-3 text-muted"><span class="spinner-border spinner-border-sm"></span> ${__("Loading crawler accounts...")}</div>`);
+
+	frappe.call({
+		method: "hris_ats.bgc.crawler_session.get_crawler_accounts_list",
+		callback: function (r) {
+			let accounts = r.message || [];
+			let can_edit = frappe.user.has_role("System Manager");
+
+			let html = `
+				<div class="crawler-accounts-container border rounded p-3 bg-white">
+					<div class="d-flex align-items-center justify-content-between mb-3">
+						<div>
+							<h6 class="mb-0 font-weight-bold">${__("Configured Crawler Accounts")}</h6>
+							<small class="text-muted">${__("Dedicated company accounts used to access restricted social profile views.")}</small>
+						</div>
+						${can_edit ? `
+							<button type="button" class="btn btn-xs btn-primary btn-add-crawler">
+								<i class="fa fa-plus me-1"></i> ${__("Add Crawler Account")}
+							</button>
+						` : ""}
+					</div>
+			`;
+
+			if (!accounts.length) {
+				html += `
+					<div class="text-center py-4 border rounded bg-light text-muted">
+						<i class="fa fa-users fa-2x mb-2 text-secondary"></i>
+						<div>${__("No crawler accounts configured.")}</div>
+						${can_edit ? `<div class="small mt-1">${__("Click 'Add Crawler Account' to set up an account per platform.")}</div>` : ""}
+					</div>
+				`;
+			} else {
+				html += `
+					<div class="table-responsive">
+						<table class="table table-bordered table-sm mb-0">
+							<thead class="thead-light">
+								<tr>
+									<th>${__("Platform")}</th>
+									<th>${__("Account Label")}</th>
+									<th>${__("Account Handle")}</th>
+									<th>${__("Status")}</th>
+									<th>${__("Last Login")}</th>
+									<th>${__("Last Used")}</th>
+									<th>${__("Session Expiry")}</th>
+									${can_edit ? `<th style="width: 180px;">${__("Actions")}</th>` : ""}
+								</tr>
+							</thead>
+							<tbody>
+				`;
+
+				accounts.forEach(acc => {
+					let statusBadgeClass = "badge-secondary";
+					let statusIcon = "";
+					if (acc.status === "Connected") {
+						statusBadgeClass = "badge-success";
+						statusIcon = "✅ ";
+					} else if (acc.status === "Challenge") {
+						statusBadgeClass = "badge-warning";
+						statusIcon = "⚠️ ";
+					} else if (acc.status === "Expired") {
+						statusBadgeClass = "badge-danger";
+						statusIcon = "⏱️ ";
+					} else if (acc.status === "Disabled") {
+						statusBadgeClass = "badge-dark";
+					}
+
+					let connectedOn = acc.connected_on ? frappe.datetime.str_to_user(acc.connected_on) : "-";
+					let lastUsed = acc.last_used_on ? frappe.datetime.str_to_user(acc.last_used_on) : "-";
+					let expiresOn = acc.session_expires_on ? frappe.datetime.str_to_user(acc.session_expires_on) : "-";
+
+					html += `
+						<tr data-name="${frappe.utils.escape_html(acc.name)}">
+							<td><strong>${frappe.utils.escape_html(acc.platform)}</strong></td>
+							<td><a href="/app/background-check-crawler-account/${encodeURIComponent(acc.name)}">${frappe.utils.escape_html(acc.account_label)}</a></td>
+							<td><code>${frappe.utils.escape_html(acc.account_handle || "-")}</code></td>
+							<td><span class="badge ${statusBadgeClass}">${statusIcon}${__(acc.status)}</span></td>
+							<td class="small text-muted">${connectedOn}</td>
+							<td class="small text-muted">${lastUsed}</td>
+							<td class="small text-muted">${expiresOn}</td>
+							${can_edit ? `
+								<td>
+									<div class="btn-group btn-group-sm">
+										${acc.status === "Connected" ? `
+											<button type="button" class="btn btn-default btn-xs btn-test-session" data-name="${frappe.utils.escape_html(acc.name)}" title="${__("Test Session")}">
+												${__("Test Session")}
+											</button>
+											<button type="button" class="btn btn-danger btn-xs btn-disconnect-session" data-name="${frappe.utils.escape_html(acc.name)}" title="${__("Disconnect")}">
+												${__("Disconnect")}
+											</button>
+										` : `
+											<button type="button" class="btn btn-primary btn-xs btn-login-session" data-name="${frappe.utils.escape_html(acc.name)}" data-risk="${acc.risk_acknowledged ? 1 : 0}">
+												<i class="fa fa-sign-in me-1"></i> ${__("Login")}
+											</button>
+										`}
+									</div>
+								</td>
+							` : ""}
+						</tr>
+					`;
+				});
+
+				html += `
+							</tbody>
+						</table>
+					</div>
+				`;
+			}
+
+			html += `</div>`;
+			wrapper.html(html);
+
+			// Attach event handlers
+			wrapper.find(".btn-add-crawler").on("click", function () {
+				frappe.new_doc("Background Check Crawler Account");
+			});
+
+			wrapper.find(".btn-login-session").on("click", function () {
+				let accName = $(this).data("name");
+				let riskAck = $(this).data("risk");
+				if (!riskAck) {
+					frappe.msgprint({
+						title: __("Risk Acknowledgment Required"),
+						message: __("You must open the Crawler Account record and check 'Acknowledge Legal and Technical Risks' before initiating interactive login."),
+						indicator: "orange"
+					});
+					return;
+				}
+				if (typeof hris_ats !== "undefined" && hris_ats.show_crawler_login_dialog) {
+					hris_ats.show_crawler_login_dialog(accName, function () {
+						render_crawler_accounts_table(frm);
+					});
+				} else {
+					frappe.require("/assets/hris_ats/js/crawler_login_dialog.js", function () {
+						hris_ats.show_crawler_login_dialog(accName, function () {
+							render_crawler_accounts_table(frm);
+						});
+					});
+				}
+			});
+
+			wrapper.find(".btn-test-session").on("click", function () {
+				let accName = $(this).data("name");
+				let btn = $(this).prop("disabled", true).text(__("Testing..."));
+				frappe.call({
+					method: "hris_ats.bgc.crawler_session.test_account_session",
+					args: { account_name: accName },
+					callback: function (res) {
+						btn.prop("disabled", false).text(__("Test Session"));
+						if (res.message) {
+							frappe.msgprint({
+								title: __("Session Status"),
+								message: res.message.message,
+								indicator: res.message.status === "Connected" ? "green" : "red"
+							});
+							render_crawler_accounts_table(frm);
+						}
+					},
+					error: function () {
+						btn.prop("disabled", false).text(__("Test Session"));
+					}
+				});
+			});
+
+			wrapper.find(".btn-disconnect-session").on("click", function () {
+				let accName = $(this).data("name");
+				frappe.confirm(
+					__("Are you sure you want to disconnect this crawler account? Stored session credentials will be permanently erased."),
+					function () {
+						frappe.call({
+							method: "hris_ats.bgc.crawler_session.disconnect_account",
+							args: { account_name: accName },
+							freeze: true,
+							callback: function () {
+								frappe.show_alert({
+									message: __("Crawler account disconnected."),
+									indicator: "info"
+								});
+								render_crawler_accounts_table(frm);
+							}
+						});
+					}
+				);
+			});
+		}
+	});
 }
