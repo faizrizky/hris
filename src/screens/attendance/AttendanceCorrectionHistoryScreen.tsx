@@ -106,6 +106,13 @@ export function AttendanceCorrectionHistoryScreen({ navigation }: ScreenProps) {
         })}
       </View>
 
+      {paged.matchedCount > 0 || paged.isSearching ? (
+        <ListSearchBar
+          inset
+          value={paged.query}
+          onChangeText={paged.changeQuery}
+        />
+      ) : null}
       <FlatList
         data={paged.visibleItems}
         keyExtractor={(item) => item.id}
@@ -159,10 +166,6 @@ export function AttendanceCorrectionHistoryScreen({ navigation }: ScreenProps) {
                 </Text>
               </View>
             ) : null}
-            <ListSearchBar
-              value={paged.query}
-              onChangeText={paged.changeQuery}
-            />
           </>
         }
         ListFooterComponent={

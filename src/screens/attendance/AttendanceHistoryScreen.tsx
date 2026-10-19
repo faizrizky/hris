@@ -75,6 +75,13 @@ export function AttendanceHistoryScreen({ navigation }: ScreenProps) {
         })}
       </View>
 
+      {paged.matchedCount > 0 || paged.isSearching ? (
+        <ListSearchBar
+          inset
+          value={paged.query}
+          onChangeText={paged.changeQuery}
+        />
+      ) : null}
       <FlatList
         data={paged.visibleItems}
         keyExtractor={(item) => item.id}
@@ -135,11 +142,6 @@ export function AttendanceHistoryScreen({ navigation }: ScreenProps) {
                 </DonutChart>
               )}
             </View>
-
-            <ListSearchBar
-              value={paged.query}
-              onChangeText={paged.changeQuery}
-            />
           </>
         }
         ListFooterComponent={

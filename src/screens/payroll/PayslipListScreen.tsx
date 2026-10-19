@@ -1,4 +1,7 @@
 import { useMemo } from "react";
+import { usePagedList } from "@/hooks/usePagedList";
+import { searchableText } from "@/utils/searchText";
+import { ListSearchBar } from "@/components/ListSearchBar";
 import type { ScreenProps } from "@/navigation/types";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { RevealScrollView as ScrollView } from "@/components/Reveal";
@@ -25,6 +28,7 @@ export function PayslipListScreen({ navigation }: ScreenProps) {
   const insets = useSafeAreaInsets();
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
+  const paged = usePagedList(previous, searchableText);
   return (
     <View style={styles.container}>
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
@@ -42,6 +46,13 @@ export function PayslipListScreen({ navigation }: ScreenProps) {
         <ErrorState message={slip.error} onRetry={slip.retry} />
       ) : null}
 
+      {previous.length > 0 ? (
+        <ListSearchBar
+          inset
+          value={paged.query}
+          onChangeText={paged.changeQuery}
+        />
+      ) : null}
       <ScrollView contentContainerStyle={styles.content}>
         {isPayslipLoading && (
           <>
@@ -111,7 +122,7 @@ export function PayslipListScreen({ navigation }: ScreenProps) {
         {previous.length > 0 && (
           <>
             <Text style={styles.sectionTitle}>{t("pay.sebelumnya")}</Text>
-            <PayslipHistoryCard items={previous} />
+            <PayslipHistoryCard paged={paged} />
           </>
         )}
       </ScrollView>

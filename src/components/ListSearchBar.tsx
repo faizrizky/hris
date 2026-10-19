@@ -9,15 +9,17 @@ export function ListSearchBar({
   value,
   onChangeText,
   placeholder,
+  inset = false,
 }: {
   value: string;
   onChangeText: (text: string) => void;
   placeholder?: string;
+  inset?: boolean; // true: dipasang di luar area scroll, dengan jarak samping halaman
 }) {
   const c = useTheme();
   const t = useT();
   const styles = useMemo(() => makeStyles(c), [c]);
-  return (
+  const bar = (
     <View style={styles.box}>
       <Ionicons name="search-outline" size={17} color={c.mutedLabel} />
       <TextInput
@@ -36,10 +38,12 @@ export function ListSearchBar({
       ) : null}
     </View>
   );
+  return inset ? <View style={styles.inset}>{bar}</View> : bar;
 }
 
 const makeStyles = (c: Palette) =>
   StyleSheet.create({
+    inset: { paddingHorizontal: 18, paddingTop: 4 },
     box: {
       flexDirection: "row",
       alignItems: "center",

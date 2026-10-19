@@ -1,5 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
-import { PagedList } from "@/components/PagedList";
+import { usePagedList } from "@/hooks/usePagedList";
+import { searchableText } from "@/utils/searchText";
+import { ListSearchBar } from "@/components/ListSearchBar";
+import { PagedItems } from "@/components/PagedItems";
 import type { ScreenProps } from "@/navigation/types";
 import {
   ActivityIndicator,
@@ -45,6 +48,7 @@ export function FaceReviewScreen({ navigation }: ScreenProps) {
   const insets = useSafeAreaInsets();
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
+  const paged = usePagedList(items, searchableText);
   return (
     <View style={styles.container}>
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
@@ -60,6 +64,13 @@ export function FaceReviewScreen({ navigation }: ScreenProps) {
         </View>
       </View>
 
+      {items.length > 0 ? (
+        <ListSearchBar
+          inset
+          value={paged.query}
+          onChangeText={paged.changeQuery}
+        />
+      ) : null}
       <ScrollView contentContainerStyle={styles.list}>
         {errorMessage ? (
           <Text style={styles.errorText}>{errorMessage}</Text>
@@ -78,8 +89,8 @@ export function FaceReviewScreen({ navigation }: ScreenProps) {
             text={t("fr.kosongIsi")}
           />
         ) : (
-          <PagedList
-            items={items}
+          <PagedItems
+            paged={paged}
             renderItem={(f) => (
               <Card
                 key={f.name}

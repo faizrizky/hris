@@ -246,9 +246,9 @@
     "semantic_hash": ""
   },
   "src/screens/attendance/AttendanceCorrectionHistoryScreen.tsx": {
-    "mtime": 1792329339.6122723,
-    "seen": 1792329488.13692,
-    "ast_hash": "e54024497b9af1bc14be63c44740ba45",
+    "mtime": 1792398897.3739724,
+    "seen": 1792398972.38961,
+    "ast_hash": "11ef4ee688269cf2c289616ad7ca572e",
     "semantic_hash": ""
   },
   "src/screens/attendance/AttendanceCorrectionScreen.tsx": {
@@ -258,9 +258,9 @@
     "semantic_hash": ""
   },
   "src/screens/attendance/AttendanceHistoryScreen.tsx": {
-    "mtime": 1792329301.797327,
-    "seen": 1792329488.1369221,
-    "ast_hash": "914ed18c266e565d103647e8e2e0639e",
+    "mtime": 1792398897.3727765,
+    "seen": 1792398972.389615,
+    "ast_hash": "1872c0e1703807663e68349e41bb2db1",
     "semantic_hash": ""
   },
   "src/screens/attendance/ClockScreen.tsx": {
@@ -282,9 +282,9 @@
     "semantic_hash": ""
   },
   "src/screens/home/HomeScreen.tsx": {
-    "mtime": 1792308141.3062885,
-    "seen": 1792308825.49117,
-    "ast_hash": "dd34f6f45848d62978aef305eebe8df7",
+    "mtime": 1792398943.0887651,
+    "seen": 1792398972.3896399,
+    "ast_hash": "036e118834d394d74033b456a0a6e6a2",
     "semantic_hash": ""
   },
   "src/screens/leave/FormFlowCards.tsx": {
@@ -294,15 +294,15 @@
     "semantic_hash": ""
   },
   "src/screens/leave/LeaveApprovalScreen.tsx": {
-    "mtime": 1792329375.9127529,
-    "seen": 1792329488.136938,
-    "ast_hash": "34a6ac6c19fbcc60ace4f686db8c15ab",
+    "mtime": 1792398897.3760035,
+    "seen": 1792398972.389647,
+    "ast_hash": "17a4c24c21251ee397a9915e63c1fc46",
     "semantic_hash": ""
   },
   "src/screens/leave/LeaveListScreen.tsx": {
-    "mtime": 1792329337.9261088,
-    "seen": 1792329488.136941,
-    "ast_hash": "762f209f5663e973ab173f02ed309ebd",
+    "mtime": 1792398897.3752227,
+    "seen": 1792398972.389652,
+    "ast_hash": "56367ff8c0e9f43868ace0d448a86b2a",
     "semantic_hash": ""
   },
   "src/screens/leave/LeaveRequestScreen.tsx": {
@@ -312,27 +312,27 @@
     "semantic_hash": ""
   },
   "src/screens/leave/OvertimeScreen.tsx": {
-    "mtime": 1792329267.8773713,
-    "seen": 1792329488.136944,
-    "ast_hash": "4655c9446ec0c9327ee62d097bd83544",
+    "mtime": 1792398868.1181326,
+    "seen": 1792398972.389659,
+    "ast_hash": "97563b7b753be4d4d6fbaca483e19694",
     "semantic_hash": ""
   },
   "src/screens/notifications/NotificationScreen.tsx": {
-    "mtime": 1792329445.6278393,
-    "seen": 1792329488.136949,
-    "ast_hash": "88201527ed4cce5e177f0c33d0cfc7c0",
+    "mtime": 1792398907.3162866,
+    "seen": 1792398972.389668,
+    "ast_hash": "48a3849c08147b63593d599c69ff601d",
     "semantic_hash": ""
   },
   "src/screens/payroll/PayslipCards.tsx": {
-    "mtime": 1792329420.749271,
-    "seen": 1792329488.13695,
-    "ast_hash": "68452d6e4d045b4298dc21c32d7840fc",
+    "mtime": 1792398905.236945,
+    "seen": 1792398972.38967,
+    "ast_hash": "4d552966a4177a78018dd573449f5014",
     "semantic_hash": ""
   },
   "src/screens/payroll/PayslipListScreen.tsx": {
-    "mtime": 1792307850.5617838,
-    "seen": 1792307914.6011012,
-    "ast_hash": "621416bd22706d2f0328aac8d9fb0d81",
+    "mtime": 1792398905.2375762,
+    "seen": 1792398972.389672,
+    "ast_hash": "4112a7f38f91ef46f2163649412578db",
     "semantic_hash": ""
   },
   "src/screens/payroll/TaxScreen.tsx": {
@@ -348,9 +348,9 @@
     "semantic_hash": ""
   },
   "src/screens/profile/ProfileDocsScreen.tsx": {
-    "mtime": 1792329237.1031704,
-    "seen": 1792329488.136962,
-    "ast_hash": "bbc2342f44e06ccae84ea2dba5e9c467",
+    "mtime": 1792398815.7978904,
+    "seen": 1792398972.389695,
+    "ast_hash": "8d70054f473f7bf32d116dda4dfa65f4",
     "semantic_hash": ""
   },
   "src/screens/profile/ProfileEditScreen.tsx": {
@@ -384,9 +384,9 @@
     "semantic_hash": ""
   },
   "src/screens/staff/StaffAttendanceScreen.tsx": {
-    "mtime": 1792329268.7969284,
-    "seen": 1792329488.136971,
-    "ast_hash": "0c2a11207eb0e9d3512a4611281ec0aa",
+    "mtime": 1792398816.0767503,
+    "seen": 1792398972.3897119,
+    "ast_hash": "e52796832c0df4563bbc19a06418bef8",
     "semantic_hash": ""
   },
   "src/screens/staff/StaffDetailScreen.tsx": {
@@ -396,15 +396,15 @@
     "semantic_hash": ""
   },
   "src/screens/staff/StaffHistoryScreen.tsx": {
-    "mtime": 1792329421.1863782,
-    "seen": 1792329488.1369731,
-    "ast_hash": "30c81f06436425a496d571a1bd435520",
+    "mtime": 1792398816.1028593,
+    "seen": 1792398972.389716,
+    "ast_hash": "ee273e5a7be3f011d21ff230a7962f19",
     "semantic_hash": ""
   },
   "src/screens/staff/StaffListScreen.tsx": {
-    "mtime": 1792329268.8911328,
-    "seen": 1792329488.136974,
-    "ast_hash": "f220777714b1166d368a470f790777ab",
+    "mtime": 1792398841.961156,
+    "seen": 1792398972.389717,
+    "ast_hash": "375de819d9162c96fe162687cacea5fe",
     "semantic_hash": ""
   },
   "src/services/api/erpnextApi.ts": {
@@ -510,9 +510,9 @@
     "semantic_hash": "cab6f32191db011f7eb86302c57fee54"
   },
   "docker/README.md": {
-    "mtime": 1792334751.9285,
-    "seen": 1792341412.285365,
-    "ast_hash": "c209d8cf4c16f6462489fc47d2dffb40",
+    "mtime": 1792395726.4369705,
+    "seen": 1792398972.389833,
+    "ast_hash": "585f99d22b307bb640896cf57a8285bd",
     "semantic_hash": ""
   },
   "docker/docker-compose.yml": {
@@ -846,9 +846,9 @@
     "semantic_hash": ""
   },
   "src/screens/appraisal/TimAppraisal.tsx": {
-    "mtime": 1792329231.1771445,
-    "seen": 1792329488.136919,
-    "ast_hash": "217dba90bf9e8cfb97a4ab8c5433c570",
+    "mtime": 1792398844.0389988,
+    "seen": 1792398972.389608,
+    "ast_hash": "635878efb044c9c228dd4dd9a1c07462",
     "semantic_hash": ""
   },
   "src/screens/documents/DocPreview.tsx": {
@@ -864,9 +864,9 @@
     "semantic_hash": ""
   },
   "src/screens/documents/DocumentReviewScreen.tsx": {
-    "mtime": 1792329232.925567,
-    "seen": 1792329488.136933,
-    "ast_hash": "71c3f70f6761cd5f926c95770f911c77",
+    "mtime": 1792398815.3240585,
+    "seen": 1792398972.389636,
+    "ast_hash": "0d6f20bd761aeb718cf0fe03af1523f0",
     "semantic_hash": ""
   },
   "src/screens/documents/EmployeeDocumentDetailScreen.tsx": {
@@ -888,9 +888,9 @@
     "semantic_hash": ""
   },
   "src/screens/profile/ProfileChangeReviewScreen.tsx": {
-    "mtime": 1792329236.9685833,
-    "seen": 1792329488.13696,
-    "ast_hash": "f3a5ef9a73b3796a37e97dcb32b8a27c",
+    "mtime": 1792398815.728604,
+    "seen": 1792398972.3896909,
+    "ast_hash": "9339c7aeeb2029a3e83d540ca61cb71c",
     "semantic_hash": ""
   },
   "src/services/push.ts": {
@@ -912,9 +912,9 @@
     "semantic_hash": ""
   },
   "src/screens/announcements/AnnouncementsScreen.tsx": {
-    "mtime": 1792329230.7772443,
-    "seen": 1792329488.136915,
-    "ast_hash": "0671dc90b31dc36ad913b0c9820aa5f2",
+    "mtime": 1792398843.987462,
+    "seen": 1792398972.389602,
+    "ast_hash": "b07d45283b0d22d394d23743cacb21a9",
     "semantic_hash": ""
   },
   "ANDROID.md": {
@@ -1002,9 +1002,9 @@
     "semantic_hash": ""
   },
   "src/screens/attendance/OfflineReviewScreen.tsx": {
-    "mtime": 1792329232.761437,
-    "seen": 1792329488.136928,
-    "ast_hash": "5167576557ccb03d6d82572791245893",
+    "mtime": 1792398815.220031,
+    "seen": 1792398972.389627,
+    "ast_hash": "30909de8b5d3e38771575d27e91de968",
     "semantic_hash": ""
   },
   "src/services/offlineQueue.ts": {
@@ -1266,9 +1266,9 @@
     "semantic_hash": ""
   },
   "src/screens/profile/FaceReviewScreen.tsx": {
-    "mtime": 1792329236.5763648,
-    "seen": 1792329488.136956,
-    "ast_hash": "f34b73eaac6a06b55902141cf76b6974",
+    "mtime": 1792398815.6440816,
+    "seen": 1792398972.3896818,
+    "ast_hash": "46f404efda7f24f9569587dfc1506335",
     "semantic_hash": ""
   },
   "docker/server-scripts/hris_log_face_check.py": {
@@ -1650,9 +1650,9 @@
     "semantic_hash": ""
   },
   "src/components/ListSearchBar.tsx": {
-    "mtime": 1792329117.575091,
-    "seen": 1792329488.1368341,
-    "ast_hash": "df9ec7e16d78d0ace067e2659bc469dc",
+    "mtime": 1792398811.004629,
+    "seen": 1792398972.3894231,
+    "ast_hash": "cf7b32abc8531e3f78b6aff36fac7136",
     "semantic_hash": ""
   },
   "src/components/LoadMoreButton.tsx": {
@@ -1661,16 +1661,10 @@
     "ast_hash": "0eef3c6c5a6939dc748b405cb3b898e3",
     "semantic_hash": ""
   },
-  "src/components/PagedList.tsx": {
-    "mtime": 1792329261.5044677,
-    "seen": 1792329488.1368399,
-    "ast_hash": "8c568ee9d9f1ed8681c05b40701a7d82",
-    "semantic_hash": ""
-  },
   "src/hooks/usePagedList.ts": {
-    "mtime": 1792329189.3757849,
-    "seen": 1792329488.1368818,
-    "ast_hash": "52251dcefb8cdbbabe35d03e9c48750f",
+    "mtime": 1792398811.004018,
+    "seen": 1792398972.389517,
+    "ast_hash": "4d53d5d994cf04f7effe0c0b9c1557b4",
     "semantic_hash": ""
   },
   "src/utils/searchText.ts": {
@@ -1698,45 +1692,45 @@
     "semantic_hash": ""
   },
   "docker/apps/hris_ats/hris_ats/bgc/analysis/case.py": {
-    "mtime": 1792338259.5366168,
-    "seen": 1792341412.2849321,
-    "ast_hash": "52fe6b1a34240642e793b202b1d2b022",
+    "mtime": 1792382863.8019679,
+    "seen": 1792398972.38893,
+    "ast_hash": "e8471dfc842d2386c7ff2a8493d92254",
     "semantic_hash": ""
   },
   "docker/apps/hris_ats/hris_ats/bgc/analysis/classify.py": {
-    "mtime": 1792338248.4543543,
-    "seen": 1792341412.284933,
-    "ast_hash": "5cd1d8b316ba9dbd1c4600b3c1bc3a62",
+    "mtime": 1792383009.4391532,
+    "seen": 1792398972.388931,
+    "ast_hash": "9513e3068068ceb50c2a0376e3aab297",
     "semantic_hash": ""
   },
   "docker/apps/hris_ats/hris_ats/bgc/analysis/identity.py": {
-    "mtime": 1792338450.524999,
-    "seen": 1792341412.2849338,
-    "ast_hash": "fd04bfb054394a635772a331082537a6",
+    "mtime": 1792395117.6170216,
+    "seen": 1792398972.3889332,
+    "ast_hash": "f13e08aa90f6fd22c33ccdb296e27f4e",
     "semantic_hash": ""
   },
   "docker/apps/hris_ats/hris_ats/bgc/analysis/posts.py": {
-    "mtime": 1792338274.5059001,
-    "seen": 1792341412.284936,
-    "ast_hash": "8027b18ff506953d22f963c38f6957a1",
+    "mtime": 1792383209.3851693,
+    "seen": 1792398972.388934,
+    "ast_hash": "de373ef4a66fc6fb90b74cfe2969d7dd",
     "semantic_hash": ""
   },
   "docker/apps/hris_ats/hris_ats/bgc/analysis/risk.py": {
-    "mtime": 1792338282.0452204,
-    "seen": 1792341412.284937,
-    "ast_hash": "f0b4a98a7a193c735b1a420f20418ca5",
+    "mtime": 1792382788.524911,
+    "seen": 1792398972.388936,
+    "ast_hash": "bfb2fbea4e9ee8e1bbd64d05ceac13f3",
     "semantic_hash": ""
   },
   "docker/apps/hris_ats/hris_ats/bgc/analysis/summary.py": {
-    "mtime": 1792338290.8312497,
-    "seen": 1792341412.284938,
-    "ast_hash": "1bd3554fc1c53257627742d736540b13",
+    "mtime": 1792383241.9439404,
+    "seen": 1792398972.388938,
+    "ast_hash": "0e2d3007b189733ae212b4047deab920",
     "semantic_hash": ""
   },
   "docker/apps/hris_ats/hris_ats/bgc/consent.py": {
-    "mtime": 1792338161.1867526,
-    "seen": 1792341412.284939,
-    "ast_hash": "75e52e323691e82a389c51f810e67245",
+    "mtime": 1792398010.2134743,
+    "seen": 1792398972.3889852,
+    "ast_hash": "a4141095e96d6052c70d6ea591d50f57",
     "semantic_hash": ""
   },
   "docker/apps/hris_ats/hris_ats/bgc/providers/__init__.py": {
@@ -1746,45 +1740,45 @@
     "semantic_hash": ""
   },
   "docker/apps/hris_ats/hris_ats/bgc/providers/base.py": {
-    "mtime": 1792338302.545221,
-    "seen": 1792341412.284941,
-    "ast_hash": "dad938142a21bab640a3d686d2ea206b",
+    "mtime": 1792383279.7539642,
+    "seen": 1792398972.388992,
+    "ast_hash": "a8795b8d9b24366ec33c482990f7e02a",
     "semantic_hash": ""
   },
   "docker/apps/hris_ats/hris_ats/bgc/providers/court_ma.py": {
-    "mtime": 1792338347.0746162,
-    "seen": 1792341412.2849422,
-    "ast_hash": "613e7d8db87d2084449617a4b5581860",
+    "mtime": 1792395129.2079923,
+    "seen": 1792398972.388994,
+    "ast_hash": "c216a23a50f29cb6fb5b195691a60e80",
     "semantic_hash": ""
   },
   "docker/apps/hris_ats/hris_ats/bgc/providers/mock.py": {
-    "mtime": 1792338333.2322938,
-    "seen": 1792341412.284943,
-    "ast_hash": "f40efcf3eb8b1eafdfb38fbb718a2bd9",
+    "mtime": 1792395068.9779012,
+    "seen": 1792398972.3889952,
+    "ast_hash": "26f22271d4ce4b79206a388ef25147aa",
     "semantic_hash": ""
   },
   "docker/apps/hris_ats/hris_ats/bgc/providers/platform_check.py": {
-    "mtime": 1792338342.4618666,
-    "seen": 1792341412.2849438,
-    "ast_hash": "fb153b019cde9818b74336de3628afa8",
+    "mtime": 1792395068.9810278,
+    "seen": 1792398972.3889961,
+    "ast_hash": "bc4f8f9ae1dd3da57e37dc6e538f43c2",
     "semantic_hash": ""
   },
   "docker/apps/hris_ats/hris_ats/bgc/providers/posts.py": {
-    "mtime": 1792338360.695905,
-    "seen": 1792341412.284945,
-    "ast_hash": "12e45ddb0391709854db3a60fb686b3e",
+    "mtime": 1792395139.1082637,
+    "seen": 1792398972.3889978,
+    "ast_hash": "232e2495345121272eb3eb9eb7707a96",
     "semantic_hash": ""
   },
   "docker/apps/hris_ats/hris_ats/bgc/providers/web_search.py": {
-    "mtime": 1792338353.4211864,
-    "seen": 1792341412.284946,
-    "ast_hash": "58a964d7620c6027a6f95ca21e91dfff",
+    "mtime": 1792395068.973366,
+    "seen": 1792398972.388999,
+    "ast_hash": "ef13e93d395cbd1b6fc650ef5a5e81db",
     "semantic_hash": ""
   },
   "docker/apps/hris_ats/hris_ats/bgc/runner.py": {
-    "mtime": 1792340049.2555203,
-    "seen": 1792341412.284947,
-    "ast_hash": "cdb52fae49b8463166120e572f78b246",
+    "mtime": 1792394887.9444377,
+    "seen": 1792398972.389001,
+    "ast_hash": "8bb398140185ace3e21be775ed38c8b0",
     "semantic_hash": ""
   },
   "docker/apps/hris_ats/hris_ats/config/__init__.py": {
@@ -1794,21 +1788,21 @@
     "semantic_hash": ""
   },
   "docker/apps/hris_ats/hris_ats/fixtures/background_check_lexicon.json": {
-    "mtime": 1792337947.0989077,
-    "seen": 1792341412.284949,
-    "ast_hash": "d9cb03b76f776a15469e52baaed7920c",
+    "mtime": 1792382549.9902685,
+    "seen": 1792398972.389004,
+    "ast_hash": "6e54768f2049bf3aedfb582a94c1a002",
     "semantic_hash": ""
   },
   "docker/apps/hris_ats/hris_ats/fixtures/custom_field.json": {
-    "mtime": 1792337858.7010624,
-    "seen": 1792341412.28495,
-    "ast_hash": "4069583fab74e83c74a99a31e503803d",
+    "mtime": 1792382549.9917588,
+    "seen": 1792398972.3890061,
+    "ast_hash": "718c484107cc1a142836f5290cf00adb",
     "semantic_hash": ""
   },
   "docker/apps/hris_ats/hris_ats/hooks.py": {
-    "mtime": 1792340072.530668,
-    "seen": 1792341412.284951,
-    "ast_hash": "dc97f1153b26822c720e2de379f49c90",
+    "mtime": 1792382426.67659,
+    "seen": 1792398972.3890078,
+    "ast_hash": "e8a8d1d58d90a0298bafc9030b3287f6",
     "semantic_hash": ""
   },
   "docker/apps/hris_ats/hris_ats/hris_ats/__init__.py": {
@@ -1824,27 +1818,27 @@
     "semantic_hash": ""
   },
   "docker/apps/hris_ats/hris_ats/hris_ats/doctype/background_check/background_check.js": {
-    "mtime": 1792340095.2849925,
-    "seen": 1792341412.284953,
-    "ast_hash": "7bede666f026f2f0352b0e9f77b6253e",
+    "mtime": 1792393086.7736254,
+    "seen": 1792398972.389014,
+    "ast_hash": "374936bf057f29c07f768dbe8d9e8805",
     "semantic_hash": ""
   },
   "docker/apps/hris_ats/hris_ats/hris_ats/doctype/background_check/background_check.json": {
-    "mtime": 1792340016.753459,
-    "seen": 1792341412.284954,
-    "ast_hash": "e047845f9991f3801d24deeadaa07b22",
+    "mtime": 1792382549.9844275,
+    "seen": 1792398972.3890162,
+    "ast_hash": "d441972aad004d01315c222323a30e40",
     "semantic_hash": ""
   },
   "docker/apps/hris_ats/hris_ats/hris_ats/doctype/background_check/background_check.py": {
-    "mtime": 1792340065.4037526,
-    "seen": 1792341412.2849548,
-    "ast_hash": "c6b179ff11b4c1337a8288e963fae980",
+    "mtime": 1792395068.9734285,
+    "seen": 1792398972.389018,
+    "ast_hash": "a41ad5d87cf54a64fe2469d48b30367e",
     "semantic_hash": ""
   },
   "docker/apps/hris_ats/hris_ats/hris_ats/doctype/background_check/background_check_list.js": {
-    "mtime": 1792338737.489795,
-    "seen": 1792341412.284957,
-    "ast_hash": "6ce8971ca0465b110d556f909300f670",
+    "mtime": 1792383732.4865236,
+    "seen": 1792398972.3890188,
+    "ast_hash": "a1e4ece650599acf94d40ccc6a36d80c",
     "semantic_hash": ""
   },
   "docker/apps/hris_ats/hris_ats/hris_ats/doctype/background_check_account/__init__.py": {
@@ -1854,9 +1848,9 @@
     "semantic_hash": ""
   },
   "docker/apps/hris_ats/hris_ats/hris_ats/doctype/background_check_account/background_check_account.json": {
-    "mtime": 1792337209.843635,
-    "seen": 1792341412.284959,
-    "ast_hash": "e0087d5d04e0c858e9dbd979958a02b1",
+    "mtime": 1792393321.5236702,
+    "seen": 1792398972.389023,
+    "ast_hash": "da83d86c9b0289ddb7f8a71ef8956307",
     "semantic_hash": ""
   },
   "docker/apps/hris_ats/hris_ats/hris_ats/doctype/background_check_account/background_check_account.py": {
@@ -1872,9 +1866,9 @@
     "semantic_hash": ""
   },
   "docker/apps/hris_ats/hris_ats/hris_ats/doctype/background_check_consent_scope/background_check_consent_scope.json": {
-    "mtime": 1792337244.1895006,
-    "seen": 1792341412.284962,
-    "ast_hash": "36def68de6d3384f47a21c58ec0f5f04",
+    "mtime": 1792382549.986553,
+    "seen": 1792398972.389029,
+    "ast_hash": "9737d55f45cf78f1a76e5967c6d4b62d",
     "semantic_hash": ""
   },
   "docker/apps/hris_ats/hris_ats/hris_ats/doctype/background_check_consent_scope/background_check_consent_scope.py": {
@@ -1890,9 +1884,9 @@
     "semantic_hash": ""
   },
   "docker/apps/hris_ats/hris_ats/hris_ats/doctype/background_check_finding/background_check_finding.json": {
-    "mtime": 1792337368.39923,
-    "seen": 1792341412.284965,
-    "ast_hash": "b77febdb8c2dfdf38c7a914230282f9b",
+    "mtime": 1792382549.983378,
+    "seen": 1792398972.389034,
+    "ast_hash": "d50d523be1cb78a1bd5a57e7b93d902d",
     "semantic_hash": ""
   },
   "docker/apps/hris_ats/hris_ats/hris_ats/doctype/background_check_finding/background_check_finding.py": {
@@ -1908,9 +1902,9 @@
     "semantic_hash": ""
   },
   "docker/apps/hris_ats/hris_ats/hris_ats/doctype/background_check_lexicon/background_check_lexicon.json": {
-    "mtime": 1792337934.187178,
-    "seen": 1792341412.284968,
-    "ast_hash": "836cce2a8bed71834ec61f846440228e",
+    "mtime": 1792382549.9894717,
+    "seen": 1792398972.389039,
+    "ast_hash": "7218f8f6736f497520233d0bd19ee331",
     "semantic_hash": ""
   },
   "docker/apps/hris_ats/hris_ats/hris_ats/doctype/background_check_lexicon/background_check_lexicon.py": {
@@ -1926,9 +1920,9 @@
     "semantic_hash": ""
   },
   "docker/apps/hris_ats/hris_ats/hris_ats/doctype/background_check_platform/background_check_platform.json": {
-    "mtime": 1792337290.8844836,
-    "seen": 1792341412.284971,
-    "ast_hash": "b1c34c71d247d7406df95b2c44d6ed18",
+    "mtime": 1792382549.9878778,
+    "seen": 1792398972.389045,
+    "ast_hash": "7b7dacb0dc5f17e15bdce0edc9a4e1db",
     "semantic_hash": ""
   },
   "docker/apps/hris_ats/hris_ats/hris_ats/doctype/background_check_platform/background_check_platform.py": {
@@ -1944,15 +1938,15 @@
     "semantic_hash": ""
   },
   "docker/apps/hris_ats/hris_ats/hris_ats/doctype/background_check_settings/background_check_settings.json": {
-    "mtime": 1792337330.0416038,
-    "seen": 1792341412.284974,
-    "ast_hash": "66b8bd4bd9b23416f40e636b2a5876dc",
+    "mtime": 1792390910.0436373,
+    "seen": 1792398972.389052,
+    "ast_hash": "7daec87d1b0245bf2c3a9189d0fb4652",
     "semantic_hash": ""
   },
   "docker/apps/hris_ats/hris_ats/hris_ats/doctype/background_check_settings/background_check_settings.py": {
-    "mtime": 1792337314.4623954,
-    "seen": 1792341412.2849762,
-    "ast_hash": "06ae17bb548f6874ea0938fe4207b38f",
+    "mtime": 1792398243.9863832,
+    "seen": 1792398972.389054,
+    "ast_hash": "604d57ca29d092fde121ea21e532e546",
     "semantic_hash": ""
   },
   "docker/apps/hris_ats/hris_ats/hris_ats/doctype/background_check_source_run/__init__.py": {
@@ -1962,9 +1956,9 @@
     "semantic_hash": ""
   },
   "docker/apps/hris_ats/hris_ats/hris_ats/doctype/background_check_source_run/background_check_source_run.json": {
-    "mtime": 1792337229.530263,
-    "seen": 1792341412.284978,
-    "ast_hash": "525657ea0f1c919e11035d9c4716cb52",
+    "mtime": 1792382549.9858143,
+    "seen": 1792398972.389057,
+    "ast_hash": "16a3216cdbbd4d7142f4b594cef2033f",
     "semantic_hash": ""
   },
   "docker/apps/hris_ats/hris_ats/hris_ats/doctype/background_check_source_run/background_check_source_run.py": {
@@ -1980,9 +1974,9 @@
     "semantic_hash": ""
   },
   "docker/apps/hris_ats/hris_ats/hris_ats/doctype/resume_screening/resume_screening.js": {
-    "mtime": 1792336963.6336837,
-    "seen": 1792341412.28498,
-    "ast_hash": "d5b2bf08a9c2c361830afaa8080540cc",
+    "mtime": 1792383753.9945445,
+    "seen": 1792398972.389063,
+    "ast_hash": "db0d07af57a21495fb90bd9e6bc9de25",
     "semantic_hash": ""
   },
   "docker/apps/hris_ats/hris_ats/hris_ats/doctype/resume_screening/resume_screening.json": {
@@ -1998,9 +1992,9 @@
     "semantic_hash": ""
   },
   "docker/apps/hris_ats/hris_ats/hris_ats/doctype/resume_screening/resume_screening_list.js": {
-    "mtime": 1792336950.9675138,
-    "seen": 1792341412.2849832,
-    "ast_hash": "c1643d4909e575f32acbd3338d0db2f4",
+    "mtime": 1792384190.25737,
+    "seen": 1792398972.3890681,
+    "ast_hash": "d06f755276384ab70ee32506d015dcab",
     "semantic_hash": ""
   },
   "docker/apps/hris_ats/hris_ats/hris_ats/doctype/resume_screening_metric_weight/__init__.py": {
@@ -2028,9 +2022,9 @@
     "semantic_hash": ""
   },
   "docker/apps/hris_ats/hris_ats/hris_ats/doctype/resume_screening_result/resume_screening_result.json": {
-    "mtime": 1792336221.4328504,
-    "seen": 1792341412.284988,
-    "ast_hash": "bf62ce5ff77fa8d835955358ceb43d1e",
+    "mtime": 1792382549.9824958,
+    "seen": 1792398972.389077,
+    "ast_hash": "637aea17764d8d59786e74f6217ed3a0",
     "semantic_hash": ""
   },
   "docker/apps/hris_ats/hris_ats/hris_ats/doctype/resume_screening_result/resume_screening_result.py": {
@@ -2088,9 +2082,9 @@
     "semantic_hash": ""
   },
   "docker/apps/hris_ats/hris_ats/hris_ats/doctype/resume_screening_template/resume_screening_template.js": {
-    "mtime": 1792336200.94488,
-    "seen": 1792341412.285001,
-    "ast_hash": "bc341c89c0b70a0a744e464b559de899",
+    "mtime": 1792383763.6282709,
+    "seen": 1792398972.3890939,
+    "ast_hash": "cdbd76b15def313d56da26779e148d91",
     "semantic_hash": ""
   },
   "docker/apps/hris_ats/hris_ats/hris_ats/doctype/resume_screening_template/resume_screening_template.json": {
@@ -2100,9 +2094,9 @@
     "semantic_hash": ""
   },
   "docker/apps/hris_ats/hris_ats/hris_ats/doctype/resume_screening_template/resume_screening_template.py": {
-    "mtime": 1792336196.6527739,
-    "seen": 1792341412.285002,
-    "ast_hash": "4a2a6d9e8d662c31b39d2f8ec5e0b178",
+    "mtime": 1792384207.29965,
+    "seen": 1792398972.389097,
+    "ast_hash": "a7dc6c829bd04c35fac5e0114ac74ef1",
     "semantic_hash": ""
   },
   "docker/apps/hris_ats/hris_ats/hris_ats/doctype/resume_screening_template_role/__init__.py": {
@@ -2136,21 +2130,21 @@
     "semantic_hash": ""
   },
   "docker/apps/hris_ats/hris_ats/patches/__init__.py": {
-    "mtime": 1792334365.0,
-    "seen": 1792341412.285008,
-    "ast_hash": "d41d8cd98f00b204e9800998ecf8427e",
+    "mtime": 1792366198.5080218,
+    "seen": 1792398972.389109,
+    "ast_hash": "3fcc8f12d5b52e68927f509e5a1bb125",
     "semantic_hash": ""
   },
   "docker/apps/hris_ats/hris_ats/public/js/job_applicant.js": {
-    "mtime": 1792337833.4228592,
-    "seen": 1792341412.285009,
-    "ast_hash": "44832bec0971bb20ff2e71be033ec1e5",
+    "mtime": 1792383777.083697,
+    "seen": 1792398972.3891158,
+    "ast_hash": "8bc3d9a7305da99ca1d74031d9d290e0",
     "semantic_hash": ""
   },
   "docker/apps/hris_ats/hris_ats/public/js/job_applicant_list.js": {
-    "mtime": 1792340083.0873466,
-    "seen": 1792341412.2850099,
-    "ast_hash": "5b494341a61fcc7f1f1f5a6ffddf5fab",
+    "mtime": 1792383832.8279839,
+    "seen": 1792398972.389118,
+    "ast_hash": "1f60864908f13f12f3f69d1ef9abf7af",
     "semantic_hash": ""
   },
   "docker/apps/hris_ats/hris_ats/scoring/__init__.py": {
@@ -2160,15 +2154,15 @@
     "semantic_hash": ""
   },
   "docker/apps/hris_ats/hris_ats/scoring/engine.py": {
-    "mtime": 1792336652.556313,
-    "seen": 1792341412.285011,
-    "ast_hash": "7f4acc3554a5e7d3952dace8fd61775b",
+    "mtime": 1792395068.972677,
+    "seen": 1792398972.389121,
+    "ast_hash": "28c5463edab566e731541988f3f95d2d",
     "semantic_hash": ""
   },
   "docker/apps/hris_ats/hris_ats/scoring/extract.py": {
-    "mtime": 1792336515.2298489,
-    "seen": 1792341412.285012,
-    "ast_hash": "18f7409a5ea1d52776a3c8aeee35ba34",
+    "mtime": 1792395068.9747524,
+    "seen": 1792398972.389122,
+    "ast_hash": "378791bba27e2c01ce0bcc23ccc08224",
     "semantic_hash": ""
   },
   "docker/apps/hris_ats/hris_ats/scoring/metrics/__init__.py": {
@@ -2178,57 +2172,57 @@
     "semantic_hash": ""
   },
   "docker/apps/hris_ats/hris_ats/scoring/metrics/achievement_relevance.py": {
-    "mtime": 1792336622.7246697,
-    "seen": 1792341412.285014,
-    "ast_hash": "0ee53f6dac1f358aedf93c6f275ab80a",
+    "mtime": 1792395068.9753826,
+    "seen": 1792398972.3891258,
+    "ast_hash": "a690d727044b71d30de1b18392c9190a",
     "semantic_hash": ""
   },
   "docker/apps/hris_ats/hris_ats/scoring/metrics/ats_friendly.py": {
-    "mtime": 1792336767.361488,
-    "seen": 1792341412.285015,
-    "ast_hash": "9d9466b4e03a5f935201afa79d8aaf6b",
+    "mtime": 1792395068.9774716,
+    "seen": 1792398972.389127,
+    "ast_hash": "471b511c1c2e465f5aacf3aaa2c7a5da",
     "semantic_hash": ""
   },
   "docker/apps/hris_ats/hris_ats/scoring/metrics/certification_relevance.py": {
-    "mtime": 1792336629.5992756,
-    "seen": 1792341412.285016,
-    "ast_hash": "336c258ce22342fe7495e6a899f123b7",
+    "mtime": 1792395068.9780457,
+    "seen": 1792398972.389129,
+    "ast_hash": "b0ad2c5d185cdfb499f9bb3982ed38a5",
     "semantic_hash": ""
   },
   "docker/apps/hris_ats/hris_ats/scoring/metrics/date_consistency.py": {
-    "mtime": 1792336573.474306,
-    "seen": 1792341412.285017,
-    "ast_hash": "3f79f9ff0fe46e4bd0b96dd46ee4d685",
+    "mtime": 1792395149.411735,
+    "seen": 1792398972.389131,
+    "ast_hash": "11b45df278ebba31df147cd1ea3b0096",
     "semantic_hash": ""
   },
   "docker/apps/hris_ats/hris_ats/scoring/metrics/education_relevance.py": {
-    "mtime": 1792336593.3746145,
-    "seen": 1792341412.2850182,
-    "ast_hash": "bd1c1b90d542cc6707a1bc7f7e4b8b57",
+    "mtime": 1792395068.9767182,
+    "seen": 1792398972.389132,
+    "ast_hash": "f6acd5dd6db20b4eba36b1858dc35bd8",
     "semantic_hash": ""
   },
   "docker/apps/hris_ats/hris_ats/scoring/metrics/experience_relevance.py": {
-    "mtime": 1792336613.3861077,
-    "seen": 1792341412.285019,
-    "ast_hash": "4c8da50ff8a1333cc2c76e62f639fff2",
+    "mtime": 1792395068.97727,
+    "seen": 1792398972.3891342,
+    "ast_hash": "aa20c91e9b4787382ec649cbee183c6e",
     "semantic_hash": ""
   },
   "docker/apps/hris_ats/hris_ats/scoring/metrics/grammar.py": {
-    "mtime": 1792336555.7980566,
-    "seen": 1792341412.2850199,
-    "ast_hash": "b94f692b2947ab04c3ef0b851590408c",
+    "mtime": 1792395068.9791882,
+    "seen": 1792398972.3891358,
+    "ast_hash": "e948473bd5e3e2b745fa1aa11e7f4709",
     "semantic_hash": ""
   },
   "docker/apps/hris_ats/hris_ats/scoring/metrics/information_completeness.py": {
-    "mtime": 1792336763.4102383,
-    "seen": 1792341412.2850208,
-    "ast_hash": "88dabfe08bb5cbf166af43a998bb828a",
+    "mtime": 1792395068.9799721,
+    "seen": 1792398972.3891368,
+    "ast_hash": "8c51a6b4918326353a196343db112906",
     "semantic_hash": ""
   },
   "docker/apps/hris_ats/hris_ats/scoring/metrics/skill_relevance.py": {
-    "mtime": 1792336602.4255471,
-    "seen": 1792341412.2850208,
-    "ast_hash": "93e93b3ef44ade1f906fc59c5bb23ab2",
+    "mtime": 1792395068.9799962,
+    "seen": 1792398972.389139,
+    "ast_hash": "cdb241c605abc6b7c2928d6f96061e30",
     "semantic_hash": ""
   },
   "docker/apps/hris_ats/hris_ats/scoring/sections.py": {
@@ -2238,27 +2232,27 @@
     "semantic_hash": ""
   },
   "docker/apps/hris_ats/hris_ats/scoring/total.py": {
-    "mtime": 1792336641.0787568,
-    "seen": 1792341412.285023,
-    "ast_hash": "5e59651e84782ccaec191fdc9c21579d",
+    "mtime": 1792395167.2798123,
+    "seen": 1792398972.389142,
+    "ast_hash": "770e6f4cf1ec49b571c8d6786b26f34c",
     "semantic_hash": ""
   },
   "docker/apps/hris_ats/hris_ats/scoring/workflow.py": {
-    "mtime": 1792340230.5548558,
-    "seen": 1792341412.285024,
-    "ast_hash": "4f0a0229a21aa23a4b3562019f7852f7",
+    "mtime": 1792395068.9737978,
+    "seen": 1792398972.3891442,
+    "ast_hash": "1d923b2b95c7a8f51ee6c42868691f02",
     "semantic_hash": ""
   },
   "docker/apps/hris_ats/hris_ats/setup.py": {
-    "mtime": 1792338129.9789917,
-    "seen": 1792341412.2850251,
-    "ast_hash": "4c8a93458af54fcd85e24bdede98accd",
+    "mtime": 1792395068.977958,
+    "seen": 1792398972.3891451,
+    "ast_hash": "743ec697f00c290aa268d3303931070f",
     "semantic_hash": ""
   },
   "docker/apps/hris_ats/hris_ats/tasks.py": {
-    "mtime": 1792340028.0859005,
-    "seen": 1792341412.285026,
-    "ast_hash": "8eb856f22e1bf064d3ead8947b7d71ab",
+    "mtime": 1792398019.2925262,
+    "seen": 1792398972.3891468,
+    "ast_hash": "2f5ed11f8a4d80a0de78b58579f38d71",
     "semantic_hash": ""
   },
   "docker/apps/hris_ats/hris_ats/templates/__init__.py": {
@@ -2274,27 +2268,27 @@
     "semantic_hash": ""
   },
   "docker/apps/hris_ats/hris_ats/tests/__init__.py": {
-    "mtime": 1792334444.6160462,
-    "seen": 1792341412.2850292,
-    "ast_hash": "d41d8cd98f00b204e9800998ecf8427e",
+    "mtime": 1792398655.4743109,
+    "seen": 1792398972.389152,
+    "ast_hash": "2f39701187dd228dd8f3f35d58146aa6",
     "semantic_hash": ""
   },
   "docker/apps/hris_ats/hris_ats/tests/bgc/test_bgc_analysis.py": {
-    "mtime": 1792338533.2500827,
-    "seen": 1792341412.28503,
-    "ast_hash": "4f605763c4fa98292f8ab61167f1fa96",
+    "mtime": 1792395299.8607018,
+    "seen": 1792398972.3891551,
+    "ast_hash": "0cd2003b857b3b644b480df98b2c9de8",
     "semantic_hash": ""
   },
   "docker/apps/hris_ats/hris_ats/tests/fixtures/bgc_mock_data.json": {
-    "mtime": 1792338320.5245223,
-    "seen": 1792341412.28503,
-    "ast_hash": "05f1e92a7b7f08916e604b0a5845948d",
+    "mtime": 1792385257.1037145,
+    "seen": 1792398972.3891609,
+    "ast_hash": "138372349e3164514a560b1903a5621a",
     "semantic_hash": ""
   },
   "docker/apps/hris_ats/hris_ats/tests/fixtures/generate_fixtures.py": {
-    "mtime": 1792336700.5517542,
-    "seen": 1792341412.2850308,
-    "ast_hash": "2dac9b1eaebe7b96735ffee477614281",
+    "mtime": 1792395068.9774296,
+    "seen": 1792398972.389163,
+    "ast_hash": "0bd8ec18958f91c1e20dc26a9828e4fc",
     "semantic_hash": ""
   },
   "docker/apps/hris_ats/hris_ats/tests/scoring/__init__.py": {
@@ -2304,74 +2298,74 @@
     "semantic_hash": ""
   },
   "docker/apps/hris_ats/hris_ats/tests/scoring/test_scoring.py": {
-    "mtime": 1792336738.3144803,
-    "seen": 1792341412.285033,
-    "ast_hash": "6c19b622e774d32f7a954960e767d593",
+    "mtime": 1792395068.9798198,
+    "seen": 1792398972.389166,
+    "ast_hash": "cf355a47f9edc912f2ed01b7b0e60e04",
     "semantic_hash": ""
   },
   "docker/apps/hris_ats/hris_ats/tests/test_background_check_consent.py": {
-    "mtime": 1792338144.112416,
-    "seen": 1792341412.285034,
-    "ast_hash": "f756e00614a251e75152b589023b5a2a",
+    "mtime": 1792396768.503261,
+    "seen": 1792398972.389167,
+    "ast_hash": "1f19dcb7fa2e6d74c62484b483c0493e",
     "semantic_hash": ""
   },
   "docker/apps/hris_ats/hris_ats/tests/test_background_check_phase7.py": {
-    "mtime": 1792340287.9446836,
-    "seen": 1792341412.285035,
-    "ast_hash": "4da84c8eadbd4bc3d66b44549aa8ee45",
+    "mtime": 1792398588.3744884,
+    "seen": 1792398972.389169,
+    "ast_hash": "2fc3eec0b09cc6b8bedf1b307c5a8cca",
     "semantic_hash": ""
   },
   "docker/apps/hris_ats/hris_ats/tests/test_background_check_runner.py": {
-    "mtime": 1792338496.3096948,
-    "seen": 1792341412.285036,
-    "ast_hash": "00991254e90ace6f15cbd53967175d53",
+    "mtime": 1792398579.2021713,
+    "seen": 1792398972.389171,
+    "ast_hash": "e6db64d55bfe124cc02de62c6929b1c3",
     "semantic_hash": ""
   },
   "docker/apps/hris_ats/hris_ats/tests/test_resume_screening_template.py": {
-    "mtime": 1792339207.3645942,
-    "seen": 1792341412.285037,
-    "ast_hash": "488262d9f1629693fce13f590c53b56b",
+    "mtime": 1792396816.873245,
+    "seen": 1792398972.389177,
+    "ast_hash": "a0cdc45016b94f1eb5eee5f31fbe55f1",
     "semantic_hash": ""
   },
   "docker/apps/hris_ats/hris_ats/tests/test_resume_screening_workflow.py": {
-    "mtime": 1792336889.8958497,
-    "seen": 1792341412.285037,
-    "ast_hash": "1f7592e47db25a9af02a633c61dd15f5",
+    "mtime": 1792398600.4654438,
+    "seen": 1792398972.389179,
+    "ast_hash": "a7257ed525e9c94b87d4471f4c327fab",
     "semantic_hash": ""
   },
   "docker/apps/hris_ats/hris_ats/www/ats_consent.py": {
-    "mtime": 1792337804.0605922,
-    "seen": 1792341412.285038,
-    "ast_hash": "26c1362b728685beeb1b08617c70b9dd",
+    "mtime": 1792395068.9790268,
+    "seen": 1792398972.38918,
+    "ast_hash": "91831d702dc3b7ee7734cc374b591252",
     "semantic_hash": ""
   },
   "docker/apps/hris_ats/pyproject.toml": {
-    "mtime": 1792334365.0,
-    "seen": 1792341412.2850392,
-    "ast_hash": "400b3f89b05f1b46a48226ca467dbf2a",
+    "mtime": 1792395243.7173562,
+    "seen": 1792398972.3891819,
+    "ast_hash": "68670414e72ca187cca8a6e2beca2fc3",
     "semantic_hash": ""
   },
   "docker/dev-ats.sh": {
-    "mtime": 1792335600.1676981,
-    "seen": 1792341412.2850418,
-    "ast_hash": "85cdcf0618d14213977da2e16a04c4ed",
+    "mtime": 1792347468.76641,
+    "seen": 1792398972.3891861,
+    "ast_hash": "07faaa1259eee8ded76f20cdf0a347d3",
     "semantic_hash": ""
   },
   "PROMPT-ANTIGRAVITY-ATS.md": {
-    "mtime": 1792333871.1117473,
-    "seen": 1792341412.2853591,
+    "mtime": 1792345498.2451396,
+    "seen": 1792398972.389806,
     "ast_hash": "97bb48e885a9682a9b6bb278e1312c91",
     "semantic_hash": ""
   },
   "SPEC-BACKGROUND-CHECK.md": {
-    "mtime": 1792333787.5432029,
-    "seen": 1792341412.285362,
-    "ast_hash": "e8b21a71c99b9d4dc38076cf2e205578",
+    "mtime": 1792385924.6690073,
+    "seen": 1792398972.389822,
+    "ast_hash": "32c99433d833dc6ef3542a8e61943c5a",
     "semantic_hash": ""
   },
   "SPEC-RESUME-SCREENING.md": {
-    "mtime": 1792333278.9708955,
-    "seen": 1792341412.285363,
+    "mtime": 1792385924.671053,
+    "seen": 1792398972.389824,
     "ast_hash": "72bd95dcc16689c8ed0f4b94f8299966",
     "semantic_hash": ""
   },
@@ -2382,21 +2376,21 @@
     "semantic_hash": ""
   },
   "docker/apps/hris_ats/README.md": {
-    "mtime": 1792337754.6818235,
-    "seen": 1792341412.285367,
-    "ast_hash": "20ea0ba534c3e6ed843ba927b94a07dd",
+    "mtime": 1792395707.6644516,
+    "seen": 1792398972.3898392,
+    "ast_hash": "bdf83f10422767cc618753b64d640eff",
     "semantic_hash": ""
   },
   "docker/apps/hris_ats/hris_ats/hris_ats/print_format/background_check_report/background_check_report.html": {
-    "mtime": 1792338763.9862812,
-    "seen": 1792341412.285368,
-    "ast_hash": "0fe095505e54eeb23d328e79e10a82cb",
+    "mtime": 1792383659.5536804,
+    "seen": 1792398972.3898408,
+    "ast_hash": "ee61eee4bed773e1bfba1369fdae32fc",
     "semantic_hash": ""
   },
   "docker/apps/hris_ats/hris_ats/hris_ats/print_format/resume_screening/resume_screening.html": {
-    "mtime": 1792337020.310125,
-    "seen": 1792341412.2853692,
-    "ast_hash": "0f098bbfa187620f02ce5f7fae21fd4f",
+    "mtime": 1792383677.5457048,
+    "seen": 1792398972.389844,
+    "ast_hash": "00382097cd9e76d5241e9b7aa02c7e17",
     "semantic_hash": ""
   },
   "docker/apps/hris_ats/hris_ats/modules.txt": {
@@ -2406,15 +2400,15 @@
     "semantic_hash": ""
   },
   "docker/apps/hris_ats/hris_ats/patches.txt": {
-    "mtime": 1792334366.0,
-    "seen": 1792341412.2853708,
-    "ast_hash": "2cf399cd92b710a9b6f92e5b668da404",
+    "mtime": 1792392948.6581922,
+    "seen": 1792398972.3898492,
+    "ast_hash": "f6f3281abd4a39a9af734901c6eaa5b8",
     "semantic_hash": ""
   },
   "docker/apps/hris_ats/hris_ats/www/ats_consent.html": {
-    "mtime": 1792337820.02434,
-    "seen": 1792341412.285372,
-    "ast_hash": "ecf2aa3e93a5773d8981165a14610087",
+    "mtime": 1792393051.246223,
+    "seen": 1792398972.389864,
+    "ast_hash": "b264620baf32d6414f2ccf9df45330fc",
     "semantic_hash": ""
   },
   "docker/apps/hris_ats/license.txt": {
@@ -2481,6 +2475,180 @@
     "mtime": 1792336705.7078626,
     "seen": 1792341412.285384,
     "ast_hash": "c2edc39d27efcc8735b2e68811589f4a",
+    "semantic_hash": ""
+  },
+  "docker/apps/hris_ats/hris_ats/bgc/adaptive.py": {
+    "mtime": 1792395107.3925912,
+    "seen": 1792398972.388924,
+    "ast_hash": "91bc26a191f22d22c7fe22f8ec7f5268",
+    "semantic_hash": ""
+  },
+  "docker/apps/hris_ats/hris_ats/bgc/article.py": {
+    "mtime": 1792366272.2115092,
+    "seen": 1792398972.388973,
+    "ast_hash": "094bc7f0c142aa84a32b646441e4e76e",
+    "semantic_hash": ""
+  },
+  "docker/apps/hris_ats/hris_ats/bgc/fetch.py": {
+    "mtime": 1792398032.3645554,
+    "seen": 1792398972.388988,
+    "ast_hash": "e2ebb6944479860d80d200da00e7f59e",
+    "semantic_hash": ""
+  },
+  "docker/apps/hris_ats/hris_ats/hris_ats/doctype/background_check_settings/background_check_settings.js": {
+    "mtime": 1792391064.9781566,
+    "seen": 1792398972.38905,
+    "ast_hash": "7a16121003102b03c5bb42443942b149",
+    "semantic_hash": ""
+  },
+  "docker/apps/hris_ats/hris_ats/i18n.py": {
+    "mtime": 1792395068.9735873,
+    "seen": 1792398972.389107,
+    "ast_hash": "59d6a9c40205a7cbdc120917ffd2aa42",
+    "semantic_hash": ""
+  },
+  "docker/apps/hris_ats/hris_ats/patches/v1_0/__init__.py": {
+    "mtime": 1792366201.9938889,
+    "seen": 1792398972.38911,
+    "ast_hash": "1f4cf012b31655576f952d1bfa5cef3a",
+    "semantic_hash": ""
+  },
+  "docker/apps/hris_ats/hris_ats/patches/v1_0/init_phase5_fields.py": {
+    "mtime": 1792366193.0432625,
+    "seen": 1792398972.389112,
+    "ast_hash": "ea66ef30305162b717cd879a899f1d85",
+    "semantic_hash": ""
+  },
+  "docker/apps/hris_ats/hris_ats/patches/v1_0/migrate_select_to_english.py": {
+    "mtime": 1792382441.4368744,
+    "seen": 1792398972.3891132,
+    "ast_hash": "ceda9c18132fe8f19cc1537bf6d054ee",
+    "semantic_hash": ""
+  },
+  "docker/apps/hris_ats/hris_ats/patches/v1_0/set_default_social_platforms.py": {
+    "mtime": 1792395068.9732926,
+    "seen": 1792398972.3891149,
+    "ast_hash": "c25fde976eb434ecd4590d0a350eb1f7",
+    "semantic_hash": ""
+  },
+  "docker/apps/hris_ats/hris_ats/tests/bgc/test_article.py": {
+    "mtime": 1792395068.9778714,
+    "seen": 1792398972.389153,
+    "ast_hash": "e858d12e1eca2be95d9783ea21853b88",
+    "semantic_hash": ""
+  },
+  "docker/apps/hris_ats/hris_ats/tests/bgc/test_court_ma_parser.py": {
+    "mtime": 1792395068.9793172,
+    "seen": 1792398972.389157,
+    "ast_hash": "9919120317b13923d298624a638e13fd",
+    "semantic_hash": ""
+  },
+  "docker/apps/hris_ats/hris_ats/tests/bgc/test_fetch.py": {
+    "mtime": 1792398255.4555058,
+    "seen": 1792398972.3891578,
+    "ast_hash": "a282e229365a6f2dd2f9e15081abb3fc",
+    "semantic_hash": ""
+  },
+  "docker/apps/hris_ats/hris_ats/tests/bgc/test_pdf_court_ma.py": {
+    "mtime": 1792395217.8118382,
+    "seen": 1792398972.38916,
+    "ast_hash": "959c7cfcea218038ec376dbb946bece4",
+    "semantic_hash": ""
+  },
+  "docker/apps/hris_ats/hris_ats/tests/test_background_check_settings.py": {
+    "mtime": 1792398561.4636555,
+    "seen": 1792398972.389172,
+    "ast_hash": "072fee7bc87b88a4b9e450711119510b",
+    "semantic_hash": ""
+  },
+  "docker/apps/hris_ats/hris_ats/tests/test_background_check_social_consent.py": {
+    "mtime": 1792398181.8014178,
+    "seen": 1792398972.389174,
+    "ast_hash": "ff6a9c6227a0364cb6b908cc7327b410",
+    "semantic_hash": ""
+  },
+  "docker/apps/hris_ats/hris_ats/tests/test_i18n.py": {
+    "mtime": 1792395202.966133,
+    "seen": 1792398972.389175,
+    "ast_hash": "7c258dd7b97a96c7f56f6c1a71e7ddb1",
+    "semantic_hash": ""
+  },
+  "src/components/PagedItems.tsx": {
+    "mtime": 1792398811.004185,
+    "seen": 1792398972.389429,
+    "ast_hash": "b782acf4e56b5136f7b607dd68ec29c0",
+    "semantic_hash": ""
+  },
+  "BACKLOG-ATS-AKURASI.md": {
+    "mtime": 1792390060.058845,
+    "seen": 1792398972.389798,
+    "ast_hash": "bca33c22960e0a11865461400b8ecee7",
+    "semantic_hash": ""
+  },
+  "PROMPT-ANTIGRAVITY-PERBAIKAN.md": {
+    "mtime": 1792368529.9415903,
+    "seen": 1792398972.3898082,
+    "ast_hash": "783e0cc3c8ea720eb4eb5c1a1efc4ce9",
+    "semantic_hash": ""
+  },
+  "PROMPT-ANTIGRAVITY-SCRAPLING.md": {
+    "mtime": 1792345885.8844476,
+    "seen": 1792398972.389815,
+    "ast_hash": "89b0beb530ebf28c8014fc6d9d7fc44b",
+    "semantic_hash": ""
+  },
+  "PROMPT-ANTIGRAVITY-SOSMED.md": {
+    "mtime": 1792368967.864828,
+    "seen": 1792398972.389817,
+    "ast_hash": "d43ad4959217d1794902f1769a97045f",
+    "semantic_hash": ""
+  },
+  "docker/apps/hris_ats/AUDIT.md": {
+    "mtime": 1792395608.2152803,
+    "seen": 1792398972.389837,
+    "ast_hash": "d958a44dfeea69c07f5454bca4680c14",
+    "semantic_hash": ""
+  },
+  "docker/apps/hris_ats/hris_ats/tests/fixtures/articles/sample_article.html": {
+    "mtime": 1792366277.703155,
+    "seen": 1792398972.3898509,
+    "ast_hash": "8b7c2d49900c227fb9777374354ddea0",
+    "semantic_hash": ""
+  },
+  "docker/apps/hris_ats/hris_ats/tests/fixtures/court_ma/detail_case_1.html": {
+    "mtime": 1792365004.926826,
+    "seen": 1792398972.389853,
+    "ast_hash": "a4ae5819e17126d9e726ad67a1f2083b",
+    "semantic_hash": ""
+  },
+  "docker/apps/hris_ats/hris_ats/tests/fixtures/court_ma/detail_case_changed.html": {
+    "mtime": 1792368701.9279459,
+    "seen": 1792398972.389855,
+    "ast_hash": "dce3cbe3d63f8bc6f871c87ed245909e",
+    "semantic_hash": ""
+  },
+  "docker/apps/hris_ats/hris_ats/tests/fixtures/court_ma/search_page_1.html": {
+    "mtime": 1792364986.1941514,
+    "seen": 1792398972.389857,
+    "ast_hash": "b69a839d86d93cbb3ec81e39d5f4361b",
+    "semantic_hash": ""
+  },
+  "docker/apps/hris_ats/hris_ats/tests/fixtures/court_ma/search_page_2.html": {
+    "mtime": 1792368135.7785797,
+    "seen": 1792398972.389859,
+    "ast_hash": "06cfaa920d23156459f156637b22b337",
+    "semantic_hash": ""
+  },
+  "docker/apps/hris_ats/hris_ats/tests/fixtures/court_ma/search_page_3.html": {
+    "mtime": 1792368142.3893044,
+    "seen": 1792398972.389861,
+    "ast_hash": "e64c5992489ff888b65a72607be70ea5",
+    "semantic_hash": ""
+  },
+  "docker/apps/hris_ats/hris_ats/tests/fixtures/court_ma/search_page_changed.html": {
+    "mtime": 1792368148.307607,
+    "seen": 1792398972.3898618,
+    "ast_hash": "93d8c6af40d40a6d7c1b6fa8d78221b9",
     "semantic_hash": ""
   }
 }

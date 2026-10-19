@@ -1,5 +1,8 @@
 import React, { useMemo } from "react";
-import { PagedList } from "@/components/PagedList";
+import { usePagedList } from "@/hooks/usePagedList";
+import { searchableText } from "@/utils/searchText";
+import { ListSearchBar } from "@/components/ListSearchBar";
+import { PagedItems } from "@/components/PagedItems";
 import type { ScreenProps } from "@/navigation/types";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { RevealScrollView as ScrollView } from "@/components/Reveal";
@@ -24,46 +27,56 @@ export function TimAppraisal({ navigation }: Pick<ScreenProps, "navigation">) {
   const tim = useLoad(() => hrisApi.getTeamAppraisals(), "tim");
   const items = tim.data ?? [];
 
+  const paged = usePagedList(items, searchableText);
   return (
-    <ScrollView contentContainerStyle={styles.content}>
-      {tim.error && !tim.data ? (
-        <ErrorState message={tim.error} onRetry={tim.retry} />
-      ) : tim.isLoading ? (
-        <View style={{ gap: 10 }}>
-          {[0, 1, 2].map((i) => (
-            <View key={i} style={styles.row}>
-              <Skeleton width={44} height={44} radius={22} />
-              <View style={{ flex: 1, gap: 7 }}>
-                <Skeleton width="58%" height={12} radius={4} />
-                <Skeleton width="40%" height={10} radius={4} />
+    <>
+      {items.length > 0 ? (
+        <ListSearchBar
+          inset
+          value={paged.query}
+          onChangeText={paged.changeQuery}
+        />
+      ) : null}
+      <ScrollView contentContainerStyle={styles.content}>
+        {tim.error && !tim.data ? (
+          <ErrorState message={tim.error} onRetry={tim.retry} />
+        ) : tim.isLoading ? (
+          <View style={{ gap: 10 }}>
+            {[0, 1, 2].map((i) => (
+              <View key={i} style={styles.row}>
+                <Skeleton width={44} height={44} radius={22} />
+                <View style={{ flex: 1, gap: 7 }}>
+                  <Skeleton width="58%" height={12} radius={4} />
+                  <Skeleton width="40%" height={10} radius={4} />
+                </View>
               </View>
-            </View>
-          ))}
-        </View>
-      ) : items.length === 0 ? (
-        <EmptyState
-          icon={ICON.user}
-          title={t("ap2.timKosongJudul")}
-          text={t("ap2.timKosongIsi")}
-        />
-      ) : (
-        <PagedList
-          items={items}
-          renderItem={(a) => (
-            <Baris
-              key={a.employeeId}
-              a={a}
-              onPress={() =>
-                navigation.navigate("AppraisalFeedback", {
-                  employeeId: a.employeeId,
-                  employeeName: a.employeeName,
-                })
-              }
-            />
-          )}
-        />
-      )}
-    </ScrollView>
+            ))}
+          </View>
+        ) : items.length === 0 ? (
+          <EmptyState
+            icon={ICON.user}
+            title={t("ap2.timKosongJudul")}
+            text={t("ap2.timKosongIsi")}
+          />
+        ) : (
+          <PagedItems
+            paged={paged}
+            renderItem={(a) => (
+              <Baris
+                key={a.employeeId}
+                a={a}
+                onPress={() =>
+                  navigation.navigate("AppraisalFeedback", {
+                    employeeId: a.employeeId,
+                    employeeName: a.employeeName,
+                  })
+                }
+              />
+            )}
+          />
+        )}
+      </ScrollView>
+    </>
   );
 }
 

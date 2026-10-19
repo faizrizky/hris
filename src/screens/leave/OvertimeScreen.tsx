@@ -1,5 +1,8 @@
 import { useMemo } from "react";
-import { PagedList } from "@/components/PagedList";
+import { usePagedList } from "@/hooks/usePagedList";
+import { searchableText } from "@/utils/searchText";
+import { ListSearchBar } from "@/components/ListSearchBar";
+import { PagedItems } from "@/components/PagedItems";
 import type { ScreenProps } from "@/navigation/types";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { RevealScrollView as ScrollView } from "@/components/Reveal";
@@ -48,6 +51,7 @@ export function OvertimeScreen({ navigation }: ScreenProps) {
   const t = useT();
   const styles = useMemo(() => makeStyles(c), [c]);
 
+  const paged = usePagedList(records ?? [], searchableText);
   return (
     <View style={styles.container}>
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
@@ -60,6 +64,13 @@ export function OvertimeScreen({ navigation }: ScreenProps) {
         <Text style={styles.headerTitle}>{t("ot.judul")}</Text>
       </View>
 
+      {records && records.length > 0 ? (
+        <ListSearchBar
+          inset
+          value={paged.query}
+          onChangeText={paged.changeQuery}
+        />
+      ) : null}
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.sheet}>
           <View style={styles.sheetHead}>
@@ -154,9 +165,9 @@ export function OvertimeScreen({ navigation }: ScreenProps) {
         ) : (
           <View style={{ gap: 10 }}>
             {
-              <PagedList
+              <PagedItems
+                paged={paged}
                 gap={10}
-                items={records}
                 renderItem={(r) => (
                   <View key={r.id} style={styles.row}>
                     <View style={styles.hourChip}>

@@ -1,5 +1,8 @@
 import React, { useMemo, useState } from "react";
-import { PagedList } from "@/components/PagedList";
+import { usePagedList } from "@/hooks/usePagedList";
+import { searchableText } from "@/utils/searchText";
+import { ListSearchBar } from "@/components/ListSearchBar";
+import { PagedItems } from "@/components/PagedItems";
 import { getRouteParams, type ScreenProps } from "@/navigation/types";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { RevealScrollView as ScrollView } from "@/components/Reveal";
@@ -61,54 +64,64 @@ export function AnnouncementsList({
   );
   const [openId, setOpenId] = useState<string | null>(initialOpenId);
   const items = announcementList.data ?? [];
+  const paged = usePagedList(items, searchableText);
 
   return (
-    <ScrollView contentContainerStyle={styles.list}>
-      {announcementList.error && !announcementList.data ? (
-        <ErrorState
-          message={announcementList.error}
-          onRetry={announcementList.retry}
+    <>
+      {items.length > 0 ? (
+        <ListSearchBar
+          inset
+          value={paged.query}
+          onChangeText={paged.changeQuery}
         />
-      ) : announcementList.isLoading ? (
-        <View style={{ gap: 10 }}>
-          {[0, 1, 2].map((i) => (
-            <View key={i} style={styles.card}>
-              <Skeleton width="60%" height={13} radius={4} />
-              <Skeleton
-                width="90%"
-                height={10}
-                radius={4}
-                style={{ marginTop: 10 }}
+      ) : null}
+      <ScrollView contentContainerStyle={styles.list}>
+        {announcementList.error && !announcementList.data ? (
+          <ErrorState
+            message={announcementList.error}
+            onRetry={announcementList.retry}
+          />
+        ) : announcementList.isLoading ? (
+          <View style={{ gap: 10 }}>
+            {[0, 1, 2].map((i) => (
+              <View key={i} style={styles.card}>
+                <Skeleton width="60%" height={13} radius={4} />
+                <Skeleton
+                  width="90%"
+                  height={10}
+                  radius={4}
+                  style={{ marginTop: 10 }}
+                />
+                <Skeleton
+                  width="70%"
+                  height={10}
+                  radius={4}
+                  style={{ marginTop: 6 }}
+                />
+              </View>
+            ))}
+          </View>
+        ) : items.length === 0 ? (
+          <EmptyState
+            icon={ICON.bell}
+            title={t("an.kosongJudul")}
+            text={t("an.kosongIsi")}
+          />
+        ) : (
+          <PagedItems
+            paged={paged}
+            renderItem={(a) => (
+              <Card
+                key={a.id}
+                a={a}
+                openId={openId === a.id}
+                onPress={() => setOpenId(openId === a.id ? null : a.id)}
               />
-              <Skeleton
-                width="70%"
-                height={10}
-                radius={4}
-                style={{ marginTop: 6 }}
-              />
-            </View>
-          ))}
-        </View>
-      ) : items.length === 0 ? (
-        <EmptyState
-          icon={ICON.bell}
-          title={t("an.kosongJudul")}
-          text={t("an.kosongIsi")}
-        />
-      ) : (
-        <PagedList
-          items={items}
-          renderItem={(a) => (
-            <Card
-              key={a.id}
-              a={a}
-              openId={openId === a.id}
-              onPress={() => setOpenId(openId === a.id ? null : a.id)}
-            />
-          )}
-        />
-      )}
-    </ScrollView>
+            )}
+          />
+        )}
+      </ScrollView>
+    </>
   );
 }
 

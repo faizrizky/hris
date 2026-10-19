@@ -1,5 +1,8 @@
 import { useMemo } from "react";
-import { PagedList } from "@/components/PagedList";
+import { usePagedList } from "@/hooks/usePagedList";
+import { searchableText } from "@/utils/searchText";
+import { ListSearchBar } from "@/components/ListSearchBar";
+import { PagedItems } from "@/components/PagedItems";
 import type { ScreenProps } from "@/navigation/types";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { RevealScrollView as ScrollView } from "@/components/Reveal";
@@ -45,6 +48,7 @@ export function ProfileDocsScreen({ navigation }: ScreenProps) {
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
   // Status dokumen bisa berubah oleh HR: muat ulang diam-diam, hanya bila ada dokumen yang belum final.
+  const paged = usePagedList(filtered, searchableText);
   return (
     <View style={styles.container}>
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
@@ -92,6 +96,13 @@ export function ProfileDocsScreen({ navigation }: ScreenProps) {
         </LinearGradient>
       </View>
 
+      {filtered.length > 0 ? (
+        <ListSearchBar
+          inset
+          value={paged.query}
+          onChangeText={paged.changeQuery}
+        />
+      ) : null}
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -137,8 +148,8 @@ export function ProfileDocsScreen({ navigation }: ScreenProps) {
             text={t("doc.kosongIsi")}
           />
         ) : (
-          <PagedList
-            items={filtered}
+          <PagedItems
+            paged={paged}
             renderItem={(d) => {
               const tone = c[DOC_STATUS_TONE[d.status]];
               const isPdf = d.ext === "PDF";

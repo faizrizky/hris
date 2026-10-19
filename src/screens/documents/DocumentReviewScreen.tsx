@@ -1,5 +1,8 @@
 import { useMemo } from "react";
-import { PagedList } from "@/components/PagedList";
+import { usePagedList } from "@/hooks/usePagedList";
+import { searchableText } from "@/utils/searchText";
+import { ListSearchBar } from "@/components/ListSearchBar";
+import { PagedItems } from "@/components/PagedItems";
 import { type ScreenProps } from "@/navigation/types";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { RevealScrollView as ScrollView } from "@/components/Reveal";
@@ -37,6 +40,7 @@ export function DocumentReviewScreen({ navigation, route }: ScreenProps) {
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
   // Dibuka lagi dari notifikasi lain saat layar sudah terpasang: ikuti konteks barunya.
+  const paged = usePagedList(items, searchableText);
   return (
     <View style={styles.container}>
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
@@ -69,6 +73,13 @@ export function DocumentReviewScreen({ navigation, route }: ScreenProps) {
         })}
       </View>
 
+      {items.length > 0 ? (
+        <ListSearchBar
+          inset
+          value={paged.query}
+          onChangeText={paged.changeQuery}
+        />
+      ) : null}
       <ScrollView contentContainerStyle={styles.list}>
         {documentItem.error && !documentItem.data ? (
           <ErrorState
@@ -94,8 +105,8 @@ export function DocumentReviewScreen({ navigation, route }: ScreenProps) {
             text={t("rv.kosongIsi")}
           />
         ) : (
-          <PagedList
-            items={items}
+          <PagedItems
+            paged={paged}
             renderItem={(d) => (
               <DocRow
                 key={d.id}

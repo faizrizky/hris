@@ -99,87 +99,90 @@ export function NotificationScreen({ navigation }: ScreenProps) {
           initialOpenId={announcementOpenId}
         />
       ) : (
-        <ScrollView contentContainerStyle={styles.content}>
+        <>
           {items !== null && items.length > 0 ? (
             <ListSearchBar
+              inset
               value={paged.query}
               onChangeText={paged.changeQuery}
             />
           ) : null}
-          {errorMessage && items === null ? (
-            <ErrorState message={errorMessage} onRetry={load} />
-          ) : items === null ? (
-            <View style={{ gap: 9 }}>
-              {[0, 1, 2, 3].map((i) => (
-                <NotificationCardSkeleton key={i} />
-              ))}
-            </View>
-          ) : items.length === 0 ? (
-            <EmptyState
-              icon={ICON.bell}
-              title={t("nt.kosongJudul")}
-              text={t("nt.kosongIsi")}
-            />
-          ) : (
-            visibleGroups.map((g, groupIndex) => (
-              <View
-                key={g}
-                style={groupIndex > 0 ? styles.groupGap : undefined}
-              >
-                <Text style={styles.groupLabel}>{g}</Text>
-                <View style={{ gap: 9 }}>
-                  {items
-                    .filter((n) => n.group === g)
-                    .map((n) => {
-                      const tone = c[n.tone];
-                      return (
-                        <Pressable
-                          key={n.id}
-                          onPress={() => open(n)}
-                          style={[
-                            styles.card,
-                            !n.read && { backgroundColor: c.unread },
-                          ]}
-                        >
-                          <View
+          <ScrollView contentContainerStyle={styles.content}>
+            {errorMessage && items === null ? (
+              <ErrorState message={errorMessage} onRetry={load} />
+            ) : items === null ? (
+              <View style={{ gap: 9 }}>
+                {[0, 1, 2, 3].map((i) => (
+                  <NotificationCardSkeleton key={i} />
+                ))}
+              </View>
+            ) : items.length === 0 ? (
+              <EmptyState
+                icon={ICON.bell}
+                title={t("nt.kosongJudul")}
+                text={t("nt.kosongIsi")}
+              />
+            ) : (
+              visibleGroups.map((g, groupIndex) => (
+                <View
+                  key={g}
+                  style={groupIndex > 0 ? styles.groupGap : undefined}
+                >
+                  <Text style={styles.groupLabel}>{g}</Text>
+                  <View style={{ gap: 9 }}>
+                    {items
+                      .filter((n) => n.group === g)
+                      .map((n) => {
+                        const tone = c[n.tone];
+                        return (
+                          <Pressable
+                            key={n.id}
+                            onPress={() => open(n)}
                             style={[
-                              styles.icon,
-                              { backgroundColor: "transparent" },
+                              styles.card,
+                              !n.read && { backgroundColor: c.unread },
                             ]}
                           >
-                            <Ionicons
-                              name={CATEGORY_ICONS[n.category]}
-                              color={tone.ink}
-                              size={26}
-                            />
-                          </View>
+                            <View
+                              style={[
+                                styles.icon,
+                                { backgroundColor: "transparent" },
+                              ]}
+                            >
+                              <Ionicons
+                                name={CATEGORY_ICONS[n.category]}
+                                color={tone.ink}
+                                size={26}
+                              />
+                            </View>
 
-                          <View style={{ flex: 1, minWidth: 0 }}>
-                            <Text style={styles.title}>{n.title}</Text>
-                            <Text style={styles.body}>{n.body}</Text>
-                            <Text style={styles.time}>
-                              {n.timeLabel} · {t(`cat.${n.category}`)}
-                            </Text>
-                          </View>
+                            <View style={{ flex: 1, minWidth: 0 }}>
+                              <Text style={styles.title}>{n.title}</Text>
+                              <Text style={styles.body}>{n.body}</Text>
+                              <Text style={styles.time}>
+                                {n.timeLabel} · {t(`cat.${n.category}`)}
+                              </Text>
+                            </View>
 
-                          {!n.read && <View style={styles.dot} />}
-                        </Pressable>
-                      );
-                    })}
+                            {!n.read && <View style={styles.dot} />}
+                          </Pressable>
+                        );
+                      })}
+                  </View>
                 </View>
-              </View>
-            ))
-          )}
-          {items !== null && items.length > 0 && paged.matchedCount === 0 ? (
-            <Text style={styles.noResult}>{t("list.tanpaHasil")}</Text>
-          ) : null}
-          {paged.hasMore ? (
-            <LoadMoreButton
-              remainingCount={paged.remainingCount}
-              onPress={paged.loadMore}
-            />
-          ) : null}
-        </ScrollView>
+              ))
+            )}
+            {items !== null && items.length > 0 && paged.matchedCount === 0 ? (
+              <Text style={styles.noResult}>{t("list.tanpaHasil")}</Text>
+            ) : null}
+            {paged.hasMore ? (
+              <LoadMoreButton
+                remainingCount={paged.remainingCount}
+                onPress={paged.loadMore}
+              />
+            ) : null}
+          </ScrollView>
+        </>
       )}
     </View>
   );

@@ -3,35 +3,25 @@ import { StyleSheet, Text, View } from "react-native";
 import { Palette } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
 import { useT } from "@/i18n";
-import { searchableText } from "@/utils/searchText";
-import { usePagedList } from "@/hooks/usePagedList";
-import { ListSearchBar } from "@/components/ListSearchBar";
+import type { PagedState } from "@/hooks/usePagedList";
 import { LoadMoreButton } from "@/components/LoadMoreButton";
 
-// Daftar dengan pencarian di atas dan "Muat lagi" di ujung (5 baris per halaman).
-export function PagedList<T>({
-  items,
-  getSearchText = searchableText,
+// Isi daftar bertahap. Kolom cari-nya dipasang layar di luar area scroll
+// (ListSearchBar inset) supaya tetap menempel di atas saat daftar digulir.
+export function PagedItems<T>({
+  paged,
   renderItem,
-  hideSearch = false,
   gap = 0,
 }: {
-  items: T[];
-  getSearchText?: (item: T) => string;
+  paged: PagedState<T>;
   renderItem: (item: T, index: number) => ReactNode;
-  hideSearch?: boolean;
   gap?: number;
 }) {
   const c = useTheme();
   const t = useT();
   const styles = useMemo(() => makeStyles(c), [c]);
-  const paged = usePagedList(items, getSearchText);
-
   return (
     <View>
-      {hideSearch ? null : (
-        <ListSearchBar value={paged.query} onChangeText={paged.changeQuery} />
-      )}
       {paged.matchedCount === 0 ? (
         <Text style={styles.noResult}>{t("list.tanpaHasil")}</Text>
       ) : (

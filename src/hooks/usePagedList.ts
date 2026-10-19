@@ -36,3 +36,5 @@ export function usePagedList<T>(
     isSearching: query.trim().length > 0,
   };
 }
+
+export type PagedState<T> = ReturnType<typeof usePagedList<T>>;

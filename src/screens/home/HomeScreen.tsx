@@ -1,5 +1,6 @@
 import { useMemo } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { useProfilePhoto } from "@/hooks/useProfilePhoto";
+import { Image, Pressable, StyleSheet, Text, View } from "react-native";
 import { Reveal, RevealScrollView as ScrollView } from "@/components/Reveal";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -84,6 +85,7 @@ export function HomeScreen() {
   // Dimuat ulang setiap Beranda mendapat fokus, supaya hasil persetujuan atau
   // pengajuan di tab lain langsung tampil saat kembali ke sini.
   // Jam, sapaan, dan status absen diperbarui selagi Beranda terbuka dan aplikasi di depan (berhenti di latar belakang).
+  const profilePhoto = useProfilePhoto();
   if (!employee) return null;
 
   const greeting =
@@ -325,7 +327,14 @@ export function HomeScreen() {
 
         <View style={styles.identityRow}>
           <View style={styles.avatar}>
-            <Text style={styles.avatarText}>{employee.avatarInitials}</Text>
+            {profilePhoto ? (
+              <Image
+                source={{ uri: profilePhoto }}
+                style={styles.avatarImage}
+              />
+            ) : (
+              <Text style={styles.avatarText}>{employee.avatarInitials}</Text>
+            )}
           </View>
 
           <View style={{ flex: 1, minWidth: 0 }}>
@@ -683,8 +692,10 @@ const makeStyles = (c: Palette) =>
       backgroundColor: c.info.bg,
       alignItems: "center",
       justifyContent: "center",
+      overflow: "hidden",
     },
 
+    avatarImage: { width: "100%", height: "100%" },
     avatarText: { fontSize: 14, fontWeight: "700", color: c.info.ink },
     name: { fontSize: 14.5, fontWeight: "700", color: "#fff" },
     role: {

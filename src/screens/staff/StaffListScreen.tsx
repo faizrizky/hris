@@ -1,5 +1,7 @@
 import { useMemo } from "react";
-import { PagedList } from "@/components/PagedList";
+import { usePagedList } from "@/hooks/usePagedList";
+import { searchableText } from "@/utils/searchText";
+import { PagedItems } from "@/components/PagedItems";
 import type { ScreenProps } from "@/navigation/types";
 import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { RevealScrollView as ScrollView } from "@/components/Reveal";
@@ -38,6 +40,7 @@ export function StaffListScreen({ navigation }: ScreenProps) {
   const styles = useMemo(() => makeStyles(c), [c]);
   // Chip departemen diturunkan dari datanya, bukan daftar tetap: departemen
   // baru di data langsung muncul sebagai chip tanpa mengubah kode ini.
+  const paged = usePagedList(filtered, searchableText);
   return (
     <View style={styles.container}>
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
@@ -135,10 +138,9 @@ export function StaffListScreen({ navigation }: ScreenProps) {
         ) : (
           <View style={{ gap: 9 }}>
             {
-              <PagedList
-                hideSearch
+              <PagedItems
+                paged={paged}
                 gap={9}
-                items={filtered}
                 renderItem={(s) => (
                   <StaffRow
                     key={s.id}

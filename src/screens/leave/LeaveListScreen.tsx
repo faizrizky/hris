@@ -57,6 +57,13 @@ export function LeaveListScreen({ navigation }: ScreenProps) {
         <Text style={styles.headerTitle}>{t("cl.judul")}</Text>
       </View>
 
+      {paged.matchedCount > 0 || paged.isSearching ? (
+        <ListSearchBar
+          inset
+          value={paged.query}
+          onChangeText={paged.changeQuery}
+        />
+      ) : null}
       <FlatList
         data={paged.visibleItems}
         keyExtractor={(item) => item.id}
@@ -204,11 +211,6 @@ export function LeaveListScreen({ navigation }: ScreenProps) {
 
               <Text style={styles.sectionTitle}>{t("cl.pengajuanSaya")}</Text>
             </>
-
-            <ListSearchBar
-              value={paged.query}
-              onChangeText={paged.changeQuery}
-            />
           </>
         }
         ListFooterComponent={

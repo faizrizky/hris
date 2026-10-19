@@ -1,7 +1,5 @@
 import React, { useMemo } from "react";
-import { usePagedList } from "@/hooks/usePagedList";
-import { searchableText } from "@/utils/searchText";
-import { ListSearchBar } from "@/components/ListSearchBar";
+import type { PagedState } from "@/hooks/usePagedList";
 import { LoadMoreButton } from "@/components/LoadMoreButton";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
@@ -218,15 +216,12 @@ export function PayslipCompareCard({
 
 // Barisnya sengaja tidak bisa ditekan: layar Detail Slip dihapus karena tidak
 // ada di mockup, dan di mockup pun baris riwayat ini memang tidak punya tujuan.
-export function PayslipHistoryCard({ items }: { items: Payslip[] }) {
+export function PayslipHistoryCard({ paged }: { paged: PagedState<Payslip> }) {
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
 
-  const paged = usePagedList(items, searchableText);
-
   return (
     <View>
-      <ListSearchBar value={paged.query} onChangeText={paged.changeQuery} />
       <View style={styles.historyCard}>
         {paged.visibleItems.map((p, i) => (
           <View
