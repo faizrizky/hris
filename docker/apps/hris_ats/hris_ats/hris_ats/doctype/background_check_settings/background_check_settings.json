@@ -5,6 +5,8 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
+  "tab_general",
+  "section_general",
   "enabled",
   "mock_provider",
   "section_break_sources",
@@ -14,37 +16,61 @@
   "column_break_sources",
   "enable_case_history",
   "enable_posts",
-  "section_break_fetch_mode",
-  "fetch_respect_robots",
-  "fetch_identity",
-  "fetch_user_agent",
-  "column_break_fetch_mode",
-  "fetch_stealth_mode",
-  "fetch_stealth_domains",
-  "fetch_blocked_domains",
-  "fetch_browser_status",
-  "fetch_risk_acknowledged",
-  "fetch_risk_ack_by",
-  "fetch_risk_ack_on",
-  "section_break_providers",
-  "search_provider",
-  "search_api_key",
-  "x_api_key",
-  "column_break_cred",
-  "youtube_api_key",
-  "github_token",
   "section_break_thresholds",
   "min_match_confidence",
   "max_results_per_source",
   "column_break_param",
   "rate_limit_per_minute",
   "retention_days",
+  "tab_providers",
+  "section_web_search",
+  "search_provider",
+  "search_api_key",
+  "section_break_providers",
+  "x_api_key",
+  "youtube_api_key",
+  "column_break_cred",
+  "github_token",
+  "tab_page_fetching",
+  "section_break_fetch_mode",
+  "fetch_respect_robots",
+  "fetch_identity",
+  "fetch_user_agent",
+  "column_break_fetch_mode",
+  "fetch_browser_status",
+  "test_fetch_btn",
+  "section_stealth_and_blocking",
+  "fetch_stealth_mode",
+  "fetch_stealth_domains",
+  "column_break_stealth",
+  "fetch_blocked_domains",
+  "section_fetch_risk",
+  "fetch_risk_acknowledged",
+  "column_break_fetch_risk",
+  "fetch_risk_ack_by",
+  "fetch_risk_ack_on",
+  "tab_social_accounts",
+  "section_social_accounts",
+  "social_accounts_placeholder",
+  "tab_consent",
   "section_break_consent",
   "consent_text_version",
   "consent_text_id",
+  "column_break_consent",
   "consent_text_en"
  ],
  "fields": [
+  {
+   "fieldname": "tab_general",
+   "fieldtype": "Tab Break",
+   "label": "General"
+  },
+  {
+   "description": "Enable background checks and configure offline testing mode.",
+   "fieldname": "section_general",
+   "fieldtype": "Section Break",
+   "label": "General Configuration"
+  },
   {
    "default": "1",
    "fieldname": "enabled",
@@ -58,6 +84,7 @@
    "label": "Use Mock Provider (Offline / Testing)"
   },
   {
+   "description": "Enable or disable data sources used during background checks.",
    "fieldname": "section_break_sources",
    "fieldtype": "Section Break",
    "label": "Source Toggles"
@@ -97,126 +124,7 @@
    "label": "Enable Public Posts API"
   },
   {
-   "fieldname": "section_break_fetch_mode",
-   "fieldtype": "Section Break",
-   "label": "Page Fetching Mode",
-   "permlevel": 1
-  },
-  {
-   "default": "1",
-   "fieldname": "fetch_respect_robots",
-   "fieldtype": "Check",
-   "label": "Respect robots.txt",
-   "permlevel": 1
-  },
-  {
-   "default": "Company",
-   "fieldname": "fetch_identity",
-   "fieldtype": "Select",
-   "label": "Fetch Identity",
-   "options": "Company\nBrowser",
-   "permlevel": 1
-  },
-  {
-   "default": "HRIS Background Check (+hr@example.com)",
-   "fieldname": "fetch_user_agent",
-   "fieldtype": "Data",
-   "label": "User Agent",
-   "permlevel": 1
-  },
-  {
-   "fieldname": "column_break_fetch_mode",
-   "fieldtype": "Column Break",
-   "permlevel": 1
-  },
-  {
-   "default": "0",
-   "fieldname": "fetch_stealth_mode",
-   "fieldtype": "Check",
-   "label": "Enable Stealth Mode",
-   "permlevel": 1
-  },
-  {
-   "fieldname": "fetch_stealth_domains",
-   "fieldtype": "Small Text",
-   "label": "Stealth Domains",
-   "permlevel": 1
-  },
-  {
-   "default": "instagram.com\ninstagr.am\nfacebook.com\nfb.com\nfb.me\ntiktok.com\nlinkedin.com\nlnkd.in",
-   "description": "Fetching pages from these platforms violates their terms of service and, with stealth mode, may be considered bypassing security systems (UU ITE Article 30 paragraph (3)); results are often just login pages; should be approved by Legal.",
-   "fieldname": "fetch_blocked_domains",
-   "fieldtype": "Small Text",
-   "label": "Blocked Social Media Domains",
-   "permlevel": 1
-  },
-  {
-   "fieldname": "fetch_browser_status",
-   "fieldtype": "Data",
-   "label": "Browser Status",
-   "read_only": 1,
-   "permlevel": 1
-  },
-  {
-   "default": "0",
-   "description": "1. Bypassing anti-bot protection may be considered breaching or bypassing security systems under UU ITE Article 30 paragraph (3), and violates terms of service of source sites.\n2. Ignoring robots.txt and impersonating a browser violates terms of service of many sites and may cause server IP bans, including for other services on the same server.\n3. The decision to enable it should be approved by Legal and formally recorded.",
-   "fieldname": "fetch_risk_acknowledged",
-   "fieldtype": "Check",
-   "label": "Acknowledge Legal and Technical Risks",
-   "permlevel": 1
-  },
-  {
-   "fieldname": "fetch_risk_ack_by",
-   "fieldtype": "Link",
-   "label": "Risk Acknowledged By",
-   "options": "User",
-   "read_only": 1,
-   "permlevel": 1
-  },
-  {
-   "fieldname": "fetch_risk_ack_on",
-   "fieldtype": "Datetime",
-   "label": "Risk Acknowledged On",
-   "read_only": 1,
-   "permlevel": 1
-  },
-  {
-   "fieldname": "section_break_providers",
-   "fieldtype": "Section Break",
-   "label": "Provider API Credentials"
-  },
-  {
-   "default": "Mock",
-   "fieldname": "search_provider",
-   "fieldtype": "Select",
-   "label": "Web Search Provider",
-   "options": "Mock\nBrave\nGoogle\nSerpAPI"
-  },
-  {
-   "fieldname": "search_api_key",
-   "fieldtype": "Password",
-   "label": "Search API Key"
-  },
-  {
-   "fieldname": "x_api_key",
-   "fieldtype": "Password",
-   "label": "X (Twitter) API Key"
-  },
-  {
-   "fieldname": "column_break_cred",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "youtube_api_key",
-   "fieldtype": "Password",
-   "label": "YouTube Data API Key"
-  },
-  {
-   "fieldname": "github_token",
-   "fieldtype": "Password",
-   "label": "GitHub Personal Access Token"
-  },
-  {
+   "description": "Confidence thresholds, rate limits, and raw data retention periods.",
    "fieldname": "section_break_thresholds",
    "fieldtype": "Section Break",
    "label": "Parameters & Retention"
@@ -250,9 +158,204 @@
    "label": "Retention Days (Purge Raw Findings)"
   },
   {
+   "fieldname": "tab_providers",
+   "fieldtype": "Tab Break",
+   "label": "Providers"
+  },
+  {
+   "description": "Select and configure web search API credentials for public search queries.",
+   "fieldname": "section_web_search",
+   "fieldtype": "Section Break",
+   "label": "Web Search Provider"
+  },
+  {
+   "default": "Mock",
+   "fieldname": "search_provider",
+   "fieldtype": "Select",
+   "label": "Web Search Provider",
+   "options": "Mock\nBrave\nGoogle\nSerpAPI"
+  },
+  {
+   "fieldname": "search_api_key",
+   "fieldtype": "Password",
+   "label": "Search API Key"
+  },
+  {
+   "description": "Official API keys for platform-specific data providers.",
+   "fieldname": "section_break_providers",
+   "fieldtype": "Section Break",
+   "label": "Platform API Credentials"
+  },
+  {
+   "fieldname": "x_api_key",
+   "fieldtype": "Password",
+   "label": "X (Twitter) API Key"
+  },
+  {
+   "fieldname": "youtube_api_key",
+   "fieldtype": "Password",
+   "label": "YouTube Data API Key"
+  },
+  {
+   "fieldname": "column_break_cred",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "github_token",
+   "fieldtype": "Password",
+   "label": "GitHub Personal Access Token"
+  },
+  {
+   "fieldname": "tab_page_fetching",
+   "fieldtype": "Tab Break",
+   "label": "Page Fetching",
+   "permlevel": 1
+  },
+  {
+   "description": "Configure web scraping engine, identity headers, and browser impersonation.",
+   "fieldname": "section_break_fetch_mode",
+   "fieldtype": "Section Break",
+   "label": "Page Fetching Mode",
+   "permlevel": 1
+  },
+  {
+   "default": "1",
+   "fieldname": "fetch_respect_robots",
+   "fieldtype": "Check",
+   "label": "Respect robots.txt",
+   "permlevel": 1
+  },
+  {
+   "default": "Company",
+   "fieldname": "fetch_identity",
+   "fieldtype": "Select",
+   "label": "Fetch Identity",
+   "options": "Company\nBrowser",
+   "permlevel": 1
+  },
+  {
+   "default": "HRIS Background Check (+hr@example.com)",
+   "fieldname": "fetch_user_agent",
+   "fieldtype": "Data",
+   "label": "User Agent",
+   "permlevel": 1
+  },
+  {
+   "fieldname": "column_break_fetch_mode",
+   "fieldtype": "Column Break",
+   "permlevel": 1
+  },
+  {
+   "fieldname": "fetch_browser_status",
+   "fieldtype": "Data",
+   "label": "Browser Status",
+   "permlevel": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "test_fetch_btn",
+   "fieldtype": "Button",
+   "label": "Test Fetch",
+   "permlevel": 1
+  },
+  {
+   "collapsible": 1,
+   "description": "Configure stealth fetching for protected pages and maintain forbidden domains.",
+   "fieldname": "section_stealth_and_blocking",
+   "fieldtype": "Section Break",
+   "label": "Stealth Mode & Domain Restrictions",
+   "permlevel": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "fetch_stealth_mode",
+   "fieldtype": "Check",
+   "label": "Enable Stealth Mode",
+   "permlevel": 1
+  },
+  {
+   "fieldname": "fetch_stealth_domains",
+   "fieldtype": "Small Text",
+   "label": "Stealth Domains",
+   "permlevel": 1
+  },
+  {
+   "fieldname": "column_break_stealth",
+   "fieldtype": "Column Break",
+   "permlevel": 1
+  },
+  {
+   "default": "instagram.com\ninstagr.am\nfacebook.com\nfb.com\nfb.me\ntiktok.com\nlinkedin.com\nlnkd.in",
+   "description": "Fetching pages from these platforms violates their terms of service and, with stealth mode, may be considered bypassing security systems (UU ITE Article 30 paragraph (3)); results are often just login pages; should be approved by Legal.",
+   "fieldname": "fetch_blocked_domains",
+   "fieldtype": "Small Text",
+   "label": "Blocked Social Media Domains",
+   "permlevel": 1
+  },
+  {
+   "description": "Mandatory acknowledgment before loosening any default fetch restrictions.",
+   "fieldname": "section_fetch_risk",
+   "fieldtype": "Section Break",
+   "label": "Legal & Technical Risk Acknowledgment",
+   "permlevel": 1
+  },
+  {
+   "default": "0",
+   "description": "1. Bypassing anti-bot protection may be considered breaching or bypassing security systems under UU ITE Article 30 paragraph (3), and violates terms of service of source sites.\n2. Ignoring robots.txt and impersonating a browser violates terms of service of many sites and may cause server IP bans, including for other services on the same server.\n3. The decision to enable it should be approved by Legal and formally recorded.",
+   "fieldname": "fetch_risk_acknowledged",
+   "fieldtype": "Check",
+   "label": "Acknowledge Legal and Technical Risks",
+   "permlevel": 1
+  },
+  {
+   "fieldname": "column_break_fetch_risk",
+   "fieldtype": "Column Break",
+   "permlevel": 1
+  },
+  {
+   "fieldname": "fetch_risk_ack_by",
+   "fieldtype": "Link",
+   "label": "Risk Acknowledged By",
+   "options": "User",
+   "permlevel": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "fetch_risk_ack_on",
+   "fieldtype": "Datetime",
+   "label": "Risk Acknowledged On",
+   "permlevel": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "tab_social_accounts",
+   "fieldtype": "Tab Break",
+   "label": "Social Accounts",
+   "permlevel": 1
+  },
+  {
+   "description": "Manage authenticated crawler accounts for restricted platform access.",
+   "fieldname": "section_social_accounts",
+   "fieldtype": "Section Break",
+   "label": "Social Media Crawler Accounts",
+   "permlevel": 1
+  },
+  {
+   "fieldname": "social_accounts_placeholder",
+   "fieldtype": "HTML",
+   "label": "Crawler Accounts",
+   "permlevel": 1
+  },
+  {
+   "fieldname": "tab_consent",
+   "fieldtype": "Tab Break",
+   "label": "Consent"
+  },
+  {
+   "description": "Bilingual consent terms presented to candidates on the candidate consent portal.",
    "fieldname": "section_break_consent",
    "fieldtype": "Section Break",
-   "label": "Consent Configuration"
+   "label": "Consent Terms & Versioning"
   },
   {
    "default": "v1.0",
@@ -265,6 +368,10 @@
    "fieldname": "consent_text_id",
    "fieldtype": "Small Text",
    "label": "Consent Terms Text (ID)"
+  },
+  {
+   "fieldname": "column_break_consent",
+   "fieldtype": "Column Break"
   },
   {
    "default": "By granting this consent, I authorize the verification of my declared public profile information, public case history, and social media accounts for recruitment purposes in accordance with applicable personal data protection laws.",
@@ -321,14 +428,14 @@
   {
    "permlevel": 1,
    "read": 1,
-   "write": 1,
-   "role": "System Manager"
+   "role": "System Manager",
+   "write": 1
   },
   {
    "permlevel": 1,
    "read": 1,
-   "write": 0,
-   "role": "HR Manager"
+   "role": "HR Manager",
+   "write": 0
   }
  ],
  "sort_field": "modified",

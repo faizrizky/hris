@@ -8,6 +8,23 @@ frappe.ui.form.on("Background Check Settings", {
 				show_test_fetch_dialog(frm);
 			});
 		}
+
+		if (frm.fields_dict.social_accounts_placeholder) {
+			frm.fields_dict.social_accounts_placeholder.$wrapper.html(
+				`<div class="text-muted text-center py-5 border rounded bg-light">
+					<i class="fa fa-users fa-2x mb-2 text-secondary"></i>
+					<div class="font-weight-bold">${__("Social Media Crawler Accounts")}</div>
+					<div class="small mt-1 text-muted">${__("No crawler accounts configured yet. Authenticated crawler accounts will be set up in Phase 2.")}</div>
+				</div>`
+			);
+		}
+	},
+	test_fetch_btn: function (frm) {
+		if (frappe.user.has_role("System Manager")) {
+			show_test_fetch_dialog(frm);
+		} else {
+			frappe.msgprint(__("Only System Manager can perform test fetch."));
+		}
 	}
 });
 
