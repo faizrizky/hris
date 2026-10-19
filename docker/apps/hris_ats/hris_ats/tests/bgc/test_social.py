@@ -361,6 +361,71 @@ def test_social_public_provider_enforces_limits():
 	assert len(res["comments"]) <= 1
 
 
+def test_candidate_comments_lookback_and_author_filter():
+	"""Memastikan komentar kandidat menyaring lookback_months, kepastian penulis, dan max_comments."""
+	from frappe.utils import add_months, now_datetime
+
+	from hris_ats.bgc.providers.social.linkedin import LinkedInAdapter
+
+	adapter = LinkedInAdapter()
+	# Komentar dengan tanggal baru dan lama
+	recent_date = str(now_datetime())
+	old_date = str(add_months(now_datetime(), -24))  # 24 bulan lalu (di luar default 12 bulan)
+
+	fake_comments_html = f"""
+	<div class="comments-container">
+		<article class="feed-shared-update-v2">
+			<a class="update-components-actor__name">Ahmad Faiz</a>
+			<time datetime="{recent_date}"></time>
+			<div class="feed-shared-text">Recent comment by candidate @team.</div>
+		</article>
+		<article class="feed-shared-update-v2">
+			<a class="update-components-actor__name">Ahmad Faiz</a>
+			<time datetime="{old_date}"></time>
+			<div class="feed-shared-text">Old comment from two years ago.</div>
+		</article>
+		<article class="feed-shared-update-v2">
+			<a class="update-components-actor__name">Other Person</a>
+			<time datetime="{recent_date}"></time>
+			<div class="feed-shared-text">Comment by someone else.</div>
+		</article>
+		<article class="feed-shared-update-v2">
+			<div class="feed-shared-text">Comment with missing author element.</div>
+		</article>
+	</div>
+	"""
+
+	# 1. Adaptor membuang penulis yang bukan kandidat dan tanpa penulis
+	extracted, _ = adapter.extract_candidate_comments(fake_comments_html, "ahmad faiz")
+	assert len(extracted) == 2
+	assert all("Ahmad Faiz" in c.get("author", "Ahmad Faiz") for c in extracted)
+	assert not any("someone else" in c["snippet"] for c in extracted)
+	assert not any("missing author" in c["snippet"] for c in extracted)
+
+	# 2. SocialPublicProvider memfilter lookback_months dan membatasi max_comments
+	bgc = DummyBGC(consent_status="Granted")
+	acc = DummyAccount(platform="LinkedIn", username="ahmadfaiz", social_consent=1)
+	provider = SocialPublicProvider(config=FetchConfig(blocked_domains=[]))
+
+	def mock_fetch(url, **kwargs):
+		return FetchResult(url=url, status=200, body=fake_comments_html, mode_used="company")
+
+	res = provider.crawl_account(
+		bgc,
+		acc,
+		is_mock=False,
+		max_posts=50,
+		max_comments=10,
+		lookback_months=12,
+		raw_fetch_fn=mock_fetch,
+	)
+
+	# Hanya komentar dalam rentang 12 bulan yang masuk
+	assert len(res["comments"]) == 1
+	assert "Recent comment by candidate @[user]" in res["comments"][0]["snippet"]
+	assert "Old comment" not in res["comments"][0]["snippet"]
+
+
 # ---------------------------------------------------------------------------
 # 8. Crawler Session Management (Rate Limits, Locks, Checkpoints)
 # ---------------------------------------------------------------------------

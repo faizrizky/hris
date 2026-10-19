@@ -260,6 +260,11 @@ class TestBackgroundCheckSettings(FrappeTestCase):
 			self.settings.save()
 		self.settings.reload()
 
+		self.settings.social_max_comments = 0
+		with self.assertRaises(frappe.ValidationError):
+			self.settings.save()
+		self.settings.reload()
+
 		self.settings.social_lookback_months = 0
 		with self.assertRaises(frappe.ValidationError):
 			self.settings.save()
@@ -272,11 +277,13 @@ class TestBackgroundCheckSettings(FrappeTestCase):
 
 		# Nilai valid tersimpan
 		self.settings.social_max_posts = 150
+		self.settings.social_max_comments = 120
 		self.settings.social_lookback_months = 6
 		self.settings.export_max_mb = 50
 		self.settings.save()
 		self.settings.reload()
 		self.assertEqual(self.settings.social_max_posts, 150)
+		self.assertEqual(self.settings.social_max_comments, 120)
 		self.assertEqual(self.settings.social_lookback_months, 6)
 		self.assertEqual(self.settings.export_max_mb, 50)
 

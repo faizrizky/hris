@@ -138,17 +138,23 @@ class LinkedInAdapter(BaseSocialAdapter):
 		# 2. Cari via parser adaptor Scrapling jika ada comment card
 		adaptor = create_adaptive_adaptor(raw_html)
 		if adaptor:
-			for item in adaptor.css(".comments-comment-item, .activity-comment-item, article[data-activity-type='comment']"):
-				author_matches = item.css(".comments-post-meta__name-text, .actor-name, .author-name")
+			for item in adaptor.css(".comments-comment-item, .activity-comment-item, article[data-activity-type='comment'], .feed-shared-update-v2"):
+				author_matches = item.css(".comments-post-meta__name-text, .actor-name, .author-name, .update-components-actor__name")
 				author_name = author_matches[0].text.strip().lower() if author_matches else ""
-				if author_name and (clean_target in author_name or author_name in clean_target):
-					text_matches = item.css(".comments-comment-item__main-content, .comment-text, .feed-shared-update-v2__commentary")
+				target_norm = re.sub(r"[\s\-_.]", "", clean_target)
+				author_norm = re.sub(r"[\s\-_.]", "", author_name)
+				if author_norm and (target_norm in author_norm or author_norm in target_norm):
+					text_matches = item.css(".comments-comment-item__main-content, .comment-text, .feed-shared-update-v2__commentary, .feed-shared-text")
 					if text_matches:
 						c_text = clean_snippet(text_matches[0].text)
 						if c_text and not any(c["snippet"] == c_text for c in comments):
+							time_matches = item.css("time")
+							c_pub = None
+							if time_matches:
+								c_pub = time_matches[0].attrib.get("datetime") or time_matches[0].text.strip() or None
 							comments.append({
 								"snippet": c_text,
-								"published_on": None,
+								"published_on": c_pub,
 								"url": url,
 								"media_type": "Text",
 							})
