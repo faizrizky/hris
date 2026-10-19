@@ -281,6 +281,8 @@ class BackgroundCheckSettings(Document):
 	def validate_thresholds(self):
 		if self.social_max_posts is not None and self.social_max_posts < 1:
 			frappe.throw(_("Social Max Posts must be at least 1."))
+		if getattr(self, "social_max_comments", None) is not None and self.social_max_comments < 1:
+			frappe.throw(_("Social Max Comments must be at least 1."))
 		if self.social_lookback_months is not None and self.social_lookback_months < 1:
 			frappe.throw(_("Social Lookback Months must be at least 1."))
 		if self.export_max_mb is not None and self.export_max_mb < 1:
@@ -310,6 +312,7 @@ class BackgroundCheckSettings(Document):
 			or self.fetch_identity == "Browser"
 			or bool(self.fetch_stealth_mode)
 			or bool(getattr(self, "fetch_use_login_session", 0))
+			or bool(getattr(self, "fetch_auto_escalate", 0))
 			or has_removed_blocked_domains
 		)
 
@@ -317,7 +320,7 @@ class BackgroundCheckSettings(Document):
 			frappe.throw(
 				_(
 					"Saving settings with robots.txt ignored, Browser identity, stealth mode, "
-					"or removed default blocked domains requires risk acknowledgment (fetch_risk_acknowledged)."
+					"auto-escalate mode, or removed default blocked domains requires risk acknowledgment (fetch_risk_acknowledged)."
 				),
 				title=_("Risk Acknowledgment Required"),
 			)

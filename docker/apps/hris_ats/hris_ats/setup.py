@@ -516,6 +516,9 @@ def setup_default_settings():
 	if not getattr(settings, "social_max_posts", None) or settings.social_max_posts < 1:
 		settings.social_max_posts = 200
 		dirty = True
+	if not getattr(settings, "social_max_comments", None) or settings.social_max_comments < 1:
+		settings.social_max_comments = 200
+		dirty = True
 	if not getattr(settings, "social_lookback_months", None) or settings.social_lookback_months < 1:
 		settings.social_lookback_months = 12
 		dirty = True

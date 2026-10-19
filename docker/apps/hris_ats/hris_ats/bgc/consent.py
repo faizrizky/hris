@@ -346,3 +346,112 @@ def revoke_consent(bgc_name: str) -> dict[str, Any]:
 		"findings_deleted": count,
 	}
 
+
+class SocialConsentError(frappe.PermissionError):
+	"""Dilemparkan bila persetujuan kandidat untuk pemeriksaan media sosial tidak terpenuhi."""
+	pass
+
+
+def assert_social_consent(
+	bgc: Any,
+	account: Any,
+	blocked_domains: list[str] | None = None,
+) -> bool:
+	"""Penjaga persetujuan kandidat terpusat (Spesifikasi 3.1 & 3b).
+
+	Memeriksa:
+	1. Persetujuan umum diberikan (bgc.consent_status == 'Given' atau 'Granted').
+	2. Sumber 'Social Media' disetujui (pada consent_scope terdapat row source='Social Media' dengan granted=1).
+	3. Akun spesifik kandidat dicentang persetujuannya (account.social_consent == 1).
+	4. Domain profil akun tidak masuk dalam daftar terblokir (settings.fetch_blocked_domains).
+
+	Dipakai oleh SEMUA jalur (crawl publik, sesi akun crawler, ekspor kandidat, OAuth).
+	Nol permintaan jaringan dan nol temuan boleh dihasilkan bila fungsi ini gagal.
+	"""
+	if not bgc:
+		frappe.throw(_("Background Check reference is required for social consent."), SocialConsentError)
+
+	consent_status = getattr(bgc, "consent_status", "")
+	if consent_status not in ("Given", "Granted"):
+		frappe.throw(
+			_("Candidate consent has not been given (status: {0}).").format(consent_status),
+			SocialConsentError,
+		)
+
+	consent_method = getattr(bgc, "consent_method", "")
+	if consent_method == "Uploaded document" and not getattr(bgc, "consent_file", None):
+		frappe.throw(_("Signed consent document file is missing."), SocialConsentError)
+
+	# 2. Scope 'Social Media' granted
+	has_social_scope = False
+	consent_scope_rows = getattr(bgc, "consent_scope", []) or []
+	for row in consent_scope_rows:
+		source_val = getattr(row, "source", None) or (row.get("source") if isinstance(row, dict) else "")
+		granted_val = getattr(row, "granted", None) if not isinstance(row, dict) else row.get("granted")
+		if source_val == "Social Media" and bool(granted_val):
+			has_social_scope = True
+			break
+
+	if not has_social_scope:
+		frappe.throw(
+			_("Scope 'Social Media' was not granted by the candidate."),
+			SocialConsentError,
+		)
+
+	# 3. Akun spesifik dicentang
+	if not account:
+		frappe.throw(_("Account reference is required for social consent."), SocialConsentError)
+
+	social_consent = getattr(account, "social_consent", None)
+	if social_consent is None and isinstance(account, dict):
+		social_consent = account.get("social_consent")
+	if not bool(social_consent):
+		platform_name = getattr(account, "platform", "") or (account.get("platform", "") if isinstance(account, dict) else "")
+		username = getattr(account, "username", "") or (account.get("username", "") if isinstance(account, dict) else "")
+		label = f"{platform_name} (@{username})" if username else (platform_name or "account")
+		frappe.throw(
+			_("Candidate did not consent to screening for account {0}.").format(label),
+			SocialConsentError,
+		)
+
+	# 4. Domain platform akun diizinkan (tidak diblokir di Background Check Settings)
+	from hris_ats.bgc.fetch import get_domain
+	if blocked_domains is None:
+		if getattr(frappe, "local", None) and getattr(frappe.local, "site", None):
+			try:
+				settings = frappe.get_single("Background Check Settings")
+				blocked_domains = [
+					line.strip().lower()
+					for line in (settings.fetch_blocked_domains or "").splitlines()
+					if line.strip()
+				]
+			except Exception:
+				blocked_domains = []
+		else:
+			blocked_domains = []
+
+	profile_url = getattr(account, "profile_url", None)
+	if not profile_url and isinstance(account, dict):
+		profile_url = account.get("profile_url")
+
+	platform = getattr(account, "platform", None) or (account.get("platform", "") if isinstance(account, dict) else "")
+	if not profile_url and platform:
+		if getattr(frappe, "db", None) and getattr(frappe.local, "site", None):
+			tmpl = frappe.db.get_value("Background Check Platform", platform, "profile_url_template")
+		else:
+			tmpl = None
+		clean_user = (getattr(account, "username", "") or (account.get("username", "") if isinstance(account, dict) else "")).strip().lstrip("@")
+		if tmpl and clean_user:
+			profile_url = tmpl.replace("{username}", clean_user)
+
+	if profile_url:
+		dom = get_domain(profile_url)
+		if any(dom == bd or dom.endswith("." + bd) for bd in blocked_domains):
+			frappe.throw(
+				_("Domain '{0}' is currently blocked in Background Check Settings.").format(dom),
+				SocialConsentError,
+			)
+
+	return True
+
+

@@ -194,9 +194,20 @@ def get_findings_data(bgc_name: str) -> dict[str, Any]:
 		"Background Check Finding",
 		filters={"background_check": bgc_name, "finding_type": "Post"},
 		fields=[
-			"name", "finding_type", "title", "snippet", "url", "source_name",
+			"name", "finding_type", "title", "snippet", "url", "source_name", "account",
 			"match_confidence", "category", "risk_flags", "risk_flags_template", "risk_flags_params",
-			"severity", "hr_verdict", "hr_note", "published_on"
+			"severity", "hr_verdict", "hr_note", "published_on", "provenance", "media_type"
+		],
+		order_by="creation desc",
+	)
+
+	comment_findings = frappe.get_all(
+		"Background Check Finding",
+		filters={"background_check": bgc_name, "finding_type": "Comment"},
+		fields=[
+			"name", "finding_type", "title", "snippet", "url", "source_name", "account",
+			"match_confidence", "category", "risk_flags", "risk_flags_template", "risk_flags_params",
+			"severity", "hr_verdict", "hr_note", "published_on", "provenance", "media_type"
 		],
 		order_by="creation desc",
 	)
@@ -211,9 +222,14 @@ def get_findings_data(bgc_name: str) -> dict[str, Any]:
 		if p.get("risk_flags_template"):
 			p["risk_flags"] = render(p["risk_flags_template"], p.get("risk_flags_params"))
 
+	for c in comment_findings:
+		if c.get("risk_flags_template"):
+			c["risk_flags"] = render(c["risk_flags_template"], c.get("risk_flags_params"))
+
 	return {
 		"name_findings": name_findings,
 		"post_findings": post_findings,
+		"comment_findings": comment_findings,
 	}
 
 

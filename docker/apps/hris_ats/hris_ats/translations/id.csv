@@ -840,4 +840,33 @@ Social Lookback Months must be at least 1.,Bulan Tinjauan Media Sosial minimal 1
 Social Max Posts must be at least 1.,Maksimal Postingan Media Sosial minimal 1.
 Visible Posts Count,Jumlah Postingan yang Terlihat
 Yes,Ya
+Auto-escalate Fetch Mode,Eskalasi Otomatis Mode Pengambilan
+"Automatically escalate fetch mode (Company -> Browser -> Stealth -> Session) when blocked or encountering login walls.","Eskalasi otomatis mode pengambilan (Company -> Browser -> Stealth -> Session) saat terhalang atau mendapati dinding login."
+Enabling auto-escalation of fetch modes requires acknowledging legal and technical risks.,Mengaktifkan eskalasi otomatis mode pengambilan memerlukan konfirmasi persetujuan risiko hukum dan teknis.
+"Saving settings with robots.txt ignored, Browser identity, stealth mode, auto-escalate mode, or removed default blocked domains requires risk acknowledgment (fetch_risk_acknowledged).","Menyimpan pengaturan dengan robots.txt diabaikan, identitas Browser, mode stealth, eskalasi otomatis, atau domain terblokir bawaan dihapus memerlukan persetujuan risiko (fetch_risk_acknowledged)."
+Background Check reference is required for social consent.,Referensi Background Check wajib diisi untuk persetujuan media sosial.
+"Candidate consent has not been given (status: {0}).","Persetujuan kandidat belum diberikan (status: {0})."
+Scope 'Social Media' was not granted by the candidate.,Cakupan 'Social Media' tidak disetujui oleh kandidat.
+Account reference is required for social consent.,Referensi akun wajib diisi untuk persetujuan media sosial.
+"Candidate did not consent to screening for account {0}.","Kandidat tidak menyetujui pemeriksaan untuk akun {0}."
+"Domain '{0}' is currently blocked in Background Check Settings.","Domain '{0}' saat ini diblokir pada Pengaturan Background Check."
+Social Max Comments,Batas Maksimal Komentar Sosial
+Limit candidate comments collected per candidate account.,Batasi jumlah komentar kandidat yang dikumpulkan per akun kandidat.
+Comment,Komentar
+Comments,Komentar
+Provenance,Asal Data
+Crawled,Diambil (Crawl)
+Crawled (session),Diambil (Sesi)
+Candidate export,Ekspor Kandidat
+OAuth API,API OAuth
+Official API,API Resmi
+Media Type,Tipe Media
+Comments Flagged as Risky,Komentar yang Ditandai Berisiko
+No public comments flagged as risky from candidate accounts.,Tidak ada komentar publik yang ditandai berisiko dari akun kandidat.
+Social Max Comments must be at least 1.,Batas Maksimal Komentar Sosial minimal 1.
+"Comments not exposed by platform: {0}; candidate export recommended.","Komentar tidak diekspos oleh platform: {0}; disarankan memakai jalur ekspor data."
+"Unsupported social media platform: {0}","Platform media sosial tidak didukung: {0}"
+"Crawler encountered challenge or checkpoint: {reason}","Crawler mendapati tantangan atau checkpoint: {reason}"
+"Crawler Account Challenge: {0}","Tantangan Akun Crawler: {0}"
+Signed consent document file is missing.,Berkas dokumen persetujuan bertanda tangan tidak ditemukan.
 

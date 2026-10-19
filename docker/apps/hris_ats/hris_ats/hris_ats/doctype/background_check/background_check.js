@@ -271,10 +271,11 @@ frappe.ui.form.on("Background Check", {
 			callback: function (r) {
 				if (!r.message) return;
 				let posts = r.message.post_findings || [];
+				let comments = r.message.comment_findings || [];
 				let container = frm.fields_dict.account_findings_html.$wrapper;
 				container.empty();
 
-				if (!posts.length) {
+				if (!posts.length && !comments.length) {
 					container.html(`
 						<div class="text-center text-muted p-4 border rounded bg-light">
 							<p class="mb-0">${__("No public posts flagged as risky from candidate accounts.")}</p>
@@ -283,17 +284,22 @@ frappe.ui.form.on("Background Check", {
 					return;
 				}
 
-				let posts_html = posts.map(p => {
-					let v = p.hr_verdict || "Not reviewed";
+				function renderCard(item) {
+					let v = item.hr_verdict || "Not reviewed";
+					let prov = item.provenance || "Crawled";
+					let provBadge = `<span class="badge badge-info mr-1">${__(prov)}</span>`;
+					let platBadge = item.account ? `<span class="badge badge-light border mr-1">${item.account}</span>` : '';
 					return `
-						<div class="card mb-2 p-3 border border-warning shadow-none">
+						<div class="card mb-2 p-3 border border-warning shadow-none finding-card" data-account="${item.account || ''}">
 							<div class="d-flex justify-content-between align-items-center mb-1">
 								<div>
-									<span class="badge badge-danger mr-2">${__(p.severity)}</span>
-									<span class="small text-muted">${p.published_on || ''}</span>
+									<span class="badge badge-danger mr-1">${__(item.severity)}</span>
+									${provBadge}
+									${platBadge}
+									<span class="small text-muted">${item.published_on || ''}</span>
 								</div>
 								<div style="min-width: 170px;">
-									<select class="form-control form-control-sm hr-verdict-select" data-name="${p.name}">
+									<select class="form-control form-control-sm hr-verdict-select" data-name="${item.name}">
 										<option value="Not reviewed" ${v === 'Not reviewed' || v === 'Belum ditinjau' ? 'selected' : ''}>${__("Not reviewed")}</option>
 										<option value="Relevant" ${v === 'Relevant' || v === 'Relevan' ? 'selected' : ''}>${__("Relevant")}</option>
 										<option value="Not this person" ${v === 'Not this person' || v === 'Bukan orang ini' ? 'selected' : ''}>${__("Not this person")}</option>
@@ -301,22 +307,54 @@ frappe.ui.form.on("Background Check", {
 									</select>
 								</div>
 							</div>
-							<p class="mb-1" style="font-style: italic;">"${p.snippet}"</p>
+							<p class="mb-1" style="font-style: italic;">"${item.snippet}"</p>
 							<div class="small text-danger">
-								<strong>${__("Risk Indicator")}:</strong> ${p.risk_flags || '-'}
+								<strong>${__("Risk Indicator")}:</strong> ${item.risk_flags || '-'}
 							</div>
 						</div>
 					`;
-				}).join("");
+				}
+
+				let posts_html = posts.length ? posts.map(renderCard).join("") : `
+					<div class="text-center text-muted p-3 border rounded bg-light mb-3">
+						<p class="mb-0">${__("No public posts flagged as risky from candidate accounts.")}</p>
+					</div>
+				`;
+
+				let comments_html = comments.length ? comments.map(renderCard).join("") : `
+					<div class="text-center text-muted p-3 border rounded bg-light mb-3">
+						<p class="mb-0">${__("No public comments flagged as risky from candidate accounts.")}</p>
+					</div>
+				`;
 
 				container.html(`
 					<div class="mb-3">
-						<h6 class="text-uppercase text-secondary font-weight-bold mb-2">${__("Posts Flagged as Risky")}</h6>
-						${posts_html}
+						<ul class="nav nav-pills mb-3" role="tablist">
+							<li class="nav-item">
+								<a class="nav-link active font-weight-bold" data-toggle="pill" href="#tab-bgc-posts" role="tab">
+									${__("Posts")} (${posts.length})
+								</a>
+							</li>
+							<li class="nav-item">
+								<a class="nav-link font-weight-bold" data-toggle="pill" href="#tab-bgc-comments" role="tab">
+									${__("Comments")} (${comments.length})
+								</a>
+							</li>
+						</ul>
+						<div class="tab-content">
+							<div class="tab-pane fade show active" id="tab-bgc-posts" role="tabpanel">
+								<h6 class="text-uppercase text-secondary font-weight-bold mb-2">${__("Posts Flagged as Risky")}</h6>
+								${posts_html}
+							</div>
+							<div class="tab-pane fade" id="tab-bgc-comments" role="tabpanel">
+								<h6 class="text-uppercase text-secondary font-weight-bold mb-2">${__("Comments Flagged as Risky")}</h6>
+								${comments_html}
+							</div>
+						</div>
 					</div>
 				`);
 
-				// Handler update verdict on post findings
+				// Handler update verdict on post/comment findings
 				container.find(".hr-verdict-select").on("change", function () {
 					let f_name = $(this).data("name");
 					let val = $(this).val();

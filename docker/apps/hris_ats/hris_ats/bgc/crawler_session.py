@@ -12,6 +12,7 @@ import tempfile
 import time
 import uuid
 from datetime import datetime
+from typing import Any
 from urllib.parse import urlparse
 
 import frappe
@@ -19,10 +20,23 @@ from frappe import _
 from frappe.utils import add_days, now_datetime
 from frappe.utils.password import decrypt, encrypt, set_encrypted_password
 
+_MEMORY_REDIS_CLIENT = None
+
 
 def get_redis_client():
-	"""Returns Frappe's Redis cache client."""
-	return frappe.cache()
+	"""Returns Frappe's Redis cache client or MemoryCacheBackend fallback."""
+	global _MEMORY_REDIS_CLIENT
+	if hasattr(frappe, "cache") and callable(frappe.cache):
+		try:
+			c = frappe.cache()
+			if c is not None:
+				return c
+		except Exception:
+			pass
+	from hris_ats.bgc.fetch import MemoryCacheBackend
+	if _MEMORY_REDIS_CLIENT is None:
+		_MEMORY_REDIS_CLIENT = MemoryCacheBackend()
+	return _MEMORY_REDIS_CLIENT
 
 
 def assert_crawler_admin():
@@ -646,6 +660,47 @@ def get_decrypted_storage_state(account_name: str) -> dict | None:
 		return None
 
 
+def get_crawler_account_for_platform(platform_name: str) -> Any | None:
+	"""Mengembalikan dokumen Background Check Crawler Account yang Connected, enabled, dan risk_acknowledged=1."""
+	if not hasattr(frappe, "db") or not hasattr(frappe, "get_all"):
+		return None
+	accounts = frappe.get_all(
+		"Background Check Crawler Account",
+		filters={
+			"platform": platform_name,
+			"enabled": 1,
+			"status": "Connected",
+			"risk_acknowledged": 1,
+		},
+		fields=["name", "account_label", "platform", "hourly_limit", "daily_limit", "min_delay_seconds", "jitter_seconds"],
+		limit=1,
+	)
+	if accounts:
+		return accounts[0]
+	return None
+
+
+def get_crawler_account_for_domain(domain: str) -> Any | None:
+	"""Mencari akun crawler Connected yang cocok dengan domain target."""
+	if not domain or not hasattr(frappe, "get_all"):
+		return None
+	clean_dom = domain.lower().removeprefix("www.")
+	platforms = frappe.get_all("Background Check Platform", fields=["name", "login_url", "session_domains"])
+	for p in platforms:
+		allowed = []
+		if p.login_url:
+			allowed.append(urlparse(p.login_url).netloc.lower().removeprefix("www."))
+		for line in (p.session_domains or "").splitlines():
+			d = line.strip().lower().lstrip(".")
+			if d:
+				allowed.append(d)
+		if any(clean_dom == ad or clean_dom.endswith("." + ad) for ad in allowed):
+			acc = get_crawler_account_for_platform(p.name)
+			if acc:
+				return acc
+	return None
+
+
 @frappe.whitelist()
 def disconnect_account(account_name: str) -> dict:
 	"""Disconnects crawler account and erases session credentials."""
@@ -834,16 +889,139 @@ def check_and_update_crawler_rate_limits(account_name: str) -> None:
 	)
 
 
-def mark_crawler_account_challenge(account_name: str, reason: str) -> None:
-	"""Updates crawler account status to Challenge on encountering checkpoint/challenge."""
+def acquire_crawler_account_lock(account_name: str, timeout: int = 30) -> bool:
+	"""Memperoleh kunci concurrency Redis eksklusif untuk satu akun crawler."""
+	redis = get_redis_client()
+	lock_key = f"crawler_lock:{account_name}"
+	if hasattr(redis, "client"):
+		try:
+			raw_client = redis.client
+			if hasattr(raw_client, "set"):
+				res = raw_client.set(lock_key, "1", ex=timeout, nx=True)
+				if res is not None:
+					return bool(res)
+		except Exception:
+			pass
+
+	# Fallback memory / local cache
+	get_fn = getattr(redis, "get_value", None) or getattr(redis, "get", None)
+	val = get_fn(lock_key) if get_fn else None
+	if val is not None:
+		return False
+
+	set_fn = getattr(redis, "set_value", None)
+	if set_fn:
+		redis.set_value(lock_key, "1", expires_in_sec=timeout)
+	elif hasattr(redis, "set"):
+		redis.set(lock_key, "1", ttl=timeout)
+	return True
+
+
+def release_crawler_account_lock(account_name: str) -> None:
+	"""Melepaskan kunci concurrency Redis untuk akun crawler."""
 	try:
-		acc = frappe.get_doc("Background Check Crawler Account", account_name)
-		acc.status = "Challenge"
-		acc.last_error = reason
-		acc.last_error_template = "Crawler encountered challenge or checkpoint: {reason}"
-		acc.last_error_params = json.dumps({"reason": reason})
+		redis = get_redis_client()
+		if hasattr(redis, "delete_value"):
+			redis.delete_value(f"crawler_lock:{account_name}")
+		elif hasattr(redis, "delete"):
+			redis.delete(f"crawler_lock:{account_name}")
+	except Exception:
+		pass
+
+
+def enforce_crawler_delay(
+	account: str | Any,
+	sleep_fn: Any = time.sleep,
+	time_fn: Any = time.time,
+) -> float:
+	"""Menegakkan jeda min_delay_seconds + jitter acak sejak pemanggilan terakhir per akun crawler."""
+	import random
+	if isinstance(account, str):
+		account_name = account
+		if hasattr(frappe, "db") and getattr(frappe, "local", None) and getattr(frappe.local, "site", None):
+			if not frappe.db.exists("Background Check Crawler Account", account_name):
+				return 0.0
+			acc = frappe.get_doc("Background Check Crawler Account", account_name)
+		else:
+			return 0.0
+	else:
+		acc = account
+		account_name = getattr(acc, "name", "anonymous")
+
+	min_delay = float(getattr(acc, "min_delay_seconds", 15) or 15)
+	jitter = float(getattr(acc, "jitter_seconds", 20) or 20)
+	target_delay = min_delay + random.uniform(0, jitter)
+
+	redis = get_redis_client()
+	last_req_key = f"crawler_last_req:{account_name}"
+	get_fn = getattr(redis, "get_value", None)
+	if get_fn:
+		last_req = redis.get_value(last_req_key, use_local_cache=False)
+	elif hasattr(redis, "get"):
+		last_req = redis.get(last_req_key)
+	else:
+		last_req = None
+
+	now = time_fn()
+	actual_sleep = 0.0
+	if last_req is not None:
+		try:
+			elapsed = now - float(last_req)
+			if elapsed < target_delay:
+				actual_sleep = target_delay - elapsed
+				sleep_fn(actual_sleep)
+				now = time_fn()
+		except (ValueError, TypeError):
+			pass
+	else:
+		actual_sleep = target_delay
+		sleep_fn(actual_sleep)
+		now = time_fn()
+
+	set_fn = getattr(redis, "set_value", None)
+	if set_fn:
+		redis.set_value(last_req_key, str(now), expires_in_sec=3600)
+	elif hasattr(redis, "set"):
+		redis.set(last_req_key, str(now), ttl_seconds=3600)
+
+	return actual_sleep
+
+
+def mark_crawler_account_challenge(account_name: str, reason: str, status: str = "Challenge") -> None:
+	"""Updates crawler account status to Challenge or Expired on encountering checkpoint/challenge
+	and dispatches Notification Log alert to System Managers.
+	"""
+	acc = frappe.get_doc("Background Check Crawler Account", account_name)
+	acc.status = status
+	acc.last_error = reason
+	acc.last_error_template = "Crawler encountered challenge or checkpoint: {reason}"
+	acc.last_error_params = json.dumps({"reason": reason})
+	try:
 		acc.last_checked_on = now_datetime()
-		acc.save(ignore_permissions=True)
+	except Exception:
+		import datetime
+		acc.last_checked_on = str(datetime.datetime.now())
+	acc.save(ignore_permissions=True)
+
+	# Kirim notifikasi sistem ke System Manager
+	try:
+		system_managers = frappe.get_all(
+			"Has Role",
+			filters={"role": "System Manager", "parenttype": "User"},
+			pluck="parent",
+		)
+		for sm in set(system_managers):
+			if sm and sm not in ("Guest",):
+				try:
+					notif = frappe.new_doc("Notification Log")
+					notif.subject = _("Crawler Account Challenge: {0}").format(getattr(acc, "account_label", "") or account_name)
+					notif.for_user = sm
+					notif.type = "Alert"
+					notif.document_type = "Background Check Crawler Account"
+					notif.document_name = account_name
+					notif.insert(ignore_permissions=True)
+				except Exception:
+					pass
 	except Exception:
 		pass
 

@@ -45,6 +45,8 @@ class FindingData:
 	pdf_url: str = ""
 	text_source: str = "Snippet"
 	evidence_excerpt: str = ""
+	provenance: str = "Crawled"
+	media_type: str = ""
 
 	def as_dict(self) -> dict[str, Any]:
 		return {k: v for k, v in self.__dict__.items() if v is not None}

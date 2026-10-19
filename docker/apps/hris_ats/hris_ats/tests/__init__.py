@@ -98,3 +98,40 @@ def ensure_test_encryption_key() -> str:
 			return key
 		return conf.get("encryption_key") or conf.get("secret_key") or ""
 	return ""
+
+
+def assert_test_site():
+	"""Penjaga pengujian: menolak berjalan bila site aktif bukan site uji yang berawalan ats-test."""
+	site = getattr(getattr(frappe, "local", None), "site", "") or ""
+	if not site.startswith("ats-test"):
+		raise RuntimeError(
+			f"REFUSING TO RUN TESTS: Current site is '{site}'. "
+			"Tests must ONLY be run on test sites starting with 'ats-test' (e.g. ats-test.localhost). "
+			"Testing against production or development sites (such as hris.localhost) is strictly forbidden."
+		)
+
+
+# Pasang penjaga ke FrappeTestCase agar semua test class otomatis menolak berjalan di luar ats-test*
+try:
+	from frappe.tests.utils import FrappeTestCase
+
+	_orig_setup = FrappeTestCase.setUp
+	_orig_setup_class = getattr(FrappeTestCase, "setUpClass", None)
+
+	def _guarded_setup(self, *args, **kwargs):
+		assert_test_site()
+		return _orig_setup(self, *args, **kwargs)
+
+	FrappeTestCase.setUp = _guarded_setup
+
+	if _orig_setup_class:
+
+		@classmethod
+		def _guarded_setup_class(cls, *args, **kwargs):
+			assert_test_site()
+			return _orig_setup_class(*args, **kwargs)
+
+		FrappeTestCase.setUpClass = _guarded_setup_class
+except Exception:
+	pass
+

@@ -17,6 +17,7 @@ import frappe
 from frappe import _
 from frappe.utils import add_days, now_datetime, nowdate
 
+from hris_ats.bgc.analysis.identity import calculate_account_identity_match
 from hris_ats.bgc.analysis.posts import analyze_posts
 from hris_ats.bgc.analysis.risk import calculate_risk_level
 from hris_ats.bgc.analysis.summary import generate_automated_summary
@@ -32,6 +33,7 @@ from hris_ats.bgc.providers.court_ma import CourtMAProvider
 from hris_ats.bgc.providers.mock import MockProvider
 from hris_ats.bgc.providers.platform_check import PlatformCheckProvider
 from hris_ats.bgc.providers.posts import PostsProvider
+from hris_ats.bgc.providers.social_public import SocialPublicProvider
 from hris_ats.bgc.providers.web_search import WebSearchProvider
 
 
@@ -358,7 +360,9 @@ def run_all_sources(bgc_name: str) -> None:
 				valid_social_accounts = []
 				skipped_accounts = 0
 				modes_used: set[str] = set()
+				crawler_accounts_used: set[str] = set()
 				robots_ignored_count = 0
+				comment_limitations: list[str] = []
 
 				candidate_city = ""
 				if bgc.job_applicant and frappe.db.exists("Job Applicant", bgc.job_applicant):
@@ -374,9 +378,10 @@ def run_all_sources(bgc_name: str) -> None:
 
 				candidate_cv_terms = [t.strip() for t in (bgc.context_terms or "").split(",") if t.strip()]
 				name_variants = [v.strip() for v in (bgc.name_variants or "").split("\n") if v.strip()]
-				p_provider = PlatformCheckProvider(config=fetch_config)
+				social_provider = SocialPublicProvider(config=fetch_config)
 
 				all_social_posts = []
+				all_social_comments = []
 
 				for acc in social_accounts:
 					plat_doc = frappe.get_doc("Background Check Platform", acc.platform) if frappe.db.exists("Background Check Platform", acc.platform) else None
@@ -410,91 +415,142 @@ def run_all_sources(bgc_name: str) -> None:
 
 					valid_social_accounts.append(acc)
 
-					res = p_provider.check_single_account(
-						platform_name=acc.platform,
-						username=acc.username,
-						url_template=url_tmpl,
-						check_method=chk_method,
-						check_value=chk_val,
-						is_mock=is_mock,
+					try:
+						c_res = social_provider.crawl_account(
+							bgc,
+							acc,
+							is_mock=is_mock,
+							max_posts=settings.social_max_posts or 200,
+							max_comments=settings.social_max_comments or 200,
+							lookback_months=settings.social_lookback_months or 12,
+						)
+					except Exception as ex:
+						frappe.log_error(title=f"BGC Crawl Account Error: {acc.platform}", message=frappe.get_traceback())
+						c_res = {
+							"status": "Failed",
+							"error": str(ex),
+							"posts": [],
+							"comments": [],
+							"mode_used": "failed",
+						}
+
+					acc.profile_url = c_res.get("profile_url") or acc.profile_url
+					acc.display_name = c_res.get("display_name", "")
+					acc.bio_snippet = (c_res.get("bio", "") or "")[:300]
+					acc.profile_location = c_res.get("location", "")
+
+					c_status = c_res.get("status", "Success")
+					c_err = c_res.get("error") or ""
+					if c_status == "Failed":
+						if "not found" in c_err.lower():
+							acc.exists = 0
+						else:
+							acc.exists = 1 if (acc.declared_by == "Candidate" and bool(acc.username)) else 0
+					else:
+						acc.exists = 1
+
+					id_match, id_reasons = calculate_account_identity_match(
 						candidate_name=bgc.full_name,
 						candidate_variants=name_variants,
 						candidate_city=candidate_city,
 						candidate_cv_terms=candidate_cv_terms,
-						display_name_selector=dn_sel,
-						bio_selector=bio_sel,
-						location_selector=loc_sel,
-						declared_by=acc.declared_by or "Candidate",
+						display_name=acc.display_name,
+						bio=acc.bio_snippet,
+						location=acc.profile_location,
+						declared_by_candidate=(acc.declared_by == "Candidate"),
+						is_forbidden=False,
 					)
-					acc.profile_url = res["profile_url"]
-					acc.exists = res["exists"]
-					acc.post_access = res["post_access"]
-					acc.display_name = res.get("display_name", "")
-					acc.bio_snippet = res.get("bio_snippet", "")
-					acc.profile_location = res.get("profile_location", "")
-					acc.identity_match = res.get("identity_match")
-					reasons_val = res.get("identity_reasons", [])
-					if isinstance(reasons_val, list):
-						acc.identity_reasons = "; ".join(str(r) for r in reasons_val)
-						acc.identity_reasons_template = "; ".join(getattr(r, "template", str(r)) for r in reasons_val)
+					acc.identity_match = id_match
+					if isinstance(id_reasons, list):
+						acc.identity_reasons = "; ".join(str(r) for r in id_reasons)
+						acc.identity_reasons_template = "; ".join(getattr(r, "template", str(r)) for r in id_reasons)
 						id_params = {}
-						for r in reasons_val:
+						for r in id_reasons:
 							if hasattr(r, "params"):
 								id_params.update(r.params)
 						acc.identity_reasons_params = json.dumps(id_params) if id_params else "{}"
 					else:
-						acc.identity_reasons = str(reasons_val or "")
-						acc.identity_reasons_template = str(reasons_val or "")
+						acc.identity_reasons = str(id_reasons or "")
+						acc.identity_reasons_template = str(id_reasons or "")
 						acc.identity_reasons_params = "{}"
 
-					if res.get("mode_used"):
-						modes_used.add(res["mode_used"])
-					if res.get("robots_ignored"):
-						robots_ignored_count += 1
+					if c_res.get("mode_used"):
+						modes_used.add(c_res["mode_used"])
+					if c_res.get("crawler_account"):
+						crawler_accounts_used.add(c_res["crawler_account"])
+					if c_res.get("comment_limitation"):
+						comment_limitations.append(f"{acc.platform}: {c_res['comment_limitation']}")
 
-					if is_mock:
-						posts_prov = PostsProvider()
-						acc_posts = posts_prov.fetch_posts(acc.platform, acc.username)
-						all_social_posts.extend(acc_posts)
+					acc_posts = c_res.get("posts", [])
+					acc_comments = c_res.get("comments", [])
+					all_social_posts.extend(acc_posts)
+					all_social_comments.extend(acc_comments)
 
-				if all_social_posts:
+				all_social_items = all_social_posts + all_social_comments
+				if all_social_items:
 					p_analysis = analyze_posts(
-						posts=all_social_posts,
+						posts=all_social_items,
 						required_skills=required_skills,
 						preferred_skills=preferred_skills,
 						lexicon_items=lexicon_records,
 					)
 					politeness_score = p_analysis["politeness_score"]
 					total_posts_analyzed += p_analysis["total_posts"]
-					risk_posts = p_analysis["risk_posts"]
-					risk_posts_count += len(risk_posts)
+					risk_items = p_analysis["risk_posts"]
+					risk_posts_count += len(risk_items)
 
-					post_findings = []
-					for rp in risk_posts:
-						r_flags = rp.get("risk_flags") or ""
-						post_findings.append(FindingData(
-							finding_type="Post",
-							title="Public Post Flagged as Risky",
-							snippet=rp["text"],
-							url=rp.get("url") or "",
-							severity=rp.get("severity") or "Medium",
-							category="Risky",
+					risk_by_key = {}
+					for rp in risk_items:
+						k = (rp.get("url") or "") + "::" + (rp.get("text") or "")[:100]
+						risk_by_key[k] = rp
+
+					findings_to_save: list[FindingData] = []
+					for item in all_social_items:
+						f_text = (item.get("snippet") or item.get("text") or "")[:500]
+						k = (item.get("url") or "") + "::" + f_text[:100]
+						rp = risk_by_key.get(k)
+						f_type = item.get("finding_type", "Post")
+						plat = item.get("platform", "Social Media")
+
+						sev = rp.get("severity", "Low") if rp else "Low"
+						cat = "Risky" if rp else "Neutral"
+						r_flags = rp.get("risk_flags", "") if rp else ""
+
+						title = f"Public {f_type} Flagged as Risky" if rp else f"Public {f_type} on {plat}"
+
+						findings_to_save.append(FindingData(
+							finding_type=f_type,
+							title=title,
+							snippet=f_text,
+							url=item.get("url") or "",
+							severity=sev,
+							category=cat,
 							risk_flags=r_flags,
 							risk_flags_template=r_flags,
 							risk_flags_params="{}",
 							match_confidence=100,
+							provenance=item.get("provenance", "Crawled"),
+							media_type=item.get("media_type", "Text"),
+							account=item.get("account", ""),
+							published_on=item.get("published_on") or item.get("created_at"),
 						))
-					_save_findings(bgc.name, post_findings)
+					_save_findings(bgc.name, findings_to_save)
 
-				run_row.items_found = len([a for a in social_accounts if a.exists]) + len(all_social_posts)
+				run_row.items_found = len([a for a in social_accounts if a.exists]) + len(all_social_items)
 				run_row.accounts_skipped = skipped_accounts
 				run_row.fetch_mode_used = ", ".join(sorted(modes_used)) if modes_used else ("mock" if is_mock else "company")
+				run_row.crawler_account = ", ".join(sorted(crawler_accounts_used)) if crawler_accounts_used else None
 				run_row.robots_ignored_count = robots_ignored_count
+
+				err_msgs = []
 				if skipped_accounts > 0:
-					msg = _("{0} social media accounts skipped due to missing consent or blocked domain.").format(skipped_accounts)
-					run_row.error = msg
-					run_row.error_template = "{count} social media accounts skipped due to missing consent or blocked domain."
-					run_row.error_params = json.dumps({"count": skipped_accounts})
+					err_msgs.append(_("{0} social media accounts skipped due to missing consent or blocked domain.").format(skipped_accounts))
+				if comment_limitations:
+					err_msgs.append("; ".join(comment_limitations))
+				if err_msgs:
+					run_row.error = " | ".join(err_msgs)
+					run_row.error_template = " | ".join(err_msgs)
+					run_row.error_params = "{}"
 				run_row.status = "Done"
 
 			run_row.finished_on = now_datetime()
@@ -587,6 +643,8 @@ def _save_findings(bgc_name: str, findings: list[FindingData]) -> None:
 		}
 		if item.url:
 			filters["url"] = item.url
+		elif item.snippet:
+			filters["snippet"] = item.snippet[:140]
 
 		existing = frappe.db.get_value("Background Check Finding", filters, "name")
 		if existing:

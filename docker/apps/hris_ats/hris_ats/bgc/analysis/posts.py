@@ -72,14 +72,14 @@ def analyze_posts(
 	neg_count = 0
 
 	for post in posts:
-		text = post.get("text", "")
+		text = post.get("text") or post.get("snippet", "")
 		clean_text = text.lower()
 		is_reply = post.get("is_reply", False)
 		if is_reply:
 			total_replies_count += 1
 
 		# Analisis tanggal & jam
-		created_at = post.get("created_at")
+		created_at = post.get("created_at") or post.get("published_on")
 		if created_at:
 			if isinstance(created_at, str):
 				try:
@@ -139,9 +139,14 @@ def analyze_posts(
 			risk_posts.append({
 				"text": text,
 				"url": post.get("url"),
-				"created_at": post.get("created_at"),
+				"created_at": created_at,
 				"risk_flags": ", ".join(matched_risks),
 				"severity": highest_sev,
+				"finding_type": post.get("finding_type", "Post"),
+				"provenance": post.get("provenance", "Crawled"),
+				"media_type": post.get("media_type", "Text"),
+				"account": post.get("account", ""),
+				"match_confidence": post.get("match_confidence", 100),
 			})
 
 		# 3. Relevansi profesional

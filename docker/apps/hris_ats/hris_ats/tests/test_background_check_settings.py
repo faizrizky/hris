@@ -5,6 +5,7 @@ from unittest.mock import patch
 import frappe
 from frappe.tests.utils import FrappeTestCase
 
+from hris_ats.bgc.fetch import DEFAULT_BLOCKED_DOMAINS
 from hris_ats.hris_ats.doctype.background_check_settings.background_check_settings import (
 	get_scrapling_browser_status,
 )
@@ -18,6 +19,9 @@ class TestBackgroundCheckSettings(FrappeTestCase):
 		self.settings.fetch_respect_robots = 1
 		self.settings.fetch_identity = "Company"
 		self.settings.fetch_stealth_mode = 0
+		self.settings.fetch_use_login_session = 0
+		self.settings.fetch_auto_escalate = 0
+		self.settings.fetch_blocked_domains = "\n".join(DEFAULT_BLOCKED_DOMAINS)
 		self.settings.fetch_risk_acknowledged = 0
 		self.settings.fetch_risk_ack_by = None
 		self.settings.fetch_risk_ack_on = None

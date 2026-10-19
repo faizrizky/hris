@@ -29,6 +29,15 @@ frappe.ui.form.on("Background Check Settings", {
 			});
 		}
 	},
+	fetch_auto_escalate: function (frm) {
+		if (frm.doc.fetch_auto_escalate && !frm.doc.fetch_risk_acknowledged) {
+			frappe.msgprint({
+				title: __("Risk Acknowledgment Required"),
+				message: __("Enabling auto-escalation of fetch modes requires acknowledging legal and technical risks."),
+				indicator: "orange"
+			});
+		}
+	},
 	test_fetch_btn: function (frm) {
 		if (frappe.user.has_role("System Manager")) {
 			show_test_fetch_dialog(frm);

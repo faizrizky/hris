@@ -570,3 +570,134 @@ def test_get_blocked_domains_honors_intentionally_empty_list(monkeypatch):
 
 	monkeypatch.setattr(fetch_mod, "read_stored_blocked_domains", lambda: "Facebook.com\n\n tiktok.com ")
 	assert fetch_mod.get_blocked_domains() == ["facebook.com", "tiktok.com"]
+
+
+def test_auto_escalation_chain_resolution():
+	"""Pengujian 3a: auto-escalate menghasilkan rantai yang tepat:
+	Company -> Browser -> stealth -> session.
+	"""
+	cache = MemoryCacheBackend()
+	profile_html = "<html><head><title>Budi (@budi) • Instagram photos and videos</title><meta property='og:description' content='1,000 Followers, 500 Following, 10 Posts'></head><body><h1>Budi</h1></body></html>"
+	login_html = "<html><head><title>Login • Instagram</title></head><body><form><input type='password'></form></body></html>"
+
+	# 1. Company succeeds directly
+	calls_1 = []
+	def mock_fetch_1(url, mode, config, method):
+		calls_1.append(mode)
+		return 200, profile_html, None
+
+	cfg1 = FetchConfig(auto_escalate=True, respect_robots=False, stealth=True, blocked_domains=[])
+	res1 = fetch("https://example.com/user", config=cfg1, cache_backend=cache, raw_fetch_fn=mock_fetch_1, sleep_fn=lambda _: None, is_mock=True)
+	assert res1.mode_used == "company"
+	assert calls_1 == ["company"]
+	assert res1.is_login_wall is False
+	assert res1.is_blocked is False
+
+	# 2. Company 403 -> Browser succeeds
+	calls_2 = []
+	def mock_fetch_2(url, mode, config, method):
+		calls_2.append(mode)
+		if mode == "company":
+			return 403, "Forbidden", None
+		return 200, profile_html, None
+
+	cfg2 = FetchConfig(auto_escalate=True, respect_robots=False, stealth=True, blocked_domains=[])
+	res2 = fetch("https://example.com/user", config=cfg2, cache_backend=cache, raw_fetch_fn=mock_fetch_2, sleep_fn=lambda _: None, is_mock=True)
+	assert res2.mode_used == "company>browser"
+	assert calls_2 == ["company", "browser"]
+	assert res2.is_login_wall is False
+
+	# 3. Company 403 -> Browser login page -> Stealth succeeds
+	calls_3 = []
+	def mock_fetch_3(url, mode, config, method):
+		calls_3.append(mode)
+		if mode == "company":
+			return 403, "Forbidden", None
+		if mode == "browser":
+			return 200, login_html, None
+		return 200, profile_html, None
+
+	cfg3 = FetchConfig(auto_escalate=True, respect_robots=False, stealth=True, blocked_domains=[])
+	res3 = fetch("https://example.com/user", config=cfg3, cache_backend=cache, raw_fetch_fn=mock_fetch_3, sleep_fn=lambda _: None, is_mock=True)
+	assert res3.mode_used == "company>browser>stealth"
+	assert calls_3 == ["company", "browser", "stealth"]
+	assert res3.is_login_wall is False
+
+	# 4. Company 403 -> Browser login -> Stealth login -> Session succeeds
+	calls_4 = []
+	def mock_fetch_4(url, mode, config, method):
+		calls_4.append(mode)
+		if mode == "company":
+			return 403, "Forbidden", None
+		if mode in ("browser", "stealth"):
+			return 200, login_html, None
+		return 200, profile_html, None
+
+	cfg4 = FetchConfig(
+		auto_escalate=True,
+		respect_robots=False,
+		stealth=True,
+		storage_state={"cookies": [{"name": "sessionid", "value": "123"}]},
+		blocked_domains=[],
+	)
+	res4 = fetch("https://example.com/user", config=cfg4, cache_backend=cache, raw_fetch_fn=mock_fetch_4, sleep_fn=lambda _: None, is_mock=True)
+	assert res4.mode_used == "company>browser>stealth>session"
+	assert calls_4 == ["company", "browser", "stealth", "session"]
+	assert res4.is_login_wall is False
+
+
+def test_auto_escalation_stops_at_highest_allowed_mode():
+	"""Eskalasi berhenti pada mode tertinggi yang diizinkan Settings."""
+	cache = MemoryCacheBackend()
+	calls = []
+
+	def mock_fetch_fail(url, mode, config, method):
+		calls.append(mode)
+		return 403, "Blocked", None
+
+	# Stealth=False, use_login_session=False -> berhenti di Browser
+	cfg = FetchConfig(auto_escalate=True, respect_robots=False, stealth=False, use_login_session=False, blocked_domains=[])
+	res = fetch("https://example.com/user", config=cfg, cache_backend=cache, raw_fetch_fn=mock_fetch_fail, sleep_fn=lambda _: None, is_mock=True)
+	assert res.mode_used == "company>browser"
+	assert calls == ["company", "browser"]
+	assert res.is_blocked is True
+
+
+def test_no_auto_escalate_without_flag():
+	"""Tanpa fetch_auto_escalate=1, tidak ada eskalasi."""
+	cache = MemoryCacheBackend()
+	calls = []
+
+	def mock_fetch(url, mode, config, method):
+		calls.append(mode)
+		return 403, "Blocked", None
+
+	cfg = FetchConfig(auto_escalate=False, respect_robots=False, blocked_domains=[])
+	res = fetch("https://example.com/user", config=cfg, cache_backend=cache, raw_fetch_fn=mock_fetch, sleep_fn=lambda _: None, is_mock=True)
+	assert calls == ["company"]
+	assert res.is_blocked is True
+
+
+def test_repeated_login_pages_bounded_by_mode_count():
+	"""Halaman login berulang tidak menghasilkan percobaan lebih dari jumlah mode yang ada."""
+	cache = MemoryCacheBackend()
+	login_html = "<html><head><title>Login • Instagram</title></head><body><form action='/login'><input type='password'></form></body></html>"
+	calls = []
+
+	def mock_fetch_login(url, mode, config, method):
+		calls.append(mode)
+		return 200, login_html, None
+
+	cfg = FetchConfig(
+		auto_escalate=True,
+		respect_robots=False,
+		stealth=True,
+		storage_state={"cookies": [{"name": "sessionid", "value": "123"}]},
+		blocked_domains=[],
+	)
+	res = fetch("https://example.com/user", config=cfg, cache_backend=cache, raw_fetch_fn=mock_fetch_login, sleep_fn=lambda _: None, is_mock=True)
+	assert len(calls) == 4
+	assert calls == ["company", "browser", "stealth", "session"]
+	assert res.mode_used == "company>browser>stealth>session"
+	assert res.is_login_wall is True
+

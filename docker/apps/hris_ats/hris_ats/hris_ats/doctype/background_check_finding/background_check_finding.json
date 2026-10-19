@@ -19,6 +19,8 @@
   "account",
   "file_type",
   "published_on",
+  "provenance",
+  "media_type",
   "section_break_content",
   "snippet",
   "evidence_excerpt",
@@ -56,7 +58,7 @@
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Finding Type",
-   "options": "Article\nFile\nCase\nPost",
+   "options": "Article\nFile\nCase\nPost\nComment",
    "reqd": 1
   },
   {
@@ -132,6 +134,19 @@
    "fieldname": "published_on",
    "fieldtype": "Datetime",
    "label": "Published On"
+  },
+  {
+   "default": "Crawled",
+   "fieldname": "provenance",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Provenance",
+   "options": "Crawled\nCrawled (session)\nCandidate export\nOAuth API\nOfficial API"
+  },
+  {
+   "fieldname": "media_type",
+   "fieldtype": "Data",
+   "label": "Media Type"
   },
   {
    "fieldname": "section_break_content",

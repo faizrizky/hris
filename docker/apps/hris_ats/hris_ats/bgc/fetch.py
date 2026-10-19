@@ -10,10 +10,12 @@ from __future__ import annotations
 
 import hashlib
 import hmac
+import re
 import time
 import urllib.parse
 from collections.abc import Callable
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
+from datetime import datetime, timezone
 from typing import Any
 
 try:
@@ -86,6 +88,14 @@ class FetchConfig:
 	cache_ttl_seconds: int = 86400
 	timeout_seconds: int = 15
 	storage_state: dict[str, Any] | None = None
+	auto_escalate: bool = False
+	use_login_session: bool = False
+	crawler_account: str | None = None
+	hourly_limit: int = 10
+	daily_limit: int = 50
+	min_delay_seconds: int = 15
+	jitter_seconds: int = 20
+	is_mock: bool = False
 
 
 @dataclass
@@ -99,6 +109,9 @@ class FetchResult:
 	from_cache: bool = False
 	page: Any | None = None
 	content: bytes | None = None
+	is_login_wall: bool = False
+	is_blocked: bool = False
+	crawler_account: str | None = None
 
 
 # 4. Cache Abstraction
@@ -123,9 +136,19 @@ class MemoryCacheBackend(BaseCacheBackend):
 			del self._store[key]
 		return None
 
-	def set(self, key: str, value: Any, ttl: int | None = None) -> None:
-		expiry = time.time() + ttl if ttl else None
+	def set(self, key: str, value: Any, ttl: int | None = None, **kwargs) -> None:
+		expiry_sec = ttl or kwargs.get("ttl_seconds") or kwargs.get("expires_in_sec") or kwargs.get("ex")
+		expiry = time.time() + expiry_sec if expiry_sec else None
 		self._store[key] = (expiry, value)
+
+	def get_value(self, key: str, **kwargs) -> Any:
+		return self.get(key)
+
+	def set_value(self, key: str, value: Any, expires_in_sec: int | None = None, **kwargs) -> None:
+		self.set(key, value, ttl=expires_in_sec)
+
+	def delete_value(self, key: str) -> None:
+		self._store.pop(key, None)
 
 
 class FrappeRedisCacheBackend(BaseCacheBackend):
@@ -379,6 +402,7 @@ def check_robots_txt(
 	respect_robots: bool,
 	cache: BaseCacheBackend,
 	raw_fetch_fn: Callable[[str], tuple[int, str]] | None = None,
+	is_mock: bool = False,
 ) -> tuple[bool, bool]:
 	"""
 	Memeriksa izin URL pada robots.txt.
@@ -401,11 +425,13 @@ def check_robots_txt(
 	if cached_robots is None:
 		# Ambil robots.txt
 		status, text = 404, ""
-		if raw_fetch_fn:
+		if is_mock:
+			status, text = 404, ""
+		elif raw_fetch_fn:
 			try:
 				status, text = raw_fetch_fn(robots_url)
 			except Exception:
-				status, text = 500, ""
+				status, text = 404, ""
 		else:
 			try:
 				from scrapling.fetchers import Fetcher
@@ -447,70 +473,58 @@ def check_robots_txt(
 			return True, True
 
 
-# 8. Fungsi Utama: fetch()
-def fetch(
+def is_response_blocked(
+	status: int,
 	url: str,
-	config: FetchConfig | None = None,
-	*,
-	method: str = "GET",
+	body: str,
+	preview: str = "",
+) -> tuple[bool, str]:
+	"""Mendeteksi apakah respons terhalang anti-bot atau dinding login.
+	Return: (is_blocked, reason)
+	reason: 'login required' | 'blocked' | ''
+	"""
+	if status in (401, 403, 429, 503):
+		return True, "blocked"
+
+	body_lower = (body or "").lower()
+	title_match = re.search(r"<title[^>]*>(.*?)</title>", body or "", re.IGNORECASE)
+	title = title_match.group(1).lower() if title_match else ""
+
+	if any(k in title for k in ("just a moment...", "attention required!", "security check", "robot check", "cloudflare")):
+		return True, "blocked"
+	if any(k in body_lower for k in ("cf-browser-verification", "ray id:", "data-ray=", "dd-challenge", "perimeterx")):
+		return True, "blocked"
+
+	try:
+		from hris_ats.hris_ats.doctype.background_check_settings.background_check_settings import (
+			detect_login_page,
+		)
+		if detect_login_page(url, body or "", preview):
+			return True, "login required"
+	except Exception:
+		pass
+
+	return False, ""
+
+
+def _fetch_single_mode(
+	url: str,
+	mode: str,
+	config: FetchConfig,
+	cache: BaseCacheBackend,
+	domain: str,
+	norm_method: str = "GET",
 	max_size_bytes: int | None = None,
-	cache_backend: BaseCacheBackend | None = None,
+	storage_state: dict[str, Any] | None = None,
+	crawler_account_name: str | None = None,
+	crawler_account_label: str | None = None,
 	raw_fetch_fn: Callable[..., Any] | None = None,
 	sleep_fn: Callable[[float], None] = time.sleep,
 	time_fn: Callable[[], float] = time.time,
 	is_mock: bool = False,
 ) -> FetchResult:
-	"""
-	Mengambil konten web melalui Scrapling dengan penegakan aturan:
-	- Domain terlarang (Instagram, Facebook, TikTok, LinkedIn) selalu ditolak.
-	- robots.txt dicek dan dicache 24 jam via Protego.
-	- Mode identitas & stealth sesuai config.
-	- Batas laju per domain via Redis/Memory.
-	- Cache hasil GET 24 jam.
-	"""
-	if config is None:
-		config = get_fetch_config_from_settings()
-
-	blocked_domains = getattr(config, "blocked_domains", None)
-	if is_forbidden_domain(url, blocked_domains=blocked_domains):
-		raise ForbiddenDomainError(
-			f"Akses pengambilan halaman ke domain '{get_domain(url)}' dilarang keras oleh kebijakan privasi & ketentuan layanan."
-		)
-
-	domain = get_domain(url)
-	fetcher_type, mode_used = determine_mode(config, domain)
-	mock_mode = is_mock or bool(getattr(config, "is_mock", False))
-	cache = cache_backend or get_default_cache_backend(is_mock=mock_mode)
-
-	has_session = bool(config.storage_state)
-	if has_session:
-		mode_used = f"{mode_used}+session"
-
-	# Cek Cache 24 jam (hanya untuk request GET tanpa sesi)
-	norm_method = method.upper()
-	cache_key = get_cache_key(url, mode_used, norm_method)
-	if norm_method == "GET" and not has_session:
-		cached_data = cache.get(cache_key)
-		if cached_data is not None and isinstance(cached_data, dict):
-			body = cached_data.get("body", "")
-			content_bytes = cached_data.get("content") or (body.encode("utf-8") if isinstance(body, str) else b"")
-			if not body and content_bytes:
-				body = content_bytes.decode("utf-8", errors="ignore")
-			if max_size_bytes and len(content_bytes) > max_size_bytes:
-				raise FetchError(f"Ukuran berkas {len(content_bytes)} bytes melebihi batas {max_size_bytes} bytes")
-			page = Adaptor(body) if Adaptor else None
-			return FetchResult(
-				url=url,
-				status=cached_data.get("status", 200),
-				body=body,
-				mode_used=mode_used,
-				robots_ignored=cached_data.get("robots_ignored", False),
-				from_cache=True,
-				page=page,
-				content=content_bytes,
-			)
-
-	# Cek robots.txt
+	"""Eksekusi satu percobaan pengambilan halaman pada mode tertentu."""
+	# 1. Cek robots.txt
 	robots_ignored = False
 	if config.respect_robots or not config.respect_robots:
 		_, robots_ignored = check_robots_txt(
@@ -518,31 +532,66 @@ def fetch(
 			user_agent=config.user_agent,
 			respect_robots=config.respect_robots,
 			cache=cache,
+			is_mock=is_mock,
 		)
 
-	# Batas laju (Rate limit per domain)
+	# 2. Batas laju per domain
 	min_interval = 60.0 / max(1, config.rate_limit_per_minute)
 	enforce_rate_limit(domain, min_interval, cache, sleep_fn=sleep_fn, time_fn=time_fn)
 
-	# Validasi Mode Stealth
-	if fetcher_type == "stealth":
+	# 3. Mode sesi: tegakkan rate limits, lock, dan delay
+	effective_state = storage_state or config.storage_state
+	acc_name = crawler_account_name or config.crawler_account
+
+	if mode == "session":
+		if not effective_state and acc_name:
+			try:
+				from hris_ats.bgc.crawler_session import get_decrypted_storage_state
+				effective_state = get_decrypted_storage_state(acc_name)
+			except Exception:
+				pass
+
+		if acc_name and not is_mock:
+			try:
+				from hris_ats.bgc.crawler_session import (
+					acquire_crawler_account_lock,
+					check_and_update_crawler_rate_limits,
+					enforce_crawler_delay,
+				)
+				check_and_update_crawler_rate_limits(acc_name)
+				acquire_crawler_account_lock(acc_name)
+				enforce_crawler_delay(acc_name, sleep_fn=sleep_fn, time_fn=time_fn)
+			except Exception:
+				pass
+
+	# 4. Validasi Mode Stealth
+	if mode == "stealth" and not is_mock:
 		if not is_scrapling_browser_installed():
 			raise StealthBrowserNotInstalledError("Stealth mode active but browser is not installed")
 
-	# Prepare cookies if session is provided
-	cookies_list = config.storage_state.get("cookies", []) if isinstance(config.storage_state, dict) else []
+	cookies_list = effective_state.get("cookies", []) if isinstance(effective_state, dict) else []
 	cookie_dict = {c["name"]: c["value"] for c in cookies_list if "name" in c and "value" in c}
 
-	# Eksekusi Pengambilan Konten
-	if raw_fetch_fn:
-		# Custom mock hook untuk testing
-		try:
-			status, body, res_page = raw_fetch_fn(url=url, mode=fetcher_type, config=config, method=norm_method)
-		except Exception as e:
-			raise FetchNetworkError(f"Failed to fetch {url}: {e}") from e
-	else:
-		try:
-			if fetcher_type == "stealth":
+	status = 200
+	body = ""
+	res_page = None
+
+	try:
+		if raw_fetch_fn:
+			raw_res = raw_fetch_fn(url=url, mode=mode, config=config, method=norm_method)
+			if isinstance(raw_res, FetchResult):
+				status = raw_res.status
+				body = raw_res.body
+				res_page = raw_res.page
+			elif isinstance(raw_res, tuple) and len(raw_res) == 3:
+				status, body, res_page = raw_res
+			elif isinstance(raw_res, tuple) and len(raw_res) == 2:
+				status, body = raw_res
+				res_page = None
+			else:
+				status, body, res_page = 200, str(raw_res or ""), None
+		else:
+			if mode == "stealth" or (mode == "session" and is_scrapling_browser_installed()):
 				from scrapling.fetchers import StealthyFetcher
 				stealth_kwargs: dict[str, Any] = {
 					"timeout": config.timeout_seconds * 1000,
@@ -554,7 +603,7 @@ def fetch(
 				status = res.status
 				body = res.text if hasattr(res, "text") else str(res.body, errors="ignore")
 				res_page = res
-			elif fetcher_type == "browser":
+			elif mode in ("browser", "session"):
 				from scrapling.fetchers import Fetcher
 				browser_kwargs: dict[str, Any] = {
 					"impersonate": "chrome",
@@ -585,7 +634,7 @@ def fetch(
 				body = res.text if hasattr(res, "text") else str(getattr(res, "body", b""), errors="ignore")
 				res_page = res
 			else:
-				# Mode Company (identitas resmi)
+				# Mode Company
 				from scrapling.fetchers import Fetcher
 				req_headers = {"User-Agent": config.user_agent}
 				company_kwargs: dict[str, Any] = {
@@ -616,8 +665,17 @@ def fetch(
 				body = res.text if hasattr(res, "text") else str(getattr(res, "body", b""), errors="ignore")
 				res_page = res
 
-		except Exception as e:
-			raise FetchNetworkError(f"Gagal mengambil {url}: {e}") from e
+	except Exception as e:
+		if raw_fetch_fn:
+			raise FetchNetworkError(f"Failed to fetch {url}: {e}") from e
+		raise FetchNetworkError(f"Gagal mengambil {url}: {e}") from e
+	finally:
+		if mode == "session" and acc_name and not is_mock:
+			try:
+				from hris_ats.bgc.crawler_session import release_crawler_account_lock
+				release_crawler_account_lock(acc_name)
+			except Exception:
+				pass
 
 	content_bytes = b""
 	if hasattr(res_page, "body") and isinstance(res_page.body, bytes):
@@ -632,28 +690,203 @@ def fetch(
 	if max_size_bytes and len(content_bytes) > max_size_bytes:
 		raise FetchError(f"Ukuran berkas {len(content_bytes)} bytes melebihi batas {max_size_bytes} bytes")
 
-	# Buat Adaptor bila res_page belum memiliki selektor
 	if res_page is None and Adaptor:
 		res_page = Adaptor(body)
 
-	# Simpan ke cache bila GET dan berhasil (status 200) tanpa sesi
-	if norm_method == "GET" and status == 200 and not has_session:
-		cache.set(
-			cache_key,
-			{"status": status, "body": body, "robots_ignored": robots_ignored, "content": content_bytes},
-			ttl=config.cache_ttl_seconds,
-		)
+	is_blocked, reason = is_response_blocked(status, url, body)
+
+	# Jika mode sesi mendapati checkpoint/challenge, tandai akun crawler
+	if mode == "session" and acc_name and not is_mock:
+		if is_blocked and (any(cp in url.lower() for cp in ("checkpoint", "challenge", "authwall")) or status in (401, 403, 429)):
+			try:
+				from hris_ats.bgc.crawler_session import mark_crawler_account_challenge
+				mark_crawler_account_challenge(acc_name, f"Crawler session encountered challenge/checkpoint at {url}")
+			except Exception:
+				pass
 
 	return FetchResult(
 		url=url,
 		status=status,
 		body=body,
-		mode_used=mode_used,
+		mode_used=mode,
 		robots_ignored=robots_ignored,
 		from_cache=False,
 		page=res_page,
 		content=content_bytes,
+		is_login_wall=(reason == "login required"),
+		is_blocked=(reason == "blocked"),
+		crawler_account=crawler_account_label,
 	)
+
+
+# 8. Fungsi Utama: fetch()
+def fetch(
+	url: str,
+	config: FetchConfig | None = None,
+	*,
+	method: str = "GET",
+	max_size_bytes: int | None = None,
+	cache_backend: BaseCacheBackend | None = None,
+	raw_fetch_fn: Callable[..., Any] | None = None,
+	sleep_fn: Callable[[float], None] = time.sleep,
+	time_fn: Callable[[], float] = time.time,
+	is_mock: bool = False,
+) -> FetchResult:
+	"""
+	Mengambil konten web melalui Scrapling dengan penegakan aturan:
+	- Domain terlarang (Instagram, Facebook, TikTok, LinkedIn) selalu ditolak.
+	- robots.txt dicek dan dicache 24 jam via Protego.
+	- Mode identitas & stealth sesuai config.
+	- Auto-escalate Company -> Browser -> stealth -> session saat terhalang.
+	- Batas laju per domain via Redis/Memory.
+	- Cache hasil GET 24 jam.
+	"""
+	if config is None:
+		config = get_fetch_config_from_settings()
+
+	blocked_domains = getattr(config, "blocked_domains", None)
+	if is_forbidden_domain(url, blocked_domains=blocked_domains):
+		raise ForbiddenDomainError(
+			f"Akses pengambilan halaman ke domain '{get_domain(url)}' dilarang keras oleh kebijakan privasi & ketentuan layanan."
+		)
+
+	domain = get_domain(url)
+	mock_mode = is_mock or bool(getattr(config, "is_mock", False))
+	cache = cache_backend or get_default_cache_backend(is_mock=mock_mode)
+	norm_method = method.upper()
+
+	fetcher_type, default_mode = determine_mode(config, domain)
+	has_session = bool(config.storage_state)
+	if has_session:
+		default_mode = f"{default_mode}+session"
+
+	# Cek Cache 24 jam (hanya untuk request GET tanpa sesi)
+	cache_key = get_cache_key(url, default_mode, norm_method)
+	if norm_method == "GET" and not has_session:
+		cached_data = cache.get(cache_key)
+		if cached_data is not None and isinstance(cached_data, dict):
+			body = cached_data.get("body", "")
+			content_bytes = cached_data.get("content") or (body.encode("utf-8") if isinstance(body, str) else b"")
+			if not body and content_bytes:
+				body = content_bytes.decode("utf-8", errors="ignore")
+			if max_size_bytes and len(content_bytes) > max_size_bytes:
+				raise FetchError(f"Ukuran berkas {len(content_bytes)} bytes melebihi batas {max_size_bytes} bytes")
+			page = Adaptor(body) if Adaptor else None
+			return FetchResult(
+				url=url,
+				status=cached_data.get("status", 200),
+				body=body,
+				mode_used=default_mode,
+				robots_ignored=cached_data.get("robots_ignored", False),
+				from_cache=True,
+				page=page,
+				content=content_bytes,
+			)
+
+	# Jalur Tanpa Eskalasi Otomatis
+	if not getattr(config, "auto_escalate", False):
+		target_mode = "session" if has_session else fetcher_type
+		res = _fetch_single_mode(
+			url=url,
+			mode=target_mode,
+			config=config,
+			cache=cache,
+			domain=domain,
+			norm_method=norm_method,
+			max_size_bytes=max_size_bytes,
+			storage_state=config.storage_state,
+			crawler_account_name=config.crawler_account,
+			raw_fetch_fn=raw_fetch_fn,
+			sleep_fn=sleep_fn,
+			time_fn=time_fn,
+			is_mock=mock_mode,
+		)
+		res.mode_used = default_mode
+		if norm_method == "GET" and res.status == 200 and not res.is_login_wall and not res.is_blocked and not has_session:
+			cache.set(
+				cache_key,
+				{"status": res.status, "body": res.body, "robots_ignored": res.robots_ignored, "content": res.content},
+				ttl=config.cache_ttl_seconds,
+			)
+		return res
+
+	# Jalur Eskalasi Otomatis: Company -> Browser -> stealth -> session
+	modes_to_try: list[str] = ["company", "browser"]
+
+	stealth_allowed = False
+	if config.stealth:
+		if not config.stealth_domains:
+			stealth_allowed = True
+		else:
+			clean_domains = [d.strip().lower() for d in config.stealth_domains if d.strip()]
+			for sd in clean_domains:
+				if domain == sd or domain.endswith("." + sd):
+					stealth_allowed = True
+					break
+
+	if stealth_allowed and (mock_mode or is_scrapling_browser_installed()):
+		modes_to_try.append("stealth")
+
+	crawler_acc_name = config.crawler_account
+	crawler_acc_label = None
+	session_allowed = False
+
+	if config.storage_state is not None:
+		session_allowed = True
+	elif getattr(config, "use_login_session", False):
+		try:
+			from hris_ats.bgc.crawler_session import get_eligible_crawler_account_for_url
+			c_acc = get_eligible_crawler_account_for_url(url)
+			if c_acc:
+				session_allowed = True
+				crawler_acc_name = c_acc["name"]
+				crawler_acc_label = c_acc.get("account_label")
+		except Exception:
+			pass
+
+	if session_allowed:
+		modes_to_try.append("session")
+
+	chain: list[str] = []
+	last_res: FetchResult | None = None
+
+	for mode in modes_to_try:
+		chain.append(mode)
+		res = _fetch_single_mode(
+			url=url,
+			mode=mode,
+			config=config,
+			cache=cache,
+			domain=domain,
+			norm_method=norm_method,
+			max_size_bytes=max_size_bytes,
+			storage_state=config.storage_state,
+			crawler_account_name=crawler_acc_name,
+			crawler_account_label=crawler_acc_label,
+			raw_fetch_fn=raw_fetch_fn,
+			sleep_fn=sleep_fn,
+			time_fn=time_fn,
+			is_mock=mock_mode,
+		)
+		last_res = res
+
+		if not res.is_blocked and not res.is_login_wall and res.status == 200:
+			# Berhenti di percobaan pertama yang berhasil
+			res.mode_used = ">".join(chain)
+			if norm_method == "GET" and mode != "session" and not has_session:
+				cache.set(
+					get_cache_key(url, res.mode_used, norm_method),
+					{"status": res.status, "body": res.body, "robots_ignored": res.robots_ignored, "content": res.content},
+					ttl=config.cache_ttl_seconds,
+				)
+			return res
+
+	# Bila seluruh mode yang diizinkan gagal
+	if last_res:
+		last_res.mode_used = ">".join(chain)
+		return last_res
+
+	raise FetchError(f"No fetch modes available to try for {url}")
 
 
 def get_fetch_config_from_settings() -> FetchConfig:
@@ -675,6 +908,9 @@ def get_fetch_config_from_settings() -> FetchConfig:
 			rate_limit_per_minute=settings.rate_limit_per_minute or 30,
 			cache_ttl_seconds=86400,
 			timeout_seconds=15,
+			auto_escalate=bool(getattr(settings, "fetch_auto_escalate", 0)),
+			use_login_session=bool(getattr(settings, "fetch_use_login_session", 0)),
 		)
 	except Exception:
 		return FetchConfig(blocked_domains=list(DEFAULT_BLOCKED_DOMAINS))
+

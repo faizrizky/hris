@@ -21,6 +21,7 @@
   "min_match_confidence",
   "max_results_per_source",
   "social_max_posts",
+  "social_max_comments",
   "column_break_param",
   "rate_limit_per_minute",
   "retention_days",
@@ -160,6 +161,13 @@
    "label": "Social Max Posts"
   },
   {
+   "default": "200",
+   "description": "Limit candidate comments collected per candidate account.",
+   "fieldname": "social_max_comments",
+   "fieldtype": "Int",
+   "label": "Social Max Comments"
+  },
+  {
    "fieldname": "column_break_param",
    "fieldtype": "Column Break"
   },
@@ -255,6 +263,14 @@
    "fieldname": "fetch_respect_robots",
    "fieldtype": "Check",
    "label": "Respect robots.txt",
+   "permlevel": 1
+  },
+  {
+   "default": "0",
+   "description": "Automatically escalate fetch mode (Company -> Browser -> Stealth -> Session) when blocked or encountering login walls.",
+   "fieldname": "fetch_auto_escalate",
+   "fieldtype": "Check",
+   "label": "Auto-escalate Fetch Mode",
    "permlevel": 1
   },
   {

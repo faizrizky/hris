@@ -11,6 +11,7 @@
   "robots_ignored_count",
   "items_found",
   "accounts_skipped",
+  "crawler_account",
   "started_on",
   "finished_on",
   "error",
@@ -77,6 +78,12 @@
    "fieldname": "accounts_skipped",
    "fieldtype": "Int",
    "label": "Accounts Skipped",
+   "read_only": 1
+  },
+  {
+   "fieldname": "crawler_account",
+   "fieldtype": "Data",
+   "label": "Crawler Account",
    "read_only": 1
   },
   {
