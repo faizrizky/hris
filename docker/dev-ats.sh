@@ -38,7 +38,7 @@ for svc in "${PYTHON_SERVICES[@]}"; do
 done
 
 if [ "$WITH_BROWSERS" -eq 1 ]; then
-  BROWSER_SERVICES=("backend" "queue-long")
+  BROWSER_SERVICES=("backend" "queue-long" "queue-browser")
   for svc in "${BROWSER_SERVICES[@]}"; do
     echo "[dev-ats] Memasang dependensi sistem browser (root) di service $svc..."
     docker compose exec -T -u root "$svc" env/bin/python -m playwright install-deps chromium

@@ -139,8 +139,7 @@ class TestCrawlerAccount(FrappeTestCase):
 		acc.risk_acknowledged = 1
 		acc.save()
 
-		self.settings.fetch_risk_acknowledged = 0
-		self.settings.save(ignore_permissions=True)
+		frappe.db.set_single_value("Background Check Settings", "fetch_risk_acknowledged", 0)
 
 		with self.assertRaises(frappe.ValidationError) as ctx:
 			start_login_session(acc.name)
@@ -356,4 +355,24 @@ class TestCrawlerAccount(FrappeTestCase):
 
 		# Bersihkan
 		redis.delete_value(test_key)
+
+	def test_enqueue_queue_browser_valid(self):
+		"""Memastikan queue 'browser' terdaftar di background_jobs dan frappe.enqueue tidak error (tanpa mock)."""
+		from frappe.utils.background_jobs import get_queue_list
+
+		queue_list = get_queue_list()
+		self.assertIn("browser", queue_list, f"Queue 'browser' not found in valid queues: {queue_list}")
+
+		# 1. Enqueue sinkron (is_async=False) dijalankan dan menghasilkan 'pong'
+		sync_job = frappe.enqueue("frappe.ping", queue="browser", is_async=False)
+		self.assertIsNotNone(sync_job)
+		self.assertEqual(getattr(sync_job, "result", sync_job), "pong")
+		if hasattr(sync_job, "origin"):
+			self.assertTrue(sync_job.origin.endswith("browser"), f"Unexpected origin: {sync_job.origin}")
+
+		# 2. Enqueue asinkron (is_async=True) masuk antrean 'browser' tanpa ValueError
+		async_job = frappe.enqueue("frappe.ping", queue="browser", is_async=True)
+		self.assertIsNotNone(async_job)
+		self.assertTrue(async_job.origin.endswith("browser"), f"Unexpected origin: {async_job.origin}")
+
 

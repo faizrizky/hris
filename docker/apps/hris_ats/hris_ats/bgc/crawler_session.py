@@ -187,11 +187,17 @@ def run_remote_browser_worker(session_id: str, account_name: str):
 		)
 		page = context.new_page()
 
+		from frappe.utils.local import _contextvar
+
+		parent_ctx = _contextvar.get(None)
+
 		# Setup Screencast via CDP if available
 		try:
 			cdp = context.new_cdp_session(page)
 
 			def on_screencast_frame(event):
+				if parent_ctx is not None:
+					_contextvar.set(parent_ctx)
 				nonlocal frame_seq
 				frame_data = event.get("data")
 				if frame_data:
@@ -211,11 +217,16 @@ def run_remote_browser_worker(session_id: str, account_name: str):
 
 		# Domain restriction: block navigation to unallowed domains
 		def handle_route(route):
-			req_url = route.request.url
-			if not route.request.is_navigation_request() or is_domain_allowed(req_url):
-				route.continue_()
-			else:
-				route.abort()
+			try:
+				if parent_ctx is not None:
+					_contextvar.set(parent_ctx)
+				req_url = route.request.url
+				if not route.request.is_navigation_request() or is_domain_allowed(req_url):
+					route.continue_()
+				else:
+					route.abort()
+			except Exception:
+				pass
 
 		page.route("**/*", handle_route)
 
@@ -355,6 +366,8 @@ def run_remote_browser_worker(session_id: str, account_name: str):
 		redis.delete_value(f"crawler_heartbeat:{session_id}")
 		redis.delete_value(f"crawler_cmd:{session_id}")
 		redis.delete(f"crawler_inputs:{session_id}")
+		if meta.get("status") == "closed":
+			redis.delete_value(f"crawler_meta:{session_id}")
 		if user:
 			redis.delete_value(f"crawler_active_session:{user}")
 
@@ -386,7 +399,27 @@ def poll_login_session(session_id: str, inputs: str | None = None, last_frame_se
 	assert_crawler_admin()
 	redis = get_redis_client()
 
-	# Refresh heartbeat
+	meta_raw = redis.get_value(f"crawler_meta:{session_id}", use_local_cache=False)
+	if not meta_raw:
+		return {"status": "closed", "message": _("Login session has expired or closed.")}
+
+	if isinstance(meta_raw, bytes):
+		meta_raw = meta_raw.decode("utf-8")
+	meta = json.loads(meta_raw)
+
+	curr_status = meta.get("status", "active")
+	if curr_status in ("closed", "completed", "error"):
+		return {
+			"status": curr_status,
+			"frame_b64": None,
+			"frame_seq": int(meta.get("frame_seq", 0)),
+			"url": meta.get("url", ""),
+			"title": meta.get("title", ""),
+			"elapsed": int(time.time() - meta.get("started_at", time.time())),
+			"remaining": 0,
+		}
+
+	# Refresh heartbeat only for active sessions
 	redis.set_value(f"crawler_heartbeat:{session_id}", time.time(), expires_in_sec=120)
 
 	# Queue any input events received
@@ -397,14 +430,6 @@ def poll_login_session(session_id: str, inputs: str | None = None, last_frame_se
 				redis.rpush(f"crawler_inputs:{session_id}", json.dumps(inp))
 		except Exception:
 			pass
-
-	meta_raw = redis.get_value(f"crawler_meta:{session_id}", use_local_cache=False)
-	if not meta_raw:
-		return {"status": "closed", "message": _("Login session has expired or closed.")}
-
-	if isinstance(meta_raw, bytes):
-		meta_raw = meta_raw.decode("utf-8")
-	meta = json.loads(meta_raw)
 
 	curr_frame_seq = int(meta.get("frame_seq", 0))
 	last_frame_seq = int(last_frame_seq or 0)
@@ -421,7 +446,7 @@ def poll_login_session(session_id: str, inputs: str | None = None, last_frame_se
 	remaining = max(0, 600 - elapsed)
 
 	return {
-		"status": meta.get("status", "active"),
+		"status": curr_status,
 		"frame_b64": frame_b64,
 		"frame_seq": curr_frame_seq,
 		"url": meta.get("url", ""),
