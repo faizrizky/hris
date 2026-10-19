@@ -40,7 +40,8 @@
   "retention_days",
   "section_break_consent",
   "consent_text_version",
-  "consent_text"
+  "consent_text_id",
+  "consent_text_en"
  ],
  "fields": [
   {
@@ -97,7 +98,7 @@
   {
    "fieldname": "section_break_fetch_mode",
    "fieldtype": "Section Break",
-   "label": "Mode Pengambilan Halaman",
+   "label": "Page Fetching Mode",
    "permlevel": 1
   },
   {
@@ -149,7 +150,7 @@
   },
   {
    "default": "0",
-   "description": "1. Menembus proteksi anti-bot dapat dianggap \"menerobos atau menjebol sistem pengamanan\" menurut UU ITE Pasal 30 ayat (3), dan melanggar ketentuan layanan situs sumber.\n2. Mengabaikan robots.txt dan menyamar sebagai browser melanggar ketentuan layanan banyak situs dan bisa membuat IP server diblokir, termasuk untuk layanan lain yang berjalan di server yang sama.\n3. Keputusan mengaktifkannya sebaiknya disetujui Legal dan dicatat.",
+   "description": "1. Bypassing anti-bot protection may be considered breaching or bypassing security systems under UU ITE Article 30 paragraph (3), and violates terms of service of source sites.\n2. Ignoring robots.txt and impersonating a browser violates terms of service of many sites and may cause server IP bans, including for other services on the same server.\n3. The decision to enable it should be approved by Legal and formally recorded.",
    "fieldname": "fetch_risk_acknowledged",
    "fieldtype": "Check",
    "label": "Acknowledge Legal and Technical Risks",
@@ -252,9 +253,15 @@
   },
   {
    "default": "Dengan memberikan persetujuan ini, saya mengizinkan verifikasi informasi profil publik, riwayat perkara publik, dan akun media sosial yang saya nyatakan untuk keperluan seleksi kerja sesuai ketentuan UU PDP.",
-   "fieldname": "consent_text",
+   "fieldname": "consent_text_id",
    "fieldtype": "Small Text",
-   "label": "Consent Terms Text"
+   "label": "Consent Terms Text (ID)"
+  },
+  {
+   "default": "By granting this consent, I authorize the verification of my declared public profile information, public case history, and social media accounts for recruitment purposes in accordance with applicable personal data protection laws.",
+   "fieldname": "consent_text_en",
+   "fieldtype": "Small Text",
+   "label": "Consent Terms Text (EN)"
   }
  ],
  "index_web_pages_for_search": 1,

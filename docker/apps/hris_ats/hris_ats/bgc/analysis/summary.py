@@ -10,6 +10,8 @@ from __future__ import annotations
 
 from typing import Any
 
+from hris_ats.i18n import LocalizedText
+
 
 def generate_automated_summary(
 	candidate_name: str,
@@ -21,17 +23,20 @@ def generate_automated_summary(
 	posts_count: int = 0,
 	politeness_score: int = 100,
 	risk_posts_count: int = 0,
-) -> str:
-	"""Menyusun teks ringkasan otomatis profil kandidat berdasarkan data faktual."""
-	name = candidate_name or "Kandidat"
-	title = job_title or "posisi yang dilamar"
+) -> LocalizedText:
+	"""Generates factual candidate profile automated summary based on factual data."""
+	name = candidate_name or "Candidate"
+	title = job_title or "the applied position"
 
-	sentences = []
+	sentences: list[str] = []
+	template_sentences: list[str] = []
+	params: dict[str, Any] = {"name": name, "title": title}
 
-	# Kalimat 1: Pengantar lamaran
-	sentences.append(f"{name} melamar sebagai {title}.")
+	# Sentence 1: Application intro
+	template_sentences.append("{name} applied for {title}.")
+	sentences.append(f"{name} applied for {title}.")
 
-	# Kalimat 2: Akun publik
+	# Sentence 2: Public accounts
 	platform_list = []
 	if accounts:
 		for a in accounts:
@@ -42,34 +47,55 @@ def generate_automated_summary(
 
 	if platform_list:
 		p_str = ", ".join(sorted(set(platform_list)))
-		sentences.append(f"Ditemukan {len(platform_list)} akun publik ({p_str}).")
+		params["n"] = len(platform_list)
+		params["platforms"] = p_str
+		template_sentences.append("{n} public accounts were found ({platforms}).")
+		sentences.append(f"{len(platform_list)} public accounts were found ({p_str}).")
 
-	# Kalimat 3: Artikel & prestasi
+	# Sentence 3: Articles & achievements
 	if article_count > 0:
+		params["a"] = article_count
 		if achievement_count > 0:
+			params["p"] = achievement_count
+			template_sentences.append("{a} articles are likely related, {p} of them about achievements.")
 			sentences.append(
-				f"Ada {article_count} artikel yang kemungkinan besar terkait, {achievement_count} di antaranya tentang prestasi."
+				f"{article_count} articles are likely related, {achievement_count} of them about achievements."
 			)
 		else:
-			sentences.append(f"Ada {article_count} artikel yang kemungkinan besar terkait.")
+			template_sentences.append("{a} articles are likely related.")
+			sentences.append(f"{article_count} articles are likely related.")
 
-	# Kalimat 4: Catatan perkara hukum
+	# Sentence 4: Case records
 	if case_count > 0:
-		sentences.append(f"Ditemukan {case_count} catatan perkara yang perlu diverifikasi.")
+		params["c"] = case_count
+		template_sentences.append("{c} case records need verification.")
+		sentences.append(f"{case_count} case records need verification.")
 
-	# Kalimat 5: Analisis post media sosial
+	# Sentence 5: Social media posts
 	if posts_count > 0:
+		params["m"] = posts_count
+		params["score"] = politeness_score
 		if risk_posts_count > 0:
+			params["r"] = risk_posts_count
+			template_sentences.append(
+				"Analysis of {m} posts shows a language politeness score of {score}/100 and {r} posts flagged as risky."
+			)
 			sentences.append(
-				f"Analisis {posts_count} post menunjukkan kesantunan bahasa {politeness_score}/100 dan {risk_posts_count} post yang ditandai berisiko."
+				f"Analysis of {posts_count} posts shows a language politeness score of {politeness_score}/100 and {risk_posts_count} posts flagged as risky."
 			)
 		else:
+			template_sentences.append(
+				"Analysis of {m} posts shows a language politeness score of {score}/100 with no posts flagged as risky."
+			)
 			sentences.append(
-				f"Analisis {posts_count} post menunjukkan kesantunan bahasa {politeness_score}/100 tanpa post yang terindikasi berisiko."
+				f"Analysis of {posts_count} posts shows a language politeness score of {politeness_score}/100 with no posts flagged as risky."
 			)
 
-	# Jika tidak ada temuan apa pun selain lamaran
+	# If no findings other than job application
 	if len(sentences) == 1:
-		sentences.append("Tidak ditemukan catatan perkara khusus atau temuan risiko signifikan pada pemeriksaan awal.")
+		template_sentences.append("No specific case records or significant risk findings were found in the initial screening.")
+		sentences.append("No specific case records or significant risk findings were found in the initial screening.")
 
-	return " ".join(sentences)
+	content = " ".join(sentences)
+	template = " ".join(template_sentences)
+	return LocalizedText(content, template=template, params=params)

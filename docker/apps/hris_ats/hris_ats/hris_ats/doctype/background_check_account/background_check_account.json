@@ -12,11 +12,16 @@
   "profile_location",
   "identity_match",
   "identity_reasons",
+  "identity_reasons_template",
+  "identity_reasons_params",
   "bio_snippet",
   "declared_by",
   "exists",
   "last_active",
-  "post_access"
+  "post_access",
+  "social_consent",
+  "social_consent_attested_by",
+  "social_consent_attested_on"
  ],
  "fields": [
   {
@@ -107,6 +112,38 @@
    "fieldtype": "Select",
    "label": "Post Access",
    "options": "API\nManual review only\nNot supported",
+   "read_only": 1
+  },
+  {
+   "fieldname": "identity_reasons_template",
+   "fieldtype": "Small Text",
+   "label": "Identity Match Reasons Template",
+   "read_only": 1
+  },
+  {
+   "fieldname": "identity_reasons_params",
+   "fieldtype": "Small Text",
+   "label": "Identity Match Reasons Parameters",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "social_consent",
+   "fieldtype": "Check",
+   "label": "Social Media Consent",
+   "read_only": 1
+  },
+  {
+   "fieldname": "social_consent_attested_by",
+   "fieldtype": "Link",
+   "label": "Social Consent Attested By",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "fieldname": "social_consent_attested_on",
+   "fieldtype": "Datetime",
+   "label": "Social Consent Attested On",
    "read_only": 1
   }
  ],

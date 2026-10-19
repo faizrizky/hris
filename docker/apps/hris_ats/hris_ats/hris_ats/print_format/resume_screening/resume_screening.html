@@ -1,65 +1,65 @@
 <div class="print-format" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #2d3748; line-height: 1.5; padding: 20px;">
 	<div style="border-bottom: 2px solid #2b6cb0; padding-bottom: 12px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: flex-end;">
 		<div>
-			<h2 style="margin: 0; color: #2b6cb0; font-size: 1.5rem; font-weight: 700;">Laporan Hasil Resume Screening</h2>
-			<div style="font-size: 0.9rem; color: #718096; margin-top: 4px;">ID Dokumen: {{ doc.name }} | Seri: {{ doc.naming_series or '-' }}</div>
+			<h2 style="margin: 0; color: #2b6cb0; font-size: 1.5rem; font-weight: 700;">{{ _("Resume Screening Result Report") }}</h2>
+			<div style="font-size: 0.9rem; color: #718096; margin-top: 4px;">{{ _("Document ID:") }} {{ doc.name }} | {{ _("Series:") }} {{ doc.naming_series or '-' }}</div>
 		</div>
 		<div style="text-align: right; font-size: 0.85rem; color: #718096;">
-			Tanggal: {{ frappe.utils.format_datetime(doc.screened_on or frappe.utils.now_datetime(), "dd-MM-yyyy HH:mm") }}
+			{{ _("Date:") }} {{ frappe.utils.format_datetime(doc.screened_on or frappe.utils.now_datetime(), "dd-MM-yyyy HH:mm") }}
 		</div>
 	</div>
 
-	<!-- Profil Kandidat (Tanpa usia & gender) -->
+	<!-- Candidate Profile (No age & gender) -->
 	<div style="background-color: #f7fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 16px; margin-bottom: 20px;">
 		<h3 style="margin: 0 0 10px 0; font-size: 1.1rem; color: #2d3748; border-bottom: 1px solid #edf2f7; padding-bottom: 6px;">
-			Profil Kandidat
+			{{ _("Candidate Profile") }}
 		</h3>
 		<table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
 			<tr>
-				<td style="width: 25%; font-weight: 600; color: #4a5568; padding: 4px 0;">Nama Kandidat</td>
+				<td style="width: 25%; font-weight: 600; color: #4a5568; padding: 4px 0;">{{ _("Candidate Name") }}</td>
 				<td style="width: 25%; padding: 4px 0;">: {{ doc.applicant_name or '-' }}</td>
-				<td style="width: 25%; font-weight: 600; color: #4a5568; padding: 4px 0;">Posisi Dilamar</td>
+				<td style="width: 25%; font-weight: 600; color: #4a5568; padding: 4px 0;">{{ _("Applied Position") }}</td>
 				<td style="width: 25%; padding: 4px 0;">: {{ doc.job_opening or '-' }}</td>
 			</tr>
 			<tr>
 				<td style="font-weight: 600; color: #4a5568; padding: 4px 0;">Email</td>
 				<td style="padding: 4px 0;">: {{ doc.email_id or '-' }}</td>
-				<td style="font-weight: 600; color: #4a5568; padding: 4px 0;">Jabatan (Designation)</td>
+				<td style="font-weight: 600; color: #4a5568; padding: 4px 0;">{{ _("Designation") }}</td>
 				<td style="padding: 4px 0;">: {{ doc.designation or '-' }}</td>
 			</tr>
 			<tr>
-				<td style="font-weight: 600; color: #4a5568; padding: 4px 0;">Telepon</td>
+				<td style="font-weight: 600; color: #4a5568; padding: 4px 0;">{{ _("Phone") }}</td>
 				<td style="padding: 4px 0;">: {{ doc.phone_number or '-' }}</td>
-				<td style="font-weight: 600; color: #4a5568; padding: 4px 0;">Tingkat Pengalaman</td>
-				<td style="padding: 4px 0;">: <strong>{{ doc.experience_level or '-' }}</strong></td>
+				<td style="font-weight: 600; color: #4a5568; padding: 4px 0;">{{ _("Experience Level") }}</td>
+				<td style="padding: 4px 0;">: <strong>{{ _(doc.experience_level) if doc.experience_level else '-' }}</strong></td>
 			</tr>
 			<tr>
-				<td style="font-weight: 600; color: #4a5568; padding: 4px 0;">Sumber Lamaran</td>
+				<td style="font-weight: 600; color: #4a5568; padding: 4px 0;">{{ _("Application Source") }}</td>
 				<td style="padding: 4px 0;">: {{ doc.source or 'Website' }}</td>
-				<td style="font-weight: 600; color: #4a5568; padding: 4px 0;">Template Evaluasi</td>
+				<td style="font-weight: 600; color: #4a5568; padding: 4px 0;">{{ _("Evaluation Template") }}</td>
 				<td style="padding: 4px 0;">: {{ doc.template or '-' }}</td>
 			</tr>
 		</table>
 	</div>
 
-	<!-- Banner Ringkasan Hasil -->
+	<!-- Summary Banner -->
 	{% set ind = doc.result_indicator or ('green' if doc.passed else 'red') %}
 	{% set bg_col = '#e6fffa' if ind == 'green' else ('#ebf8ff' if ind == 'blue' else ('#fffaf0' if ind == 'orange' else '#fff5f5')) %}
 	{% set border_col = '#319795' if ind == 'green' else ('#3182ce' if ind == 'blue' else ('#dd6b20' if ind == 'orange' else '#e53e3e')) %}
 	<div style="background-color: {{ bg_col }}; border-left: 6px solid {{ border_col }}; border-radius: 6px; padding: 16px 20px; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center;">
 		<div>
 			<div style="font-size: 1.25rem; font-weight: 700; color: #1a202c;">
-				{{ doc.hr_override_label or doc.result_label or ('Lolos Kualifikasi' if doc.passed else 'Tidak Memenuhi Kriteria') }}
+				{{ _(doc.hr_override_label) if doc.hr_override_label else (_(doc.result_label) if doc.result_label else (_('Qualified') if doc.passed else _('Not Qualified'))) }}
 				{% if doc.hr_override_label %}
-					<span style="font-size: 0.75rem; background: #feebc8; color: #c05621; padding: 2px 6px; border-radius: 4px; margin-left: 6px;">Override HR</span>
+					<span style="font-size: 0.75rem; background: #feebc8; color: #c05621; padding: 2px 6px; border-radius: 4px; margin-left: 6px;">{{ _("HR Override") }}</span>
 				{% endif %}
 			</div>
 			<div style="font-size: 0.95rem; color: #4a5568; margin-top: 4px;">
-				{{ doc.result_description or '' }}
+				{{ _(doc.result_description) if doc.result_description else '' }}
 			</div>
 			{% if doc.hr_override_note %}
 				<div style="font-size: 0.85rem; color: #718096; margin-top: 4px; font-style: italic;">
-					Catatan HR: {{ doc.hr_override_note }}
+					{{ _("HR Note:") }} {{ doc.hr_override_note }}
 				</div>
 			{% endif %}
 		</div>
@@ -68,48 +68,48 @@
 				{{ doc.total_score | int }}
 			</div>
 			<div style="font-size: 0.8rem; text-transform: uppercase; color: #718096; letter-spacing: 0.5px; margin-top: 4px;">
-				Skor Total
+				{{ _("Total Score") }}
 			</div>
 		</div>
 	</div>
 
-	<!-- Rincian 9 Metrik -->
+	<!-- 9 Metrics Details -->
 	<h3 style="margin: 0 0 10px 0; font-size: 1.1rem; color: #2d3748;">
-		Rincian Hasil Evaluasi 9 Metrik
+		{{ _("9 Metrics Evaluation Result Details") }}
 	</h3>
 	<table style="width: 100%; border-collapse: collapse; font-size: 0.85rem; margin-bottom: 24px;">
 		<thead>
 			<tr style="background-color: #edf2f7; color: #2d3748; border-bottom: 2px solid #cbd5e0;">
-				<th style="padding: 8px 10px; text-align: left; width: 22%;">Metrik</th>
-				<th style="padding: 8px 10px; text-align: center; width: 10%;">Bobot</th>
-				<th style="padding: 8px 10px; text-align: center; width: 10%;">Skor</th>
-				<th style="padding: 8px 10px; text-align: center; width: 12%;">Status</th>
-				<th style="padding: 8px 10px; text-align: left; width: 46%;">Alasan & Temuan</th>
+				<th style="padding: 8px 10px; text-align: left; width: 22%;">{{ _("Metric") }}</th>
+				<th style="padding: 8px 10px; text-align: center; width: 10%;">{{ _("Weight") }}</th>
+				<th style="padding: 8px 10px; text-align: center; width: 10%;">{{ _("Score") }}</th>
+				<th style="padding: 8px 10px; text-align: center; width: 12%;">{{ _("Status") }}</th>
+				<th style="padding: 8px 10px; text-align: left; width: 46%;">{{ _("Reason & Findings") }}</th>
 			</tr>
 		</thead>
 		<tbody>
 			{% for row in doc.results %}
 			<tr style="border-bottom: 1px solid #e2e8f0;">
-				<td style="padding: 8px 10px; font-weight: 600;">{{ row.metric }}</td>
+				<td style="padding: 8px 10px; font-weight: 600;">{{ _(row.metric) }}</td>
 				<td style="padding: 8px 10px; text-align: center;">{{ row.weight }}%</td>
 				<td style="padding: 8px 10px; text-align: center; font-weight: 700;">{{ row.score | int }}</td>
 				<td style="padding: 8px 10px; text-align: center;">
 					{% if not row.applicable %}
 						<span style="color: #718096; font-weight: 600;">N/A</span>
 					{% elif row.passed %}
-						<span style="color: #319795; font-weight: 700;">✓ Lolos</span>
+						<span style="color: #319795; font-weight: 700;">✓ {{ _("Passed") }}</span>
 					{% else %}
-						<span style="color: #e53e3e; font-weight: 700;">✗ Belum</span>
+						<span style="color: #e53e3e; font-weight: 700;">✗ {{ _("Failed") }}</span>
 					{% endif %}
 				</td>
-				<td style="padding: 8px 10px; color: #4a5568;">{{ row.reason or '-' }}</td>
+				<td style="padding: 8px 10px; color: #4a5568;">{{ (render(row.reason_template, row.reason_params) if row.reason_template else row.reason) or '-' }}</td>
 			</tr>
 			{% endfor %}
 		</tbody>
 	</table>
 
-	<!-- Catatan Kebijakan -->
+	<!-- Policy Note -->
 	<div style="background-color: #f7fafc; border: 1px solid #e2e8f0; border-radius: 4px; padding: 10px 14px; font-size: 0.8rem; color: #718096;">
-		<strong>Catatan Kebijakan Privasi & Keadilan Rekrutmen:</strong> Skor evaluasi resume dihasilkan secara objektif oleh algoritma berbasis aturan tanpa model AI generatif/LLM. Tidak melibatkan atribut sensitif seperti usia, gender, foto, agama, atau status pernikahan. Keputusan seleksi pelamar sepenuhnya berada pada wewenang tim Human Resources.
+		<strong>{{ _("Privacy Policy & Recruitment Fairness Note:") }}</strong> {{ _("The resume evaluation score is objectively generated by a rule-based algorithm without generative AI/LLM models. Sensitive attributes such as age, gender, photo, religion, or marital status are not included. Applicant selection decisions remain entirely at the discretion of the Human Resources team.") }}
 	</div>
 </div>

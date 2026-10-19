@@ -74,13 +74,13 @@ class TestBackgroundCheckPhase7(FrappeTestCase):
 
 		with self.assertRaises(frappe.ValidationError) as cm:
 			interview.insert(ignore_permissions=True)
-		self.assertIn("Kesimpulan HR (hr_conclusion)", str(cm.exception))
+		self.assertIn("HR Conclusion (hr_conclusion)", str(cm.exception))
 
 	def test_interview_allowed_when_hr_conclusion_filled(self):
 		"""Wawancara dapat dibuat jika hr_conclusion telah diisi oleh HR."""
 		init_res = initiate_background_check(self.applicant.name)
 		bgc = frappe.get_doc("Background Check", init_res["name"])
-		bgc.hr_conclusion = "Kandidat memiliki catatan bersih dan direkomendasikan."
+		bgc.hr_conclusion = "Candidate has a clear record and is recommended."
 		bgc.save(ignore_permissions=True)
 
 		interview = frappe.new_doc("Interview")
@@ -113,11 +113,11 @@ class TestBackgroundCheckPhase7(FrappeTestCase):
 		bgc.consent_file = "/files/test_signed.pdf"
 		bgc.skck_file = "/files/skck_test.pdf"
 		bgc.skck_valid_until = past_date
-		bgc.skck_status = "Bersih"
+		bgc.skck_status = "Clear"
 		bgc.purge_after = past_date
-		bgc.summary_auto = "Ringkasan otomatis awal"
-		bgc.hr_conclusion = "Kesimpulan HR permanen"
-		bgc.risk_level_final = "Rendah"
+		bgc.summary_auto = "Initial automated summary"
+		bgc.hr_conclusion = "Permanent HR conclusion"
+		bgc.risk_level_final = "Low"
 		bgc.append("accounts", {"platform": "GitHub", "username": "pelamar_uji"})
 		bgc.save(ignore_permissions=True)
 
@@ -139,7 +139,7 @@ class TestBackgroundCheckPhase7(FrappeTestCase):
 
 		# Verifikasi dokumen setelah pembersihan
 		bgc.reload()
-		self.assertEqual(bgc.skck_status, "Kedaluwarsa")
+		self.assertEqual(bgc.skck_status, "Expired")
 		self.assertIsNone(bgc.summary_auto)
 		self.assertEqual(len(bgc.accounts), 0)
 		self.assertEqual(bgc.is_purged, 1)
@@ -148,8 +148,8 @@ class TestBackgroundCheckPhase7(FrappeTestCase):
 		# Bukti persetujuan dan kesimpulan HR tetap utuh
 		self.assertEqual(bgc.consent_status, "Granted")
 		self.assertEqual(bgc.consent_method, "Uploaded document")
-		self.assertEqual(bgc.hr_conclusion, "Kesimpulan HR permanen")
-		self.assertEqual(bgc.risk_level_final, "Rendah")
+		self.assertEqual(bgc.hr_conclusion, "Permanent HR conclusion")
+		self.assertEqual(bgc.risk_level_final, "Low")
 
 		# Uji idempoten: eksekusi kedua tidak memproses ulang dokumen yang sudah dipurge
 		res2 = daily_retention_purge()
@@ -164,8 +164,8 @@ class TestBackgroundCheckPhase7(FrappeTestCase):
 		bgc.consent_status = "Granted"
 		bgc.consent_method = "Uploaded document"
 		bgc.consent_file = "/files/test_signed.pdf"
-		bgc.politeness_score = 45  # < 60 menandakan risiko minimal Sedang
-		bgc.risk_level_auto = "Perlu verifikasi"
+		bgc.politeness_score = 45  # < 60 menandakan risiko minimal Medium
+		bgc.risk_level_auto = "Needs verification"
 		bgc.save(ignore_permissions=True)
 
 		f = frappe.get_doc({
@@ -173,16 +173,16 @@ class TestBackgroundCheckPhase7(FrappeTestCase):
 			"background_check": bgc.name,
 			"finding_type": "Article",
 			"title": "Temuan Uji Verdict",
-			"severity": "Tinggi",
+			"severity": "High",
 			"match_confidence": 90,
-			"hr_verdict": "Belum ditinjau",
+			"hr_verdict": "Not reviewed",
 		}).insert(ignore_permissions=True)
 
-		# Pada severity Tinggi belum ditinjau, risiko = 'Perlu verifikasi'
-		self.assertEqual(bgc.risk_level_auto, "Perlu verifikasi")
+		# Pada severity High belum ditinjau, risiko = 'Needs verification'
+		self.assertEqual(bgc.risk_level_auto, "Needs verification")
 
-		# HR menandai 'Bukan orang ini' -> severity Tinggi gugur, tapi politeness_score < 60 tetap menghasilkan risiko 'Sedang'
-		res = update_finding_verdict(f.name, "Bukan orang ini", "Bukan orang yang sama")
-		self.assertEqual(res["new_risk"], "Sedang")
+		# HR menandai 'Not this person' -> severity High gugur, tapi politeness_score < 60 tetap menghasilkan risiko 'Medium'
+		res = update_finding_verdict(f.name, "Not this person", "Not the same person")
+		self.assertEqual(res["new_risk"], "Medium")
 		bgc.reload()
-		self.assertEqual(bgc.risk_level_auto, "Sedang")
+		self.assertEqual(bgc.risk_level_auto, "Medium")

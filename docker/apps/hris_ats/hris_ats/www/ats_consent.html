@@ -7,36 +7,44 @@
 			{% if error %}
 			<div class="text-center py-4">
 				<div class="mb-3 text-warning" style="font-size: 3rem;">⚠️</div>
-				<h3 class="h4 text-dark mb-2">{{ _("Tautan Tidak Dapat Dibuka") }}</h3>
+				<h3 class="h4 text-dark mb-2">{{ _("Link Cannot Be Opened") }}</h3>
 				<p class="text-muted">{{ error }}</p>
 			</div>
 			{% else %}
+			<div class="d-flex justify-content-end mb-3">
+				<div class="btn-group btn-group-sm" role="group" aria-label="Language Selector">
+					<a href="?token={{ token }}&lang=id" class="btn {% if lang == 'id' %}btn-primary{% else %}btn-outline-secondary{% endif %}">ID</a>
+					<a href="?token={{ token }}&lang=en" class="btn {% if lang == 'en' %}btn-primary{% else %}btn-outline-secondary{% endif %}">EN</a>
+				</div>
+			</div>
+
 			<div id="consent-form-section">
 				<div class="mb-4 text-center">
-					<h2 class="h3 font-weight-bold mb-2">{{ _("Pemeriksaan Latar Belakang") }}</h2>
+					<h2 class="h3 font-weight-bold mb-2">{{ _("Background Check") }}</h2>
 					<p class="text-muted mb-0">
-						{{ _("Formulir Persetujuan Kandidat Rekrutmen (Kepatuhan UU No. 27/2022 UU PDP)") }}
+						{{ _("Candidate Consent Form (Compliance with Law No. 27/2022 on PDP)") }}
 					</p>
 				</div>
 
 				<div class="alert alert-info border-0 rounded p-3 mb-4">
-					<p class="mb-1"><strong>{{ _("Halo,") }} {{ applicant_name }}!</strong></p>
+					<p class="mb-1"><strong>{{ _("Hello,") }} {{ applicant_name }}!</strong></p>
 					<p class="small mb-0">
-						{{ _("Sebagai bagian dari proses seleksi, kami memerlukan persetujuan eksplisit Anda sebelum melakukan pemeriksaan latar belakang. Anda berhak menentukan ruang lingkup pemeriksaan, memperbarui akun yang diperiksa, dan menarik persetujuan sewaktu-waktu.") }}
+						{{ _("As part of the selection process, we require your explicit consent prior to conducting a background check. You have the right to determine the scope of screening, update the accounts to be checked, and withdraw your consent at any time.") }}
 					</p>
 				</div>
 
 				<form id="consent-form">
 					<input type="hidden" name="token" value="{{ token }}">
+					<input type="hidden" name="consent_language" value="{{ lang }}">
 
 					<div class="mb-4">
 						<h5 class="h6 font-weight-bold text-uppercase text-secondary mb-3">
-							1. {{ _("Pilih Sumber Pemeriksaan yang Disetujui") }}
+							1. {{ _("Select Approved Screening Sources") }}
 						</h5>
 						<div class="list-group">
 							{% for src in sources %}
 							<label class="list-group-item d-flex align-items-start gap-3 cursor-pointer">
-								<input class="form-check-input mt-1 me-2 source-checkbox" type="checkbox" name="sources" value="{{ src.key }}" checked>
+								<input class="form-check-input mt-1 me-2 source-checkbox" type="checkbox" name="sources" value="{{ src.key }}">
 								<div>
 									<div class="font-weight-bold text-dark">{{ src.label }}</div>
 									<div class="small text-muted">{{ src.desc }}</div>
@@ -46,68 +54,121 @@
 						</div>
 					</div>
 
+					<!-- Dedicated Social Media Accounts Section: Only visible when Social Media is checked -->
+					<div id="social-media-accounts-section" class="mb-4 d-none">
+						<h5 class="h6 font-weight-bold text-uppercase text-secondary mb-2">
+							2. {{ _("Social Media Accounts") }}
+						</h5>
+						<p class="small text-muted mb-3">
+							{{ _("Select each social media account you own that you consent to screening. Only public profiles and public posts from confirmed accounts will be accessed.") }}
+						</p>
+
+						<div id="social-accounts-list" class="mb-3">
+							{% for acc in existing_social_accounts %}
+							<div class="card p-3 mb-2 border shadow-none social-account-item" data-platform="{{ acc.platform }}" data-username="{{ acc.username }}">
+								<div class="d-flex align-items-start justify-content-between">
+									<div class="form-check mb-0">
+										<input class="form-check-input social-account-consent" type="checkbox" id="soc-acc-{{ loop.index }}">
+										<label class="form-check-label font-weight-bold text-dark ms-2" for="soc-acc-{{ loop.index }}">
+											{{ acc.platform }}: @{{ acc.username }}
+										</label>
+										<div class="small text-muted ms-2 mt-1">
+											{{ _("This account belongs to me and I consent to public profile and post screening.") }}
+										</div>
+									</div>
+									<button type="button" class="btn btn-sm btn-outline-danger btn-remove-social-acc" title="{{ _("Remove") }}">✕</button>
+								</div>
+							</div>
+							{% endfor %}
+						</div>
+
+						<div class="card p-3 bg-light border-0 rounded mb-2">
+							<div class="small font-weight-bold mb-2">{{ _("Add Social Media Account") }}</div>
+							<div class="row g-2">
+								<div class="col-md-5 col-12">
+									<select id="new-social-platform" class="form-control form-control-sm">
+										<option value="">-- {{ _("Select Platform") }} --</option>
+										{% for p in platforms %}
+										{% if p.requires_social_consent %}
+										<option value="{{ p.platform_name }}">{{ p.platform_name }}</option>
+										{% endif %}
+										{% endfor %}
+									</select>
+								</div>
+								<div class="col-md-5 col-12">
+									<input type="text" id="new-social-username" class="form-control form-control-sm" placeholder="{{ _("Username / Handle") }}">
+								</div>
+								<div class="col-md-2 col-12">
+									<button type="button" id="btn-add-social-acc" class="btn btn-sm btn-outline-primary w-100">+ {{ _("Add") }}</button>
+								</div>
+							</div>
+						</div>
+					</div>
+
 					<div class="mb-4">
 						<h5 class="h6 font-weight-bold text-uppercase text-secondary mb-2">
-							2. {{ _("Akun Profil Publik (Opsional)") }}
+							3. {{ _("Other Platform Profiles (Optional)") }}
 						</h5>
 						<p class="small text-muted mb-2">
-							{{ _("Cantumkan akun media sosial atau profil profesional yang ingin Anda nyatakan untuk diperiksa.") }}
+							{{ _("Specify any non-social platform profiles (GitHub, Canva, etc.) you wish to declare.") }}
 						</p>
-						<div id="accounts-container" class="mb-2">
-							<div class="row g-2 mb-2 account-row">
+						<div id="other-accounts-container" class="mb-2">
+							<div class="row g-2 mb-2 other-account-row">
 								<div class="col-5">
-									<select class="form-control form-control-sm account-platform">
-										<option value="">-- {{ _("Pilih Platform") }} --</option>
+									<select class="form-control form-control-sm other-platform">
+										<option value="">-- {{ _("Select Platform") }} --</option>
 										{% for p in platforms %}
+										{% if not p.requires_social_consent %}
 										<option value="{{ p.platform_name }}">{{ p.platform_name }}</option>
+										{% endif %}
 										{% endfor %}
 									</select>
 								</div>
 								<div class="col-6">
-									<input type="text" class="form-control form-control-sm account-username" placeholder="{{ _("Username / Handle") }}">
+									<input type="text" class="form-control form-control-sm other-username" placeholder="{{ _("Username / Handle") }}">
 								</div>
 								<div class="col-1 text-end">
-									<button type="button" class="btn btn-sm btn-outline-danger btn-remove-account" title="{{ _("Hapus") }}">✕</button>
+									<button type="button" class="btn btn-sm btn-outline-danger btn-remove-other-acc" title="{{ _("Remove") }}">✕</button>
 								</div>
 							</div>
 						</div>
-						<button type="button" id="btn-add-account" class="btn btn-sm btn-outline-primary">
-							+ {{ _("Tambah Akun") }}
+						<button type="button" id="btn-add-other-account" class="btn btn-sm btn-outline-secondary">
+							+ {{ _("Add Account") }}
 						</button>
 					</div>
 
 					<div class="mb-4">
 						<h5 class="h6 font-weight-bold text-uppercase text-secondary mb-2">
-							3. {{ _("Unggah SKCK (Opsional)") }}
+							4. {{ _("Upload SKCK (Optional)") }}
 						</h5>
 						<p class="small text-muted mb-2">
-							{{ _("Jika memiliki Surat Keterangan Catatan Kepolisian (SKCK) yang masih berlaku, Anda dapat melampirkannya sebagai dokumen pendukung.") }}
+							{{ _("If you hold a valid Police Clearance Certificate (SKCK), you may attach it as a supporting document.") }}
 						</p>
 						<input type="file" id="skck-file-input" class="form-control form-control-sm" accept=".pdf,.jpg,.jpeg,.png">
 					</div>
 
 					<div class="mb-4">
 						<h5 class="h6 font-weight-bold text-uppercase text-secondary mb-2">
-							4. {{ _("Pernyataan Persetujuan & Retensi") }}
+							5. {{ _("Consent Statement & Data Retention") }}
 						</h5>
 						<div class="border rounded p-3 bg-light mb-3 small text-muted" style="max-height: 140px; overflow-y: auto;">
 							<p class="mb-2">{{ consent_text }}</p>
 							<p class="mb-0">
-								<strong>{{ _("Ketentuan Retensi:") }}</strong> {{ _("Seluruh data temuan mentah akan otomatis dimusnahkan dalam waktu {0} hari setelah keputusan akhir rekrutmen sesuai prinsip minimisasi data.").format(retention_days) }}
+								<strong>{{ _("Retention Terms:") }}</strong> {{ _("All raw finding data will be automatically purged within {0} days after final recruitment decision in accordance with data minimization principles.").format(retention_days) }}
 							</p>
 						</div>
 
 						<div class="form-check">
 							<input class="form-check-input" type="checkbox" id="consent-agree" required>
 							<label class="form-check-label font-weight-bold text-dark" for="consent-agree">
-								{{ _("Saya telah membaca, memahami, dan menyetujui seluruh ketentuan pemeriksaan latar belakang di atas.") }}
+								{{ _("I have read, understood, and agreed to all background check terms above.") }}
 							</label>
 						</div>
 					</div>
 
 					<div class="d-grid mt-4">
 						<button type="submit" id="btn-submit-consent" class="btn btn-primary btn-lg" disabled>
-							{{ _("Kirim Persetujuan") }}
+							{{ _("Submit Consent") }}
 						</button>
 					</div>
 				</form>
@@ -115,11 +176,11 @@
 
 			<div id="consent-success-section" class="text-center py-5 d-none">
 				<div class="mb-3 text-success" style="font-size: 3.5rem;">✓</div>
-				<h3 class="h4 font-weight-bold text-dark mb-2">{{ _("Persetujuan Berhasil Dicatat") }}</h3>
+				<h3 class="h4 font-weight-bold text-dark mb-2">{{ _("Consent Recorded Successfully") }}</h3>
 				<p class="text-muted mb-4">
-					{{ _("Terima kasih atas persetujuan yang Anda berikan. Proses pemeriksaan latar belakang akan dilakukan sesuai ruang lingkup yang Anda pilih.") }}
+					{{ _("Thank you for providing your consent. The background check will be conducted within your selected scope.") }}
 				</p>
-				<p class="small text-muted">{{ _("Anda dapat menutup halaman ini sekarang.") }}</p>
+				<p class="small text-muted">{{ _("You may close this page now.") }}</p>
 			</div>
 			{% endif %}
 		</div>
@@ -130,35 +191,108 @@
 document.addEventListener("DOMContentLoaded", function () {
 	const agreeCheck = document.getElementById("consent-agree");
 	const submitBtn = document.getElementById("btn-submit-consent");
-	const addAccountBtn = document.getElementById("btn-add-account");
-	const accountsContainer = document.getElementById("accounts-container");
 	const form = document.getElementById("consent-form");
+	const socialSection = document.getElementById("social-media-accounts-section");
+	const socialSourceCb = document.querySelector('.source-checkbox[value="Social Media"]');
+	const btnAddSocial = document.getElementById("btn-add-social-acc");
+	const socialAccountsList = document.getElementById("social-accounts-list");
+	const btnAddOther = document.getElementById("btn-add-other-account");
+	const otherAccountsContainer = document.getElementById("other-accounts-container");
 
-	if (agreeCheck && submitBtn) {
-		agreeCheck.addEventListener("change", function () {
-			submitBtn.disabled = !this.checked;
+	function toggleSocialSection() {
+		if (socialSection && socialSourceCb) {
+			if (socialSourceCb.checked) {
+				socialSection.classList.remove("d-none");
+			} else {
+				socialSection.classList.add("d-none");
+			}
+		}
+	}
+
+	function updateSubmitState() {
+		if (!agreeCheck || !submitBtn) return;
+		const anySource = document.querySelectorAll(".source-checkbox:checked").length > 0;
+		submitBtn.disabled = !(agreeCheck.checked && anySource);
+	}
+
+	if (agreeCheck) {
+		agreeCheck.addEventListener("change", updateSubmitState);
+	}
+
+	document.querySelectorAll(".source-checkbox").forEach(cb => {
+		cb.addEventListener("change", function () {
+			toggleSocialSection();
+			updateSubmitState();
+		});
+	});
+
+	// Initial visibility check
+	toggleSocialSection();
+
+	// Add new social account
+	if (btnAddSocial && socialAccountsList) {
+		btnAddSocial.addEventListener("click", function () {
+			const platSelect = document.getElementById("new-social-platform");
+			const userInput = document.getElementById("new-social-username");
+			const plat = platSelect.value;
+			const user = userInput.value.trim().replace(/^@/, "");
+			if (!plat || !user) {
+				frappe.msgprint(__("Please select platform and enter username"));
+				return;
+			}
+
+			const card = document.createElement("div");
+			card.className = "card p-3 mb-2 border shadow-none social-account-item";
+			card.dataset.platform = plat;
+			card.dataset.username = user;
+			const randId = "soc-acc-" + Date.now();
+			card.innerHTML = `
+				<div class="d-flex align-items-start justify-content-between">
+					<div class="form-check mb-0">
+						<input class="form-check-input social-account-consent" type="checkbox" id="${randId}">
+						<label class="form-check-label font-weight-bold text-dark ms-2" for="${randId}">
+							${plat}: @${user}
+						</label>
+						<div class="small text-muted ms-2 mt-1">
+							{{ _("This account belongs to me and I consent to public profile and post screening.") }}
+						</div>
+					</div>
+					<button type="button" class="btn btn-sm btn-outline-danger btn-remove-social-acc" title="{{ _("Remove") }}">✕</button>
+				</div>
+			`;
+			socialAccountsList.appendChild(card);
+			platSelect.value = "";
+			userInput.value = "";
+		});
+
+		socialAccountsList.addEventListener("click", function (e) {
+			if (e.target && e.target.classList.contains("btn-remove-social-acc")) {
+				e.target.closest(".social-account-item").remove();
+			}
 		});
 	}
 
-	if (addAccountBtn && accountsContainer) {
-		addAccountBtn.addEventListener("click", function () {
-			const template = accountsContainer.querySelector(".account-row");
+	// Add/remove other accounts
+	if (btnAddOther && otherAccountsContainer) {
+		btnAddOther.addEventListener("click", function () {
+			const template = otherAccountsContainer.querySelector(".other-account-row");
 			if (template) {
 				const clone = template.cloneNode(true);
-				clone.querySelector(".account-platform").value = "";
-				clone.querySelector(".account-username").value = "";
-				accountsContainer.appendChild(clone);
+				clone.classList.remove("d-none");
+				clone.querySelector(".other-platform").value = "";
+				clone.querySelector(".other-username").value = "";
+				otherAccountsContainer.appendChild(clone);
 			}
 		});
 
-		accountsContainer.addEventListener("click", function (e) {
-			if (e.target && e.target.classList.contains("btn-remove-account")) {
-				const rows = accountsContainer.querySelectorAll(".account-row");
+		otherAccountsContainer.addEventListener("click", function (e) {
+			if (e.target && e.target.classList.contains("btn-remove-other-acc")) {
+				const rows = otherAccountsContainer.querySelectorAll(".other-account-row");
 				if (rows.length > 1) {
-					e.target.closest(".account-row").remove();
+					e.target.closest(".other-account-row").remove();
 				} else {
-					e.target.closest(".account-row").querySelector(".account-platform").value = "";
-					e.target.closest(".account-row").querySelector(".account-username").value = "";
+					e.target.closest(".other-account-row").querySelector(".other-platform").value = "";
+					e.target.closest(".other-account-row").querySelector(".other-username").value = "";
 				}
 			}
 		});
@@ -167,10 +301,11 @@ document.addEventListener("DOMContentLoaded", function () {
 	if (form) {
 		form.addEventListener("submit", function (e) {
 			e.preventDefault();
-			if (!agreeCheck.checked) return;
+			const anySource = document.querySelectorAll(".source-checkbox:checked").length > 0;
+			if (!agreeCheck.checked || !anySource) return;
 
 			submitBtn.disabled = true;
-			submitBtn.innerText = "{{ _('Memproses...') }}";
+			submitBtn.innerText = "{{ _('Processing...') }}";
 
 			// Collect sources
 			const grantedSources = [];
@@ -178,24 +313,53 @@ document.addEventListener("DOMContentLoaded", function () {
 				grantedSources.push(cb.value);
 			});
 
+			const isSocialGranted = grantedSources.indexOf("Social Media") !== -1;
+
 			// Collect accounts
 			const accounts = [];
-			document.querySelectorAll(".account-row").forEach(row => {
-				const plat = row.querySelector(".account-platform").value;
-				const user = row.querySelector(".account-username").value.trim();
-				if (plat && user) {
-					accounts.push({ platform: plat, username: user });
-				}
-			});
+
+			// 1. Social accounts (per-account consent)
+			if (isSocialGranted && socialAccountsList) {
+				socialAccountsList.querySelectorAll(".social-account-item").forEach(item => {
+					const plat = item.dataset.platform;
+					const user = item.dataset.username;
+					const consentCb = item.querySelector(".social-account-consent");
+					const isConsented = consentCb && consentCb.checked ? 1 : 0;
+					if (plat && user) {
+						accounts.push({
+							platform: plat,
+							username: user,
+							social_consent: isConsented
+						});
+					}
+				});
+			}
+
+			// 2. Other non-social accounts
+			if (otherAccountsContainer) {
+				otherAccountsContainer.querySelectorAll(".other-account-row").forEach(row => {
+					const plat = row.querySelector(".other-platform").value;
+					const user = row.querySelector(".other-username").value.trim().replace(/^@/, "");
+					if (plat && user) {
+						accounts.push({
+							platform: plat,
+							username: user,
+							social_consent: 0
+						});
+					}
+				});
+			}
 
 			const token = form.querySelector('input[name="token"]').value;
+			const consentLang = form.querySelector('input[name="consent_language"]').value || "id";
 
 			frappe.call({
 				method: "hris_ats.bgc.consent.submit_candidate_consent",
 				args: {
 					token: token,
 					granted_sources: JSON.stringify(grantedSources),
-					accounts: JSON.stringify(accounts)
+					accounts: JSON.stringify(accounts),
+					consent_language: consentLang
 				},
 				callback: function (r) {
 					if (r.message && r.message.success) {
@@ -203,13 +367,13 @@ document.addEventListener("DOMContentLoaded", function () {
 						document.getElementById("consent-success-section").classList.remove("d-none");
 					} else {
 						submitBtn.disabled = false;
-						submitBtn.innerText = "{{ _('Kirim Persetujuan') }}";
-						frappe.msgprint(__("Terjadi kesalahan saat menyimpan persetujuan."));
+						submitBtn.innerText = "{{ _('Submit Consent') }}";
+						frappe.msgprint(__("An error occurred while saving consent."));
 					}
 				},
 				error: function () {
 					submitBtn.disabled = false;
-					submitBtn.innerText = "{{ _('Kirim Persetujuan') }}";
+					submitBtn.innerText = "{{ _('Submit Consent') }}";
 				}
 			});
 		});

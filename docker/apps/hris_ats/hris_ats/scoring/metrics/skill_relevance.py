@@ -1,16 +1,17 @@
 # Copyright (c) 2026, HRIS Team and contributors
 # For license information, please see license.txt
 
-"""Metrik 6: Skill relevance (0-100)
-Mencocokkan keahlian kandidat dengan kriteria lowongan:
-- Keahlian wajib (required_skills, bobot 2)
-- Keahlian tambahan (preferred_skills, bobot 1)
-- Pencocokan dengan rapidfuzz token_set_ratio >= 85 atau substring eksak
-- Bila tidak ada kriteria keahlian di lowongan, metrik berstatus tidak berlaku (applicable = False).
+"""Metric 6: Skill relevance (0-100)
+Matches candidate skills against job requirements:
+- Required skills (weight 2)
+- Preferred skills (weight 1)
+- Matching using rapidfuzz token_set_ratio >= 85 or exact word boundary
+- If no skill criteria specified, applicable = False.
 """
 
 from __future__ import annotations
 
+import json
 import re
 from typing import Any
 from rapidfuzz import fuzz
@@ -23,12 +24,10 @@ def _match_skill(skill: str, target_text: str) -> bool:
 		return False
 
 	target_clean = target_text.lower()
-	# 1. Exact regex word match (mis. 'SQL', 'Python', 'Go')
 	escaped = re.escape(skill_clean)
 	if re.search(r"(?:^|[^a-zA-Z0-9_#+])" + escaped + r"(?:$|[^a-zA-Z0-9_#+])", target_clean):
 		return True
 
-	# 2. Rapidfuzz token_set_ratio pada kalimat/baris
 	for line in target_clean.split("\n"):
 		if len(line.strip()) < 2:
 			continue
@@ -47,13 +46,15 @@ def evaluate(extraction: ExtractionResult, sections: dict[str, str], criteria: d
 	pref_list = [s.strip() for s in re.split(r"[\n,;]+", pref_raw) if s.strip()]
 
 	if not req_list and not pref_list:
+		msg = "No required or preferred skill criteria specified for the job opening."
 		return {
 			"score": 100.0,
 			"applicable": False,
-			"reason": "Tidak ada kriteria keahlian wajib atau tambahan yang ditentukan di lowongan.",
+			"reason": msg,
+			"reason_template": msg,
+			"reason_params": "{}",
 		}
 
-	# Cari di seluruh teks CV (dengan prioritas bagian skills dan experience)
 	search_text = (
 		sections.get("skills", "") + "\n" +
 		sections.get("experience", "") + "\n" +
@@ -83,17 +84,34 @@ def evaluate(extraction: ExtractionResult, sections: dict[str, str], criteria: d
 	score = max(0.0, min(100.0, score))
 
 	reasons: list[str] = []
+	template_parts: list[str] = []
+	params: dict[str, Any] = {}
+
 	if req_list:
-		reasons.append(f"Cocok {len(matched_req)} dari {len(req_list)} skill wajib")
+		reasons.append(f"Matched {len(matched_req)} of {len(req_list)} required skills")
+		template_parts.append("Matched {matched_req_count} of {total_req_count} required skills")
+		params["matched_req_count"] = len(matched_req)
+		params["total_req_count"] = len(req_list)
+
 		if missing_req:
-			reasons.append(f"belum ada: {', '.join(missing_req[:3])}")
+			missing_str = ", ".join(missing_req[:3])
+			reasons.append(f"missing: {missing_str}")
+			template_parts.append("missing: {missing_skills}")
+			params["missing_skills"] = missing_str
+
 	if pref_list:
-		reasons.append(f"Cocok {len(matched_pref)} dari {len(pref_list)} skill tambahan")
+		reasons.append(f"Matched {len(matched_pref)} of {len(pref_list)} preferred skills")
+		template_parts.append("Matched {matched_pref_count} of {total_pref_count} preferred skills")
+		params["matched_pref_count"] = len(matched_pref)
+		params["total_pref_count"] = len(pref_list)
 
 	final_reason = "; ".join(reasons) + "."
+	final_template = "; ".join(template_parts) + "."
 
 	return {
 		"score": round(score, 1),
 		"applicable": True,
 		"reason": final_reason,
+		"reason_template": final_template,
+		"reason_params": json.dumps(params) if params else "{}",
 	}

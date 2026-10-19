@@ -9,6 +9,7 @@
   "platform_name",
   "category",
   "enabled",
+  "requires_social_consent",
   "column_break_1",
   "icon",
   "profile_url_template",
@@ -109,6 +110,12 @@
    "fieldname": "location_selector",
    "fieldtype": "Data",
    "label": "Location Selector"
+  },
+  {
+   "default": "0",
+   "fieldname": "requires_social_consent",
+   "fieldtype": "Check",
+   "label": "Requires Social Media Consent"
   }
  ],
  "index_web_pages_for_search": 1,

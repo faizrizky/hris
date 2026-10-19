@@ -154,7 +154,7 @@ def test_stealth_without_browser_raises_exception(monkeypatch):
 	with pytest.raises(StealthBrowserNotInstalledError) as exc_info:
 		fetch("https://cloudflare-protected.org", config=cfg, cache_backend=cache)
 
-	assert "Mode stealth aktif tapi browser belum terpasang" in str(exc_info.value)
+	assert "Stealth mode active but browser is not installed" in str(exc_info.value)
 
 
 def test_cache_hit_does_not_hit_network():

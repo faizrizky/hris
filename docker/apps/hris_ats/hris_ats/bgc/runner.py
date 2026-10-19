@@ -20,13 +20,25 @@ from frappe.utils import add_days, now_datetime, nowdate
 from hris_ats.bgc.analysis.posts import analyze_posts
 from hris_ats.bgc.analysis.risk import calculate_risk_level
 from hris_ats.bgc.analysis.summary import generate_automated_summary
-from hris_ats.bgc.fetch import FetchConfig, get_fetch_config_from_settings
+from hris_ats.bgc.fetch import FetchConfig, get_fetch_config_from_settings, is_forbidden_domain
 from hris_ats.bgc.providers.base import FindingData
 from hris_ats.bgc.providers.court_ma import CourtMAProvider
 from hris_ats.bgc.providers.mock import MockProvider
 from hris_ats.bgc.providers.platform_check import PlatformCheckProvider
 from hris_ats.bgc.providers.posts import PostsProvider
 from hris_ats.bgc.providers.web_search import WebSearchProvider
+
+
+def is_social_account(platform_name: str) -> bool:
+	"""Memeriksa apakah platform memerlukan persetujuan sosial (Instagram, Facebook, TikTok, LinkedIn, dsb.)."""
+	if not platform_name:
+		return False
+	if frappe.db.exists("Background Check Platform", platform_name):
+		req = frappe.db.get_value("Background Check Platform", platform_name, "requires_social_consent")
+		if req:
+			return True
+	return platform_name.lower() in ("instagram", "facebook", "tiktok", "linkedin", "twitter/x", "x")
+
 
 
 def run_all_sources(bgc_name: str) -> None:
@@ -40,7 +52,7 @@ def run_all_sources(bgc_name: str) -> None:
 	if bgc.consent_status != "Granted":
 		frappe.log_error(
 			title="BGC Aborted: No Consent",
-			message=f"Pemeriksaan dibatalkan untuk {bgc.name} karena consent_status adalah '{bgc.consent_status}' (wajib 'Granted').",
+			message=f"Screening aborted for {bgc.name} because consent_status is '{bgc.consent_status}' (must be 'Granted').",
 		)
 		return
 
@@ -97,7 +109,9 @@ def run_all_sources(bgc_name: str) -> None:
 		# Periksa apakah sumber ini disetujui
 		if not granted_sources.get(source_name, False):
 			run_row.status = "Skipped"
-			run_row.error = _("Sumber tidak disetujui oleh kandidat.")
+			run_row.error = _("Source not granted by candidate.")
+			run_row.error_template = "Source not granted by candidate."
+			run_row.error_params = "{}"
 			continue
 
 		# Update status Crawling
@@ -134,7 +148,9 @@ def run_all_sources(bgc_name: str) -> None:
 				candidate_cv_terms = [t.strip() for t in (bgc.context_terms or "").split(",") if t.strip()]
 				name_variants = [v.strip() for v in (bgc.name_variants or "").split("\n") if v.strip()]
 
-				for acc in bgc.accounts:
+				platform_accounts = [acc for acc in bgc.accounts if not is_social_account(acc.platform)]
+
+				for acc in platform_accounts:
 					plat_doc = frappe.get_doc("Background Check Platform", acc.platform) if frappe.db.exists("Background Check Platform", acc.platform) else None
 					url_tmpl = plat_doc.profile_url_template if plat_doc else ""
 					chk_method = plat_doc.check_method if plat_doc else "Status code"
@@ -167,17 +183,32 @@ def run_all_sources(bgc_name: str) -> None:
 					acc.profile_location = res.get("profile_location", "")
 					acc.identity_match = res.get("identity_match")
 					reasons_val = res.get("identity_reasons", [])
-					acc.identity_reasons = "; ".join(reasons_val) if isinstance(reasons_val, list) else (reasons_val or "")
+					if isinstance(reasons_val, list):
+						acc.identity_reasons = "; ".join(str(r) for r in reasons_val)
+						acc.identity_reasons_template = "; ".join(getattr(r, "template", str(r)) for r in reasons_val)
+						id_params = {}
+						for r in reasons_val:
+							if hasattr(r, "params"):
+								id_params.update(r.params)
+						acc.identity_reasons_params = json.dumps(id_params) if id_params else "{}"
+					else:
+						acc.identity_reasons = str(reasons_val or "")
+						acc.identity_reasons_template = str(reasons_val or "")
+						acc.identity_reasons_params = "{}"
+
 					if res.get("mode_used"):
 						modes_used.add(res["mode_used"])
 					if res.get("robots_ignored"):
 						robots_ignored_count += 1
 
-				run_row.items_found = len([a for a in bgc.accounts if a.exists])
+				run_row.items_found = len([a for a in platform_accounts if a.exists])
 				run_row.fetch_mode_used = ", ".join(sorted(modes_used)) if modes_used else ("mock" if is_mock else "company")
 				run_row.robots_ignored_count = robots_ignored_count
 				if p_provider.warnings:
-					run_row.error = "; ".join(p_provider.warnings)
+					warn_msg = "; ".join(p_provider.warnings)
+					run_row.error = warn_msg
+					run_row.error_template = warn_msg
+					run_row.error_params = "{}"
 				run_row.status = "Done"
 
 			elif source_name == "Article":
@@ -193,7 +224,9 @@ def run_all_sources(bgc_name: str) -> None:
 				else:
 					# Bila mock_provider=0 dan belum dikonfigurasi, tandai Skipped
 					run_row.status = "Skipped"
-					run_row.error = _("Penyedia pencarian belum dikonfigurasi.")
+					run_row.error = _("Search provider not configured.")
+					run_row.error_template = "Search provider not configured."
+					run_row.error_params = "{}"
 					run_row.items_found = 0
 					run_row.fetch_mode_used = ""
 					run_row.robots_ignored_count = 0
@@ -210,7 +243,9 @@ def run_all_sources(bgc_name: str) -> None:
 					run_row.status = "Done"
 				else:
 					run_row.status = "Skipped"
-					run_row.error = _("Penyedia pencarian belum dikonfigurasi.")
+					run_row.error = _("Search provider not configured.")
+					run_row.error_template = "Search provider not configured."
+					run_row.error_params = "{}"
 					run_row.items_found = 0
 					run_row.fetch_mode_used = ""
 					run_row.robots_ignored_count = 0
@@ -226,17 +261,20 @@ def run_all_sources(bgc_name: str) -> None:
 				run_row.fetch_mode_used = "mock" if is_mock else (provider.last_mode_used or "company+robots")
 				run_row.robots_ignored_count = 0 if is_mock else provider.last_robots_ignored_count
 				if provider.warnings:
-					run_row.error = "; ".join(provider.warnings)
+					warn_msg = "; ".join(provider.warnings)
+					run_row.error = warn_msg
+					run_row.error_template = warn_msg
+					run_row.error_params = "{}"
 				run_row.status = "Done"
 
 			elif source_name == "Posts":
 				if is_mock:
 					p_provider = PostsProvider()
 					all_fetched_posts = []
-					for acc in bgc.accounts:
-						if acc.post_access == "API":
-							acc_posts = p_provider.fetch_posts(acc.platform, acc.username)
-							all_fetched_posts.extend(acc_posts)
+					api_accounts = [acc for acc in bgc.accounts if not is_social_account(acc.platform) and acc.post_access == "API"]
+					for acc in api_accounts:
+						acc_posts = p_provider.fetch_posts(acc.platform, acc.username)
+						all_fetched_posts.extend(acc_posts)
 
 					if all_fetched_posts:
 						p_analysis = analyze_posts(
@@ -253,14 +291,17 @@ def run_all_sources(bgc_name: str) -> None:
 						# Simpan post berisiko sebagai Finding
 						post_findings = []
 						for rp in risk_posts:
+							r_flags = rp.get("risk_flags") or ""
 							post_findings.append(FindingData(
 								finding_type="Post",
-								title="Post Publik Terindikasi Berisiko",
+								title="Public Post Flagged as Risky",
 								snippet=rp["text"],
 								url=rp.get("url") or "",
-								severity=rp.get("severity") or "Sedang",
-								category="Berisiko",
-								risk_flags=rp.get("risk_flags") or "",
+								severity=rp.get("severity") or "Medium",
+								category="Risky",
+								risk_flags=r_flags,
+								risk_flags_template=r_flags,
+								risk_flags_params="{}",
 								match_confidence=100,
 							))
 						_save_findings(bgc.name, post_findings)
@@ -271,16 +312,152 @@ def run_all_sources(bgc_name: str) -> None:
 					run_row.status = "Done"
 				else:
 					run_row.status = "Skipped"
-					run_row.error = _("Kredensial API media sosial belum dikonfigurasi.")
+					run_row.error = _("Social media API credentials not configured.")
+					run_row.error_template = "Social media API credentials not configured."
+					run_row.error_params = "{}"
 					run_row.items_found = 0
 					run_row.fetch_mode_used = ""
 					run_row.robots_ignored_count = 0
 
+			elif source_name == "Social Media":
+				social_accounts = [acc for acc in bgc.accounts if is_social_account(acc.platform)]
+				valid_social_accounts = []
+				skipped_accounts = 0
+				modes_used: set[str] = set()
+				robots_ignored_count = 0
+
+				candidate_city = ""
+				if bgc.job_applicant and frappe.db.exists("Job Applicant", bgc.job_applicant):
+					meta = frappe.get_meta("Job Applicant")
+					city_field = "city" if meta.has_field("city") else ("location" if meta.has_field("location") else None)
+					if city_field:
+						candidate_city = frappe.db.get_value("Job Applicant", bgc.job_applicant, city_field) or ""
+				if not candidate_city and bgc.context_terms:
+					for term in [t.strip() for t in bgc.context_terms.split(",") if t.strip()]:
+						if any(c in term.lower() for c in ("jakarta", "bandung", "surabaya", "medan", "pekanbaru", "semarang", "yogyakarta", "makassar", "denpasar", "palembang", "malang", "depok", "tangerang", "bekasi", "bogor")):
+							candidate_city = term
+							break
+
+				candidate_cv_terms = [t.strip() for t in (bgc.context_terms or "").split(",") if t.strip()]
+				name_variants = [v.strip() for v in (bgc.name_variants or "").split("\n") if v.strip()]
+				p_provider = PlatformCheckProvider(config=fetch_config)
+
+				all_social_posts = []
+
+				for acc in social_accounts:
+					plat_doc = frappe.get_doc("Background Check Platform", acc.platform) if frappe.db.exists("Background Check Platform", acc.platform) else None
+					url_tmpl = plat_doc.profile_url_template if plat_doc else ""
+					chk_method = plat_doc.check_method if plat_doc else "Status code"
+					chk_val = plat_doc.check_value if plat_doc else "200"
+					dn_sel = getattr(plat_doc, "display_name_selector", None) if plat_doc else None
+					bio_sel = getattr(plat_doc, "bio_selector", None) if plat_doc else None
+					loc_sel = getattr(plat_doc, "location_selector", None) if plat_doc else None
+
+					prof_url = url_tmpl.replace("{username}", acc.username.strip().lstrip("@")) if url_tmpl else ""
+					if prof_url and not acc.profile_url:
+						acc.profile_url = prof_url
+
+					# Conditions: scope granted + social_consent == 1 + domain not blocked
+					if not acc.social_consent or (prof_url and is_forbidden_domain(prof_url)):
+						skipped_accounts += 1
+						if prof_url and is_forbidden_domain(prof_url) and acc.social_consent:
+							acc.exists = 1
+							acc.identity_match = None
+							acc.display_name = ""
+						continue
+
+					valid_social_accounts.append(acc)
+
+					res = p_provider.check_single_account(
+						platform_name=acc.platform,
+						username=acc.username,
+						url_template=url_tmpl,
+						check_method=chk_method,
+						check_value=chk_val,
+						is_mock=is_mock,
+						candidate_name=bgc.full_name,
+						candidate_variants=name_variants,
+						candidate_city=candidate_city,
+						candidate_cv_terms=candidate_cv_terms,
+						display_name_selector=dn_sel,
+						bio_selector=bio_sel,
+						location_selector=loc_sel,
+						declared_by=acc.declared_by or "Candidate",
+					)
+					acc.profile_url = res["profile_url"]
+					acc.exists = res["exists"]
+					acc.post_access = res["post_access"]
+					acc.display_name = res.get("display_name", "")
+					acc.bio_snippet = res.get("bio_snippet", "")
+					acc.profile_location = res.get("profile_location", "")
+					acc.identity_match = res.get("identity_match")
+					reasons_val = res.get("identity_reasons", [])
+					if isinstance(reasons_val, list):
+						acc.identity_reasons = "; ".join(str(r) for r in reasons_val)
+						acc.identity_reasons_template = "; ".join(getattr(r, "template", str(r)) for r in reasons_val)
+						id_params = {}
+						for r in reasons_val:
+							if hasattr(r, "params"):
+								id_params.update(r.params)
+						acc.identity_reasons_params = json.dumps(id_params) if id_params else "{}"
+					else:
+						acc.identity_reasons = str(reasons_val or "")
+						acc.identity_reasons_template = str(reasons_val or "")
+						acc.identity_reasons_params = "{}"
+
+					if res.get("mode_used"):
+						modes_used.add(res["mode_used"])
+					if res.get("robots_ignored"):
+						robots_ignored_count += 1
+
+					if is_mock:
+						posts_prov = PostsProvider()
+						acc_posts = posts_prov.fetch_posts(acc.platform, acc.username)
+						all_social_posts.extend(acc_posts)
+
+				if all_social_posts:
+					p_analysis = analyze_posts(
+						posts=all_social_posts,
+						required_skills=required_skills,
+						preferred_skills=preferred_skills,
+						lexicon_items=lexicon_records,
+					)
+					politeness_score = p_analysis["politeness_score"]
+					total_posts_analyzed += p_analysis["total_posts"]
+					risk_posts = p_analysis["risk_posts"]
+					risk_posts_count += len(risk_posts)
+
+					post_findings = []
+					for rp in risk_posts:
+						r_flags = rp.get("risk_flags") or ""
+						post_findings.append(FindingData(
+							finding_type="Post",
+							title="Public Post Flagged as Risky",
+							snippet=rp["text"],
+							url=rp.get("url") or "",
+							severity=rp.get("severity") or "Medium",
+							category="Risky",
+							risk_flags=r_flags,
+							risk_flags_template=r_flags,
+							risk_flags_params="{}",
+							match_confidence=100,
+						))
+					_save_findings(bgc.name, post_findings)
+
+				run_row.items_found = len([a for a in social_accounts if a.exists]) + len(all_social_posts)
+				run_row.accounts_skipped = skipped_accounts
+				run_row.fetch_mode_used = ", ".join(sorted(modes_used)) if modes_used else ("mock" if is_mock else "company")
+				run_row.robots_ignored_count = robots_ignored_count
+				run_row.status = "Done"
+
 			run_row.finished_on = now_datetime()
 
 		except Exception as e:
+			err_str = str(e)
 			run_row.status = "Failed"
-			run_row.error = str(e)
+			run_row.error = err_str
+			run_row.error_template = err_str
+			run_row.error_params = "{}"
 			run_row.finished_on = now_datetime()
 			frappe.log_error(title=f"BGC Source Error: {source_name}", message=frappe.get_traceback())
 
@@ -306,7 +483,10 @@ def run_all_sources(bgc_name: str) -> None:
 
 	# Hitung jumlah item untuk ringkasan
 	article_count = frappe.db.count("Background Check Finding", {"background_check": bgc.name, "finding_type": "Article"})
-	achievement_count = frappe.db.count("Background Check Finding", {"background_check": bgc.name, "finding_type": "Article", "category": "Prestasi"})
+	achievement_count = frappe.db.count(
+		"Background Check Finding",
+		{"background_check": bgc.name, "finding_type": "Article", "category": ["in", ["Achievement", "Prestasi"]]},
+	)
 	case_count = frappe.db.count("Background Check Finding", {"background_check": bgc.name, "finding_type": "Case"})
 
 	account_platforms = [a.platform for a in bgc.accounts if a.platform]
@@ -325,7 +505,9 @@ def run_all_sources(bgc_name: str) -> None:
 
 	bgc.risk_level_auto = calculated_risk
 	bgc.politeness_score = politeness_score
-	bgc.summary_auto = summary_text
+	bgc.summary_auto = str(summary_text)
+	bgc.summary_auto_template = getattr(summary_text, "template", str(summary_text))
+	bgc.summary_auto_params = json.dumps(getattr(summary_text, "params", {}))
 	bgc.status = "Done"
 	bgc.purge_after = add_days(nowdate(), retention_days)
 
@@ -361,7 +543,7 @@ def _save_findings(bgc_name: str, findings: list[FindingData]) -> None:
 		for key, val in item.as_dict().items():
 			if hasattr(doc, key):
 				# Pertahankan verdict dan catatan HR jika sudah pernah diisi
-				if key in ("hr_verdict", "hr_note") and getattr(doc, key, None) and getattr(doc, key) != "Belum ditinjau":
+				if key in ("hr_verdict", "hr_note") and getattr(doc, key, None) and getattr(doc, key) not in ("Belum ditinjau", "Not reviewed"):
 					continue
 				setattr(doc, key, val)
 		doc.save(ignore_permissions=True)

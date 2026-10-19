@@ -400,7 +400,7 @@ def fetch(
 	# Validasi Mode Stealth
 	if fetcher_type == "stealth":
 		if not is_scrapling_browser_installed():
-			raise StealthBrowserNotInstalledError("Mode stealth aktif tapi browser belum terpasang")
+			raise StealthBrowserNotInstalledError("Stealth mode active but browser is not installed")
 
 	# Eksekusi Pengambilan Konten
 	if raw_fetch_fn:
@@ -408,7 +408,7 @@ def fetch(
 		try:
 			status, body, res_page = raw_fetch_fn(url=url, mode=fetcher_type, config=config, method=norm_method)
 		except Exception as e:
-			raise FetchNetworkError(f"Gagal mengambil {url}: {e}") from e
+			raise FetchNetworkError(f"Failed to fetch {url}: {e}") from e
 	else:
 		try:
 			if fetcher_type == "stealth":

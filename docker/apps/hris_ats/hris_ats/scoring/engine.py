@@ -61,7 +61,7 @@ def run_screening(
 			"total_score": 0.0,
 			"passed": 0,
 			"experience_level": "Fresh Graduate",
-			"result_label": "Gagal Dievaluasi",
+			"result_label": "Failed Evaluation",
 			"result_description": extraction.error,
 			"result_indicator": "red",
 			"results": [],
@@ -81,6 +81,8 @@ def run_screening(
 			"score": eval_res["score"],
 			"applicable": eval_res["applicable"],
 			"reason": eval_res["reason"],
+			"reason_template": eval_res.get("reason_template", eval_res["reason"]),
+			"reason_params": eval_res.get("reason_params", "{}"),
 		})
 		if metric_name == "Experience relevance":
 			total_experience_years = float(eval_res.get("total_years", 0.0))

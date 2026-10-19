@@ -10,28 +10,28 @@ CUSTOM_FIELDS = {
 	"Job Opening": [
 		{
 			"fieldname": "screening_criteria_section",
-			"label": "Kriteria Screening",
+			"label": "Screening Criteria",
 			"fieldtype": "Section Break",
 			"insert_after": "description",
 			"collapsible": 0,
 		},
 		{
 			"fieldname": "screening_template",
-			"label": "Template Screening",
+			"label": "Screening Template",
 			"fieldtype": "Link",
 			"options": "Resume Screening Template",
 			"insert_after": "screening_criteria_section",
 		},
 		{
 			"fieldname": "min_education",
-			"label": "Pendidikan Minimal",
+			"label": "Minimum Education",
 			"fieldtype": "Select",
 			"options": "\nSMA/SMK\nD3\nD4/S1\nS2\nS3",
 			"insert_after": "screening_template",
 		},
 		{
 			"fieldname": "min_years_experience",
-			"label": "Minimal Pengalaman (Tahun)",
+			"label": "Minimum Experience (Years)",
 			"fieldtype": "Float",
 			"insert_after": "min_education",
 		},
@@ -42,50 +42,50 @@ CUSTOM_FIELDS = {
 		},
 		{
 			"fieldname": "education_majors",
-			"label": "Jurusan Pendidikan",
+			"label": "Education Majors",
 			"fieldtype": "Small Text",
-			"description": "Pisahkan dengan koma atau baris baru",
+			"description": "Separate with comma or new line",
 			"insert_after": "column_break_screening",
 		},
 		{
 			"fieldname": "relevant_titles",
-			"label": "Judul Jabatan Relevan",
+			"label": "Relevant Job Titles",
 			"fieldtype": "Small Text",
-			"description": "Pisahkan dengan koma atau baris baru",
+			"description": "Separate with comma or new line",
 			"insert_after": "education_majors",
 		},
 		{
 			"fieldname": "section_break_skills",
-			"label": "Keahlian & Sertifikasi",
+			"label": "Skills & Certifications",
 			"fieldtype": "Section Break",
 			"insert_after": "relevant_titles",
 		},
 		{
 			"fieldname": "required_skills",
-			"label": "Keahlian Wajib",
+			"label": "Required Skills",
 			"fieldtype": "Small Text",
-			"description": "Satu keahlian per baris",
+			"description": "One skill per line",
 			"insert_after": "section_break_skills",
 		},
 		{
 			"fieldname": "preferred_skills",
-			"label": "Keahlian Tambahan",
+			"label": "Preferred Skills",
 			"fieldtype": "Small Text",
-			"description": "Satu keahlian per baris",
+			"description": "One skill per line",
 			"insert_after": "required_skills",
 		},
 		{
 			"fieldname": "certification_keywords",
-			"label": "Kata Kunci Sertifikasi",
+			"label": "Certification Keywords",
 			"fieldtype": "Small Text",
-			"description": "Satu kata kunci per baris",
+			"description": "One keyword per line",
 			"insert_after": "preferred_skills",
 		},
 	],
 	"Job Applicant": [
 		{
 			"fieldname": "recruitment_stage",
-			"label": "Tahap Rekrutmen",
+			"label": "Recruitment Stage",
 			"fieldtype": "Select",
 			"options": "New Applied\nScreening\nBackground Check\nInterview\nOffer\nHired\nRejected",
 			"default": "New Applied",
@@ -95,19 +95,19 @@ CUSTOM_FIELDS = {
 		},
 		{
 			"fieldname": "city",
-			"label": "Kota / Region",
+			"label": "City / Region",
 			"fieldtype": "Data",
 			"insert_after": "country",
 		},
 		{
 			"fieldname": "address",
-			"label": "Alamat",
+			"label": "Address",
 			"fieldtype": "Data",
 			"insert_after": "city",
 		},
 		{
 			"fieldname": "postal_code",
-			"label": "Kode Pos",
+			"label": "Postal Code",
 			"fieldtype": "Data",
 			"insert_after": "address",
 		},
@@ -121,7 +121,7 @@ CUSTOM_FIELDS = {
 		},
 		{
 			"fieldname": "resume_score",
-			"label": "Skor Resume",
+			"label": "Resume Score",
 			"fieldtype": "Float",
 			"read_only": 1,
 			"insert_after": "resume_screening",
@@ -129,7 +129,7 @@ CUSTOM_FIELDS = {
 		},
 		{
 			"fieldname": "screening_status",
-			"label": "Status Screening",
+			"label": "Screening Status",
 			"fieldtype": "Select",
 			"options": "\nQueued\nScreening\nDone\nFailed",
 			"read_only": 1,
@@ -138,16 +138,16 @@ CUSTOM_FIELDS = {
 		},
 		{
 			"fieldname": "bgc_risk_level",
-			"label": "Tingkat Risiko BGC",
+			"label": "BGC Risk Level",
 			"fieldtype": "Select",
-			"options": "\nRendah\nSedang\nTinggi\nPerlu verifikasi",
+			"options": "\nLow\nMedium\nHigh\nNeeds verification",
 			"read_only": 1,
 			"insert_after": "screening_status",
 			"in_list_view": 1,
 		},
 		{
 			"fieldname": "bgc_conclusion",
-			"label": "Kesimpulan BGC",
+			"label": "BGC Conclusion",
 			"fieldtype": "Small Text",
 			"read_only": 1,
 			"insert_after": "bgc_risk_level",
@@ -169,10 +169,22 @@ def setup_custom_fields():
 
 
 def setup_kanban_board():
-	"""Membuat Kanban Board 'Tahap Rekrutmen' untuk Job Applicant jika belum ada."""
-	if not frappe.db.exists("Kanban Board", "Tahap Rekrutmen"):
+	"""Membuat Kanban Board 'Recruitment Stages' untuk Job Applicant jika belum ada."""
+	if frappe.db.exists("Kanban Board", "Tahap Rekrutmen"):
+		if frappe.db.exists("Kanban Board", "Recruitment Stages"):
+			frappe.delete_doc("Kanban Board", "Tahap Rekrutmen", force=True)
+		else:
+			frappe.rename_doc("Kanban Board", "Tahap Rekrutmen", "Recruitment Stages", force=True)
+
+	if frappe.db.exists("Kanban Board", "hiring pipeline"):
+		if frappe.db.exists("Kanban Board", "Hiring Pipeline"):
+			frappe.delete_doc("Kanban Board", "hiring pipeline", force=True)
+		else:
+			frappe.rename_doc("Kanban Board", "hiring pipeline", "Hiring Pipeline", force=True)
+
+	if not frappe.db.exists("Kanban Board", "Recruitment Stages"):
 		kb = frappe.new_doc("Kanban Board")
-		kb.kanban_board_name = "Tahap Rekrutmen"
+		kb.kanban_board_name = "Recruitment Stages"
 		kb.reference_doctype = "Job Applicant"
 		kb.field_name = "recruitment_stage"
 		stages = [
@@ -192,44 +204,37 @@ def setup_kanban_board():
 			})
 		kb.insert(ignore_permissions=True)
 
-	if frappe.db.exists("Kanban Board", "hiring pipeline"):
-		doc = frappe.get_doc("Kanban Board", "hiring pipeline")
-		if doc.name != "Hiring Pipeline":
-			doc.kanban_board_name = "Hiring Pipeline"
-			doc.save()
-			frappe.rename_doc("Kanban Board", doc.name, "Hiring Pipeline", force=True)
-
 
 def setup_number_cards():
 	"""Membuat Number Card untuk metrik tahap rekrutmen."""
 	cards = [
 		{
-			"name": "Pelamar Baru ATS",
-			"label": "Pelamar Baru",
+			"name": "New Applicants ATS",
+			"label": "New Applicants",
 			"document_type": "Job Applicant",
 			"function": "Count",
 			"filters_json": '[["Job Applicant","recruitment_stage","=","New Applied",false]]',
 			"color": "#718096",
 		},
 		{
-			"name": "Tahap Screening ATS",
-			"label": "Tahap Screening",
+			"name": "Screening Stage ATS",
+			"label": "Screening Stage",
 			"document_type": "Job Applicant",
 			"function": "Count",
 			"filters_json": '[["Job Applicant","recruitment_stage","=","Screening",false]]',
 			"color": "#3182ce",
 		},
 		{
-			"name": "Tahap Background Check ATS",
-			"label": "Tahap Background Check",
+			"name": "Background Check Stage ATS",
+			"label": "Background Check Stage",
 			"document_type": "Job Applicant",
 			"function": "Count",
 			"filters_json": '[["Job Applicant","recruitment_stage","=","Background Check",false]]',
 			"color": "#dd6b20",
 		},
 		{
-			"name": "Tahap Wawancara ATS",
-			"label": "Tahap Wawancara",
+			"name": "Interview Stage ATS",
+			"label": "Interview Stage",
 			"document_type": "Job Applicant",
 			"function": "Count",
 			"filters_json": '[["Job Applicant","recruitment_stage","=","Interview",false]]',
@@ -251,13 +256,13 @@ def setup_number_cards():
 
 
 def setup_rekrutmen_workspace():
-	"""Menyiapkan Workspace 'Rekrutmen' di Desk dengan shortcut dan kartu metrik."""
-	ws_name = "Rekrutmen"
+	"""Menyiapkan Workspace 'Recruitment' di Desk dengan shortcut dan kartu metrik."""
+	ws_name = "Recruitment"
 	if not frappe.db.exists("Workspace", ws_name):
 		ws = frappe.new_doc("Workspace")
 		ws.name = ws_name
-		ws.label = "Rekrutmen"
-		ws.title = "Rekrutmen"
+		ws.label = "Recruitment"
+		ws.title = "Recruitment"
 		ws.icon = "users"
 		ws.module = "HRIS ATS"
 		ws.public = 1
@@ -268,14 +273,14 @@ def setup_rekrutmen_workspace():
 
 	# Siapkan Shortcuts
 	shortcuts = [
-		{"label": "Lowongan Kerja", "type": "DocType", "link_to": "Job Opening", "color": "Blue"},
-		{"label": "Pelamar (Kanban)", "type": "DocType", "link_to": "Job Applicant", "color": "Grey"},
+		{"label": "Job Openings", "type": "DocType", "link_to": "Job Opening", "color": "Blue"},
+		{"label": "Applicants (Kanban)", "type": "DocType", "link_to": "Job Applicant", "color": "Grey"},
 		{"label": "Resume Screening", "type": "DocType", "link_to": "Resume Screening", "color": "Green"},
 		{"label": "Background Check", "type": "DocType", "link_to": "Background Check", "color": "Orange"},
-		{"label": "Wawancara", "type": "DocType", "link_to": "Interview", "color": "Yellow"},
-		{"label": "Penawaran Kerja", "type": "DocType", "link_to": "Job Offer", "color": "Purple"},
-		{"label": "Onboarding Karyawan", "type": "DocType", "link_to": "Employee Onboarding", "color": "Cyan"},
-		{"label": "Template Screening", "type": "DocType", "link_to": "Resume Screening Template", "color": "Teal"},
+		{"label": "Interview", "type": "DocType", "link_to": "Interview", "color": "Yellow"},
+		{"label": "Job Offer", "type": "DocType", "link_to": "Job Offer", "color": "Purple"},
+		{"label": "Employee Onboarding", "type": "DocType", "link_to": "Employee Onboarding", "color": "Cyan"},
+		{"label": "Screening Template", "type": "DocType", "link_to": "Resume Screening Template", "color": "Teal"},
 	]
 
 	ws.set("shortcuts", [])
@@ -283,13 +288,12 @@ def setup_rekrutmen_workspace():
 		if frappe.db.exists("DocType", s["link_to"]):
 			ws.append("shortcuts", s)
 
-
 	# Siapkan Number Cards
 	cards = [
-		"Pelamar Baru ATS",
-		"Tahap Screening ATS",
-		"Tahap Background Check ATS",
-		"Tahap Wawancara ATS",
+		"New Applicants ATS",
+		"Screening Stage ATS",
+		"Background Check Stage ATS",
+		"Interview Stage ATS",
 	]
 	ws.set("number_cards", [])
 	for card in cards:
@@ -317,6 +321,7 @@ DEFAULT_PLATFORMS = [
 		"check_method": "Status code",
 		"check_value": "200",
 		"post_api": "GitHub",
+		"requires_social_consent": 0,
 		"enabled": 1,
 	},
 	{
@@ -327,6 +332,7 @@ DEFAULT_PLATFORMS = [
 		"check_method": "Status code",
 		"check_value": "200",
 		"post_api": "None",
+		"requires_social_consent": 1,
 		"enabled": 1,
 	},
 	{
@@ -337,6 +343,7 @@ DEFAULT_PLATFORMS = [
 		"check_method": "Status code",
 		"check_value": "200",
 		"post_api": "X",
+		"requires_social_consent": 1,
 		"enabled": 1,
 	},
 	{
@@ -347,6 +354,7 @@ DEFAULT_PLATFORMS = [
 		"check_method": "Status code",
 		"check_value": "200",
 		"post_api": "None",
+		"requires_social_consent": 1,
 		"enabled": 1,
 	},
 	{
@@ -357,6 +365,18 @@ DEFAULT_PLATFORMS = [
 		"check_method": "Status code",
 		"check_value": "200",
 		"post_api": "None",
+		"requires_social_consent": 1,
+		"enabled": 1,
+	},
+	{
+		"platform_name": "TikTok",
+		"category": "Social",
+		"icon": "tiktok",
+		"profile_url_template": "https://www.tiktok.com/@{username}",
+		"check_method": "Status code",
+		"check_value": "200",
+		"post_api": "None",
+		"requires_social_consent": 1,
 		"enabled": 1,
 	},
 	{
@@ -367,6 +387,7 @@ DEFAULT_PLATFORMS = [
 		"check_method": "Status code",
 		"check_value": "200",
 		"post_api": "YouTube",
+		"requires_social_consent": 0,
 		"enabled": 1,
 	},
 	{
@@ -377,6 +398,7 @@ DEFAULT_PLATFORMS = [
 		"check_method": "Status code",
 		"check_value": "200",
 		"post_api": "Reddit",
+		"requires_social_consent": 0,
 		"enabled": 1,
 	},
 	{
@@ -387,6 +409,7 @@ DEFAULT_PLATFORMS = [
 		"check_method": "Status code",
 		"check_value": "200",
 		"post_api": "None",
+		"requires_social_consent": 0,
 		"enabled": 1,
 	},
 	{
@@ -397,6 +420,7 @@ DEFAULT_PLATFORMS = [
 		"check_method": "Status code",
 		"check_value": "200",
 		"post_api": "None",
+		"requires_social_consent": 0,
 		"enabled": 1,
 	},
 ]
@@ -449,12 +473,19 @@ def setup_default_settings():
 	if not settings.consent_text_version:
 		settings.consent_text_version = "v1.0"
 		dirty = True
-	if not settings.consent_text:
-		settings.consent_text = (
+	if not getattr(settings, "consent_text_id", None):
+		settings.consent_text_id = (
 			"Saya menyatakan bahwa seluruh informasi dan akun media sosial yang saya berikan "
 			"adalah benar. Saya memberikan persetujuan kepada perusahaan untuk melakukan pemeriksaan "
 			"latar belakang sesuai ruang lingkup yang saya pilih, sesuai ketentuan UU No. 27 Tahun 2022 "
 			"tentang Perlindungan Data Pribadi (UU PDP)."
+		)
+		dirty = True
+	if not getattr(settings, "consent_text_en", None):
+		settings.consent_text_en = (
+			"I declare that all information and social media accounts provided are accurate and true. "
+			"I hereby grant consent to the company to conduct a background check within the selected scope, "
+			"in compliance with Law No. 27 of 2022 on Personal Data Protection (PDP Law)."
 		)
 		dirty = True
 	if dirty:

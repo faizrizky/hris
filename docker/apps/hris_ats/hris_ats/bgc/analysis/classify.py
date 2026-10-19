@@ -10,7 +10,7 @@ from __future__ import annotations
 import re
 from typing import Any
 
-SEVERITY_ORDER = ["Info", "Rendah", "Sedang", "Tinggi"]
+SEVERITY_ORDER = ["Info", "Low", "Medium", "High"]
 
 PRESTASI_TERMS = [
 	"juara", "meraih", "penghargaan", "award", "winner", "beasiswa",
@@ -22,14 +22,25 @@ PROFESIONAL_TERMS = [
 	"jurnal", "speaker", "keynote", "seminar", "workshop", "konferensi", "paper"
 ]
 
+SEV_NORM_MAP = {
+	"tinggi": "High", "sedang": "Medium", "rendah": "Low", "info": "Info",
+	"high": "High", "medium": "Medium", "low": "Low",
+}
+
+CAT_NORM_MAP = {
+	"berisiko": "Risky", "prestasi": "Achievement", "profesional": "Professional", "netral": "Neutral",
+	"risky": "Risky", "achievement": "Achievement", "professional": "Professional", "neutral": "Neutral",
+}
+
 
 def downgrade_severity(severity: str) -> str:
-	"""Menurunkan tingkat keparahan satu tingkat bila match_confidence < 80."""
-	if severity == "Tinggi":
-		return "Sedang"
-	elif severity == "Sedang":
-		return "Rendah"
-	elif severity == "Rendah":
+	"""Lowers severity by one level when match_confidence < 80."""
+	s = SEV_NORM_MAP.get(str(severity).strip().lower(), "Info")
+	if s == "High":
+		return "Medium"
+	elif s == "Medium":
+		return "Low"
+	elif s == "Low":
 		return "Info"
 	return "Info"
 
@@ -40,7 +51,7 @@ def classify_text(
 	lexicon_items: list[dict[str, Any]] | None = None,
 	match_confidence: int = 100,
 ) -> dict[str, Any]:
-	"""Mengklasifikasikan artikel atau dokumen berdasarkan teks judul dan cuplikan."""
+	"""Classifies an article or document based on title and snippet text."""
 	full_text = f"{title or ''} {snippet or ''}".lower()
 	lexicon = lexicon_items or []
 
@@ -48,7 +59,7 @@ def classify_text(
 	matched_severities = []
 	is_risk = False
 
-	# Periksa leksikon risiko
+	# Check risk lexicon
 	for item in lexicon:
 		if not item.get("enabled", 1):
 			continue
@@ -67,46 +78,50 @@ def classify_text(
 			except re.error:
 				pass
 		else:
-			# Cocokkan batas kata sederhana
 			if re.search(r"\b" + re.escape(term) + r"\b", full_text):
 				matched = True
 
 		if matched:
-			cat = item.get("category", "")
-			sev = item.get("severity", "Sedang")
+			raw_cat = item.get("category", "")
+			cat = CAT_NORM_MAP.get(raw_cat.strip().lower(), raw_cat)
+			raw_sev = item.get("severity", "Medium")
+			sev = SEV_NORM_MAP.get(str(raw_sev).strip().lower(), "Medium")
 			risk_flags.append(f"{cat}: {term} ({sev})")
 			matched_severities.append(sev)
-			if sev in ("Sedang", "Tinggi"):
+			if sev in ("Medium", "High"):
 				is_risk = True
 
-	# Urutkan keparahan tertinggi yang cocok
+	# Determine highest matched severity
 	highest_sev = "Info"
 	for sev in SEVERITY_ORDER[::-1]:
 		if sev in matched_severities:
 			highest_sev = sev
 			break
 
-	# Tentukan kategori
+	# Determine category
 	if is_risk:
-		category = "Berisiko"
+		category = "Risky"
 	elif any(re.search(r"\b" + re.escape(t) + r"\b", full_text) for t in PRESTASI_TERMS):
-		category = "Prestasi"
+		category = "Achievement"
 		highest_sev = "Info"
 	elif any(re.search(r"\b" + re.escape(t) + r"\b", full_text) for t in PROFESIONAL_TERMS):
-		category = "Profesional"
+		category = "Professional"
 		highest_sev = "Info"
 	else:
-		category = "Netral"
+		category = "Neutral"
 		highest_sev = "Info"
 
-	# Penyesuaian: bila match_confidence < 80, turunkan satu tingkat
+	# When match_confidence < 80, downgrade severity by one level
 	final_severity = highest_sev
 	if match_confidence < 80 and final_severity != "Info":
 		final_severity = downgrade_severity(final_severity)
 
+	flags_str = ", ".join(risk_flags)
 	return {
 		"category": category,
 		"severity": final_severity,
 		"raw_severity": highest_sev,
-		"risk_flags": ", ".join(risk_flags),
+		"risk_flags": flags_str,
+		"risk_flags_template": flags_str,
+		"risk_flags_params": "{}",
 	}

@@ -10,9 +10,12 @@
   "fetch_mode_used",
   "robots_ignored_count",
   "items_found",
+  "accounts_skipped",
   "started_on",
   "finished_on",
-  "error"
+  "error",
+  "error_template",
+  "error_params"
  ],
  "fields": [
   {
@@ -20,7 +23,7 @@
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Source",
-   "options": "Platform\nArticle\nFile\nCase history\nPosts",
+   "options": "Platform\nArticle\nFile\nCase history\nPosts\nSocial Media",
    "reqd": 1
   },
   {
@@ -68,6 +71,23 @@
    "fieldname": "error",
    "fieldtype": "Small Text",
    "label": "Error"
+  },
+  {
+   "default": "0",
+   "fieldname": "accounts_skipped",
+   "fieldtype": "Int",
+   "label": "Accounts Skipped",
+   "read_only": 1
+  },
+  {
+   "fieldname": "error_template",
+   "fieldtype": "Small Text",
+   "label": "Error Template"
+  },
+  {
+   "fieldname": "error_params",
+   "fieldtype": "Small Text",
+   "label": "Error Parameters"
   }
  ],
  "index_web_pages_for_search": 1,

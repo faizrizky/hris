@@ -1,16 +1,17 @@
 # Copyright (c) 2026, HRIS Team and contributors
 # For license information, please see license.txt
 
-"""Metrik 7: Experience relevance (0-100)
-Mengevaluasi kesesuaian pengalaman kerja:
-- Menghitung total durasi pengalaman dengan menggabungkan rentang tanggal yang tumpang tindih (union)
-- 70 poin = min(total_tahun / min_years_experience, 1.0) * 70
-- 30 poin = kecocokan judul jabatan dengan relevant_titles (rapidfuzz token_set_ratio >= 85)
-- Bila lowongan tidak menentukan min_years_experience dan relevant_titles, metrik berstatus tidak berlaku (applicable = False).
+"""Metric 7: Experience relevance (0-100)
+Evaluates work experience relevance and duration:
+- Merges overlapping job date ranges (union)
+- 70 points = min(total_years / min_years_experience, 1.0) * 70
+- 30 points = relevant job titles match (rapidfuzz token_set_ratio >= 85)
+- If neither specified in criteria, applicable = False.
 """
 
 from __future__ import annotations
 
+import json
 import re
 from typing import Any
 from rapidfuzz import fuzz
@@ -19,11 +20,10 @@ from hris_ats.scoring.metrics.date_consistency import extract_date_ranges
 
 
 def calculate_total_experience_years(ranges: list[dict[str, Any]]) -> float:
-	"""Menggabungkan rentang tanggal kerja (union) agar tumpang tindih dihitung sekali."""
+	"""Merges work date ranges (union) so overlapping periods are counted once."""
 	if not ranges:
 		return 0.0
 
-	# Konversi ke bulan absolut: year * 12 + month
 	intervals: list[tuple[int, int]] = []
 	for r in ranges:
 		sy, sm = r["start"]
@@ -58,10 +58,13 @@ def evaluate(extraction: ExtractionResult, sections: dict[str, str], criteria: d
 	titles_list = [t.strip() for t in re.split(r"[\n,;]+", relevant_titles_raw) if t.strip()]
 
 	if min_years <= 0.0 and not titles_list:
+		msg = "Job opening does not specify minimum years of experience or relevant job title criteria."
 		return {
 			"score": 100.0,
 			"applicable": False,
-			"reason": "Lowongan tidak menentukan syarat minimal tahun pengalaman atau judul jabatan relevan.",
+			"reason": msg,
+			"reason_template": msg,
+			"reason_params": "{}",
 			"total_years": 0.0,
 		}
 
@@ -71,27 +74,33 @@ def evaluate(extraction: ExtractionResult, sections: dict[str, str], criteria: d
 
 	score = 0.0
 	reasons: list[str] = []
+	template_parts: list[str] = []
+	params: dict[str, Any] = {}
 
-	# 1. Poin durasi pengalaman (maksimal 70 poin)
+	# 1. Experience duration (up to 70 points)
 	if min_years > 0.0:
 		ratio = min(1.0, total_years / min_years)
 		duration_points = ratio * 70.0
 		score += duration_points
 		if total_years >= min_years:
-			reasons.append(f"Pengalaman {total_years} tahun memenuhi syarat minimal {min_years} tahun")
+			reasons.append(f"Experience of {total_years} years meets minimum requirement of {min_years} years")
+			template_parts.append("Experience of {years} years meets minimum requirement of {min_years} years")
 		else:
-			reasons.append(f"Pengalaman {total_years} tahun dari minimal {min_years} tahun")
+			reasons.append(f"Experience of {total_years} years out of minimum {min_years} years")
+			template_parts.append("Experience of {years} years out of minimum {min_years} years")
+		params["years"] = total_years
+		params["min_years"] = min_years
 	else:
-		# Jika lowongan tidak menentukan durasi minimal, berikan 70 jika ada pengalaman
 		score += 70.0 if total_years > 0 else 35.0
-		reasons.append(f"Total pengalaman terdeteksi: {total_years} tahun")
+		reasons.append(f"Total detected experience: {total_years} years")
+		template_parts.append("Total detected experience: {years} years")
+		params["years"] = total_years
 
-	# 2. Poin judul jabatan relevan (maksimal 30 poin)
+	# 2. Relevant job titles (up to 30 points)
 	if titles_list:
 		matched_titles: list[str] = []
 		for title in titles_list:
 			title_clean = title.lower()
-			# Cari kecocokan di bagian pengalaman atau teks CV
 			for line in exp_text.split("\n"):
 				if fuzz.token_set_ratio(title_clean, line.lower()) >= 85:
 					matched_titles.append(title)
@@ -99,19 +108,27 @@ def evaluate(extraction: ExtractionResult, sections: dict[str, str], criteria: d
 
 		if matched_titles:
 			score += 30.0
-			reasons.append(f"Judul jabatan relevan cocok: {', '.join(set(matched_titles))}")
+			titles_str = ", ".join(sorted(set(matched_titles)))
+			reasons.append(f"Relevant job title matched: {titles_str}")
+			template_parts.append("Relevant job title matched: {titles}")
+			params["titles"] = titles_str
 		else:
-			reasons.append(f"Belum ditemukan judul jabatan relevan ({', '.join(titles_list[:2])})")
+			sample_titles = ", ".join(titles_list[:2])
+			reasons.append(f"No relevant job titles found ({sample_titles})")
+			template_parts.append("No relevant job titles found ({titles})")
+			params["titles"] = sample_titles
 	else:
-		# Jika lowongan tidak mensyaratkan judul tertentu, berikan 30 jika ada pengalaman
 		score += 30.0 if total_years > 0 else 15.0
 
 	final_score = max(0.0, min(100.0, score))
 	final_reason = "; ".join(reasons) + "."
+	final_template = "; ".join(template_parts) + "."
 
 	return {
 		"score": round(final_score, 1),
 		"applicable": True,
 		"reason": final_reason,
+		"reason_template": final_template,
+		"reason_params": json.dumps(params) if params else "{}",
 		"total_years": total_years,
 	}

@@ -61,26 +61,26 @@ def evaluate_case_severity(case_type: str, party_role: str) -> dict[str, Any]:
 
 	# Saksi di semua perkara selalu Info
 	if "saksi" in norm_role:
-		return {"severity": "Info", "category": "Netral", "is_hidden_by_default": False}
+		return {"severity": "Info", "category": "Neutral", "is_hidden_by_default": False}
 
 	# Perkara Agama dan TUN selalu Info dan disembunyikan secara default
 	if any(k in norm_type for k in ["agama", "tun", "tata usaha negara"]):
-		return {"severity": "Info", "category": "Netral", "is_hidden_by_default": True}
+		return {"severity": "Info", "category": "Neutral", "is_hidden_by_default": True}
 
 	# Perkara Pidana
 	if "pidana" in norm_type:
 		if "terdakwa" in norm_role or "terpidana" in norm_role:
-			return {"severity": "Tinggi", "category": "Berisiko", "is_hidden_by_default": False}
+			return {"severity": "High", "category": "Risky", "is_hidden_by_default": False}
 		else:
-			return {"severity": "Info", "category": "Netral", "is_hidden_by_default": False}
+			return {"severity": "Info", "category": "Neutral", "is_hidden_by_default": False}
 
 	# Perkara Perdata / Perdata Khusus
 	if "perdata" in norm_type:
 		if "tergugat" in norm_role:
-			return {"severity": "Sedang", "category": "Berisiko", "is_hidden_by_default": False}
+			return {"severity": "Medium", "category": "Risky", "is_hidden_by_default": False}
 		elif any(r in norm_role for r in ["penggugat", "pemohon"]):
-			return {"severity": "Info", "category": "Netral", "is_hidden_by_default": False}
+			return {"severity": "Info", "category": "Neutral", "is_hidden_by_default": False}
 		else:
-			return {"severity": "Info", "category": "Netral", "is_hidden_by_default": False}
+			return {"severity": "Info", "category": "Neutral", "is_hidden_by_default": False}
 
-	return {"severity": "Info", "category": "Netral", "is_hidden_by_default": False}
+	return {"severity": "Info", "category": "Neutral", "is_hidden_by_default": False}

@@ -10,19 +10,20 @@ from frappe.model.document import Document
 from frappe.utils import now_datetime, getdate, nowdate
 
 from hris_ats.bgc.analysis.risk import calculate_risk_level
+from hris_ats.i18n import render
 
 
 class BackgroundCheck(Document):
 	def before_insert(self):
-		# Inisialisasi 5 sumber default di consent_scope dan source_runs
-		default_sources = ["Platform", "Article", "File", "Case history", "Posts"]
+		# Inisialisasi 6 sumber default di consent_scope dan source_runs
+		default_sources = ["Platform", "Article", "File", "Case history", "Posts", "Social Media"]
 		if not self.consent_scope:
 			for src in default_sources:
 				self.append("consent_scope", {"source": src, "granted": 1})
 
 		if not self.source_runs:
 			for src in default_sources:
-				self.append("source_runs", {"source": src, "status": "Pending", "items_found": 0})
+				self.append("source_runs", {"source": src, "status": "Pending", "items_found": 0, "accounts_skipped": 0})
 
 		# Buat token persetujuan sekali pakai dengan kedaluwarsa 7 hari
 		if not self.consent_token:
@@ -36,7 +37,7 @@ class BackgroundCheck(Document):
 	def validate(self):
 		# Validasi status SKCK kedaluwarsa
 		if self.skck_valid_until and getdate(self.skck_valid_until) < getdate(nowdate()):
-			self.skck_status = "Kedaluwarsa"
+			self.skck_status = "Expired"
 
 		# Jalur alternatif unggah dokumen persetujuan oleh HR
 		if self.consent_method == "Uploaded document" and self.consent_file:
@@ -47,6 +48,13 @@ class BackgroundCheck(Document):
 
 		if self.consent_status == "Granted" and self.status == "Waiting Consent":
 			self.status = "Queued"
+
+		for acc in self.accounts:
+			if not getattr(acc, "profile_url", None) and getattr(acc, "platform", None) and getattr(acc, "username", None):
+				if frappe.db.exists("Background Check Platform", acc.platform):
+					tmpl = frappe.db.get_value("Background Check Platform", acc.platform, "profile_url_template")
+					if tmpl:
+						acc.profile_url = tmpl.replace("{username}", acc.username.strip().lstrip("@"))
 
 	def on_update(self):
 		# Penarikan persetujuan -> Hapus semua temuan (Finding) milik dokumen ini
@@ -78,7 +86,7 @@ class BackgroundCheck(Document):
 def update_finding_verdict(finding_name: str, verdict: str, note: str = "") -> dict[str, Any]:
 	"""Memperbarui HR verdict pada temuan dan menghitung ulang tingkat risiko otomatis."""
 	if not frappe.db.exists("Background Check Finding", finding_name):
-		frappe.throw(_("Temuan {0} tidak ditemukan.").format(finding_name))
+		frappe.throw(_("Finding {0} not found.").format(finding_name))
 
 	finding = frappe.get_doc("Background Check Finding", finding_name)
 	finding.hr_verdict = verdict
@@ -120,8 +128,9 @@ def get_findings_data(bgc_name: str) -> dict[str, Any]:
 		filters={"background_check": bgc_name, "finding_type": ["in", ["Article", "File", "Case"]]},
 		fields=[
 			"name", "finding_type", "title", "snippet", "url", "source_name",
-			"file_type", "match_confidence", "match_reasons", "category",
-			"risk_flags", "severity", "case_type", "case_number", "court",
+			"file_type", "match_confidence", "match_reasons", "match_reasons_template", "match_reasons_params",
+			"category", "risk_flags", "risk_flags_template", "risk_flags_params", "severity",
+			"case_type", "case_number", "court",
 			"party_role", "hr_verdict", "hr_note", "published_on",
 			"text_source", "evidence_excerpt", "detail_url", "pdf_url"
 		],
@@ -133,11 +142,21 @@ def get_findings_data(bgc_name: str) -> dict[str, Any]:
 		filters={"background_check": bgc_name, "finding_type": "Post"},
 		fields=[
 			"name", "finding_type", "title", "snippet", "url", "source_name",
-			"match_confidence", "category", "risk_flags", "severity",
-			"hr_verdict", "hr_note", "published_on"
+			"match_confidence", "category", "risk_flags", "risk_flags_template", "risk_flags_params",
+			"severity", "hr_verdict", "hr_note", "published_on"
 		],
 		order_by="creation desc",
 	)
+
+	for f in name_findings:
+		if f.get("match_reasons_template"):
+			f["match_reasons"] = render(f["match_reasons_template"], f.get("match_reasons_params"))
+		if f.get("risk_flags_template"):
+			f["risk_flags"] = render(f["risk_flags_template"], f.get("risk_flags_params"))
+
+	for p in post_findings:
+		if p.get("risk_flags_template"):
+			p["risk_flags"] = render(p["risk_flags_template"], p.get("risk_flags_params"))
 
 	return {
 		"name_findings": name_findings,
@@ -149,11 +168,11 @@ def get_findings_data(bgc_name: str) -> dict[str, Any]:
 def rerun_background_check(bgc_name: str) -> dict[str, Any]:
 	"""HR memicu eksekusi ulang Background Check."""
 	if not frappe.db.exists("Background Check", bgc_name):
-		frappe.throw(_("Dokumen {0} tidak ditemukan.").format(bgc_name))
+		frappe.throw(_("Document {0} not found.").format(bgc_name))
 
 	bgc = frappe.get_doc("Background Check", bgc_name)
 	if bgc.consent_status != "Granted":
-		frappe.throw(_("Background Check tidak dapat dijalankan tanpa persetujuan kandidat (status saat ini: {0}).").format(bgc.consent_status))
+		frappe.throw(_("Background Check cannot run without candidate consent (current status: {0}).").format(bgc.consent_status))
 
 	bgc.status = "Queued"
 	for row in bgc.source_runs:
@@ -168,4 +187,4 @@ def rerun_background_check(bgc_name: str) -> dict[str, Any]:
 		bgc_name=bgc.name,
 	)
 
-	return {"message": _("Pemeriksaan ulang Background Check telah dijadwalkan."), "name": bgc.name}
+	return {"message": _("Background Check rerun scheduled successfully."), "name": bgc.name}

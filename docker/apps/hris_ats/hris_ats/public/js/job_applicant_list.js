@@ -12,12 +12,12 @@
 				prev_onload.call(this, listview);
 			}
 
-			listview.page.add_action_item(__("Screen Ulang"), function () {
+			listview.page.add_action_item(__("Rescreen"), function () {
 				let names = listview.get_checked_items().map(d => d.name);
 				if (!names.length) return;
 
 				frappe.confirm(
-					__("Jadwalkan screen ulang untuk {0} pelamar yang dipilih?", [names.length]),
+					__("Schedule rescreen for {0} selected applicant(s)?", [names.length]),
 					function () {
 						frappe.call({
 							method: "hris_ats.scoring.workflow.bulk_rescreen",
@@ -25,10 +25,10 @@
 								applicant_names: names
 							},
 							freeze: true,
-							freeze_message: __("Menjadwalkan screening ulang..."),
+							freeze_message: __("Scheduling rescreen..."),
 							callback: function (r) {
 								frappe.show_alert({
-									message: r.message ? r.message.message : __("Screening ulang berhasil dijadwalkan"),
+									message: r.message ? r.message.message : __("Rescreen successfully scheduled"),
 									indicator: "green"
 								});
 								listview.refresh();

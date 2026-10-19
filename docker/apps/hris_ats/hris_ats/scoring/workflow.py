@@ -6,8 +6,9 @@
 
 from __future__ import annotations
 
-import os
 import json
+import os
+from typing import Any
 import frappe
 from frappe import _
 from hris_ats.scoring.extract import extract_cv
@@ -153,9 +154,9 @@ def process_resume_screening(screening_name: str):
 	template_name = screening.template or get_template_for_job(applicant.job_title)
 	if not template_name:
 		screening.status = "Failed"
-		screening.error = _("Belum ada template untuk jabatan ini.")
-		screening.result_label = _("Gagal")
-		screening.result_description = _("Belum ada template untuk jabatan ini.")
+		screening.error = _("No screening template configured for this position.")
+		screening.result_label = _("Failed")
+		screening.result_description = _("No screening template configured for this position.")
 		screening.result_indicator = "red"
 		screening.save(ignore_permissions=True)
 		applicant.db_set("screening_status", "Failed")
@@ -203,7 +204,7 @@ def process_resume_screening(screening_name: str):
 		screening.resume_text = extraction.raw_text
 		screening.total_score = 0.0
 		screening.passed = 0
-		screening.result_label = _("Gagal Dievaluasi")
+		screening.result_label = _("Failed Evaluation")
 		screening.result_description = extraction.error
 		screening.result_indicator = "red"
 		screening.save(ignore_permissions=True)
@@ -226,6 +227,8 @@ def process_resume_screening(screening_name: str):
 			"score": eval_res["score"],
 			"applicable": eval_res["applicable"],
 			"reason": eval_res["reason"],
+			"reason_template": eval_res.get("reason_template", eval_res["reason"]),
+			"reason_params": eval_res.get("reason_params", "{}"),
 		})
 		if metric_name == "Experience relevance":
 			total_experience_years = float(eval_res.get("total_years", 0.0))
@@ -301,7 +304,7 @@ def process_resume_screening(screening_name: str):
 				notif = frappe.new_doc("Notification Log")
 				notif.for_user = jo_owner
 				notif.from_user = "Administrator"
-				notif.subject = _("Resume screening selesai: {0} ({1} poin)").format(
+				notif.subject = _("Resume screening completed: {0} ({1} points)").format(
 					applicant.applicant_name, screening.total_score
 				)
 				notif.type = "Alert"
@@ -316,7 +319,7 @@ def process_resume_screening(screening_name: str):
 def rescreen(screening_name: str) -> dict[str, Any]:
 	"""Aksi 'Screen Ulang' di form Resume Screening."""
 	if not frappe.db.exists("Resume Screening", screening_name):
-		frappe.throw(_("Dokumen Resume Screening {0} tidak ditemukan.").format(screening_name))
+		frappe.throw(_("Resume Screening document {0} not found.").format(screening_name))
 
 	screening = frappe.get_doc("Resume Screening", screening_name)
 	screening.status = "Queued"
@@ -347,14 +350,14 @@ def bulk_rescreen(applicant_names: list[str] | str) -> dict[str, Any]:
 			trigger_screening_if_eligible(app_doc)
 			queued.append(app_name)
 
-	return {"message": _("{0} pelamar dijadwalkan untuk screening ulang.").format(len(queued)), "count": len(queued)}
+	return {"message": _("{0} applicants scheduled for rescreening.").format(len(queued)), "count": len(queued)}
 
 
 @frappe.whitelist()
 def rescreen_applicant(applicant_name: str) -> dict[str, Any]:
 	"""Aksi 'Screen Ulang' langsung dari form Job Applicant."""
 	if not frappe.db.exists("Job Applicant", applicant_name):
-		frappe.throw(_("Pelamar {0} tidak ditemukan.").format(applicant_name))
+		frappe.throw(_("Applicant {0} not found.").format(applicant_name))
 
 	screening_name = frappe.db.get_value("Resume Screening", {"job_applicant": applicant_name}, "name")
 	if screening_name:
@@ -396,7 +399,7 @@ def validate_interview(doc, method=None):
 		if bgc and bgc.consent_status != "Withdrawn":
 			if not bgc.hr_conclusion or not bgc.hr_conclusion.strip():
 				frappe.throw(
-					_("Wawancara tidak dapat dibuat sebelum Kesimpulan HR (hr_conclusion) pada berkas Background Check {0} diisi.").format(bgc.name),
+					_("Interview cannot be created before HR Conclusion (hr_conclusion) is filled on Background Check {0}.").format(bgc.name),
 					frappe.ValidationError,
 				)
 

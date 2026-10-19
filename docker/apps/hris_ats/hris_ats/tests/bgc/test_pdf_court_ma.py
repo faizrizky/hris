@@ -409,7 +409,7 @@ def test_court_ma_pagination_all_three_pages_and_crawldir_lifecycle():
 		# 3. Temuan Ronald Richard dari PDF putusan
 		ronald_case = next((f for f in findings if "72/Pdt.P/2017" in f.case_number), None)
 		assert ronald_case is not None
-		assert ronald_case.text_source == "PDF putusan"
+		assert ronald_case.text_source == "Decision PDF"
 		assert "[NIK DIREDAKSI]" in ronald_case.evidence_excerpt
 		assert "zaed1001.html" in ronald_case.detail_url
 		assert "download_pdf" in ronald_case.pdf_url
@@ -508,7 +508,7 @@ def test_court_ma_adaptive_selectors_on_altered_structure():
 
 	# Peringatan perubahan relokasi adaptif terdeteksi
 	assert len(warnings_detail) >= 1
-	assert any("direlokasi secara adaptif" in w for w in warnings_detail)
+	assert any("adaptively relocated" in w or "direlokasi secara adaptif" in w for w in warnings_detail)
 
 
 # =====================================================================
@@ -563,4 +563,4 @@ def test_court_ma_name_twins_discrimination():
 		text_source="Cuplikan",
 	)
 	assert conf_snippet <= 70
-	assert any("dibatasi maksimal 70" in r for r in reasons_snip)
+	assert any("capped at 70" in r.lower() for r in reasons_snip)

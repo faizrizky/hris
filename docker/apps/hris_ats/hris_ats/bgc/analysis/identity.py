@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import re
 from rapidfuzz import fuzz
+from hris_ats.i18n import LocalizedText
 
 TITLES = [
 	"dr", "dra", "drs", "ir", "prof", "phd", "ph.d", "b.sc", "bsc", "m.sc", "msc",
@@ -86,7 +87,7 @@ def calculate_match_confidence(
 	  dengan konteks terbanyak, dan potongan teks di sekitarnya disimpan sebagai evidence_excerpt.
 	"""
 	if not text or not candidate_name:
-		reasons = ["Teks atau nama kosong"]
+		reasons = [LocalizedText("Empty text or name", "Empty text or name")]
 		return (0, reasons, "") if return_excerpt else (0, reasons)
 
 	clean_text = text.lower()
@@ -98,7 +99,7 @@ def calculate_match_confidence(
 
 	reasons: list[str] = []
 
-	# 1. Kemiripan nama (0-50)
+	# 1. Name similarity (0-50)
 	best_ratio = 0.0
 	matched_variant = ""
 	is_exact_in_text = False
@@ -123,15 +124,42 @@ def calculate_match_confidence(
 
 	if is_exact_in_text or best_ratio >= 99.0:
 		name_score = 50
-		reasons.append(f"Nama persis cocok (+50): '{matched_variant}'")
+		reasons.append(
+			LocalizedText(
+				f"Exact name match (+50): '{matched_variant}'",
+				"Exact name match (+50): '{name}'",
+				{"name": matched_variant},
+			)
+		)
 	elif best_ratio >= 90.0:
 		name_score = 40
-		reasons.append(f"Kemiripan nama tinggi {best_ratio:.0f}% (+40)")
+		ratio_str = f"{best_ratio:.0f}"
+		reasons.append(
+			LocalizedText(
+				f"High name similarity {ratio_str}% (+40)",
+				"High name similarity {ratio}% (+40)",
+				{"ratio": ratio_str},
+			)
+		)
 	elif best_ratio >= 80.0:
 		name_score = 25
-		reasons.append(f"Kemiripan nama sedang {best_ratio:.0f}% (+25)")
+		ratio_str = f"{best_ratio:.0f}"
+		reasons.append(
+			LocalizedText(
+				f"Moderate name similarity {ratio_str}% (+25)",
+				"Moderate name similarity {ratio}% (+25)",
+				{"ratio": ratio_str},
+			)
+		)
 	else:
-		fail_reasons = [f"Kemiripan nama {best_ratio:.0f}% di bawah ambang 80% (temuan dibuang)"]
+		ratio_str = f"{best_ratio:.0f}"
+		fail_reasons = [
+			LocalizedText(
+				f"Name similarity {ratio_str}% below 80% threshold (finding discarded)",
+				"Name similarity {ratio}% below 80% threshold (finding discarded)",
+				{"ratio": ratio_str},
+			)
+		]
 		return (0, fail_reasons, "") if return_excerpt else (0, fail_reasons)
 
 	# Gabungkan context_terms dan extra_context (mis. pekerjaan dan kota dari PDF)
@@ -177,9 +205,16 @@ def calculate_match_confidence(
 
 	context_score = min(40, len(best_occurrence_terms) * 15)
 	if best_occurrence_terms:
-		reasons.append(f"Konteks cocok (+{context_score}): {', '.join(best_occurrence_terms)}")
+		terms_str = ", ".join(best_occurrence_terms)
+		reasons.append(
+			LocalizedText(
+				f"Context matched (+{context_score}): {terms_str}",
+				"Context matched (+{score}): {terms}",
+				{"score": context_score, "terms": terms_str},
+			)
+		)
 
-	# Ekstrak potongan teks bukti (evidence_excerpt, maks 600 karakter) di sekitar kemunculan terbaik
+	# Extract evidence excerpt (max 600 chars) around best occurrence
 	best_start, best_end = best_pos
 	exc_start = max(0, best_start - 150)
 	exc_end = min(len(text), best_end + 450)
@@ -187,23 +222,39 @@ def calculate_match_confidence(
 	if len(evidence_excerpt) > 600:
 		evidence_excerpt = evidence_excerpt[:600]
 
-	# Redaksi NIK 16 digit demi perlindungan data pribadi
+	# Redact 16-digit NIK for privacy protection
 	evidence_excerpt = NIK_REGEX.sub("[NIK DIREDAKSI]", evidence_excerpt)
 
-	# 3. Bonus unik (0-10): +10 bila total_hits < 20 dan bukan mononim
+	# 3. Unique name bonus (0-10): +10 when total_hits < 20 and not a mononym
 	bonus_unik = 0
 	if is_mononym(candidate_name):
-		reasons.append("Mononim: tidak ada bonus keunikan nama (+0)")
+		reasons.append(
+			LocalizedText(
+				"Mononym: no unique name bonus (+0)",
+				"Mononym: no unique name bonus (+0)",
+			)
+		)
 	elif total_hits < 20:
 		bonus_unik = 10
-		reasons.append(f"Bonus nama unik {total_hits} hasil (+10)")
+		reasons.append(
+			LocalizedText(
+				f"Unique name bonus {total_hits} results (+10)",
+				"Unique name bonus {hits} results (+10)",
+				{"hits": total_hits},
+			)
+		)
 
 	total_confidence = min(100, name_score + context_score + bonus_unik)
 
-	# Batasi skor dari cuplikan saja maksimal 70 (spesifikasi 6.2)
-	if text_source.strip().lower() == "cuplikan" and total_confidence > 70:
+	# Cap snippet-only score at 70 (spec 6.2)
+	if text_source.strip().lower() in ("cuplikan", "snippet") and total_confidence > 70:
 		total_confidence = 70
-		reasons.append("Skor dari cuplikan saja dibatasi maksimal 70")
+		reasons.append(
+			LocalizedText(
+				"Score from snippet only capped at 70",
+				"Score from snippet only capped at 70",
+			)
+		)
 
 	if return_excerpt:
 		return total_confidence, reasons, evidence_excerpt
@@ -216,10 +267,10 @@ def evaluate_match_with_excerpt(
 	context_terms: list[str] | None,
 	text: str,
 	total_hits: int = 10,
-	text_source: str = "Teks lengkap",
+	text_source: str = "Full text",
 	extra_context: list[str] | None = None,
 ) -> tuple[int, list[str], str]:
-	"""Kemudahan pemanggilan yang selalu mengembalikan (match_confidence, match_reasons, evidence_excerpt)."""
+	"""Convenience function returning (match_confidence, match_reasons, evidence_excerpt)."""
 	res = calculate_match_confidence(
 		candidate_name=candidate_name,
 		candidate_variants=candidate_variants,
@@ -244,22 +295,13 @@ def calculate_account_identity_match(
 	declared_by_candidate: bool = False,
 	is_forbidden: bool = False,
 ) -> tuple[int | None, list[str]]:
-	"""Menghitung kecocokan identitas akun platform publik (identity_match 0-100) sesuai 6.2.1.
-
-	Rumus:
-	identity_match = kemiripan nama tampilan (0–50)   # token_sort_ratio: persis 50, >=90: 40, >=80: 25, <80: 0
-	               + lokasi cocok dengan kota kandidat (0–20)
-	               + bio menyebut perusahaan/sekolah/jabatan dari CV (0–20)
-	               + akun dinyatakan sendiri oleh kandidat (+10)
-
-	Untuk platform terlarang (Instagram, FB, TikTok, LinkedIn), kembalikan (None, []).
-	"""
+	"""Calculates public platform account identity match (0-100) according to 6.2.1."""
 	if is_forbidden:
 		return None, []
 
 	reasons: list[str] = []
 
-	# 1. Kemiripan nama tampilan (0-50)
+	# 1. Display name similarity (0-50)
 	name_score = 0
 	clean_display = normalize_name(display_name or "")
 	clean_cand = normalize_name(candidate_name or "")
@@ -278,30 +320,74 @@ def calculate_account_identity_match(
 
 		if clean_display == clean_cand or best_ratio >= 99.0:
 			name_score = 50
-			reasons.append(f"Nama tampilan persis cocok (+50): '{display_name}'")
+			reasons.append(
+				LocalizedText(
+					f"Exact display name match (+50): '{display_name}'",
+					"Exact display name match (+50): '{name}'",
+					{"name": display_name},
+				)
+			)
 		elif best_ratio >= 90.0:
 			name_score = 40
-			reasons.append(f"Kemiripan nama tampilan tinggi {best_ratio:.0f}% (+40)")
+			ratio_str = f"{best_ratio:.0f}"
+			reasons.append(
+				LocalizedText(
+					f"High display name similarity {ratio_str}% (+40)",
+					"High display name similarity {ratio}% (+40)",
+					{"ratio": ratio_str},
+				)
+			)
 		elif best_ratio >= 80.0:
 			name_score = 25
-			reasons.append(f"Kemiripan nama tampilan sedang {best_ratio:.0f}% (+25)")
+			ratio_str = f"{best_ratio:.0f}"
+			reasons.append(
+				LocalizedText(
+					f"Moderate display name similarity {ratio_str}% (+25)",
+					"Moderate display name similarity {ratio}% (+25)",
+					{"ratio": ratio_str},
+				)
+			)
 		else:
-			reasons.append(f"Kemiripan nama tampilan rendah {best_ratio:.0f}% (+0)")
+			ratio_str = f"{best_ratio:.0f}"
+			reasons.append(
+				LocalizedText(
+					f"Low display name similarity {ratio_str}% (+0)",
+					"Low display name similarity {ratio}% (+0)",
+					{"ratio": ratio_str},
+				)
+			)
 	else:
-		reasons.append("Nama tampilan tidak tersedia (+0)")
+		reasons.append(
+			LocalizedText(
+				"Display name not available (+0)",
+				"Display name not available (+0)",
+			)
+		)
 
-	# 2. Lokasi cocok dengan kota kandidat (0-20)
+	# 2. Location matches candidate city (0-20)
 	loc_score = 0
 	clean_loc = (location or "").strip().lower()
 	clean_city = (candidate_city or "").strip().lower()
 
 	if clean_city and clean_loc and (clean_city in clean_loc or clean_loc in clean_city):
 		loc_score = 20
-		reasons.append(f"Lokasi profil cocok dengan kota kandidat '{candidate_city}' (+20)")
+		reasons.append(
+			LocalizedText(
+				f"Profile location matches candidate city '{candidate_city}' (+20)",
+				"Profile location matches candidate city '{city}' (+20)",
+				{"city": candidate_city},
+			)
+		)
 	elif clean_city and clean_loc:
-		reasons.append(f"Lokasi profil '{location}' berbeda dari kota kandidat (+0)")
+		reasons.append(
+			LocalizedText(
+				f"Profile location '{location}' differs from candidate city (+0)",
+				"Profile location '{location}' differs from candidate city (+0)",
+				{"location": location},
+			)
+		)
 
-	# 3. Bio menyebut perusahaan/sekolah/jabatan dari CV (0-20)
+	# 3. Bio mentions CV entity (0-20)
 	bio_score = 0
 	clean_bio = (bio or "").strip().lower()
 	matched_cv_term = ""
@@ -317,13 +403,24 @@ def calculate_account_identity_match(
 
 	if matched_cv_term:
 		bio_score = 20
-		reasons.append(f"Bio menyebut entitas CV '{matched_cv_term}' (+20)")
+		reasons.append(
+			LocalizedText(
+				f"Bio mentions CV entity '{matched_cv_term}' (+20)",
+				"Bio mentions CV entity '{term}' (+20)",
+				{"term": matched_cv_term},
+			)
+		)
 
-	# 4. Akun dinyatakan sendiri oleh kandidat (+10)
+	# 4. Account declared by candidate (+10)
 	declared_score = 0
 	if declared_by_candidate:
 		declared_score = 10
-		reasons.append("Akun dinyatakan sendiri oleh kandidat (+10)")
+		reasons.append(
+			LocalizedText(
+				"Account self-declared by candidate (+10)",
+				"Account self-declared by candidate (+10)",
+			)
+		)
 
 	total_score = min(100, name_score + loc_score + bio_score + declared_score)
 	return total_score, reasons

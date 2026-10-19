@@ -28,7 +28,7 @@ class TestBackgroundCheckSettings(FrappeTestCase):
 	def test_browser_status_onload(self):
 		"""Memastikan status browser Scrapling terdeteksi di controller."""
 		status = get_scrapling_browser_status()
-		self.assertIn(status, ["Terpasang", "Tidak terpasang"])
+		self.assertIn(status, ["Installed", "Not installed"])
 
 		self.settings.onload()
 		self.assertEqual(self.settings.fetch_browser_status, status)

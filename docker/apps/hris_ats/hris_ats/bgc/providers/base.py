@@ -25,9 +25,13 @@ class FindingData:
 	file_type: str = ""
 	match_confidence: int = 100
 	match_reasons: str = ""
-	category: str = "Netral"  # Prestasi, Profesional, Netral, Berisiko
+	match_reasons_template: str = ""
+	match_reasons_params: str = "{}"
+	category: str = "Neutral"  # Achievement, Professional, Neutral, Risky
 	risk_flags: str = ""
-	severity: str = "Info"  # Info, Rendah, Sedang, Tinggi
+	risk_flags_template: str = ""
+	risk_flags_params: str = "{}"
+	severity: str = "Info"  # Info, Low, Medium, High
 	case_type: str = ""
 	case_number: str = ""
 	court: str = ""
@@ -36,10 +40,10 @@ class FindingData:
 	uploaded_on: str | None = None
 	adjudicated_on: str | None = None
 	account: str = ""
-	hr_verdict: str = "Belum ditinjau"
+	hr_verdict: str = "Not reviewed"
 	detail_url: str = ""
 	pdf_url: str = ""
-	text_source: str = "Cuplikan"
+	text_source: str = "Snippet"
 	evidence_excerpt: str = ""
 
 	def as_dict(self) -> dict[str, Any]:

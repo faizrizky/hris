@@ -8,6 +8,7 @@ find_similar, ekstraksi PDF putusan via pdfplumber, serta deteksi akurat identit
 
 from __future__ import annotations
 
+import json
 import os
 import re
 import shutil
@@ -584,7 +585,7 @@ class CourtMAProvider(BaseProvider):
 				if r > initial_name_sim:
 					initial_name_sim = r
 
-			text_source = "Cuplikan"
+			text_source = "Snippet"
 			evidence_excerpt = (c.get("amar") or c.get("snippet", ""))[:600]
 			pdf_url = c.get("pdf_url", "")
 
@@ -593,22 +594,22 @@ class CourtMAProvider(BaseProvider):
 				pdf_data = self._fetch_and_parse_pdf(pdf_url, name, name_variants)
 				if pdf_data.get("is_scan"):
 					# PDF hasil scan tanpa teks -> turun ke halaman detail
-					text_source = "Teks lengkap"
+					text_source = "Full text"
 				elif pdf_data.get("role") or pdf_data.get("excerpt"):
-					text_source = "PDF putusan"
+					text_source = "Decision PDF"
 					# Peran dari PDF mengalahkan peran dari cuplikan
 					if pdf_data.get("role"):
 						c["party_role"] = pdf_data["role"]
 					if pdf_data.get("excerpt"):
 						evidence_excerpt = pdf_data["excerpt"]
 				else:
-					text_source = "Teks lengkap" if c.get("full_text") else "Cuplikan"
+					text_source = "Full text" if c.get("full_text") else "Snippet"
 			elif c.get("full_text"):
-				text_source = "Teks lengkap"
+				text_source = "Full text"
 
 			# Evaluasi kecocokan identitas dengan prioritas sumber teks
 			full_text = c.get("full_text") or f"{c['title']} {c['snippet']} {c.get('amar', '')}"
-			text_to_eval = f"{evidence_excerpt} {full_text}" if text_source == "PDF putusan" else full_text
+			text_to_eval = f"{evidence_excerpt} {full_text}" if text_source in ("Decision PDF", "PDF putusan") else full_text
 
 			conf, reasons, exc = evaluate_match_with_excerpt(
 				candidate_name=name,
@@ -619,12 +620,18 @@ class CourtMAProvider(BaseProvider):
 				text_source=text_source,
 			)
 
-			if not evidence_excerpt or text_source != "PDF putusan":
+			if not evidence_excerpt or text_source not in ("Decision PDF", "PDF putusan"):
 				evidence_excerpt = exc or evidence_excerpt
 
 			case_type = c.get("case_type", "Perdata")
 			party_role = c.get("party_role", "Pemohon")
 			case_eval = evaluate_case_severity(case_type, party_role)
+
+			reasons_tmpl = "; ".join([getattr(r, "template", str(r)) for r in reasons])
+			reasons_params = {}
+			for r in reasons:
+				if hasattr(r, "params"):
+					reasons_params.update(r.params)
 
 			findings.append(FindingData(
 				finding_type="Case",
@@ -641,6 +648,8 @@ class CourtMAProvider(BaseProvider):
 				adjudicated_on=c.get("adjudicated_on"),
 				match_confidence=conf,
 				match_reasons="; ".join(reasons),
+				match_reasons_template=reasons_tmpl,
+				match_reasons_params=json.dumps(reasons_params) if reasons_params else "{}",
 				category=case_eval["category"],
 				severity=case_eval["severity"],
 				detail_url=detail_url or "",

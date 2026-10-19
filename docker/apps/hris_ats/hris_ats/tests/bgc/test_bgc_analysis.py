@@ -48,11 +48,11 @@ def test_calculate_match_confidence_exact_and_context():
 	text = "Ronald Richard mahasiswa desain meraih juara lomba UI/UX di Jakarta."
 
 	conf, reasons = calculate_match_confidence(candidate, variants, context, text, total_hits=5)
-	# 50 (nama persis) + 30 (2 konteks cocok) + 10 (unik) = 90
+	# 50 (exact name) + 30 (2 context match) + 10 (unique) = 90
 	assert conf == 90
-	assert any("Nama persis" in r for r in reasons)
-	assert any("Konteks cocok" in r for r in reasons)
-	assert any("Bonus nama unik" in r for r in reasons)
+	assert any("Exact name match" in r for r in reasons)
+	assert any("Context matched" in r for r in reasons)
+	assert any("Unique name bonus" in r for r in reasons)
 
 
 def test_name_twins_context_discrimination():
@@ -91,12 +91,12 @@ def test_calculate_account_identity_match_full_score():
 		declared_by_candidate=True,
 		is_forbidden=False,
 	)
-	# 50 (nama persis) + 20 (lokasi kota cocok) + 20 (bio cocok CV) + 10 (dinyatakan kandidat) = 100
+	# 50 (exact name) + 20 (city location match) + 20 (bio matches CV) + 10 (declared by candidate) = 100
 	assert score == 100
-	assert any("Nama tampilan persis cocok (+50)" in r for r in reasons)
-	assert any("Lokasi profil cocok" in r for r in reasons)
-	assert any("Bio menyebut entitas CV" in r for r in reasons)
-	assert any("Akun dinyatakan sendiri oleh kandidat (+10)" in r for r in reasons)
+	assert any("Exact display name match (+50)" in r for r in reasons)
+	assert any("Profile location matches candidate city" in r for r in reasons)
+	assert any("Bio mentions CV entity" in r for r in reasons)
+	assert any("Account self-declared by candidate (+10)" in r for r in reasons)
 
 
 def test_calculate_account_identity_match_similarity_levels():
@@ -173,8 +173,8 @@ def test_calculate_account_identity_match_undeclared_below_threshold():
 
 def test_evaluate_match_with_excerpt_cuplikan_capped_at_70():
 	text = "Ronald Richard meraih medali emas UI/UX Jakarta."
-	# Nama persis (+50) + 2 konteks (+30) + bonus unik (+10) = 90
-	# Tapi text_source = "Cuplikan" wajib dibatasi maksimal 70
+	# Exact name (+50) + 2 context (+30) + unique bonus (+10) = 90
+	# But text_source = "Cuplikan" / "Snippet" capped at 70
 	conf, reasons, excerpt = evaluate_match_with_excerpt(
 		candidate_name="Ronald Richard",
 		candidate_variants=["ronald richard"],
@@ -184,7 +184,7 @@ def test_evaluate_match_with_excerpt_cuplikan_capped_at_70():
 		text_source="Cuplikan",
 	)
 	assert conf == 70
-	assert any("dibatasi maksimal 70" in r for r in reasons)
+	assert any("capped at 70" in r.lower() for r in reasons)
 
 
 def test_evaluate_match_with_excerpt_pdf_source_uncapped():
@@ -238,29 +238,29 @@ def test_evaluate_match_with_excerpt_picks_best_context_occurrence():
 
 def test_classify_prestasi_and_profesional():
 	res_prestasi = classify_text("Juara 1 Lomba Desain", "Meraih penghargaan medali emas")
-	assert res_prestasi["category"] == "Prestasi"
+	assert res_prestasi["category"] == "Achievement"
 	assert res_prestasi["severity"] == "Info"
 
 	res_prof = classify_text("Narasumber Konferensi", "Menjadi pembicara dalam workshop teknologi")
-	assert res_prof["category"] == "Profesional"
+	assert res_prof["category"] == "Professional"
 	assert res_prof["severity"] == "Info"
 
 
 def test_classify_risk_lexicon_and_confidence_downgrade():
 	lexicon = [
-		{"term": "korupsi", "category": "Hukum-negatif", "severity": "Tinggi", "enabled": 1},
-		{"term": "judi online", "category": "Judi online", "severity": "Tinggi", "enabled": 1},
+		{"term": "korupsi", "category": "Legal-negative", "severity": "High", "enabled": 1},
+		{"term": "judi online", "category": "Online gambling", "severity": "High", "enabled": 1},
 	]
 
-	# Match confidence tinggi (90): severity tetap Tinggi
+	# Match confidence high (90): severity stays High
 	res_high_conf = classify_text("Kasus Korupsi Dana", "Terlibat dalam dugaan korupsi", lexicon, match_confidence=90)
-	assert res_high_conf["category"] == "Berisiko"
-	assert res_high_conf["severity"] == "Tinggi"
+	assert res_high_conf["category"] == "Risky"
+	assert res_high_conf["severity"] == "High"
 
-	# Match confidence rendah (< 80): severity diturunkan satu tingkat ke Sedang
+	# Match confidence low (< 80): severity downgraded one level to Medium
 	res_low_conf = classify_text("Kasus Korupsi Dana", "Terlibat dalam dugaan korupsi", lexicon, match_confidence=75)
-	assert res_low_conf["category"] == "Berisiko"
-	assert res_low_conf["severity"] == "Sedang"
+	assert res_low_conf["category"] == "Risky"
+	assert res_low_conf["severity"] == "Medium"
 
 
 # =====================================================================
@@ -281,7 +281,7 @@ def test_case_severity_mapping_perdata_permohonan_is_info():
 	"""Permohonan perdata (seperti di layar 08 desain) wajib ber-severity 'Info', bukan risiko."""
 	res_permohonan = evaluate_case_severity(case_type="Perdata", party_role="Pemohon")
 	assert res_permohonan["severity"] == "Info"
-	assert res_permohonan["category"] == "Netral"
+	assert res_permohonan["category"] == "Neutral"
 
 	res_penggugat = evaluate_case_severity(case_type="Perdata", party_role="Penggugat")
 	assert res_penggugat["severity"] == "Info"
@@ -292,12 +292,12 @@ def test_case_severity_mapping_perdata_permohonan_is_info():
 
 def test_case_severity_mapping_criminal_defendant_is_high():
 	res_terdakwa = evaluate_case_severity(case_type="Pidana", party_role="Terdakwa")
-	assert res_terdakwa["severity"] == "Tinggi"
-	assert res_terdakwa["category"] == "Berisiko"
+	assert res_terdakwa["severity"] == "High"
+	assert res_terdakwa["category"] == "Risky"
 
 	res_tergugat = evaluate_case_severity(case_type="Perdata", party_role="Tergugat")
-	assert res_tergugat["severity"] == "Sedang"
-	assert res_tergugat["category"] == "Berisiko"
+	assert res_tergugat["severity"] == "Medium"
+	assert res_tergugat["category"] == "Risky"
 
 
 # =====================================================================
@@ -306,8 +306,8 @@ def test_case_severity_mapping_criminal_defendant_is_high():
 
 def test_analyze_posts_politeness_and_activity():
 	lexicon = [
-		{"term": "anjing", "category": "Kata kasar", "severity": "Rendah", "enabled": 1},
-		{"term": "slot gacor", "category": "Judi online", "severity": "Tinggi", "enabled": 1},
+		{"term": "anjing", "category": "Profanity", "severity": "Low", "enabled": 1},
+		{"term": "slot gacor", "category": "Online gambling", "severity": "High", "enabled": 1},
 	]
 
 	posts = [
@@ -327,7 +327,7 @@ def test_analyze_posts_politeness_and_activity():
 	assert res["abusive_posts_count"] == 1
 	assert res["politeness_score"] < 100
 	assert len(res["risk_posts"]) == 1
-	assert res["risk_posts"][0]["severity"] == "Tinggi"
+	assert res["risk_posts"][0]["severity"] == "High"
 	assert res["professional_relevance_pct"] == 50.0  # 2 dari 4 menyebut skill
 
 
@@ -337,34 +337,34 @@ def test_analyze_posts_politeness_and_activity():
 
 def test_calculate_risk_level_unreviewed_high_is_needs_verification():
 	findings = [
-		{"severity": "Tinggi", "match_confidence": 85, "hr_verdict": "Belum ditinjau"},
+		{"severity": "High", "match_confidence": 85, "hr_verdict": "Not reviewed"},
 	]
 	risk = calculate_risk_level(findings, politeness_score=100)
-	assert risk == "Perlu verifikasi"
+	assert risk == "Needs verification"
 
 
 def test_calculate_risk_level_relevant_high_is_high():
 	findings = [
-		{"severity": "Tinggi", "match_confidence": 85, "hr_verdict": "Relevan"},
+		{"severity": "High", "match_confidence": 85, "hr_verdict": "Relevant"},
 	]
 	risk = calculate_risk_level(findings, politeness_score=100)
-	assert risk == "Tinggi"
+	assert risk == "High"
 
 
 def test_calculate_risk_level_medium_threshold():
-	# Kurang dari 3 temuan Sedang -> Rendah
+	# Less than 3 Medium findings -> Low
 	findings_2 = [
-		{"severity": "Sedang", "match_confidence": 80, "hr_verdict": "Relevan"},
-		{"severity": "Sedang", "match_confidence": 80, "hr_verdict": "Relevan"},
+		{"severity": "Medium", "match_confidence": 80, "hr_verdict": "Relevant"},
+		{"severity": "Medium", "match_confidence": 80, "hr_verdict": "Relevant"},
 	]
-	assert calculate_risk_level(findings_2, politeness_score=90) == "Rendah"
+	assert calculate_risk_level(findings_2, politeness_score=90) == "Low"
 
-	# >= 3 temuan Sedang yang Relevan -> Sedang
-	findings_3 = findings_2 + [{"severity": "Sedang", "match_confidence": 80, "hr_verdict": "Relevan"}]
-	assert calculate_risk_level(findings_3, politeness_score=90) == "Sedang"
+	# >= 3 Medium relevant findings -> Medium
+	findings_3 = findings_2 + [{"severity": "Medium", "match_confidence": 80, "hr_verdict": "Relevant"}]
+	assert calculate_risk_level(findings_3, politeness_score=90) == "Medium"
 
-	# Skor kesantunan < 60 -> Sedang
-	assert calculate_risk_level([], politeness_score=50) == "Sedang"
+	# Politeness score < 60 -> Medium
+	assert calculate_risk_level([], politeness_score=50) == "Medium"
 
 
 # =====================================================================
@@ -378,17 +378,17 @@ def test_generate_automated_summary_omits_zero_clauses():
 		accounts=["GitHub", "LinkedIn"],
 		article_count=2,
 		achievement_count=1,
-		case_count=0,  # Nilai nol harus dihilangkan dari teks
+		case_count=0,  # Zero count should be omitted from text
 		posts_count=5,
 		politeness_score=100,
 		risk_posts_count=0,
 	)
 
-	assert "Ronald Richard melamar sebagai UI/UX Designer." in summary
-	assert "Ditemukan 2 akun publik (GitHub, LinkedIn)." in summary
-	assert "Ada 2 artikel yang kemungkinan besar terkait, 1 di antaranya tentang prestasi." in summary
-	assert "catatan perkara" not in summary  # Klausa 0 perkara dihilangkan
-	assert "kesantunan bahasa 100/100 tanpa post yang terindikasi berisiko." in summary
+	assert "Ronald Richard applied for UI/UX Designer." in summary
+	assert "2 public accounts were found (GitHub, LinkedIn)." in summary
+	assert "2 articles are likely related, 1 of them about achievements." in summary
+	assert "case record" not in summary  # Clause 0 case omitted
+	assert "language politeness score of 100/100 with no posts flagged as risky." in summary
 
 
 # =====================================================================

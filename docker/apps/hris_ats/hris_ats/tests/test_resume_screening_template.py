@@ -30,7 +30,7 @@ class TestResumeScreeningTemplate(FrappeTestCase):
 		template.metric_weights[0].weight = 0
 		with self.assertRaises(ValidationError) as cm:
 			template.save()
-		self.assertIn("Total bobot metrik aktif harus 100%", str(cm.exception))
+		self.assertIn("Total active metric weight must equal 100%", str(cm.exception))
 
 	def test_validate_duplicate_or_missing_metrics(self):
 		"""Validasi menolak metrik duplikat atau kurang."""
@@ -42,7 +42,7 @@ class TestResumeScreeningTemplate(FrappeTestCase):
 		template.metric_weights[1].metric = template.metric_weights[0].metric
 		with self.assertRaises(ValidationError) as cm:
 			template.save()
-		self.assertIn("muncul lebih dari satu kali", str(cm.exception))
+		self.assertIn("appears more than once", str(cm.exception))
 
 	def test_validate_score_label_range_invalid(self):
 		"""Validasi menolak label rentang dengan score_from > score_to."""
@@ -57,7 +57,7 @@ class TestResumeScreeningTemplate(FrappeTestCase):
 		})
 		with self.assertRaises(ValidationError) as cm:
 			template.insert()
-		self.assertIn("harus lebih kecil atau sama dengan", str(cm.exception))
+		self.assertIn("must be less than or equal to", str(cm.exception))
 
 	def test_validate_score_label_overlapping(self):
 		"""Validasi menolak rentang label yang saling tumpang tindih."""
@@ -79,7 +79,7 @@ class TestResumeScreeningTemplate(FrappeTestCase):
 		})
 		with self.assertRaises(ValidationError) as cm:
 			template.insert()
-		self.assertIn("tumpang tindih", str(cm.exception))
+		self.assertIn("overlaps with label", str(cm.exception))
 
 	def test_validate_active_designation_unique(self):
 		"""Satu Designation hanya boleh dipakai di satu template aktif."""
@@ -104,7 +104,7 @@ class TestResumeScreeningTemplate(FrappeTestCase):
 		t2.append("job_roles", {"designation": designation})
 		with self.assertRaises(ValidationError) as cm:
 			t2.insert()
-		self.assertIn("sudah dipakai di template aktif", str(cm.exception))
+		self.assertIn("is already used in active template", str(cm.exception))
 
 		# Template kedua nonaktif (enabled = 0) diperbolehkan
 		t2.enabled = 0

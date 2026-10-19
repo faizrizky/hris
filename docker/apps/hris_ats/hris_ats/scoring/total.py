@@ -70,6 +70,8 @@ def calculate_total_score(
 			"passed": 1 if metric_passed else 0,
 			"metric_status": "Done",
 			"reason": res.get("reason", ""),
+			"reason_template": res.get("reason_template", res.get("reason", "")),
+			"reason_params": res.get("reason_params", "{}"),
 		})
 
 	total_score_int = int(round(weighted_sum))
@@ -103,13 +105,14 @@ def calculate_total_score(
 	# Fallback bila tidak ada label yang cocok
 	if not matched_label:
 		if passed:
-			matched_label = "Lolos Kualifikasi"
-			matched_desc = pass_description or "Applicant resume is match with the applied job!"
+			matched_label = "Qualified"
+			matched_desc = pass_description or "Applicant resume matches the applied job!"
 			matched_indicator = "green"
 		else:
-			matched_label = "Tidak Memenuhi Kriteria"
+			matched_label = "Not Qualified"
 			matched_desc = fail_description or "Applicant resume does not meet the minimum criteria."
 			matched_indicator = "red"
+
 
 	return {
 		"total_score": float(total_score_int),

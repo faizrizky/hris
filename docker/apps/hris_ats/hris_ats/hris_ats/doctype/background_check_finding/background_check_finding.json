@@ -23,7 +23,11 @@
   "snippet",
   "evidence_excerpt",
   "match_reasons",
+  "match_reasons_template",
+  "match_reasons_params",
   "risk_flags",
+  "risk_flags_template",
+  "risk_flags_params",
   "section_break_case",
   "detail_url",
   "pdf_url",
@@ -56,12 +60,12 @@
    "reqd": 1
   },
   {
-   "default": "Netral",
+   "default": "Neutral",
    "fieldname": "category",
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Category",
-   "options": "Prestasi\nProfesional\nNetral\nBerisiko"
+   "options": "Achievement\nProfessional\nNeutral\nRisky"
   },
   {
    "default": "Info",
@@ -69,7 +73,7 @@
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Severity",
-   "options": "Info\nRendah\nSedang\nTinggi"
+   "options": "Info\nLow\nMedium\nHigh"
   },
   {
    "default": "0",
@@ -79,20 +83,20 @@
    "label": "Match Confidence (%)"
   },
   {
-   "default": "Cuplikan",
+   "default": "Snippet",
    "fieldname": "text_source",
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Text Source",
-   "options": "Cuplikan\nTeks lengkap\nPDF putusan"
+   "options": "Snippet\nFull text\nDecision PDF"
   },
   {
-   "default": "Belum ditinjau",
+   "default": "Not reviewed",
    "fieldname": "hr_verdict",
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "HR Verdict",
-   "options": "Belum ditinjau\nRelevan\nBukan orang ini\nDiabaikan"
+   "options": "Not reviewed\nRelevant\nNot this person\nIgnored"
   },
   {
    "fieldname": "column_break_1",
@@ -158,7 +162,7 @@
   {
    "fieldname": "section_break_case",
    "fieldtype": "Section Break",
-   "label": "Case Details (Putusan MA)"
+   "label": "Case Details (Supreme Court Decisions)"
   },
   {
    "fieldname": "detail_url",
@@ -218,6 +222,26 @@
    "fieldname": "hr_note",
    "fieldtype": "Small Text",
    "label": "HR Review Note"
+  },
+  {
+   "fieldname": "match_reasons_template",
+   "fieldtype": "Small Text",
+   "label": "Match Reasons Template"
+  },
+  {
+   "fieldname": "match_reasons_params",
+   "fieldtype": "Small Text",
+   "label": "Match Reasons Parameters"
+  },
+  {
+   "fieldname": "risk_flags_template",
+   "fieldtype": "Small Text",
+   "label": "Risk Flags Template"
+  },
+  {
+   "fieldname": "risk_flags_params",
+   "fieldtype": "Small Text",
+   "label": "Risk Flags Parameters"
   }
  ],
  "index_web_pages_for_search": 1,

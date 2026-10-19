@@ -133,16 +133,16 @@ def query_adaptive_element(
 
 					if score < min_acceptable_similarity:
 						warning = (
-							f"Peringatan: Elemen '{identifier}' ditemukan dengan kemiripan rendah ({score:.1f}%). "
-							f"Kemungkinan struktur situs berubah drastis sehingga elemen diabaikan demi akurasi."
+							f"Warning: Element '{identifier}' found with low similarity ({score:.1f}%). "
+							f"Possible drastic site structure changes, element ignored for accuracy."
 						)
 						return None, score, warning
 
 					warning = None
 					if score < warning_threshold:
 						warning = (
-							f"Peringatan: Elemen '{identifier}' direlokasi secara adaptif dengan kemiripan {score:.1f}% "
-							f"(struktur situs berubah dari selektor awal '{selector}')."
+							f"Warning: Element '{identifier}' adaptively relocated with similarity {score:.1f}% "
+							f"(site structure changed from initial selector '{selector}')."
 						)
 
 					return relocated, score, warning
@@ -157,8 +157,8 @@ def query_adaptive_element(
 						elif hasattr(first_elem, "_Selector__calculate_similarity_score") and hasattr(first_elem, "_root"):
 							score = first_elem._Selector__calculate_similarity_score(stored, first_elem._root)
 						warning = (
-							f"Peringatan: Elemen '{identifier}' ditemukan dengan kemiripan rendah ({score:.1f}%). "
-							f"Kemungkinan struktur situs berubah drastis sehingga elemen diabaikan demi akurasi."
+							f"Warning: Element '{identifier}' found with low similarity ({score:.1f}%). "
+							f"Possible drastic site structure changes, element ignored for accuracy."
 						)
 						return None, score, warning
 		except Exception:

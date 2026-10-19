@@ -6,14 +6,14 @@ frappe.listview_settings["Background Check"] = {
 	get_indicator(doc) {
 		let level = doc.risk_level_final || doc.risk_level_auto;
 		if (doc.status === "Done") {
-			if (level === "Tinggi") {
-				return [__("Done (Tinggi)"), "red", "status,=,Done|risk_level_final,=,Tinggi"];
-			} else if (level === "Perlu verifikasi") {
-				return [__("Done (Perlu verifikasi)"), "purple", "status,=,Done|risk_level_final,=,Perlu verifikasi"];
-			} else if (level === "Sedang") {
-				return [__("Done (Sedang)"), "orange", "status,=,Done|risk_level_final,=,Sedang"];
+			if (level === "High" || level === "Tinggi") {
+				return [__("Done (High)"), "red", "status,=,Done|risk_level_final,=,High"];
+			} else if (level === "Needs verification" || level === "Perlu verifikasi") {
+				return [__("Done (Needs verification)"), "purple", "status,=,Done|risk_level_final,=,Needs verification"];
+			} else if (level === "Medium" || level === "Sedang") {
+				return [__("Done (Medium)"), "orange", "status,=,Done|risk_level_final,=,Medium"];
 			} else {
-				return [__("Done (Rendah)"), "green", "status,=,Done|risk_level_final,=,Rendah"];
+				return [__("Done (Low)"), "green", "status,=,Done|risk_level_final,=,Low"];
 			}
 		} else if (doc.status === "Crawling") {
 			return [__("Crawling..."), "blue", "status,=,Crawling"];

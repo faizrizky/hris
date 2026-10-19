@@ -66,15 +66,15 @@ class TestBackgroundCheckRunner(FrappeTestCase):
 		bgc_name = res["name"]
 		token = res["token"]
 
-		# Kandidat memberikan persetujuan untuk 5 sumber
+		# Kandidat memberikan persetujuan untuk 6 sumber (termasuk Social Media)
 		accounts = [
 			{"platform": "GitHub", "username": "ronaldrichard"},
-			{"platform": "LinkedIn", "username": "ronaldrichard"},
-			{"platform": "Instagram", "username": "ronaldrichard"},
+			{"platform": "LinkedIn", "username": "ronaldrichard", "social_consent": 1},
+			{"platform": "Instagram", "username": "ronaldrichard", "social_consent": 1},
 		]
 		submit_candidate_consent(
 			token=token,
-			granted_sources=["Platform", "Article", "File", "Case history", "Posts"],
+			granted_sources=["Platform", "Article", "File", "Case history", "Posts", "Social Media"],
 			accounts=accounts,
 		)
 
@@ -99,13 +99,13 @@ class TestBackgroundCheckRunner(FrappeTestCase):
 
 		# 2. Periksa status per sumber (source_runs)
 		for sr in bgc.source_runs:
-			self.assertEqual(sr.status, "Done")
+			self.assertEqual(sr.status, "Done", f"Source {sr.source} status is {sr.status}, error: {sr.error}")
 			self.assertGreaterEqual(sr.items_found, 1)
 
 		# 3. Periksa temuan di semua tipe
 		articles = frappe.get_all("Background Check Finding", filters={"background_check": bgc.name, "finding_type": "Article"}, fields=["title", "category", "severity", "match_confidence", "text_source", "evidence_excerpt"])
 		self.assertGreaterEqual(len(articles), 1)
-		self.assertTrue(any(a.category == "Prestasi" and a.severity == "Info" for a in articles))
+		self.assertTrue(any(a.category == "Achievement" and a.severity == "Info" for a in articles))
 		self.assertTrue(articles[0].text_source)
 
 		files = frappe.get_all("Background Check Finding", filters={"background_check": bgc.name, "finding_type": "File"}, fields=["title", "file_type", "match_confidence"])
@@ -120,13 +120,13 @@ class TestBackgroundCheckRunner(FrappeTestCase):
 		self.assertTrue(cases[0].evidence_excerpt)
 
 		# 4. Periksa hasil evaluasi tingkat risiko dan ringkasan
-		self.assertEqual(bgc.risk_level_auto, "Rendah")
+		self.assertEqual(bgc.risk_level_auto, "Low")
 		self.assertTrue(bgc.summary_auto)
 		self.assertIn("Ronald Richard", bgc.summary_auto)
 		self.assertIn("UI/UX Designer", bgc.summary_auto)
-		self.assertIn("prestasi", bgc.summary_auto)
+		self.assertIn("achievement", bgc.summary_auto.lower())
 		# Perkara Info tidak masuk hitungan risiko
-		self.assertIn("catatan perkara", bgc.summary_auto)
+		self.assertIn("case record", bgc.summary_auto.lower())
 
 	def test_runner_live_mode_with_mocked_network(self):
 		"""Pengujian runner saat mock_provider = 0:
@@ -235,17 +235,17 @@ class TestBackgroundCheckRunner(FrappeTestCase):
 			# Article -> Skipped
 			a_run = runs_by_source["Article"]
 			self.assertEqual(a_run.status, "Skipped")
-			self.assertIn("Penyedia pencarian belum dikonfigurasi", a_run.error)
+			self.assertIn("Search provider not configured", a_run.error)
 
 			# File -> Skipped
 			f_run = runs_by_source["File"]
 			self.assertEqual(f_run.status, "Skipped")
-			self.assertIn("Penyedia pencarian belum dikonfigurasi", f_run.error)
+			self.assertIn("Search provider not configured", f_run.error)
 
 			# Posts -> Skipped
 			post_run = runs_by_source["Posts"]
 			self.assertEqual(post_run.status, "Skipped")
-			self.assertIn("Kredensial API media sosial belum dikonfigurasi", post_run.error)
+			self.assertIn("Social media API credentials not configured", post_run.error)
 
 		finally:
 			settings.reload()

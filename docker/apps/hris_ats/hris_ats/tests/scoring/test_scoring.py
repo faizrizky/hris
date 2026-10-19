@@ -103,7 +103,7 @@ def test_metric_ats_friendly_penalizes_multi_column():
 
 	assert eval_single["score"] >= 90.0
 	assert eval_multi["score"] < eval_single["score"]
-	assert "multi-kolom" in eval_multi["reason"].lower()
+	assert "multi-column" in eval_multi["reason"].lower()
 
 
 def test_metric_date_consistency_detects_overlaps():
@@ -112,7 +112,7 @@ def test_metric_date_consistency_detects_overlaps():
 	sec = split_sections(res.normalized_text)
 
 	eval_res = date_consistency.evaluate(res, sec)
-	assert "tumpang tindih" in eval_res["reason"].lower()
+	assert "overlapping" in eval_res["reason"].lower()
 	assert eval_res["score"] <= 90.0
 
 
@@ -122,7 +122,7 @@ def test_metric_date_consistency_detects_mixed_formats():
 	sec = split_sections(res.normalized_text)
 
 	eval_res = date_consistency.evaluate(res, sec)
-	assert "campuran" in eval_res["reason"].lower()
+	assert "mixed" in eval_res["reason"].lower()
 
 
 def test_metric_information_completeness_detects_missing_phone():
@@ -131,7 +131,7 @@ def test_metric_information_completeness_detects_missing_phone():
 	sec = split_sections(res.normalized_text)
 
 	eval_res = information_completeness.evaluate(res, sec)
-	assert "nomor telepon tidak ditemukan" in eval_res["reason"].lower()
+	assert "phone number not found" in eval_res["reason"].lower()
 	assert eval_res["score"] <= 85.0
 
 
@@ -155,7 +155,7 @@ def test_metric_skill_relevance():
 
 	eval_res = skill_relevance.evaluate(res, sec, SAMPLE_CRITERIA)
 	assert eval_res["score"] >= 80.0
-	assert "skill wajib" in eval_res["reason"].lower()
+	assert "required skills" in eval_res["reason"].lower()
 
 
 def test_metric_experience_relevance_fresh_graduate():

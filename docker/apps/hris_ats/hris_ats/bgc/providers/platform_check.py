@@ -69,9 +69,9 @@ class PlatformCheckProvider(BaseProvider):
 				"profile_location": "",
 				"identity_match": None,
 				"identity_reasons": (
-					["Platform terlarang untuk scraping otomatis: verifikasi manual"]
+					["Prohibited platform for automated scraping: manual verification"]
 					if declared_by == "Candidate"
-					else ["Akun tidak dinyatakan kandidat pada platform terlarang"]
+					else ["Account not declared by candidate on prohibited platform"]
 				),
 			}
 
@@ -92,7 +92,7 @@ class PlatformCheckProvider(BaseProvider):
 				"bio_snippet": "Software Engineer & Designer",
 				"profile_location": candidate_city or "Jakarta",
 				"identity_match": mock_match,
-				"identity_reasons": "Mode simulasi (mock)" if is_mock else "",
+				"identity_reasons": ["Simulation mode (mock)"] if is_mock else [],
 			}
 
 		has_selectors = bool(display_name_selector or bio_selector or location_selector)

@@ -11,7 +11,7 @@ from typing import Any
 
 from hris_ats.bgc.providers.base import BaseProvider, FindingData
 from hris_ats.bgc.analysis.identity import calculate_match_confidence
-from hris_ats.bgc.analysis.classify import classify_text
+from hris_ats.bgc.analysis.classify import classify_text, CAT_NORM_MAP, SEV_NORM_MAP
 from hris_ats.bgc.analysis.case import evaluate_case_severity
 
 
@@ -66,6 +66,11 @@ class MockProvider(BaseProvider):
 		if not entry:
 			return []
 
+		TEXT_SRC_MAP = {
+			"cuplikan": "Snippet", "teks lengkap": "Full text", "pdf putusan": "Decision PDF",
+			"snippet": "Snippet", "full text": "Full text", "decision pdf": "Decision PDF",
+		}
+
 		# 1. Articles
 		if source_filter in (None, "Article") and "articles" in entry:
 			for art in entry["articles"]:
@@ -74,8 +79,18 @@ class MockProvider(BaseProvider):
 					name, name_variants, context_terms, text, total_hits=10
 				)
 				cls_res = classify_text(art["title"], art["snippet"], lexicon_items, conf)
-				sev = art.get("severity") or cls_res["severity"]
-				cat = art.get("category") or cls_res["category"]
+				raw_sev = art.get("severity") or cls_res["severity"]
+				raw_cat = art.get("category") or cls_res["category"]
+				sev = SEV_NORM_MAP.get(str(raw_sev).strip().lower(), raw_sev)
+				cat = CAT_NORM_MAP.get(str(raw_cat).strip().lower(), raw_cat)
+				raw_ts = art.get("text_source", "Snippet")
+				ts = TEXT_SRC_MAP.get(str(raw_ts).strip().lower(), "Snippet")
+				reasons_tmpl = "; ".join([getattr(r, "template", str(r)) for r in reasons])
+				reasons_params = {}
+				for r in reasons:
+					if hasattr(r, "params"):
+						reasons_params.update(r.params)
+
 				findings.append(FindingData(
 					finding_type="Article",
 					title=art["title"],
@@ -85,9 +100,14 @@ class MockProvider(BaseProvider):
 					published_on=art.get("published_on"),
 					match_confidence=conf,
 					match_reasons="; ".join(reasons),
+					match_reasons_template=reasons_tmpl,
+					match_reasons_params=json.dumps(reasons_params) if reasons_params else "{}",
 					category=cat,
+					risk_flags=cls_res.get("risk_flags", ""),
+					risk_flags_template=cls_res.get("risk_flags_template", ""),
+					risk_flags_params=cls_res.get("risk_flags_params", "{}"),
 					severity=sev,
-					text_source=art.get("text_source", "Cuplikan"),
+					text_source=ts,
 					evidence_excerpt=art.get("evidence_excerpt") or art["snippet"][:600],
 					detail_url=art.get("url", ""),
 				))
@@ -100,8 +120,18 @@ class MockProvider(BaseProvider):
 					name, name_variants, context_terms, text, total_hits=10
 				)
 				cls_res = classify_text(f["title"], f["snippet"], lexicon_items, conf)
-				sev = f.get("severity") or cls_res["severity"]
-				cat = f.get("category") or cls_res["category"]
+				raw_sev = f.get("severity") or cls_res["severity"]
+				raw_cat = f.get("category") or cls_res["category"]
+				sev = SEV_NORM_MAP.get(str(raw_sev).strip().lower(), raw_sev)
+				cat = CAT_NORM_MAP.get(str(raw_cat).strip().lower(), raw_cat)
+				raw_ts = f.get("text_source", "Snippet")
+				ts = TEXT_SRC_MAP.get(str(raw_ts).strip().lower(), "Snippet")
+				reasons_tmpl = "; ".join([getattr(r, "template", str(r)) for r in reasons])
+				reasons_params = {}
+				for r in reasons:
+					if hasattr(r, "params"):
+						reasons_params.update(r.params)
+
 				findings.append(FindingData(
 					finding_type="File",
 					title=f["title"],
@@ -112,9 +142,14 @@ class MockProvider(BaseProvider):
 					published_on=f.get("published_on"),
 					match_confidence=conf,
 					match_reasons="; ".join(reasons),
+					match_reasons_template=reasons_tmpl,
+					match_reasons_params=json.dumps(reasons_params) if reasons_params else "{}",
 					category=cat,
+					risk_flags=cls_res.get("risk_flags", ""),
+					risk_flags_template=cls_res.get("risk_flags_template", ""),
+					risk_flags_params=cls_res.get("risk_flags_params", "{}"),
 					severity=sev,
-					text_source=f.get("text_source", "Cuplikan"),
+					text_source=ts,
 					evidence_excerpt=f.get("evidence_excerpt") or f["snippet"][:600],
 					detail_url=f.get("url", ""),
 				))
@@ -127,6 +162,18 @@ class MockProvider(BaseProvider):
 					name, name_variants, context_terms, text, total_hits=10
 				)
 				case_eval = evaluate_case_severity(c.get("case_type", ""), c.get("party_role", ""))
+				raw_cat = c.get("category", case_eval["category"])
+				raw_sev = c.get("severity", case_eval["severity"])
+				cat = CAT_NORM_MAP.get(str(raw_cat).strip().lower(), raw_cat)
+				sev = SEV_NORM_MAP.get(str(raw_sev).strip().lower(), raw_sev)
+				raw_ts = c.get("text_source", "Snippet")
+				ts = TEXT_SRC_MAP.get(str(raw_ts).strip().lower(), "Snippet")
+				reasons_tmpl = "; ".join([getattr(r, "template", str(r)) for r in reasons])
+				reasons_params = {}
+				for r in reasons:
+					if hasattr(r, "params"):
+						reasons_params.update(r.params)
+
 				findings.append(FindingData(
 					finding_type="Case",
 					title=c["title"],
@@ -142,9 +189,11 @@ class MockProvider(BaseProvider):
 					adjudicated_on=c.get("adjudicated_on"),
 					match_confidence=conf,
 					match_reasons="; ".join(reasons),
-					category=c.get("category", case_eval["category"]),
-					severity=c.get("severity", case_eval["severity"]),
-					text_source=c.get("text_source", "Cuplikan"),
+					match_reasons_template=reasons_tmpl,
+					match_reasons_params=json.dumps(reasons_params) if reasons_params else "{}",
+					category=cat,
+					severity=sev,
+					text_source=ts,
 					evidence_excerpt=c.get("evidence_excerpt") or c["snippet"][:600],
 					detail_url=c.get("url", ""),
 				))

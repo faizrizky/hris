@@ -14,7 +14,7 @@
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Source",
-   "options": "Platform\nArticle\nFile\nCase history\nPosts",
+   "options": "Platform\nArticle\nFile\nCase history\nPosts\nSocial Media",
    "reqd": 1
   },
   {

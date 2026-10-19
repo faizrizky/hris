@@ -42,27 +42,27 @@ class ResumeScreeningTemplate(Document):
 
 	def validate_metric_weights(self):
 		if not self.metric_weights:
-			frappe.throw(_("Tabel bobot metrik tidak boleh kosong."))
+			frappe.throw(_("Metric weights table cannot be empty."))
 
 		metrics_seen = set()
 		for row in self.metric_weights:
 			if row.metric in metrics_seen:
-				frappe.throw(_("Metrik '{0}' muncul lebih dari satu kali.").format(row.metric))
+				frappe.throw(_("Metric '{0}' appears more than once.").format(row.metric))
 			metrics_seen.add(row.metric)
 
 		missing = set(ALL_METRICS) - metrics_seen
 		if missing:
-			frappe.throw(_("Metrik berikut belum ada di template: {0}").format(", ".join(sorted(missing))))
+			frappe.throw(_("The following metrics are missing from the template: {0}").format(", ".join(sorted(missing))))
 
 		extra = metrics_seen - set(ALL_METRICS)
 		if extra:
-			frappe.throw(_("Metrik tidak dikenal: {0}").format(", ".join(sorted(extra))))
+			frappe.throw(_("Unknown metric: {0}").format(", ".join(sorted(extra))))
 
 		active_total = round(sum(flt(r.weight) for r in self.metric_weights if r.enabled), 2)
 		self.total_weight = active_total
 
 		if abs(active_total - 100.0) > 0.001:
-			frappe.throw(_("Total bobot metrik aktif harus 100% (saat ini {0}%).").format(active_total))
+			frappe.throw(_("Total active metric weight must equal 100% (currently {0}%).").format(active_total))
 
 	def validate_score_labels(self):
 		if not self.score_labels:
@@ -71,14 +71,14 @@ class ResumeScreeningTemplate(Document):
 		intervals = []
 		for row in self.score_labels:
 			if row.score_from is None or row.score_from < 0 or row.score_from > 100:
-				frappe.throw(_("Nilai awal harus di antara 0 dan 100 pada label '{0}'.").format(row.label))
+				frappe.throw(_("Score from must be between 0 and 100 for label '{0}'.").format(row.label))
 
 			if row.label_type == "Range":
 				if row.score_to is None or row.score_to < 0 or row.score_to > 100:
-					frappe.throw(_("Nilai akhir harus di antara 0 dan 100 pada label rentang '{0}'.").format(row.label))
+					frappe.throw(_("Score to must be between 0 and 100 for range label '{0}'.").format(row.label))
 				if row.score_from > row.score_to:
 					frappe.throw(
-						_("Nilai awal ({0}) harus lebih kecil atau sama dengan nilai akhir ({1}) pada label '{2}'.").format(
+						_("Score from ({0}) must be less than or equal to score to ({1}) for label '{2}'.").format(
 							row.score_from, row.score_to, row.label
 						)
 					)
@@ -95,7 +95,7 @@ class ResumeScreeningTemplate(Document):
 				s2, e2, l2 = intervals[j]
 				if max(s1, s2) <= min(e1, e2):
 					frappe.throw(
-						_("Rentang skor pada label '{0}' ({1}–{2}) tumpang tindih dengan label '{3}' ({4}–{5}).").format(
+						_("Score range for label '{0}' ({1}–{2}) overlaps with label '{3}' ({4}–{5}).").format(
 							l1, s1, e1, l2, s2, e2
 						)
 					)
@@ -123,7 +123,7 @@ class ResumeScreeningTemplate(Document):
 			)
 			if existing:
 				frappe.throw(
-					_("Jabatan '{0}' sudah dipakai di template aktif '{1}'.").format(
+					_("Designation '{0}' is already used in active template '{1}'.").format(
 						designation, existing[0][0]
 					)
 				)

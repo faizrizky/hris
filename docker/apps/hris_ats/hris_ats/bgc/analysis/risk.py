@@ -1,8 +1,12 @@
 # Copyright (c) 2026, HRIS Team and contributors
 # For license information, please see license.txt
 
-"""Modul penentuan tingkat risiko otomatis (risk_level_auto) murni (tanpa import frappe).
-Menerapkan aturan SPEC-BACKGROUND-CHECK.md bagian 6.6.
+"""Pure module for automated risk level calculation (risk_level_auto).
+Implements SPEC-BACKGROUND-CHECK.md section 6.6 rules:
+- 'Needs verification': Unreviewed High severity finding exists (hr_verdict == 'Not reviewed' / 'Belum ditinjau')
+- 'High': High severity finding confirmed 'Relevant' / 'Relevan' by HR
+- 'Medium': >= 3 Medium findings confirmed 'Relevant', OR politeness_score < 60
+- 'Low': otherwise.
 """
 
 from __future__ import annotations
@@ -15,14 +19,6 @@ def calculate_risk_level(
 	politeness_score: int = 100,
 	min_confidence: int = 50,
 ) -> str:
-	"""Menghitung tingkat risiko otomatis: 'Perlu verifikasi', 'Tinggi', 'Sedang', 'Rendah'.
-
-	Aturan:
-	- 'Perlu verifikasi': ada temuan severity Tinggi yang belum ditinjau HR (hr_verdict == 'Belum ditinjau').
-	- 'Tinggi': ada temuan severity Tinggi yang telah ditandai 'Relevan'.
-	- 'Sedang': >= 3 temuan Sedang yang 'Relevan', ATAU politeness_score < 60.
-	- 'Rendah': selain itu.
-	"""
 	valid_findings = [
 		f for f in (findings or [])
 		if f.get("match_confidence", 0) >= min_confidence
@@ -34,24 +30,28 @@ def calculate_risk_level(
 
 	for f in valid_findings:
 		severity = f.get("severity", "Info")
-		verdict = f.get("hr_verdict", "Belum ditinjau")
+		verdict = f.get("hr_verdict", "Not reviewed")
 
-		if severity == "Tinggi":
-			if verdict == "Relevan":
+		is_high = severity in ("High", "Tinggi")
+		is_medium = severity in ("Medium", "Sedang")
+		is_relevant = verdict in ("Relevant", "Relevan")
+		is_unreviewed = verdict in ("Not reviewed", "Belum ditinjau")
+
+		if is_high:
+			if is_relevant:
 				has_relevant_high = True
-			elif verdict == "Belum ditinjau":
+			elif is_unreviewed:
 				has_unreviewed_high = True
 
-		elif severity == "Sedang":
-			if verdict == "Relevan":
+		elif is_medium:
+			if is_relevant:
 				relevant_medium_count += 1
 
-	# Evaluasi hierarki
 	if has_unreviewed_high:
-		return "Perlu verifikasi"
+		return "Needs verification"
 	elif has_relevant_high:
-		return "Tinggi"
+		return "High"
 	elif relevant_medium_count >= 3 or politeness_score < 60:
-		return "Sedang"
+		return "Medium"
 	else:
-		return "Rendah"
+		return "Low"

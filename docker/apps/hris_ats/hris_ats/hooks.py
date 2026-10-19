@@ -94,10 +94,12 @@ website_route_rules = [
 # ----------
 
 # add methods and filters to jinja environment
-# jinja = {
-# 	"methods": "hris_ats.utils.jinja_methods",
-# 	"filters": "hris_ats.utils.jinja_filters"
-# }
+jinja = {
+	"methods": [
+		"hris_ats.i18n.render",
+	],
+}
+
 
 # Installation
 # ------------

@@ -13,6 +13,7 @@
   "full_name",
   "email",
   "phone",
+  "candidate_language",
   "column_break_applicant",
   "status",
   "risk_level_auto",
@@ -21,6 +22,8 @@
   "is_purged",
   "section_break_summary",
   "summary_auto",
+  "summary_auto_template",
+  "summary_auto_params",
   "politeness_score",
   "summary_hr",
   "hr_conclusion",
@@ -47,6 +50,7 @@
   "consent_ip",
   "column_break_consent",
   "consent_text_version",
+  "consent_language",
   "consent_file",
   "consent_token",
   "consent_token_expires_at",
@@ -63,12 +67,12 @@
   {
    "fieldname": "tab_overview",
    "fieldtype": "Tab Break",
-   "label": "Ringkasan"
+   "label": "Overview"
   },
   {
    "fieldname": "section_break_applicant_header",
    "fieldtype": "Section Break",
-   "label": "Informasi Kandidat"
+   "label": "Candidate Information"
   },
   {
    "default": "BGC-.YYYY.-.#####",
@@ -119,7 +123,7 @@
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Indicated Risk Level",
-   "options": "\nRendah\nSedang\nTinggi\nPerlu verifikasi",
+   "options": "\nLow\nMedium\nHigh\nNeeds verification",
    "read_only": 1
   },
   {
@@ -127,7 +131,7 @@
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Final Risk Level",
-   "options": "\nRendah\nSedang\nTinggi\nPerlu verifikasi"
+   "options": "\nLow\nMedium\nHigh\nNeeds verification"
   },
   {
    "fieldname": "purge_after",
@@ -167,7 +171,7 @@
   {
    "fieldname": "hr_conclusion",
    "fieldtype": "Small Text",
-   "label": "HR Conclusion (Wajib sebelum Interview)"
+   "label": "HR Conclusion (Required before Interview)"
   },
   {
    "fieldname": "section_break_source_runs",
@@ -183,7 +187,7 @@
   {
    "fieldname": "section_break_skck",
    "fieldtype": "Section Break",
-   "label": "SKCK Verification (Opsional)"
+   "label": "SKCK Verification (Optional)"
   },
   {
    "fieldname": "skck_file",
@@ -191,11 +195,11 @@
    "label": "SKCK Document"
   },
   {
-   "default": "Tidak diunggah",
+   "default": "Not uploaded",
    "fieldname": "skck_status",
    "fieldtype": "Select",
    "label": "SKCK Status",
-   "options": "Tidak diunggah\nBelum diperiksa\nBersih\nAda catatan\nKedaluwarsa"
+   "options": "Not uploaded\nNot checked\nClear\nHas records\nExpired"
   },
   {
    "fieldname": "column_break_skck",
@@ -232,27 +236,27 @@
   {
    "fieldname": "tab_name_trace",
    "fieldtype": "Tab Break",
-   "label": "Jejak Digital Nama"
+   "label": "Name Digital Footprint"
   },
   {
    "fieldname": "name_findings_html",
    "fieldtype": "HTML",
-   "label": "Temuan Jejak Digital Nama"
+   "label": "Name Digital Footprint Findings"
   },
   {
    "fieldname": "tab_account_trace",
    "fieldtype": "Tab Break",
-   "label": "Jejak Digital Akun"
+   "label": "Account Digital Footprint"
   },
   {
    "fieldname": "account_findings_html",
    "fieldtype": "HTML",
-   "label": "Temuan Jejak Digital Akun"
+   "label": "Account Digital Footprint Findings"
   },
   {
    "fieldname": "tab_consent_audit",
    "fieldtype": "Tab Break",
-   "label": "Persetujuan & Audit"
+   "label": "Consent & Audit"
   },
   {
    "fieldname": "section_break_consent",
@@ -332,12 +336,12 @@
   {
    "fieldname": "name_variants",
    "fieldtype": "Small Text",
-   "label": "Name Variants (satu per baris)"
+   "label": "Name Variants (one per line)"
   },
   {
    "fieldname": "context_terms",
    "fieldtype": "Small Text",
-   "label": "Context Terms (dari Resume Screening)",
+   "label": "Context Terms (from Resume Screening)",
    "read_only": 1
   },
   {
@@ -355,6 +359,31 @@
    "fieldname": "reviewed_on",
    "fieldtype": "Datetime",
    "label": "Reviewed On"
+  },
+  {
+   "default": "id",
+   "fieldname": "candidate_language",
+   "fieldtype": "Select",
+   "label": "Candidate Language",
+   "options": "id\nen"
+  },
+  {
+   "fieldname": "summary_auto_template",
+   "fieldtype": "Small Text",
+   "label": "Automated Summary Template",
+   "read_only": 1
+  },
+  {
+   "fieldname": "summary_auto_params",
+   "fieldtype": "Small Text",
+   "label": "Automated Summary Parameters",
+   "read_only": 1
+  },
+  {
+   "fieldname": "consent_language",
+   "fieldtype": "Data",
+   "label": "Consent Language",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,

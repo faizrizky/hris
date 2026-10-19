@@ -4,17 +4,17 @@
 frappe.ui.form.on("Job Applicant", {
 	refresh(frm) {
 		if (!frm.is_new() && frm.doc.resume_attachment) {
-			frm.add_custom_button(__("Screen Ulang"), function () {
+			frm.add_custom_button(__("Screen Again"), function () {
 				frappe.call({
 					method: "hris_ats.scoring.workflow.rescreen_applicant",
 					args: {
 						applicant_name: frm.doc.name
 					},
 					freeze: true,
-					freeze_message: __("Memulai screening ulang resume..."),
+					freeze_message: __("Starting resume rescreening..."),
 					callback: function (r) {
 						frappe.show_alert({
-							message: __("Screening ulang berhasil dijadwalkan"),
+							message: __("Rescreening scheduled successfully"),
 							indicator: "green"
 						});
 						frm.reload_doc();
@@ -25,9 +25,9 @@ frappe.ui.form.on("Job Applicant", {
 
 		if (frm.doc.screening_status === "Done" && !frm.is_new()) {
 			if (!frm.doc.background_check || frm.doc.recruitment_stage === "Screening") {
-				frm.add_custom_button(__("Mulai Background Check"), function () {
+				frm.add_custom_button(__("Start Background Check"), function () {
 					frappe.confirm(
-						__("Mulai pemeriksaan latar belakang untuk pelamar {0}? Undangan persetujuan akan dikirimkan ke email kandidat.", [frm.doc.applicant_name]),
+						__("Start background check for applicant {0}? A consent invitation will be sent to the candidate's email.", [frm.doc.applicant_name]),
 						function () {
 							frappe.call({
 								method: "hris_ats.bgc.consent.initiate_background_check",
@@ -35,11 +35,11 @@ frappe.ui.form.on("Job Applicant", {
 									applicant_name: frm.doc.name
 								},
 								freeze: true,
-								freeze_message: __("Membuat dokumen Background Check..."),
+								freeze_message: __("Creating Background Check document..."),
 								callback: function (r) {
 									if (r.message) {
 										frappe.show_alert({
-											message: r.message.message || __("Background Check berhasil dibuat."),
+											message: r.message.message || __("Background Check created successfully."),
 											indicator: "green"
 										});
 										frm.reload_doc();

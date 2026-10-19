@@ -18,13 +18,13 @@ frappe.ui.form.on("Resume Screening Template", {
 			frm.set_df_property(
 				"total_weight",
 				"description",
-				__("<span style='color:red;'>Total bobot harus tepat 100%. Saat ini: {0}%</span>", [total])
+				__("<span style='color:red;'>Total weight must be exactly 100%. Current: {0}%</span>", [total])
 			);
 		} else {
 			frm.set_df_property(
 				"total_weight",
 				"description",
-				__("<span style='color:green;'>Total bobot tepat 100%.</span>")
+				__("<span style='color:green;'>Total weight is exactly 100%.</span>")
 			);
 		}
 	}

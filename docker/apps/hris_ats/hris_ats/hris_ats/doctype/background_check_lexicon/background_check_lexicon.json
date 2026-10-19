@@ -21,7 +21,7 @@
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Category",
-   "options": "Kata kasar\nUjaran kebencian/SARA\nAncaman/kekerasan\nPornografi\nJudi online\nNarkoba\nPenipuan\nKebocoran informasi perusahaan\nPrestasi\nProfesional\nHukum-negatif",
+   "options": "Profanity\nHate speech\nThreats/violence\nPornography\nOnline gambling\nNarcotics\nFraud\nCompany information leak\nAchievement\nProfessional\nLegal-negative",
    "reqd": 1
   },
   {
@@ -32,12 +32,12 @@
    "reqd": 1
   },
   {
-   "default": "Sedang",
+   "default": "Medium",
    "fieldname": "severity",
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Severity",
-   "options": "Info\nRendah\nSedang\nTinggi"
+   "options": "Info\nLow\nMedium\nHigh"
   },
   {
    "fieldname": "column_break_1",

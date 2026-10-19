@@ -88,8 +88,8 @@ class TestBackgroundCheckConsent(FrappeTestCase):
 		self.assertTrue(bgc.consent_token_expires_at)
 		self.assertGreater(bgc.consent_token_expires_at, now_datetime())
 
-		# Verifikasi 5 cakupan default terisi
-		self.assertEqual(len(bgc.consent_scope), 5)
+		# Verifikasi 6 cakupan default terisi (Platform, Article, File, Case history, Posts, Social Media)
+		self.assertEqual(len(bgc.consent_scope), 6)
 
 	def test_consent_token_expiration(self):
 		"""Token yang kedaluwarsa wajib ditolak saat pengiriman persetujuan."""

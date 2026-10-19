@@ -13,39 +13,112 @@ def get_context(context):
 	context.no_breadcrumbs = True
 	token = frappe.form_dict.get("token")
 	if not token:
-		context.error = _("Tautan tidak valid atau token tidak disertakan.")
+		context.error = _("Invalid link or missing consent token.")
 		return
 
 	bgc_name = frappe.db.get_value("Background Check", {"consent_token": token}, "name")
 	if not bgc_name:
-		context.error = _("Tautan persetujuan tidak valid atau sudah pernah digunakan.")
+		context.error = _("Consent link is invalid or has already been used.")
 		return
 
 	bgc = frappe.get_doc("Background Check", bgc_name)
 	if bgc.consent_token_expires_at and bgc.consent_token_expires_at < now_datetime():
-		context.error = _("Tautan persetujuan telah kedaluwarsa. Silakan hubungi tim HR.")
+		context.error = _("Consent link has expired. Please contact the HR team.")
 		return
 
 	if bgc.consent_status != "Pending":
-		context.error = _("Persetujuan untuk berkas ini sudah pernah diproses sebelumnya.")
+		context.error = _("Consent for this record has already been processed.")
 		return
+
+	# Language resolution: ?lang= -> candidate_language (from token) -> Accept-Language -> default id
+	# Only 'id' and 'en' are accepted. Other ?lang= values are ignored.
+	url_lang = frappe.form_dict.get("lang")
+	if url_lang in ("id", "en"):
+		lang = url_lang
+	elif getattr(bgc, "candidate_language", None) in ("id", "en"):
+		lang = bgc.candidate_language
+	elif hasattr(frappe.local, "request") and frappe.local.request:
+		accept_lang = frappe.local.request.headers.get("Accept-Language", "")
+		lang = "id"
+		if accept_lang:
+			for part in accept_lang.split(","):
+				code = part.split(";")[0].strip().lower()
+				if code.startswith("en"):
+					lang = "en"
+					break
+				if code.startswith("id"):
+					lang = "id"
+					break
+	else:
+		lang = "id"
+
+	frappe.local.lang = lang
+	context.lang = lang
 
 	settings = frappe.get_single("Background Check Settings")
 	context.bgc = bgc
 	context.token = token
 	context.applicant_name = bgc.full_name
-	context.consent_text = settings.consent_text or ""
+	if lang == "en":
+		context.consent_text = getattr(settings, "consent_text_en", None) or getattr(settings, "consent_text_id", None) or ""
+	else:
+		context.consent_text = getattr(settings, "consent_text_id", None) or getattr(settings, "consent_text_en", None) or ""
 	context.retention_days = settings.retention_days or 90
 	context.platforms = frappe.get_all(
 		"Background Check Platform",
 		filters={"enabled": 1},
-		fields=["platform_name", "category"],
+		fields=["platform_name", "category", "requires_social_consent"],
 		order_by="platform_name asc",
 	)
+	context.social_platforms = [
+		p.platform_name for p in context.platforms if p.requires_social_consent
+	]
+	context.existing_social_accounts = [
+		{
+			"platform": a.platform,
+			"username": a.username,
+			"social_consent": a.social_consent or 0,
+		}
+		for a in bgc.accounts
+		if a.platform in context.social_platforms
+	]
+	context.existing_other_accounts = [
+		{
+			"platform": a.platform,
+			"username": a.username,
+		}
+		for a in bgc.accounts
+		if a.platform not in context.social_platforms
+	]
 	context.sources = [
-		{"key": "Platform", "label": "Pemeriksaan Akun & Platform Publik", "desc": "Pengecekan profil publik pada akun media sosial/profesional yang Anda nyatakan."},
-		{"key": "Article", "label": "Pemberitaan & Publikasi Media", "desc": "Pencarian artikel publik terkait rekam jejak profesional dan prestasi."},
-		{"key": "File", "label": "Dokumen & Publikasi Terbuka", "desc": "Pencarian berkas atau publikasi karya ilmiah publik."},
-		{"key": "Case history", "label": "Riwayat Perkara Hukum (Putusan MA)", "desc": "Pemeriksaan direktori putusan pengadilan terbuka untuk verifikasi integritas hukum."},
-		{"key": "Posts", "label": "Aktivitas Akun Publik", "desc": "Pemeriksaan kesantunan bahasa dan konten berisiko pada platform dengan API resmi."},
+		{
+			"key": "Platform",
+			"label": _("Public Account & Platform Check"),
+			"desc": _("Verification of public profile on declared professional platform accounts."),
+		},
+		{
+			"key": "Article",
+			"label": _("News & Media Publications"),
+			"desc": _("Search for public articles regarding professional track record and achievements."),
+		},
+		{
+			"key": "File",
+			"label": _("Public Documents & Publications"),
+			"desc": _("Search for public documents or academic publications."),
+		},
+		{
+			"key": "Case history",
+			"label": _("Legal Case History (Supreme Court Decisions)"),
+			"desc": _("Check open court decisions directory to verify legal integrity."),
+		},
+		{
+			"key": "Posts",
+			"label": _("Public Account Activity"),
+			"desc": _("Verification of language politeness and risk indicators on platforms with official APIs."),
+		},
+		{
+			"key": "Social Media",
+			"label": _("Social Media"),
+			"desc": _("Verification of public profile and posts on declared social media accounts (Instagram, Facebook, TikTok, LinkedIn)."),
+		},
 	]

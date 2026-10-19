@@ -21,12 +21,12 @@ def daily_retention_purge() -> dict[str, int]:
 		"Background Check",
 		filters={
 			"skck_valid_until": ["<", today],
-			"skck_status": ["!=", "Kedaluwarsa"],
+			"skck_status": ["not in", ["Expired", "Kedaluwarsa"]],
 		},
 		pluck="name",
 	)
 	for name in skck_expired_records:
-		frappe.db.set_value("Background Check", name, "skck_status", "Kedaluwarsa", update_modified=False)
+		frappe.db.set_value("Background Check", name, "skck_status", "Expired", update_modified=False)
 
 	# 2. Temukan dokumen BGC yang melewati purge_after dan belum dipurge
 	expired_bgcs = frappe.get_all(
@@ -50,6 +50,8 @@ def daily_retention_purge() -> dict[str, int]:
 		# Bersihkan ringkasan otomatis dan akun terdaftar, pertahankan kesimpulan & bukti consent
 		bgc = frappe.get_doc("Background Check", bgc_name)
 		bgc.summary_auto = None
+		bgc.summary_auto_template = None
+		bgc.summary_auto_params = None
 		bgc.accounts = []
 		bgc.is_purged = 1
 		bgc.save(ignore_permissions=True)

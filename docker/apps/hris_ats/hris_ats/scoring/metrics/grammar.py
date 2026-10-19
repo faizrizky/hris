@@ -1,24 +1,24 @@
 # Copyright (c) 2026, HRIS Team and contributors
 # For license information, please see license.txt
 
-"""Metrik 2: Grammar / Kerapian Tulisan (0-100)
-Heuristik mekanis:
-- Kata berulang berdampingan ("the the", "dan dan", "di di")
-- Spasi ganda atau tanda baca ganda (",,", "..", "??", spasi sebelum koma)
-- Kalimat yang dimulai dengan huruf kecil
-- Kalimat yang terlalu panjang (> 40 kata)
-- Rasio kata huruf besar semua (ALL CAPS) di luar singkatan umum
-- Daftar salah ketik umum (Bahasa Indonesia & Bahasa Inggris)
+"""Metric 2: Grammar / Writing Quality (0-100)
+Mechanical heuristics:
+- Adjacent repeated words ("the the", "dan dan", "di di")
+- Double punctuation or punctuation spacing
+- All-caps word ratio outside standard acronyms
+- Common typographical errors (Indonesian & English)
+- Overly long sentences (> 40 words)
 """
 
 from __future__ import annotations
 
+import json
 import re
 from typing import Any
 from hris_ats.scoring.extract import ExtractionResult
 
 COMMON_TYPOS = {
-	# Bahasa Indonesia
+	# Indonesian
 	r"\baktifitas\b": "aktivitas",
 	r"\bkwalitas\b": "kualitas",
 	r"\bmanagemen\b": "manajemen",
@@ -54,38 +54,49 @@ def evaluate(extraction: ExtractionResult, sections: dict[str, str], criteria: d
 	word_count = len(words)
 
 	if word_count < 20:
+		msg = "Text is too short to evaluate writing quality."
 		return {
 			"score": 50.0,
 			"applicable": True,
-			"reason": "Teks terlalu pendek untuk mengevaluasi kerapian tulisan.",
+			"reason": msg,
+			"reason_template": msg,
+			"reason_params": "{}",
 		}
 
 	penalties = 0.0
 	issues_detected: list[str] = []
+	template_parts: list[str] = []
+	params: dict[str, Any] = {}
 
-	# 1. Kata berulang berdampingan ("the the", "dan dan")
+	# 1. Repeated words
 	repeated_words = re.findall(r"\b([a-zA-Z]{2,})\s+\1\b", text, re.IGNORECASE)
 	if repeated_words:
 		count = len(repeated_words)
 		penalties += count * 4.0
-		issues_detected.append(f"Kata berulang ('{repeated_words[0]}')")
+		issues_detected.append(f"Repeated words ('{repeated_words[0]}')")
+		template_parts.append("Repeated words ('{repeated_word}')")
+		params["repeated_word"] = repeated_words[0]
 
-	# 2. Spasi ganda dan tanda baca aneh
+	# 2. Punctuation
 	double_punct = len(re.findall(r"([,\.?!;:])\s*\1+", text))
 	space_before_punct = len(re.findall(r"\s+[,;:?!]", text))
 	punct_issues = double_punct + space_before_punct
 	if punct_issues > 0:
 		penalties += min(punct_issues * 2.0, 15.0)
-		issues_detected.append("Tanda baca ganda atau spasi sebelum tanda baca")
+		msg = "Double punctuation or space before punctuation"
+		issues_detected.append(msg)
+		template_parts.append(msg)
 
-	# 3. Rasio ALL CAPS berlebih
+	# 3. ALL CAPS
 	caps_words = [w for w in words if w.isupper() and len(w) > 1 and w not in SAFE_ACRONYMS]
 	caps_ratio = len(caps_words) / word_count
 	if caps_ratio > 0.15:
 		penalties += 15.0
-		issues_detected.append("Penggunaan huruf kapital berlebihan (ALL CAPS)")
+		msg = "Excessive capitalization (ALL CAPS)"
+		issues_detected.append(msg)
+		template_parts.append(msg)
 
-	# 4. Typo umum
+	# 4. Common typos
 	typo_count = 0
 	typo_examples = []
 	for pattern, fix in COMMON_TYPOS.items():
@@ -96,28 +107,36 @@ def evaluate(extraction: ExtractionResult, sections: dict[str, str], criteria: d
 
 	if typo_count > 0:
 		penalties += min(typo_count * 3.0, 20.0)
-		issues_detected.append(f"Kesalahan ketik umum ({', '.join(typo_examples[:2])})")
+		typos_str = ", ".join(typo_examples[:2])
+		issues_detected.append(f"Common typographical errors ({typos_str})")
+		template_parts.append("Common typographical errors ({typos})")
+		params["typos"] = typos_str
 
-	# 5. Kalimat yang sangat panjang (> 40 kata)
+	# 5. Long sentences
 	sentences = re.split(r"[.!?]+(?:\s+|\n+)", text)
 	long_sentences = [s for s in sentences if len(s.split()) > 40]
 	if len(long_sentences) > 2:
 		penalties += 10.0
-		issues_detected.append(f"Terdapat {len(long_sentences)} kalimat terlalu panjang (> 40 kata)")
+		issues_detected.append(f"Found {len(long_sentences)} sentences that are too long (> 40 words)")
+		template_parts.append("Found {long_sentence_count} sentences that are too long (> 40 words)")
+		params["long_sentence_count"] = len(long_sentences)
 
-	# Skala penalti per 100 kata
 	norm_factor = 100.0 / max(100, word_count)
 	scaled_penalty = penalties * (norm_factor ** 0.5)
 
 	final_score = max(20.0, min(100.0, 100.0 - scaled_penalty))
 
 	if not issues_detected:
-		final_reason = "Kerapian tulisan sangat baik (tanda baca, kapitalisasi, dan struktur rapi)."
+		final_reason = "Writing quality is very good (clean punctuation, capitalization, and structure)."
+		final_template = final_reason
 	else:
 		final_reason = "; ".join(issues_detected) + "."
+		final_template = "; ".join(template_parts) + "."
 
 	return {
 		"score": round(final_score, 1),
 		"applicable": True,
 		"reason": final_reason,
+		"reason_template": final_template,
+		"reason_params": json.dumps(params) if params else "{}",
 	}

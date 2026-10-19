@@ -1,18 +1,19 @@
 # Copyright (c) 2026, HRIS Team and contributors
 # For license information, please see license.txt
 
-"""Metrik 3: Date consistency (0-100)
-Mengevaluasi konsistensi dan kewajaran penanggalan:
-- Satu format tanggal dominan (>= 80%)
-- Tanggal mulai <= tanggal selesai
-- Tidak ada tanggal di masa depan
-- Urutan kronologis pekerjaan
-- Deteksi tanggal tumpang tindih antar jabatan (penalti ringan + dicatat di reason)
-- Celah karier > 12 bulan dicatat di alasan (tanpa penalti skor)
+"""Metric 3: Date consistency (0-100)
+Evaluates dating consistency and plausibility:
+- Single dominant date format (>= 80%)
+- Start date <= end date
+- No future dates
+- Chronological ordering
+- Overlapping job dates detection (light penalty + recorded in reason)
+- Career gap > 12 months recorded (informational, no penalty)
 """
 
 from __future__ import annotations
 
+import json
 import re
 from datetime import datetime
 from typing import Any
@@ -38,12 +39,12 @@ NOW_MONTH = datetime.now().month
 
 
 def parse_date_token(token: str) -> tuple[int, int] | None:
-	"""Mengubah token tanggal string menjadi tuple (year, month)."""
+	"""Converts date string token to (year, month)."""
 	token = token.strip().lower()
 	if token in ("sekarang", "present", "current", "saat ini"):
 		return (NOW_YEAR, NOW_MONTH)
 
-	# Format: Bulan Tahun (e.g. Jan 2021, Januari 2021)
+	# Format: Month Year
 	m_name = re.match(r"^([a-z]+)\s+(\d{4})$", token)
 	if m_name:
 		name, yr = m_name.groups()
@@ -51,7 +52,7 @@ def parse_date_token(token: str) -> tuple[int, int] | None:
 		if month:
 			return (int(yr), month)
 
-	# Format: MM/YYYY atau MM-YYYY
+	# Format: MM/YYYY or MM-YYYY
 	m_slash = re.match(r"^(\d{1,2})[/\-](\d{4})$", token)
 	if m_slash:
 		mo, yr = m_slash.groups()
@@ -59,7 +60,7 @@ def parse_date_token(token: str) -> tuple[int, int] | None:
 		if 1 <= mo_int <= 12:
 			return (int(yr), mo_int)
 
-	# Format: YYYY saja
+	# Format: YYYY
 	m_yr = re.match(r"^(\d{4})$", token)
 	if m_yr:
 		return (int(m_yr.group(1)), 1)
@@ -68,9 +69,8 @@ def parse_date_token(token: str) -> tuple[int, int] | None:
 
 
 def extract_date_ranges(text: str) -> list[dict[str, Any]]:
-	"""Mengekstrak rentang tanggal (start, end) beserta teks baris/konteks."""
+	"""Extracts date ranges (start, end) with surrounding context."""
 	results = []
-	# Pola rentang tanggal: "Start - End" atau "Start s/d End" atau "Start to End"
 	range_pattern = re.compile(
 		r"((?:[a-zA-Z]+|\d{1,2}[/\-])?\s*\d{4})\s*(?:-|–|—|to|s/d|sampai)\s*((?:[a-zA-Z]+\s+)?\d{4}|sekarang|present|current|saat ini)",
 		re.IGNORECASE,
@@ -81,7 +81,6 @@ def extract_date_ranges(text: str) -> list[dict[str, Any]]:
 		p_start = parse_date_token(start_raw)
 		p_end = parse_date_token(end_raw)
 
-		# Format classification
 		fmt = "year_only"
 		if re.search(r"[a-zA-Z]+", start_raw):
 			fmt = "month_name"
@@ -89,7 +88,6 @@ def extract_date_ranges(text: str) -> list[dict[str, Any]]:
 			fmt = "numeric_month"
 
 		if p_start and p_end:
-			# Ambil konteks di sekitar rentang (mis. nama jabatan/perusahaan di baris yang sama)
 			start_idx = max(0, match.start() - 100)
 			end_idx = min(len(text), match.end() + 100)
 			context = text[start_idx:end_idx]
@@ -107,51 +105,63 @@ def extract_date_ranges(text: str) -> list[dict[str, Any]]:
 
 
 def evaluate(extraction: ExtractionResult, sections: dict[str, str], criteria: dict[str, Any] | None = None) -> dict[str, Any]:
-	text = extraction.normalized_text
-	exp_text = sections.get("experience", "") or text
-	ranges = extract_date_ranges(exp_text)
+	search_text = (
+		sections.get("experience", "") + "\n" +
+		sections.get("education", "") + "\n" +
+		extraction.normalized_text
+	)
+
+	ranges = extract_date_ranges(search_text)
 
 	if not ranges:
-		# Jika tidak ada rentang di experience, cari di seluruh dokumen
-		ranges = extract_date_ranges(text)
-
-	if not ranges:
+		msg = "No date ranges found to evaluate consistency."
 		return {
-			"score": 60.0,
+			"score": 70.0,
 			"applicable": True,
-			"reason": "Rentang tanggal pekerjaan tidak ditemukan atau format tidak terbaca.",
+			"reason": msg,
+			"reason_template": msg,
+			"reason_params": "{}",
 		}
 
-	reasons: list[str] = []
 	penalties = 0.0
+	reasons: list[str] = []
+	template_parts: list[str] = []
+	params: dict[str, Any] = {}
 
-	# 1. Konsistensi format (>= 80% harus satu format dominan)
+	# 1. Date formatting consistency
 	formats = [r["format"] for r in ranges]
-	if formats:
-		most_common_count = max(formats.count(f) for f in set(formats))
-		ratio = most_common_count / len(formats)
-		if ratio < 0.8:
-			penalties += 15.0
-			reasons.append("Format tanggal campuran (terdapat format berbeda, mis. nama bulan dan angka)")
+	counts = {}
+	for f in formats:
+		counts[f] = counts.get(f, 0) + 1
 
-	# 2. Mulai <= Selesai
-	invalid_range_count = 0
+	dominant_count = max(counts.values()) if counts else 0
+	dominant_pct = (dominant_count / len(formats)) * 100.0
+
+	if dominant_pct < 80.0:
+		penalties += 15.0
+		reasons.append(f"Mixed date formats ({dominant_pct:.0f}% dominant format)")
+		template_parts.append("Mixed date formats ({dominant_pct:.0f}% dominant format)")
+		params["dominant_pct"] = dominant_pct
+
+	# 2. Start date <= End date
+	inverted_ranges = []
 	for r in ranges:
 		sy, sm = r["start"]
 		ey, em = r["end"]
 		if (sy > ey) or (sy == ey and sm > em):
-			invalid_range_count += 1
+			inverted_ranges.append(f"{r['raw_start']}-{r['raw_end']}")
 
-	if invalid_range_count > 0:
-		penalties += min(invalid_range_count * 15.0, 30.0)
-		reasons.append(f"Terdapat {invalid_range_count} rentang di mana tanggal mulai lebih akhir dari tanggal selesai")
+	if inverted_ranges:
+		penalties += min(len(inverted_ranges) * 20.0, 40.0)
+		reasons.append(f"Start date is later than end date ({inverted_ranges[0]})")
+		template_parts.append("Start date is later than end date ({range})")
+		params["range"] = inverted_ranges[0]
 
-	# 3. Tanggal di masa depan
+	# 3. Future dates
 	future_dates = 0
 	for r in ranges:
 		sy, sm = r["start"]
 		ey, em = r["end"]
-		# Tanggal lebih dari 1 bulan dari sekarang
 		if sy > NOW_YEAR or (sy == NOW_YEAR and sm > (NOW_MONTH + 1)):
 			future_dates += 1
 		if ey > NOW_YEAR or (ey == NOW_YEAR and em > (NOW_MONTH + 1)):
@@ -159,9 +169,11 @@ def evaluate(extraction: ExtractionResult, sections: dict[str, str], criteria: d
 
 	if future_dates > 0:
 		penalties += 20.0
-		reasons.append("Terdapat tanggal pekerjaan di masa depan")
+		msg = "Future employment date detected"
+		reasons.append(msg)
+		template_parts.append(msg)
 
-	# 4. Deteksi pekerjaan yang tanggalnya tumpang tindih antar jabatan
+	# 4. Overlapping job dates
 	overlaps: list[str] = []
 	sorted_ranges = sorted(ranges, key=lambda x: (x["start"][0], x["start"][1]))
 
@@ -172,16 +184,17 @@ def evaluate(extraction: ExtractionResult, sections: dict[str, str], criteria: d
 			s1, e1 = r1["start"], r1["end"]
 			s2, e2 = r2["start"], r2["end"]
 
-			# Cek tumpang tindih jika s2 < e1 (lebih dari 1 bulan)
 			overlap_months = (e1[0] - s2[0]) * 12 + (e1[1] - s2[1])
 			if overlap_months > 1:
-				overlaps.append(f"{r1['raw_start']}-{r1['raw_end']} dengan {r2['raw_start']}-{r2['raw_end']}")
+				overlaps.append(f"{r1['raw_start']}-{r1['raw_end']} with {r2['raw_start']}-{r2['raw_end']}")
 
 	if overlaps:
-		penalties += 10.0  # Penalti ringan sesuai spesifikasi
-		reasons.append(f"Tanggal jabatan tumpang tindih ({overlaps[0]})")
+		penalties += 10.0
+		reasons.append(f"Overlapping job dates ({overlaps[0]})")
+		template_parts.append("Overlapping job dates ({overlap})")
+		params["overlap"] = overlaps[0]
 
-	# 5. Cek celah karier > 12 bulan (hanya dicatat, tidak mengurangi skor)
+	# 5. Career gap > 12 months (informational)
 	has_gap = False
 	for i in range(len(sorted_ranges) - 1):
 		cur_end = sorted_ranges[i]["end"]
@@ -192,17 +205,23 @@ def evaluate(extraction: ExtractionResult, sections: dict[str, str], criteria: d
 			break
 
 	if has_gap:
-		reasons.append("Terdapat celah karier > 12 bulan (informasi)")
+		msg = "Career gap > 12 months detected (informational)"
+		reasons.append(msg)
+		template_parts.append(msg)
 
 	final_score = max(0.0, min(100.0, 100.0 - penalties))
 
 	if not reasons:
-		final_reason = "Format tanggal sangat konsisten dan urutan kronologis rapi."
+		final_reason = "Date formatting is consistent and chronological order is neat."
+		final_template = final_reason
 	else:
 		final_reason = "; ".join(reasons) + "."
+		final_template = "; ".join(template_parts) + "."
 
 	return {
 		"score": round(final_score, 1),
 		"applicable": True,
 		"reason": final_reason,
+		"reason_template": final_template,
+		"reason_params": json.dumps(params) if params else "{}",
 	}

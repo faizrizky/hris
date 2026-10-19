@@ -44,13 +44,15 @@ def analyze_posts(
 	abusive_terms = [
 		item["term"].lower()
 		for item in lexicon
-		if item.get("enabled", 1) and item.get("category") == "Kata kasar"
+		if item.get("enabled", 1) and item.get("category") in ("Kata kasar", "Profanity")
 	]
 
 	risk_items = [
 		item
 		for item in lexicon
-		if item.get("enabled", 1) and item.get("category") != "Kata kasar" and item.get("severity") in ("Sedang", "Tinggi")
+		if item.get("enabled", 1)
+		and item.get("category") not in ("Kata kasar", "Profanity")
+		and item.get("severity") in ("Sedang", "Tinggi", "Medium", "High")
 	]
 
 	all_skills = [
@@ -94,7 +96,7 @@ def analyze_posts(
 				hour = dt.hour
 				hour_distribution[hour] = hour_distribution.get(hour, 0) + 1
 
-		# 1. Kesantunan (Kata kasar)
+		# 1. Kesantunan (Profanity / Kata kasar)
 		has_abuse = False
 		matched_abusive = []
 		for term in abusive_terms:
@@ -107,30 +109,31 @@ def analyze_posts(
 			if is_reply:
 				abusive_replies_count += 1
 
-		# 2. Konten berisiko (Ujaran kebencian, Ancaman, Pornografi, Judi, Narkoba, Penipuan, Kebocoran info)
+		# 2. Konten berisiko (Hate speech, Threats/violence, Pornography, Online gambling, Narcotics, Fraud, etc.)
 		matched_risks = []
-		highest_sev = "Rendah"
+		highest_sev = "Low"
 		for item in risk_items:
 			term = item.get("term", "").lower()
 			if not term:
 				continue
+			item_sev = item.get("severity")
 			if item.get("is_regex"):
 				try:
 					if re.search(term, clean_text):
 						matched_risks.append(f"{item.get('category')}: {term}")
-						if item.get("severity") == "Tinggi":
-							highest_sev = "Tinggi"
-						elif item.get("severity") == "Sedang" and highest_sev != "Tinggi":
-							highest_sev = "Sedang"
+						if item_sev in ("Tinggi", "High"):
+							highest_sev = "High"
+						elif item_sev in ("Sedang", "Medium") and highest_sev != "High":
+							highest_sev = "Medium"
 				except re.error:
 					pass
 			else:
 				if re.search(r"\b" + re.escape(term) + r"\b", clean_text):
 					matched_risks.append(f"{item.get('category')}: {term}")
-					if item.get("severity") == "Tinggi":
-						highest_sev = "Tinggi"
-					elif item.get("severity") == "Sedang" and highest_sev != "Tinggi":
-						highest_sev = "Sedang"
+					if item_sev in ("Tinggi", "High"):
+						highest_sev = "High"
+					elif item_sev in ("Sedang", "Medium") and highest_sev != "High":
+						highest_sev = "Medium"
 
 		if matched_risks:
 			risk_posts.append({

@@ -1,191 +1,659 @@
-"HRIS ATS","HRIS ATS",""
-"Resume Screening","Skrining Resume",""
-"Background Check","Pemeriksaan Latar Belakang",""
-"Resume Screening Template","Template Skrining Resume",""
-"Resume Screening Template Role","Jabatan Template Skrining Resume",""
-"Resume Screening Score Label","Label Skor Skrining Resume",""
-"Resume Screening Metric Weight","Bobot Metrik Skrining Resume",""
-"Resume Screening Result","Hasil Skrining Resume",""
-"Resume Screening Settings","Pengaturan Skrining Resume",""
-"Template Name","Nama Template",""
-"Enabled","Aktif",""
-"Minimum Score to Pass","Skor Minimal untuk Lolos",""
-"Total Weight","Total Bobot",""
-"Target Job Roles","Jabatan Target",""
-"Metric Weights","Bobot Metrik",""
-"Result Descriptions","Deskripsi Hasil",""
-"Pass Description","Deskripsi Lolos",""
-"Fail Description","Deskripsi Gagal",""
-"Score Labels","Label Skor",""
-"Label Type","Tipe Label",""
-"Score From","Skor Dari",""
-"Score To","Skor Sampai",""
-"Indicator","Indikator",""
-"Description","Deskripsi",""
-"Metric","Metrik",""
-"Weight","Bobot",""
-"Effective Weight","Bobot Efektif",""
-"Score","Skor",""
-"Passed","Lolos",""
-"Applicable","Berlaku",""
-"Metric Status","Status Metrik",""
-"Reason","Alasan",""
-"Job Applicant","Pelamar Kerja",""
-"Applicant Name","Nama Pelamar",""
-"Job Opening","Lowongan Pekerjaan",""
-"Designation","Jabatan",""
-"Source","Sumber",""
-"Screening Template","Template Skrining",""
-"Status & Result","Status & Hasil",""
-"Status","Status",""
-"Total Score","Skor Total",""
-"Experience Level","Tingkat Pengalaman",""
-"Result Label","Label Hasil",""
-"Result Indicator","Indikator Hasil",""
-"Result Description","Deskripsi Hasil",""
-"Screened On","Waktu Skrining",""
-"HR Override","Perubahan Manual HR",""
-"HR Override Label","Label Pengganti HR",""
-"HR Override Note","Catatan Pengganti HR",""
-"Resume & Evidence","Resume & Bukti",""
-"Resume File","Berkas Resume",""
-"Extracted Text","Teks Terekstraksi",""
-"Criteria Snapshot","Snapshot Kriteria",""
-"Metric Results","Hasil Per Metrik",""
-"Enable Resume Screening","Aktifkan Skrining Resume",""
-"Auto Screen on Application","Skrining Otomatis saat Melamar",""
-"Metric Pass Threshold (%)","Ambang Lolos Metrik (%)",""
-"Max File Size (MB)","Ukuran Maksimal Berkas (MB)",""
-"Min Text Chars Per Page (Scan Detection)","Minimal Karakter Teks Per Halaman (Deteksi Scan)",""
-"Kriteria Screening","Kriteria Skrining",""
-"Pendidikan Minimal","Pendidikan Minimal",""
-"Minimal Pengalaman (Tahun)","Minimal Pengalaman (Tahun)",""
-"Jurusan Pendidikan","Jurusan Pendidikan",""
-"Judul Jabatan Relevan","Judul Jabatan Relevan",""
-"Keahlian & Sertifikasi","Keahlian & Sertifikasi",""
-"Keahlian Wajib","Keahlian Wajib",""
-"Keahlian Tambahan","Keahlian Tambahan",""
-"Kata Kunci Sertifikasi","Kata Kunci Sertifikasi",""
-"Tahap Rekrutmen","Tahap Rekrutmen",""
-"Kota / Region","Kota / Wilayah",""
-"Alamat","Alamat",""
-"Kode Pos","Kode Pos",""
-"Skor Resume","Skor Resume",""
-"Status Screening","Status Skrining",""
-"Screen Ulang","Skrining Ulang",""
-"Background Check","Pemeriksaan Latar Belakang",""
-"Background Check Account","Akun Pemeriksaan Latar Belakang",""
-"Background Check Source Run","Eksekusi Sumber Pemeriksaan Latar Belakang",""
-"Background Check Consent Scope","Cakupan Persetujuan Pemeriksaan Latar Belakang",""
-"Background Check Finding","Temuan Pemeriksaan Latar Belakang",""
-"Background Check Platform","Platform Pemeriksaan Latar Belakang",""
-"Background Check Lexicon","Leksikon Pemeriksaan Latar Belakang",""
-"Background Check Settings","Pengaturan Pemeriksaan Latar Belakang",""
-"Indicated Risk Level","Tingkat Risiko Terindikasi",""
-"Final Risk Level","Tingkat Risiko Final",""
-"Purge Raw Findings After","Hapus Temuan Mentah Setelah",""
-"Profile Summary & HR Conclusion","Ringkasan Profil & Kesimpulan HR",""
-"Automated Summary","Ringkasan Otomatis",""
-"HR Summary Review","Telaah Ringkasan HR",""
-"HR Conclusion (Wajib sebelum Interview)","Kesimpulan HR (Wajib sebelum Wawancara)",""
-"Source Status","Status Sumber",""
-"Source Runs","Eksekusi Sumber",""
-"SKCK Verification (Opsional)","Verifikasi SKCK (Opsional)",""
-"SKCK Document","Dokumen SKCK",""
-"SKCK Status","Status SKCK",""
-"SKCK Number","Nomor SKCK",""
-"SKCK Valid Until","SKCK Berlaku Sampai",""
-"Platform","Platform",""
-"Registered Accounts","Akun Terdaftar",""
-"Accounts","Akun",""
-"Jejak Digital Nama","Jejak Digital Nama",""
-"Temuan Jejak Digital Nama","Temuan Jejak Digital Nama",""
-"Jejak Digital Akun","Jejak Digital Akun",""
-"Temuan Jejak Digital Akun","Temuan Jejak Digital Akun",""
-"Persetujuan & Audit","Persetujuan & Audit",""
-"Candidate Consent (UU PDP Compliance)","Persetujuan Kandidat (Kepatuhan UU PDP)",""
-"Consent Status","Status Persetujuan",""
-"Consent Method","Metode Persetujuan",""
-"Consent Granted At","Waktu Persetujuan Diberikan",""
-"Consent IP Address","Alamat IP Persetujuan",""
-"Consent Text Version","Versi Teks Persetujuan",""
-"Signed Consent Document","Dokumen Persetujuan Bertanda Tangan",""
-"Consented Check Scopes","Ruang Lingkup Pemeriksaan yang Disetujui",""
-"Consent Scope","Ruang Lingkup Persetujuan",""
-"Identity & Context Terms","Identitas & Konteks",""
-"Name Variants (satu per baris)","Variasi Nama (satu per baris)",""
-"Context Terms (dari Resume Screening)","Istilah Konteks (dari Skrining Resume)",""
-"Review Audit","Audit Peninjauan",""
-"Reviewed By","Ditinjau Oleh",""
-"Reviewed On","Ditinjau Pada",""
-"Is Purged","Sudah Dipurge",""
-"Politeness Score (0-100)","Skor Kesantunan (0-100)",""
-"Mulai Background Check","Mulai Pemeriksaan Latar Belakang",""
-"Mulai background check","Mulai Pemeriksaan Latar Belakang",""
-"Jalankan Ulang","Jalankan Ulang",""
-"Lihat Pelamar","Lihat Pelamar",""
-"Buka List Finding","Buka Daftar Temuan",""
-"Tingkat Risiko BGC","Tingkat Risiko BGC",""
-"Kesimpulan BGC","Kesimpulan BGC",""
-"Background Check Report","Laporan Pemeriksaan Latar Belakang",""
-"Background Check Officer","Petugas Pemeriksaan Latar Belakang",""
-"Waiting Consent","Menunggu Persetujuan",""
-"Crawling","Sedang Memeriksa",""
-"Pending","Menunggu",""
-"Granted","Disetujui",""
-"Declined","Ditolak",""
-"Withdrawn","Ditarik",""
-"Web form","Formulir Web",""
-"Uploaded document","Unggah Dokumen",""
-"Tidak diunggah","Tidak Diunggah",""
-"Belum diperiksa","Belum Diperiksa",""
-"Bersih","Bersih",""
-"Ada catatan","Ada Catatan",""
-"Kedaluwarsa","Kedaluwarsa",""
-"Belum ditinjau","Belum Ditinjau",""
-"Relevan","Relevan",""
-"Bukan orang ini","Bukan Orang Ini",""
-"Diabaikan","Diabaikan",""
-"Perlu verifikasi","Perlu Verifikasi",""
-"Tinggi","Tinggi",""
-"Sedang","Sedang",""
-"Rendah","Rendah",""
-"Info","Info",""
-"Manual review only","Hanya Peninjauan Manual",""
-"Mode Pengambilan Halaman","Mode Pengambilan Halaman",""
-"Page Fetching Mode","Mode Pengambilan Halaman",""
-"Respect robots.txt","Patuhi robots.txt",""
-"Fetch Identity","Identitas Pengambil Halaman",""
-"Company","Perusahaan",""
-"Browser","Browser",""
-"User Agent","User Agent",""
-"Enable Stealth Mode","Aktifkan Mode Stealth",""
-"Stealth Domains","Domain Stealth",""
-"Browser Status","Status Browser",""
-"Acknowledge Legal and Technical Risks","Konfirmasi Pengakuan Risiko Hukum dan Teknis",""
-"Risk Acknowledged By","Risiko Diakui Oleh",""
-"Risk Acknowledged On","Risiko Diakui Pada",""
-"Fetch Mode Used","Mode Pengambilan yang Digunakan",""
-"Robots Ignored Count","Jumlah Pengabaian robots.txt",""
-"Terpasang","Terpasang",""
-"Tidak terpasang","Tidak Terpasang",""
-"Display Name","Nama Tampilan",""
-"Bio Snippet","Cuplikan Bio",""
-"Profile Location","Lokasi Profil",""
-"Identity Match (%)","Kecocokan Identitas (%)",""
-"Identity Match Reasons","Alasan Kecocokan Identitas",""
-"Text Source","Sumber Teks",""
-"Evidence Excerpt","Kutipan Bukti",""
-"Detail URL","URL Detail",""
-"PDF URL","URL PDF",""
-"Adaptive Selectors","Selektor Adaptif",""
-"Display Name Selector","Selektor Nama Tampilan",""
-"Bio Selector","Selektor Bio",""
-"Location Selector","Selektor Lokasi",""
-"Unduh Salinan PDF","Unduh Salinan PDF",""
-"Halaman Detail","Halaman Detail",""
-"Cuplikan","Cuplikan",""
-"Teks lengkap","Teks Lengkap",""
-"PDF putusan","PDF Putusan",""
-"Sumber Teks","Sumber Teks",""
-"Kutipan Bukti","Kutipan Bukti",""
+"1. Bypassing anti-bot protection may be considered breaching or bypassing security systems under UU ITE Article 30 paragraph (3), and violates terms of service of source sites.
+2. Ignoring robots.txt and impersonating a browser violates terms of service of many sites and may cause server IP bans, including for other services on the same server.
+3. The decision to enable it should be approved by Legal and formally recorded.","1. Menembus proteksi anti-bot dapat dianggap ""menerobos atau menjebol sistem pengamanan"" menurut UU ITE Pasal 30 ayat (3), dan melanggar ketentuan layanan situs sumber.
+2. Mengabaikan robots.txt dan menyamar sebagai browser melanggar ketentuan layanan banyak situs dan bisa membuat IP server diblokir, termasuk untuk layanan lain yang berjalan di server yang sama.
+3. Keputusan mengaktifkannya sebaiknya disetujui Legal dan dicatat.",
+1. Candidate Profile,1. Profil Kandidat,
+2. Data Source Status & Page Fetch Audit Trail,2. Status Sumber Data & Jejak Audit Pengambilan Halaman,
+3. Conclusion & HR Evaluation Summary,3. Kesimpulan & Ringkasan Evaluasi HR,
+4. Verified Relevant Findings,4. Temuan Relevan Terverifikasi,
+9 Metrics Evaluation Result Details,Rincian Hasil Evaluasi 9 Metrik,
+<span style='color:green;'>Total weight is exactly 100%.</span>,<span style='color:green;'>Total bobot tepat 100%.</span>,
+<span style='color:red;'>Total weight must be exactly 100%. Current: {0}%</span>,<span style='color:red;'>Total bobot harus tepat 100%. Saat ini: {0}%</span>,
+API,API,
+ATS friendly,Ramah ATS,
+Account,Akun,
+Account Digital Footprint,Jejak Digital Akun,
+Account Digital Footprint Findings,Temuan Jejak Digital Akun,
+Account self-declared by candidate (+10),Akun dinyatakan sendiri oleh kandidat (+10),
+Accounts,Akun,
+Accounts Skipped,Jumlah Akun Dilewati,
+Achievement,Prestasi,
+Achievement relevance,Relevansi Prestasi,
+Acknowledge Legal and Technical Risks,Konfirmasi Pengakuan Risiko Hukum dan Teknis,
+Actions,Tindakan,
+Adaptive Selectors,Selektor Adaptif,
+Add Account,Tambah Akun,
+Address,Alamat,
+Adjudicated On,Tanggal Putusan,
+All employment date ranges are consistent and chronological.,Semua rentang tanggal kerja konsisten dan kronologis.,
+All raw finding data will be automatically purged within {0} days after final recruitment decision in accordance with data minimization principles.,Semua data temuan mentah akan otomatis dihapus dalam {0} hari setelah keputusan rekrutmen final sesuai prinsip pembatasan penyimpanan data.,
+All required and preferred skills matched.,Semua keahlian wajib dan tambahan terpenuhi.,
+An error occurred while saving consent.,Terjadi kesalahan saat menyimpan persetujuan.,
+Analysis of {m} posts shows a language politeness score of {score}/100 and {r} posts flagged as risky.,Analisis terhadap {m} post menunjukkan skor kesantunan bahasa {score}/100 dan {r} post terindikasi berisiko.,
+Analysis of {m} posts shows a language politeness score of {score}/100 with no posts flagged as risky.,Analisis terhadap {m} post menunjukkan skor kesantunan bahasa {score}/100 tanpa post yang terindikasi berisiko.,
+Applicable,Berlaku,
+Applicant Name,Nama Pelamar,
+"Applicant information is complete (name, contact, domicile, education, experience, skills).","Informasi pelamar lengkap (nama, kontak, domisili, pendidikan, pengalaman, keahlian).",
+Applicant name not clearly detected,Nama pelamar tidak terdeteksi dengan jelas,
+Applicant resume does not meet the minimum criteria.,Resume pelamar belum memenuhi kriteria minimal.,
+Applicant resume is match with the applied job!,Resume pelamar cocok dengan lowongan yang dilamar!,
+Applicant {0} not found.,Pelamar {0} tidak ditemukan.,
+Application Source,Sumber Lamaran,
+Applied Position,Posisi yang Dilamar,
+Article,Artikel,
+"As part of the selection process, we require your explicit consent prior to conducting a background check. You have the right to determine the scope of screening, update the accounts to be checked, and withdraw your consent at any time.","Sebagai bagian dari proses seleksi, kami memerlukan persetujuan eksplisit Anda sebelum melakukan pemeriksaan latar belakang. Anda berhak menentukan ruang lingkup pemeriksaan, memperbarui akun yang diperiksa, dan menarik persetujuan sewaktu-waktu.",
+Author / Source,Penulis / Sumber,
+Auto Screen on Application,Skrining Otomatis saat Melamar,
+Automated Indication,Indikasi Otomatis,
+Automated Summary,Ringkasan Otomatis,
+Automated Summary Parameters,Parameter Ringkasan Otomatis,
+Automated Summary Template,Template Ringkasan Otomatis,
+BACKGROUND CHECK REPORT,LAPORAN PEMERIKSAAN LATAR BELAKANG,
+BGC Conclusion,Kesimpulan BGC,
+BGC Risk Level,Tingkat Risiko BGC,
+Background Check,Pemeriksaan Latar Belakang,
+Background Check Account,Akun Pemeriksaan Latar Belakang,
+Background Check Consent Scope,Cakupan Persetujuan Pemeriksaan Latar Belakang,
+Background Check Finding,Temuan Pemeriksaan Latar Belakang,
+Background Check Lexicon,Leksikon Pemeriksaan Latar Belakang,
+Background Check Officer Team,Tim Petugas Pemeriksaan Latar Belakang,
+Background Check Platform,Platform Pemeriksaan Latar Belakang,
+Background Check Settings,Pengaturan Pemeriksaan Latar Belakang,
+Background Check Source Run,Eksekusi Sumber Pemeriksaan Latar Belakang,
+Background Check cannot run without candidate consent (current status: {0}).,Pemeriksaan Latar Belakang tidak dapat berjalan tanpa persetujuan kandidat (status saat ini: {0}).,
+Background Check completed,Pemeriksaan Latar Belakang selesai,
+Background Check created successfully and consent invitation sent.,Pemeriksaan Latar Belakang berhasil dibuat dan undangan persetujuan telah dikirim.,
+Background Check created successfully.,Pemeriksaan Latar Belakang berhasil dibuat.,
+Background Check rerun scheduled successfully.,Pemeriksaan Latar Belakang berhasil dijadwalkan ulang.,
+Background check can only be started for applicants with screening status 'Done'.,Pemeriksaan latar belakang hanya dapat dimulai untuk pelamar dengan status skrining 'Done'.,
+Bio Selector,Selektor Bio,
+Bio Snippet,Cuplikan Bio,
+Bio mentions CV entity '{term}' (+20),Bio menyebut entitas CV '{term}' (+20),
+Body contains,Body memuat,
+Body not contains,Body tidak memuat,
+Brave,Brave,
+Browser,Browser,
+Browser Status,Status Browser,
+"CV format is very ATS-friendly (clean layout, contacts and main sections complete).","Format CV sangat ramah ATS (tata letak bersih, kontak dan bagian utama lengkap).",
+"CV length exceeds recommendation ({page_count} pages, ideally 1-3 pages)","Panjang CV melebihi rekomendasi ({page_count} halaman, idealnya 1-3 halaman)",
+CV text cannot be read or extracted by ATS parser.,Teks CV tidak dapat dibaca atau diekstraksi oleh parser ATS.,
+Candidate,Kandidat,
+Candidate Consent (PDP Law),Persetujuan Kandidat (UU PDP),
+Candidate Consent (UU PDP Compliance),Persetujuan Kandidat (Kepatuhan UU PDP),
+Candidate Consent Form (Compliance with Law No. 27/2022 on PDP),Formulir Persetujuan Kandidat (Kepatuhan UU No. 27/2022 tentang PDP),
+Candidate Information,Informasi Kandidat,
+Candidate Language,Bahasa Kandidat,
+Candidate Name,Nama Kandidat,
+Candidate Profile,Profil Kandidat,
+Candidate name not provided,Nama kandidat tidak disediakan,
+Career gap detected ({gap_months} months),Terdeteksi jeda karier ({gap_months} bulan),
+Case,Perkara,
+Case Details (Supreme Court Decisions),Detail Perkara (Putusan MA),
+Case Number,Nomor Perkara,
+Case Type,Jenis Perkara,
+Case history,Riwayat perkara,
+Case {case_number},Perkara {case_number},
+Category,Kategori,
+Certification Keywords,Kata Kunci Sertifikasi,
+Certification criteria not configured.,Kriteria sertifikasi tidak dikonfigurasi.,
+Certification relevance,Relevansi Sertifikasi,
+Check Method,Metode Pemeriksaan,
+Check Value,Nilai Pemeriksaan,
+Check open court decisions directory to verify legal integrity.,Pemeriksaan direktori putusan pengadilan terbuka untuk integritas hukum.,
+City / Region,Kota / Wilayah,
+Clear,Bersih,
+Company,Perusahaan,
+Company information leak,Kebocoran informasi perusahaan,
+Consent & Audit,Persetujuan & Audit,
+Consent Configuration,Konfigurasi Persetujuan,
+Consent Granted At,Waktu Persetujuan Diberikan,
+Consent IP Address,Alamat IP Persetujuan,
+Consent Language,Bahasa Persetujuan,
+Consent Method,Metode Persetujuan,
+Consent Recorded Successfully,Persetujuan Berhasil Dicatat,
+Consent Scope,Ruang Lingkup Persetujuan,
+Consent Statement & Data Retention,Pernyataan Persetujuan & Retensi Data,
+Consent Status,Status Persetujuan,
+Consent Terms Text (EN),Teks Ketentuan Persetujuan (EN),
+Consent Terms Text (ID),Teks Ketentuan Persetujuan (ID),
+Consent Text Version,Versi Teks Persetujuan,
+Consent Token,Token Persetujuan,
+Consent for this record has already been processed.,Persetujuan untuk data ini sudah diproses.,
+Consent link has expired. Please contact the HR team.,Tautan persetujuan telah kedaluwarsa. Silakan hubungi tim HR.,
+Consent link is invalid or has already been used.,Tautan persetujuan tidak valid atau sudah pernah digunakan.,
+Consent recorded successfully. Thank you.,Persetujuan berhasil dicatat. Terima kasih.,
+Consent token is invalid or has already been used.,Token persetujuan tidak valid atau sudah pernah digunakan.,
+Consent token is invalid or missing.,Token persetujuan tidak valid atau tidak ditemukan.,
+Consent withdrawn. {0} findings deleted.,Persetujuan ditarik. {0} temuan dihapus.,
+Consented Check Scopes,Ruang Lingkup Pemeriksaan yang Disetujui,
+Contact,Kontak,
+Content & Match Reason,Konten & Alasan Kecocokan,
+Context Terms (from Resume Screening),Istilah Konteks (dari Skrining Resume),
+Context matched (+{score}): {terms},Konteks cocok (+{score}): {terms},
+Court,Pengadilan,
+Crawling,Sedang memeriksa,
+Crawling...,Sedang memeriksa...,
+Creating Background Check document...,Membuat dokumen Pemeriksaan Latar Belakang...,
+Creative,Kreatif,
+Criteria Snapshot,Snapshot Kriteria,
+D3,D3,
+D4/S1,D4/S1,
+Data tables present,Terdapat tabel data,
+Date consistency,Konsistensi Tanggal,
+Date:,Tanggal:,
+Decision PDF,PDF putusan,
+Declared By,Dinyatakan Oleh,
+Declined,Ditolak,
+Description,Deskripsi,
+Designation,Jabatan,
+Designation '{0}' is already used in active template '{1}'.,Jabatan '{0}' sudah dipakai di template aktif '{1}'.,
+Designations,Daftar Jabatan,
+Detail Page,Halaman Detail,
+Detail URL,URL Detail,
+Developer,Pengembang,
+Display Name,Nama Tampilan,
+Display Name Selector,Selektor Nama Tampilan,
+Display name not available (+0),Nama tampilan tidak tersedia (+0),
+Document ID:,ID Dokumen:,
+Document {0} not found.,Dokumen {0} tidak ditemukan.,
+Domicile/location not specified,Domisili/lokasi tidak dicantumkan,
+Done,Selesai,
+Done (Failed),Selesai (Gagal),
+Done (High),Selesai (Tinggi),
+Done (Low),Selesai (Rendah),
+Done (Medium),Selesai (Sedang),
+Done (Needs verification),Selesai (Perlu verifikasi),
+Done (Passed),Selesai (Lolos),
+Download CV File,Unduh Berkas CV,
+Download PDF Copy,Unduh Salinan PDF,
+Draft,Draf,
+Edit Screening Result Label,Ubah Label Hasil Skrining,
+Edit result label,Ubah label hasil,
+Education Majors,Jurusan Pendidikan,
+Education below minimum {0},Pendidikan di bawah batas minimal {0},
+Education qualification does not meet criteria.,Kualifikasi pendidikan belum memenuhi kriteria.,
+Education qualification meets criteria.,Kualifikasi pendidikan memenuhi kriteria.,
+Education relevance,Relevansi Pendidikan,
+Education section not found,Bagian riwayat pendidikan tidak ditemukan,
+Effective Weight,Bobot Efektif,
+Email,Email,
+Email and phone number not readable,Email dan nomor telepon tidak terbaca,
+Email not found,Email tidak ditemukan,
+Empty text or name,Teks atau nama kosong,
+Enable Background Check,Aktifkan Pemeriksaan Latar Belakang,
+Enable Case History (Putusan MA),Aktifkan Riwayat Perkara (Putusan MA),
+Enable News Articles,Aktifkan Artikel Berita,
+Enable Public Files (PDF/DOCX),Aktifkan Berkas Publik (PDF/DOCX),
+Enable Public Posts API,Aktifkan API Postingan Publik,
+Enable Registered Platforms,Aktifkan Platform Terdaftar,
+Enable Resume Screening,Aktifkan Skrining Resume,
+Enable Stealth Mode,Aktifkan Mode Stealth,
+Enabled,Aktif,
+Error,Galat,
+Error Parameters,Parameter Galat,
+Error Template,Template Galat,
+Error during {source} check: {error},Galat saat pemeriksaan {source}: {error},
+Error fetching {source}: {error},Galat saat mengambil {source}: {error},
+Evaluating metric {0}...,Mengevaluasi metrik {0}...,
+Evaluation Template,Template Evaluasi,
+Evidence Excerpt,Kutipan Bukti,
+Exact display name match (+50): '{name}',Nama tampilan persis cocok (+50): '{name}',
+Exact name match (+50): '{name}',Nama persis cocok (+50): '{name}',
+Excessive punctuation used ({0} occurrences).,Penggunaan tanda baca berlebihan ({0} kali).,
+Excessive use of ALL CAPS ({0} occurrences).,Penggunaan HURUF KAPITAL berlebihan ({0} kali).,
+Exists,Ditemukan,
+Experience Level,Tingkat Pengalaman,
+Experience below minimum ({0} years vs {1} years),Pengalaman di bawah batas minimal ({0} tahun vs {1} tahun),
+Experience does not match the required profile.,Pengalaman kerja belum memenuhi profil yang dibutuhkan.,
+Experience matches the required profile.,Pengalaman kerja cocok dengan profil yang dibutuhkan.,
+Experience relevance,Relevansi Pengalaman,
+Experienced,Berpengalaman,
+Expired,Kedaluwarsa,
+Extracted Text,Teks Terekstraksi,
+Fail Description,Deskripsi Gagal,
+Failed,Gagal,
+Failed Evaluation,Evaluasi Gagal,
+Fetch Identity,Identitas Pengambil Halaman,
+Fetch Mode,Mode Pengambilan,
+Fetch Mode Used,Mode Pengambilan yang Digunakan,
+Fewer than 3 standard section headings recognized,Kurang dari 3 judul bagian standar yang dikenali,
+File,Berkas,
+File Type,Tipe Berkas,
+Final HR Conclusion:,Kesimpulan Akhir HR:,
+Final HR Decision,Keputusan Final HR,
+Final Risk Level,Tingkat Risiko Final,
+Finding Summary,Ringkasan Temuan,
+Finding Type,Tipe Temuan,
+Finding {0} not found.,Temuan {0} tidak ditemukan.,
+Findings Count,Jumlah Temuan,
+Finished On,Selesai Pada,
+Fixed,Tetap,
+Found {0} achievements/awards.,Ditemukan {0} prestasi/penghargaan.,
+Found {0} repeated words.,Ditemukan {0} kata berulang.,
+Found {findings_count} achievements/awards ({details}),Ditemukan {findings_count} prestasi/penghargaan ({details}),
+Found {table_count} tables that may fragment text in ATS parser,Ditemukan {table_count} tabel yang berpotensi memecah teks pada parser ATS,
+Fraud,Penipuan,
+Fresh Graduate,Lulusan Baru,
+Full Name,Nama Lengkap,
+Full text,Teks lengkap,
+Future employment date detected,Terdeteksi tanggal kerja di masa depan,
+GitHub,GitHub,
+GitHub Personal Access Token,Personal Access Token GitHub,
+Google,Google,
+Grammar,Tata Bahasa,
+Granted,Disetujui,
+HR,HR,
+HR Conclusion,Kesimpulan HR,
+HR Conclusion (Required before Interview),Kesimpulan HR (Wajib sebelum Wawancara),
+HR Note,Catatan HR,
+HR Note:,Catatan HR:,
+HR Override,Perubahan Manual HR,
+HR Override Label,Label Pengganti HR,
+HR Override Note,Catatan Pengganti HR,
+HR Replacement Label,Label Pengganti HR,
+HR Review,Peninjauan HR,
+HR Review Note,Catatan Tinjauan HR,
+HR Summary Review,Telaah Ringkasan HR,
+HR Verdict,Putusan HR,
+HR Verdict:,Putusan HR:,
+HRIS ATS,HRIS ATS,
+Has records,Ada catatan,
+Hate speech,Ujaran kebencian/SARA,
+"Hello,","Halo,",
+High,Tinggi,
+High display name similarity {ratio}% (+40),Kemiripan nama tampilan tinggi {ratio}% (+40),
+High name similarity {ratio}% (+40),Kemiripan nama tinggi {ratio}% (+40),
+Hired,Diterima Bekerja,
+"I have read, understood, and agreed to all background check terms above.","Saya telah membaca, memahami, dan menyetujui seluruh ketentuan pemeriksaan latar belakang di atas.",
+Icon (SVG / FontAwesome),Ikon (SVG / FontAwesome),
+Identity & Context Terms,Identitas & Konteks,
+Identity Match,Kecocokan Identitas,
+Identity Match (%),Kecocokan Identitas (%),
+Identity Match Reasons,Alasan Kecocokan Identitas,
+Identity Match Reasons Parameters,Parameter Alasan Kecocokan Identitas,
+Identity Match Reasons Template,Template Alasan Kecocokan Identitas,
+Identity Match:,Kecocokan Identitas:,
+"If you hold a valid Police Clearance Certificate (SKCK), you may attach it as a supporting document.","Bila memiliki Surat Keterangan Catatan Kepolisian (SKCK) aktif, Anda dapat melampirkannya sebagai dokumen pendukung.",
+Ignored,Diabaikan,
+"In accordance with PDP Law compliance and accuracy principles, only findings verified as Relevant by HR are included in this report.","Sesuai kepatuhan UU PDP dan prinsip akurasi data, hanya temuan yang telah diverifikasi Relevan oleh HR yang dicantumkan dalam laporan ini.",
+Indicated Risk Level,Tingkat Risiko Terindikasi,
+Indicator,Indikator,
+Info,Info,
+Information completeness,Kelengkapan Informasi,
+Installed,Terpasang,
+Interview,Wawancara,
+Interview cannot be created before HR Conclusion (hr_conclusion) is filled on Background Check {0}.,Wawancara tidak dapat dibuat sebelum Kesimpulan HR (hr_conclusion) diisi pada Pemeriksaan Latar Belakang {0}.,
+Invalid link or missing consent token.,Tautan tidak valid atau token persetujuan tidak ditemukan.,
+Is Purged,Sudah Dipurge,
+Is Regex,Merupakan Regex,
+Items Found,Jumlah Temuan,
+Job Applicant,Pelamar Kerja,
+Job Applicant {0} not found.,Pelamar Kerja {0} tidak ditemukan.,
+Job Opening,Lowongan Pekerjaan,
+Job titles matched: {0},Judul jabatan yang cocok: {0},
+Label,Label,
+Label Type,Tipe Label,
+Language,Bahasa,
+Last Active,Terakhir Aktif,
+Legal Case History (Supreme Court Decisions),Riwayat Perkara Hukum (Direktori Putusan MA),
+Legal-negative,Hukum-negatif,
+Link Cannot Be Opened,Tautan Tidak Dapat Dibuka,
+Location Selector,Selektor Lokasi,
+Low,Rendah,
+Low display name similarity {ratio}% (+0),Kemiripan nama tampilan rendah {ratio}% (+0),
+Major matches ({0}),Jurusan sesuai ({0}),
+Major not relevant,Jurusan tidak relevan,
+Manual review only,Hanya peninjauan manual,
+Mastodon,Mastodon,
+Match Confidence (%),Tingkat Keyakinan Kecocokan (%),
+Match Reasons,Alasan Kecocokan,
+Match Reasons Parameters,Parameter Alasan Kecocokan,
+Match Reasons Template,Template Alasan Kecocokan,
+Matched certifications: {0},Sertifikasi yang cocok: {0},
+Matched {matched_pref_count} of {total_pref_count} preferred skills,Cocok {matched_pref_count} dari {total_pref_count} keahlian tambahan,
+Matched {matched_req_count} of {total_req_count} required skills,Cocok {matched_req_count} dari {total_req_count} keahlian wajib,
+Max File Size (MB),Ukuran Maksimal Berkas (MB),
+Max Results Per Source,Maksimal Hasil Per Sumber,
+Medium,Sedang,
+Meets minimum education {0},Memenuhi pendidikan minimal {0},
+Method:,Metode:,
+Metric,Metrik,
+Metric '{0}' appears more than once.,Metrik '{0}' muncul lebih dari satu kali.,
+Metric Pass Threshold (%),Ambang Lolos Metrik (%),
+Metric Results,Hasil Per Metrik,
+Metric Status,Status Metrik,
+Metric Weights,Bobot Metrik,
+Metric weights table cannot be empty.,Tabel bobot metrik tidak boleh kosong.,
+Min Match Confidence (0-100),Keyakinan Kecocokan Minimal (0-100),
+Min Text Chars Per Page (Scan Detection),Minimal Karakter Teks Per Halaman (Deteksi Scan),
+Minimum Education,Pendidikan Minimal,
+Minimum Experience (Years),Minimal Pengalaman (Tahun),
+Minimum Score to Pass,Skor Minimal untuk Lolos,
+Mixed date formats ({dominant_pct:.0f}% dominant format),Format tanggal campuran (format dominan {dominant_pct:.0f}%),
+Mock,Mock,
+Moderate display name similarity {ratio}% (+25),Kemiripan nama tampilan sedang {ratio}% (+25),
+Moderate name similarity {ratio}% (+25),Kemiripan nama sedang {ratio}% (+25),
+Mononym: no unique name bonus (+0),Nama tunggal (mononim): tanpa bonus nama unik (+0),
+Multi-column layout (two or more columns) complicates ATS reading order,Tata letak multi-kolom (dua kolom atau lebih) menyulitkan urutan baca parser ATS,
+Multiple grammatical/formatting errors detected.,Terdeteksi beberapa kesalahan tata bahasa atau pemformatan.,
+Name Digital Footprint,Jejak Digital Nama,
+Name Digital Footprint Findings,Temuan Jejak Digital Nama,
+Name Variants (one per line),Variasi Nama (satu per baris),
+Name similarity {ratio}% below 80% threshold (finding discarded),Kemiripan nama {ratio}% di bawah ambang 80% (temuan diabaikan),
+Narcotics,Narkoba,
+Navigation,Navigasi,
+Needs verification,Perlu verifikasi,
+Neutral,Netral,
+New Applied,Lamaran Baru,
+News & Media Publications,Publikasi Berita & Media,
+No achievements or awards recorded.,Tidak ada catatan prestasi atau penghargaan.,
+"No article, document, or legal case findings for this candidate.","Tidak ada temuan artikel, dokumen, atau perkara hukum untuk kandidat ini.",
+No date ranges found to evaluate consistency.,Tidak ditemukan rentang tanggal untuk mengevaluasi konsistensi.,
+No findings categorized as relevant or risky in this screening.,Tidak ada temuan yang dikategorikan relevan atau berisiko dalam pemeriksaan ini.,
+No public posts flagged as risky from candidate accounts.,Tidak ada postingan publik yang terindikasi berisiko dari akun kandidat.,
+No relevant certifications found.,Tidak ditemukan sertifikasi yang relevan.,
+No relevant job titles found in experience,Tidak ditemukan judul jabatan yang relevan dalam riwayat pengalaman,
+No screening template configured for this position.,Belum ada template skrining yang dikonfigurasi untuk jabatan ini.,
+No specific case records or significant risk findings were found in the initial screening.,Tidak ditemukan catatan perkara khusus atau temuan risiko signifikan pada pemeriksaan awal.,
+No typos or grammatical errors found.,Tidak ditemukan kesalahan ketik atau tata bahasa.,
+None,Tidak ada,
+Not Qualified,Tidak Memenuhi Syarat,
+Not checked,Belum diperiksa,
+Not installed,Tidak terpasang,
+Not reviewed,Belum ditinjau,
+Not supported,Tidak didukung,
+Not this person,Bukan orang ini,
+Not uploaded,Tidak diunggah,
+Offer,Penawaran,
+One keyword per line,Satu kata kunci per baris,
+One skill per line,Satu keahlian per baris,
+Online gambling,Judi online,
+Open Findings List,Buka Daftar Temuan,
+Other,Lainnya,
+Overlapping job dates ({overlap}),Tanggal pekerjaan tumpang tindih ({overlap}),
+Overrides display label without modifying actual score.,Mengubah label tampilan tanpa memodifikasi skor asli.,
+Overview,Ikhtisar,
+PDF URL,URL PDF,
+Page Fetching Mode,Mode Pengambilan Halaman,
+Parameters & Retention,Parameter & Retensi,
+Party Role,Peran Pihak,
+Pass Description,Deskripsi Lolos,
+Passed,Lolos,
+Pending,Menunggu,
+Phone,Telepon,
+Phone (+62),Nomor Telepon (+62),
+Phone Number,Nomor Telepon,
+Phone number not found,Nomor telepon tidak ditemukan,
+Phone:,Telepon:,
+Platform,Platform,
+Platform Name,Nama Platform,
+Politeness Score (0-100),Skor Kesantunan (0-100),
+Pornography,Pornografi,
+Post,Postingan,
+Post API Integration,Integrasi API Postingan,
+Post Access,Akses Postingan,
+Post Access:,Akses Postingan:,
+Post by {username},Postingan oleh {username},
+Postal Code,Kode Pos,
+Posts,Postingan,
+Posts Flagged as Risky,Postingan Terindikasi Berisiko,
+Preferred Skills,Keahlian Tambahan,
+Privacy Policy & Recruitment Fairness Note:,Catatan Kepatuhan Privasi & Keadilan Rekrutmen:,
+Processing...,Memproses...,
+Profanity,Kata kasar,
+Professional,Profesional,
+Profile Location,Lokasi Profil,
+Profile Summary & HR Conclusion,Ringkasan Profil & Kesimpulan HR,
+Profile URL,URL Profil,
+Profile URL Template,Template URL Profil,
+Profile location '{location}' differs from candidate city (+0),Lokasi profil '{location}' berbeda dengan kota kandidat (+0),
+Profile location matches candidate city '{city}' (+20),Lokasi profil cocok dengan kota kandidat '{city}' (+20),
+Provider API Credentials,Kredensial API Penyedia,
+Public Account & Platform Check,Pemeriksaan Platform & Akun Publik,
+Public Account Activity,Aktivitas Akun Publik,
+Public Documents & Publications,Dokumen Publik & Publikasi Ilmiah,
+Public Profile Accounts (Optional),Akun Profil Publik (Opsional),
+Published On,Diterbitkan Pada,
+Purge Raw Findings After,Hapus Temuan Mentah Setelah,
+Qualified,Memenuhi Syarat,
+Queued,Dalam antrean,
+RISK LEVEL:,TINGKAT RISIKO:,
+Range,Rentang,
+Rate Limit Per Minute,Batas Panggilan Per Menit,
+Reason,Alasan,
+Reason & Findings,Alasan & Temuan,
+Reason / Note for Change,Alasan / Catatan Perubahan,
+Reason Parameters,Parameter Alasan,
+Reason Template,Template Alasan,
+Recruitment Stage,Tahap Rekrutmen,
+Reddit,Reddit,
+Registered Accounts,Akun Terdaftar,
+Registered On,Terdaftar Pada,
+Rejected,Ditolak,
+Relevant,Relevan,
+Relevant Job Titles,Judul Jabatan Relevan,
+Relevant experience: {0} years (minimum {1} years),Pengalaman relevan: {0} tahun (minimal {1} tahun),
+Remove,Hapus,
+Required Skills,Keahlian Wajib,
+Requires Social Media Consent,Memerlukan Persetujuan Media Sosial,
+Rerun,Jalankan Ulang,
+Rerun background check for this candidate?,Jalankan ulang pemeriksaan latar belakang untuk kandidat ini?,
+Rerun scheduled,Pemeriksaan ulang dijadwalkan,
+Rescreen,Skrining Ulang,
+Rescreen successfully scheduled,Skrining ulang berhasil dijadwalkan,
+Rescreening scheduled successfully,Skrining ulang berhasil dijadwalkan,
+Rescreening started successfully,Skrining ulang berhasil dimulai,
+Respect robots.txt,Patuhi robots.txt,
+Restarting background check...,Memulai ulang pemeriksaan latar belakang...,
+Result Description,Deskripsi Hasil,
+Result Descriptions,Deskripsi Hasil,
+Result Indicator,Indikator Hasil,
+Result Label,Label Hasil,
+Resume & Evidence,Resume & Bukti,
+Resume File,Berkas Resume,
+Resume Score,Skor Resume,
+Resume Screening,Skrining Resume,
+Resume Screening Metric Weight,Bobot Metrik Skrining Resume,
+Resume Screening Result,Hasil Skrining Resume,
+Resume Screening Result Report,Laporan Hasil Skrining Resume,
+Resume Screening Score Label,Label Skor Skrining Resume,
+Resume Screening Settings,Pengaturan Skrining Resume,
+Resume Screening Template,Template Skrining Resume,
+Resume Screening Template Role,Jabatan Template Skrining Resume,
+Resume Screening document {0} not found.,Dokumen Skrining Resume {0} tidak ditemukan.,
+Resume screening completed: {0} ({1} points),Skrining resume selesai: {0} ({1} poin),
+Retention Days (Purge Raw Findings),Hari Retensi (Hapus Temuan Mentah),
+Retention Terms:,Ketentuan Retensi:,
+Review Audit,Audit Peninjauan,
+Review Date:,Tanggal Peninjauan:,
+Reviewed By,Ditinjau Oleh,
+Reviewed On,Ditinjau Pada,
+Reviewed by:,Ditinjau oleh:,
+Risk Acknowledged By,Risiko Diakui Oleh,
+Risk Acknowledged On,Risiko Diakui Pada,
+Risk Acknowledgment Required,Pengakuan Risiko Diperlukan,
+Risk Flags,Penanda Risiko,
+Risk Flags Parameters,Parameter Penanda Risiko,
+Risk Flags Template,Template Penanda Risiko,
+Risk Indicator,Indikator Risiko,
+Risk Indicator:,Indikator Risiko:,
+Risk Level,Tingkat Risiko,
+Risky,Berisiko,
+Robots Ignored Count,Jumlah Pengabaian robots.txt,
+Robots.txt Ignored,Robots.txt Diabaikan,
+S2,S2,
+S3,S3,
+SKCK Document,Dokumen SKCK,
+SKCK Number,Nomor SKCK,
+SKCK Status,Status SKCK,
+SKCK Valid Until,SKCK Berlaku Sampai,
+SKCK Verification (Optional),Verifikasi SKCK (Opsional),
+SMA/SMK,SMA/SMK,
+Save,Simpan,
+"Saving settings with robots.txt ignored, Browser identity, or stealth mode requires risk acknowledgment (fetch_risk_acknowledged).","Menyimpan pengaturan dengan pengabaian robots.txt, identitas Browser, atau mode stealth memerlukan pengakuan risiko (fetch_risk_acknowledged).",
+Schedule rescreen for {0} selected applicant(s)?,Jadwalkan skrining ulang untuk {0} pelamar yang dipilih?,
+Schedule rescreen for {0} selected file(s)?,Jadwalkan skrining ulang untuk {0} berkas yang dipilih?,
+Scheduling rescreen...,Menjadwalkan skrining ulang...,
+Score,Skor,
+Score From,Skor Dari,
+Score Labels,Label Skor,
+Score To,Skor Sampai,
+Score from ({0}) must be less than or equal to score to ({1}) for label '{2}'.,Nilai awal ({0}) harus lebih kecil atau sama dengan nilai akhir ({1}) pada label '{2}'.,
+Score from must be between 0 and 100 for label '{0}'.,Nilai awal harus di antara 0 dan 100 pada label '{0}'.,
+Score from snippet only capped at 70,Skor dari cuplikan saja dibatasi maksimal 70,
+Score range for label '{0}' ({1}–{2}) overlaps with label '{3}' ({4}–{5}).,Rentang skor pada label '{0}' ({1}–{2}) tumpang tindih dengan label '{3}' ({4}–{5}).,
+Score to must be between 0 and 100 for range label '{0}'.,Nilai akhir harus di antara 0 dan 100 pada label rentang '{0}'.,
+Screen Again,Skrining Ulang,
+Screened On,Waktu Skrining,
+Screening,Sedang diskrining,
+Screening Criteria,Kriteria Skrining,
+Screening Status,Status Skrining,
+Screening Template,Template Skrining,
+Screening completed with no specific findings.,Skrining selesai tanpa temuan khusus.,
+Screening completed with score {0},Skrining selesai dengan skor {0},
+Screening has not been executed or no findings recorded.,Pemeriksaan belum dijalankan atau tidak ada temuan yang tercatat.,
+Screening...,Sedang diskrining...,
+Search API Key,API Key Pencarian,
+Search for public articles regarding professional track record and achievements.,Pencarian artikel publik terkait rekam jejak profesional dan prestasi.,
+Search for public documents or academic publications.,Pencarian dokumen publik atau publikasi karya ilmiah.,
+Search provider not configured.,Penyedia pencarian belum dikonfigurasi.,
+Search title or finding snippet...,Cari judul atau kutipan temuan...,
+Select Approved Screening Sources,Pilih Sumber Pemeriksaan yang Disetujui,
+Select Platform,Pilih Platform,
+Separate with commas or newlines,Pisahkan dengan koma atau baris baru,
+Series,Penomoran,
+Series:,Seri:,
+SerpAPI,SerpAPI,
+Severity,Tingkat Keparahan,
+Signed Consent Document,Dokumen Persetujuan Bertanda Tangan,
+Skill relevance,Relevansi Keahlian,
+Skills & Certifications,Keahlian & Sertifikasi,
+Skills match evaluation complete.,Evaluasi kesesuaian keahlian selesai.,
+Skills section not found,Bagian keahlian tidak ditemukan,
+Skipped,Dilewati,
+Snippet,Cuplikan,
+Snippet / Excerpt,Cuplikan / Kutipan,
+Social,Sosial,
+Social Consent Attested By,Persetujuan Medsos Ditegaskan Oleh,
+Social Consent Attested On,Persetujuan Medsos Ditegaskan Pada,
+Social Media,Media Sosial,
+Social Media Consent,Persetujuan Media Sosial,
+Social media API credentials not configured.,Kredensial API media sosial belum dikonfigurasi.,
+Source,Sumber,
+Source Name,Nama Sumber,
+Source Runs,Eksekusi Sumber,
+Source Status,Status Sumber,
+Source Toggles,Pengaktifan Sumber,
+Source not granted by candidate.,Sumber tidak disetujui oleh kandidat.,
+Source {source} skipped: no consent,Sumber {source} dilewati: tidak ada persetujuan,
+Specify any social media accounts or professional profiles you wish to declare for screening.,Cantumkan akun media sosial atau profil profesional yang ingin Anda nyatakan untuk diverifikasi.,
+Start Background Check,Mulai Pemeriksaan Latar Belakang,
+Start background check for applicant {0}? A consent invitation will be sent to the candidate's email.,Mulai pemeriksaan latar belakang untuk pelamar {0}? Undangan persetujuan akan dikirimkan ke email kandidat.,
+Start date is later than end date ({range}),Tanggal mulai lebih akhir daripada tanggal selesai ({range}),
+Started On,Dimulai Pada,
+Starting rescreening...,Memulai skrining ulang...,
+Starting resume rescreening...,Memulai skrining ulang resume...,
+Status,Status,
+Status & Result,Status & Hasil,
+Status code,Kode status,
+Stealth Domains,Domain Stealth,
+Submit Consent,Kirim Persetujuan,
+Supreme Court Decisions Search,Pencarian Putusan Mahkamah Agung,
+Target Job Roles,Jabatan Target,
+Template Name,Nama Template,
+Term / Keyword,Istilah / Kata Kunci,
+Text Source,Sumber Teks,
+Text Version:,Versi Teks:,
+Thank you for providing your consent. The background check will be conducted within your selected scope.,Terima kasih telah memberikan persetujuan Anda. Pemeriksaan latar belakang akan dilakukan sesuai ruang lingkup yang Anda pilih.,
+The candidate has the right to obtain a copy or request correction of this data in accordance with Law No. 27 of 2022 on Personal Data Protection.,Kandidat berhak memperoleh salinan atau meminta pembaruan data sesuai Undang-Undang No. 27 Tahun 2022 tentang Pelindungan Data Pribadi.,
+The following metrics are missing from the template: {0},Metrik berikut belum ada di template: {0},
+"The resume evaluation score is objectively generated by a rule-based algorithm without generative AI/LLM models. Sensitive attributes such as age, gender, photo, religion, or marital status are not included. Applicant selection decisions remain entirely at the discretion of the Human Resources team.","Skor evaluasi resume dihasilkan secara objektif menggunakan algoritma berbasis aturan tanpa model AI generatif/LLM. Atribut sensitif seperti usia, gender, foto, agama, atau status perkawinan tidak diikutsertakan. Keputusan seleksi pelamar tetap berada di tangan tim Human Resources.",
+This confidential document is issued by the HRIS ATS System for internal company recruitment purposes.,Dokumen rahasia ini diterbitkan oleh Sistem HRIS ATS untuk keperluan rekrutmen internal perusahaan.,
+Threats/violence,Ancaman/kekerasan,
+Time:,Waktu:,
+Title & Source,Judul & Sumber,
+Title / Identifier,Judul / Pengidentifikasi,
+Token Expires At,Token Kedaluwarsa Pada,
+Total Score,Skor Total,
+Total Weight,Total Bobot,
+Total active metric weight must equal 100% (currently {0}%).,Total bobot metrik aktif harus 100% (saat ini {0}%).,
+Total:,Total:,
+Type / Category,Tipe / Kategori,
+URL,URL,
+Unique name bonus {hits} results (+10),Bonus nama unik {hits} hasil (+10),
+Unknown metric: {0},Metrik tidak dikenal: {0},
+Upload SKCK (Optional),Unggah SKCK (Opsional),
+Uploaded On,Diunggah Pada,
+Uploaded document,Dokumen diunggah,
+Use Mock Provider (Offline / Testing),Gunakan Penyedia Mock (Offline / Pengujian),
+User Agent,User Agent,
+Username,Nama Pengguna,
+Username / Handle,Username / Nama Akun,
+Verdict updated,Putusan diperbarui,
+Verification Method,Metode Verifikasi,
+Verification of language politeness and risk indicators on platforms with official APIs.,Pemeriksaan kesantunan bahasa dan indikator risiko pada platform ber-API resmi.,
+Verification of public profile on declared social media/professional accounts.,Verifikasi profil publik pada akun profesional/media sosial yang dinyatakan.,
+View Applicant,Lihat Pelamar,
+Waiting Consent,Menunggu Persetujuan,
+Web Search Provider,Penyedia Pencarian Web,
+Web form,Formulir web,
+Weight,Bobot,
+Withdrawn,Ditarik,
+Work experience section not found,Bagian riwayat pengalaman kerja tidak ditemukan,
+X,X,
+X (Twitter) API Key,API Key X (Twitter),
+You may close this page now.,Anda dapat menutup halaman ini sekarang.,
+YouTube,YouTube,
+YouTube Data API Key,API Key YouTube Data,
+en,Inggris,
+findings,temuan,
+id,Indonesia,
+missing: {missing_skills},belum terpenuhi: {missing_skills},
+{0} applicants scheduled for rescreening.,{0} pelamar dijadwalkan untuk skrining ulang.,
+"{a} articles are likely related, {p} of them about achievements.","Ada {a} artikel yang kemungkinan besar terkait, {p} di antaranya tentang prestasi.",
+{a} articles are likely related.,Ada {a} artikel yang kemungkinan besar terkait.,
+{c} case records need verification.,Ada {c} catatan perkara yang perlu diverifikasi.,
+{name} applied for {title}.,{name} melamar sebagai {title}.,
+{n} public accounts were found ({platforms}).,Ditemukan {n} akun publik ({platforms}).,
+Add,Tambah
+Add Social Media Account,Tambah Akun Media Sosial
+Other Platform Profiles (Optional),Profil Platform Lainnya (Opsional)
+Please select platform and enter username,Silakan pilih platform dan masukkan username
+Select each social media account you own that you consent to screening. Only public profiles and public posts from confirmed accounts will be accessed.,Pilih setiap akun media sosial milik Anda yang Anda setujui untuk diperiksa. Hanya profil publik dan post publik dari akun yang dikonfirmasi yang akan diambil.
+Social Media Accounts,Akun Media Sosial
+"Specify any non-social platform profiles (GitHub, Canva, etc.) you wish to declare.","Nyatakan profil platform non-sosial (GitHub, Canva, dll.) yang ingin Anda sertakan."
+This account belongs to me and I consent to public profile and post screening.,Akun ini milik saya dan saya menyetujui pemeriksaan profil dan post publik.
+"Verification of public profile and posts on declared social media accounts (Instagram, Facebook, TikTok, LinkedIn).","Verifikasi profil dan post publik pada akun media sosial yang dinyatakan (Instagram, Facebook, TikTok, LinkedIn)."
+Verification of public profile on declared professional platform accounts.,Verifikasi profil publik pada akun platform profesional yang dinyatakan.
+Found {count} measurable achievements with metrics and tangible impact (maximum 100 points).,Ditemukan {count} pencapaian terukur dengan metrik dan dampak nyata (maksimal 100 poin).
+"Found {count} measurable work achievements (e.g. percentages, amounts, or project scale).","Ditemukan {count} pencapaian kerja terukur (mis. persentase, nominal, atau skala proyek)."
+Certifications matched: {certs},Sertifikasi cocok: {certs}
+Missing: {missing},Kurang: {missing}
+Degree level {cand_degree} meets minimum requirement of {min_edu},Jenjang pendidikan {cand_degree} memenuhi syarat minimal {min_edu}
+"Degree level {cand_degree}, job requires {min_edu}","Jenjang pendidikan {cand_degree}, lowongan meminta {min_edu}"
+Education level not detected (job requires {min_edu}),Jenjang pendidikan tidak terdeteksi (lowongan meminta {min_edu})
+Major matched: {majors},Jurusan cocok: {majors}
+Major does not match criteria ({majors}),Jurusan tidak sesuai kriteria ({majors})
+Experience of {years} years meets minimum requirement of {min_years} years,Pengalaman {years} tahun memenuhi syarat minimal {min_years} tahun
+Experience of {years} years out of minimum {min_years} years,Pengalaman {years} tahun dari minimal {min_years} tahun
+Total detected experience: {years} years,Total pengalaman terdeteksi: {years} tahun
+Relevant job title matched: {titles},Judul jabatan relevan cocok: {titles}
+No relevant job titles found ({titles}),Tidak ada judul jabatan relevan yang cocok ({titles})
+Repeated words ('{repeated_word}'),Kata berulang ('{repeated_word}')
+Common typographical errors ({typos}),Kesalahan ketik umum ({typos})
+Found {long_sentence_count} sentences that are too long (> 40 words),Ditemukan {long_sentence_count} kalimat yang terlalu panjang (> 40 kata)
+Recruitment,Rekrutmen
+Recruitment Stages,Tahap Rekrutmen
+New Applicants,Pelamar Baru
+Screening Stage,Tahap Skrining
+Background Check Stage,Tahap Pemeriksaan Latar Belakang
+Interview Stage,Tahap Wawancara
+New Applicants ATS,Pelamar Baru ATS
+Screening Stage ATS,Tahap Skrining ATS
+Background Check Stage ATS,Tahap Pemeriksaan Latar Belakang ATS
+Interview Stage ATS,Tahap Wawancara ATS
+Applicants (Kanban),Pelamar (Kanban)
+Prohibited platform for automated scraping: manual verification,Platform terlarang untuk scraping otomatis: verifikasi manual
+Account not declared by candidate on prohibited platform,Akun tidak dinyatakan kandidat pada platform terlarang
+Simulation mode (mock),Mode simulasi (mock)

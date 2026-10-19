@@ -1,15 +1,16 @@
 # Copyright (c) 2026, HRIS Team and contributors
 # For license information, please see license.txt
 
-"""Metrik 5: Education relevance (0-100)
-Mencocokkan jenjang dan jurusan pendidikan dengan syarat lowongan:
-- Jenjang pendidikan >= min_education = 60 poin (kurang jenjang = penalti proporsional)
-- Jurusan cocok dengan education_majors (rapidfuzz partial_ratio >= 85) = 40 poin
-- Bila lowongan tidak menentukan jenjang pendidikan, metrik berstatus tidak berlaku (applicable = False).
+"""Metric 5: Education relevance (0-100)
+Matches education degree level and major against job requirements:
+- Degree level >= min_education = 60 points (proportional penalty if lower)
+- Major matches education_majors (rapidfuzz partial_ratio >= 85) = 40 points
+- If job opening specifies neither, applicable = False.
 """
 
 from __future__ import annotations
 
+import json
 import re
 from typing import Any
 from rapidfuzz import fuzz
@@ -38,12 +39,11 @@ def parse_degree_level(degree_str: str) -> int:
 
 
 def detect_candidate_degree(text: str) -> tuple[int, str]:
-	"""Mendeteksi jenjang pendidikan tertinggi kandidat dari teks."""
+	"""Detects candidate's highest education degree from text."""
 	highest_level = 0
-	found_name = "Tidak terdeteksi"
+	found_name = "Not detected"
 
 	lower = text.lower()
-	# Urutan pengecekan dari jenjang tertinggi ke terendah
 	patterns = [
 		(5, r"\b(?:s3|ph\.?d|doktor|doctorate)\b", "S3/Doktor"),
 		(4, r"\b(?:s2|master|magister|m\.s|m\.sc|m\.kom|m\.m)\b", "S2/Master"),
@@ -67,10 +67,13 @@ def evaluate(extraction: ExtractionResult, sections: dict[str, str], criteria: d
 	majors_req = crit.get("education_majors")
 
 	if not min_edu and not majors_req:
+		msg = "Job opening does not specify minimum education or major criteria."
 		return {
 			"score": 100.0,
 			"applicable": False,
-			"reason": "Lowongan tidak menentukan kriteria pendidikan minimal atau jurusan.",
+			"reason": msg,
+			"reason_template": msg,
+			"reason_params": "{}",
 		}
 
 	edu_text = sections.get("education", "") or extraction.normalized_text
@@ -78,26 +81,36 @@ def evaluate(extraction: ExtractionResult, sections: dict[str, str], criteria: d
 
 	score = 0.0
 	reasons: list[str] = []
+	template_parts: list[str] = []
+	params: dict[str, Any] = {}
 
-	# 1. Poin Jenjang Pendidikan (maksimal 60 poin)
+	# 1. Degree Level Points (up to 60)
 	target_level = parse_degree_level(min_edu) if min_edu else 0
 
 	if target_level > 0:
+		req_name = DEGREE_NAMES.get(target_level, min_edu)
 		if cand_level >= target_level:
 			score += 60.0
-			reasons.append(f"Jenjang {cand_degree_name} memenuhi minimal {DEGREE_NAMES.get(target_level, min_edu)}")
+			reasons.append(f"Degree level {cand_degree_name} meets minimum requirement of {req_name}")
+			template_parts.append("Degree level {cand_degree} meets minimum requirement of {min_edu}")
+			params["cand_degree"] = cand_degree_name
+			params["min_edu"] = req_name
 		elif cand_level > 0:
 			gap = target_level - cand_level
 			earned = max(10.0, 60.0 - (gap * 25.0))
 			score += earned
-			reasons.append(f"Jenjang {cand_degree_name}, lowongan meminta {DEGREE_NAMES.get(target_level, min_edu)}")
+			reasons.append(f"Degree level {cand_degree_name}, job requires {req_name}")
+			template_parts.append("Degree level {cand_degree}, job requires {min_edu}")
+			params["cand_degree"] = cand_degree_name
+			params["min_edu"] = req_name
 		else:
-			reasons.append(f"Jenjang pendidikan tidak terdeteksi (lowongan minta {DEGREE_NAMES.get(target_level, min_edu)})")
+			reasons.append(f"Education level not detected (job requires {req_name})")
+			template_parts.append("Education level not detected (job requires {min_edu})")
+			params["min_edu"] = req_name
 	else:
-		# Jika tidak ada target jenjang, beri 60 jika terdeteksi jenjang apa pun
 		score += 60.0 if cand_level > 0 else 30.0
 
-	# 2. Poin Jurusan (maksimal 40 poin)
+	# 2. Major Points (up to 40)
 	if majors_req:
 		target_majors = [m.strip().lower() for m in re.split(r"[,;\n]+", majors_req) if m.strip()]
 		matched_majors = []
@@ -108,18 +121,26 @@ def evaluate(extraction: ExtractionResult, sections: dict[str, str], criteria: d
 
 		if matched_majors:
 			score += 40.0
-			reasons.append(f"Jurusan cocok: {', '.join(matched_majors)}")
+			matched_str = ", ".join(matched_majors)
+			reasons.append(f"Major matched: {matched_str}")
+			template_parts.append("Major matched: {majors}")
+			params["majors"] = matched_str
 		else:
-			reasons.append(f"Jurusan tidak cocok dengan kriteria ({', '.join(target_majors[:2])})")
+			sample_majors = ", ".join(target_majors[:2])
+			reasons.append(f"Major does not match criteria ({sample_majors})")
+			template_parts.append("Major does not match criteria ({majors})")
+			params["majors"] = sample_majors
 	else:
-		# Jika lowongan tidak mensyaratkan jurusan tertentu, otomatis dapat 40 jika jenjang terpenuhi
 		score += 40.0 if cand_level >= target_level else 20.0
 
 	final_score = max(0.0, min(100.0, score))
 	final_reason = "; ".join(reasons) + "."
+	final_template = "; ".join(template_parts) + "."
 
 	return {
 		"score": round(final_score, 1),
 		"applicable": True,
 		"reason": final_reason,
+		"reason_template": final_template,
+		"reason_params": json.dumps(params) if params else "{}",
 	}

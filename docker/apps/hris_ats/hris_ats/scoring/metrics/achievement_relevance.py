@@ -1,21 +1,22 @@
 # Copyright (c) 2026, HRIS Team and contributors
 # For license information, please see license.txt
 
-"""Metrik 8: Achievement relevance (0-100)
-Mengevaluasi keberadaan pencapaian kerja yang terukur:
-- Poin dengan angka dan metrik kuantitatif (%, Rp, IDR, USD, x, juta, miliar, orang, tim, pengguna, proyek)
-- Disertai kata kerja aksi (memimpin, meningkatkan, mengembangkan, led, increased, improved, reduced, built, managed)
-- Skor naik 20 poin per temuan, maksimal 100 poin (5 temuan).
+"""Metric 8: Achievement relevance (0-100)
+Evaluates presence of measurable work achievements:
+- Numbers and quantitative metrics (%, Rp, IDR, USD, x, juta, miliar, orang, tim, users, projects)
+- Accompanied by action verbs (memimpin, meningkatkan, led, increased, improved, reduced, built, managed)
+- 20 points per finding, capped at 100 points (5 findings).
 """
 
 from __future__ import annotations
 
+import json
 import re
 from typing import Any
 from hris_ats.scoring.extract import ExtractionResult
 
 ACTION_VERBS = [
-	# Bahasa Indonesia
+	# Indonesian
 	r"memimpin", r"meningkatkan", r"mengembangkan", r"memangkas", r"membangun",
 	r"merancang", r"mendesain", r"mengelola", r"mengoptimalkan", r"menghasilkan",
 	r"mencapai", r"meluncurkan", r"mengurangi", r"mengimplementasikan",
@@ -41,7 +42,6 @@ NUMBER_REGEX = re.compile(r"\b\d+(?:[\.,]\d+)?\b")
 
 
 def evaluate(extraction: ExtractionResult, sections: dict[str, str], criteria: dict[str, Any] | None = None) -> dict[str, Any]:
-	# Prioritaskan bagian achievements dan experience
 	search_text = (
 		sections.get("achievements", "") + "\n" +
 		sections.get("experience", "") + "\n" +
@@ -61,23 +61,30 @@ def evaluate(extraction: ExtractionResult, sections: dict[str, str], criteria: d
 		has_number = bool(NUMBER_REGEX.search(l))
 
 		if (has_action and has_metric and has_number) or (has_metric and has_number and any(sym in l for sym in ["%", "Rp", "$"])):
-			# Hindari duplikasi kalimat yang mirip
 			if not any(l[:20] in m for m in matched_achievements):
 				matched_achievements.append(l)
 
 	count = len(matched_achievements)
 	score = min(100.0, count * 20.0)
+	params: dict[str, Any] = {}
 
 	if count == 0:
-		final_reason = "Belum ada pencapaian kerja yang terukur dengan angka atau metrik kuantitatif."
+		final_reason = "No measurable achievements found with numbers or quantitative metrics."
+		final_template = final_reason
 	elif count >= 5:
-		final_reason = f"Ditemukan {count} pencapaian terukur dengan metrik dan dampak nyata (maksimal 100 poin)."
+		final_reason = f"Found {count} measurable achievements with metrics and tangible impact (maximum 100 points)."
+		final_template = "Found {count} measurable achievements with metrics and tangible impact (maximum 100 points)."
+		params["count"] = count
 	else:
-		final_reason = f"Ditemukan {count} pencapaian kerja yang terukur (mis. persentase, nominal, atau skala proyek)."
+		final_reason = f"Found {count} measurable work achievements (e.g. percentages, amounts, or project scale)."
+		final_template = "Found {count} measurable work achievements (e.g. percentages, amounts, or project scale)."
+		params["count"] = count
 
 	return {
 		"score": round(score, 1),
 		"applicable": True,
 		"reason": final_reason,
+		"reason_template": final_template,
+		"reason_params": json.dumps(params) if params else "{}",
 		"findings_count": count,
 	}
