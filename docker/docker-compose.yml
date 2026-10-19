@@ -44,6 +44,8 @@ services:
       - |
         set -e
         ls -1 apps > sites/apps.txt
+        mkdir -p sites/assets
+        ln -sfn /home/frappe/frappe-bench/apps/hris_ats/hris_ats/public sites/assets/hris_ats
         bench set-config -g db_host "$$DB_HOST"
         bench set-config -gp db_port "$$DB_PORT"
         bench set-config -g redis_cache "redis://$$REDIS_CACHE"
@@ -201,6 +203,14 @@ services:
     <<: [*app_image, *app_volumes, *after_configurator]
     restart: unless-stopped
     command: ["bench", "worker", "--queue", "long,default,short"]
+    environment:
+      FRAPPE_REDIS_CACHE: redis://redis-cache:6379
+      FRAPPE_REDIS_QUEUE: redis://redis-queue:6379
+
+  queue-browser:
+    <<: [*app_image, *app_volumes, *after_configurator]
+    restart: unless-stopped
+    command: ["bench", "worker", "--queue", "browser"]
     environment:
       FRAPPE_REDIS_CACHE: redis://redis-cache:6379
       FRAPPE_REDIS_QUEUE: redis://redis-queue:6379

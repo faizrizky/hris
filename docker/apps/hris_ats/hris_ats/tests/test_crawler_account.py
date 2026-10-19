@@ -261,3 +261,99 @@ class TestCrawlerAccount(FrappeTestCase):
 		self.assertNotIn("session", acc_meta)
 		self.assertEqual(acc_meta["status"], "Connected")
 		self.assertEqual(acc_meta["platform"], "Instagram")
+
+	def test_crawler_limits_validation(self):
+		"""Validasi batasan limit crawler: hourly >= 1, daily >= 1, delay >= 0, jitter >= 0."""
+		acc = self._create_crawler_account()
+
+		# hourly_limit < 1 ditolak
+		acc.hourly_limit = 0
+		with self.assertRaises(frappe.ValidationError):
+			acc.save()
+		acc.reload()
+
+		# daily_limit < 1 ditolak
+		acc.daily_limit = 0
+		with self.assertRaises(frappe.ValidationError):
+			acc.save()
+		acc.reload()
+
+		# min_delay_seconds < 0 ditolak
+		acc.min_delay_seconds = -1
+		with self.assertRaises(frappe.ValidationError):
+			acc.save()
+		acc.reload()
+
+		# jitter_seconds < 0 ditolak
+		acc.jitter_seconds = -1
+		with self.assertRaises(frappe.ValidationError):
+			acc.save()
+		acc.reload()
+
+		# Nilai valid tersimpan sukses
+		acc.hourly_limit = 10
+		acc.daily_limit = 50
+		acc.min_delay_seconds = 15
+		acc.jitter_seconds = 20
+		acc.save()
+		acc.reload()
+		self.assertEqual(acc.hourly_limit, 10)
+		self.assertEqual(acc.daily_limit, 50)
+		self.assertEqual(acc.min_delay_seconds, 15)
+		self.assertEqual(acc.jitter_seconds, 20)
+
+	def test_no_cookies_written_to_redis_during_session_completion(self):
+		"""Memastikan cookies tidak pernah ditulis ke Redis saat worker menyimpan session (Zero-Redis Cookie Flow)."""
+		from hris_ats.bgc.crawler_session import get_redis_client
+
+		acc = self._create_crawler_account()
+		secret_token = f"sensitive_cookie_{frappe.generate_hash()}"
+		raw_session = json.dumps({
+			"cookies": [
+				{"name": "sessionid", "value": secret_token, "domain": ".instagram.com", "expires": time.time() + 86400}
+			]
+		})
+
+		redis = get_redis_client()
+		session_id = frappe.generate_hash(length=12)
+
+		# Worker saves session directly into account without passing through Redis
+		res = save_crawler_storage_state(acc.name, raw_session)
+		self.assertEqual(res["status"], "Connected")
+
+		# Check Redis to ensure no crawler_result key exists and secret_token was never written
+		self.assertIsNone(redis.get_value(f"crawler_result:{session_id}", use_local_cache=False))
+
+		# Search all keys in Redis for the sensitive secret token
+		all_keys = redis.get_keys("crawler_*")
+		for k in all_keys:
+			val = redis.get_value(k, use_local_cache=False)
+			if val:
+				val_str = str(val)
+				self.assertNotIn(secret_token, val_str, f"Leaked cookie found in Redis key: {k}")
+
+	def test_regression_frappe_local_cache_bypass(self):
+		"""Regression test untuk bug frappe.local.cache yang dulu menyimpan None selamanya."""
+		from hris_ats.bgc.crawler_session import get_redis_client
+
+		redis = get_redis_client()
+		test_key = f"test_cache_bug_{frappe.generate_hash(length=8)}"
+
+		# Pastikan kunci belum ada di Redis
+		redis.delete_value(test_key)
+
+		# 1. Panggilan pertama mengembalikan None
+		val1 = redis.get_value(test_key, use_local_cache=False)
+		self.assertIsNone(val1)
+
+		# 2. Worker atau proses lain mengisi kunci di Redis
+		redis.set_value(test_key, "complete", expires_in_sec=30)
+
+		# 3. Panggilan kedua dengan use_local_cache=False WAJIB membaca nilai terbaru ("complete"),
+		# tidak tertahan oleh None di frappe.local.cache
+		val2 = redis.get_value(test_key, use_local_cache=False)
+		self.assertEqual(val2, "complete")
+
+		# Bersihkan
+		redis.delete_value(test_key)
+

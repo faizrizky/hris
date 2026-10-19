@@ -15,9 +15,49 @@ hris_ats.show_crawler_login_dialog = function (account_name, on_complete) {
 			let platform = r.message.platform;
 			let login_url = r.message.login_url;
 
-			let queued_inputs = [];
-			let poll_interval = null;
 			let is_closing = false;
+			let last_interaction_time = Date.now();
+			let last_frame_seq = 0;
+			let poll_timer = null;
+			let poll_busy = false;
+			let type_buffer = "";
+			let type_timer = null;
+
+			function schedule_next_poll(delay) {
+				if (is_closing) return;
+				if (poll_timer) clearTimeout(poll_timer);
+				poll_timer = setTimeout(do_poll, delay);
+			}
+
+			function get_adaptive_delay() {
+				let idle_ms = Date.now() - last_interaction_time;
+				return idle_ms < 3000 ? 200 : 1000;
+			}
+
+			function send_input_immediately(ev) {
+				last_interaction_time = Date.now();
+				frappe.call({
+					method: "hris_ats.bgc.crawler_session.send_crawler_input",
+					args: {
+						session_id: session_id,
+						input_event: ev
+					},
+					no_spinner: true
+				});
+				schedule_next_poll(150);
+			}
+
+			function flush_type_buffer() {
+				if (type_timer) {
+					clearTimeout(type_timer);
+					type_timer = null;
+				}
+				if (type_buffer.length > 0) {
+					let text_to_send = type_buffer;
+					type_buffer = "";
+					send_input_immediately({ type: "type", text: text_to_send });
+				}
+			}
 
 			let d = new frappe.ui.Dialog({
 				title: __("Interactive Login: {0} ({1})", [platform, account_name]),
@@ -30,13 +70,14 @@ hris_ats.show_crawler_login_dialog = function (account_name, on_complete) {
 				],
 				primary_action_label: __("Complete Login"),
 				primary_action: function () {
+					flush_type_buffer();
 					d.get_primary_btn().prop("disabled", true).text(__("Verifying & saving session..."));
 					frappe.call({
 						method: "hris_ats.bgc.crawler_session.complete_login_session",
 						args: { session_id: session_id },
 						callback: function (res) {
 							if (res.message && res.message.status === "Connected") {
-								clearInterval(poll_interval);
+								if (poll_timer) clearTimeout(poll_timer);
 								is_closing = true;
 								d.hide();
 								let domains_str = (res.message.cookie_domains_found || []).join(", ") || __("none");
@@ -61,8 +102,9 @@ hris_ats.show_crawler_login_dialog = function (account_name, on_complete) {
 				},
 				secondary_action_label: __("Manual Cookie Import"),
 				secondary_action: function () {
+					flush_type_buffer();
 					show_manual_cookie_import_dialog(account_name, function (res) {
-						clearInterval(poll_interval);
+						if (poll_timer) clearTimeout(poll_timer);
 						is_closing = true;
 						d.hide();
 						if (on_complete) on_complete(res);
@@ -114,35 +156,45 @@ hris_ats.show_crawler_login_dialog = function (account_name, on_complete) {
 
 			// Mouse events forwarding
 			$(img).on("click", function (e) {
+				flush_type_buffer();
 				let rect = img.getBoundingClientRect();
 				let scaleX = 1024 / rect.width;
 				let scaleY = 768 / rect.height;
 				let x = Math.round((e.clientX - rect.left) * scaleX);
 				let y = Math.round((e.clientY - rect.top) * scaleY);
-				queued_inputs.push({ type: "click", x: x, y: y, button: "left" });
+				send_input_immediately({ type: "click", x: x, y: y, button: "left" });
 				img.focus();
 			});
 
 			$(img).on("wheel", function (e) {
 				e.preventDefault();
+				flush_type_buffer();
 				let orig = e.originalEvent || e;
-				queued_inputs.push({ type: "scroll", deltaX: orig.deltaX || 0, deltaY: orig.deltaY || 0 });
+				send_input_immediately({ type: "scroll", deltaX: orig.deltaX || 0, deltaY: orig.deltaY || 0 });
 			});
 
-			// Keyboard events forwarding
+			// Keyboard events forwarding with keystroke coalescing
 			$(img).on("keydown", function (e) {
 				e.preventDefault();
 				let key = e.key;
 				if (key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
-					queued_inputs.push({ type: "type", text: key });
+					type_buffer += key;
+					if (type_timer) clearTimeout(type_timer);
+					if (type_buffer.length >= 10) {
+						flush_type_buffer();
+					} else {
+						type_timer = setTimeout(flush_type_buffer, 40);
+					}
 				} else {
-					queued_inputs.push({ type: "keydown", key: key });
+					flush_type_buffer();
+					send_input_immediately({ type: "keydown", key: key });
 				}
 			});
 
 			// Cleanup on dialog dismiss
 			d.$wrapper.on("hidden.bs.modal", function () {
-				if (poll_interval) clearInterval(poll_interval);
+				flush_type_buffer();
+				if (poll_timer) clearTimeout(poll_timer);
 				if (!is_closing) {
 					frappe.call({
 						method: "hris_ats.bgc.crawler_session.close_login_session",
@@ -151,29 +203,38 @@ hris_ats.show_crawler_login_dialog = function (account_name, on_complete) {
 				}
 			});
 
-			// Polling loop
-			poll_interval = setInterval(function () {
-				let inputs_to_send = queued_inputs.slice();
-				queued_inputs = [];
+			// Adaptive Polling loop
+			function do_poll() {
+				if (is_closing || poll_busy) return;
+				poll_busy = true;
 
 				frappe.call({
 					method: "hris_ats.bgc.crawler_session.poll_login_session",
 					args: {
 						session_id: session_id,
-						inputs: inputs_to_send.length ? JSON.stringify(inputs_to_send) : null
+						last_frame_seq: last_frame_seq
+					},
+					no_spinner: true,
+					always: function () {
+						poll_busy = false;
+						schedule_next_poll(get_adaptive_delay());
 					},
 					callback: function (poll_res) {
 						if (!poll_res.message) return;
 						let m = poll_res.message;
 
 						if (m.status === "closed" || m.status === "error") {
-							clearInterval(poll_interval);
+							if (poll_timer) clearTimeout(poll_timer);
 							statusBadge.removeClass("badge-warning badge-success").addClass("badge-danger").text(m.status);
 							return;
 						}
 
 						if (m.status === "active" || m.status === "completed") {
 							statusBadge.removeClass("badge-warning badge-danger").addClass("badge-success").text(__("Active"));
+						}
+
+						if (m.frame_seq !== undefined && m.frame_seq !== null) {
+							last_frame_seq = m.frame_seq;
 						}
 
 						if (m.frame_b64) {
@@ -192,7 +253,10 @@ hris_ats.show_crawler_login_dialog = function (account_name, on_complete) {
 						}
 					}
 				});
-			}, 1000);
+			}
+
+			// Start initial poll immediately
+			schedule_next_poll(50);
 
 			d.show();
 		}

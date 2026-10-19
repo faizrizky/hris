@@ -26,6 +26,10 @@ services:
     volumes:
       - ./apps/hris_ats:/home/frappe/frappe-bench/apps/hris_ats
 
+  queue-browser:
+    volumes:
+      - ./apps/hris_ats:/home/frappe/frappe-bench/apps/hris_ats
+
   scheduler:
     volumes:
       - ./apps/hris_ats:/home/frappe/frappe-bench/apps/hris_ats
