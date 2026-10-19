@@ -63,9 +63,19 @@ class BackgroundCheck(Document):
 					if not acc.social_consent_attested_by:
 						acc.social_consent_attested_by = getattr(frappe.session, "user", None) or "Administrator"
 						acc.social_consent_attested_on = now_datetime()
+				else:
+					acc.social_consent_attested_by = None
+					acc.social_consent_attested_on = None
+		elif self.consent_method == "Web form":
+			if self.consent_status in ("Pending", None):
+				for acc in self.accounts:
+					if acc.social_consent:
+						acc.social_consent = 0
+						acc.social_consent_attested_by = None
+						acc.social_consent_attested_on = None
 		else:
 			for acc in self.accounts:
-				if acc.social_consent and not acc.social_consent_attested_by and self.consent_method != "Web form":
+				if acc.social_consent and not acc.social_consent_attested_by:
 					if not self.consent_file:
 						frappe.throw(
 							_("Attachment of consent_file is mandatory before social media consent can be granted for accounts."),
@@ -82,6 +92,8 @@ class BackgroundCheck(Document):
 				acc.identity_reasons_template = ""
 				acc.identity_reasons_params = "{}"
 				acc.social_consent = 0
+				acc.social_consent_attested_by = None
+				acc.social_consent_attested_on = None
 
 		if self.consent_status == "Granted" and self.status == "Waiting Consent":
 			self.status = "Queued"

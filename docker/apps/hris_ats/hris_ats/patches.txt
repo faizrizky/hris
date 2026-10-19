@@ -6,3 +6,4 @@
 # Patches added in this section will be executed after doctypes are migrated
 hris_ats.patches.v1_0.init_phase5_fields
 hris_ats.patches.v1_0.migrate_select_to_english
+hris_ats.patches.v1_0.set_default_social_platforms

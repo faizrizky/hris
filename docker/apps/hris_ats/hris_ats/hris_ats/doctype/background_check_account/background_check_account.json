@@ -128,6 +128,7 @@
   },
   {
    "default": "0",
+   "description": "Confirmed by candidate in document",
    "fieldname": "social_consent",
    "fieldtype": "Check",
    "label": "Social Media Consent",

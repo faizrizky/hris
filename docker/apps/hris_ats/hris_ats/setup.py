@@ -435,6 +435,11 @@ def setup_default_platforms():
 			doc = frappe.new_doc("Background Check Platform")
 			doc.update(p)
 			doc.insert(ignore_permissions=True)
+		else:
+			if p.get("requires_social_consent"):
+				val = frappe.db.get_value("Background Check Platform", p["platform_name"], "requires_social_consent")
+				if not val:
+					frappe.db.set_value("Background Check Platform", p["platform_name"], "requires_social_consent", 1, update_modified=False)
 
 
 def setup_default_lexicon():

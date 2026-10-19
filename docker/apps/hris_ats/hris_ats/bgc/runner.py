@@ -29,15 +29,24 @@ from hris_ats.bgc.providers.posts import PostsProvider
 from hris_ats.bgc.providers.web_search import WebSearchProvider
 
 
-def is_social_account(platform_name: str) -> bool:
-	"""Memeriksa apakah platform memerlukan persetujuan sosial (Instagram, Facebook, TikTok, LinkedIn, dsb.)."""
-	if not platform_name:
+def is_social_account(platform_name: str, profile_url: str = "") -> bool:
+	"""Memeriksa apakah platform memerlukan persetujuan sosial (Instagram, Facebook, TikTok, LinkedIn, dsb. atau domain terblokir bawaan)."""
+	if not platform_name and not profile_url:
 		return False
-	if frappe.db.exists("Background Check Platform", platform_name):
+	if platform_name and frappe.db.exists("Background Check Platform", platform_name):
 		req = frappe.db.get_value("Background Check Platform", platform_name, "requires_social_consent")
 		if req:
 			return True
-	return platform_name.lower() in ("instagram", "facebook", "tiktok", "linkedin", "twitter/x", "x")
+		tmpl = frappe.db.get_value("Background Check Platform", platform_name, "profile_url_template")
+		if tmpl and not profile_url:
+			profile_url = tmpl
+	if platform_name and platform_name.lower() in ("instagram", "facebook", "tiktok", "linkedin", "twitter/x", "x"):
+		return True
+	if profile_url:
+		from hris_ats.bgc.fetch import DEFAULT_BLOCKED_DOMAINS, is_forbidden_domain
+		if is_forbidden_domain(profile_url, blocked_domains=DEFAULT_BLOCKED_DOMAINS):
+			return True
+	return False
 
 
 
@@ -148,7 +157,10 @@ def run_all_sources(bgc_name: str) -> None:
 				candidate_cv_terms = [t.strip() for t in (bgc.context_terms or "").split(",") if t.strip()]
 				name_variants = [v.strip() for v in (bgc.name_variants or "").split("\n") if v.strip()]
 
-				platform_accounts = [acc for acc in bgc.accounts if not is_social_account(acc.platform)]
+				platform_accounts = [
+					acc for acc in bgc.accounts
+					if not is_social_account(acc.platform, getattr(acc, "profile_url", None))
+				]
 
 				for acc in platform_accounts:
 					plat_doc = frappe.get_doc("Background Check Platform", acc.platform) if frappe.db.exists("Background Check Platform", acc.platform) else None
@@ -271,7 +283,10 @@ def run_all_sources(bgc_name: str) -> None:
 				if is_mock:
 					p_provider = PostsProvider()
 					all_fetched_posts = []
-					api_accounts = [acc for acc in bgc.accounts if not is_social_account(acc.platform) and acc.post_access == "API"]
+					api_accounts = [
+						acc for acc in bgc.accounts
+						if not is_social_account(acc.platform, getattr(acc, "profile_url", None)) and acc.post_access == "API"
+					]
 					for acc in api_accounts:
 						acc_posts = p_provider.fetch_posts(acc.platform, acc.username)
 						all_fetched_posts.extend(acc_posts)
@@ -320,7 +335,10 @@ def run_all_sources(bgc_name: str) -> None:
 					run_row.robots_ignored_count = 0
 
 			elif source_name == "Social Media":
-				social_accounts = [acc for acc in bgc.accounts if is_social_account(acc.platform)]
+				social_accounts = [
+					acc for acc in bgc.accounts
+					if is_social_account(acc.platform, getattr(acc, "profile_url", None))
+				]
 				valid_social_accounts = []
 				skipped_accounts = 0
 				modes_used: set[str] = set()
@@ -361,10 +379,17 @@ def run_all_sources(bgc_name: str) -> None:
 					blocked = is_forbidden_domain(prof_url, blocked_domains=getattr(fetch_config, "blocked_domains", None)) if prof_url else False
 					if not acc.social_consent or blocked:
 						skipped_accounts += 1
-						if prof_url and blocked and acc.social_consent:
-							acc.exists = 1
+						if not acc.social_consent:
+							acc.exists = 0
 							acc.identity_match = None
 							acc.display_name = ""
+						elif prof_url and blocked and acc.social_consent:
+							acc.exists = 1 if (acc.declared_by == "Candidate" and bool(acc.username)) else 0
+							acc.identity_match = None
+							acc.display_name = ""
+							acc.identity_reasons = _("Prohibited platform for automated scraping: manual verification")
+							acc.identity_reasons_template = "Prohibited platform for automated scraping: manual verification"
+							acc.identity_reasons_params = "{}"
 						continue
 
 					valid_social_accounts.append(acc)

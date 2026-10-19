@@ -157,6 +157,7 @@ def submit_candidate_consent(
 	# Save social media and other accounts declared by candidate
 	is_social_granted = "Social Media" in granted_sources
 	submitted_consented_keys = set()
+	submitted_account_keys = set()
 	if accounts:
 		existing_accounts_map = {
 			(acc.platform, acc.username): acc for acc in bgc.accounts
@@ -168,13 +169,18 @@ def submit_candidate_consent(
 				continue
 			has_consent = 1 if (is_social_granted and acc.get("social_consent")) else 0
 			key = (plat, user)
+			submitted_account_keys.add(key)
 			if has_consent:
 				submitted_consented_keys.add(key)
 			prof_url = ""
+			plat_post_api = None
 			if frappe.db.exists("Background Check Platform", plat):
 				tmpl = frappe.db.get_value("Background Check Platform", plat, "profile_url_template")
 				if tmpl:
 					prof_url = tmpl.replace("{username}", user.strip().lstrip("@"))
+				plat_post_api = frappe.db.get_value("Background Check Platform", plat, "post_api")
+
+			post_access = "API" if (plat_post_api and plat_post_api != "None") else "Manual review only"
 
 			if key in existing_accounts_map:
 				existing_accounts_map[key].social_consent = has_consent
@@ -186,14 +192,20 @@ def submit_candidate_consent(
 					"username": user,
 					"profile_url": prof_url,
 					"declared_by": "Candidate",
-					"post_access": "Manual review only",
+					"post_access": post_access,
 					"social_consent": has_consent,
 				})
 
-	# Ensure any account not explicitly consented by candidate has social_consent = 0
+	# If candidate previously declared an account and deleted it on the form, remove it
+	retained_accounts = []
 	for acc in bgc.accounts:
-		if (acc.platform, acc.username) not in submitted_consented_keys:
+		key = (acc.platform, acc.username)
+		if acc.declared_by == "Candidate" and key not in submitted_account_keys:
+			continue
+		if key not in submitted_consented_keys:
 			acc.social_consent = 0
+		retained_accounts.append(acc)
+	bgc.accounts = retained_accounts
 
 	# Optional SKCK file
 	if skck_file:
@@ -247,10 +259,19 @@ def clean_bgc_cache(bgc_doc: Any) -> None:
 		if hasattr(frappe, "cache") and frappe.cache:
 			for acc in getattr(bgc_doc, "accounts", []):
 				prof_url = getattr(acc, "profile_url", None)
+				if not prof_url and getattr(acc, "platform", None) and getattr(acc, "username", None):
+					tmpl = frappe.db.get_value("Background Check Platform", acc.platform, "profile_url_template")
+					if tmpl:
+						prof_url = tmpl.replace("{username}", acc.username.strip().lstrip("@"))
 				if prof_url:
-					for mode in ("company+robots", "company", "browser+robots", "browser", "stealth+robots", "stealth", "mock"):
-						key = f"hris_ats:fetch_cache:{mode}:GET:{prof_url}"
-						frappe.cache.delete_value(key)
+					urls_to_clean = {prof_url, prof_url.rstrip("/"), prof_url.rstrip("/") + "/"}
+					modes = ("company+robots", "company", "browser+robots", "browser", "stealth+robots", "stealth", "mock")
+					methods = ("GET", "HEAD")
+					for u in urls_to_clean:
+						for mode in modes:
+							for method in methods:
+								key = f"hris_ats:fetch_cache:{mode}:{method}:{u}"
+								frappe.cache.delete_value(key)
 	except Exception:
 		pass
 
@@ -278,6 +299,8 @@ def revoke_consent(bgc_name: str) -> dict[str, Any]:
 		acc.identity_reasons_template = ""
 		acc.identity_reasons_params = "{}"
 		acc.social_consent = 0
+		acc.social_consent_attested_by = None
+		acc.social_consent_attested_on = None
 
 	clean_bgc_crawldir(bgc.name)
 	clean_bgc_cache(bgc)

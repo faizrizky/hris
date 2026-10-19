@@ -8,17 +8,6 @@ frappe.ui.form.on("Background Check", {
 		frm.trigger("render_name_findings");
 		frm.trigger("render_account_findings");
 		frm.trigger("toggle_social_consent_editing");
-	},
-
-	consent_method(frm) {
-		frm.trigger("toggle_social_consent_editing");
-	},
-
-	toggle_social_consent_editing(frm) {
-		let is_uploaded_doc = frm.doc.consent_method === "Uploaded document";
-		if (frm.fields_dict.accounts && frm.fields_dict.accounts.grid) {
-			frm.fields_dict.accounts.grid.toggle_enable("social_consent", is_uploaded_doc);
-		}
 
 		if (!frm.is_new() && frm.doc.consent_status === "Granted" && frm.doc.status !== "Crawling") {
 			frm.add_custom_button(__("Rerun"), function () {
@@ -54,6 +43,23 @@ frappe.ui.form.on("Background Check", {
 		frm.add_custom_button(__("Open Findings List"), function () {
 			frappe.set_route("List", "Background Check Finding", { background_check: frm.doc.name });
 		}, __("Navigation"));
+	},
+
+	consent_method(frm) {
+		frm.trigger("toggle_social_consent_editing");
+	},
+
+	consent_file(frm) {
+		frm.trigger("toggle_social_consent_editing");
+	},
+
+	toggle_social_consent_editing(frm) {
+		let is_uploaded_doc = frm.doc.consent_method === "Uploaded document";
+		let has_file = Boolean(frm.doc.consent_file);
+		let can_edit = is_uploaded_doc && has_file;
+		if (frm.fields_dict.accounts && frm.fields_dict.accounts.grid) {
+			frm.fields_dict.accounts.grid.toggle_enable("social_consent", can_edit);
+		}
 	},
 
 	render_banner(frm) {
@@ -327,5 +333,15 @@ frappe.ui.form.on("Background Check", {
 				});
 			}
 		});
+	}
+});
+
+frappe.ui.form.on("Background Check Account", {
+	social_consent(frm, cdt, cdn) {
+		let row = locals[cdt][cdn];
+		if (row.social_consent && frm.doc.consent_method === "Uploaded document" && !frm.doc.consent_file) {
+			frappe.msgprint(__("Attachment of consent_file is mandatory before social media consent can be granted for accounts."));
+			frappe.model.set_value(cdt, cdn, "social_consent", 0);
+		}
 	}
 });

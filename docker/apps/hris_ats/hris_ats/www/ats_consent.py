@@ -71,7 +71,8 @@ def get_context(context):
 		order_by="platform_name asc",
 	)
 	context.social_platforms = [
-		p.platform_name for p in context.platforms if p.requires_social_consent
+		p.platform_name for p in context.platforms
+		if p.requires_social_consent or p.platform_name.lower() in ("instagram", "facebook", "tiktok", "linkedin", "twitter/x", "x")
 	]
 	context.existing_social_accounts = [
 		{

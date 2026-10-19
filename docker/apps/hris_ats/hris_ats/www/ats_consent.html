@@ -89,7 +89,7 @@
 									<select id="new-social-platform" class="form-control form-control-sm">
 										<option value="">-- {{ _("Select Platform") }} --</option>
 										{% for p in platforms %}
-										{% if p.requires_social_consent %}
+										{% if p.platform_name in social_platforms %}
 										<option value="{{ p.platform_name }}">{{ p.platform_name }}</option>
 										{% endif %}
 										{% endfor %}
@@ -113,12 +113,34 @@
 							{{ _("Specify any non-social platform profiles (GitHub, Canva, etc.) you wish to declare.") }}
 						</p>
 						<div id="other-accounts-container" class="mb-2">
+							{% if existing_other_accounts %}
+							{% for oacc in existing_other_accounts %}
 							<div class="row g-2 mb-2 other-account-row">
 								<div class="col-5">
 									<select class="form-control form-control-sm other-platform">
 										<option value="">-- {{ _("Select Platform") }} --</option>
 										{% for p in platforms %}
-										{% if not p.requires_social_consent %}
+										{% if p.platform_name not in social_platforms %}
+										<option value="{{ p.platform_name }}" {% if p.platform_name == oacc.platform %}selected{% endif %}>{{ p.platform_name }}</option>
+										{% endif %}
+										{% endfor %}
+									</select>
+								</div>
+								<div class="col-6">
+									<input type="text" class="form-control form-control-sm other-username" value="{{ oacc.username }}" placeholder="{{ _("Username / Handle") }}">
+								</div>
+								<div class="col-1 text-end">
+									<button type="button" class="btn btn-sm btn-outline-danger btn-remove-other-acc" title="{{ _("Remove") }}">✕</button>
+								</div>
+							</div>
+							{% endfor %}
+							{% else %}
+							<div class="row g-2 mb-2 other-account-row">
+								<div class="col-5">
+									<select class="form-control form-control-sm other-platform">
+										<option value="">-- {{ _("Select Platform") }} --</option>
+										{% for p in platforms %}
+										{% if p.platform_name not in social_platforms %}
 										<option value="{{ p.platform_name }}">{{ p.platform_name }}</option>
 										{% endif %}
 										{% endfor %}
@@ -131,6 +153,7 @@
 									<button type="button" class="btn btn-sm btn-outline-danger btn-remove-other-acc" title="{{ _("Remove") }}">✕</button>
 								</div>
 							</div>
+							{% endif %}
 						</div>
 						<button type="button" id="btn-add-other-account" class="btn btn-sm btn-outline-secondary">
 							+ {{ _("Add Account") }}
@@ -228,6 +251,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
 	// Initial visibility check
 	toggleSocialSection();
+	updateSubmitState();
 
 	// Add new social account
 	if (btnAddSocial && socialAccountsList) {

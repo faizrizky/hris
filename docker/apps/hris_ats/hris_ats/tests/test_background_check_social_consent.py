@@ -295,3 +295,114 @@ class TestBackgroundCheckSocialConsent(FrappeTestCase):
 		if hasattr(frappe, "cache") and frappe.cache:
 			cached = frappe.cache.get_value("hris_ats:fetch_cache:company:GET:https://www.linkedin.com/in/ronaldrichard")
 			self.assertIsNone(cached)
+
+	def test_candidate_declaring_and_removing_own_account(self):
+		"""7. Kandidat boleh menambah dan menghapus akun sendiri; akun terhapus tidak disimpan."""
+		res = initiate_background_check(self.applicant.name)
+		bgc = frappe.get_doc("Background Check", res["name"])
+		# Awalnya kandidat punya akun yang dideklarasikan sendiri
+		bgc.append("accounts", {
+			"platform": "LinkedIn",
+			"username": "ronald_li",
+			"declared_by": "Candidate",
+			"social_consent": 0,
+		})
+		bgc.append("accounts", {
+			"platform": "TikTok",
+			"username": "ronald_tt_to_remove",
+			"declared_by": "Candidate",
+			"social_consent": 0,
+		})
+		bgc.save(ignore_permissions=True)
+
+		# Pada saat submit persetujuan, kandidat menghapus TikTok dan hanya menyertakan LinkedIn
+		submit_candidate_consent(
+			token=res["token"],
+			granted_sources=["Social Media"],
+			accounts=[
+				{"platform": "LinkedIn", "username": "ronald_li", "social_consent": 1},
+			],
+		)
+
+		bgc.reload()
+		account_keys = [(a.platform, a.username) for a in bgc.accounts]
+		self.assertIn(("LinkedIn", "ronald_li"), account_keys)
+		self.assertNotIn(("TikTok", "ronald_tt_to_remove"), account_keys)
+
+	def test_candidate_added_api_platform_gets_api_post_access(self):
+		"""8. Akun non-sosial dengan integrasi API (mis. GitHub) otomatis post_access = 'API'."""
+		res = initiate_background_check(self.applicant.name)
+		submit_candidate_consent(
+			token=res["token"],
+			granted_sources=["Platform", "Posts"],
+			accounts=[
+				{"platform": "GitHub", "username": "ronald_dev", "social_consent": 0},
+			],
+		)
+		bgc = frappe.get_doc("Background Check", res["name"])
+		gh_acc = next((a for a in bgc.accounts if a.platform == "GitHub"), None)
+		self.assertIsNotNone(gh_acc)
+		self.assertEqual(gh_acc.post_access, "API")
+
+	def test_custom_platform_matching_blocked_domain_is_social_account(self):
+		"""9. Akun pada platform kustom yang URL-nya memuat domain terblokir dianggap akun media sosial."""
+		from hris_ats.bgc.runner import is_social_account
+
+		self.assertTrue(is_social_account("CustomInsta", "https://instagram.com/myuser"))
+		self.assertTrue(is_social_account("CustomFB", "https://subdomain.facebook.com/myuser"))
+		self.assertFalse(is_social_account("CustomDev", "https://mycustomdev.org/myuser"))
+
+	def test_uploaded_document_unchecking_social_consent_clears_attestation(self):
+		"""10. HR menghapus centang social_consent menghapus social_consent_attested_by/_on."""
+		bgc = frappe.new_doc("Background Check")
+		bgc.job_applicant = self.applicant.name
+		bgc.full_name = self.applicant.applicant_name
+		bgc.consent_method = "Uploaded document"
+		bgc.consent_file = "/files/signed_candidate_consent.pdf"
+		bgc.append("accounts", {
+			"platform": "LinkedIn",
+			"username": "ronald_uncheck",
+			"social_consent": 1,
+		})
+		bgc.insert(ignore_permissions=True)
+
+		acc = bgc.accounts[0]
+		self.assertEqual(acc.social_consent, 1)
+		self.assertEqual(acc.social_consent_attested_by, "Administrator")
+
+		# Hapus centang social_consent
+		acc.social_consent = 0
+		bgc.save(ignore_permissions=True)
+
+		bgc.reload()
+		acc = bgc.accounts[0]
+		self.assertEqual(acc.social_consent, 0)
+		self.assertIsNone(acc.social_consent_attested_by)
+		self.assertIsNone(acc.social_consent_attested_on)
+
+	def test_ats_consent_context_contains_all_social_platforms_and_other_accounts(self):
+		"""11. get_context di ats_consent.py memuat semua platform media sosial dan memisahkan akun non-sosial."""
+		from hris_ats.www.ats_consent import get_context
+
+		res = initiate_background_check(self.applicant.name)
+		bgc = frappe.get_doc("Background Check", res["name"])
+		bgc.append("accounts", {"platform": "LinkedIn", "username": "ronald_li"})
+		bgc.append("accounts", {"platform": "GitHub", "username": "ronald_gh"})
+		bgc.save(ignore_permissions=True)
+
+		frappe.form_dict.token = res["token"]
+		ctx = frappe._dict()
+		get_context(ctx)
+
+		self.assertIn("LinkedIn", ctx.social_platforms)
+		self.assertIn("Instagram", ctx.social_platforms)
+		self.assertIn("Facebook", ctx.social_platforms)
+		self.assertIn("TikTok", ctx.social_platforms)
+		self.assertNotIn("GitHub", ctx.social_platforms)
+
+		# Cek pemisahan existing accounts
+		social_users = [a["username"] for a in ctx.existing_social_accounts]
+		other_users = [a["username"] for a in ctx.existing_other_accounts]
+		self.assertIn("ronald_li", social_users)
+		self.assertIn("ronald_gh", other_users)
+
