@@ -8,6 +8,8 @@ Salin seluruh isi di bawah garis ke Antigravity (chat baru). **Jalankan setelah 
 
 Custom app `hris_ats` ada di `docker/apps/hris_ats/`, branch `feat/hris-ats`. Baca `docker/apps/hris_ats/AUDIT.md` dulu untuk kondisi terakhir. Sistem sudah punya: domain media sosial sebagai settingan (`fetch_blocked_domains`, daftar kosong dihormati), persetujuan kandidat per akun (sumber `Social Media`, `social_consent`), lapisan `bgc/fetch.py` (Scrapling) dengan mode biasa/Browser/stealth, tombol "Test Fetch", browser untuk mode stealth sudah terpasang di container dev, dan nilai Select serta string UI sudah berbahasa Inggris dengan terjemahan Indonesia di `id.csv`.
 
+**Perbaikan setelah uji Fase 2** ada di `PROMPT-ANTIGRAVITY-PERBAIKAN-FASE2.md` dan dikerjakan sebelum Fase 3 (deteksi login, mode Session di Test Fetch, default Settings, antrean browser khusus, latensi dialog).
+
 Prompt ini menambah:
 1. Settings dirapikan menjadi **tab**.
 2. **Akun crawler per platform** (Instagram, Facebook, TikTok, LinkedIn) dengan **login interaktif lewat pop-up** dan persetujuan di ERPNext.
@@ -112,7 +114,7 @@ Ikuti `SPEC-BACKGROUND-CHECK.md` 4.6 dan 5.5 persis.
 
 ### 3a. Eskalasi otomatis mode pengambilan
 - Tambah di Settings `fetch_auto_escalate` (Check, default 0, `permlevel 1`, tab Page Fetching) sesuai spesifikasi 4.5. Wajib `fetch_risk_acknowledged` bila diaktifkan.
-- Di `bgc/fetch.py`: bila respons memenuhi kriteria "terhalang" (403/429/503 yang khas anti-bot, tantangan anti-bot terdeteksi, atau halaman login terdeteksi dengan fungsi yang sama dengan Test Fetch) dan `fetch_auto_escalate = 1`, coba mode berikutnya dengan urutan `Company` → `Browser` → `stealth`, hanya sampai mode tertinggi yang diizinkan Settings (stealth hanya bila `fetch_stealth_mode = 1` atau domain terdaftar, dan browser terpasang). Berhenti di percobaan pertama yang berhasil.
+- Di `bgc/fetch.py`: bila respons memenuhi kriteria "terhalang" (403/429/503 yang khas anti-bot, tantangan anti-bot terdeteksi, atau halaman login terdeteksi dengan fungsi yang sama dengan Test Fetch) dan `fetch_auto_escalate = 1`, coba mode berikutnya dengan urutan `Company` → `Browser` → `stealth` → `session`, hanya sampai mode tertinggi yang diizinkan Settings (stealth hanya bila `fetch_stealth_mode = 1` atau domain terdaftar, dan browser terpasang; `session` hanya bila `fetch_use_login_session = 1` dan ada akun crawler `Connected`, dan selalu langkah terakhir). Berhenti di percobaan pertama yang berhasil. Hasil uji pengguna: Instagram sudah mengembalikan data profil publik pada mode Browser tanpa login, jadi sesi hanya dipakai bila mode tanpa sesi terhalang atau mendarat di halaman login.
 - Tidak pernah memakai proxy. Batas laju per domain berlaku untuk setiap percobaan. `fetch_mode_used` mencatat rantai (`company>browser>stealth`). Bila semua mode gagal: `Failed` dengan alasan terstruktur (`login required` atau `blocked`).
 - Hormati `fetch_respect_robots` pada setiap percobaan, dan domain di `fetch_blocked_domains` tetap ditolak.
 - Test (jaringan di-mock): tiap kombinasi menghasilkan rantai yang benar; berhenti di mode tertinggi yang diizinkan; tanpa `fetch_auto_escalate` tidak ada eskalasi; halaman login berulang tidak menghasilkan percobaan lebih banyak dari jumlah mode.
@@ -138,7 +140,7 @@ Ikuti `SPEC-BACKGROUND-CHECK.md` 4.6 dan 5.5 persis.
 - Sambungkan ke `runner.py`: sumber `Social Media` memakai provider ini saat `mock_provider = 0`. Isi `fetch_mode_used`, `accounts_skipped`, `items_found`, `crawler_account`.
 - Analisis: pakai `analysis/posts.py` yang ada (aktivitas, kesantunan, konten berisiko, relevansi profesional, sentimen leksikon) tanpa jenis analisis baru. Tampilkan di tab "Digital footprint by account" dengan filter platform dan badge `provenance`.
 
-**Selesai bila:** semua test baru dan lama lulus; laporan jujur per platform: berhasil/gagal dengan mode apa dan dengan atau tanpa sesi (berdasarkan Test Fetch dan uji nyata yang saya bantu), disertai tangkapan layar tab Post.
+**Selesai bila:** semua test baru dan lama lulus; laporan jujur per platform: berhasil/gagal dengan mode apa dan dengan atau tanpa sesi (berdasarkan Test Fetch dan uji nyata yang saya bantu), **termasuk perbandingan data yang terlihat tanpa sesi vs dengan sesi** (nama, bio, jumlah pengikut, jumlah post), disertai tangkapan layar tab Post.
 **Berhenti dan lapor.**
 
 ## Fase 4: Ekspor data kandidat: post dan komentar milik kandidat

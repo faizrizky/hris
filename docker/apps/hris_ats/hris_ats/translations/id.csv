@@ -818,4 +818,26 @@ Timeout waiting for crawler browser to capture session state.,Batas waktu habis 
 Verifying & saving session...,Memverifikasi & menyimpan sesi...
 "You must open the Crawler Account record and check 'Acknowledge Legal and Technical Risks' before initiating interactive login.","Anda harus membuka data Akun Crawler dan mencentang 'Akui Risiko Hukum dan Teknis' sebelum memulai login interaktif."
 none,tidak ada
+Bio detected,Bio terdeteksi
+Browser Mode (No Session),Mode Browser (Tanpa Sesi)
+Comparison: Session vs Browser Mode (Without Session),Perbandingan: Mode Sesi vs Browser (Tanpa Sesi)
+Crawler Account,Akun Crawler
+Daily limit must be at least 1.,Batas harian minimal 1.
+"Daily rate limit of {0} requests exceeded for crawler account {1}.","Batas laju harian {0} permintaan terlampaui untuk akun crawler {1}."
+"Error saving crawler session: {0}","Gagal menyimpan sesi crawler: {0}"
+Followers detected,Pengikut terdeteksi
+Hourly limit must be at least 1.,Batas per jam minimal 1.
+"Hourly rate limit of {0} requests exceeded for crawler account {1}.","Batas laju per jam {0} permintaan terlampaui untuk akun crawler {1}."
+Jitter seconds must be at least 0.,Jitter detik minimal 0.
+Max Candidate Export Size (MB) must be at least 1.,Ukuran Maksimal Ekspor Kandidat (MB) minimal 1.
+Min delay seconds must be at least 0.,Jeda minimal detik minimal 0.
+Name detected,Nama terdeteksi
+No,Tidak
+Profile Attribute,Atribut Profil
+Rate Limit Exceeded,Batas Laju Terlampaui
+Session Mode,Mode Sesi
+Social Lookback Months must be at least 1.,Bulan Tinjauan Media Sosial minimal 1.
+Social Max Posts must be at least 1.,Maksimal Postingan Media Sosial minimal 1.
+Visible Posts Count,Jumlah Postingan yang Terlihat
+Yes,Ya
 
