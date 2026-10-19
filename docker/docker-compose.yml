@@ -44,6 +44,7 @@ services:
       - |
         set -e
         ls -1 apps > sites/apps.txt
+        if ! grep -q "hris_ats" sites/apps.txt; then echo "hris_ats" >> sites/apps.txt; fi
         mkdir -p sites/assets
         ln -sfn /home/frappe/frappe-bench/apps/hris_ats/hris_ats/public sites/assets/hris_ats
         bench set-config -g db_host "$$DB_HOST"
@@ -52,6 +53,7 @@ services:
         bench set-config -g redis_queue "redis://$$REDIS_QUEUE"
         bench set-config -g redis_socketio "redis://$$REDIS_QUEUE"
         bench set-config -gp socketio_port "$$SOCKETIO_PORT"
+        bench set-config -gp workers '{"browser": {"timeout": 700}}'
         # Dibutuhkan Frappe v16 untuk cetak PDF (payslip, dsb). Kalau nanti
         # cetak PDF error, cek dulu keberadaan binary ini di dalam image:
         #   docker compose exec backend ls -l /usr/bin/chromium-headless-shell

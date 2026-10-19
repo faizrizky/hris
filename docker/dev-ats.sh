@@ -31,7 +31,7 @@ echo "[dev-ats] Memastikan stack container dev berjalan..."
 docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d
 
 # 2. Pasang hris_ats dalam mode editable di virtualenv setiap service Python
-PYTHON_SERVICES=("backend" "queue-short" "queue-long" "scheduler")
+PYTHON_SERVICES=("backend" "queue-short" "queue-long" "queue-browser" "scheduler")
 for svc in "${PYTHON_SERVICES[@]}"; do
   echo "[dev-ats] Memasang hris_ats di virtualenv service $svc..."
   docker compose exec -T "$svc" env/bin/pip install -q -e apps/hris_ats
@@ -76,7 +76,7 @@ fi
 # 5. Bangun aset frontend hris_ats
 echo "[dev-ats] Membangun aset hris_ats..."
 docker compose exec -T backend bench build --app hris_ats
-docker compose exec -T -u root frontend ln -sf /home/frappe/frappe-bench/apps/hris_ats/hris_ats/public /home/frappe/frappe-bench/assets/hris_ats 2>/dev/null || true
+docker compose exec -T -u root frontend ln -sfn /home/frappe/frappe-bench/apps/hris_ats/hris_ats/public /home/frappe/frappe-bench/assets/hris_ats 2>/dev/null || true
 
 # 6. Bersihkan cache site
 echo "[dev-ats] Membersihkan cache site..."
@@ -84,6 +84,7 @@ docker compose exec -T backend bench --site "$SITE_NAME" clear-cache
 
 # 7. Restart service aplikasi Python agar modul baru dimuat ulang
 echo "[dev-ats] Memuat ulang service backend dan worker..."
-docker compose restart backend queue-short queue-long scheduler >/dev/null 2>&1 || true
+docker compose restart backend queue-short queue-long queue-browser scheduler >/dev/null 2>&1 || true
 
 echo "[dev-ats] Selesai! hris_ats siap digunakan."
+
