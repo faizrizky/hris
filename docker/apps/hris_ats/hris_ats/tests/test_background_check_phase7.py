@@ -29,12 +29,15 @@ class TestBackgroundCheckPhase7(FrappeTestCase):
 			it.insert(ignore_permissions=True)
 
 		# Job Opening
+		from hris_ats.tests import ensure_test_company
+		company = ensure_test_company()
 		jo_name = frappe.db.get_value("Job Opening", {"job_title": "QA Automation Lead"}, "name")
 		if not jo_name:
 			jo = frappe.get_doc({
 				"doctype": "Job Opening",
 				"job_title": "QA Automation Lead",
 				"designation": "QA Engineer",
+				"company": company,
 				"status": "Open",
 			}).insert(ignore_permissions=True)
 			self.job_opening = jo.name
@@ -147,6 +150,7 @@ class TestBackgroundCheckPhase7(FrappeTestCase):
 		# Verifikasi dokumen setelah pembersihan
 		bgc.reload()
 		self.assertEqual(bgc.skck_status, "Expired")
+		self.assertIsNone(bgc.skck_file)
 		self.assertIsNone(bgc.summary_auto)
 		self.assertEqual(len(bgc.accounts), 0)
 		self.assertEqual(bgc.is_purged, 1)

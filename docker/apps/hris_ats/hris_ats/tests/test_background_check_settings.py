@@ -22,6 +22,9 @@ class TestBackgroundCheckSettings(FrappeTestCase):
 		self.settings.fetch_risk_ack_on = None
 		self.settings.save()
 
+		from hris_ats.tests import ensure_test_hr_user
+		ensure_test_hr_user("hr.test@example.com")
+
 	def tearDown(self):
 		frappe.set_user("Administrator")
 		frappe.db.rollback()
@@ -37,7 +40,7 @@ class TestBackgroundCheckSettings(FrappeTestCase):
 	def test_default_user_agent_format(self):
 		"""Memastikan user agent default memuat identitas perusahaan atau fallback HRIS."""
 		ua = self.settings.get_default_user_agent()
-		self.assertIn("HR Background Check (+hr@example.com)", ua)
+		self.assertTrue("HR Background Check (+hr@example.com)" in ua or "HRIS Background Check (+hr@example.com)" in ua)
 
 	def test_risky_switches_rejected_without_risk_acknowledged(self):
 		"""Menyimpan saklar berisiko tanpa mencentang pengakuan risiko harus ditolak."""

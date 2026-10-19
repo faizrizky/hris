@@ -42,12 +42,15 @@ class TestResumeScreeningWorkflow(FrappeTestCase):
 			t.insert(ignore_permissions=True)
 
 		# Buat Job Opening uji
+		from hris_ats.tests import ensure_test_company
+		company = ensure_test_company()
 		jo = frappe.db.get_value("Job Opening", {"job_title": "Test ATS Opening"}, "name")
 		if not jo:
 			new_jo = frappe.get_doc({
 				"doctype": "Job Opening",
 				"job_title": "Test ATS Opening",
 				"designation": "Test ATS Engineer",
+				"company": company,
 				"status": "Open",
 				"min_education": "D4/S1",
 				"education_majors": "Teknik Informatika",

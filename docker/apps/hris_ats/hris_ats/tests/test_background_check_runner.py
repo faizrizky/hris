@@ -18,12 +18,15 @@ class TestBackgroundCheckRunner(FrappeTestCase):
 			frappe.get_doc({"doctype": "Designation", "designation_name": "UI/UX Designer"}).insert(ignore_permissions=True)
 
 		# Buat Job Opening uji
+		from hris_ats.tests import ensure_test_company
+		company = ensure_test_company()
 		jo_name = frappe.db.get_value("Job Opening", {"job_title": "Lead UI/UX Designer"}, "name")
 		if not jo_name:
 			jo = frappe.get_doc({
 				"doctype": "Job Opening",
 				"job_title": "Lead UI/UX Designer",
 				"designation": "UI/UX Designer",
+				"company": company,
 				"status": "Open",
 				"required_skills": "Figma\nUI/UX\nDesign System",
 				"preferred_skills": "React\nTypeScript",

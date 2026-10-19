@@ -21,6 +21,17 @@ from hris_ats.bgc.fetch import (
 )
 
 
+@pytest.fixture(autouse=True)
+def setup_test_site_secret(monkeypatch):
+	"""Pastikan terdapat secret_key di conf untuk pengetesan HMAC saat isolasi pytest murni."""
+	import frappe
+
+	if hasattr(frappe, "local"):
+		if not getattr(frappe.local, "conf", None):
+			frappe.local.conf = {}
+		frappe.local.conf["secret_key"] = "test_pytest_hmac_secret_key"
+
+
 def test_domain_extraction_and_forbidden_check():
 	assert get_domain("https://sub.instagram.com/user") == "sub.instagram.com"
 	assert get_domain("https://Facebook.COM:8080/path") == "facebook.com"
@@ -298,7 +309,59 @@ def test_login_page_detection_and_title_extraction():
 	assert "Software Engineer in Jakarta" in preview
 	assert detect_login_page("https://example.com/budis", profile_html, preview) is False
 
-	# 4. Cuplikan teks bersih terpotong pada maksimal 300 karakter tanpa script/style
+	# 4. Halaman publik panjang dengan tautan 'Sign in' di navigasi (seperti GitHub) BUKAN halaman login
+	github_profile_html = """
+	<!DOCTYPE html>
+	<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<title>The Octocat (octocat) · GitHub</title>
+	</head>
+	<body>
+		<header>
+			<nav>
+				<a href="/login" class="HeaderMenu-link">Sign in</a>
+				<a href="/signup" class="HeaderMenu-link">Sign up</a>
+			</nav>
+		</header>
+		<main>
+			<div class="h-card">
+				<img alt="Avatar" src="https://avatars.githubusercontent.com/u/583231" />
+				<h1>The Octocat</h1>
+				<span>octocat</span>
+				<div class="user-profile-bio">GitHub's mascot and open-source enthusiast.</div>
+				<div class="user-profile-location">San Francisco, CA</div>
+				<div>followers: 12000, following: 9, repositories: 8</div>
+				<div>contributions: 540 in the last year, starred: 42</div>
+			</div>
+		</main>
+	</body>
+	</html>
+	"""
+	gh_title, gh_preview = extract_title_and_text(github_profile_html)
+	assert "The Octocat" in gh_title
+	assert detect_login_page("https://github.com/octocat", github_profile_html, gh_preview) is False
+
+	# 5. Halaman login asli (ada tag title login dan form password)
+	github_login_html = """
+	<!DOCTYPE html>
+	<html>
+	<head><title>Sign in to GitHub · GitHub</title></head>
+	<body>
+		<form action="/session" method="post">
+			<input type="text" name="login" id="login_field" />
+			<input type="password" name="password" id="password" />
+			<input type="submit" value="Sign in" />
+		</form>
+	</body>
+	</html>
+	"""
+	gh_login_title, gh_login_preview = extract_title_and_text(github_login_html)
+	assert detect_login_page("https://github.com/login", github_login_html, gh_login_preview) is True
+	# Bahkan jika URL tidak ada kata login, form password tetap terdeteksi
+	assert detect_login_page("https://github.com/session_check", github_login_html, gh_login_preview) is True
+
+	# 6. Cuplikan teks bersih terpotong pada maksimal 300 karakter tanpa script/style
 	long_html = "<html><style>.btn{color:red}</style><script>alert(1)</script><body>" + ("Kata " * 100) + "</body></html>"
 	_, clean_300 = extract_title_and_text(long_html)
 	assert len(clean_300) <= 300
@@ -307,35 +370,50 @@ def test_login_page_detection_and_title_extraction():
 
 
 def test_hmac_cache_key_generation():
-	"""Pengujian kunci cache HMAC-SHA256: tidak membocorkan nama kandidat / URL mentah ke Redis."""
-	from hris_ats.bgc.fetch import get_cache_key, hash_url
+	"""Pengujian kunci cache HMAC-SHA256: tidak membocorkan nama kandidat / URL mentah ke Redis, dan gagal tertutup bila rahasia tidak ada."""
+	from unittest.mock import patch
+	import types
+	import pytest
+	from hris_ats.bgc.fetch import get_cache_key, get_site_secret, hash_url
 
-	url1 = "https://putusan3.mahkamahagung.go.id/direktori/search/q/Budi%20Santoso.html"
-	url2 = "https://putusan3.mahkamahagung.go.id/direktori/search/q/Joko%20Widodo.html"
+	# 1. Gagal tertutup (fail-closed) jika tidak ada secret_key maupun encryption_key
+	fake_empty_local = types.SimpleNamespace(conf={})
+	with patch("frappe.local", fake_empty_local):
+		with pytest.raises(RuntimeError, match="fail-closed"):
+			get_site_secret()
 
-	key1 = get_cache_key(url1, "company", "GET")
-	key2 = get_cache_key(url2, "company", "GET")
+	# 2. Berhasil jika secret_key atau encryption_key tersedia
+	fake_valid_local = types.SimpleNamespace(conf={"secret_key": "my_super_secret_key"})
+	with patch("frappe.local", fake_valid_local):
+		secret = get_site_secret()
+		assert secret == b"my_super_secret_key"
 
-	# Pastikan format kunci terstruktur
-	assert key1.startswith("hris_ats:fetch_cache:company:GET:")
-	assert key2.startswith("hris_ats:fetch_cache:company:GET:")
+		url1 = "https://putusan3.mahkamahagung.go.id/direktori/search/q/Budi%20Santoso.html"
+		url2 = "https://putusan3.mahkamahagung.go.id/direktori/search/q/Joko%20Widodo.html"
 
-	# Pastikan nama kandidat dan URL mentah TIDAK muncul dalam kunci cache
-	assert "Budi" not in key1
-	assert "Santoso" not in key1
-	assert "mahkamahagung" not in key1
-	assert "http" not in key1.split(":", 4)[-1]
+		key1 = get_cache_key(url1, "company", "GET")
+		key2 = get_cache_key(url2, "company", "GET")
 
-	# Pastikan hash adalah SHA-256 (64 hex characters)
-	hash_part1 = key1.split(":")[-1]
-	assert len(hash_part1) == 64
-	assert int(hash_part1, 16) > 0
+		# Pastikan format kunci terstruktur
+		assert key1.startswith("hris_ats:fetch_cache:company:GET:")
+		assert key2.startswith("hris_ats:fetch_cache:company:GET:")
 
-	# URL berbeda menghasilkan hash berbeda
-	assert key1 != key2
+		# Pastikan nama kandidat dan URL mentah TIDAK muncul dalam kunci cache
+		assert "Budi" not in key1
+		assert "Santoso" not in key1
+		assert "mahkamahagung" not in key1
+		assert "http" not in key1.split(":", 4)[-1]
 
-	# URL sama menghasilkan hash yang identik
-	assert get_cache_key(url1, "company", "GET") == key1
+		# Pastikan hash adalah SHA-256 (64 hex characters)
+		hash_part1 = key1.split(":")[-1]
+		assert len(hash_part1) == 64
+		assert int(hash_part1, 16) > 0
+
+		# URL berbeda menghasilkan hash berbeda
+		assert key1 != key2
+
+		# URL sama menghasilkan hash yang identik
+		assert get_cache_key(url1, "company", "GET") == key1
 
 
 def test_get_default_cache_backend_fail_closed_in_live():

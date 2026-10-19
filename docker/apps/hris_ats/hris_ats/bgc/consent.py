@@ -279,9 +279,35 @@ def clean_bgc_cache(bgc_doc: Any) -> None:
 		pass
 
 
+def delete_file_record_and_disk(file_url: str | None) -> None:
+	"""Hapus dokumen File di database dan berkas fisik terkait di disk."""
+	if not file_url:
+		return
+	try:
+		files = frappe.get_all("File", filters={"file_url": file_url}, pluck="name")
+		for f in files:
+			frappe.delete_doc("File", f, ignore_permissions=True, force=True)
+	except Exception:
+		pass
+	try:
+		import os
+		site_path = frappe.get_site_path()
+		clean_url = file_url.strip()
+		if clean_url.startswith("/files/"):
+			disk_path = os.path.join(site_path, "public", clean_url.lstrip("/"))
+		elif clean_url.startswith("/private/files/"):
+			disk_path = os.path.join(site_path, clean_url.lstrip("/"))
+		else:
+			disk_path = os.path.join(site_path, "public", "files", os.path.basename(clean_url))
+		if os.path.exists(disk_path):
+			os.remove(disk_path)
+	except Exception:
+		pass
+
+
 @frappe.whitelist()
 def revoke_consent(bgc_name: str) -> dict[str, Any]:
-	"""Revoke consent: delete all raw findings, crawl directory, and Redis cache in accordance with PDP regulations."""
+	"""Revoke consent: delete all raw findings, crawl directory, Redis cache, and SKCK file in accordance with PDP regulations."""
 	if not frappe.db.exists("Background Check", bgc_name):
 		frappe.throw(_("Document {0} not found.").format(bgc_name))
 
@@ -304,6 +330,11 @@ def revoke_consent(bgc_name: str) -> dict[str, Any]:
 		acc.social_consent = 0
 		acc.social_consent_attested_by = None
 		acc.social_consent_attested_on = None
+
+	# Hapus berkas SKCK fisik dan field (Spesifikasi 8 tidak mengizinkan menyimpannya; pertahankan skck_status)
+	if bgc.skck_file:
+		delete_file_record_and_disk(bgc.skck_file)
+		bgc.skck_file = None
 
 	clean_bgc_crawldir(bgc.name)
 	clean_bgc_cache(bgc)

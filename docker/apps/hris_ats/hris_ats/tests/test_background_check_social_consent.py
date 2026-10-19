@@ -252,6 +252,8 @@ class TestBackgroundCheckSocialConsent(FrappeTestCase):
 			"identity_reasons": "Name matched; City matched",
 			"social_consent": 1,
 		})
+		bgc.skck_file = "/files/test_skck_file.pdf"
+		bgc.skck_status = "Clear"
 		bgc.save(ignore_permissions=True)
 
 		# Buat dummy temuan Finding
@@ -284,6 +286,8 @@ class TestBackgroundCheckSocialConsent(FrappeTestCase):
 
 		bgc.reload()
 		self.assertEqual(bgc.consent_status, "Withdrawn")
+		self.assertIsNone(bgc.skck_file)
+		self.assertEqual(bgc.skck_status, "Clear")
 		self.assertEqual(frappe.db.count("Background Check Finding", {"background_check": bgc.name}), 0)
 
 		# Data turunan akun harus bersih

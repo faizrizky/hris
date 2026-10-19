@@ -53,6 +53,16 @@ def daily_retention_purge() -> dict[str, int]:
 		bgc.summary_auto_template = None
 		bgc.summary_auto_params = None
 		bgc.accounts = []
+
+		# Hapus berkas SKCK fisik dan field (Spesifikasi 8 tidak mengizinkan menyimpannya; pertahankan skck_status)
+		if bgc.skck_file:
+			try:
+				from hris_ats.bgc.consent import delete_file_record_and_disk
+				delete_file_record_and_disk(bgc.skck_file)
+			except Exception:
+				pass
+			bgc.skck_file = None
+
 		bgc.is_purged = 1
 		bgc.save(ignore_permissions=True)
 		total_bgcs_purged += 1

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import re
+import urllib.parse
 from typing import Any
 
 import frappe
@@ -60,23 +61,57 @@ def validate_consent_text_version(doc: Any) -> None:
 
 
 def detect_login_page(final_url: str, html_or_text: str, display_text: str) -> bool:
-	"""Mendeteksi apakah respons kemungkinan adalah halaman login/checkpoint."""
+	"""Mendeteksi apakah respons kemungkinan adalah halaman login/checkpoint/authwall.
+
+	Kriteria:
+	1. URL akhir mengarah ke jalur login (mis. /login, /signin, /checkpoint, /authwall, accounts/login).
+	2. Tag <title> mengandung kata login / sign in / masuk.
+	3. Ada form dengan input password (<input type="password">).
+	4. Isi sangat pendek (< 500 karakter) yang memuat ajakan login dan tanpa konten profil.
+
+	Halaman publik panjang dengan tautan 'Sign in' di navigasi BUKAN halaman login.
+	"""
+	raw_html = html_or_text or ""
 	url_lower = (final_url or "").lower()
-	login_url_patterns = ("login", "accounts/", "checkpoint", "authwall", "signin")
-	if any(p in url_lower for p in login_url_patterns):
+
+	# 1. Jalur URL akhir ke login / checkpoint / authwall
+	login_url_patterns = ("/login", "/signin", "/sign-in", "accounts/login", "checkpoint", "authwall", "/session/new")
+	parsed = urllib.parse.urlsplit(final_url or "")
+	path_lower = parsed.path.lower()
+	if any(p in path_lower or p in url_lower for p in login_url_patterns):
 		return True
 
+	# 2. Tag <title> mengandung frasa login
+	m_title = re.search(r"<title[^>]*>(.*?)</title>", raw_html, re.IGNORECASE | re.DOTALL)
+	if m_title:
+		title_lower = m_title.group(1).lower().strip()
+		title_login_phrases = ("log in", "login", "sign in", "signin", "masuk")
+		if any(w in title_lower for w in title_login_phrases):
+			return True
+
+	# 3. Terdapat input bertipe password
+	if re.search(r'<input[^>]+type=["\']?password["\']?', raw_html, re.IGNORECASE):
+		return True
+
+	# 4. Halaman sangat pendek (< 500 karakter) tanpa konten profil namun berisi frasa login
 	clean_text = (display_text or "").lower()
-	raw_lower = (html_or_text or "").lower()
 	text_len = len(clean_text)
-
-	login_phrases = ("log in", "sign in", "masuk", "login")
-	has_login_phrase = any(phrase in clean_text or phrase in raw_lower for phrase in login_phrases)
-
-	profile_indicators = ("posts", "followers", "following", "pengikut", "postingan", "profile")
+	profile_indicators = (
+		"posts",
+		"followers",
+		"following",
+		"pengikut",
+		"postingan",
+		"profile",
+		"repositories",
+		"contributions",
+		"starred",
+	)
 	has_profile_content = any(ind in clean_text for ind in profile_indicators)
+	login_phrases = ("log in", "sign in", "masuk", "login")
+	has_login_phrase = any(phrase in clean_text for phrase in login_phrases)
 
-	if text_len < 2000 and has_login_phrase and not has_profile_content:
+	if text_len < 500 and has_login_phrase and not has_profile_content:
 		return True
 
 	return False

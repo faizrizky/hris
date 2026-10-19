@@ -29,3 +29,33 @@ def ensure_test_hr_user(email: str = "hr.test@example.com") -> str:
 		if modified:
 			u.save(ignore_permissions=True)
 	return email
+
+
+def ensure_test_company(company_name: str = "_Test Company") -> str:
+	"""Memastikan default company tersedia di site pengujian untuk DocType HRMS seperti Job Opening."""
+	if not frappe.db.exists("Company", company_name):
+		if not frappe.db.exists("Warehouse Type", "Transit"):
+			try:
+				frappe.get_doc({"doctype": "Warehouse Type", "name": "Transit"}).insert(ignore_permissions=True)
+			except Exception:
+				pass
+		comp = frappe.new_doc("Company")
+		comp.company_name = company_name
+		comp.abbr = "_TC"
+		comp.default_currency = "IDR"
+		comp.country = "Indonesia"
+		comp.flags.ignore_mandatory = True
+		comp.flags.ignore_validate = True
+		try:
+			comp.insert(ignore_permissions=True)
+		except Exception:
+			# Fallback raw insert jika hook ERPNext warehouse gagal
+			frappe.db.sql(
+				"""INSERT IGNORE INTO `tabCompany` (name, company_name, abbr, default_currency, country, docstatus)
+				VALUES (%s, %s, %s, %s, %s, 0)""",
+				(company_name, company_name, "_TC", "IDR", "Indonesia"),
+			)
+	default_comp = frappe.db.get_single_value("Global Defaults", "default_company")
+	if not default_comp:
+		frappe.db.set_single_value("Global Defaults", "default_company", company_name)
+	return company_name

@@ -190,17 +190,19 @@ def get_default_cache_backend(is_mock: bool = False) -> BaseCacheBackend:
 
 
 def get_site_secret() -> bytes:
-	"""Mengambil rahasia site untuk HMAC hashing kunci cache (tidak membocorkan nama kandidat / URL polos ke Redis)."""
+	"""Mengambil rahasia site untuk HMAC hashing kunci cache (tidak membocorkan nama kandidat / URL polos ke Redis).
+	Bila tidak ada secret_key atau encryption_key yang dikonfigurasi, sistem gagal tertutup (fail-closed).
+	"""
 	try:
 		import frappe
 		if hasattr(frappe, "local") and frappe.local:
 			conf = getattr(frappe.local, "conf", None) or {}
-			secret = conf.get("secret_key") or conf.get("encryption_key") or getattr(frappe.local, "site", None)
+			secret = conf.get("secret_key") or conf.get("encryption_key")
 			if secret:
 				return str(secret).encode("utf-8")
 	except Exception:
 		pass
-	return b"hris_ats_cache_secret"
+	raise RuntimeError("Site secret_key or encryption_key not configured for cache HMAC (fail-closed)")
 
 
 def hash_url(url: str) -> str:
