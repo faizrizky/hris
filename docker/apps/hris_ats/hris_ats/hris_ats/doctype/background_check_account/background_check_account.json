@@ -20,6 +20,7 @@
  ],
  "fields": [
   {
+   "columns": 2,
    "fieldname": "platform",
    "fieldtype": "Link",
    "in_list_view": 1,
@@ -28,6 +29,7 @@
    "reqd": 1
   },
   {
+   "columns": 2,
    "fieldname": "username",
    "fieldtype": "Data",
    "in_list_view": 1,
@@ -35,6 +37,7 @@
    "reqd": 1
   },
   {
+   "columns": 2,
    "fieldname": "display_name",
    "fieldtype": "Data",
    "in_list_view": 1,
@@ -44,18 +47,17 @@
   {
    "fieldname": "profile_url",
    "fieldtype": "Data",
-   "in_list_view": 1,
    "label": "Profile URL",
    "read_only": 1
   },
   {
    "fieldname": "profile_location",
    "fieldtype": "Data",
-   "in_list_view": 1,
    "label": "Profile Location",
    "read_only": 1
   },
   {
+   "columns": 1,
    "fieldname": "identity_match",
    "fieldtype": "Int",
    "in_list_view": 1,
@@ -63,6 +65,7 @@
    "read_only": 1
   },
   {
+   "columns": 3,
    "fieldname": "identity_reasons",
    "fieldtype": "Small Text",
    "in_list_view": 1,
@@ -80,11 +83,11 @@
    "default": "Candidate",
    "fieldname": "declared_by",
    "fieldtype": "Select",
-   "in_list_view": 1,
    "label": "Declared By",
    "options": "Candidate\nHR"
   },
   {
+   "columns": 1,
    "default": "0",
    "fieldname": "exists",
    "fieldtype": "Check",
@@ -95,7 +98,6 @@
   {
    "fieldname": "last_active",
    "fieldtype": "Datetime",
-   "in_list_view": 1,
    "label": "Last Active",
    "read_only": 1
   },
@@ -103,7 +105,6 @@
    "default": "Manual review only",
    "fieldname": "post_access",
    "fieldtype": "Select",
-   "in_list_view": 1,
    "label": "Post Access",
    "options": "API\nManual review only\nNot supported",
    "read_only": 1

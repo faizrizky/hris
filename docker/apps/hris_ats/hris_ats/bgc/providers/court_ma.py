@@ -17,7 +17,7 @@ from typing import Any
 
 from rapidfuzz import fuzz
 
-from hris_ats.bgc.adaptive import create_adaptive_adaptor, query_adaptive_element
+from hris_ats.bgc.adaptive import create_adaptive_adaptor, ensure_adaptive_page, query_adaptive_element
 from hris_ats.bgc.analysis.case import detect_party_role, evaluate_case_severity
 from hris_ats.bgc.analysis.identity import (
 	calculate_match_confidence,
@@ -144,36 +144,67 @@ def extract_party_identity_from_pdf(
 	if best_idx == -1:
 		return {"is_scan": False, "role": "", "occupation": "", "city": "", "excerpt": ""}
 
-	# Radius sekitar nama kandidat untuk peran, pekerjaan, dan kota
-	start = max(0, best_idx - 250)
-	end = min(len(pdf_text), best_idx + len(matched_v) + 350)
-	window = pdf_text[start:end]
+	matched_len = len(matched_v) if matched_v else len(candidate_name)
 
-	# Peran dari PDF
-	role = detect_party_role(window, matched_v or candidate_name)
+	# 1. Cari batas awal blok pihak kandidat (sebelum kemunculan nama)
+	pre_text = pdf_text[:best_idx]
+	header_matches = list(re.finditer(
+		r'(?:penggugat|terdakwa|tergugat|pemohon|termohon|saksi|turut tergugat)\s*(?:i+|[0-9]+)?\s*[:\-]?',
+		pre_text,
+		re.IGNORECASE,
+	))
+	if header_matches:
+		block_start = header_matches[-1].start()
+	else:
+		block_start = max(0, best_idx - 100)
+
+	# 2. Cari batas akhir blok pihak kandidat (sebelum pihak lawan / saksi / isi putusan)
+	post_text = pdf_text[best_idx + matched_len:]
+	boundary_matches = list(re.finditer(
+		r'\b(?:melawan|lawan|tergugat|penggugat|turut tergugat|pemohon|termohon|saksi|pengadilan\s+negeri|telah\s+membaca|menimbang|memperhatikan|mengingat|mengadili|memutuskan)\b',
+		post_text,
+		re.IGNORECASE,
+	))
+	if boundary_matches:
+		block_end = best_idx + matched_len + boundary_matches[0].start()
+	else:
+		semi_idx = post_text.find(";")
+		if semi_idx != -1 and semi_idx < 300:
+			block_end = best_idx + matched_len + semi_idx + 1
+		else:
+			block_end = min(len(pdf_text), best_idx + matched_len + 300)
+
+	party_block = pdf_text[block_start:block_end].strip()
+
+	# Peran dari PDF (hanya dihitung dalam blok pihak kandidat agar tidak tertukar dengan pihak lain)
+	role = detect_party_role(party_block, matched_v or candidate_name)
 	if role == "Tidak diketahui":
 		role = ""
 
-	# Pekerjaan
+	# Pekerjaan pihak yang cocok
 	occupation = ""
-	occ_match = re.search(r"pekerjaan\s*[:\s]+([A-Za-z0-9\s/]+?)(?:,|\.|\n|;|\bdalam\b|\bbertempat\b|\bberalamat\b)", window, re.IGNORECASE)
+	occ_match = re.search(
+		r"pekerjaan\s*[:\s]+([A-Za-z0-9\s/]+?)(?:,|\.|\n|;|\bdalam\b|\bbertempat\b|\bberalamat\b)",
+		party_block,
+		re.IGNORECASE,
+	)
 	if occ_match:
 		occupation = occ_match.group(1).strip()
 		if len(occupation) > 50:
 			occupation = occupation[:50].strip()
 
-	# Kota / Kabupaten
+	# Kota / Kabupaten alamat pihak yang cocok
 	city = ""
-	city_match = re.search(r"\b(Jakarta\s+[A-Za-z]+|Kota\s+[A-Za-z]+|Kabupaten\s+[A-Za-z]+|Pekanbaru|Surabaya|Bandung|Medan|Semarang|Yogyakarta|Makassar|Denpasar|Palembang|Malang|Depok|Tangerang|Bekasi|Bogor)\b", window, re.IGNORECASE)
+	city_match = re.search(
+		r"\b(Jakarta\s+[A-Za-z]+|Kota\s+[A-Za-z]+|Kabupaten\s+[A-Za-z]+|Pekanbaru|Surabaya|Bandung|Medan|Semarang|Yogyakarta|Makassar|Denpasar|Palembang|Malang|Depok|Tangerang|Bekasi|Bogor)\b",
+		party_block,
+		re.IGNORECASE,
+	)
 	if city_match:
 		city = city_match.group(1).strip()
 
-	# Excerpt bukti <= 600 karakter
-	exc_start = max(0, best_idx - 100)
-	exc_end = min(len(pdf_text), best_idx + 500)
-	raw_excerpt = pdf_text[exc_start:exc_end].strip()
-	if len(raw_excerpt) > 600:
-		raw_excerpt = raw_excerpt[:600]
+	# Excerpt bukti <= 600 karakter HANYA dari blok pihak yang cocok
+	raw_excerpt = party_block[:600].strip()
 	evidence_excerpt = NIK_REGEX.sub("[NIK DIREDAKSI]", raw_excerpt)
 
 	return {
@@ -185,15 +216,12 @@ def extract_party_identity_from_pdf(
 	}
 
 
-def parse_court_ma_search_page(html_or_page: Any) -> list[dict[str, Any]]:
+def parse_court_ma_search_page(
+	html_or_page: Any,
+	warnings: list[str] | None = None,
+) -> list[dict[str, Any]]:
 	"""Mengurai halaman daftar hasil pencarian Direktori Putusan MA menggunakan selektor adaptif dan find_similar."""
-	if isinstance(html_or_page, (str, bytes)):
-		page = create_adaptive_adaptor(html_or_page)
-	elif hasattr(html_or_page, "css"):
-		page = html_or_page
-	else:
-		page = None
-
+	page = ensure_adaptive_page(html_or_page)
 	if page is None:
 		return []
 
@@ -212,6 +240,8 @@ def parse_court_ma_search_page(html_or_page: Any) -> list[dict[str, Any]]:
 		identifier="court_ma_search_item",
 		min_acceptable_similarity=65.0,
 	)
+	if warning and warnings is not None:
+		warnings.append(warning)
 
 	items: list[Any] = []
 	seen_nodes = set()
@@ -297,46 +327,52 @@ def parse_court_ma_search_page(html_or_page: Any) -> list[dict[str, Any]]:
 	return valid_results
 
 
-def parse_court_ma_detail_page(html_or_page: Any) -> dict[str, Any]:
+def parse_court_ma_detail_page(
+	html_or_page: Any,
+	warnings: list[str] | None = None,
+) -> dict[str, Any]:
 	"""Mengurai halaman detail putusan MA dan mengekstrak metadata serta tautan PDF."""
-	if isinstance(html_or_page, (str, bytes)):
-		page = create_adaptive_adaptor(html_or_page)
-	elif hasattr(html_or_page, "css"):
-		page = html_or_page
-	else:
-		page = None
-
+	page = ensure_adaptive_page(html_or_page)
 	if page is None:
 		return {}
 
 	data: dict[str, Any] = {}
 
 	# Judul perkara dengan pelacakan adaptif
-	title_elems, _, _ = query_adaptive_element(
+	title_elems, _, w_title = query_adaptive_element(
 		page,
 		"h1.case-title::text, .page-header h1::text, h1::text",
 		identifier="court_ma_detail_title",
 	)
 	if title_elems:
 		data["title"] = title_elems.get().strip()
+	if w_title and warnings is not None:
+		warnings.append(w_title)
 
 	# Link download PDF dengan pelacakan adaptif
-	pdf_elems, _, _ = query_adaptive_element(
+	pdf_elems, _, w_pdf = query_adaptive_element(
 		page,
 		"a.btn-download-pdf::attr(href), a[href*='download_pdf']::attr(href)",
 		identifier="court_ma_detail_pdf",
 	)
 	if pdf_elems:
 		data["pdf_url"] = pdf_elems.get()
+	if w_pdf and warnings is not None:
+		warnings.append(w_pdf)
 
 	# Isi lengkap putusan
-	content_elems, _, _ = query_adaptive_element(
+	content_elems, _, w_content = query_adaptive_element(
 		page,
-		".full-content *::text, .case-text *::text, .entry-content *::text",
+		".full-content p, .case-text p, .entry-content p, .full-content, .case-text",
 		identifier="court_ma_detail_full_text",
 	)
 	if content_elems:
-		data["full_text"] = " ".join(content_elems.getall()).strip()
+		data["full_text"] = " ".join(
+			e.get_all_text().strip() if hasattr(e, "get_all_text") else (e.get().strip() if hasattr(e, "get") else str(e).strip())
+			for e in content_elems
+		).strip()
+	if w_content and warnings is not None:
+		warnings.append(w_content)
 
 	# Tabel detail perkara
 	for tr in page.css(".detail-table tr, table.table tr"):
@@ -457,6 +493,9 @@ class CourtMAProvider(BaseProvider):
 		context_terms = candidate_data.get("context_terms", [])
 		if isinstance(context_terms, str):
 			context_terms = [t.strip() for t in context_terms.split(",") if t.strip()]
+		candidate_city = candidate_data.get("city") or candidate_data.get("candidate_city")
+		if candidate_city and candidate_city not in context_terms:
+			context_terms = list(context_terms) + [candidate_city]
 
 		max_results = 50
 		if settings and isinstance(settings, dict):
@@ -484,7 +523,7 @@ class CourtMAProvider(BaseProvider):
 					self.last_robots_ignored_count += 1
 
 				page_obj = fetch_res.page or fetch_res.body
-				cases = parse_court_ma_search_page(page_obj)
+				cases = parse_court_ma_search_page(page_obj, warnings=self.warnings)
 				if not cases:
 					break
 
@@ -527,7 +566,7 @@ class CourtMAProvider(BaseProvider):
 					detail_res = self.fetch(detail_url)
 					if detail_res.robots_ignored:
 						self.last_robots_ignored_count += 1
-					detail_data = parse_court_ma_detail_page(detail_res.page or detail_res.body)
+					detail_data = parse_court_ma_detail_page(detail_res.page or detail_res.body, warnings=self.warnings)
 				except Exception:
 					pass
 
@@ -548,7 +587,6 @@ class CourtMAProvider(BaseProvider):
 			text_source = "Cuplikan"
 			evidence_excerpt = (c.get("amar") or c.get("snippet", ""))[:600]
 			pdf_url = c.get("pdf_url", "")
-			extra_context_terms: list[str] = []
 
 			# Unduh PDF putusan bila kemiripan_nama >= 80
 			if initial_name_sim >= 80.0 and pdf_url:
@@ -561,10 +599,6 @@ class CourtMAProvider(BaseProvider):
 					# Peran dari PDF mengalahkan peran dari cuplikan
 					if pdf_data.get("role"):
 						c["party_role"] = pdf_data["role"]
-					if pdf_data.get("occupation"):
-						extra_context_terms.append(pdf_data["occupation"])
-					if pdf_data.get("city"):
-						extra_context_terms.append(pdf_data["city"])
 					if pdf_data.get("excerpt"):
 						evidence_excerpt = pdf_data["excerpt"]
 				else:
@@ -583,7 +617,6 @@ class CourtMAProvider(BaseProvider):
 				text=text_to_eval,
 				total_hits=len(all_extracted_cases),
 				text_source=text_source,
-				extra_context=extra_context_terms,
 			)
 
 			if not evidence_excerpt or text_source != "PDF putusan":

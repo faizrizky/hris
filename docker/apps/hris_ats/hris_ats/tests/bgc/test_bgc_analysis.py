@@ -409,3 +409,106 @@ def test_mock_provider_runs_offline():
 	assert "Article" in types
 	assert "File" in types
 	assert "Case" in types
+
+
+# =====================================================================
+# 8. Platform Check Provider Integration Tests
+# =====================================================================
+
+def test_platform_check_provider_profile_matching_and_threshold():
+	from unittest.mock import patch
+	from hris_ats.bgc.fetch import FetchResult
+	from hris_ats.bgc.providers.platform_check import PlatformCheckProvider
+	from scrapling.parser import Adaptor
+
+	provider = PlatformCheckProvider()
+
+	html_matching = """
+	<html><body>
+		<h1 class="vcard-names"><span class="p-name">Ronald Richard</span></h1>
+		<div class="user-profile-bio"><div>Senior UI/UX Designer at PT Maju Bersama</div></div>
+		<span class="p-label">Jakarta Selatan, Indonesia</span>
+	</body></html>
+	"""
+
+	html_different = """
+	<html><body>
+		<h1 class="vcard-names"><span class="p-name">Budi Santoso</span></h1>
+		<div class="user-profile-bio"><div>Backend Engineer</div></div>
+		<span class="p-label">Surabaya</span>
+	</body></html>
+	"""
+
+	# 1. Akun yang cocok nama tampilan dan kotanya
+	fake_res_match = FetchResult(
+		url="https://github.com/ronaldrichard",
+		status=200,
+		body=html_matching,
+		page=Adaptor(html_matching),
+		mode_used="company+robots",
+		from_cache=False,
+	)
+	with patch.object(provider, "fetch", return_value=fake_res_match):
+		res = provider.check_single_account(
+			platform_name="GitHub",
+			username="ronaldrichard",
+			url_template="https://github.com/{username}",
+			check_method="Status code",
+			check_value="200",
+			candidate_name="Ronald Richard",
+			candidate_variants=["ronald richard"],
+			candidate_city="Jakarta Selatan",
+			candidate_cv_terms=["PT Maju Bersama", "UI/UX Designer"],
+			display_name_selector=".p-name",
+			bio_selector=".user-profile-bio",
+			location_selector=".p-label",
+			declared_by="Candidate",
+		)
+		assert res["exists"] == 1
+		assert res["display_name"] == "Ronald Richard"
+		assert res["profile_location"] == "Jakarta Selatan, Indonesia"
+		assert res["identity_match"] == 100
+
+	# 2. Akun tidak cocok nama tampilan dan lokasinya
+	fake_res_diff = FetchResult(
+		url="https://github.com/anotheruser",
+		status=200,
+		body=html_different,
+		page=Adaptor(html_different),
+		mode_used="company+robots",
+		from_cache=False,
+	)
+	with patch.object(provider, "fetch", return_value=fake_res_diff):
+		# Jika akun dinyatakan oleh kandidat, tetap ditampilkan dengan skor rendah
+		res_cand = provider.check_single_account(
+			platform_name="GitHub",
+			username="anotheruser",
+			url_template="https://github.com/{username}",
+			candidate_name="Ronald Richard",
+			candidate_city="Jakarta Selatan",
+			candidate_cv_terms=["PT Maju Bersama"],
+			display_name_selector=".p-name",
+			bio_selector=".user-profile-bio",
+			location_selector=".p-label",
+			declared_by="Candidate",
+		)
+		assert res_cand["exists"] == 1
+		assert res_cand["identity_match"] == 10  # hanya poin declared_by
+
+		# Jika BUKAN dinyatakan kandidat (declared_by != 'Candidate') dan identity_match < 50:
+		# Wajib exists = 0 (tidak ditampilkan sebagai milik kandidat)
+		res_hr = provider.check_single_account(
+			platform_name="GitHub",
+			username="anotheruser",
+			url_template="https://github.com/{username}",
+			candidate_name="Ronald Richard",
+			candidate_city="Jakarta Selatan",
+			candidate_cv_terms=["PT Maju Bersama"],
+			display_name_selector=".p-name",
+			bio_selector=".user-profile-bio",
+			location_selector=".p-label",
+			declared_by="HR",
+		)
+		assert res_hr["exists"] == 0
+		assert res_hr["identity_match"] == 0
+

@@ -67,6 +67,18 @@ def create_adaptive_adaptor(
 	)
 
 
+def ensure_adaptive_page(page: Any, url: str = "", storage_file: str | None = None) -> Any:
+	"""Memastikan objek page bertipe Adaptor dengan fitur adaptif aktif."""
+	if page is None:
+		return None
+	if getattr(page, "_Selector__adaptive_enabled", False):
+		return page
+
+	content = getattr(page, "body", None) or getattr(page, "_raw_body", None) or (page if isinstance(page, (str, bytes)) else str(page))
+	page_url = url or getattr(page, "url", "") or ""
+	return create_adaptive_adaptor(content, url=page_url, storage_file=storage_file)
+
+
 def query_adaptive_element(
 	page: Any,
 	selector: str,
@@ -86,6 +98,10 @@ def query_adaptive_element(
 	    elemen dianggap salah (tidak dipakai, None dikembalikan), dicatat peringatan keras.
 	"""
 	if page is None or not selector:
+		return None, 0.0, None
+
+	page = ensure_adaptive_page(page)
+	if page is None:
 		return None, 0.0, None
 
 	is_adaptive = bool(getattr(page, "_Selector__adaptive_enabled", False))
@@ -112,8 +128,8 @@ def query_adaptive_element(
 					score = 100.0
 					if hasattr(page, "_Selector__calculate_similarity_score") and hasattr(first_elem, "_root"):
 						score = page._Selector__calculate_similarity_score(stored, first_elem._root)
-					elif hasattr(first_elem, "_calculate_similarity_score") and hasattr(first_elem, "_root"):
-						score = first_elem._calculate_similarity_score(stored, first_elem._root)
+					elif hasattr(first_elem, "_Selector__calculate_similarity_score") and hasattr(first_elem, "_root"):
+						score = first_elem._Selector__calculate_similarity_score(stored, first_elem._root)
 
 					if score < min_acceptable_similarity:
 						warning = (
@@ -138,6 +154,8 @@ def query_adaptive_element(
 						score = 0.0
 						if hasattr(page, "_Selector__calculate_similarity_score") and hasattr(first_elem, "_root"):
 							score = page._Selector__calculate_similarity_score(stored, first_elem._root)
+						elif hasattr(first_elem, "_Selector__calculate_similarity_score") and hasattr(first_elem, "_root"):
+							score = first_elem._Selector__calculate_similarity_score(stored, first_elem._root)
 						warning = (
 							f"Peringatan: Elemen '{identifier}' ditemukan dengan kemiripan rendah ({score:.1f}%). "
 							f"Kemungkinan struktur situs berubah drastis sehingga elemen diabaikan demi akurasi."

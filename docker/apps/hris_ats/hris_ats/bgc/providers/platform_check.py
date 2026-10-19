@@ -12,7 +12,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from hris_ats.bgc.adaptive import create_adaptive_adaptor, query_adaptive_element
+from hris_ats.bgc.adaptive import create_adaptive_adaptor, ensure_adaptive_page, query_adaptive_element
 from hris_ats.bgc.analysis.identity import calculate_account_identity_match
 from hris_ats.bgc.fetch import FetchConfig, FetchResult, is_forbidden_domain
 from hris_ats.bgc.providers.base import BaseProvider
@@ -57,7 +57,7 @@ class PlatformCheckProvider(BaseProvider):
 		# Domain terlarang (Instagram, Facebook, TikTok, LinkedIn) tidak pernah diambil halamannya
 		if is_forbidden_domain(profile_url) or platform_name in ("Instagram", "Facebook", "TikTok", "LinkedIn"):
 			return {
-				"exists": 1 if bool(clean_user) else 0,
+				"exists": 1 if (declared_by == "Candidate" and bool(clean_user)) else 0,
 				"profile_url": profile_url,
 				"post_access": "Manual review only",
 				"mode_used": "",
@@ -68,7 +68,11 @@ class PlatformCheckProvider(BaseProvider):
 				"bio_snippet": "",
 				"profile_location": "",
 				"identity_match": None,
-				"identity_reasons": "",
+				"identity_reasons": (
+					["Platform terlarang untuk scraping otomatis: verifikasi manual"]
+					if declared_by == "Candidate"
+					else ["Akun tidak dinyatakan kandidat pada platform terlarang"]
+				),
 			}
 
 		if is_mock or not profile_url:
@@ -115,9 +119,7 @@ class PlatformCheckProvider(BaseProvider):
 			identity_reasons: list[str] = []
 
 			if exists == 1 and has_selectors:
-				page = fetch_res.page
-				if page is None and body:
-					page = create_adaptive_adaptor(body, url=profile_url)
+				page = ensure_adaptive_page(fetch_res.page or body, url=profile_url)
 
 				# 1. Ekstraksi Nama Tampilan dengan selektor adaptif
 				if display_name_selector and page:
@@ -169,10 +171,6 @@ class PlatformCheckProvider(BaseProvider):
 					is_forbidden=False,
 				)
 
-				# Akun yang tidak dinyatakan kandidat dengan identity_match < 50 tidak ditampilkan sebagai milik kandidat
-				if declared_by != "Candidate" and (identity_match is not None and identity_match < 50):
-					exists = 0
-
 			elif exists == 1 and not has_selectors:
 				# Platform tanpa selektor dilewati untuk langkah ekstraksi
 				identity_match = 10 if declared_by == "Candidate" else 0
@@ -181,6 +179,10 @@ class PlatformCheckProvider(BaseProvider):
 			elif exists == 0:
 				identity_match = 0
 				identity_reasons = ["Akun profil publik tidak ditemukan (non-200)"]
+
+			# Aturan keras 6.2.1: Akun yang tidak dinyatakan kandidat dengan identity_match < 50 tidak ditampilkan sebagai milik kandidat
+			if declared_by != "Candidate" and (identity_match is not None and identity_match < 50):
+				exists = 0
 
 			return {
 				"exists": exists,

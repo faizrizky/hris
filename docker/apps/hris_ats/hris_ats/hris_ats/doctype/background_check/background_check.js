@@ -156,7 +156,7 @@ frappe.ui.form.on("Background Check", {
 					let link_html = f.url ? `<a href="${f.url}" target="_blank" style="margin-left: 8px;"><i class="fa fa-external-link"></i></a>` : "";
 					let detail_btn = f.detail_url ? `<a href="${f.detail_url}" target="_blank" class="btn btn-xs btn-default ml-2"><i class="fa fa-info-circle mr-1"></i>${__("Halaman Detail")}</a>` : "";
 					let pdf_btn = f.pdf_url ? `<a href="${f.pdf_url}" target="_blank" class="btn btn-xs btn-primary ml-2"><i class="fa fa-file-pdf-o mr-1"></i>${__("Unduh Salinan PDF")}</a>` : "";
-					let text_src_badge = f.text_source ? `<span class="badge badge-light border mr-2" title="${__('Sumber Teks')}"><i class="fa fa-file-text-o mr-1"></i>${f.text_source}</span>` : "";
+					let text_src_badge = f.text_source ? `<span class="badge badge-light border mr-2" title="${__('Text Source')}"><i class="fa fa-file-text-o mr-1"></i>${f.text_source}</span>` : "";
 
 					return `
 						<div class="card mb-3 p-3 border shadow-none finding-card" data-name="${f.name}">
@@ -182,7 +182,7 @@ frappe.ui.form.on("Background Check", {
 							<p class="text-muted small mb-2" style="line-height: 1.5;">${f.snippet || '-'}</p>
 							${f.evidence_excerpt ? `
 								<div class="p-2 mb-2 bg-light border-left border-primary rounded small text-dark" style="font-style: italic; background-color: #f7fafc;">
-									<strong>${__("Kutipan Bukti")} (${f.text_source || 'Cuplikan'}):</strong> "${f.evidence_excerpt}"
+									<strong>${__("Evidence Excerpt")} (${f.text_source || 'Cuplikan'}):</strong> "${f.evidence_excerpt}"
 								</div>
 							` : ''}
 							<div class="small text-secondary d-flex justify-content-between align-items-center flex-wrap">
