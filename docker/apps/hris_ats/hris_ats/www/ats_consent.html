@@ -13,7 +13,7 @@
 	.bgc-consent .list-group-item:hover { border-color: #a0aec0 !important; background: #f8fafc; }
 	.bgc-consent .list-group-item:has(input:checked) { border-color: #2b6cb0 !important; background: #ebf4ff; }
 	.bgc-consent input[type="checkbox"] {
-		flex: 0 0 18px; width: 18px; height: 18px; float: none;
+		flex: 0 0 18px; width: 18px !important; min-width: 18px; height: 18px; float: none; box-sizing: border-box;
 		margin: 2px 0 0 0 !important; cursor: pointer;
 	}
 	.bgc-consent .form-check {
