@@ -925,3 +925,4 @@ Waiting for the background worker...,Menunggu proses latar belakang...
 Results appear below as soon as each source or account is finished.,Hasil langsung tampil di bawah setiap kali satu sumber atau akun selesai.
 Crawl Progress,Progres Crawl
 "Background check is already running. Wait until it finishes.","Pemeriksaan latar belakang sedang berjalan. Tunggu sampai selesai."
+"Time budget for this account was reached; data is partial.","Batas waktu untuk akun ini tercapai; data sebagian."

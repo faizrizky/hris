@@ -61,7 +61,7 @@ def env(monkeypatch):
 	calls.state = state
 	calls.routes = {}
 
-	def make_client(platform, cookies):
+	def make_client(platform, cookies, state=None):
 		calls.clients += 1
 		assert platform == "TikTok" and cookies["sessionid"] == "s"
 

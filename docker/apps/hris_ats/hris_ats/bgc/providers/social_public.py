@@ -278,7 +278,7 @@ class SocialPublicProvider(BaseProvider):
 			"comment_limitation": None,
 		}
 		earliest = add_months(now_datetime(), -int(lookback_months or 12)).timestamp()
-		client = _make_api_client(platform, cookies)
+		client = _make_api_client(platform, cookies, state)
 		try:
 			enforce_crawler_delay(c_acc["name"])
 			client.crawl_profile(username, int(max_posts or 200), int(max_comments or 200), earliest, result, report)
@@ -326,11 +326,12 @@ API_PLATFORMS = ("Instagram", "TikTok", "Facebook", "LinkedIn")
 FB_DOC_ID_CACHE_KEY = "bgc_facebook_timeline_doc_id"
 
 
-def _make_api_client(platform: str, cookies: dict[str, str]) -> Any:
+def _make_api_client(platform: str, cookies: dict[str, str], state: dict[str, Any] | None = None) -> Any:
 	if platform == "Instagram":
-		from hris_ats.bgc.providers.social.instagram_api import InstagramApiClient
+		# Instagram rejects direct REST calls from servers with HTTP 429; a real browser session works
+		from hris_ats.bgc.providers.social.instagram_browser import InstagramBrowserClient
 
-		return InstagramApiClient(cookies, pause=(0.6, 1.4))
+		return InstagramBrowserClient(state or {"cookies": [], "origins": []})
 	if platform == "TikTok":
 		from hris_ats.bgc.providers.social.tiktok_api import TikTokApiClient
 
