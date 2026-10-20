@@ -76,15 +76,20 @@ def extract_page_signals(html: str) -> dict[str, Any]:
 	if m_title:
 		title = html_module.unescape(re.sub(r"\s+", " ", m_title.group(1)).strip())
 
-	# 2. Meta tags helper
+	# 2. Meta tags helper: parse each <meta> tag once (linear time even on multi-MB pages)
+	meta_tags: list[dict[str, str]] = []
+	attr_re = re.compile(r'([a-zA-Z_:][-a-zA-Z0-9_:.]*)\s*=\s*(?:"([^"]*)"|\'([^\']*)\'|([^\s"\'>]+))')
+	for m_tag in re.finditer(r"<meta\b([^>]*)>", html, re.IGNORECASE):
+		attrs = {}
+		for a in attr_re.finditer(m_tag.group(1)):
+			value = a.group(2) if a.group(2) is not None else (a.group(3) if a.group(3) is not None else a.group(4))
+			attrs[a.group(1).lower()] = value or ""
+		meta_tags.append(attrs)
+
 	def get_meta(attr_name: str, attr_val: str) -> str:
-		pattern1 = rf'<meta\s+[^>]*?{attr_name}=["\']?{re.escape(attr_val)}["\']?[^>]*?content=["\'](.*?)["\']'
-		m = re.search(pattern1, html, re.IGNORECASE | re.DOTALL)
-		if not m:
-			pattern2 = rf'<meta\s+[^>]*?content=["\'](.*?)["\'][^>]*?{attr_name}=["\']?{re.escape(attr_val)}["\']?'
-			m = re.search(pattern2, html, re.IGNORECASE | re.DOTALL)
-		if m:
-			return html_module.unescape(m.group(1).strip())
+		for attrs in meta_tags:
+			if attrs.get(attr_name, "").lower() == attr_val.lower() and "content" in attrs:
+				return html_module.unescape(attrs["content"].strip())
 		return ""
 
 	og_title = get_meta("property", "og:title") or get_meta("name", "og:title")

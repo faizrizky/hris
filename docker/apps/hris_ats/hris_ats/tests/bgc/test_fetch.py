@@ -701,3 +701,25 @@ def test_repeated_login_pages_bounded_by_mode_count():
 	assert res.mode_used == "company>browser>stealth>session"
 	assert res.is_login_wall is True
 
+
+
+def test_extract_page_signals_is_linear_on_large_meta_heavy_pages():
+	"""Halaman besar dengan ratusan tag <meta> tidak boleh membuat parser macet (regresi backtracking)."""
+	import time
+
+	from hris_ats.hris_ats.doctype.background_check_settings.background_check_settings import extract_page_signals
+
+	metas = "".join(f'<meta name="x{i}" content="{"a" * 200}">' for i in range(1500))
+	html = (
+		"<html><head><title>T</title>"
+		+ metas
+		+ '<meta property="og:title" content="Nama Profil"><meta content="Deskripsi" name="description">'
+		+ "</head><body>"
+		+ "<div>x</div>" * 5000
+		+ "</body></html>"
+	)
+	t = time.time()
+	sig = extract_page_signals(html)
+	assert time.time() - t < 2.0
+	assert sig["og_title"] == "Nama Profil"
+	assert sig["meta_description"] == "Deskripsi"
