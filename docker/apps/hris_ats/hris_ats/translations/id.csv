@@ -967,3 +967,8 @@ Starting crawl test for {0} @{1},Memulai uji crawl untuk {0} @{1}
 "Finished: {0} posts, {1} comments","Selesai: {0} post, {1} komentar"
 Crawl failed: {0},Crawl gagal: {0}
 Threads,Threads
+Followers,Pengikut
+Following,Mengikuti
+No posts found,Tidak ada post ditemukan
+Anonymize third-party mentions,Samarkan sebutan akun pihak ketiga
+"When on, @handles of other people in posts and comments are replaced by @[user]. Off shows the handle as written (public data on the candidate's own consented accounts).","Bila aktif, @username orang lain pada post dan komentar diganti @[user]. Bila nonaktif, username ditampilkan apa adanya (data publik pada akun kandidat yang disetujui)."

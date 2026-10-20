@@ -77,6 +77,10 @@ def mask_ranges(text: str, ranges: list[tuple[int, int]]) -> str:
 	"""Replace [offset, offset+length) spans (third-party mentions tagged by the platform) with @[user]."""
 	if not text or not ranges:
 		return text or ""
+	from hris_ats.bgc.providers.social.base import mentions_anonymized
+
+	if not mentions_anonymized():
+		return text
 	out = text
 	for start, length in sorted({(int(s), int(n)) for s, n in ranges if n and int(n) > 0}, reverse=True):
 		if 0 <= start < len(out):

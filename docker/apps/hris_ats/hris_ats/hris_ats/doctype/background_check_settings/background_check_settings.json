@@ -22,6 +22,7 @@
   "max_results_per_source",
   "social_max_posts",
   "social_max_comments",
+  "social_anonymize_mentions",
   "column_break_param",
   "rate_limit_per_minute",
   "retention_days",
@@ -166,6 +167,13 @@
    "fieldname": "social_max_comments",
    "fieldtype": "Int",
    "label": "Social Max Comments"
+  },
+  {
+   "default": "0",
+   "description": "When on, @handles of other people in posts and comments are replaced by @[user]. Off shows the handle as written (public data on the candidate's own consented accounts).",
+   "fieldname": "social_anonymize_mentions",
+   "fieldtype": "Check",
+   "label": "Anonymize third-party mentions"
   },
   {
    "fieldname": "column_break_param",

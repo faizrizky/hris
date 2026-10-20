@@ -32,6 +32,7 @@ from hris_ats.bgc.providers.social.base import clean_snippet
 BASE = "https://www.instagram.com"
 MEDIA_TYPES = {1: "Photo", 2: "Video", 8: "Carousel"}
 TIMELINE_KEY = "xdt_api__v1__feed__user_timeline_graphql_connection"
+COMMENTS_KEY = "xdt_api__v1__media__media_id__comments__connection"
 EXPAND_RE = re.compile(
 	r"(view|lihat)\s+(all\s+|semua\s+)?(\d+\s+)?(more\s+)?(replies|reply|balasan)|load more comments|muat komentar lainnya",
 	re.IGNORECASE,
@@ -112,9 +113,23 @@ class InstagramBrowserClient:
 		except Exception:
 			pass
 
-	def _goto(self, url: str) -> str:
+	def _wait_for_key(self, key: str, max_seconds: float) -> None:
+		"""Stop waiting as soon as the page source holds the data we need instead of sleeping a fixed time."""
+		end = time.time() + max_seconds
+		while time.time() < end:
+			try:
+				if self.page.evaluate("(k) => document.documentElement.innerHTML.includes(k)", key):
+					return
+			except Exception:
+				pass
+			self.page.wait_for_timeout(250)
+
+	def _goto(self, url: str, wait_key: str | None = None) -> str:
 		self.page.goto(url, wait_until="domcontentloaded", timeout=45000)
-		self.page.wait_for_timeout(int(random.uniform(*self.pause) * 1000) + 1500)
+		if wait_key:
+			self._wait_for_key(wait_key, 8)
+		else:
+			self.page.wait_for_timeout(int(random.uniform(*self.pause) * 1000) + 1500)
 		cur = self.page.url
 		if "/accounts/login" in cur or "/challenge" in cur or "/suspended" in cur:
 			raise SessionRejected(f"redirected to {cur}")
@@ -155,6 +170,13 @@ class InstagramBrowserClient:
 			)
 			try:
 				ctx = browser.new_context(storage_state=self.storage_state, viewport={"width": 1280, "height": 900})
+				# Pictures, video and fonts are not needed to read the page's JSON and slow every page load
+				ctx.route(
+					"**/*",
+					lambda route: route.abort()
+					if route.request.resource_type in ("image", "media", "font")
+					else route.continue_(),
+				)
 				self.page = ctx.new_page()
 				self.page.on("response", self._on_response)
 				self._crawl(username, max_posts, max_comments, earliest_ts, result, report)
@@ -166,7 +188,7 @@ class InstagramBrowserClient:
 
 	def _crawl(self, username, max_posts, max_comments, earliest_ts, result, report) -> None:
 		report("{0} @{1}: reading profile", "Instagram", username)
-		html = self._goto(f"{BASE}/{username}/")
+		html = self._goto(f"{BASE}/{username}/", wait_key=TIMELINE_KEY)
 		if any(m in html[:300000].lower() for m in NOT_FOUND_MARKERS) and TIMELINE_KEY not in html:
 			raise ProfileNotFound(username)
 
@@ -263,11 +285,24 @@ class InstagramBrowserClient:
 			return
 		target = candidate_username.lower()
 		self.payloads = []
-		html = self._goto(post["url"])
+		html = self._goto(post["url"], wait_key=COMMENTS_KEY)
 		post_deadline = time.time() + self.post_budget
+		# The page data arrives before the UI hydrates; reply buttons only exist after a comment is on screen
+		first = next((c for c in comment_nodes(extract_embedded(html, COMMENTS_KEY)) if c.get("text")), None)
+		if first:
+			probe = (first["text"] or "")[:12]
+			end = time.time() + 6
+			while time.time() < end:
+				try:
+					if self.page.evaluate("(t) => document.body.innerText.includes(t)", probe):
+						break
+				except Exception:
+					pass
+				self.page.wait_for_timeout(250)
 		for _ in range(15):
 			if time.time() > post_deadline or not self._time_left():
 				break
+			before = len(self.payloads)
 			clicked = self.page.evaluate(
 				"""(src) => {
 					const re = new RegExp(src, 'i');
@@ -284,11 +319,15 @@ class InstagramBrowserClient:
 			)
 			if not clicked:
 				break
-			self.page.wait_for_timeout(int(random.uniform(*self.pause) * 1000) + 600)
+			# Wait for the replies the click requested instead of sleeping a fixed time
+			end = time.time() + 4
+			while time.time() < end and len(self.payloads) <= before:
+				self.page.wait_for_timeout(200)
+			self.page.wait_for_timeout(400)
 
 		seen: set[str] = set()
 		found = 0
-		sources = extract_embedded(html, "xdt_api__v1__media__media_id__comments__connection") + self.payloads
+		sources = extract_embedded(html, COMMENTS_KEY) + self.payloads
 		for c in comment_nodes(sources):
 			pk = str(c.get("pk"))
 			if pk in seen:

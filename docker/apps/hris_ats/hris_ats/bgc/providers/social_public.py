@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import json
+import re
 from typing import Any
 
 import frappe
@@ -316,7 +317,7 @@ class SocialPublicProvider(BaseProvider):
 			for k in [k for k in item if k.startswith("_") or k in ("pk", "comment_count", "author")]:
 				item.pop(k)
 		if result["comment_limitation"]:
-			result["comment_limitation"] = _(result["comment_limitation"])
+			result["comment_limitation"] = _dedupe_sentences(_(result["comment_limitation"]))
 		if result["posts_count"] is None:
 			result["posts_count"] = len(result["posts"])
 		result.pop("_profile_loaded", None)
@@ -325,6 +326,18 @@ class SocialPublicProvider(BaseProvider):
 
 API_PLATFORMS = ("Instagram", "TikTok", "Facebook", "LinkedIn", "Threads")
 FB_DOC_ID_CACHE_KEY = "bgc_facebook_timeline_doc_id"
+
+
+def _dedupe_sentences(text: str | None) -> str | None:
+	"""Collapse a message in which the same sentence is repeated (e.g. one error per retried request)."""
+	if not text:
+		return text
+	seen: list[str] = []
+	for part in re.split(r"(?<=[.!?])\s+", str(text).strip()):
+		if part and part not in seen:
+			seen.append(part)
+	out = " ".join(seen)
+	return out[:600] + ("…" if len(out) > 600 else "")
 
 
 def _make_api_client(platform: str, cookies: dict[str, str], state: dict[str, Any] | None = None) -> Any:
@@ -342,10 +355,10 @@ def _make_api_client(platform: str, cookies: dict[str, str], state: dict[str, An
 
 		return TikTokApiClient(cookies, pause=(0.8, 1.8))
 	if platform == "Facebook":
-		from hris_ats.bgc.providers.social.facebook_api import FacebookApiClient
+		from hris_ats.bgc.providers.social.facebook_browser import FacebookBrowserClient
 
-		doc_id = frappe.conf.get(FB_DOC_ID_CACHE_KEY) or frappe.cache.get_value(FB_DOC_ID_CACHE_KEY)
-		return FacebookApiClient(cookies, doc_id=doc_id, pause=(1.0, 2.2))
+		# Facebook's persisted-query ids rotate and hand-built GraphQL calls are refused; a browser works
+		return FacebookBrowserClient(state or {"cookies": [], "origins": []})
 	if platform == "LinkedIn":
 		from hris_ats.bgc.providers.social.linkedin_api import LinkedInApiClient
 

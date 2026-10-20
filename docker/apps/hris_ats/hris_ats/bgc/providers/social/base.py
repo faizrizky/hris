@@ -8,10 +8,32 @@ from datetime import datetime, timezone
 from typing import Any
 
 
+def mentions_anonymized() -> bool:
+	"""Whether third-party @mentions are replaced by @[user].
+
+	Controlled by Background Check Settings > "Anonymize third-party mentions". Without a site
+	(pure unit tests) or when the setting cannot be read, mentions are anonymized (privacy first).
+	"""
+	try:
+		import frappe
+
+		if not getattr(frappe.local, "site", None):
+			return True
+		cached = frappe.flags.get("bgc_anonymize_mentions")
+		if cached is None:
+			cached = bool(frappe.db.get_single_value("Background Check Settings", "social_anonymize_mentions"))
+			frappe.flags.bgc_anonymize_mentions = cached
+		return cached
+	except Exception:
+		return True
+
+
 def anonymize_mentions(text: str) -> str:
-	"""Mengganti sebutan akun pihak ketiga (@username) dengan @[user] untuk menjaga privasi."""
+	"""Mengganti sebutan akun pihak ketiga (@username) dengan @[user] bila pengaturan anonimisasi aktif."""
 	if not text:
 		return ""
+	if not mentions_anonymized():
+		return text
 	return re.sub(r"@[a-zA-Z0-9._-]+", "@[user]", text)
 
 

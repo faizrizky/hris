@@ -30,7 +30,9 @@ def _is_allowed(filename: str) -> bool:
 def _clean_snippet(text: str) -> str:
 	if not text:
 		return ""
-	cleaned = re.sub(r"@[\w.]+", "@[user]", text)
+	from hris_ats.bgc.providers.social.base import mentions_anonymized
+
+	cleaned = re.sub(r"@[\w.]+", "@[user]", text) if mentions_anonymized() else text
 	cleaned = re.sub(r"\s+", " ", cleaned).strip()
 	return cleaned[:500]
 
