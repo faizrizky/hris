@@ -126,7 +126,8 @@ frappe.ui.form.on("Background Check", {
 		`;
 
 		frm.dashboard.clear_headline();
-		frm.dashboard.set_headline(html);
+		// permanent = true: banner status tidak punya tombol close
+		frm.dashboard.set_headline(html, "blue", true);
 	},
 
 	setup_realtime_listener(frm) {

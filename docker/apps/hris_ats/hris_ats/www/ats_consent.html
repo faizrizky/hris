@@ -1,7 +1,41 @@
 {% extends "templates/web.html" %}
 
 {% block page_content %}
-<div class="container my-5" style="max-width: 800px;">
+<style>
+	.bgc-consent h5 { letter-spacing: .02em; margin-top: 8px; }
+	.bgc-consent .list-group { display: flex; flex-direction: column; gap: 10px; }
+	.bgc-consent .list-group-item {
+		display: flex; align-items: flex-start; gap: 12px;
+		margin: 0; padding: 14px 16px; background: #fff; cursor: pointer;
+		border: 1px solid #e2e8f0 !important; border-radius: 10px !important;
+		transition: border-color .15s, background-color .15s;
+	}
+	.bgc-consent .list-group-item:hover { border-color: #a0aec0 !important; background: #f8fafc; }
+	.bgc-consent .list-group-item:has(input:checked) { border-color: #2b6cb0 !important; background: #ebf4ff; }
+	.bgc-consent input[type="checkbox"] {
+		flex: 0 0 18px; width: 18px; height: 18px; float: none;
+		margin: 2px 0 0 0 !important; cursor: pointer;
+	}
+	.bgc-consent .form-check { display: flex; align-items: flex-start; gap: 10px; padding-left: 0; min-height: 0; margin: 0; }
+	.bgc-consent .form-check-label { margin: 0; line-height: 1.5; }
+	.bgc-consent .form-control-sm { height: 40px; padding: 8px 12px; border-radius: 8px; }
+	.bgc-consent input[type="file"].form-control { height: auto; padding: 10px 12px; line-height: 1.5; }
+	.bgc-consent .consent-terms {
+		max-height: 220px; overflow-y: auto; padding: 16px 18px; line-height: 1.6;
+		border: 1px solid #e2e8f0; border-radius: 10px; background: #f7fafc;
+	}
+	.bgc-consent .other-account-row { display: flex; flex-wrap: nowrap; align-items: center; gap: 8px; margin: 0 0 8px !important; }
+	.bgc-consent .other-account-row > .col-5 { flex: 5 1 0; max-width: none; padding: 0; }
+	.bgc-consent .other-account-row > .col-6 { flex: 6 1 0; max-width: none; padding: 0; }
+	.bgc-consent .other-account-row > .col-1 { flex: 0 0 40px; max-width: 40px; padding: 0; text-align: center; }
+	.bgc-consent .btn-remove-other-acc, .bgc-consent .btn-remove-social-acc {
+		display: inline-flex; align-items: center; justify-content: center;
+		width: 36px; height: 36px; padding: 0; border-radius: 8px;
+	}
+	.bgc-consent #btn-add-other-account { margin-top: 4px; }
+	.bgc-consent #btn-submit-consent { width: 100%; padding: 12px 20px; border-radius: 10px; }
+</style>
+<div class="container my-5 bgc-consent" style="max-width: 800px;">
 	<div class="card shadow-sm border-0">
 		<div class="card-body p-4 p-md-5">
 			{% if error %}
@@ -196,7 +230,7 @@
 						<h5 class="h6 font-weight-bold text-uppercase text-secondary mb-2">
 							5. {{ _("Consent Statement & Data Retention") }}
 						</h5>
-						<div class="border rounded p-3 bg-light mb-3 small text-muted" style="max-height: 140px; overflow-y: auto;">
+						<div class="consent-terms mb-3 small text-muted">
 							<p class="mb-2">{{ consent_text }}</p>
 							<p class="mb-0">
 								<strong>{{ _("Retention Terms:") }}</strong> {{ _("All raw finding data will be automatically purged within {0} days after final recruitment decision in accordance with data minimization principles.").format(retention_days) }}
