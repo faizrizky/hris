@@ -19,6 +19,7 @@ from collections.abc import Callable
 from typing import Any
 
 from hris_ats.bgc.providers.social.api_base import (
+	ApiUnavailable,
 	ProfileNotFound,
 	RateLimited,
 	SessionRejected,
@@ -162,18 +163,24 @@ class FacebookBrowserClient:
 	def _crawl(self, username, max_posts, max_comments, earliest_ts, result, report) -> None:
 		report("{0} @{1}: reading profile", "Facebook", username)
 		url = FacebookApiClient.profile_url(username)
-		html = self._goto(url)
-		low = html[:400000].lower()
 		profile_id = username if username.isdigit() else ""
-		for rx in PROFILE_ID_RES:
-			if profile_id:
+		html = ""
+		for attempt in range(2):
+			# A slow load can leave the page without its data; retry once before giving up
+			html = self._goto(url, settle=4.5 + attempt * 4)
+			low = html[:400000].lower()
+			for rx in PROFILE_ID_RES:
+				if profile_id:
+					break
+				m = rx.search(html)
+				profile_id = m.group(1) if m else ""
+			if profile_id or any(k in low for k in NOT_FOUND_MARKERS):
 				break
-			m = rx.search(html)
-			profile_id = m.group(1) if m else ""
 		if not profile_id:
 			if any(k in low for k in NOT_FOUND_MARKERS):
 				raise ProfileNotFound(username)
-			raise SessionRejected("profile id not found (page not available for this account)")
+			# Not a sign of a bad session (that is detected by the login/checkpoint redirects in _goto)
+			raise ApiUnavailable("Facebook profile page did not load its data")
 		name_m = OWNER_NAME_RE.search(html)
 		name = ""
 		if name_m:
