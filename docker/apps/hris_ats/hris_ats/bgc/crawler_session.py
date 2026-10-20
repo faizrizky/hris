@@ -861,7 +861,12 @@ def _bump_counter(redis, key: str, ttl: int) -> int:
 	"""Atomically increment a counter; the TTL is set only on first use so the window never slides."""
 	if hasattr(redis, "incr") and hasattr(redis, "make_key"):
 		full_key = redis.make_key(key)
-		count = int(redis.incr(full_key))
+		try:
+			count = int(redis.incr(full_key))
+		except Exception:
+			# Stale non-integer value (e.g. written by an older code path): reset the window
+			redis.delete(full_key)
+			count = int(redis.incr(full_key))
 		if count == 1:
 			redis.expire(full_key, ttl)
 		return count
