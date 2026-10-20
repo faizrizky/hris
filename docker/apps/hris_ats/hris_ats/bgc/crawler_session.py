@@ -603,6 +603,26 @@ def filter_and_validate_cookies(storage_state_data: dict, session_domains_raw: s
 	return storage_state_data, sorted(cookie_domains_found), session_expires_on
 
 
+# Cookies that only exist once a user is actually signed in. Without them a "session" is anonymous.
+AUTH_COOKIES = {
+	"Instagram": ({"sessionid"},),
+	"Facebook": ({"c_user", "xs"},),
+	"TikTok": ({"sessionid"}, {"sessionid_ss"}),
+	"LinkedIn": ({"li_at"},),
+	"X": ({"auth_token"},),
+	"Twitter": ({"auth_token"},),
+}
+
+
+def has_auth_cookies(platform: str, storage_state: dict | None) -> bool:
+	"""True when the stored state contains the platform's signed-in cookie set (unknown platforms pass)."""
+	required = AUTH_COOKIES.get(platform)
+	if not required:
+		return True
+	names = {c.get("name") for c in (storage_state or {}).get("cookies", []) if c.get("value")}
+	return any(group <= names for group in required)
+
+
 def save_crawler_storage_state(account_name: str, raw_json: str) -> dict:
 	"""Validates, filters to session_domains, encrypts, and stores session state on Crawler Account."""
 	account = frappe.get_doc("Background Check Crawler Account", account_name)
@@ -627,8 +647,17 @@ def save_crawler_storage_state(account_name: str, raw_json: str) -> dict:
 			)
 		)
 
+	if not has_auth_cookies(account.platform, filtered_state):
+		frappe.throw(
+			_("Login was not detected for {0}. Finish signing in inside the browser (until your feed or profile is visible), then press Complete again.").format(
+				account.platform
+			),
+			title=_("Not Logged In"),
+		)
+
 	# Store encrypted session string using Frappe password field handler
 	account.session = json.dumps(filtered_state)
+	account.flags.allow_session_update = True
 
 	account.status = "Connected"
 	account.connected_by = getattr(frappe.session, "user", None) or "Administrator"
@@ -804,9 +833,10 @@ def get_crawler_accounts_list() -> list[dict]:
 
 def get_eligible_crawler_account_for_url(url: str) -> dict | None:
 	"""Determines if there is a Connected crawler account eligible for fetching the given URL.
-	Requires System Manager, platform match via session_domains, and risk_acknowledged.
+	Requires System Manager (or the background-check runner, which may be started by the
+	candidate's consent submission as Guest), platform match via session_domains, and risk_acknowledged.
 	"""
-	if "System Manager" not in frappe.get_roles():
+	if not frappe.flags.in_bgc_runner and "System Manager" not in frappe.get_roles():
 		return None
 
 	from hris_ats.bgc.fetch import get_domain

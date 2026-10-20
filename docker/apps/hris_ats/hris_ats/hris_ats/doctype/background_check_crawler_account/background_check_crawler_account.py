@@ -10,6 +10,12 @@ from frappe.utils import now_datetime
 
 
 class BackgroundCheckCrawlerAccount(Document):
+	def before_save(self):
+		# The session is only written by save_crawler_storage_state(); a normal form save sends an
+		# empty/masked value that would otherwise make Frappe delete the encrypted session.
+		if not self.flags.allow_session_update:
+			self.flags.ignore_save_passwords = ["session"]
+
 	def validate(self):
 		self.validate_single_active_per_platform()
 		self.validate_risk_acknowledgment()
@@ -76,6 +82,7 @@ class BackgroundCheckCrawlerAccount(Document):
 		except Exception:
 			pass
 		self.session = None
+		self.flags.allow_session_update = True
 		self.status = "Not connected"
 		self.connected_by = None
 		self.connected_on = None

@@ -256,6 +256,12 @@ def rerun_background_check(bgc_name: str) -> dict[str, Any]:
 
 	frappe.has_permission("Background Check", "write", bgc_name, throw=True)
 	bgc = frappe.get_doc("Background Check", bgc_name)
+	# Jangan jalankan dua crawl bersamaan; crawl yang macet (>30 menit tanpa progres) boleh diulang
+	if bgc.status in ("Queued", "Crawling"):
+		from frappe.utils import get_datetime, time_diff_in_seconds
+
+		if time_diff_in_seconds(now_datetime(), get_datetime(bgc.modified)) < 1800:
+			frappe.throw(_("Background check is already running. Wait until it finishes."))
 	if bgc.consent_status != "Granted":
 		frappe.throw(_("Background Check cannot run without candidate consent (current status: {0}).").format(bgc.consent_status))
 

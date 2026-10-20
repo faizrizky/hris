@@ -907,3 +907,21 @@ Security Error,Kesalahan Keamanan
 Size Limit Exceeded,Batas Ukuran Terlampaui
 
 Some social media accounts are not ticked and will NOT be screened (accounts: {0}). Continue?,Sebagian akun media sosial belum dicentang dan TIDAK akan diperiksa (jumlah akun: {0}). Lanjutkan?
+"Login was not detected for {0}. Finish signing in inside the browser (until your feed or profile is visible), then press Complete again.","Login untuk {0} tidak terdeteksi. Selesaikan login di browser (sampai beranda atau profil terlihat), lalu tekan Selesai lagi."
+Not Logged In,Belum Login
+Crawler account is busy with another check.,Akun crawler sedang dipakai pemeriksaan lain.
+Instagram @{0}: reading profile,Instagram @{0}: membaca profil
+Instagram @{0}: {1} posts read,Instagram @{0}: {1} post terbaca
+Instagram @{0}: comments checked on {1}/{2} posts,Instagram @{0}: komentar diperiksa pada {1}/{2} post
+"Instagram rate limit reached, partial data: {0}","Batas laju Instagram tercapai, data sebagian: {0}"
+(post without caption),(post tanpa keterangan)
+Private profile: posts are only visible to approved followers.,Profil privat: post hanya terlihat oleh pengikut yang disetujui.
+Instagram rate limit: {0},Batas laju Instagram: {0}
+"{0} @{1}: {2} posts, {3} comments saved","{0} @{1}: {2} post, {3} komentar tersimpan"
+Crawling {0} @{1},Sedang crawl {0} @{1}
+Checking source: {0},Memeriksa sumber: {0}
+Stored session is missing or not signed in. Please log in again.,Sesi tersimpan hilang atau belum login. Silakan login ulang.
+Waiting for the background worker...,Menunggu proses latar belakang...
+Results appear below as soon as each source or account is finished.,Hasil langsung tampil di bawah setiap kali satu sumber atau akun selesai.
+Crawl Progress,Progres Crawl
+"Background check is already running. Wait until it finishes.","Pemeriksaan latar belakang sedang berjalan. Tunggu sampai selesai."

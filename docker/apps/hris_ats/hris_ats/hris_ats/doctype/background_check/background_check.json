@@ -16,6 +16,7 @@
   "candidate_language",
   "column_break_applicant",
   "status",
+  "progress_message",
   "risk_level_auto",
   "risk_level_final",
   "purge_after",
@@ -118,6 +119,13 @@
    "in_list_view": 1,
    "label": "Status",
    "options": "Waiting Consent\nQueued\nCrawling\nDone\nFailed"
+  },
+  {
+   "fieldname": "progress_message",
+   "fieldtype": "Data",
+   "label": "Crawl Progress",
+   "read_only": 1,
+   "depends_on": "eval:['Queued','Crawling'].includes(doc.status)"
   },
   {
    "fieldname": "risk_level_auto",

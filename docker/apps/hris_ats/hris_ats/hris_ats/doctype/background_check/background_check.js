@@ -109,9 +109,15 @@ frappe.ui.form.on("Background Check", {
 							${__("Status")}: ${__(frm.doc.status)}
 						</span>
 					</div>
+					${["Queued", "Crawling"].includes(frm.doc.status) ? `
+					<div class="bgc-progress" style="margin-top: 6px; color: #2b6cb0; font-size: 0.9rem; display: flex; align-items: center; gap: 8px;">
+						<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+						<span class="bgc-progress-text">${frappe.utils.escape_html(frm.doc.progress_message || __("Waiting for the background worker..."))}</span>
+					</div>
+					<div style="margin-top: 2px; color: #718096; font-size: 0.8rem;">${__("Results appear below as soon as each source or account is finished.")}</div>` : `
 					<div style="margin-top: 6px; color: #4a5568; font-size: 0.9rem;">
 						${frm.doc.summary_auto || __("Screening has not been executed or no findings recorded.")}
-					</div>
+					</div>`}
 					${frm.doc.hr_conclusion ? `<div style="margin-top: 4px; font-weight: 600; color: #2d3748; font-size: 0.85rem;">${__("HR Conclusion")}: ${frm.doc.hr_conclusion}</div>` : ""}
 				</div>
 				<div style="text-align: right; min-width: 140px;">
@@ -132,6 +138,14 @@ frappe.ui.form.on("Background Check", {
 
 	setup_realtime_listener(frm) {
 		if (frm.is_new()) return;
+		frappe.realtime.off("bgc_progress");
+		frappe.realtime.on("bgc_progress", function (data) {
+			if (data && data.bgc === frm.doc.name) {
+				frm.doc.progress_message = data.message;
+				$(frm.wrapper).find(".bgc-progress-text").text(data.message || "");
+			}
+		});
+		frm.trigger("poll_progress");
 		frappe.realtime.off("bgc_source_progress");
 		frappe.realtime.on("bgc_source_progress", function (data) {
 			if (data && data.bgc === frm.doc.name) {
@@ -149,6 +163,33 @@ frappe.ui.form.on("Background Check", {
 				frm.reload_doc();
 			}
 		});
+	},
+
+	// Polling tetap jalan walau websocket tidak tersambung: teks progres diperbarui,
+	// dan form dimuat ulang setiap kali ada sumber/akun yang selesai disimpan.
+	poll_progress(frm) {
+		if (frm._bgc_poll) {
+			clearInterval(frm._bgc_poll);
+			frm._bgc_poll = null;
+		}
+		if (!["Queued", "Crawling"].includes(frm.doc.status)) return;
+		const docname = frm.doc.name;
+		let last_modified = frm.doc.modified;
+		frm._bgc_poll = setInterval(() => {
+			if (frm.doc.name !== docname || !frm.page.wrapper.is(":visible")) return;
+			frappe.db.get_value("Background Check", docname, ["status", "progress_message", "modified"]).then((r) => {
+				const v = r.message || {};
+				$(frm.wrapper).find(".bgc-progress-text").text(v.progress_message || "");
+				if (v.modified && v.modified !== last_modified) {
+					last_modified = v.modified;
+					if (!frm.is_dirty()) frm.reload_doc();
+				}
+				if (!["Queued", "Crawling"].includes(v.status)) {
+					clearInterval(frm._bgc_poll);
+					frm._bgc_poll = null;
+				}
+			});
+		}, 4000);
 	},
 
 	render_name_findings(frm) {

@@ -32,6 +32,7 @@ class SocialPublicProvider(BaseProvider):
 		max_comments: int = 200,
 		lookback_months: int = 12,
 		raw_fetch_fn: Any = None,
+		progress: Any = None,
 	) -> dict[str, Any]:
 		"""Mengambil profil, postingan, dan komentar publik media sosial sesuai kepatuhan penuh PDP & ToS.
 
@@ -107,6 +108,14 @@ class SocialPublicProvider(BaseProvider):
 
 		# 2. Ambil halaman web dengan eskalasi mode
 		cfg = self.config or get_fetch_config_from_settings()
+
+		# 2a. Instagram: post dan komentar hanya tersedia lewat API web dengan sesi login
+		if platform_name == "Instagram" and raw_fetch_fn is None and getattr(cfg, "use_login_session", False):
+			api_res = self._crawl_instagram_api(
+				account, profile_url, clean_user, max_posts, max_comments, lookback_months, progress
+			)
+			if api_res is not None:
+				return api_res
 
 		# Cek apakah ada akun crawler untuk platform ini
 		crawler_account_label = None
@@ -192,3 +201,128 @@ class SocialPublicProvider(BaseProvider):
 			"posts": posts,
 			"comments": comments,
 		}
+
+	def _crawl_instagram_api(
+		self,
+		account: Any,
+		profile_url: str,
+		username: str,
+		max_posts: int,
+		max_comments: int,
+		lookback_months: int,
+		progress: Any = None,
+	) -> dict[str, Any] | None:
+		"""Crawl via Instagram's web API with the crawler account session. Returns None to fall back to HTML."""
+		from hris_ats.bgc.crawler_session import (
+			acquire_crawler_account_lock,
+			check_and_update_crawler_rate_limits,
+			enforce_crawler_delay,
+			get_decrypted_storage_state,
+			get_eligible_crawler_account_for_url,
+			has_auth_cookies,
+			mark_crawler_account_challenge,
+			release_crawler_account_lock,
+		)
+		from hris_ats.bgc.providers.social.instagram_api import (
+			InstagramApiClient,
+			InstagramNotFound,
+			InstagramRateLimited,
+			InstagramSessionError,
+		)
+
+		c_acc = get_eligible_crawler_account_for_url(profile_url)
+		if not c_acc:
+			return None
+		state = get_decrypted_storage_state(c_acc["name"])
+		if not has_auth_cookies("Instagram", state):
+			return None
+		cookies = {c["name"]: c["value"] for c in state.get("cookies", []) if c.get("name") and c.get("value")}
+		label = c_acc.get("account_label") or c_acc["name"]
+		account_name = getattr(account, "name", "") if hasattr(account, "name") else ""
+
+		def report(msg: str) -> None:
+			if progress:
+				progress(msg)
+
+		base = {
+			"profile_url": profile_url,
+			"mode_used": "session-api",
+			"crawler_account": label,
+			"provenance": "Crawled (session)",
+			"posts": [],
+			"comments": [],
+		}
+
+		# One profile crawl counts as one unit against the crawler account's hourly/daily limits
+		try:
+			check_and_update_crawler_rate_limits(c_acc["name"])
+		except Exception as e:
+			return {**base, "status": "Failed", "error": str(e), "comment_limitation": str(e)}
+		if not acquire_crawler_account_lock(c_acc["name"], timeout=900):
+			return {**base, "status": "Failed", "error": _("Crawler account is busy with another check."), "comment_limitation": None}
+
+		try:
+			enforce_crawler_delay(c_acc["name"])
+			client = InstagramApiClient(cookies, pause=(0.6, 1.4))
+			report(_("Instagram @{0}: reading profile").format(username))
+			prof = client.profile(username)
+			result = {
+				**base,
+				"status": "Success",
+				"error": None,
+				"is_private": prof["is_private"],
+				"display_name": prof["display_name"],
+				"bio": prof["bio"],
+				"location": "",
+				"followers_count": prof["followers_count"],
+				"following_count": prof["following_count"],
+				"posts_count": prof["posts_count"],
+				"comment_limitation": None,
+			}
+
+			earliest = add_months(now_datetime(), -int(lookback_months or 12)).timestamp()
+			posts: list[dict[str, Any]] = []
+			comments: list[dict[str, Any]] = []
+			try:
+				for post in client.iter_posts(prof["id"], username, int(max_posts or 200), earliest):
+					posts.append(post)
+					if len(posts) % 12 == 0:
+						report(_("Instagram @{0}: {1} posts read").format(username, len(posts)))
+
+				remaining = int(max_comments or 200)
+				with_comments = [p for p in posts if p.get("comment_count")]
+				for i, post in enumerate(with_comments, 1):
+					if remaining <= 0:
+						break
+					for c in client.iter_candidate_comments(post, username, remaining):
+						comments.append(c)
+						remaining -= 1
+					if i % 10 == 0:
+						report(
+							_("Instagram @{0}: comments checked on {1}/{2} posts").format(username, i, len(with_comments))
+						)
+			except InstagramRateLimited as e:
+				result["comment_limitation"] = _("Instagram rate limit reached, partial data: {0}").format(e)
+
+			for p in posts:
+				if not p.get("snippet"):
+					p["snippet"] = _("(post without caption)")
+				p.update(finding_type="Post", provenance="Crawled (session)", account=account_name, platform="Instagram")
+				p.pop("pk", None)
+			for c in comments:
+				c.update(finding_type="Comment", provenance="Crawled (session)", account=account_name, platform="Instagram")
+				c.pop("author", None)
+			result["posts"] = posts
+			result["comments"] = comments
+			if prof["is_private"] and not posts:
+				result["comment_limitation"] = _("Private profile: posts are only visible to approved followers.")
+			return result
+		except InstagramNotFound:
+			return {**base, "status": "Failed", "error": "not found", "comment_limitation": None}
+		except InstagramSessionError as e:
+			mark_crawler_account_challenge(c_acc["name"], f"Instagram session rejected: {e}")
+			return None
+		except InstagramRateLimited as e:
+			return {**base, "status": "Failed", "error": _("Instagram rate limit: {0}").format(e), "comment_limitation": None}
+		finally:
+			release_crawler_account_lock(c_acc["name"])

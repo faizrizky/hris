@@ -707,7 +707,9 @@ def test_extract_page_signals_is_linear_on_large_meta_heavy_pages():
 	"""Halaman besar dengan ratusan tag <meta> tidak boleh membuat parser macet (regresi backtracking)."""
 	import time
 
-	from hris_ats.hris_ats.doctype.background_check_settings.background_check_settings import extract_page_signals
+	from hris_ats.hris_ats.doctype.background_check_settings.background_check_settings import (
+		extract_page_signals,
+	)
 
 	metas = "".join(f'<meta name="x{i}" content="{"a" * 200}">' for i in range(1500))
 	html = (

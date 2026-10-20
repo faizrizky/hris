@@ -60,6 +60,72 @@ def is_social_account(platform_name: str, profile_url: str = "") -> bool:
 
 def run_all_sources(bgc_name: str) -> None:
 	"""Memproses seluruh sumber yang disetujui untuk dokumen Background Check."""
+	frappe.flags.in_bgc_runner = True
+	try:
+		_run_all_sources(bgc_name)
+	finally:
+		frappe.flags.in_bgc_runner = False
+
+
+def _commit() -> None:
+	"""Commit progres di tengah job; dilewati saat tes agar rollback tes tetap bersih."""
+	if not frappe.flags.in_test:
+		frappe.db.commit()
+
+
+def _progress(bgc_name: str, message: str, commit: bool = False) -> None:
+	"""Tulis pesan progres crawl ke dokumen dan kirim realtime; commit agar form bisa membacanya."""
+	frappe.db.set_value("Background Check", bgc_name, "progress_message", (message or "")[:140], update_modified=False)
+	if commit:
+		_commit()
+	frappe.publish_realtime(
+		"bgc_progress",
+		{"bgc": bgc_name, "message": message},
+		doctype="Background Check",
+		docname=bgc_name,
+	)
+
+
+def _save_social_items(bgc_name, items, required_skills, preferred_skills, lexicon_records) -> int:
+	"""Analisis risiko lalu simpan post/komentar satu akun sebagai Finding. Mengembalikan jumlah item berisiko."""
+	p_analysis = analyze_posts(
+		posts=items,
+		required_skills=required_skills,
+		preferred_skills=preferred_skills,
+		lexicon_items=lexicon_records,
+	)
+	risk_by_key = {}
+	for rp in p_analysis["risk_posts"]:
+		risk_by_key[(rp.get("url") or "") + "::" + (rp.get("text") or "")[:100]] = rp
+
+	findings: list[FindingData] = []
+	for item in items:
+		f_text = (item.get("snippet") or item.get("text") or "")[:500]
+		rp = risk_by_key.get((item.get("url") or "") + "::" + f_text[:100])
+		f_type = item.get("finding_type", "Post")
+		plat = item.get("platform", "Social Media")
+		r_flags = rp.get("risk_flags", "") if rp else ""
+		findings.append(FindingData(
+			finding_type=f_type,
+			title=f"Public {f_type} Flagged as Risky" if rp else f"Public {f_type} on {plat}",
+			snippet=f_text,
+			url=item.get("url") or "",
+			severity=rp.get("severity", "Low") if rp else "Low",
+			category="Risky" if rp else "Neutral",
+			risk_flags=r_flags,
+			risk_flags_template=r_flags,
+			risk_flags_params="{}",
+			match_confidence=100,
+			provenance=item.get("provenance", "Crawled"),
+			media_type=item.get("media_type", "Text"),
+			account=item.get("account", ""),
+			published_on=item.get("published_on") or item.get("created_at"),
+		))
+	_save_findings(bgc_name, findings)
+	return len(p_analysis["risk_posts"])
+
+
+def _run_all_sources(bgc_name: str) -> None:
 	if not frappe.db.exists("Background Check", bgc_name):
 		return
 
@@ -419,10 +485,12 @@ def run_all_sources(bgc_name: str) -> None:
 						modes_used.add("export")
 						continue
 
+					_progress(bgc.name, _("Crawling {0} @{1}").format(acc.platform, acc.username), commit=True)
 					try:
 						c_res = social_provider.crawl_account(
 							bgc,
 							acc,
+							progress=lambda msg: _progress(bgc.name, msg, commit=True),
 							is_mock=is_mock,
 							max_posts=settings.social_max_posts or 200,
 							max_comments=settings.social_max_comments or 200,
@@ -490,6 +558,22 @@ def run_all_sources(bgc_name: str) -> None:
 					all_social_posts.extend(acc_posts)
 					all_social_comments.extend(acc_comments)
 
+					# Simpan temuan akun ini sekarang juga agar HR bisa melihatnya sebelum crawl selesai
+					acc_items = acc_posts + acc_comments
+					if acc_items:
+						acc_risk = _save_social_items(
+							bgc.name, acc_items, required_skills, preferred_skills, lexicon_records
+						)
+						risk_posts_count += acc_risk
+					bgc.save(ignore_permissions=True)
+					_progress(
+						bgc.name,
+						_("{0} @{1}: {2} posts, {3} comments saved").format(
+							acc.platform, acc.username, len(acc_posts), len(acc_comments)
+						),
+						commit=True,
+					)
+
 				all_social_items = all_social_posts + all_social_comments
 				if all_social_items:
 					p_analysis = analyze_posts(
@@ -500,45 +584,6 @@ def run_all_sources(bgc_name: str) -> None:
 					)
 					politeness_score = p_analysis["politeness_score"]
 					total_posts_analyzed += p_analysis["total_posts"]
-					risk_items = p_analysis["risk_posts"]
-					risk_posts_count += len(risk_items)
-
-					risk_by_key = {}
-					for rp in risk_items:
-						k = (rp.get("url") or "") + "::" + (rp.get("text") or "")[:100]
-						risk_by_key[k] = rp
-
-					findings_to_save: list[FindingData] = []
-					for item in all_social_items:
-						f_text = (item.get("snippet") or item.get("text") or "")[:500]
-						k = (item.get("url") or "") + "::" + f_text[:100]
-						rp = risk_by_key.get(k)
-						f_type = item.get("finding_type", "Post")
-						plat = item.get("platform", "Social Media")
-
-						sev = rp.get("severity", "Low") if rp else "Low"
-						cat = "Risky" if rp else "Neutral"
-						r_flags = rp.get("risk_flags", "") if rp else ""
-
-						title = f"Public {f_type} Flagged as Risky" if rp else f"Public {f_type} on {plat}"
-
-						findings_to_save.append(FindingData(
-							finding_type=f_type,
-							title=title,
-							snippet=f_text,
-							url=item.get("url") or "",
-							severity=sev,
-							category=cat,
-							risk_flags=r_flags,
-							risk_flags_template=r_flags,
-							risk_flags_params="{}",
-							match_confidence=100,
-							provenance=item.get("provenance", "Crawled"),
-							media_type=item.get("media_type", "Text"),
-							account=item.get("account", ""),
-							published_on=item.get("published_on") or item.get("created_at"),
-						))
-					_save_findings(bgc.name, findings_to_save)
 
 				run_row.items_found = len([a for a in social_accounts if a.exists]) + len(all_social_items)
 				run_row.accounts_skipped = skipped_accounts
@@ -576,6 +621,9 @@ def run_all_sources(bgc_name: str) -> None:
 			run_row.finished_on = now_datetime()
 			frappe.log_error(title=f"BGC Source Error: {source_name}", message=frappe.get_traceback())
 
+		# Simpan hasil sumber ini sekarang (hasil bertahap terlihat di form)
+		bgc.save(ignore_permissions=True)
+		_commit()
 		frappe.publish_realtime(
 			"bgc_source_progress",
 			{"bgc": bgc.name, "source": source_name, "status": run_row.status},
@@ -629,6 +677,7 @@ def run_all_sources(bgc_name: str) -> None:
 	bgc.summary_auto_template = getattr(summary_text, "template", str(summary_text))
 	bgc.summary_auto_params = json.dumps(getattr(summary_text, "params", {}))
 	bgc.status = "Done"
+	bgc.progress_message = ""
 	bgc.purge_after = add_days(nowdate(), retention_days)
 
 	bgc.save(ignore_permissions=True)
