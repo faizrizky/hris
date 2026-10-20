@@ -193,6 +193,8 @@ frappe.ui.form.on("Background Check", {
 	},
 
 	render_name_findings(frm) {
+		const esc = (v) => frappe.utils.escape_html(v == null ? "" : String(v));
+		const safeUrl = (u) => (/^https?:\/\//i.test(u || "") ? u : "");
 		if (frm.is_new() || !frm.fields_dict.name_findings_html) return;
 
 		frappe.call({
@@ -225,26 +227,26 @@ frappe.ui.form.on("Background Check", {
 
 				let rows_html = items.map(f => {
 					let badge_cls = sev_color[f.severity] || "secondary";
-					let link_html = f.url ? `<a href="${f.url}" target="_blank" style="margin-left: 8px;"><i class="fa fa-external-link"></i></a>` : "";
-					let detail_btn = f.detail_url ? `<a href="${f.detail_url}" target="_blank" class="btn btn-xs btn-default ml-2"><i class="fa fa-info-circle mr-1"></i>${__("Detail Page")}</a>` : "";
-					let pdf_btn = f.pdf_url ? `<a href="${f.pdf_url}" target="_blank" class="btn btn-xs btn-primary ml-2"><i class="fa fa-file-pdf-o mr-1"></i>${__("Download PDF Copy")}</a>` : "";
+					let link_html = safeUrl(f.url) ? `<a href="${esc(safeUrl(f.url))}" target="_blank" style="margin-left: 8px;"><i class="fa fa-external-link"></i></a>` : "";
+					let detail_btn = safeUrl(f.detail_url) ? `<a href="${esc(safeUrl(f.detail_url))}" target="_blank" class="btn btn-xs btn-default ml-2"><i class="fa fa-info-circle mr-1"></i>${__("Detail Page")}</a>` : "";
+					let pdf_btn = safeUrl(f.pdf_url) ? `<a href="${esc(safeUrl(f.pdf_url))}" target="_blank" class="btn btn-xs btn-primary ml-2"><i class="fa fa-file-pdf-o mr-1"></i>${__("Download PDF Copy")}</a>` : "";
 					let text_src_badge = f.text_source ? `<span class="badge badge-light border mr-2" title="${__('Text Source')}"><i class="fa fa-file-text-o mr-1"></i>${__(f.text_source)}</span>` : "";
 
 					let v = f.hr_verdict || "Not reviewed";
 					return `
-						<div class="card mb-3 p-3 border shadow-none finding-card" data-name="${f.name}">
+						<div class="card mb-3 p-3 border shadow-none finding-card" data-name="${esc(f.name)}">
 							<div class="d-flex justify-content-between align-items-start mb-2">
 								<div>
 									<span class="badge badge-light mr-2">${__(f.finding_type)}</span>
 									<span class="badge badge-${badge_cls} mr-2">${__(f.severity)}</span>
 									<span class="badge badge-info mr-2">${__(f.category)}</span>
 									${text_src_badge}
-									<strong style="font-size: 1rem; color: #2d3748;">${f.title}</strong>
+									<strong style="font-size: 1rem; color: #2d3748;">${esc(f.title)}</strong>
 									${link_html}
 								</div>
 								<div class="text-right" style="min-width: 180px;">
 									<label class="small text-muted mb-1 d-block">${__("HR Verdict:")}</label>
-									<select class="form-control form-control-sm hr-verdict-select" data-name="${f.name}">
+									<select class="form-control form-control-sm hr-verdict-select" data-name="${esc(f.name)}">
 										<option value="Not reviewed" ${v === 'Not reviewed' || v === 'Belum ditinjau' ? 'selected' : ''}>${__("Not reviewed")}</option>
 										<option value="Relevant" ${v === 'Relevant' || v === 'Relevan' ? 'selected' : ''}>${__("Relevant")}</option>
 										<option value="Not this person" ${v === 'Not this person' || v === 'Bukan orang ini' ? 'selected' : ''}>${__("Not this person")}</option>
@@ -252,20 +254,20 @@ frappe.ui.form.on("Background Check", {
 									</select>
 								</div>
 							</div>
-							<p class="text-muted small mb-2" style="line-height: 1.5;">${f.snippet || '-'}</p>
+							<p class="text-muted small mb-2" style="line-height: 1.5;">${esc(f.snippet || '-')}</p>
 							${f.evidence_excerpt ? `
 								<div class="p-2 mb-2 bg-light border-left border-primary rounded small text-dark" style="font-style: italic; background-color: #f7fafc;">
-									<strong>${__("Evidence Excerpt")} (${__(f.text_source || 'Snippet')}):</strong> "${f.evidence_excerpt}"
+									<strong>${__("Evidence Excerpt")} (${__(f.text_source || 'Snippet')}):</strong> "${esc(f.evidence_excerpt)}"
 								</div>
 							` : ''}
 							<div class="small text-secondary d-flex justify-content-between align-items-center flex-wrap">
 								<span>
-									<strong>${__("Source")}:</strong> ${f.source_name || '-'} |
+									<strong>${__("Source")}:</strong> ${esc(f.source_name || '-')} |
 									<strong>${__("Identity Match")}:</strong> <span class="badge ${f.match_confidence >= 80 ? 'badge-success' : (f.match_confidence >= 50 ? 'badge-warning' : 'badge-danger')}">${f.match_confidence}%</span>
 									${detail_btn}
 									${pdf_btn}
 								</span>
-								<span class="text-muted">${f.match_reasons || ''}</span>
+								<span class="text-muted">${esc(f.match_reasons || '')}</span>
 							</div>
 						</div>
 					`;
@@ -325,28 +327,39 @@ frappe.ui.form.on("Background Check", {
 				if (!posts.length && !comments.length) {
 					container.html(`
 						<div class="text-center text-muted p-4 border rounded bg-light">
-							<p class="mb-0">${__("No public posts flagged as risky from candidate accounts.")}</p>
+							<p class="mb-0">${__("No public posts or comments found for candidate accounts.")}</p>
 						</div>
 					`);
 					return;
 				}
 
+				const esc = (v) => frappe.utils.escape_html(v == null ? "" : String(v));
+				const safeUrl = (u) => (/^https?:\/\//i.test(u || "") ? u : "");
+
 				function renderCard(item) {
 					let v = item.hr_verdict || "Not reviewed";
 					let prov = item.provenance || "Crawled";
-					let provBadge = `<span class="badge badge-info mr-1">${__(prov)}</span>`;
-					let platBadge = item.account ? `<span class="badge badge-light border mr-1">${item.account}</span>` : '';
+					let risky = item.category === "Risky";
+					let sev = item.severity || "Low";
+					let sevClass = risky ? (sev === "High" ? "badge-danger" : "badge-warning") : "badge-success";
+					let sevText = risky ? __(sev) : __("Not risky");
+					let provBadge = `<span class="badge badge-info mr-1">${esc(__(prov))}</span>`;
+					let platBadge = item.account_label ? `<span class="badge badge-light border mr-1">${esc(item.account_label)}</span>` : "";
+					let link = safeUrl(item.url)
+						? `<a class="small ml-2" href="${esc(item.url)}" target="_blank" rel="noopener noreferrer">${__("Open on platform")} ↗</a>`
+						: "";
 					return `
-						<div class="card mb-2 p-3 border border-warning shadow-none finding-card" data-account="${item.account || ''}">
+						<div class="card mb-2 p-3 border ${risky ? "border-warning" : ""} shadow-none finding-card" data-account="${esc(item.account || "")}">
 							<div class="d-flex justify-content-between align-items-center mb-1">
 								<div>
-									<span class="badge badge-danger mr-1">${__(item.severity)}</span>
+									<span class="badge ${sevClass} mr-1">${esc(sevText)}</span>
 									${provBadge}
 									${platBadge}
-									<span class="small text-muted">${item.published_on || ''}</span>
+									<span class="small text-muted">${esc(item.published_on || "")}</span>
+									${link}
 								</div>
 								<div style="min-width: 170px;">
-									<select class="form-control form-control-sm hr-verdict-select" data-name="${item.name}">
+									<select class="form-control form-control-sm hr-verdict-select" data-name="${esc(item.name)}">
 										<option value="Not reviewed" ${v === 'Not reviewed' || v === 'Belum ditinjau' ? 'selected' : ''}>${__("Not reviewed")}</option>
 										<option value="Relevant" ${v === 'Relevant' || v === 'Relevan' ? 'selected' : ''}>${__("Relevant")}</option>
 										<option value="Not this person" ${v === 'Not this person' || v === 'Bukan orang ini' ? 'selected' : ''}>${__("Not this person")}</option>
@@ -354,43 +367,41 @@ frappe.ui.form.on("Background Check", {
 									</select>
 								</div>
 							</div>
-							<p class="mb-1" style="font-style: italic;">"${item.snippet}"</p>
-							<div class="small text-danger">
-								<strong>${__("Risk Indicator")}:</strong> ${item.risk_flags || '-'}
-							</div>
+							<p class="mb-1" style="font-style: italic;">"${esc(item.snippet)}"</p>
+							${risky ? `<div class="small text-danger"><strong>${__("Risk Indicator")}:</strong> ${esc(item.risk_flags || "-")}</div>` : ""}
 						</div>
 					`;
 				}
 
 				let posts_html = posts.length ? posts.map(renderCard).join("") : `
 					<div class="text-center text-muted p-3 border rounded bg-light mb-3">
-						<p class="mb-0">${__("No public posts flagged as risky from candidate accounts.")}</p>
+						<p class="mb-0">${__("No public posts found for candidate accounts.")}</p>
 					</div>
 				`;
 
 				let comments_html = comments.length ? comments.map(renderCard).join("") : `
 					<div class="text-center text-muted p-3 border rounded bg-light mb-3">
-						<p class="mb-0">${__("No public comments flagged as risky from candidate accounts.")}</p>
+						<p class="mb-0">${__("No comments written by the candidate were found.")}</p>
 					</div>
 				`;
 
 				let allItems = [...posts, ...comments];
 				let provCounts = {};
-				let platSet = new Set();
+				let platSet = new Map();
 				allItems.forEach(item => {
 					let p = item.provenance || "Crawled";
 					provCounts[p] = (provCounts[p] || 0) + 1;
 					if (item.account) {
-						platSet.add(item.account);
+						platSet.set(item.account, item.account_label || item.account);
 					}
 				});
 
 				let provBadges = Object.keys(provCounts).map(k => `
-					<span class="badge badge-secondary mr-1">${__(k)}: ${provCounts[k]}</span>
+					<span class="badge badge-secondary mr-1">${esc(__(k))}: ${provCounts[k]}</span>
 				`).join("");
 
-				let platOptions = Array.from(platSet).map(plat => `
-					<option value="${plat}">${plat}</option>
+				let platOptions = Array.from(platSet.entries()).map(([id, label]) => `
+					<option value="${esc(id)}">${esc(label)}</option>
 				`).join("");
 
 				container.html(`
@@ -409,28 +420,39 @@ frappe.ui.form.on("Background Check", {
 						</div>
 						<ul class="nav nav-pills mb-3" role="tablist">
 							<li class="nav-item">
-								<a class="nav-link active font-weight-bold" data-toggle="pill" href="#tab-bgc-posts" role="tab">
+								<a class="nav-link active font-weight-bold" data-bgc-pane="tab-bgc-posts" href="javascript:void(0)" role="tab">
 									${__("Posts")} (${posts.length})
 								</a>
 							</li>
 							<li class="nav-item">
-								<a class="nav-link font-weight-bold" data-toggle="pill" href="#tab-bgc-comments" role="tab">
+								<a class="nav-link font-weight-bold" data-bgc-pane="tab-bgc-comments" href="javascript:void(0)" role="tab">
 									${__("Comments")} (${comments.length})
 								</a>
 							</li>
 						</ul>
 						<div class="tab-content">
 							<div class="tab-pane fade show active" id="tab-bgc-posts" role="tabpanel">
-								<h6 class="text-uppercase text-secondary font-weight-bold mb-2">${__("Posts Flagged as Risky")}</h6>
+								<h6 class="text-uppercase text-secondary font-weight-bold mb-2">${__("Posts")}</h6>
 								${posts_html}
 							</div>
 							<div class="tab-pane fade" id="tab-bgc-comments" role="tabpanel">
-								<h6 class="text-uppercase text-secondary font-weight-bold mb-2">${__("Comments Flagged as Risky")}</h6>
+								<h6 class="text-uppercase text-secondary font-weight-bold mb-2">${__("Comments")}</h6>
 								${comments_html}
 							</div>
 						</div>
 					</div>
 				`);
+
+				// Pindah tab Posts / Comments (Bootstrap 5 di desk tidak lagi memakai data-toggle)
+				container.find("a[data-bgc-pane]").on("click", function (e) {
+					e.preventDefault();
+					e.stopPropagation();
+					const pane = $(this).data("bgc-pane");
+					container.find("a[data-bgc-pane]").removeClass("active");
+					$(this).addClass("active");
+					container.find(".tab-pane").removeClass("show active");
+					container.find("#" + pane).addClass("show active");
+				});
 
 				// Handler platform filter
 				container.find(".filter-account-platform").on("change", function () {

@@ -420,3 +420,16 @@ class TestBackgroundCheckSocialConsent(FrappeTestCase):
 		self.assertIn("ronald_li", social_users)
 		self.assertIn("ronald_gh", other_users)
 
+
+	def test_normalize_username_accepts_handles_and_links_rejects_display_names(self):
+		from hris_ats.bgc.consent import normalize_username
+
+		self.assertEqual(normalize_username("Instagram", "@faiz.rizky"), "faiz.rizky")
+		self.assertEqual(normalize_username("Instagram", "https://www.instagram.com/faiz.rizky/?hl=id"), "faiz.rizky")
+		self.assertEqual(normalize_username("TikTok", "https://www.tiktok.com/@wearwithm"), "wearwithm")
+		self.assertEqual(normalize_username("LinkedIn", "https://www.linkedin.com/in/muhammad-faiz-rizky/"), "muhammad-faiz-rizky")
+		self.assertEqual(normalize_username("Facebook", "https://www.facebook.com/profile.php?id=1000123"), "1000123")
+		with self.assertRaises(frappe.ValidationError):
+			normalize_username("Facebook", "Muhammad Faiz Rizky")
+		with self.assertRaises(frappe.ValidationError):
+			normalize_username("LinkedIn", "https://www.linkedin.com/")

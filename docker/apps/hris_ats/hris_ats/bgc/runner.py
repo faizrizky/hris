@@ -494,7 +494,7 @@ def _run_all_sources(bgc_name: str) -> None:
 							is_mock=is_mock,
 							max_posts=settings.social_max_posts or 200,
 							max_comments=settings.social_max_comments or 200,
-							lookback_months=settings.social_lookback_months or 12,
+							lookback_months=settings.social_lookback_months or 0,
 						)
 					except Exception as ex:
 						frappe.log_error(title=f"BGC Crawl Account Error: {acc.platform}", message=frappe.get_traceback())

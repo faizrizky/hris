@@ -48,7 +48,7 @@ def process_candidate_export_data(
 	max_mb = int(getattr(settings, "export_max_mb", None) or 100)
 	max_posts = int(getattr(settings, "social_max_posts", None) or 200)
 	max_comments = int(getattr(settings, "social_max_comments", None) or 200)
-	lookback_months = int(getattr(settings, "social_lookback_months", None) or 12)
+	lookback_months = int(getattr(settings, "social_lookback_months", None) or 0)
 
 	# 1. Cari baris akun di Background Check
 	acc_row = None

@@ -30,7 +30,7 @@ class SocialPublicProvider(BaseProvider):
 		is_mock: bool = False,
 		max_posts: int = 200,
 		max_comments: int = 200,
-		lookback_months: int = 12,
+		lookback_months: int | None = 0,
 		raw_fetch_fn: Any = None,
 		progress: Any = None,
 	) -> dict[str, Any]:
@@ -141,7 +141,7 @@ class SocialPublicProvider(BaseProvider):
 		raw_posts = parsed.get("posts", [])
 
 		# 4. Filter tanggal postingan berdasarkan lookback_months dan batasi max_posts
-		earliest_date = add_months(now_datetime(), -int(lookback_months or 12)) if hasattr(frappe, "utils") else None
+		earliest_date = add_months(now_datetime(), -int(lookback_months)) if lookback_months else None
 
 		for p in raw_posts:
 			if len(posts) >= int(max_posts or 200):
@@ -277,7 +277,8 @@ class SocialPublicProvider(BaseProvider):
 			"posts_count": None,
 			"comment_limitation": None,
 		}
-		earliest = add_months(now_datetime(), -int(lookback_months or 12)).timestamp()
+		# lookback_months = 0 means no time limit (everything the account exposes)
+		earliest = add_months(now_datetime(), -int(lookback_months)).timestamp() if lookback_months else None
 		client = _make_api_client(platform, cookies, state)
 		try:
 			enforce_crawler_delay(c_acc["name"])

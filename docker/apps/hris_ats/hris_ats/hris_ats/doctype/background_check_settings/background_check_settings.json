@@ -184,8 +184,8 @@
    "label": "Retention Days (Purge Raw Findings)"
   },
   {
-   "default": "12",
-   "description": "Lookback period in months for historical social posts.",
+   "default": "0",
+   "description": "Lookback period in months for historical social posts. 0 = no limit (take everything the account exposes).",
    "fieldname": "social_lookback_months",
    "fieldtype": "Int",
    "label": "Social Lookback Months"

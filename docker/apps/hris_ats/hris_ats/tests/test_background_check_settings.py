@@ -251,7 +251,7 @@ class TestBackgroundCheckSettings(FrappeTestCase):
 		self.assertFalse(company_res["is_login_page"])
 
 	def test_settings_thresholds_validation(self):
-		"""Validasi batasan setting: social_max_posts >= 1, social_lookback_months >= 1, export_max_mb >= 1."""
+		"""Validasi batasan setting: social_max_posts >= 1, social_lookback_months >= 0 (0 = tanpa batas), export_max_mb >= 1."""
 		self.settings.reload()
 
 		# Nilai 0 ditolak
@@ -265,7 +265,7 @@ class TestBackgroundCheckSettings(FrappeTestCase):
 			self.settings.save()
 		self.settings.reload()
 
-		self.settings.social_lookback_months = 0
+		self.settings.social_lookback_months = -1
 		with self.assertRaises(frappe.ValidationError):
 			self.settings.save()
 		self.settings.reload()
@@ -305,7 +305,7 @@ class TestBackgroundCheckSettings(FrappeTestCase):
 
 		reloaded = frappe.get_doc("Background Check Settings")
 		self.assertEqual(reloaded.social_max_posts, 200)
-		self.assertEqual(reloaded.social_lookback_months, 12)
+		self.assertEqual(reloaded.social_lookback_months, 0)
 		self.assertEqual(reloaded.export_max_mb, 100)
 		self.assertEqual(reloaded.enable_social_media, 1)
 
@@ -318,7 +318,7 @@ class TestBackgroundCheckSettings(FrappeTestCase):
 
 		reloaded_again = frappe.get_doc("Background Check Settings")
 		self.assertEqual(reloaded_again.social_max_posts, 350)
-		self.assertEqual(reloaded_again.social_lookback_months, 12)
+		self.assertEqual(reloaded_again.social_lookback_months, 0)
 		self.assertEqual(reloaded_again.export_max_mb, 100)
 
 	def test_test_fetch_session_mode_eligibility_and_comparison(self):

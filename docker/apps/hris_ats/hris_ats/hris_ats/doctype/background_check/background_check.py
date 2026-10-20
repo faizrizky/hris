@@ -233,13 +233,20 @@ def get_findings_data(bgc_name: str) -> dict[str, Any]:
 		if f.get("risk_flags_template"):
 			f["risk_flags"] = render(f["risk_flags_template"], f.get("risk_flags_params"))
 
-	for p in post_findings:
+	# Label akun yang dibaca manusia ("Instagram @username"), bukan ID baris internal
+	account_labels = {
+		row.name: (f"{row.platform} @{(row.username or '').lstrip('@')}" if row.platform else row.name)
+		for row in frappe.get_all(
+			"Background Check Account",
+			filters={"parent": bgc_name, "parenttype": "Background Check"},
+			fields=["name", "platform", "username"],
+		)
+	}
+
+	for p in post_findings + comment_findings:
 		if p.get("risk_flags_template"):
 			p["risk_flags"] = render(p["risk_flags_template"], p.get("risk_flags_params"))
-
-	for c in comment_findings:
-		if c.get("risk_flags_template"):
-			c["risk_flags"] = render(c["risk_flags_template"], c.get("risk_flags_params"))
+		p["account_label"] = account_labels.get(p.get("account")) or p.get("source_name") or ""
 
 	return {
 		"name_findings": name_findings,

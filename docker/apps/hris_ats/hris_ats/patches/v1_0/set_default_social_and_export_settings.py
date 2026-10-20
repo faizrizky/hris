@@ -20,10 +20,6 @@ def execute():
 		settings.social_max_posts = 200
 		dirty = True
 
-	# Social Lookback Months (default 12, must be >= 1)
-	if settings.social_lookback_months is None or settings.social_lookback_months <= 0:
-		settings.social_lookback_months = 12
-		dirty = True
 
 	# Max Candidate Export Size (default 100, must be >= 1)
 	if settings.export_max_mb is None or settings.export_max_mb <= 0:

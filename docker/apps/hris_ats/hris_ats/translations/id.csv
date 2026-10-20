@@ -926,3 +926,12 @@ Results appear below as soon as each source or account is finished.,Hasil langsu
 Crawl Progress,Progres Crawl
 "Background check is already running. Wait until it finishes.","Pemeriksaan latar belakang sedang berjalan. Tunggu sampai selesai."
 "Time budget for this account was reached; data is partial.","Batas waktu untuk akun ini tercapai; data sebagian."
+"Social Lookback Months cannot be negative (0 = no limit).","Social Lookback Months tidak boleh negatif (0 = tanpa batas)."
+Open on platform,Buka di platform
+Not risky,Tidak berisiko
+No public posts found for candidate accounts.,Tidak ada post publik yang ditemukan pada akun kandidat.
+No comments written by the candidate were found.,Tidak ditemukan komentar yang ditulis oleh kandidat.
+No public posts or comments found for candidate accounts.,Tidak ada post atau komentar publik yang ditemukan pada akun kandidat.
+"The username for {0} must be the handle from your profile link (for example: {1}), not your display name.","Username untuk {0} harus berupa nama pengguna dari tautan profil Anda (contoh: {1}), bukan nama tampilan."
+Invalid Username,Username Tidak Valid
+"The username must be the handle from your profile link (for example: {0}), not your display name.","Username harus berupa nama pengguna dari tautan profil Anda (contoh: {0}), bukan nama tampilan."

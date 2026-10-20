@@ -69,7 +69,7 @@ def parse_facebook_export(
 	raw_comments: list[dict[str, Any]] = []
 
 	now_dt = datetime.datetime.now(datetime.UTC)
-	cutoff_dt = now_dt - datetime.timedelta(days=int(lookback_months or 12) * 30)
+	cutoff_dt = now_dt - datetime.timedelta(days=int(lookback_months) * 30) if lookback_months else datetime.datetime.min.replace(tzinfo=datetime.UTC)
 
 	for filepath, content in allowed_files.items():
 		norm = filepath.replace("\\", "/").lower()

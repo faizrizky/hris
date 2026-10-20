@@ -357,9 +357,24 @@ document.addEventListener("DOMContentLoaded", function () {
 			const platSelect = document.getElementById("new-social-platform");
 			const userInput = document.getElementById("new-social-username");
 			const plat = platSelect.value;
-			const user = userInput.value.trim().replace(/^@/, "");
+			let user = userInput.value.trim();
 			if (!plat || !user) {
 				frappe.msgprint(__("Please select platform and enter username"));
+				return;
+			}
+			// Accept a pasted profile link; reject display names (they make a profile URL that does not exist)
+			try {
+				if (/^(https?:\/\/|www\.)/i.test(user)) {
+					const u = new URL(/^https?:/i.test(user) ? user : "https://" + user);
+					const parts = u.pathname.split("/").filter(Boolean).map(decodeURIComponent);
+					if (plat === "LinkedIn" && parts.indexOf("in") >= 0) user = parts[parts.indexOf("in") + 1] || "";
+					else if (plat === "Facebook" && parts[0] === "profile.php") user = u.searchParams.get("id") || "";
+					else user = parts[0] || "";
+				}
+			} catch (e) { user = ""; }
+			user = user.replace(/^@/, "").trim();
+			if (!user || /\s/.test(user) || !/^[A-Za-z0-9._%-]+$/.test(user)) {
+				frappe.msgprint(__("The username must be the handle from your profile link (for example: {0}), not your display name.").replace("{0}", "faiz.rizky"));
 				return;
 			}
 

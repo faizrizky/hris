@@ -566,8 +566,8 @@ def setup_default_settings():
 	if not getattr(settings, "social_max_comments", None) or settings.social_max_comments < 1:
 		settings.social_max_comments = 200
 		dirty = True
-	if not getattr(settings, "social_lookback_months", None) or settings.social_lookback_months < 1:
-		settings.social_lookback_months = 12
+	if getattr(settings, "social_lookback_months", None) is None or settings.social_lookback_months < 0:
+		settings.social_lookback_months = 0
 		dirty = True
 	if not getattr(settings, "export_max_mb", None) or settings.export_max_mb < 1:
 		settings.export_max_mb = 100

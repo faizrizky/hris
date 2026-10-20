@@ -25,7 +25,10 @@ class TikTokAdapter(BaseSocialAdapter):
 			return {"status": "Failed", "error": "empty response", "posts": []}
 
 		signals = extract_page_signals(raw_html)
-		if detect_login_page(url, raw_html, signals.get("preview", "")):
+		lower_html = raw_html.lower()
+		# The public profile ships as structured JSON; its presence means the page is not a login wall
+		has_profile_json = "__universal_data_for_rehydration__" in lower_html and '"uniqueid"' in lower_html
+		if not has_profile_json and detect_login_page(url, raw_html, signals.get("preview", "")):
 			return {
 				"status": "Failed",
 				"error": "login required",
@@ -33,8 +36,9 @@ class TikTokAdapter(BaseSocialAdapter):
 				"hint": "use candidate export",
 			}
 
-		lower_html = raw_html.lower()
-		if "this account is private" in lower_html or "akun ini bersifat privat" in lower_html:
+		# The page's translation bundle contains the "private account" strings for every visitor, so the
+		# text check is only used when the structured profile JSON is absent.
+		if not has_profile_json and ("this account is private" in lower_html or "akun ini bersifat privat" in lower_html):
 			return {
 				"status": "Failed",
 				"error": "private profile",
@@ -55,9 +59,31 @@ class TikTokAdapter(BaseSocialAdapter):
 		bio = signals.get("og_description", "") or signals.get("meta_description", "")
 		followers_count = None
 		following_count = None
+		posts_count_total = None
+
+		# Profil publik TikTok ada di JSON hydration (nickname, bio, statistik), bukan di <title>
+		for script_match in re.finditer(r'<script id="__UNIVERSAL_DATA_FOR_REHYDRATION__"[^>]*>(.*?)</script>', raw_html, re.DOTALL):
+			try:
+				scope = json.loads(script_match.group(1)).get("__DEFAULT_SCOPE__", {})
+				detail = scope.get("webapp.user-detail", {}) or {}
+				info = detail.get("userInfo") or {}
+				user = info.get("user") or {}
+				stats = info.get("stats") or {}
+				if user.get("uniqueId"):
+					display_name = user.get("nickname") or display_name
+					bio = user.get("signature") or bio
+					if user.get("privateAccount"):
+						return {"status": "Failed", "error": "private profile", "is_private": True, "posts": []}
+					followers_count = stats.get("followerCount", followers_count)
+					following_count = stats.get("followingCount", following_count)
+					posts_count_total = stats.get("videoCount")
+				elif detail.get("statusCode") not in (None, 0):
+					return {"status": "Failed", "error": "not found", "posts": []}
+			except Exception:
+				pass
 
 		# Cek follower count dari meta description
-		fol_m = re.search(r"([\d,.]+)\s*(?:Followers|Pengikut)", bio, re.IGNORECASE)
+		fol_m = re.search(r"([\d,.]+)\s*(?:Followers|Pengikut)", bio, re.IGNORECASE) if followers_count is None else None
 		if fol_m:
 			try:
 				followers_count = int(fol_m.group(1).replace(",", "").replace(".", ""))
@@ -86,7 +112,8 @@ class TikTokAdapter(BaseSocialAdapter):
 				pass
 
 		# Fallback: cari tag video / deskripsi dari HTML
-		if not posts:
+		# Skipped when the structured profile exists: the page's generic "desc" strings are SEO text, not videos
+		if not posts and not has_profile_json:
 			for m_desc in re.finditer(r'"desc":\s*"([^"]+)"', raw_html):
 				desc_str = clean_snippet(html.unescape(m_desc.group(1)))
 				if desc_str and len(desc_str) > 10 and not any(p["snippet"] == desc_str for p in posts):
@@ -106,7 +133,7 @@ class TikTokAdapter(BaseSocialAdapter):
 			"location": "",
 			"followers_count": followers_count,
 			"following_count": following_count,
-			"posts_count": len(posts) if posts else None,
+			"posts_count": posts_count_total if posts_count_total is not None else (len(posts) if posts else None),
 			"posts": posts,
 		}
 

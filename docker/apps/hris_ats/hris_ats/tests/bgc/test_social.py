@@ -485,3 +485,23 @@ def test_crawler_checkpoint_challenge_marks_account():
 		assert "Bot checkpoint" in mock_account_doc.last_error
 		assert mock_account_doc.save.called
 		assert notif_mock.insert.called
+
+
+def test_tiktok_profile_is_read_from_hydration_json_not_title():
+	import json
+
+	from hris_ats.bgc.providers.social.tiktok import TikTokAdapter
+
+	data = {"__DEFAULT_SCOPE__": {"webapp.user-detail": {"statusCode": 0, "userInfo": {
+		"user": {"uniqueId": "wearwithm", "nickname": "Madeline", "signature": "Everyday finds", "privateAccount": False},
+		"stats": {"followerCount": 15, "followingCount": 0, "videoCount": 9},
+	}}}}
+	html = (
+		"<html><head><title>TikTok - Make Your Day</title></head><body>"
+		"Log in to follow creators akun ini bersifat privat"
+		f'<script id="__UNIVERSAL_DATA_FOR_REHYDRATION__" type="application/json">{json.dumps(data)}</script></body></html>'
+	)
+	res = TikTokAdapter().parse_profile(html, url="https://www.tiktok.com/@wearwithm")
+	assert res["status"] == "Success" and res["is_private"] is False
+	assert res["display_name"] == "Madeline" and res["bio"] == "Everyday finds"
+	assert res["followers_count"] == 15 and res["posts_count"] == 9

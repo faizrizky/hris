@@ -108,6 +108,45 @@ def initiate_background_check(applicant_name: str, candidate_language: str = "id
 	}
 
 
+def normalize_username(platform: str, raw: str) -> str:
+	"""Turn what the candidate typed into a platform username.
+
+	Accepts a handle ("@name"), or a pasted profile URL. A display name with spaces is rejected,
+	because it would produce a profile URL that does not exist.
+	"""
+	import re
+	from urllib.parse import unquote, urlparse
+
+	value = (raw or "").strip()
+	if re.match(r"^https?://", value, re.IGNORECASE) or re.match(r"^(www\.)?[a-z0-9-]+\.[a-z]{2,}/", value, re.IGNORECASE):
+		parsed = urlparse(value if "://" in value else "https://" + value)
+		parts = [unquote(p) for p in parsed.path.split("/") if p]
+		if platform == "LinkedIn" and "in" in parts and parts.index("in") + 1 < len(parts):
+			value = parts[parts.index("in") + 1]
+		elif platform == "Facebook" and parts and parts[0] == "profile.php":
+			value = (parse_qs_first(parsed.query, "id") or "").strip()
+		elif parts:
+			value = parts[0]
+		else:
+			value = ""
+	value = value.lstrip("@").strip()
+	if not value or re.search(r"\s", value) or not re.fullmatch(r"[A-Za-z0-9._%-]+", value):
+		frappe.throw(
+			_("The username for {0} must be the handle from your profile link (for example: {1}), not your display name.").format(
+				platform, {"Instagram": "faiz.rizky", "TikTok": "faiz.rizky", "Facebook": "faiz.rizky.123", "LinkedIn": "muhammad-faiz-rizky"}.get(platform, "username")
+			),
+			title=_("Invalid Username"),
+		)
+	return value
+
+
+def parse_qs_first(query: str, key: str) -> str | None:
+	from urllib.parse import parse_qs
+
+	vals = parse_qs(query).get(key)
+	return vals[0] if vals else None
+
+
 @frappe.whitelist(allow_guest=True)
 def submit_candidate_consent(
 	token: str,
@@ -169,6 +208,9 @@ def submit_candidate_consent(
 			user = acc.get("username")
 			if not plat or not user:
 				continue
+			if plat in ("Instagram", "TikTok", "Facebook", "LinkedIn"):
+				user = normalize_username(plat, user)
+				acc["username"] = user
 			has_consent = 1 if (is_social_granted and acc.get("social_consent")) else 0
 			key = (plat, user)
 			submitted_account_keys.add(key)
