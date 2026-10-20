@@ -78,6 +78,7 @@ class BgcCrawlTest {
 		const v = this.form.get_values();
 		if (!v) return;
 		clearInterval(this.timer);
+		this._scrolled = false;
 		this.page.main.find(".bgc-ct-out").html(`<div class="text-muted">${__("Starting...")}</div>`);
 		frappe
 			.xcall("hris_ats.bgc.crawl_test.start_crawl_test", {
@@ -106,7 +107,8 @@ class BgcCrawlTest {
 		if (!rows || !rows.length) {
 			return `<div class="text-muted mb-3">${__("None found")}</div>`;
 		}
-		const body = rows
+		const sorted = [...rows].sort((a, b) => String(b.published_on || "").localeCompare(String(a.published_on || "")));
+		const body = sorted
 			.map((r) => {
 				const link = this.safeUrl(r.url)
 					? `<a href="${this.esc(r.url)}" target="_blank" rel="noopener noreferrer">${__("Open")} ↗</a>`
@@ -123,25 +125,40 @@ class BgcCrawlTest {
 		const log = (s.log || [])
 			.map((l) => `<div class="small"><span class="text-muted">${l.t}s</span> ${this.esc(l.message)}</div>`)
 			.join("");
-		const facts = [
+		const profile = [
+			[__("Name"), this.esc(res.display_name || "-")],
+			[__("Bio"), this.esc(res.bio || "-")],
+			[__("Followers / Following / Posts"), `${this.esc(res.followers_count ?? "-")} / ${this.esc(res.following_count ?? "-")} / ${this.esc(res.posts_count ?? "-")}`],
+			[__("Profile"), this.safeUrl(res.profile_url) ? `<a href="${this.esc(res.profile_url)}" target="_blank" rel="noopener noreferrer">${this.esc(res.profile_url)}</a>` : "-"],
+		]
+			.map(([k, v]) => `<tr><th style="width:240px">${k}</th><td>${v}</td></tr>`)
+			.join("");
+		const run = [
 			[__("Status"), `<span class="indicator-pill ${color}">${this.esc(__(s.status))}</span>`],
 			[__("Duration"), s.seconds != null ? s.seconds + " s" : "-"],
 			[__("Mode"), this.esc(res.mode_used || "-")],
 			[__("Crawler account"), this.esc(res.crawler_account || "-")],
-			[__("Profile"), this.safeUrl(res.profile_url) ? `<a href="${this.esc(res.profile_url)}" target="_blank" rel="noopener noreferrer">${this.esc(res.profile_url)}</a>` : "-"],
-			[__("Name"), this.esc(res.display_name || "-")],
-			[__("Bio"), this.esc(res.bio || "-")],
-			[__("Followers / Following / Posts"), `${this.esc(res.followers_count ?? "-")} / ${this.esc(res.following_count ?? "-")} / ${this.esc(res.posts_count ?? "-")}`],
 		]
-			.map(([k, v]) => `<tr><th style="width:240px">${k}</th><td>${v}</td></tr>`)
+			.map(([k, v]) => `<span class="mr-4"><span class="text-muted">${k}:</span> ${v}</span>`)
 			.join("");
 		const notes = [res.error, res.comment_limitation].filter(Boolean).map((n) => `<div class="alert alert-warning py-2 mb-2">${this.esc(n)}</div>`).join("");
+		const posts = res.posts || [];
+		const comments = res.comments || [];
+		const finished = ["Done", "Failed"].includes(s.status);
 		this.page.main.find(".bgc-ct-out").html(`
-			<table class="table table-sm table-bordered mb-3"><tbody>${facts}</tbody></table>
+			<div class="mb-3">${run}</div>
 			${notes}
-			<h6>${__("Log")}</h6><div class="border rounded p-2 mb-3" style="max-height:180px; overflow:auto">${log || "-"}</div>
-			${s.result ? `<h6>${__("Posts")} (${(res.posts || []).length})</h6>${this.table(res.posts, __("Post"))}
-			<h6>${__("Comments written by the candidate")} (${(res.comments || []).length})</h6>${this.table(res.comments, __("Comment"))}` : ""}
+			${s.result ? `
+			<h6>${__("Profile")}</h6>
+			<table class="table table-sm table-bordered mb-3"><tbody>${profile}</tbody></table>
+			<h6>${__("Posts")} (${posts.length})</h6>${this.table(posts, __("Post"))}
+			<h6>${__("Comments written by the candidate")} (${comments.length})</h6>${this.table(comments, __("Comment"))}` : ""}
+			<details class="mb-3" ${finished ? "" : "open"}><summary class="font-weight-bold">${__("Log")}</summary>
+				<div class="border rounded p-2 mt-2" style="max-height:200px; overflow:auto">${log || "-"}</div></details>
 		`);
+		if (finished && !this._scrolled) {
+			this._scrolled = true;
+			this.page.main.find(".bgc-ct-out")[0].scrollIntoView({ behavior: "smooth", block: "start" });
+		}
 	}
 }
