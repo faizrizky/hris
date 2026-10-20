@@ -42,40 +42,25 @@ def daily_retention_purge() -> dict[str, int]:
 	total_bgcs_purged = 0
 
 	for bgc_name in expired_bgcs:
-		# Hapus temuan mentah (Finding)
-		findings_deleted = frappe.db.count("Background Check Finding", {"background_check": bgc_name})
-		frappe.db.delete("Background Check Finding", {"background_check": bgc_name})
-		total_findings_deleted += findings_deleted
+		frappe.db.savepoint("bgc_purge")
+		try:
+			total_findings_deleted += _purge_background_check(bgc_name)
+			total_bgcs_purged += 1
+		except Exception:
+			frappe.db.rollback(save_point="bgc_purge")
+			frappe.log_error(title="BGC Retention Purge Error", message=f"{bgc_name}\n{frappe.get_traceback()}")
 
-		# Bersihkan ringkasan otomatis dan akun terdaftar, pertahankan kesimpulan & bukti consent
-		bgc = frappe.get_doc("Background Check", bgc_name)
-		bgc.summary_auto = None
-		bgc.summary_auto_template = None
-		bgc.summary_auto_params = None
-		bgc.accounts = []
-
-		# Hapus berkas SKCK fisik dan field (Spesifikasi 8 tidak mengizinkan menyimpannya; pertahankan skck_status)
-		if bgc.skck_file:
-			try:
-				from hris_ats.bgc.consent import delete_file_record_and_disk
-				delete_file_record_and_disk(bgc.skck_file)
-			except Exception:
-				pass
-			bgc.skck_file = None
-
-		bgc.is_purged = 1
-		bgc.save(ignore_permissions=True)
-		total_bgcs_purged += 1
-
-	# 3. Bersihkan berkas/direktori crawl yang tersisa di private/hris_ats/crawl/
+	# 3. Bersihkan direktori crawl yatim (lebih dari 2 hari); crawl yang sedang berjalan dibiarkan
 	try:
 		import os
 		import shutil
+		import time
 		crawl_base = os.path.abspath(frappe.get_site_path("private", "hris_ats", "crawl"))
 		if os.path.exists(crawl_base):
+			cutoff = time.time() - 2 * 86400
 			for item in os.listdir(crawl_base):
 				item_path = os.path.join(crawl_base, item)
-				if os.path.isdir(item_path):
+				if os.path.isdir(item_path) and os.path.getmtime(item_path) < cutoff:
 					shutil.rmtree(item_path, ignore_errors=True)
 	except Exception:
 		pass
@@ -85,3 +70,30 @@ def daily_retention_purge() -> dict[str, int]:
 		"findings_deleted": total_findings_deleted,
 		"skck_expired_updated": len(skck_expired_records),
 	}
+
+
+def _purge_background_check(bgc_name: str) -> int:
+	"""Hapus data turunan satu Background Check yang melewati masa retensi. Mengembalikan jumlah temuan terhapus."""
+	# Hapus temuan mentah (Finding)
+	findings_deleted = frappe.db.count("Background Check Finding", {"background_check": bgc_name})
+	frappe.db.delete("Background Check Finding", {"background_check": bgc_name})
+
+	# Bersihkan ringkasan otomatis dan akun terdaftar, pertahankan kesimpulan & bukti consent
+	bgc = frappe.get_doc("Background Check", bgc_name)
+	from hris_ats.bgc.consent import clean_bgc_cache, clean_bgc_crawldir
+	clean_bgc_crawldir(bgc_name)
+	clean_bgc_cache(bgc)
+	bgc.summary_auto = None
+	bgc.summary_auto_template = None
+	bgc.summary_auto_params = None
+	bgc.accounts = []
+
+	# Hapus berkas SKCK fisik dan field (Spesifikasi 8 tidak mengizinkan menyimpannya; pertahankan skck_status)
+	if bgc.skck_file:
+		from hris_ats.bgc.consent import delete_file_record_and_disk
+		delete_file_record_and_disk(bgc.skck_file)
+		bgc.skck_file = None
+
+	bgc.is_purged = 1
+	bgc.save(ignore_permissions=True)
+	return findings_deleted

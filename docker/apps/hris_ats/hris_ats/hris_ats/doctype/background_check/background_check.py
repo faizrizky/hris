@@ -142,6 +142,7 @@ def update_finding_verdict(finding_name: str, verdict: str, note: str = "") -> d
 		frappe.throw(_("Finding {0} not found.").format(finding_name))
 
 	finding = frappe.get_doc("Background Check Finding", finding_name)
+	frappe.has_permission("Background Check", "write", finding.background_check, throw=True)
 	finding.hr_verdict = verdict
 	if note:
 		finding.hr_note = note
@@ -175,6 +176,7 @@ def get_findings_data(bgc_name: str) -> dict[str, Any]:
 	"""Mengambil data temuan terstruktur untuk dirender di tab form."""
 	if not frappe.db.exists("Background Check", bgc_name):
 		return {"name_findings": [], "post_findings": []}
+	frappe.has_permission("Background Check", "read", bgc_name, throw=True)
 
 	name_findings = frappe.get_all(
 		"Background Check Finding",
@@ -239,6 +241,7 @@ def rerun_background_check(bgc_name: str) -> dict[str, Any]:
 	if not frappe.db.exists("Background Check", bgc_name):
 		frappe.throw(_("Document {0} not found.").format(bgc_name))
 
+	frappe.has_permission("Background Check", "write", bgc_name, throw=True)
 	bgc = frappe.get_doc("Background Check", bgc_name)
 	if bgc.consent_status != "Granted":
 		frappe.throw(_("Background Check cannot run without candidate consent (current status: {0}).").format(bgc.consent_status))

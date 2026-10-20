@@ -307,7 +307,7 @@ def process_candidate_export_data(
 	}
 
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist()
 def upload_candidate_export(
 	token: str,
 	platform: str,
@@ -327,12 +327,12 @@ def upload_candidate_export(
 	if bgc.consent_token_expires_at and bgc.consent_token_expires_at < now_datetime():
 		frappe.throw(_("Consent link has expired. Please contact the HR team."))
 
-	if bgc.consent_status == "Pending":
-		bgc.consent_status = "Granted"
-		has_social = any(row.source == "Social Media" and row.granted for row in bgc.consent_scope)
-		if not has_social:
-			bgc.append("consent_scope", {"source": "Social Media", "granted": 1})
-		bgc.save(ignore_permissions=True)
+	# Never grant consent as a side effect of an upload: the candidate must have submitted the
+	# consent form (with Social Media scope) before any export data is processed.
+	if bgc.consent_status != "Granted":
+		frappe.throw(_("Consent has not been granted for this record."), frappe.PermissionError)
+	if not any(row.source == "Social Media" and row.granted for row in bgc.consent_scope):
+		frappe.throw(_("The candidate has not consented to Social Media analysis."), frappe.PermissionError)
 
 	# Ambil berkas unggahan
 	if not archive_bytes:

@@ -445,15 +445,22 @@ def test_crawler_session_locks():
 
 def test_crawler_delay_enforcement():
 	mock_doc = MagicMock()
+	mock_doc.name = "CRAWLER-DELAY-TEST"
 	mock_doc.min_delay_seconds = 2
 	mock_doc.jitter_seconds = 1
 	mock_doc.last_used_on = None
 
 	sleeps = []
-	delay = enforce_crawler_delay(mock_doc, sleep_fn=lambda s: sleeps.append(s))
-	assert delay >= 2.0
-	assert len(sleeps) == 1
-	assert sleeps[0] == delay
+	clock = [1000.0]
+	# First request after a quiet period must not stall
+	first = enforce_crawler_delay(mock_doc, sleep_fn=sleeps.append, time_fn=lambda: clock[0])
+	assert first == 0.0
+	assert sleeps == []
+
+	# A follow-up right after must wait at least min_delay
+	second = enforce_crawler_delay(mock_doc, sleep_fn=sleeps.append, time_fn=lambda: clock[0])
+	assert second >= 2.0
+	assert sleeps == [second]
 
 
 def test_crawler_checkpoint_challenge_marks_account():

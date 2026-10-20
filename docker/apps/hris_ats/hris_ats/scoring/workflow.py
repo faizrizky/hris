@@ -323,6 +323,7 @@ def rescreen(screening_name: str) -> dict[str, Any]:
 	if not frappe.db.exists("Resume Screening", screening_name):
 		frappe.throw(_("Resume Screening document {0} not found.").format(screening_name))
 
+	frappe.has_permission("Resume Screening", "write", screening_name, throw=True)
 	screening = frappe.get_doc("Resume Screening", screening_name)
 	screening.status = "Queued"
 	screening.save()
@@ -348,6 +349,7 @@ def bulk_rescreen(applicant_names: list[str] | str) -> dict[str, Any]:
 			rescreen(screening_name)
 			queued.append(screening_name)
 		else:
+			frappe.has_permission("Job Applicant", "write", app_name, throw=True)
 			app_doc = frappe.get_doc("Job Applicant", app_name)
 			trigger_screening_if_eligible(app_doc)
 			queued.append(app_name)
@@ -360,6 +362,7 @@ def rescreen_applicant(applicant_name: str) -> dict[str, Any]:
 	"""Aksi 'Screen Ulang' langsung dari form Job Applicant."""
 	if not frappe.db.exists("Job Applicant", applicant_name):
 		frappe.throw(_("Applicant {0} not found.").format(applicant_name))
+	frappe.has_permission("Job Applicant", "write", applicant_name, throw=True)
 
 	screening_name = frappe.db.get_value("Resume Screening", {"job_applicant": applicant_name}, "name")
 	if screening_name:

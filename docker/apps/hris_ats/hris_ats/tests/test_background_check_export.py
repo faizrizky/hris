@@ -62,11 +62,22 @@ class TestBackgroundCheckExport(FrappeTestCase):
 		self.settings.save()
 		frappe.db.rollback()
 
+	def _grant_social_consent(self, bgc_name):
+		bgc = frappe.get_doc("Background Check", bgc_name)
+		bgc.consent_status = "Granted"
+		if not any(r.source == "Social Media" for r in bgc.consent_scope):
+			bgc.append("consent_scope", {"source": "Social Media", "granted": 1})
+		for r in bgc.consent_scope:
+			if r.source == "Social Media":
+				r.granted = 1
+		bgc.save(ignore_permissions=True)
+
 	def test_upload_candidate_export_success(self):
 		"""1. Pengunggahan arsip ekspor resmi menghasilkan Finding Post & Comment dengan provenance Candidate export."""
 		init_res = initiate_background_check(self.applicant.name)
 		bgc_name = init_res["name"]
 		token = init_res["token"]
+		self._grant_social_consent(bgc_name)
 
 		zip_path = os.path.join(FIXTURE_DIR, "instagram_export.zip")
 		with open(zip_path, "rb") as f:
@@ -185,6 +196,7 @@ class TestBackgroundCheckExport(FrappeTestCase):
 		init_res = initiate_background_check(self.applicant.name)
 		bgc_name = init_res["name"]
 		token = init_res["token"]
+		self._grant_social_consent(bgc_name)
 
 		zip_path = os.path.join(FIXTURE_DIR, "linkedin_export.zip")
 		with open(zip_path, "rb") as f:
@@ -206,3 +218,25 @@ class TestBackgroundCheckExport(FrappeTestCase):
 
 		count_after = frappe.db.count("Background Check Finding", {"background_check": bgc_name})
 		assert count_after == 0
+
+
+	def test_upload_without_consent_does_not_grant_or_process(self):
+		"""Unggahan sebelum kandidat memberi persetujuan ditolak dan tidak mengubah status persetujuan."""
+		init_res = initiate_background_check(self.applicant.name)
+		bgc_name = init_res["name"]
+		frappe.form_dict["file_content_base64"] = base64.b64encode(b"PK").decode("utf-8")
+		with self.assertRaises(frappe.PermissionError):
+			upload_candidate_export(token=init_res["token"], platform="Instagram", username="x")
+		self.assertEqual(frappe.db.get_value("Background Check", bgc_name, "consent_status"), "Pending")
+
+	def test_revoke_and_findings_require_permission(self):
+		"""Pengguna tanpa hak akses tidak boleh menarik persetujuan atau membaca temuan."""
+		from hris_ats.bgc.consent import revoke_consent as _revoke
+		from hris_ats.hris_ats.doctype.background_check.background_check import get_findings_data
+
+		bgc_name = initiate_background_check(self.applicant.name)["name"]
+		frappe.set_user("Guest")
+		with self.assertRaises(frappe.PermissionError):
+			_revoke(bgc_name)
+		with self.assertRaises(frappe.PermissionError):
+			get_findings_data(bgc_name)

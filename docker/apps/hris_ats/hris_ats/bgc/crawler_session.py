@@ -49,7 +49,7 @@ def assert_crawler_admin():
 def start_login_session(account_name: str) -> dict:
 	"""Initiates a remote interactive login session for a crawler account.
 
-	Spawns a background browser process on queue-long and prepares Redis channels.
+	Spawns a background browser process on the dedicated "browser" queue and prepares Redis channels.
 	"""
 	assert_crawler_admin()
 
@@ -285,6 +285,8 @@ def run_remote_browser_worker(session_id: str, account_name: str):
 					state = context.storage_state()
 					try:
 						save_res = save_crawler_storage_state(account_name, json.dumps(state))
+						# Commit before announcing completion so the web request sees the saved account
+						frappe.db.commit()
 						meta["status"] = "completed"
 						meta["cookie_domains_found"] = save_res.get("cookie_domains_found", [])
 						meta["session_expires_on"] = str(save_res.get("session_expires_on", ""))
@@ -379,11 +381,20 @@ def run_remote_browser_worker(session_id: str, account_name: str):
 		redis.delete_value(f"crawler_frame:{session_id}")
 		redis.delete_value(f"crawler_heartbeat:{session_id}")
 		redis.delete_value(f"crawler_cmd:{session_id}")
-		redis.delete(f"crawler_inputs:{session_id}")
+		redis.delete_value(f"crawler_inputs:{session_id}")
 		if meta.get("status") == "closed":
 			redis.delete_value(f"crawler_meta:{session_id}")
 		if user:
 			redis.delete_value(f"crawler_active_session:{user}")
+
+
+def _queue_input(redis, session_id: str, event) -> None:
+	"""Push an input event and give the queue a TTL so typed secrets never linger in Redis."""
+	key = f"crawler_inputs:{session_id}"
+	redis.rpush(key, json.dumps(event))
+	expire = getattr(redis, "expire_key", None)
+	if expire:
+		expire(key, 600)
 
 
 @frappe.whitelist()
@@ -399,9 +410,9 @@ def send_crawler_input(session_id: str, input_event: str | dict | list) -> dict:
 			pass
 	if isinstance(ev, list):
 		for item in ev:
-			redis.rpush(f"crawler_inputs:{session_id}", json.dumps(item))
+			_queue_input(redis, session_id, item)
 	else:
-		redis.rpush(f"crawler_inputs:{session_id}", json.dumps(ev))
+		_queue_input(redis, session_id, ev)
 	redis.set_value(f"crawler_heartbeat:{session_id}", time.time(), expires_in_sec=120)
 	return {"ok": True}
 
@@ -441,7 +452,7 @@ def poll_login_session(session_id: str, inputs: str | None = None, last_frame_se
 		try:
 			input_list = json.loads(inputs) if isinstance(inputs, str) else inputs
 			for inp in input_list:
-				redis.rpush(f"crawler_inputs:{session_id}", json.dumps(inp))
+				_queue_input(redis, session_id, inp)
 		except Exception:
 			pass
 
@@ -492,7 +503,7 @@ def complete_login_session(session_id: str) -> dict:
 
 	# Poll for completion status (saved directly by worker into DB)
 	completed_meta = None
-	for _attempt in range(80):
+	for _attempt in range(300):
 		time.sleep(0.05)
 		m_raw = redis.get_value(f"crawler_meta:{session_id}", use_local_cache=False)
 		if m_raw:
@@ -846,6 +857,19 @@ def get_eligible_crawler_account_for_url(url: str) -> dict | None:
 	return accounts[0]
 
 
+def _bump_counter(redis, key: str, ttl: int) -> int:
+	"""Atomically increment a counter; the TTL is set only on first use so the window never slides."""
+	if hasattr(redis, "incr") and hasattr(redis, "make_key"):
+		full_key = redis.make_key(key)
+		count = int(redis.incr(full_key))
+		if count == 1:
+			redis.expire(full_key, ttl)
+		return count
+	count = int(redis.get_value(key, use_local_cache=False) or 0) + 1
+	redis.set_value(key, count, expires_in_sec=ttl)
+	return count
+
+
 def check_and_update_crawler_rate_limits(account_name: str) -> None:
 	"""Enforces hourly and daily limits for a crawler account and records last_used_on."""
 	account = frappe.get_doc("Background Check Crawler Account", account_name)
@@ -853,32 +877,26 @@ def check_and_update_crawler_rate_limits(account_name: str) -> None:
 	daily_limit = account.daily_limit or 40
 
 	redis = get_redis_client()
-	hour_key = f"crawler_req_hour:{account_name}"
-	day_key = f"crawler_req_day:{account_name}"
+	hour_key = f"crawler_cnt_hour:{account_name}"
+	day_key = f"crawler_cnt_day:{account_name}"
 
-	h_val = redis.get_value(hour_key, use_local_cache=False) or 0
-	d_val = redis.get_value(day_key, use_local_cache=False) or 0
-	h_count = int(h_val)
-	d_count = int(d_val)
+	h_count = _bump_counter(redis, hour_key, 3600)
+	d_count = _bump_counter(redis, day_key, 86400)
 
-	if h_count >= hourly_limit:
+	if h_count > hourly_limit:
 		frappe.throw(
 			_("Hourly rate limit of {0} requests exceeded for crawler account {1}.").format(
 				hourly_limit, account.account_label
 			),
 			title=_("Rate Limit Exceeded"),
 		)
-	if d_count >= daily_limit:
+	if d_count > daily_limit:
 		frappe.throw(
 			_("Daily rate limit of {0} requests exceeded for crawler account {1}.").format(
 				daily_limit, account.account_label
 			),
 			title=_("Rate Limit Exceeded"),
 		)
-
-	# Increment counts
-	redis.set_value(hour_key, h_count + 1, expires_in_sec=3600)
-	redis.set_value(day_key, d_count + 1, expires_in_sec=86400)
 
 	# Update last_used_on in DB
 	frappe.db.set_value(
@@ -893,13 +911,10 @@ def acquire_crawler_account_lock(account_name: str, timeout: int = 30) -> bool:
 	"""Memperoleh kunci concurrency Redis eksklusif untuk satu akun crawler."""
 	redis = get_redis_client()
 	lock_key = f"crawler_lock:{account_name}"
-	if hasattr(redis, "client"):
+	if hasattr(redis, "make_key") and hasattr(redis, "set"):
 		try:
-			raw_client = redis.client
-			if hasattr(raw_client, "set"):
-				res = raw_client.set(lock_key, "1", ex=timeout, nx=True)
-				if res is not None:
-					return bool(res)
+			# Atomic SET NX EX on Frappe's prefixed Redis key
+			return bool(redis.set(redis.make_key(lock_key), "1", ex=timeout, nx=True))
 		except Exception:
 			pass
 
@@ -973,10 +988,6 @@ def enforce_crawler_delay(
 				now = time_fn()
 		except (ValueError, TypeError):
 			pass
-	else:
-		actual_sleep = target_delay
-		sleep_fn(actual_sleep)
-		now = time_fn()
 
 	set_fn = getattr(redis, "set_value", None)
 	if set_fn:

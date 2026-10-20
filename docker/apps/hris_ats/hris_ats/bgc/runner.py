@@ -644,6 +644,9 @@ def run_all_sources(bgc_name: str) -> None:
 
 def _save_findings(bgc_name: str, findings: list[FindingData]) -> None:
 	"""Menyimpan list FindingData ke DocType Background Check Finding tanpa duplikasi."""
+	# Persetujuan bisa ditarik saat crawl berjalan: baca ulang status terbaru sebelum menyimpan apa pun
+	if frappe.db.get_value("Background Check", bgc_name, "consent_status") != "Granted":
+		return
 	for item in findings:
 		filters = {
 			"background_check": bgc_name,

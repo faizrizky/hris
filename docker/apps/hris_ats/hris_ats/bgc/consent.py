@@ -22,6 +22,7 @@ def initiate_background_check(applicant_name: str, candidate_language: str = "id
 	if not frappe.db.exists("Job Applicant", applicant_name):
 		frappe.throw(_("Job Applicant {0} not found.").format(applicant_name))
 
+	frappe.has_permission("Job Applicant", "write", applicant_name, throw=True)
 	applicant = frappe.get_doc("Job Applicant", applicant_name)
 
 	# Validation: Background check only for applicants with screening Done
@@ -295,7 +296,11 @@ def clean_bgc_cache(bgc_doc: Any) -> None:
 						prof_url = tmpl.replace("{username}", acc.username.strip().lstrip("@"))
 				if prof_url:
 					urls_to_clean = {prof_url, prof_url.rstrip("/"), prof_url.rstrip("/") + "/"}
-					modes = ("company+robots", "company", "browser+robots", "browser", "stealth+robots", "stealth", "mock")
+					modes = tuple(
+							f"{base}{suffix}"
+							for base in ("company", "browser", "stealth", "session", "mock")
+							for suffix in ("", "+robots", "+session")
+						)
 					methods = ("GET", "HEAD")
 					for u in urls_to_clean:
 						for mode in modes:
@@ -337,6 +342,7 @@ def revoke_consent(bgc_name: str) -> dict[str, Any]:
 	"""Revoke consent: delete all raw findings, crawl directory, Redis cache, and SKCK file in accordance with PDP regulations."""
 	if not frappe.db.exists("Background Check", bgc_name):
 		frappe.throw(_("Document {0} not found.").format(bgc_name))
+	frappe.has_permission("Background Check", "write", bgc_name, throw=True)
 
 	count = frappe.db.count("Background Check Finding", {"background_check": bgc_name})
 	frappe.db.delete("Background Check Finding", {"background_check": bgc_name})

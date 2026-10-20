@@ -543,6 +543,7 @@ def _fetch_single_mode(
 	effective_state = storage_state or config.storage_state
 	acc_name = crawler_account_name or config.crawler_account
 
+	lock_acquired = False
 	if mode == "session":
 		if not effective_state and acc_name:
 			try:
@@ -552,14 +553,21 @@ def _fetch_single_mode(
 				pass
 
 		if acc_name and not is_mock:
+			from hris_ats.bgc.crawler_session import (
+				acquire_crawler_account_lock,
+				check_and_update_crawler_rate_limits,
+				enforce_crawler_delay,
+			)
+
+			# Rate limit and lock errors must stop the request, never be swallowed
 			try:
-				from hris_ats.bgc.crawler_session import (
-					acquire_crawler_account_lock,
-					check_and_update_crawler_rate_limits,
-					enforce_crawler_delay,
-				)
 				check_and_update_crawler_rate_limits(acc_name)
-				acquire_crawler_account_lock(acc_name)
+			except Exception as e:
+				raise FetchError(f"Crawler account '{acc_name}' rate limit: {e}") from e
+			if not acquire_crawler_account_lock(acc_name):
+				raise FetchError(f"Crawler account '{acc_name}' is in use by another request")
+			lock_acquired = True
+			try:
 				enforce_crawler_delay(acc_name, sleep_fn=sleep_fn, time_fn=time_fn)
 			except Exception:
 				pass
@@ -670,7 +678,7 @@ def _fetch_single_mode(
 			raise FetchNetworkError(f"Failed to fetch {url}: {e}") from e
 		raise FetchNetworkError(f"Gagal mengambil {url}: {e}") from e
 	finally:
-		if mode == "session" and acc_name and not is_mock:
+		if lock_acquired:
 			try:
 				from hris_ats.bgc.crawler_session import release_crawler_account_lock
 				release_crawler_account_lock(acc_name)
