@@ -11,15 +11,17 @@ app_license = "mit"
 required_apps = ["erpnext", "hrms"]
 
 # Each item in the list will be shown as an app in the apps page
-# add_to_apps_screen = [
-# 	{
-# 		"name": "hris_ats",
-# 		"logo": "/assets/hris_ats/logo.png",
-# 		"title": "HRIS ATS",
-# 		"route": "/hris_ats",
-# 		"has_permission": "hris_ats.api.permission.has_app_permission",
-# 	}
-# ]
+add_to_apps_screen = [
+	{
+		"name": "hris_ats",
+		"logo": "/assets/hris_ats/images/logo.png",
+		"title": "HRIS ATS",
+		"route": "/desk/rekrutmen",
+	}
+]
+
+# Logo shown in the desk sidebar header (same mark as the HRIS mobile app icon)
+app_logo_url = "/assets/hris_ats/images/logo.png"
 
 # The dock, the rail down the left of the desk, is a document rather than a hook. Author it in
 # Manage Dock on a developer-mode site and press Export to App, and it is written to
