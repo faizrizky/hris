@@ -46,7 +46,7 @@ CUSTOM_FIELDS = {
 			"label": "Education Majors",
 			"fieldtype": "Small Text",
 			"description": "Separate with comma or new line",
-			"insert_after": "column_break_screening",
+			"insert_after": "resume_screening",
 		},
 		{
 			"fieldname": "relevant_titles",
@@ -113,6 +113,16 @@ CUSTOM_FIELDS = {
 			"insert_after": "address",
 		},
 		{
+			"fieldname": "column_break_screening",
+			"fieldtype": "Column Break",
+			"insert_after": "resume_attachment",
+		},
+		{
+			"fieldname": "section_break_cover",
+			"fieldtype": "Section Break",
+			"insert_after": "resume_attachment",
+		},
+		{
 			"fieldname": "resume_screening",
 			"label": "Resume Screening",
 			"fieldtype": "Link",
@@ -167,6 +177,43 @@ CUSTOM_FIELDS = {
 
 def setup_custom_fields():
 	create_custom_fields(CUSTOM_FIELDS, update=True)
+	setup_job_applicant_layout()
+
+
+def setup_job_applicant_layout():
+	"""Susun bagian Resume di Job Applicant menjadi dua kolom:
+	kiri  = Link, Resume Score, Resume Screening
+	kanan = Attachment, Screening Status
+	lalu Cover Letter selebar penuh di bawahnya."""
+	frappe.clear_cache(doctype="Job Applicant")
+	names = [f.fieldname for f in frappe.get_meta("Job Applicant").fields]
+	block = [
+		"resume_score",
+		"resume_screening",
+		"column_break_screening",
+		"resume_attachment",
+		"screening_status",
+		"section_break_cover",
+		"cover_letter",
+		"bgc_risk_level",
+		"bgc_conclusion",
+		"background_check",
+	]
+	if "open_resume_button" not in names or any(b not in names for b in block):
+		return
+	names = [n for n in names if n not in block]
+	pos = names.index("open_resume_button") + 1
+	names[pos:pos] = block
+	frappe.make_property_setter(
+		{
+			"doctype": "Job Applicant",
+			"doctype_or_field": "DocType",
+			"property": "field_order",
+			"value": json.dumps(names),
+			"property_type": "Data",
+		}
+	)
+	frappe.clear_cache(doctype="Job Applicant")
 
 
 def setup_kanban_board():

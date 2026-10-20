@@ -1,8 +1,38 @@
 // Copyright (c) 2026, HRIS Team and contributors
 // For license information, please see license.txt
 
+// Fallback tanpa websocket: tunggu screening selesai lalu muat ulang form
+function hris_ats_wait_for_screening(frm) {
+	if (frm._hris_ats_polling) return;
+	frm._hris_ats_polling = true;
+	let tries = 0;
+	const tick = () => {
+		tries += 1;
+		frappe.db.get_value("Job Applicant", frm.doc.name, ["screening_status", "resume_score"]).then((r) => {
+			const st = (r.message || {}).screening_status;
+			if (st === "Done" || st === "Failed") {
+				frm._hris_ats_polling = false;
+				if (!frm.is_dirty()) frm.reload_doc();
+				return;
+			}
+			if (tries < 40) setTimeout(tick, 3000);
+			else frm._hris_ats_polling = false;
+		});
+	};
+	setTimeout(tick, 2000);
+}
+
 frappe.ui.form.on("Job Applicant", {
+	after_save(frm) {
+		if (frm.doc.resume_attachment) hris_ats_wait_for_screening(frm);
+	},
+
 	refresh(frm) {
+		if (["Queued", "Screening"].includes(frm.doc.screening_status)) {
+			frm.dashboard.set_headline(__("Resume screening in progress…"), "blue");
+			hris_ats_wait_for_screening(frm);
+		}
+
 		if (!frm.is_new() && !frm._hris_ats_realtime) {
 			frm._hris_ats_realtime = true;
 			frappe.realtime.doc_subscribe("Job Applicant", frm.doc.name);
