@@ -129,7 +129,7 @@
 											{{ acc.platform }}: @{{ acc.username }}
 										</label>
 										<div class="small text-muted ms-2 mt-1">
-											{{ _("This account belongs to me.") }} {{ _("Public profile page will be fetched automatically.") }}
+											{{ _("This account belongs to me and I consent to public profile and post screening.") }}
 										</div>
 									</div>
 									<button type="button" class="btn btn-sm btn-outline-danger btn-remove-social-acc" title="{{ _("Remove") }}">✕</button>
@@ -380,7 +380,7 @@ document.addEventListener("DOMContentLoaded", function () {
 							${plat}: @${user}
 						</label>
 						<div class="small text-muted ms-2 mt-1">
-							{{ _("This account belongs to me.") }} {{ _("Public profile page will be fetched automatically.") }}
+							{{ _("This account belongs to me and I consent to public profile and post screening.") }}
 						</div>
 					</div>
 					<button type="button" class="btn btn-sm btn-outline-danger btn-remove-social-acc" title="{{ _("Remove") }}">✕</button>
@@ -513,6 +513,17 @@ document.addEventListener("DOMContentLoaded", function () {
 						}
 					}
 					accounts.push(accObj);
+				}
+			}
+
+			// Peringatan bila ada akun media sosial yang belum dicentang (tidak akan diperiksa)
+			if (isSocialGranted && socialAccountsList) {
+				const unticked = [...socialAccountsList.querySelectorAll(".social-account-item")]
+					.filter(i => { const c = i.querySelector(".social-account-consent"); return !(c && c.checked); }).length;
+				if (unticked > 0 && !window.confirm("{{ _('Some social media accounts are not ticked and will NOT be screened (accounts: {0}). Continue?') }}".replace("{0}", unticked))) {
+					submitBtn.disabled = false;
+					submitBtn.innerText = "{{ _('Submit Consent') }}";
+					return;
 				}
 			}
 
