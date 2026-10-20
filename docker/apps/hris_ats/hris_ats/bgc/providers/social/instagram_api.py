@@ -12,12 +12,17 @@ rate limit so the crawler account is not pushed into a checkpoint.
 from __future__ import annotations
 
 import json
-import random
-import time
 from collections.abc import Callable, Iterator
 from datetime import datetime
 from typing import Any
 
+from hris_ats.bgc.providers.social.api_base import (
+	PacedApiClient,
+	ProfileNotFound,
+	RateLimited,
+	SessionRejected,
+	crawl_comments,
+)
 from hris_ats.bgc.providers.social.base import clean_snippet
 
 IG_APP_ID = "936619743392459"
@@ -25,46 +30,20 @@ BASE = "https://www.instagram.com"
 MEDIA_TYPES = {1: "Photo", 2: "Video", 8: "Carousel"}
 
 
-class InstagramSessionError(Exception):
+class InstagramSessionError(SessionRejected):
 	"""The session is not signed in (anymore) or Instagram asked for a checkpoint."""
 
 
-class InstagramRateLimited(Exception):
+class InstagramRateLimited(RateLimited):
 	"""Instagram asked us to slow down."""
 
 
-class InstagramNotFound(Exception):
+class InstagramNotFound(ProfileNotFound):
 	"""The profile does not exist."""
 
 
-def _default_http_get(url: str, headers: dict[str, str], cookies: dict[str, str], timeout: int) -> tuple[int, str]:
-	from scrapling.fetchers import Fetcher
-
-	res = Fetcher.get(url, impersonate="chrome", stealthy_headers=True, headers=headers, cookies=cookies, timeout=timeout)
-	body = res.body.decode("utf-8", "ignore") if isinstance(res.body, bytes) else str(res.body or "")
-	return res.status, body
-
-
-class InstagramApiClient:
-	def __init__(
-		self,
-		cookies: dict[str, str],
-		http_get: Callable[..., tuple[int, str]] | None = None,
-		pause: tuple[float, float] = (0.8, 2.0),
-		sleep_fn: Callable[[float], None] = time.sleep,
-		timeout: int = 20,
-	):
-		self.cookies = cookies
-		self.http_get = http_get or _default_http_get
-		self.pause = pause
-		self.sleep_fn = sleep_fn
-		self.timeout = timeout
-		self.requests_made = 0
-
+class InstagramApiClient(PacedApiClient):
 	def _get(self, path: str, referer: str) -> dict[str, Any]:
-		if self.requests_made:
-			self.sleep_fn(random.uniform(*self.pause))
-		self.requests_made += 1
 		headers = {
 			"x-ig-app-id": IG_APP_ID,
 			"x-requested-with": "XMLHttpRequest",
@@ -72,7 +51,7 @@ class InstagramApiClient:
 			"referer": referer,
 			"accept": "*/*",
 		}
-		status, body = self.http_get(BASE + path, headers, self.cookies, self.timeout)
+		status, body = self._raw_get(BASE + path, headers)
 		try:
 			data = json.loads(body) if body else {}
 		except ValueError:
@@ -190,3 +169,32 @@ class InstagramApiClient:
 			"media_type": "Text",
 			"is_reply": is_reply,
 		}
+
+	def crawl_profile(
+		self,
+		username: str,
+		max_posts: int,
+		max_comments: int,
+		earliest_ts: float | None,
+		result: dict[str, Any],
+		report: Callable[..., None],
+	) -> None:
+		report("{0} @{1}: reading profile", "Instagram", username)
+		prof = self.profile(username)
+		result.update(
+			display_name=prof["display_name"],
+			bio=prof["bio"],
+			location="",
+			is_private=prof["is_private"],
+			followers_count=prof["followers_count"],
+			following_count=prof["following_count"],
+			posts_count=prof["posts_count"],
+		)
+		result["_profile_loaded"] = True
+		for post in self.iter_posts(prof["id"], username, max_posts, earliest_ts):
+			result["posts"].append(post)
+			if len(result["posts"]) % 12 == 0:
+				report("{0} @{1}: {2} posts read", "Instagram", username, len(result["posts"]))
+		crawl_comments(self, "Instagram", username, result, max_comments, report)
+		if prof["is_private"] and not result["posts"]:
+			result["comment_limitation"] = "Private profile: posts are only visible to approved followers."

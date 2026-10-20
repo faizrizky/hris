@@ -109,10 +109,10 @@ class SocialPublicProvider(BaseProvider):
 		# 2. Ambil halaman web dengan eskalasi mode
 		cfg = self.config or get_fetch_config_from_settings()
 
-		# 2a. Instagram: post dan komentar hanya tersedia lewat API web dengan sesi login
-		if platform_name == "Instagram" and raw_fetch_fn is None and getattr(cfg, "use_login_session", False):
-			api_res = self._crawl_instagram_api(
-				account, profile_url, clean_user, max_posts, max_comments, lookback_months, progress
+		# 2a. Post dan komentar hanya tersedia lewat API web platform dengan sesi akun crawler yang login
+		if platform_name in API_PLATFORMS and raw_fetch_fn is None and getattr(cfg, "use_login_session", False):
+			api_res = self._crawl_via_api(
+				platform_name, account, profile_url, clean_user, max_posts, max_comments, lookback_months, progress
 			)
 			if api_res is not None:
 				return api_res
@@ -202,8 +202,9 @@ class SocialPublicProvider(BaseProvider):
 			"comments": comments,
 		}
 
-	def _crawl_instagram_api(
+	def _crawl_via_api(
 		self,
+		platform: str,
 		account: Any,
 		profile_url: str,
 		username: str,
@@ -212,7 +213,7 @@ class SocialPublicProvider(BaseProvider):
 		lookback_months: int,
 		progress: Any = None,
 	) -> dict[str, Any] | None:
-		"""Crawl via Instagram's web API with the crawler account session. Returns None to fall back to HTML."""
+		"""Crawl via the platform's web API with the crawler account session. Returns None to fall back to HTML."""
 		from hris_ats.bgc.crawler_session import (
 			acquire_crawler_account_lock,
 			check_and_update_crawler_rate_limits,
@@ -223,26 +224,26 @@ class SocialPublicProvider(BaseProvider):
 			mark_crawler_account_challenge,
 			release_crawler_account_lock,
 		)
-		from hris_ats.bgc.providers.social.instagram_api import (
-			InstagramApiClient,
-			InstagramNotFound,
-			InstagramRateLimited,
-			InstagramSessionError,
+		from hris_ats.bgc.providers.social.api_base import (
+			ApiUnavailable,
+			ProfileNotFound,
+			RateLimited,
+			SessionRejected,
 		)
 
 		c_acc = get_eligible_crawler_account_for_url(profile_url)
 		if not c_acc:
 			return None
 		state = get_decrypted_storage_state(c_acc["name"])
-		if not has_auth_cookies("Instagram", state):
+		if not has_auth_cookies(platform, state):
 			return None
 		cookies = {c["name"]: c["value"] for c in state.get("cookies", []) if c.get("name") and c.get("value")}
 		label = c_acc.get("account_label") or c_acc["name"]
 		account_name = getattr(account, "name", "") if hasattr(account, "name") else ""
 
-		def report(msg: str) -> None:
+		def report(template: str, *args: Any) -> None:
 			if progress:
-				progress(msg)
+				progress(_(template).format(*args))
 
 		base = {
 			"profile_url": profile_url,
@@ -261,68 +262,95 @@ class SocialPublicProvider(BaseProvider):
 		if not acquire_crawler_account_lock(c_acc["name"], timeout=900):
 			return {**base, "status": "Failed", "error": _("Crawler account is busy with another check."), "comment_limitation": None}
 
+		result: dict[str, Any] = {
+			**base,
+			"posts": [],
+			"comments": [],
+			"status": "Success",
+			"error": None,
+			"is_private": False,
+			"display_name": "",
+			"bio": "",
+			"location": "",
+			"followers_count": None,
+			"following_count": None,
+			"posts_count": None,
+			"comment_limitation": None,
+		}
+		earliest = add_months(now_datetime(), -int(lookback_months or 12)).timestamp()
+		client = _make_api_client(platform, cookies)
 		try:
 			enforce_crawler_delay(c_acc["name"])
-			client = InstagramApiClient(cookies, pause=(0.6, 1.4))
-			report(_("Instagram @{0}: reading profile").format(username))
-			prof = client.profile(username)
-			result = {
-				**base,
-				"status": "Success",
-				"error": None,
-				"is_private": prof["is_private"],
-				"display_name": prof["display_name"],
-				"bio": prof["bio"],
-				"location": "",
-				"followers_count": prof["followers_count"],
-				"following_count": prof["following_count"],
-				"posts_count": prof["posts_count"],
-				"comment_limitation": None,
-			}
-
-			earliest = add_months(now_datetime(), -int(lookback_months or 12)).timestamp()
-			posts: list[dict[str, Any]] = []
-			comments: list[dict[str, Any]] = []
-			try:
-				for post in client.iter_posts(prof["id"], username, int(max_posts or 200), earliest):
-					posts.append(post)
-					if len(posts) % 12 == 0:
-						report(_("Instagram @{0}: {1} posts read").format(username, len(posts)))
-
-				remaining = int(max_comments or 200)
-				with_comments = [p for p in posts if p.get("comment_count")]
-				for i, post in enumerate(with_comments, 1):
-					if remaining <= 0:
-						break
-					for c in client.iter_candidate_comments(post, username, remaining):
-						comments.append(c)
-						remaining -= 1
-					if i % 10 == 0:
-						report(
-							_("Instagram @{0}: comments checked on {1}/{2} posts").format(username, i, len(with_comments))
-						)
-			except InstagramRateLimited as e:
-				result["comment_limitation"] = _("Instagram rate limit reached, partial data: {0}").format(e)
-
-			for p in posts:
-				if not p.get("snippet"):
-					p["snippet"] = _("(post without caption)")
-				p.update(finding_type="Post", provenance="Crawled (session)", account=account_name, platform="Instagram")
-				p.pop("pk", None)
-			for c in comments:
-				c.update(finding_type="Comment", provenance="Crawled (session)", account=account_name, platform="Instagram")
-				c.pop("author", None)
-			result["posts"] = posts
-			result["comments"] = comments
-			if prof["is_private"] and not posts:
-				result["comment_limitation"] = _("Private profile: posts are only visible to approved followers.")
-			return result
-		except InstagramNotFound:
+			client.crawl_profile(username, int(max_posts or 200), int(max_comments or 200), earliest, result, report)
+		except ProfileNotFound:
 			return {**base, "status": "Failed", "error": "not found", "comment_limitation": None}
-		except InstagramSessionError as e:
-			mark_crawler_account_challenge(c_acc["name"], f"Instagram session rejected: {e}")
+		except SessionRejected as e:
+			mark_crawler_account_challenge(c_acc["name"], f"{platform} session rejected: {e}")
 			return None
-		except InstagramRateLimited as e:
-			return {**base, "status": "Failed", "error": _("Instagram rate limit: {0}").format(e), "comment_limitation": None}
+		except (RateLimited, ApiUnavailable) as e:
+			if platform == "Facebook" and isinstance(e, ApiUnavailable):
+				client.doc_id = None
+				_forget_facebook_doc_id()
+			if not result.get("_profile_loaded"):
+				if isinstance(e, ApiUnavailable):
+					return None
+				return {**base, "status": "Failed", "error": _("{0} rate limit: {1}").format(platform, e), "comment_limitation": None}
+			note = (
+				_("{0} rate limit reached, partial data: {1}") if isinstance(e, RateLimited)
+				else _("{0} API stopped answering, partial data: {1}")
+			).format(platform, e)
+			result["comment_limitation"] = " ".join(x for x in (note, result.get("comment_limitation")) if x)
 		finally:
 			release_crawler_account_lock(c_acc["name"])
+		if platform == "Facebook" and getattr(client, "doc_id", None):
+			_remember_facebook_doc_id(client.doc_id)
+
+		for p in result["posts"]:
+			if not p.get("snippet"):
+				p["snippet"] = _("(post without caption)")
+			p.update(finding_type="Post", provenance="Crawled (session)", account=account_name, platform=platform)
+		for c in result["comments"]:
+			c.update(finding_type="Comment", provenance="Crawled (session)", account=account_name, platform=platform)
+		for item in result["posts"] + result["comments"]:
+			for k in [k for k in item if k.startswith("_") or k in ("pk", "comment_count", "author")]:
+				item.pop(k)
+		if result["comment_limitation"]:
+			result["comment_limitation"] = _(result["comment_limitation"])
+		if result["posts_count"] is None:
+			result["posts_count"] = len(result["posts"])
+		result.pop("_profile_loaded", None)
+		return result
+
+
+API_PLATFORMS = ("Instagram", "TikTok", "Facebook", "LinkedIn")
+FB_DOC_ID_CACHE_KEY = "bgc_facebook_timeline_doc_id"
+
+
+def _make_api_client(platform: str, cookies: dict[str, str]) -> Any:
+	if platform == "Instagram":
+		from hris_ats.bgc.providers.social.instagram_api import InstagramApiClient
+
+		return InstagramApiClient(cookies, pause=(0.6, 1.4))
+	if platform == "TikTok":
+		from hris_ats.bgc.providers.social.tiktok_api import TikTokApiClient
+
+		return TikTokApiClient(cookies, pause=(0.8, 1.8))
+	if platform == "Facebook":
+		from hris_ats.bgc.providers.social.facebook_api import FacebookApiClient
+
+		doc_id = frappe.conf.get(FB_DOC_ID_CACHE_KEY) or frappe.cache.get_value(FB_DOC_ID_CACHE_KEY)
+		return FacebookApiClient(cookies, doc_id=doc_id, pause=(1.0, 2.2))
+	if platform == "LinkedIn":
+		from hris_ats.bgc.providers.social.linkedin_api import LinkedInApiClient
+
+		return LinkedInApiClient(cookies, pause=(1.2, 2.5))
+	raise ValueError(platform)
+
+
+def _remember_facebook_doc_id(doc_id: str) -> None:
+	if not frappe.conf.get(FB_DOC_ID_CACHE_KEY):
+		frappe.cache.set_value(FB_DOC_ID_CACHE_KEY, doc_id, expires_in_sec=86400)
+
+
+def _forget_facebook_doc_id() -> None:
+	frappe.cache.delete_value(FB_DOC_ID_CACHE_KEY)
