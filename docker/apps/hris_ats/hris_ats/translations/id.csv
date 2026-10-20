@@ -624,7 +624,7 @@ Select each social media account you own that you consent to screening. Only pub
 Social Media Accounts,Akun Media Sosial
 "Specify any non-social platform profiles (GitHub, Canva, etc.) you wish to declare.","Nyatakan profil platform non-sosial (GitHub, Canva, dll.) yang ingin Anda sertakan."
 This account belongs to me and I consent to public profile and post screening.,Akun ini milik saya dan saya menyetujui pemeriksaan profil dan post publik.
-"Verification of public profile and posts on declared social media accounts (Instagram, Facebook, TikTok, LinkedIn).","Verifikasi profil dan post publik pada akun media sosial yang dinyatakan (Instagram, Facebook, TikTok, LinkedIn)."
+"Verification of public profile and posts on declared social media accounts (Instagram, Facebook, TikTok, LinkedIn, Threads).","Verifikasi profil dan post publik pada akun media sosial yang dinyatakan (Instagram, Facebook, TikTok, LinkedIn, Threads)."
 Verification of public profile on declared professional platform accounts.,Verifikasi profil publik pada akun platform profesional yang dinyatakan.
 Found {count} measurable achievements with metrics and tangible impact (maximum 100 points).,Ditemukan {count} pencapaian terukur dengan metrik dan dampak nyata (maksimal 100 poin).
 "Found {count} measurable work achievements (e.g. percentages, amounts, or project scale).","Ditemukan {count} pencapaian kerja terukur (mis. persentase, nominal, atau skala proyek)."
@@ -935,3 +935,35 @@ No public posts or comments found for candidate accounts.,Tidak ada post atau ko
 "The username for {0} must be the handle from your profile link (for example: {1}), not your display name.","Username untuk {0} harus berupa nama pengguna dari tautan profil Anda (contoh: {1}), bukan nama tampilan."
 Invalid Username,Username Tidak Valid
 "The username must be the handle from your profile link (for example: {0}), not your display name.","Username harus berupa nama pengguna dari tautan profil Anda (contoh: {0}), bukan nama tampilan."
+Crawl Test,Uji Crawl
+Test Crawl,Uji Crawl
+"Runs the real crawler on one social account (profile, posts and the candidate's own comments) without creating a Background Check. Nothing is saved.","Menjalankan crawler asli pada satu akun media sosial (profil, post, dan komentar yang ditulis kandidat) tanpa membuat Background Check. Tidak ada data yang disimpan."
+Username or profile link,Username atau tautan profil
+"Use the handle from the profile link, not the display name.","Gunakan nama pengguna dari tautan profil, bukan nama tampilan."
+Max posts,Maksimal post
+Max comments,Maksimal komentar
+Lookback months,Bulan tinjauan
+0 = no limit,0 = tanpa batas
+I own this account or have the owner's permission,Saya pemilik akun ini atau memiliki izin pemiliknya
+Run crawl test,Jalankan uji crawl
+Starting...,Memulai...
+Crawler accounts,Akun crawler
+disabled or risk not acknowledged,nonaktif atau risiko belum diakui
+Login-session crawling is switched off in Background Check Settings.,Crawl dengan sesi login dimatikan di Background Check Settings.
+None found,Tidak ditemukan
+Date,Tanggal
+Open,Buka
+Duration,Durasi
+Crawler account,Akun crawler
+Profile,Profil
+Name,Nama
+Bio,Bio
+Followers / Following / Posts,Pengikut / Mengikuti / Post
+Log,Log
+Comments written by the candidate,Komentar yang ditulis kandidat
+Running,Berjalan
+Only System Manager can run a crawl test.,Hanya System Manager yang dapat menjalankan uji crawl.
+Starting crawl test for {0} @{1},Memulai uji crawl untuk {0} @{1}
+"Finished: {0} posts, {1} comments","Selesai: {0} post, {1} komentar"
+Crawl failed: {0},Crawl gagal: {0}
+Threads,Threads

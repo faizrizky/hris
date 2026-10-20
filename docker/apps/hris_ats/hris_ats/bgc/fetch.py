@@ -39,6 +39,8 @@ DEFAULT_BLOCKED_DOMAINS = (
 	"tiktok.com",
 	"linkedin.com",
 	"lnkd.in",
+	"threads.net",
+	"threads.com",
 )
 FORBIDDEN_DOMAINS = DEFAULT_BLOCKED_DOMAINS
 

@@ -609,6 +609,7 @@ AUTH_COOKIES = {
 	"Facebook": ({"c_user", "xs"},),
 	"TikTok": ({"sessionid"}, {"sessionid_ss"}),
 	"LinkedIn": ({"li_at"},),
+	"Threads": ({"sessionid"},),
 	"X": ({"auth_token"},),
 	"Twitter": ({"auth_token"},),
 }

@@ -133,7 +133,7 @@ def normalize_username(platform: str, raw: str) -> str:
 	if not value or re.search(r"\s", value) or not re.fullmatch(r"[A-Za-z0-9._%-]+", value):
 		frappe.throw(
 			_("The username for {0} must be the handle from your profile link (for example: {1}), not your display name.").format(
-				platform, {"Instagram": "faiz.rizky", "TikTok": "faiz.rizky", "Facebook": "faiz.rizky.123", "LinkedIn": "muhammad-faiz-rizky"}.get(platform, "username")
+				platform, {"Instagram": "faiz.rizky", "TikTok": "faiz.rizky", "Facebook": "faiz.rizky.123", "LinkedIn": "muhammad-faiz-rizky", "Threads": "faiz.rizky"}.get(platform, "username")
 			),
 			title=_("Invalid Username"),
 		)
@@ -208,7 +208,7 @@ def submit_candidate_consent(
 			user = acc.get("username")
 			if not plat or not user:
 				continue
-			if plat in ("Instagram", "TikTok", "Facebook", "LinkedIn"):
+			if plat in ("Instagram", "TikTok", "Facebook", "LinkedIn", "Threads"):
 				user = normalize_username(plat, user)
 				acc["username"] = user
 			has_consent = 1 if (is_social_granted and acc.get("social_consent")) else 0

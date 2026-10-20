@@ -433,3 +433,15 @@ class TestBackgroundCheckSocialConsent(FrappeTestCase):
 			normalize_username("Facebook", "Muhammad Faiz Rizky")
 		with self.assertRaises(frappe.ValidationError):
 			normalize_username("LinkedIn", "https://www.linkedin.com/")
+
+	def test_crawl_test_requires_system_manager_and_acknowledgement(self):
+		from hris_ats.bgc.crawl_test import start_crawl_test
+
+		frappe.set_user("Guest")
+		with self.assertRaises(frappe.PermissionError):
+			start_crawl_test("Instagram", "someone", 1)
+		frappe.set_user("Administrator")
+		with self.assertRaises(frappe.ValidationError):
+			start_crawl_test("Instagram", "someone", 0)
+		with self.assertRaises(frappe.ValidationError):
+			start_crawl_test("Instagram", "Display Name With Spaces", 1)

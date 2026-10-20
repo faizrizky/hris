@@ -7,6 +7,7 @@ from hris_ats.bgc.providers.social.base import BaseSocialAdapter, anonymize_ment
 from hris_ats.bgc.providers.social.facebook import FacebookAdapter
 from hris_ats.bgc.providers.social.instagram import InstagramAdapter
 from hris_ats.bgc.providers.social.linkedin import LinkedInAdapter
+from hris_ats.bgc.providers.social.threads import ThreadsAdapter
 from hris_ats.bgc.providers.social.tiktok import TikTokAdapter
 
 SOCIAL_ADAPTERS: dict[str, type[BaseSocialAdapter]] = {
@@ -14,6 +15,7 @@ SOCIAL_ADAPTERS: dict[str, type[BaseSocialAdapter]] = {
 	"Facebook": FacebookAdapter,
 	"TikTok": TikTokAdapter,
 	"LinkedIn": LinkedInAdapter,
+	"Threads": ThreadsAdapter,
 }
 
 

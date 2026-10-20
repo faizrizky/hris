@@ -7,6 +7,9 @@ frappe.ui.form.on("Background Check Settings", {
 			frm.add_custom_button(__("Test Fetch"), function () {
 				show_test_fetch_dialog(frm);
 			});
+			frm.add_custom_button(__("Test Crawl"), function () {
+				frappe.set_route("bgc-crawl-test");
+			});
 		}
 
 		if (frm.doc.fetch_browser_status && frm.fields_dict.fetch_browser_status) {

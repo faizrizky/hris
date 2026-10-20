@@ -92,7 +92,7 @@ def get_context(context):
 	)
 	context.social_platforms = [
 		p.platform_name for p in context.platforms
-		if p.requires_social_consent or p.platform_name.lower() in ("instagram", "facebook", "tiktok", "linkedin", "twitter/x", "x")
+		if p.requires_social_consent or p.platform_name.lower() in ("instagram", "facebook", "tiktok", "linkedin", "threads", "twitter/x", "x")
 	]
 	context.existing_social_accounts = [
 		{
@@ -140,6 +140,6 @@ def get_context(context):
 		{
 			"key": "Social Media",
 			"label": _("Social Media"),
-			"desc": _("Verification of public profile and posts on declared social media accounts (Instagram, Facebook, TikTok, LinkedIn)."),
+			"desc": _("Verification of public profile and posts on declared social media accounts (Instagram, Facebook, TikTok, LinkedIn, Threads)."),
 		},
 	]

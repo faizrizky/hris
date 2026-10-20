@@ -48,7 +48,7 @@ def is_social_account(platform_name: str, profile_url: str = "") -> bool:
 		tmpl = frappe.db.get_value("Background Check Platform", platform_name, "profile_url_template")
 		if tmpl and not profile_url:
 			profile_url = tmpl
-	if platform_name and platform_name.lower() in ("instagram", "facebook", "tiktok", "linkedin", "twitter/x", "x"):
+	if platform_name and platform_name.lower() in ("instagram", "facebook", "tiktok", "linkedin", "threads", "twitter/x", "x"):
 		return True
 	if profile_url:
 		from hris_ats.bgc.fetch import DEFAULT_BLOCKED_DOMAINS, is_forbidden_domain

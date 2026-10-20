@@ -323,7 +323,7 @@ class SocialPublicProvider(BaseProvider):
 		return result
 
 
-API_PLATFORMS = ("Instagram", "TikTok", "Facebook", "LinkedIn")
+API_PLATFORMS = ("Instagram", "TikTok", "Facebook", "LinkedIn", "Threads")
 FB_DOC_ID_CACHE_KEY = "bgc_facebook_timeline_doc_id"
 
 
@@ -333,6 +333,10 @@ def _make_api_client(platform: str, cookies: dict[str, str], state: dict[str, An
 		from hris_ats.bgc.providers.social.instagram_browser import InstagramBrowserClient
 
 		return InstagramBrowserClient(state or {"cookies": [], "origins": []})
+	if platform == "Threads":
+		from hris_ats.bgc.providers.social.threads_browser import ThreadsBrowserClient
+
+		return ThreadsBrowserClient(state or {"cookies": [], "origins": []})
 	if platform == "TikTok":
 		from hris_ats.bgc.providers.social.tiktok_api import TikTokApiClient
 
