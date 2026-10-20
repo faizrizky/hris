@@ -3,6 +3,19 @@
 
 frappe.ui.form.on("Job Applicant", {
 	refresh(frm) {
+		if (!frm.is_new() && !frm._hris_ats_realtime) {
+			frm._hris_ats_realtime = true;
+			frappe.realtime.doc_subscribe("Job Applicant", frm.doc.name);
+			frappe.realtime.on("hris_ats_screening_finished", (data) => {
+				if (data.applicant !== frm.doc.name) return;
+				frappe.show_alert({
+					message: __("Resume screening finished (score {0}). Form updated.", [data.score]),
+					indicator: "green",
+				});
+				if (!frm.is_dirty()) frm.reload_doc();
+			});
+		}
+
 		if (!frm.is_new() && frm.doc.resume_attachment) {
 			frm.add_custom_button(__("Screen Again"), function () {
 				frappe.call({

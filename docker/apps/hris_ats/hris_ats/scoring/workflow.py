@@ -284,6 +284,14 @@ def process_resume_screening(screening_name: str):
 	if applicant.get("recruitment_stage") in ("New Applied", None):
 		applicant.db_set("recruitment_stage", "Screening")
 
+	# Beri tahu form Job Applicant yang sedang terbuka agar memuat ulang sendiri
+	frappe.publish_realtime(
+		"hris_ats_screening_finished",
+		{"applicant": applicant.name, "score": screening.total_score},
+		doctype="Job Applicant",
+		docname=applicant.name,
+	)
+
 	# Publish complete realtime event
 	frappe.publish_realtime(
 		"resume_screening_progress",
