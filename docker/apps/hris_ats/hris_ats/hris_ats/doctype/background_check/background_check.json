@@ -54,6 +54,7 @@
   "consent_file",
   "consent_token",
   "consent_token_expires_at",
+  "consent_link",
   "section_break_scope",
   "consent_scope",
   "section_break_identity",
@@ -316,6 +317,14 @@
    "fieldtype": "Datetime",
    "hidden": 1,
    "label": "Token Expires At"
+  },
+  {
+   "description": "Single-use link to send to the candidate while consent is pending. Cleared once consent is processed.",
+   "fieldname": "consent_link",
+   "fieldtype": "Data",
+   "label": "Consent Link",
+   "options": "URL",
+   "read_only": 1
   },
   {
    "fieldname": "section_break_scope",

@@ -183,7 +183,7 @@ def setup_custom_fields():
 def setup_job_applicant_layout():
 	"""Susun bagian Resume di Job Applicant menjadi dua kolom:
 	kiri  = Link, Resume Score, Resume Screening
-	kanan = Attachment, Screening Status
+	kanan = Attachment, Screening Status, Background Check
 	lalu Cover Letter selebar penuh di bawahnya."""
 	frappe.clear_cache(doctype="Job Applicant")
 	names = [f.fieldname for f in frappe.get_meta("Job Applicant").fields]
@@ -193,11 +193,11 @@ def setup_job_applicant_layout():
 		"column_break_screening",
 		"resume_attachment",
 		"screening_status",
+		"background_check",
 		"section_break_cover",
 		"cover_letter",
 		"bgc_risk_level",
 		"bgc_conclusion",
-		"background_check",
 	]
 	if "open_resume_button" not in names or any(b not in names for b in block):
 		return

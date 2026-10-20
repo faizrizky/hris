@@ -35,7 +35,20 @@ class BackgroundCheck(Document):
 		if self.phone:
 			self.phone = self._normalize_phone(self.phone)
 
+	def set_consent_link(self):
+		"""Tautan persetujuan kandidat; hanya ada selama token masih berlaku (status Pending)."""
+		if self.consent_token and self.consent_status == "Pending":
+			lang = self.candidate_language or "id"
+			self.consent_link = f"{frappe.utils.get_url()}/ats-consent?token={self.consent_token}&lang={lang}"
+		else:
+			self.consent_link = None
+
+	def onload(self):
+		# Hitung ulang saat form dibuka agar memakai host yang sedang dipakai pengguna
+		self.set_consent_link()
+
 	def validate(self):
+		self.set_consent_link()
 		# Validasi status SKCK kedaluwarsa
 		if self.skck_valid_until and getdate(self.skck_valid_until) < getdate(nowdate()):
 			self.skck_status = "Expired"

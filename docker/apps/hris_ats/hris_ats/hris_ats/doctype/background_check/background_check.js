@@ -3,6 +3,11 @@
 
 frappe.ui.form.on("Background Check", {
 	refresh(frm) {
+		// Tautan persetujuan memakai alamat yang sedang dipakai pengguna (bukan host internal server)
+		if (frm.doc.consent_token && frm.doc.consent_status === "Pending") {
+			frm.doc.consent_link = `${window.location.origin}/ats-consent?token=${frm.doc.consent_token}&lang=${frm.doc.candidate_language || "id"}`;
+			frm.refresh_field("consent_link");
+		}
 		frm.trigger("render_banner");
 		frm.trigger("setup_realtime_listener");
 		frm.trigger("render_name_findings");
