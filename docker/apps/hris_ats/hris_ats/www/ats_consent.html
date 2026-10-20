@@ -25,7 +25,11 @@
 	.bgc-consent .form-control-sm:focus { border-color: #2b6cb0; box-shadow: 0 0 0 3px rgba(43,108,176,.15); outline: 0; }
 	.bgc-consent .bg-light.card { padding: 16px 18px !important; border: 1px solid #e2e8f0 !important; border-radius: 10px; background: #f7fafc !important; }
 	.bgc-consent .bg-light.card .row { align-items: center; row-gap: 8px; }
-	.bgc-consent #btn-add-social-acc { height: 40px; white-space: nowrap; border-radius: 8px; border: 1px solid #2b6cb0; color: #2b6cb0; background: #fff; }
+	.bgc-consent .bg-light.card .row { flex-wrap: nowrap; gap: 10px; margin: 0; }
+	.bgc-consent .bg-light.card .row > .col-md-5 { flex: 1 1 0; max-width: none; padding: 0; min-width: 0; }
+	.bgc-consent .bg-light.card .row > .col-md-2 { flex: 0 0 auto; width: auto; max-width: none; padding: 0; }
+	@media (max-width: 575px) { .bgc-consent .bg-light.card .row { flex-wrap: wrap; } .bgc-consent .bg-light.card .row > * { flex: 1 1 100% !important; } }
+	.bgc-consent #btn-add-social-acc { padding: 0 18px; width: auto; height: 40px; white-space: nowrap; border-radius: 8px; border: 1px solid #2b6cb0; color: #2b6cb0; background: #fff; }
 	.bgc-consent #btn-add-social-acc:hover { background: #2b6cb0; color: #fff; }
 	.bgc-consent #btn-add-other-account { border: 1px solid #a0aec0; background: #fff; border-radius: 8px; padding: 6px 14px; }
 	.bgc-consent .social-account-item { border: 1px solid #e2e8f0 !important; border-radius: 10px; padding: 14px 16px !important; }
