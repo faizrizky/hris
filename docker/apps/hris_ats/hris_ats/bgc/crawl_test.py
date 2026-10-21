@@ -27,8 +27,40 @@ def _key(test_id: str) -> str:
 	return f"hris_ats_crawl_test:{test_id}"
 
 
+STALE_AFTER = 600  # seconds without any update before an active test is considered dead
+
+
+class CrawlCancelled(Exception):
+	pass
+
+
 def _save(test_id: str, state: dict[str, Any]) -> None:
+	state["updated"] = time.time()
 	frappe.cache.set_value(_key(test_id), json.dumps(state, default=str), expires_in_sec=STATE_TTL)
+
+
+def _last_key(user: str) -> str:
+	return f"hris_ats_crawl_test_last:{user}"
+
+
+def _refresh_stale(state: dict[str, Any] | None) -> dict[str, Any] | None:
+	"""A test that stopped reporting (worker restarted, job killed) must not look active forever."""
+	if state and state.get("status") in ("Queued", "Running", "Cancelling"):
+		if time.time() - float(state.get("updated") or 0) > STALE_AFTER:
+			state["status"] = "Failed"
+			state["result"] = state.get("result") or {"error": _("The crawl stopped responding."), "posts": [], "comments": []}
+	return state
+
+
+def _active_test(user: str) -> tuple[str, dict[str, Any]] | None:
+	test_id = frappe.cache.get_value(_last_key(user), use_local_cache=False)
+	if not test_id:
+		return None
+	test_id = test_id.decode() if isinstance(test_id, bytes) else test_id
+	state = _refresh_stale(_load(test_id))
+	if state and state.get("status") in ("Queued", "Running", "Cancelling"):
+		return test_id, state
+	return None
 
 
 def _load(test_id: str) -> dict[str, Any] | None:
@@ -88,8 +120,14 @@ def start_crawl_test(
 		"max_comments": cint(max_comments) if max_comments not in (None, "") else (settings.social_max_comments or 200),
 		"lookback_months": cint(lookback_months) if lookback_months not in (None, "") else (settings.social_lookback_months or 0),
 	}
+	# One test at a time per user: reloading the page must not start a second crawl behind the first
+	active = _active_test(frappe.session.user)
+	if active:
+		return {"test_id": active[0], "username": active[1]["args"].get("username"), "resumed": 1}
+
 	test_id = uuid.uuid4().hex[:12]
 	_save(test_id, {"status": "Queued", "log": [], "args": args, "started_by": frappe.session.user})
+	frappe.cache.set_value(_last_key(frappe.session.user), test_id, expires_in_sec=STATE_TTL)
 	frappe.enqueue(
 		"hris_ats.bgc.crawl_test.run_crawl_test",
 		queue="browser",
@@ -104,10 +142,38 @@ def start_crawl_test(
 @frappe.whitelist()
 def poll_crawl_test(test_id: str) -> dict[str, Any]:
 	_assert_admin()
-	state = _load(test_id)
+	state = _refresh_stale(_load(test_id))
 	if not state:
 		return {"status": "Expired", "log": []}
 	return state
+
+
+@frappe.whitelist()
+def get_latest_crawl_test() -> dict[str, Any] | None:
+	"""The current user's most recent test, so a reloaded page shows its last state instead of an empty form."""
+	_assert_admin()
+	test_id = frappe.cache.get_value(_last_key(frappe.session.user), use_local_cache=False)
+	if not test_id:
+		return None
+	test_id = test_id.decode() if isinstance(test_id, bytes) else test_id
+	state = _refresh_stale(_load(test_id))
+	if not state:
+		return None
+	return {**state, "test_id": test_id}
+
+
+@frappe.whitelist()
+def cancel_crawl_test(test_id: str) -> dict[str, str]:
+	"""Stop a test: a queued one never starts, a running one stops at its next progress step."""
+	_assert_admin()
+	state = _load(test_id)
+	if not state:
+		return {"status": "Expired"}
+	if state.get("status") in ("Queued", "Running"):
+		state["cancel"] = True
+		state["status"] = "Cancelling"
+		_save(test_id, state)
+	return {"status": state["status"]}
 
 
 def run_crawl_test(
@@ -119,9 +185,16 @@ def run_crawl_test(
 	frappe.flags.in_bgc_runner = True
 	started = time.time()
 	state = _load(test_id) or {"log": [], "args": {}}
+	if state.get("cancel"):
+		state["status"] = "Cancelled"
+		_save(test_id, state)
+		return
 	state["status"] = "Running"
 
 	def log(message: str) -> None:
+		latest = _load(test_id) or {}
+		if latest.get("cancel"):
+			raise CrawlCancelled()
 		state["log"].append({"t": round(time.time() - started, 1), "message": str(message)})
 		_save(test_id, state)
 
@@ -166,10 +239,15 @@ def run_crawl_test(
 		log(
 			_("Finished: {0} posts, {1} comments").format(len(res.get("posts", [])), len(res.get("comments", [])))
 		)
+	except CrawlCancelled:
+		state["status"] = "Cancelled"
+		state["result"] = state.get("result") or {"posts": [], "comments": []}
+		state["log"].append({"t": round(time.time() - started, 1), "message": str(_("Cancelled"))})
 	except Exception as e:
 		state["status"] = "Failed"
 		state["result"] = {"error": str(e), "posts": [], "comments": []}
 		log(_("Crawl failed: {0}").format(e))
 		frappe.log_error(title="Crawl Test Error", message=frappe.get_traceback())
 	state["seconds"] = round(time.time() - started, 1)
+	state.pop("cancel", None)
 	_save(test_id, state)

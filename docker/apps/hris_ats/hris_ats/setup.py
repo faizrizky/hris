@@ -253,102 +253,184 @@ def setup_kanban_board():
 		kb.insert(ignore_permissions=True)
 
 
-def setup_number_cards():
-	"""Membuat Number Card untuk metrik tahap rekrutmen."""
-	cards = [
-		{
-			"name": "New Applicants ATS",
-			"label": "New Applicants",
-			"document_type": "Job Applicant",
-			"function": "Count",
-			"filters_json": '[["Job Applicant","recruitment_stage","=","New Applied",false]]',
-			"color": "#718096",
-		},
-		{
-			"name": "Screening Stage ATS",
-			"label": "Screening Stage",
-			"document_type": "Job Applicant",
-			"function": "Count",
-			"filters_json": '[["Job Applicant","recruitment_stage","=","Screening",false]]',
-			"color": "#3182ce",
-		},
-		{
-			"name": "Background Check Stage ATS",
-			"label": "Background Check Stage",
-			"document_type": "Job Applicant",
-			"function": "Count",
-			"filters_json": '[["Job Applicant","recruitment_stage","=","Background Check",false]]',
-			"color": "#dd6b20",
-		},
-		{
-			"name": "Interview Stage ATS",
-			"label": "Interview Stage",
-			"document_type": "Job Applicant",
-			"function": "Count",
-			"filters_json": '[["Job Applicant","recruitment_stage","=","Interview",false]]',
-			"color": "#38a169",
-		},
-	]
+NUMBER_CARDS = [
+	# (name = label, doctype, filters, color)
+	("New Applicants", "Job Applicant", [["Job Applicant", "recruitment_stage", "=", "New Applied", False]], "#718096"),
+	("Screening Stage", "Job Applicant", [["Job Applicant", "recruitment_stage", "=", "Screening", False]], "#3182ce"),
+	("Background Check Stage", "Job Applicant", [["Job Applicant", "recruitment_stage", "=", "Background Check", False]], "#dd6b20"),
+	("Interview Stage", "Job Applicant", [["Job Applicant", "recruitment_stage", "=", "Interview", False]], "#38a169"),
+	("Offer Stage", "Job Applicant", [["Job Applicant", "recruitment_stage", "=", "Offer", False]], "#805ad5"),
+	("Hired", "Job Applicant", [["Job Applicant", "recruitment_stage", "=", "Hired", False]], "#2f855a"),
+	("Checks Waiting Consent", "Background Check", [["Background Check", "consent_status", "=", "Pending", False]], "#d69e2e"),
+	("High Risk Checks", "Background Check", [["Background Check", "risk_level_auto", "in", ["High", "Tinggi"], False]], "#e53e3e"),
+]
 
-	for c in cards:
-		if not frappe.db.exists("Number Card", c["name"]):
-			doc = frappe.new_doc("Number Card")
-			doc.name = c["name"]
-			doc.label = c["label"]
-			doc.document_type = c["document_type"]
-			doc.function = c["function"]
-			doc.filters_json = c["filters_json"]
-			doc.color = c["color"]
-			doc.is_public = 1
-			doc.insert(ignore_permissions=True)
+DASHBOARD_CHARTS = [
+	{
+		"chart_name": "Applicants by Stage",
+		"chart_type": "Group By",
+		"document_type": "Job Applicant",
+		"group_by_type": "Count",
+		"group_by_based_on": "recruitment_stage",
+		"number_of_groups": 0,
+		"type": "Bar",
+		"color": "#3182ce",
+	},
+	{
+		"chart_name": "Background Check by Risk",
+		"chart_type": "Group By",
+		"document_type": "Background Check",
+		"group_by_type": "Count",
+		"group_by_based_on": "risk_level_auto",
+		"number_of_groups": 0,
+		"type": "Bar",
+		"color": "#dd6b20",
+	},
+	{
+		"chart_name": "Applications per Month",
+		"chart_type": "Count",
+		"document_type": "Job Applicant",
+		"based_on": "creation",
+		"timeseries": 1,
+		"time_interval": "Monthly",
+		"timespan": "Last Year",
+		"type": "Line",
+		"color": "#38a169",
+	},
+]
+
+
+def setup_number_cards():
+	"""Membuat Number Card metrik rekrutmen (nama kartu = label)."""
+	for label, doctype, filters, color in NUMBER_CARDS:
+		if frappe.db.exists("Number Card", label):
+			continue
+		doc = frappe.new_doc("Number Card")
+		doc.label = label
+		doc.document_type = doctype
+		doc.function = "Count"
+		doc.filters_json = json.dumps(filters)
+		doc.color = color
+		doc.is_public = 1
+		doc.show_percentage_stats = 1
+		doc.stats_time_interval = "Monthly"
+		doc.insert(ignore_permissions=True)
+
+
+def setup_dashboard_charts():
+	for c in DASHBOARD_CHARTS:
+		if frappe.db.exists("Dashboard Chart", c["chart_name"]):
+			# Keep the shipped look in sync (a donut formatted counts as currency)
+			frappe.db.set_value("Dashboard Chart", c["chart_name"], {"type": c["type"], "color": c.get("color")}, update_modified=False)
+			continue
+		doc = frappe.new_doc("Dashboard Chart")
+		doc.update({**c, "is_public": 1, "filters_json": "[]", "dynamic_filters_json": "[]"})
+		doc.insert(ignore_permissions=True)
+
+
+def _block(kind: str, data: dict | None = None) -> dict:
+	import uuid
+
+	return {"id": uuid.uuid4().hex[:10], "type": kind, "data": data or {}}
+
+
+def _header(text: str, col: int = 12) -> dict:
+	return _block("header", {"text": f'<span class="h4"><b>{text}</b></span>', "col": col})
 
 
 def setup_rekrutmen_workspace():
-	"""Menyiapkan Workspace 'Recruitment' di Desk dengan shortcut dan kartu metrik."""
-	ws_name = "Recruitment"
-	if not frappe.db.exists("Workspace", ws_name):
+	"""Workspace 'Rekrutmen' (modul HRIS ATS): kartu angka, grafik, pintasan, dan kartu tautan.
+
+	Hanya menyentuh workspace milik app ini; workspace 'Recruitment' bawaan HRMS tidak diubah.
+	"""
+	ws_name = "Rekrutmen"
+	if frappe.db.exists("Workspace", ws_name):
+		ws = frappe.get_doc("Workspace", ws_name)
+	else:
 		ws = frappe.new_doc("Workspace")
 		ws.name = ws_name
-		ws.label = "Recruitment"
-		ws.title = "Recruitment"
-		ws.icon = "users"
-		ws.module = "HRIS ATS"
-		ws.public = 1
-		ws.is_hidden = 0
-		ws.sequence_id = 15
-	else:
-		ws = frappe.get_doc("Workspace", ws_name)
+	ws.label = ws_name
+	ws.title = ws_name
+	ws.module = "HRIS ATS"
+	ws.icon = "users"
+	ws.public = 1
+	ws.is_hidden = 0
+	ws.sequence_id = 15
 
-	# Siapkan Shortcuts
-	shortcuts = [
-		{"label": "Job Openings", "type": "DocType", "link_to": "Job Opening", "color": "Blue"},
-		{"label": "Applicants (Kanban)", "type": "DocType", "link_to": "Job Applicant", "color": "Grey"},
-		{"label": "Resume Screening", "type": "DocType", "link_to": "Resume Screening", "color": "Green"},
-		{"label": "Background Check", "type": "DocType", "link_to": "Background Check", "color": "Orange"},
-		{"label": "Interview", "type": "DocType", "link_to": "Interview", "color": "Yellow"},
-		{"label": "Job Offer", "type": "DocType", "link_to": "Job Offer", "color": "Purple"},
-		{"label": "Employee Onboarding", "type": "DocType", "link_to": "Employee Onboarding", "color": "Cyan"},
-		{"label": "Screening Template", "type": "DocType", "link_to": "Resume Screening Template", "color": "Teal"},
-	]
-
-	ws.set("shortcuts", [])
-	for s in shortcuts:
-		if frappe.db.exists("DocType", s["link_to"]):
-			ws.append("shortcuts", s)
-
-	# Siapkan Number Cards
-	cards = [
-		"New Applicants ATS",
-		"Screening Stage ATS",
-		"Background Check Stage ATS",
-		"Interview Stage ATS",
-	]
+	card_names = [c[0] for c in NUMBER_CARDS if frappe.db.exists("Number Card", c[0])]
 	ws.set("number_cards", [])
-	for card in cards:
-		if frappe.db.exists("Number Card", card):
-			ws.append("number_cards", {"number_card_name": card})
+	for name in card_names:
+		ws.append("number_cards", {"number_card_name": name, "label": name})
 
-	ws.save(ignore_permissions=True)
+	chart_names = [c["chart_name"] for c in DASHBOARD_CHARTS if frappe.db.exists("Dashboard Chart", c["chart_name"])]
+	ws.set("charts", [])
+	for name in chart_names:
+		ws.append("charts", {"chart_name": name, "label": name})
+
+	shortcuts = [
+		("Job Opening", "Job Opening", "DocType", "Blue", {"status": "Open"}, "{} Open"),
+		("Job Applicant", "Job Applicant", "DocType", "Grey", {"status": "Open"}, "{} Open"),
+		("Resume Screening", "Resume Screening", "DocType", "Green", None, None),
+		("Background Check", "Background Check", "DocType", "Orange", {"status": ["in", ["Waiting Consent", "Queued", "Crawling"]]}, "{} Active"),
+		("Interview", "Interview", "DocType", "Yellow", None, None),
+		("Job Offer", "Job Offer", "DocType", "Purple", None, None),
+		("Crawl Test", "bgc-crawl-test", "Page", "Cyan", None, None),
+		("Background Check Settings", "Background Check Settings", "DocType", "Grey", None, None),
+	]
+	ws.set("shortcuts", [])
+	used_shortcuts = []
+	for label, link_to, kind, color, stats, fmt in shortcuts:
+		if kind == "DocType" and not frappe.db.exists("DocType", link_to):
+			continue
+		if kind == "Page" and not frappe.db.exists("Page", link_to):
+			continue
+		row = {"label": label, "link_to": link_to, "type": kind, "color": color}
+		if stats:
+			row["stats_filter"] = json.dumps(stats)
+			row["format"] = fmt
+		ws.append("shortcuts", row)
+		used_shortcuts.append(label)
+
+	groups = [
+		(
+			"Rekrutmen",
+			[("Job Opening", "DocType"), ("Job Applicant", "DocType"), ("Interview", "DocType"), ("Job Offer", "DocType"),
+			 ("Appointment Letter", "DocType"), ("Employee Onboarding", "DocType")],
+		),
+		(
+			"Screening Resume",
+			[("Resume Screening", "DocType"), ("Resume Screening Template", "DocType"), ("Resume Screening Settings", "DocType")],
+		),
+		(
+			"Background Check",
+			[("Background Check", "DocType"), ("Background Check Finding", "DocType"), ("Background Check Platform", "DocType"),
+			 ("Background Check Lexicon", "DocType"), ("Background Check Crawler Account", "DocType"),
+			 ("Background Check Settings", "DocType"), ("bgc-crawl-test", "Page")],
+		),
+	]
+	ws.set("links", [])
+	card_blocks = []
+	for group_label, items in groups:
+		ws.append("links", {"type": "Card Break", "label": group_label, "hidden": 0})
+		for link_to, kind in items:
+			if kind == "DocType" and not frappe.db.exists("DocType", link_to):
+				continue
+			label = "Crawl Test" if kind == "Page" else link_to
+			ws.append("links", {"type": "Link", "label": label, "link_type": kind, "link_to": link_to, "onboard": 0})
+		card_blocks.append(_block("card", {"card_name": group_label, "col": 4}))
+
+	content = [_header("Pipeline Rekrutmen")]
+	content += [_block("number_card", {"number_card_name": n, "col": 3}) for n in card_names]
+	content += [_block("spacer"), _header("Analitik")]
+	for i, name in enumerate(chart_names):
+		content.append(_block("chart", {"chart_name": name, "col": 6 if i < 2 else 12}))
+	content += [_block("spacer"), _header("Pintasan")]
+	content += [_block("shortcut", {"shortcut_name": n, "col": 3}) for n in used_shortcuts]
+	content += [_block("spacer"), _header("Menu")]
+	content += card_blocks
+	ws.content = json.dumps(content)
+	ws.flags.ignore_permissions = True
+	ws.save()
 
 
 def setup_roles():
@@ -614,6 +696,7 @@ def after_install():
 	setup_custom_fields()
 	setup_kanban_board()
 	setup_number_cards()
+	setup_dashboard_charts()
 	setup_rekrutmen_workspace()
 	setup_default_platforms()
 	setup_default_lexicon()
@@ -626,6 +709,7 @@ def after_migrate():
 	setup_custom_fields()
 	setup_kanban_board()
 	setup_number_cards()
+	setup_dashboard_charts()
 	setup_rekrutmen_workspace()
 	setup_default_platforms()
 	setup_default_lexicon()

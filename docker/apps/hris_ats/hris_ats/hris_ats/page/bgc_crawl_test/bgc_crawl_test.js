@@ -50,7 +50,31 @@ class BgcCrawlTest {
 			$(`<style id="bgc-ct-css">${BGC_CT_CSS}</style>`).appendTo("head");
 		}
 		this.render_form();
-		frappe.xcall("hris_ats.bgc.crawl_test.get_crawl_test_defaults").then((d) => this.apply_defaults(d));
+		frappe
+			.xcall("hris_ats.bgc.crawl_test.get_crawl_test_defaults")
+			.then((d) => {
+				this.apply_defaults(d);
+				return frappe.xcall("hris_ats.bgc.crawl_test.get_latest_crawl_test");
+			})
+			.then((s) => s && this.resume(s));
+	}
+
+	// A reloaded page shows the last test again (and keeps following it while it is still running)
+	resume(s) {
+		this.test_id = s.test_id;
+		const a = s.args || {};
+		if (a.platform) this.$(".ct-platform").val(a.platform);
+		if (a.username) this.$(".ct-username").val(a.username);
+		if (a.max_posts != null) this.$(".ct-max-posts").val(a.max_posts);
+		if (a.max_comments != null) this.$(".ct-max-comments").val(a.max_comments);
+		if (a.lookback_months != null) this.$(".ct-lookback").val(a.lookback_months);
+		this.$(".ct-consent").prop("checked", true);
+		this.state = s;
+		this.render();
+		if (["Queued", "Running", "Cancelling"].includes(s.status)) {
+			clearInterval(this.timer);
+			this.timer = setInterval(() => this.poll(), 2000);
+		}
 	}
 
 	render_form() {
@@ -120,6 +144,9 @@ class BgcCrawlTest {
 			})
 			.then((r) => {
 				this.test_id = r.test_id;
+				if (r.resumed) {
+					frappe.show_alert({ message: __("A crawl test is already running; showing it."), indicator: "blue" });
+				}
 				this.timer = setInterval(() => this.poll(), 2000);
 				this.poll();
 			})
@@ -130,7 +157,7 @@ class BgcCrawlTest {
 		frappe.xcall("hris_ats.bgc.crawl_test.poll_crawl_test", { test_id: this.test_id }).then((s) => {
 			this.state = s;
 			this.render();
-			if (["Done", "Failed", "Expired"].includes(s.status)) clearInterval(this.timer);
+			if (["Done", "Failed", "Expired", "Cancelled"].includes(s.status)) clearInterval(this.timer);
 		});
 	}
 
@@ -153,10 +180,11 @@ class BgcCrawlTest {
 	render() {
 		const s = this.state || {};
 		const res = s.result || {};
-		const color = { Done: "green", Failed: "red", Running: "blue", Queued: "gray", Expired: "gray" }[s.status] || "gray";
+		const color = { Done: "green", Failed: "red", Running: "blue", Queued: "orange", Cancelling: "orange", Cancelled: "gray", Expired: "gray" }[s.status] || "gray";
+		const active = ["Queued", "Running", "Cancelling"].includes(s.status);
 		const posts = res.posts || [];
 		const comments = res.comments || [];
-		const finished = ["Done", "Failed"].includes(s.status);
+		const finished = ["Done", "Failed", "Cancelled"].includes(s.status);
 		const log = (s.log || [])
 			.map((l) => `<div><span class="text-muted">${l.t}s</span> ${this.esc(l.message)}</div>`)
 			.join("");
@@ -176,7 +204,9 @@ class BgcCrawlTest {
 					<span class="ct-chip">${__("Duration")}: ${s.seconds != null ? s.seconds + " s" : "-"}</span>
 					<span class="ct-chip">${__("Mode")}: ${val(res.mode_used)}</span>
 					<span class="ct-chip">${__("Crawler account")}: ${val(res.crawler_account)}</span>
+					${active ? `<button type="button" class="btn btn-xs btn-default ct-cancel" ${s.status === "Cancelling" ? "disabled" : ""}>${__("Cancel")}</button>` : ""}
 				</div>
+				${s.status === "Queued" ? `<div class="text-muted mb-2">${__("Waiting for a free browser worker. Another crawl may be running; this will start right after it.")}</div>` : ""}
 				${notes}
 				${s.result ? `<dl class="ct-profile">
 					<dt>${__("Name")}</dt><dd>${val(res.display_name)}</dd>
@@ -197,6 +227,9 @@ class BgcCrawlTest {
 			</div>` : ""}
 			<details class="ct-card" ${finished ? "" : "open"}><summary>${__("Log")}</summary><div class="ct-log">${log || "-"}</div></details>
 		`);
+		this.$(".ct-cancel").on("click", () => {
+			frappe.xcall("hris_ats.bgc.crawl_test.cancel_crawl_test", { test_id: this.test_id }).then(() => this.poll());
+		});
 		this.$(".ct-tab").on("click", (e) => {
 			this.tab = $(e.currentTarget).data("tab");
 			this.render();

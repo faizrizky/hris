@@ -13,3 +13,5 @@ hris_ats.patches.v1_0.set_default_comments_setting_and_finding_type
 hris_ats.patches.v1_0.mark_anonymous_crawler_sessions
 hris_ats.patches.v1_0.set_lookback_unlimited
 hris_ats.patches.v1_0.add_threads_platform
+hris_ats.patches.v1_0.rebuild_rekrutmen_workspace
+hris_ats.patches.v1_0.cleanup_ats_number_cards
