@@ -5,17 +5,27 @@ import { translate } from "@/i18n";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { recordServerContact } from "@/services/trustedTime";
 
-// Alamat server bawaan dari build; pengguna bisa menggantinya di layar login
-// (disimpan di HP) supaya pindah IP/jaringan tidak perlu build ulang.
+// Alamat server bawaan dari build; diganti alamat site company hasil kode company
+// (lihat services/tenant.ts), disimpan di HP.
 export const DEFAULT_SERVER_ADDRESS =
   process.env.EXPO_PUBLIC_API_BASE_URL ?? "";
 const ADDRESS_STORAGE_KEY = "hris.serverUrl";
+const SITE_STORAGE_KEY = "hris.site";
 let BASE_URL = DEFAULT_SERVER_ADDRESS;
-const addressReady = AsyncStorage.getItem(ADDRESS_STORAGE_KEY)
-  .then((v) => {
+// Satu server melayani banyak site (satu per company); header ini memilih site-nya.
+let SITE = "";
+const addressReady = Promise.all([
+  AsyncStorage.getItem(ADDRESS_STORAGE_KEY).then((v) => {
     if (v) BASE_URL = v;
-  })
-  .catch(() => {});
+  }),
+  AsyncStorage.getItem(SITE_STORAGE_KEY).then((v) => {
+    if (v) SITE = v;
+  }),
+]).catch(() => {});
+
+export function siteHeaders(): Record<string, string> {
+  return SITE ? { "X-Frappe-Site-Name": SITE } : {};
+}
 
 // Alamat server siap dipakai setelah alamat tersimpan (jika ada) selesai dibaca.
 export async function loadServerAddress(): Promise<string> {
@@ -28,13 +38,19 @@ export function getServerAddress(): string {
 }
 
 // Kosong = kembali ke alamat bawaan build. Mengembalikan alamat yang dipakai.
-export async function setServerAddress(input: string): Promise<string> {
+export async function setServerAddress(
+  input: string,
+  site = "",
+): Promise<string> {
   let url = input.trim().replace(/\/+$/, "");
   if (url && !/^https?:\/\//i.test(url)) url = `http://${url}`;
   BASE_URL = url || DEFAULT_SERVER_ADDRESS;
+  SITE = site;
   try {
     if (url) await AsyncStorage.setItem(ADDRESS_STORAGE_KEY, url);
     else await AsyncStorage.removeItem(ADDRESS_STORAGE_KEY);
+    if (site) await AsyncStorage.setItem(SITE_STORAGE_KEY, site);
+    else await AsyncStorage.removeItem(SITE_STORAGE_KEY);
   } catch {
     // penyimpanan gagal: alamat tetap dipakai selama aplikasi terbuka
   }
@@ -116,6 +132,7 @@ async function request<T>(
       method,
       headers: {
         Accept: "application/json",
+        ...siteHeaders(),
         // Untuk multipart, Content-Type (beserta boundary) diisi runtime.
         ...(isForm
           ? { "Content-Type": "application/x-www-form-urlencoded" }
@@ -183,7 +200,10 @@ export async function downloadFile(path: string): Promise<Uint8Array> {
   if (!BASE_URL) throw new ApiError(translate("err.noBase"), 0, null);
   let res: Response;
   try {
-    res = await fetch(`${BASE_URL}${path}`, { credentials: "include" });
+    res = await fetch(`${BASE_URL}${path}`, {
+      credentials: "include",
+      headers: siteHeaders(),
+    });
   } catch {
     throw new ApiError(translate("err.network"), 0, "Network");
   }
@@ -208,6 +228,9 @@ export function describeError(e: unknown): string {
     }
     if (e.excType === "OverlapError") {
       return translate("err.bentrokCuti");
+    }
+    if (e.excType === "UnknownCompany" || e.excType === "RateLimited") {
+      return e.message;
     }
     if (e.excType === "TooLarge" || e.excType === "NoAppraisal") {
       return e.message;

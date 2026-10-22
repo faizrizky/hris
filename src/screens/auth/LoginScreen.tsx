@@ -17,6 +17,7 @@ import { useT } from "@/i18n";
 import { LanguagePicker } from "@/components/LanguagePicker";
 import { LogoHris } from "@/components/LogoHris";
 import { useLogin } from "@/hooks/useLogin";
+import { useTenant } from "@/services/tenant";
 
 export function LoginScreen() {
   const {
@@ -31,13 +32,10 @@ export function LoginScreen() {
     isShowPassword,
     setIsShowPassword,
     error,
-    server,
-    setServer,
-    isServerOpen,
-    setIsServerOpen,
     signInWithBiometric,
     handleLogin,
   } = useLogin();
+  const { tenant, gantiCompany } = useTenant();
   const insets = useSafeAreaInsets();
   const t = useT();
   const c = useTheme();
@@ -119,26 +117,13 @@ export function LoginScreen() {
             </View>
           </View>
 
-          <Pressable onPress={() => setIsServerOpen((v) => !v)}>
+          <Pressable onPress={gantiCompany} disabled={isLoading}>
             <Text style={styles.serverToggle}>
-              {t("login.server")}: {server || "—"}
+              {t("kode.company", { nama: tenant?.nama ?? "—" })}
+              {"  ·  "}
+              {t("kode.ganti")}
             </Text>
           </Pressable>
-          {isServerOpen && (
-            <View style={[styles.fieldBox, { marginTop: 8 }]}>
-              <Text style={styles.fieldLabel}>{t("login.alamatServer")}</Text>
-              <TextInput
-                style={styles.fieldInput}
-                value={server}
-                onChangeText={setServer}
-                autoCapitalize="none"
-                autoCorrect={false}
-                keyboardType="url"
-                placeholder="http://192.168.1.43:8082"
-                placeholderTextColor={c.mutedLabel}
-              />
-            </View>
-          )}
 
           <View style={styles.rowBetween}>
             <Pressable

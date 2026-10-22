@@ -11,7 +11,7 @@ import * as Application from "expo-application";
 import * as Updates from "expo-updates";
 import * as FileSystem from "expo-file-system/legacy";
 import * as IntentLauncher from "expo-intent-launcher";
-import { loadServerAddress } from "@/services/api/http";
+import { loadServerAddress, siteHeaders } from "@/services/api/http";
 
 export const UPDATE_MODE: "unduh" | "toko" = "unduh";
 export const URL_TOKO = {
@@ -42,6 +42,7 @@ export async function checkAppUpdate(): Promise<UpdateInfo | null> {
     const base = await loadServerAddress();
     if (!base) return null;
     const res = await fetch(`${base}/api/method/hris_get_app_update`, {
+      headers: siteHeaders(),
       signal: abortController.signal,
     });
     if (!res.ok) return null;
@@ -87,7 +88,7 @@ export async function downloadAndInstall(
   const download = FileSystem.createDownloadResumable(
     info.apkUrl,
     destination,
-    {},
+    { headers: siteHeaders() },
     (p) => {
       const total = p.totalBytesExpectedToWrite || info.size;
       if (total > 0) onProgress(Math.min(1, p.totalBytesWritten / total));
@@ -114,9 +115,14 @@ export async function downloadAndInstall(
 // Tidak aktif di Expo Go / mode pengembangan.
 export async function checkAndApplyOta(
   onStage: (stage: "unduh") => void,
+  channel?: string,
 ): Promise<boolean> {
   if (__DEV__ || !Updates.isEnabled) return false;
   try {
+    // Channel per company dari registry (mis. "pilot"); kosong = channel bawaan build.
+    Updates.setUpdateRequestHeadersOverride(
+      channel ? { "expo-channel-name": channel } : null,
+    );
     const checkResult = await Promise.race([
       Updates.checkForUpdateAsync(),
       new Promise<null>((r) => setTimeout(() => r(null), CHECK_TIMEOUT_MS)),

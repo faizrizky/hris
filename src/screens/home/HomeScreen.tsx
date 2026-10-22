@@ -10,6 +10,7 @@ import { RadialGlow } from "@/components/RadialGlow";
 import { Palette, secondaryButtonStyle } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
 import { useSession } from "@/services/session";
+import { useTenant, type Fitur } from "@/services/tenant";
 import { LinearGradient } from "expo-linear-gradient";
 import { getShiftInfo, employeeGreeting } from "@/utils/greeting";
 import { formatLongDate, formatJam } from "@/utils/date";
@@ -65,6 +66,17 @@ const MENU_SECTION_OF: Record<string, MenuSectionKey> = {
   faceReview: "team",
 };
 
+// Menu fitur berbayar disembunyikan bila tidak termasuk paket langganan company.
+const MENU_FITUR: Partial<Record<string, Fitur>> = {
+  requestOvertime: "lembur",
+  overtimeList: "lembur",
+  trip: "dinas_wfh",
+  wfh: "dinas_wfh",
+  appraisal: "penilaian_kinerja",
+  tax: "pajak_bpjs",
+  documentReview: "dokumen",
+};
+
 export function HomeScreen() {
   const {
     now,
@@ -78,6 +90,7 @@ export function HomeScreen() {
     load,
   } = useHome();
   const t = useT();
+  const { punyaFitur } = useTenant();
   const { employee } = useSession();
   const insets = useSafeAreaInsets();
   const c = useTheme();
@@ -314,7 +327,10 @@ export function HomeScreen() {
           ),
         ]
       : []),
-  ].filter((m) => !alreadyInTabs.has(m.key));
+  ].filter((m) => {
+    const f = MENU_FITUR[m.key];
+    return !alreadyInTabs.has(m.key) && (!f || punyaFitur(f));
+  });
   const menuSections = MENU_SECTIONS.map((section) => ({
     ...section,
     items: allMenuItems.filter((m) => MENU_SECTION_OF[m.key] === section.key),

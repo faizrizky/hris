@@ -463,28 +463,47 @@ const SERVER_EXPENSE_KINDS: Record<string, string> = {
 // Pemisah format "kategori|keterangan|nominal;..." tidak boleh ada di isi.
 const clean = (t: string) => t.replace(/[|;]/g, " ").trim();
 
+// Fitur di luar paket langganan company ditolak server (docker/seed/seed.py, "# @fitur:"). Daftar gabungan
+// (cuti + lembur + dinas + WFH) tetap tampil: bagian yang di luar paket dianggap kosong, bukan galat.
+async function emptyIfNotInPlan<T>(load: Promise<T[]>): Promise<T[]> {
+  try {
+    return await load;
+  } catch (e) {
+    if (
+      e instanceof ApiError &&
+      e.excType === "PermissionError" &&
+      e.message.includes("subscription plan")
+    )
+      return [];
+    throw e;
+  }
+}
+
 async function fetchOvertime(tim: boolean): Promise<LeaveRequest[]> {
-  const res = await get<{ message: OvertimeRow[] }>(
-    "/api/method/hris_get_overtimes",
-    tim ? { scope: "team" } : undefined,
+  return emptyIfNotInPlan(
+    get<{ message: OvertimeRow[] }>(
+      "/api/method/hris_get_overtimes",
+      tim ? { scope: "team" } : undefined,
+    ).then((res) => res.message.map((r) => mapOvertime(r))),
   );
-  return res.message.map((r) => mapOvertime(r));
 }
 
 async function fetchTrips(tim: boolean): Promise<LeaveRequest[]> {
-  const res = await get<{ message: TripRow[] }>(
-    "/api/method/hris_get_travel_requests",
-    tim ? { scope: "team" } : undefined,
+  return emptyIfNotInPlan(
+    get<{ message: TripRow[] }>(
+      "/api/method/hris_get_travel_requests",
+      tim ? { scope: "team" } : undefined,
+    ).then((res) => res.message.map((r) => mapTrip(r))),
   );
-  return res.message.map((r) => mapTrip(r));
 }
 
 async function fetchWfh(tim: boolean): Promise<LeaveRequest[]> {
-  const res = await get<{ message: WfhRow[] }>(
-    "/api/method/hris_get_wfh",
-    tim ? { scope: "team" } : undefined,
+  return emptyIfNotInPlan(
+    get<{ message: WfhRow[] }>(
+      "/api/method/hris_get_wfh",
+      tim ? { scope: "team" } : undefined,
+    ).then((res) => res.message.map((r) => mapWfh(r))),
   );
-  return res.message.map((r) => mapWfh(r));
 }
 
 const newestFirst = (a: LeaveRequest, b: LeaveRequest) =>

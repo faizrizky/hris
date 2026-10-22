@@ -14,6 +14,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { RadialGlow } from "@/components/RadialGlow";
+import { useTenant } from "@/services/tenant";
 import { Skeleton } from "@/components/Skeleton";
 import { Palette } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
@@ -39,6 +40,7 @@ export function ProfileScreen({ navigation }: ScreenProps) {
   const { employee, setEmployee } = useSession();
   const insets = useSafeAreaInsets();
   const t = useT();
+  const { punyaFitur } = useTenant();
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
   const confirm = useConfirm();
@@ -156,16 +158,19 @@ export function ProfileScreen({ navigation }: ScreenProps) {
             title={t("profil.dataPribadi")}
             subtitle={t("profil.dataPribadiSub")}
             onPress={() => navigation.navigate("ProfileData")}
+            isLast={!punyaFitur("dokumen")}
           />
-          <MenuRow
-            iconBg={c.ok.bg}
-            ink={c.ok.ink}
-            icon="document-text-outline"
-            title={t("profil.dokumen")}
-            subtitle={t("profil.dokumenSub")}
-            onPress={() => navigation.navigate("ProfileDocs")}
-            isLast
-          />
+          {punyaFitur("dokumen") && (
+            <MenuRow
+              iconBg={c.ok.bg}
+              ink={c.ok.ink}
+              icon="document-text-outline"
+              title={t("profil.dokumen")}
+              subtitle={t("profil.dokumenSub")}
+              onPress={() => navigation.navigate("ProfileDocs")}
+              isLast
+            />
+          )}
         </View>
 
         <SectionLabel

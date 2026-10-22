@@ -3,22 +3,18 @@
 
 import { useEffect } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { getServerAddress } from "@/services/api/http";
 import { getBiometricName } from "@/services/biometric";
 
 export const USERNAME_STORAGE_KEY = "hris.username";
-const SERVER_ADDRESS_READ_MS = 300; // alamat tersimpan dibaca asinkron; isi kolom setelah siap
 
 interface LoginPrefillHandlers {
   onSavedUsername: (username: string) => void;
   onBiometricName: (name: string) => void;
-  onServerAddress: (address: string) => void;
 }
 
 export function useLoginPrefill({
   onSavedUsername,
   onBiometricName,
-  onServerAddress,
 }: LoginPrefillHandlers) {
   // "Ingat saya": username terakhir diisi otomatis (password tidak pernah disimpan).
   useEffect(() => {
@@ -33,12 +29,4 @@ export function useLoginPrefill({
   useEffect(() => {
     getBiometricName().then(onBiometricName);
   }, [onBiometricName]);
-
-  useEffect(() => {
-    const timer = setTimeout(
-      () => onServerAddress(getServerAddress()),
-      SERVER_ADDRESS_READ_MS,
-    );
-    return () => clearTimeout(timer);
-  }, [onServerAddress]);
 }

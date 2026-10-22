@@ -32,7 +32,6 @@ import { WfhDetailCard } from "./WfhFormCards";
 import { goBackAnimated, goHome } from "@/navigation/navigationBack";
 import {
   useLeaveRequestForm,
-  FORM_SEGMENTS,
   FormKind,
   LeaveRequestParams,
 } from "@/hooks/useLeaveRequestForm";
@@ -121,6 +120,7 @@ function LeaveRequestForm({ navigation, route }: ScreenProps) {
     calHint,
     footer,
     approvalSteps,
+    segments,
   } = useLeaveRequestForm({ route });
   const t = useT();
   const insets = useSafeAreaInsets();
@@ -158,16 +158,15 @@ function LeaveRequestForm({ navigation, route }: ScreenProps) {
                 styles.segIndicator,
                 {
                   width:
-                    (segW - 8 - 4 * (FORM_SEGMENTS.length - 1)) /
-                    FORM_SEGMENTS.length,
+                    (segW - 8 - 4 * (segments.length - 1)) / segments.length,
                   transform: [
                     {
                       translateX: slide.interpolate({
-                        inputRange: FORM_SEGMENTS.map((_, i) => i),
-                        outputRange: FORM_SEGMENTS.map(
+                        inputRange: segments.map((_, i) => i),
+                        outputRange: segments.map(
                           (_, i) =>
-                            ((segW - 8 - 4 * (FORM_SEGMENTS.length - 1)) /
-                              FORM_SEGMENTS.length +
+                            ((segW - 8 - 4 * (segments.length - 1)) /
+                              segments.length +
                               4) *
                             i,
                         ),
@@ -178,7 +177,7 @@ function LeaveRequestForm({ navigation, route }: ScreenProps) {
               ]}
             />
           )}
-          {FORM_SEGMENTS.map((s) => {
+          {segments.map((s) => {
             const isOn = kind === s.key;
             return (
               <Pressable

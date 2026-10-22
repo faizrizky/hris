@@ -2,11 +2,7 @@ import { useState, useEffect, useEffectEvent } from "react";
 import { USERNAME_STORAGE_KEY, useLoginPrefill } from "@/hooks/useLoginPrefill";
 import { hrisApi } from "@/services/api";
 import { useSession } from "@/services/session";
-import {
-  getServerAddress,
-  setServerAddress,
-  describeError,
-} from "@/services/api/http";
+import { describeError } from "@/services/api/http";
 import { useT } from "@/i18n";
 import { useConfirm } from "@/components/ConfirmDialog";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -28,12 +24,9 @@ export function useLogin() {
   const [biometricName, setBiometricName] = useState("sidik jari / wajah");
   const [isShowPassword, setIsShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [server, setServer] = useState(getServerAddress());
-  const [isServerOpen, setIsServerOpen] = useState(false);
   useLoginPrefill({
     onSavedUsername: setEmail,
     onBiometricName: setBiometricName,
-    onServerAddress: setServer,
   });
   const showSessionNotice = useEffectEvent(() => {
     void confirm({
@@ -60,7 +53,6 @@ export function useLogin() {
     if (!credentials) return; // dibatalkan atau gagal verifikasi
     setIsLoading(true);
     try {
-      setServer(await setServerAddress(server));
       const employee = await hrisApi.login(credentials.u, credentials.p);
       setEmployee(employee);
     } catch {
@@ -74,7 +66,6 @@ export function useLogin() {
     setIsLoading(true);
     setError(null);
     try {
-      setServer(await setServerAddress(server));
       const employee = await hrisApi.login(email.trim(), password);
 
       if (isRememberMe) {
@@ -103,10 +94,6 @@ export function useLogin() {
     isShowPassword,
     setIsShowPassword,
     error,
-    server,
-    setServer,
-    isServerOpen,
-    setIsServerOpen,
     signInWithBiometric,
     handleLogin,
   };

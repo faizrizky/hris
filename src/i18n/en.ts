@@ -952,8 +952,21 @@ export const en: Record<TranslationKey, string> = {
   "hari.fri": "Fri",
   "hari.sat": "Sat",
   "hari.sun": "Sun",
-  "login.server": "Server",
-  "login.alamatServer": "Server address",
+  "kode.judul": "Enter your company code",
+  "kode.sub":
+    "Your company's HR gives you this code. You only need it once on this phone.",
+  "kode.label": "Company code",
+  "kode.isi": "e.g. PTMAJU",
+  "kode.lanjut": "Continue",
+  "kode.kosong": "Enter your company code",
+  "kode.tidakDikenal":
+    "This company code is not registered or no longer active",
+  "kode.terlaluSering": "Too many attempts. Please try again shortly.",
+  "kode.company": "Company: {nama}",
+  "kode.ganti": "Change company",
+  "kode.berakhirJudul": "Subscription ended",
+  "kode.berakhirSub":
+    "The HRIS subscription for {nama} has ended. Please contact your HR or company admin.",
   "face.izin":
     "Allow the front camera to confirm you are present. Photos are not saved.",
   "face.beriIzin": "Allow camera",

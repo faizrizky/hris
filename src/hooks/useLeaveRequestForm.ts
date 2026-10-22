@@ -12,6 +12,7 @@ import { TransportMode } from "@/screens/leave/TripFormCards";
 import { Expense, totalExpense } from "@/screens/leave/TripExpenseCard";
 import { hrisApi } from "@/services/api";
 import { useSession } from "@/services/session";
+import { useTenant, type Fitur } from "@/services/tenant";
 import { LeaveBalance, Colleague, LeaveApprover } from "@/services/types";
 import { FooterItem } from "@/components/DatePickerCard";
 import {
@@ -38,6 +39,13 @@ export const FORM_SEGMENTS = [
 
 export type FormKind = (typeof FORM_SEGMENTS)[number]["key"];
 
+// Pengajuan di luar paket langganan company tidak ditawarkan.
+const SEGMENT_FITUR: Partial<Record<FormKind, Fitur>> = {
+  lembur: "lembur",
+  dinas: "dinas_wfh",
+  wfh: "dinas_wfh",
+};
+
 export const FORM_META = {
   cuti: { title: "lr.judulCuti", subtitle: "Leave Application" },
   lembur: { title: "lr.judulLembur", subtitle: "Overtime Request" },
@@ -54,6 +62,11 @@ export function useLeaveRequestForm({ route }: Pick<ScreenProps, "route">) {
   const t = useT();
   const confirm = useConfirm();
   const { employee } = useSession();
+  const { punyaFitur } = useTenant();
+  const segments = FORM_SEGMENTS.filter((s) => {
+    const f = SEGMENT_FITUR[s.key];
+    return !f || punyaFitur(f);
+  });
   const [balances, setBalances] = useState<LeaveBalance[]>([]);
   const [leaveKind, setLeaveKind] = useState<LeaveKind>("Tahunan");
   const [gender, setGender] = useState<"F" | "M" | null>(null);
@@ -65,7 +78,7 @@ export function useLeaveRequestForm({ route }: Pick<ScreenProps, "route">) {
   );
   const [segW, setSegW] = useState(0);
   const [slide] = useState(
-    () => new Animated.Value(FORM_SEGMENTS.findIndex((x) => x.key === kind)),
+    () => new Animated.Value(segments.findIndex((x) => x.key === kind)),
   );
   const [appear] = useState(() => new Animated.Value(1));
   const [otEndRaw, setOtEndRaw] = useState(0);
@@ -105,7 +118,7 @@ export function useLeaveRequestForm({ route }: Pick<ScreenProps, "route">) {
     setDone(null);
     setErrorMessage(null);
     Animated.timing(slide, {
-      toValue: FORM_SEGMENTS.findIndex((x) => x.key === k),
+      toValue: segments.findIndex((x) => x.key === k),
       duration: 260,
       easing: Easing.out(Easing.cubic),
       useNativeDriver: true,
@@ -432,6 +445,7 @@ export function useLeaveRequestForm({ route }: Pick<ScreenProps, "route">) {
       ]
     : [];
   return {
+    segments,
     leaveKind,
     setLeaveKind,
     gender,

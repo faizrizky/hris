@@ -27,6 +27,7 @@ import {
   type UpdateInfo,
 } from "@/services/appUpdate";
 import { useT } from "@/i18n";
+import { useTenant } from "@/services/tenant";
 
 const EASE = Easing.bezier(0.25, 0.1, 0.25, 1);
 const NAMA = "HRIS".split("");
@@ -53,6 +54,7 @@ export function AnimatedSplash({ onDone }: { onDone: () => void }) {
   const [updateInfo, setUpdateInfo] = useState<UpdateInfo | null>(null);
   const [progress, setProgress] = useState(0);
   const t = useT();
+  const { tenant, isReady: isTenantReady, segarkan } = useTenant();
 
   useEffect(() => {
     // Layar native disembunyikan setelah layar ini siap, supaya tidak ada kedipan putih.
@@ -133,10 +135,13 @@ export function AnimatedSplash({ onDone }: { onDone: () => void }) {
     }
   };
 
-  // Setelah animasi selesai: periksa pembaruan. Pembaruan wajib menahan layar ini sampai terpasang.
-  const isCheckingStage = stage === "cek";
+  // Setelah animasi selesai: periksa company lalu pembaruan. Pembaruan wajib menahan layar ini sampai terpasang.
+  const isCheckingStage = stage === "cek" && isTenantReady;
   const handleExitSplash = useEffectEvent(exitSplash);
   const handleStartDownload = useEffectEvent(startDownload);
+  // Belum ada company: langsung ke layar kode company; layar ini diputar lagi setelah kode dipilih.
+  const readTenant = useEffectEvent(() => tenant);
+  const refreshTenant = useEffectEvent(segarkan);
   useEffect(() => {
     if (!isCheckingStage) return;
     let isCancelled = false;
@@ -147,11 +152,14 @@ export function AnimatedSplash({ onDone }: { onDone: () => void }) {
       useNativeDriver: true,
     }).start();
     (async () => {
+      const company = readTenant();
+      if (!company) return handleExitSplash();
+      await refreshTenant(); // paket/fitur terbaru; kode yang dicabut mengembalikan ke layar kode
       const baru = await checkAppUpdate();
       if (isCancelled) return;
       if (!baru || !baru.mandatory) {
         // Tidak ada APK baru: cek paket JavaScript (EAS Update); bila ada, aplikasi dimuat ulang sendiri.
-        await checkAndApplyOta(() => setStage("ota"));
+        await checkAndApplyOta(() => setStage("ota"), company.channel);
         handleExitSplash();
         return;
       }

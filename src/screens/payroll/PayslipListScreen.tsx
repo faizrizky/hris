@@ -18,6 +18,7 @@ import { PdfButton } from "@/components/PdfButton";
 import { Skeleton } from "@/components/Skeleton";
 import { ErrorState } from "@/components/ErrorState";
 import { useT } from "@/i18n";
+import { useTenant } from "@/services/tenant";
 import { goBackOrHome } from "@/navigation/navigationBack";
 import { usePayslipList } from "@/hooks/usePayslipList";
 
@@ -25,6 +26,7 @@ export function PayslipListScreen({ navigation }: ScreenProps) {
   const { slip, payslips, isPayslipLoading, latest, previous } =
     usePayslipList();
   const t = useT();
+  const { punyaFitur } = useTenant();
   const insets = useSafeAreaInsets();
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
@@ -113,7 +115,9 @@ export function PayslipListScreen({ navigation }: ScreenProps) {
               lines={latest.deductions}
               totalLabel={t("pay.totalPotongan")}
               total={latest.totalDeduction}
-              linkLabel={t("pay.rincian")}
+              linkLabel={
+                punyaFitur("pajak_bpjs") ? t("pay.rincian") : undefined
+              }
               onLink={() => navigation.navigate("TaxDetail")}
             />
           </>

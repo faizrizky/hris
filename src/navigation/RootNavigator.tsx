@@ -8,6 +8,8 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { useSession } from "@/services/session";
 import { FloatingTabBar } from "@/components/FloatingTabBar";
 import { LoginScreen } from "@/screens/auth/LoginScreen";
+import { CompanyCodeScreen } from "@/screens/auth/CompanyCodeScreen";
+import { useTenant } from "@/services/tenant";
 import { HomeScreen } from "@/screens/home/HomeScreen";
 import { ClockScreen } from "@/screens/attendance/ClockScreen";
 import { AttendanceHistoryScreen } from "@/screens/attendance/AttendanceHistoryScreen";
@@ -304,7 +306,9 @@ function MainTabs() {
 }
 
 export function RootNavigator() {
-  const { employee, isReady } = useSession();
+  const { employee, isReady: isSessionReady } = useSession();
+  const { tenant, langganan, isReady: isTenantReady } = useTenant();
+  const isReady = isSessionReady && isTenantReady;
   const c = useTheme();
 
   // Tombol kembali Android (fisik/gestur sistem) tidak lewat `kembali()`, sehingga halaman tujuan tidak memutar animasi
@@ -328,7 +332,16 @@ export function RootNavigator() {
 
   return (
     <NavigationContainer>
-      {employee ? (
+      {/* Kode company dulu, lalu login; langganan berakhir mengunci seluruh aplikasi. */}
+      {!tenant ? (
+        <RevealScope>
+          <CompanyCodeScreen />
+        </RevealScope>
+      ) : langganan && !langganan.aktif ? (
+        <RevealScope>
+          <CompanyCodeScreen isExpired />
+        </RevealScope>
+      ) : employee ? (
         <MainTabs />
       ) : (
         <RevealScope>
