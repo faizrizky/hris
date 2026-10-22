@@ -13,7 +13,8 @@
       },
       "env": {
         "EXPO_PUBLIC_API_BASE_URL": "http://192.168.1.43:8082",
-        "EXPO_PUBLIC_USE_ERPNEXT": "1"
+        "EXPO_PUBLIC_USE_ERPNEXT": "1",
+        "EXPO_PUBLIC_REGISTRY_SITE": "admin.localhost"
       },
       "channel": "development"
     },
@@ -25,7 +26,8 @@
       },
       "env": {
         "EXPO_PUBLIC_API_BASE_URL": "http://192.168.1.43:8082",
-        "EXPO_PUBLIC_USE_ERPNEXT": "1"
+        "EXPO_PUBLIC_USE_ERPNEXT": "1",
+        "EXPO_PUBLIC_REGISTRY_SITE": "admin.localhost"
       },
       "autoIncrement": true,
       "channel": "preview"

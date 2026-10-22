@@ -1641,6 +1641,8 @@ if frappe.db.exists("Sidebar", "HR Setup"):
     from frappe.desk.doctype.custom_sidebar.custom_sidebar import add_site_sidebar_item as _asi
     _asi("HR Setup", dict(label="App Update", type="Link", link_type="DocType", link_to="App Update", icon="upload",
                           collapsible=1))
+    _asi("HR Setup", dict(label="Langganan HRIS", type="Link", link_type="DocType", link_to="Langganan HRIS",
+                          icon="star", collapsible=1))
     frappe.db.commit()
 
 # Sidebar HR Setup: Profile Change Request, Face Enrollment, Face Settings. Sebelumnya Profile Change Request ada di Leaves
