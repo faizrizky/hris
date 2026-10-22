@@ -1,6 +1,7 @@
 # Server Script (type: API, method: hris_delete_my_document, allow_guest: 0)
 # POST: name. Hapus Employee Document milik pemanggil HANYA bila status Pending dan belum ada File terlampir
 # (dipakai aplikasi bila upload_file gagal setelah hris_create_my_document). Notification Log terkait ikut dihapus.
+# @fitur: dokumen
 name = frappe.form_dict.get("name")
 if not name or not frappe.db.exists("Employee Document", name):
     frappe.throw("Document not found")

@@ -1,6 +1,7 @@
 # Server Script (type: API, method: hris_get_announcements, allow_guest: 0)
 # GET ?limit=30. Pengumuman published, belum kedaluwarsa, sesuai audience pemanggil (semua / departemennya).
 # Hasil: [{"name","title","content","content_html","priority","published_on","expires_on","attachments","posted_by"}]
+# @fitur: pengumuman
 limit = int(frappe.form_dict.get("limit") or 30)
 if limit > 100:
     limit = 100

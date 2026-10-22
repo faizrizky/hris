@@ -1,6 +1,7 @@
 # Server Script (type: API, method: hris_decide_travel_request, allow_guest: 0)
 # POST body: name, decision ("approve" | "reject"). Hanya atasan langsung pemohon atau HR User/Manager,
 # dan bukan untuk dokumen milik sendiri. approve = submit Travel Request; reject = custom_rejected=1.
+# @fitur: dinas_wfh
 user = frappe.session.user
 name = frappe.form_dict.get("name")
 decision = frappe.form_dict.get("decision")

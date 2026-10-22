@@ -1,6 +1,7 @@
 # Server Script (type: API, method: hris_decide_wfh, allow_guest: 0)
 # POST: name, decision ("approve" | "reject"), note (opsional). Hanya atasan langsung pemohon atau
 # HR User/Manager, bukan untuk pengajuan milik sendiri. Hanya status Pending.
+# @fitur: dinas_wfh
 user = frappe.session.user
 name = frappe.form_dict.get("name")
 decision = frappe.form_dict.get("decision")

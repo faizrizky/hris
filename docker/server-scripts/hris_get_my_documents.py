@@ -1,6 +1,7 @@
 # Server Script (type: API, method: hris_get_my_documents, allow_guest: 0)
 # Dokumen digital milik pemanggil, terbaru dulu. "expiring" dihitung oleh aplikasi dari expires_on.
 # Hasil: [{"name","document_name","category","ext","size_bytes","uploaded_on","expires_on","status","file_url"}]
+# @fitur: dokumen
 result = []
 me = frappe.get_all("Employee", filters={"user_id": frappe.session.user, "status": "Active"},
                     fields=["name"], limit_page_length=1)

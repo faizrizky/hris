@@ -6,6 +6,7 @@
 # category: Travel | Food | Medical | Calls | Others (selain itu -> Others).
 # custom_timezone diisi dari kota tujuan (default Asia/Jakarta); HR dapat mengubahnya di web.
 # Hasil: {"name","destination","from_date","to_date","transport","purpose","timezone","costs":[...],"status":"pending"}
+# @fitur: dinas_wfh
 fd = frappe.form_dict
 destination = (fd.get("destination") or "").strip()
 from_date = fd.get("from_date")

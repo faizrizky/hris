@@ -3,6 +3,7 @@
 # Hasil: {"cycle","method","score","max_score","rating","rating_tone":"ok|info|warn|bad",
 #         "raters":[{"name","score","weight"}], "goals":[{"name","progress","note"}]}
 # score = final_score Appraisal (skala 0-5). rating diturunkan dari score. weight = 100 / jumlah penilai.
+# @fitur: penilaian_kinerja
 result = None
 me = frappe.get_all("Employee", filters={"user_id": frappe.session.user, "status": "Active"},
                     fields=["name"], limit_page_length=1)

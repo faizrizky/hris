@@ -1,0 +1,16 @@
+# Pemilihan site Frappe per request untuk bench multi-site (satu site per company klien).
+# Urutan: header X-Frappe-Site-Name (dikirim aplikasi mobile) > Host > site default.
+# Disisipkan ke blok http nginx sebelum frappe.conf; FRAPPE_SITE_NAME_HEADER di compose diisi $hris_site.
+
+# IP dan localhost tidak pernah menjadi nama site (HP di LAN membuka lewat IP Mac), jadi diarahkan ke site default.
+map $host $hris_site_by_host {
+	default $host;
+	~^[0-9.]+$ ${DEFAULT_SITE};
+	localhost ${DEFAULT_SITE};
+}
+
+# Nilai header dipakai di try_files, jadi hanya nama host yang sah yang diterima (menolak "..", "/", dsb.).
+map $http_x_frappe_site_name $hris_site {
+	~^[a-z0-9-]+(\.[a-z0-9-]+)+$ $http_x_frappe_site_name;
+	default $hris_site_by_host;
+}

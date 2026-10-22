@@ -4,6 +4,7 @@
 # days kosong = WFH di SEMUA tanggal dalam rentang (satu hari saja: from_date = to_date); days terisi = hanya hari-hari itu
 # yang berulang tiap minggu dalam rentang.
 # Hasil: {"name","from_date","to_date","days":["mon",...],"reason","status":"pending"}
+# @fitur: dinas_wfh
 fd = frappe.form_dict
 from_date = fd.get("from_date")
 to_date = fd.get("to_date")

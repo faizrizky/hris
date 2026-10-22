@@ -2,6 +2,7 @@
 # POST: name, decision (verify | reject | allow_change | deny_change), reason (wajib bila reject; opsional deny_change).
 # Hanya HR User / HR Manager. verify hanya untuk dokumen yang punya file. allow_change / deny_change hanya untuk
 # status "Change Requested": allow -> Pending (verified_by dikosongkan, file lama tetap), deny -> kembali Verified.
+# @fitur: dokumen
 user = frappe.session.user
 is_hr = user == "Administrator" or len(
     frappe.get_all("Has Role", filters={"parent": user, "parenttype": "User",

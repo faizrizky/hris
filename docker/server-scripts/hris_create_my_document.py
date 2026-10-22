@@ -3,6 +3,7 @@
 # POST: document_name, category (Contract|Decree|Certificate|Identity), expires_on (YYYY-MM-DD, opsional).
 # Langkah 2: POST /api/method/upload_file (multipart: file, is_private=1, doctype="Employee Document",
 #   docname=<name hasil langkah 1>, fieldname="file"). Batas 5 MB, tipe PDF/JPG/PNG.
+# @fitur: dokumen
 fd = frappe.form_dict
 doc_name = (fd.get("document_name") or "").strip()
 category = fd.get("category")

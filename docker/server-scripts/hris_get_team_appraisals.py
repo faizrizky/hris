@@ -2,6 +2,7 @@
 # Appraisal tim di siklus aktif: atasan -> bawahan langsung; HR -> semua karyawan yang punya Appraisal.
 # Item: employee, employee_name, designation, appraisal, cycle, final_score, my_feedback_status
 # (none|draft|submitted), my_feedback_score.
+# @fitur: penilaian_kinerja
 user = frappe.session.user
 caller = frappe.get_all("Employee", filters={"user_id": user, "status": "Active"}, fields=["name", "employee_name"],
                         limit_page_length=1)

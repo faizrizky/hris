@@ -3,6 +3,7 @@
 # Mulai tetap 17:00 hari kerja / 08:00 hari libur (Holiday List karyawan atau hari Minggu).
 # Maks 4 jam hari kerja / 8 jam hari libur; tanggal tidak boleh di masa depan atau lebih dari 30 hari lalu.
 # Hasil: {"name","date","start_minute","end_minute","hours","note","status":"pending"}
+# @fitur: lembur
 fd = frappe.form_dict
 date = fd.get("date")
 end_time = (fd.get("end_time") or "").strip()

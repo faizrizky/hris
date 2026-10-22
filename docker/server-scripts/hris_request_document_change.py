@@ -1,6 +1,7 @@
 # Server Script (type: API, method: hris_request_document_change, allow_guest: 0)
 # POST: name, reason (wajib). Pemilik meminta perubahan atas dokumen yang sudah Verified.
 # Status menjadi "Change Requested"; HR diberi notifikasi. Keputusan HR lewat hris_decide_document.
+# @fitur: dokumen
 name = frappe.form_dict.get("name")
 reason = (frappe.form_dict.get("reason") or "").strip()
 if not name or not frappe.db.exists("Employee Document", name):

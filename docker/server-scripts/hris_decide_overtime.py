@@ -1,6 +1,7 @@
 # Server Script (type: API, method: hris_decide_overtime, allow_guest: 0)
 # POST: name, decision ("approve" | "reject"). Hanya atasan langsung pemohon atau HR User/Manager,
 # bukan untuk lembur milik sendiri. Status "paid" diisi HR di web (setelah dibayar lewat payroll).
+# @fitur: lembur
 user = frappe.session.user
 name = frappe.form_dict.get("name")
 decision = frappe.form_dict.get("decision")

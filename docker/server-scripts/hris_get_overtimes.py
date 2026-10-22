@@ -1,6 +1,7 @@
 # Server Script (type: API, method: hris_get_overtimes, allow_guest: 0)
 # Lembur milik pemanggil, terbaru dulu, maks 50. ?scope=team: bawahan langsung (HR: semua) untuk persetujuan.
 # Hasil: [{"name","date","start_minute","end_minute","hours","note","status":"pending|approved|paid|rejected"}]
+# @fitur: lembur
 user = frappe.session.user
 scope = frappe.form_dict.get("scope")
 me = frappe.get_all("Employee", filters={"user_id": user, "status": "Active"}, fields=["name"], limit_page_length=1)

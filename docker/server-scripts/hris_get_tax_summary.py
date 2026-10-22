@@ -2,6 +2,7 @@
 # Ringkasan pajak/BPJS tahun berjalan dari Salary Slip submitted milik pemanggil.
 # PPh 21 = komponen "Income Tax (PPh 21)"; BPJS = jumlah komponen berawalan "BPJS". PTKP/NPWP/TER tidak tersedia.
 # Hasil: {"year", "months":[{"month","pph21","bpjs","gross"}x12], "latest":{...}} atau null bila tidak ada slip.
+# @fitur: pajak_bpjs
 names_id = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus",
             "September", "Oktober", "November", "Desember"]
 result = None

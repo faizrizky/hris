@@ -1,6 +1,7 @@
 # Server Script (type: API, method: hris_get_documents_for_review, allow_guest: 0)
 # Daftar Employee Document untuk verifikasi HR. Hanya HR User / HR Manager (selain itu 403).
 # ?status=Pending (default) | Verified | Rejected | "Change Requested" | all. Terbaru dulu, maks 200.
+# @fitur: dokumen
 user = frappe.session.user
 is_hr = user == "Administrator" or len(
     frappe.get_all("Has Role", filters={"parent": user, "parenttype": "User",

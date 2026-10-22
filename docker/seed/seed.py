@@ -1574,6 +1574,25 @@ else:
     frappe.db.set_value("Client Script", _PCS, {"script": _PJS, "enabled": 1})
 frappe.db.commit()
 
+# Paket langganan company di site ini (Basic/Essential/Suite, lihat server-scripts/_lib/paket_lib.py). Hanya
+# Administrator (tim kita) yang mengubah, supaya admin klien tidak bisa menaikkan paketnya sendiri.
+if not frappe.db.exists("DocType", "Langganan HRIS"):
+    make(dict(
+        doctype="DocType", name="Langganan HRIS", module="HR", custom=1, issingle=1,
+        fields=[
+            dict(fieldname="paket", label="Paket", fieldtype="Select", options="Basic\nEssential\nSuite",
+                 default="Basic", reqd=1),
+            dict(fieldname="berlaku_sampai", label="Berlaku Sampai", fieldtype="Date",
+                 description="Kosong = tanpa batas. Lewat tanggal ini semua fitur berbayar dan aplikasi terkunci."),
+            dict(fieldname="aktif", label="Aktif", fieldtype="Check", default="1"),
+        ],
+        permissions=[dict(role="Administrator", read=1, write=1, create=1),
+                     dict(role="System Manager", read=1), dict(role="HR Manager", read=1)]))
+    frappe.clear_cache()
+    # Site dev memakai paket terlengkap supaya semua layar tetap bisa diuji.
+    frappe.db.set_single_value("Langganan HRIS", {"paket": os.environ.get("SEED_PAKET") or "Suite", "aktif": 1})
+    frappe.db.commit()
+
 # Pembaruan aplikasi (APK) tanpa toko: HR/admin mengunggah APK dan mengisi versinya; aplikasi membaca lewat
 # hris_get_app_update dan mengunduh APK yang berstatus publik (aplikasi belum login saat memeriksa).
 if not frappe.db.exists("DocType", "App Update"):
@@ -1700,7 +1719,7 @@ for _dt, _attach in (("Profile Change Request", "photo"), ("Face Enrollment", "s
     log("permission " + _dt + ": karyawan hanya field lampiran miliknya")
 frappe.db.commit()
 
-GUEST_SCRIPTS = {"hris_get_app_update"}  # API tanpa login (pemeriksa pembaruan sebelum masuk)
+GUEST_SCRIPTS = {"hris_get_app_update", "hris_get_langganan"}  # API tanpa login (dipanggil aplikasi sebelum masuk)
 EVENT_SCRIPTS = {  # script berbasis event dokumen: nama_file -> (DocType, event)
     "hris_notify_leave_created": ("Leave Application", "After Insert"),
     "hris_notify_leave_decided": ("Leave Application", "After Save"),
@@ -1860,7 +1879,11 @@ if os.path.isdir(SS_DIR):
         # "# @include: _lib/xxx.py" disisipkan apa adanya, dengan indentasi baris include (Server Script tidak bisa import)
         _out = []
         for _ln in code.split("\n"):
-            if _ln.strip().startswith("# @include: "):
+            if _ln.startswith("# @fitur: "):  # fitur berbayar: tolak bila tidak termasuk paket Langganan HRIS site ini
+                _out.extend(open(os.path.join(SS_DIR, "_lib/paket_lib.py"), encoding="utf-8").read().rstrip("\n").split("\n"))
+                _out += [f'if "{_ln[len("# @fitur: "):].strip()}" not in pk_info()["fitur"]:',
+                         '    frappe.throw("This feature is not included in your subscription plan", frappe.PermissionError)']
+            elif _ln.strip().startswith("# @include: "):
                 _ind = _ln[:len(_ln) - len(_ln.lstrip())]
                 _snip = open(os.path.join(SS_DIR, _ln.strip()[len("# @include: "):].strip()), encoding="utf-8").read().rstrip("\n")
                 _out.extend([(_ind + _l if _l.strip() else _l) for _l in _snip.split("\n")])
@@ -2147,7 +2170,7 @@ if ronald_app:
         run_all_sources(init_res["name"])
         bgc = frappe.get_doc("Background Check", init_res["name"])
         bgc.hr_conclusion = "Kandidat memiliki rekam jejak publik dan prestasi yang sangat baik, direkomendasikan lanjut ke wawancara."
-        bgc.risk_level_final = "Rendah"
+        bgc.risk_level_final = "Low"
         bgc.reviewed_by = "Administrator"
         bgc.reviewed_on = frappe.utils.now_datetime()
         bgc.save(ignore_permissions=True)

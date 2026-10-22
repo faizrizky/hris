@@ -2,6 +2,7 @@
 # Jadwal/pengajuan WFH milik pemanggil, terbaru dulu, maks 50. ?scope=team: bawahan langsung (HR: semua).
 # Hasil: [{"name","employee","employee_name","designation","from_date","to_date","days":[..],"reason","status":
 #   "pending|approved|rejected","note"}]
+# @fitur: dinas_wfh
 user = frappe.session.user
 scope = frappe.form_dict.get("scope")
 me = frappe.get_all("Employee", filters={"user_id": user, "status": "Active"}, fields=["name"], limit_page_length=1)

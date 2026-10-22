@@ -1,6 +1,7 @@
 # Server Script (type: API, method: hris_get_travel_requests, allow_guest: 0)
 # Travel Request milik pemanggil, terbaru dulu, maks 50. status: pending (draft), approved (submitted),
 # rejected (custom_rejected atau dibatalkan). ?scope=team: bawahan langsung (HR: semua) untuk persetujuan.
+# @fitur: dinas_wfh
 user = frappe.session.user
 scope = frappe.form_dict.get("scope")
 me = frappe.get_all("Employee", filters={"user_id": user, "status": "Active"}, fields=["name"], limit_page_length=1)
