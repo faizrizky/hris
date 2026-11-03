@@ -58,6 +58,12 @@ frappe.ui.form.on("Resume Screening", {
 			return;
 		}
 		const render = (hide_points) => {
+			const metric_rows = (frm.doc.results || [])
+				.map((m) => {
+					const weight = m.applicable && flt(m.weight) > 0 ? `${frappe.format(m.weight, { fieldtype: "Float", precision: 1 })}%` : "-";
+					return `<tr class="${flt(m.weight) > 0 ? "" : "text-muted"}"><td>${esc(__(m.metric))}</td><td>${esc(weight)}</td><td>${esc(frappe.format(m.score, { fieldtype: "Float", precision: 1 }))}</td><td>${esc(hris_ats.translate_message(m.reason_template, m.reason_params, m.reason))}</td></tr>`;
+				})
+				.join("");
 			const rows = (frm.doc.rule_results || [])
 				.map((x) => {
 					const points = hide_points && x.rule_type === "Penalty" ? (x.triggered ? __("On") : "-") : x.triggered && x.points ? x.points : "-";
@@ -73,7 +79,8 @@ frappe.ui.form.on("Resume Screening", {
 					${frm.doc.needs_hr_review ? `<span class="indicator-pill orange ml-2">${__("Needs HR review")}</span>` : ""}
 				</div>
 				${frm.doc.confidence_reason ? `<div class="small text-muted mb-2">${esc(say("confidence", frm.doc.confidence_reason))}</div>` : ""}
-				${rows ? `<table class="table table-sm table-bordered"><thead><tr><th>${__("Type")}</th><th>${__("Rule")}</th><th>${__("Triggered")}</th><th>${__("Points")}</th><th>${__("Effect")}</th><th>${__("Reason")}</th></tr></thead><tbody>${rows}</tbody></table>` : `<div class="text-muted">${__("No template rules were applied.")}</div>`}
+				${metric_rows ? `<h6>${__("Metric Results")}</h6><table class="table table-sm table-bordered"><thead><tr><th>${__("Metric")}</th><th>${__("Effective Weight")}</th><th>${__("Score")}</th><th>${__("Reason")}</th></tr></thead><tbody>${metric_rows}</tbody></table>` : ""}
+				${rows ? `<h6>${__("Rules")}</h6><table class="table table-sm table-bordered"><thead><tr><th>${__("Type")}</th><th>${__("Rule")}</th><th>${__("Triggered")}</th><th>${__("Points")}</th><th>${__("Effect")}</th><th>${__("Reason")}</th></tr></thead><tbody>${rows}</tbody></table>` : `<div class="text-muted">${__("No template rules were applied.")}</div>`}
 			`);
 		};
 		if (!frm.doc.template) return render(false);
