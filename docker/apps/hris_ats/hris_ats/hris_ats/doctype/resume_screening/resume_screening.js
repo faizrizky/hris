@@ -134,7 +134,7 @@ frappe.ui.form.on("Resume Screening", {
 		`;
 
 		frm.dashboard.clear_headline();
-		frm.dashboard.set_headline(html);
+		frm.dashboard.set_headline(html, null, true);
 
 		// Event listener edit override button
 		setTimeout(() => {
