@@ -14,9 +14,9 @@ hris_ats.translate_message = function (template, params, fallback) {
 	} catch (e) {
 		values = {};
 	}
-	const translated = {};
-	Object.keys(values).forEach((key) => {
-		translated[key] = typeof values[key] === "string" ? __(values[key]) : values[key];
+	// Filled in here rather than through __(text, values), which only knows {0}-style slots
+	return __(template).replace(/\{(\w+)\}/g, (slot, key) => {
+		if (!(key in values)) return slot;
+		return typeof values[key] === "string" ? __(values[key]) : values[key];
 	});
-	return __(template, translated);
 };

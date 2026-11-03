@@ -60,8 +60,8 @@ frappe.ui.form.on("Resume Screening", {
 		const render = (hide_points) => {
 			const metric_rows = (frm.doc.results || [])
 				.map((m) => {
-					const weight = m.applicable && flt(m.weight) > 0 ? `${frappe.format(m.weight, { fieldtype: "Float", precision: 1 })}%` : "-";
-					return `<tr class="${flt(m.weight) > 0 ? "" : "text-muted"}"><td>${esc(__(m.metric))}</td><td>${esc(weight)}</td><td>${esc(frappe.format(m.score, { fieldtype: "Float", precision: 1 }))}</td><td>${esc(hris_ats.translate_message(m.reason_template, m.reason_params, m.reason))}</td></tr>`;
+					const weight = m.applicable && flt(m.weight) > 0 ? `${format_number(m.weight, null, 1)}%` : "-";
+					return `<tr class="${flt(m.weight) > 0 ? "" : "text-muted"}"><td>${esc(__(m.metric))}</td><td>${esc(weight)}</td><td>${esc(format_number(m.score, null, 1))}</td><td>${esc(hris_ats.translate_message(m.reason_template, m.reason_params, m.reason))}</td></tr>`;
 				})
 				.join("");
 			const rows = (frm.doc.rule_results || [])
