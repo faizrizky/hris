@@ -230,6 +230,7 @@
   {
    "fieldname": "criteria_snapshot",
    "fieldtype": "JSON",
+   "hidden": 1,
    "label": "Criteria Snapshot",
    "read_only": 1
   },
