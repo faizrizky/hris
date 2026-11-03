@@ -18,10 +18,11 @@
  "fields": [
   {
    "fieldname": "rule_type",
-   "fieldtype": "Data",
+   "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Type",
-   "columns": 1
+   "columns": 1,
+   "options": "Penalty\nCustom\nKnock-out"
   },
   {
    "fieldname": "rule",
@@ -46,10 +47,11 @@
   },
   {
    "fieldname": "effect",
-   "fieldtype": "Data",
+   "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Effect",
-   "columns": 1
+   "columns": 1,
+   "options": "\nSubtract points\nAdd points\nCap score\nFlag only\nNeeds review\nZero score"
   },
   {
    "fieldname": "reason",

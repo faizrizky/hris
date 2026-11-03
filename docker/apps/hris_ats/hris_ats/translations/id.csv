@@ -1183,3 +1183,14 @@ Only {recognized} CV sections recognized; lowest reading score {lowest}.,Hanya {
 {recognized} CV sections recognized; reading scores all at least 70.,{recognized} bagian CV dikenali; semua skor keterbacaan minimal 70.
 CV language '{language}' is not processed by this template (allowed: {allowed}).,Bahasa CV '{language}' tidak diproses oleh template ini (diizinkan: {allowed}).
 Explanation Messages,Pesan Penjelasan
+No measurable achievements found with numbers or quantitative metrics.,Tidak ditemukan prestasi terukur dengan angka atau metrik kuantitatif.
+Job opening does not require specific certifications.,Lowongan tidak mensyaratkan sertifikasi tertentu.
+Career gap > 12 months detected (informational),Jeda karier > 12 bulan terdeteksi (informasi)
+Date formatting is consistent and chronological order is neat.,Format tanggal konsisten dan urutan kronologis rapi.
+Job opening does not specify minimum education or major criteria.,Lowongan tidak menentukan kriteria pendidikan minimal atau jurusan.
+Job opening does not specify minimum years of experience or relevant job title criteria.,Lowongan tidak menentukan kriteria minimal tahun pengalaman atau judul jabatan yang relevan.
+Text is too short to evaluate writing quality.,Teks terlalu pendek untuk menilai kualitas tulisan.
+Double punctuation or space before punctuation,Tanda baca ganda atau spasi sebelum tanda baca
+Excessive capitalization (ALL CAPS),Huruf kapital berlebihan (SEMUA KAPITAL)
+"Writing quality is very good (clean punctuation, capitalization, and structure).","Kualitas tulisan sangat baik (tanda baca, huruf kapital, dan struktur rapi)."
+No required or preferred skill criteria specified for the job opening.,Lowongan tidak menentukan kriteria keahlian wajib atau pilihan.

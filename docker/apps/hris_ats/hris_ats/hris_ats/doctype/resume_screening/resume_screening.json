@@ -238,16 +238,14 @@
   {
    "fieldname": "section_break_results",
    "fieldtype": "Section Break",
-   "label": "Metric Results",
-   "hidden": 1
+   "label": "Metric Results"
   },
   {
    "fieldname": "results",
    "fieldtype": "Table",
    "label": "Metric Results",
    "options": "Resume Screening Result",
-   "read_only": 1,
-   "hidden": 1
+   "read_only": 1
   },
   {
    "fieldname": "base_score",
@@ -314,8 +312,7 @@
    "fieldtype": "Table",
    "label": "Rule Results",
    "options": "Resume Screening Rule Result",
-   "read_only": 1,
-   "hidden": 1
+   "read_only": 1
   },
   {
    "fieldname": "message_data",

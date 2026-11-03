@@ -18,10 +18,11 @@
  "fields": [
   {
    "fieldname": "metric",
-   "fieldtype": "Data",
+   "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Metric",
-   "reqd": 1
+   "reqd": 1,
+   "options": "ATS friendly\nGrammar\nDate consistency\nInformation completeness\nEducation relevance\nSkill relevance\nExperience relevance\nAchievement relevance\nCertification relevance"
   },
   {
    "fieldname": "weight",

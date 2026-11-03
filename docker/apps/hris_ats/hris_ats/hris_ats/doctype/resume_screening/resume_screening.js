@@ -2,6 +2,13 @@
 // For license information, please see license.txt
 
 frappe.ui.form.on("Resume Screening", {
+	onload(frm) {
+		// The template may hide red-flag points from HR: drop the column before the grid draws
+		if ((frm.doc.__onload || {}).hide_penalty_points) {
+			frappe.meta.get_docfield("Resume Screening Rule Result", "points", frm.doc.name).in_list_view = 0;
+		}
+	},
+
 	refresh(frm) {
 		frm.trigger("render_banner");
 		frm.trigger("render_explanation");
@@ -57,34 +64,19 @@ frappe.ui.form.on("Resume Screening", {
 			wrapper.empty();
 			return;
 		}
-		const render = (hide_points) => {
-			const metric_rows = (frm.doc.results || [])
-				.map((m) => {
-					const weight = m.applicable && flt(m.weight) > 0 ? `${format_number(m.weight, null, 1)}%` : "-";
-					return `<tr class="${flt(m.weight) > 0 ? "" : "text-muted"}"><td>${esc(__(m.metric))}</td><td>${esc(weight)}</td><td>${esc(format_number(m.score, null, 1))}</td><td>${esc(hris_ats.translate_message(m.reason_template, m.reason_params, m.reason))}</td></tr>`;
-				})
-				.join("");
-			const rows = (frm.doc.rule_results || [])
-				.map((x) => {
-					const points = hide_points && x.rule_type === "Penalty" ? (x.triggered ? __("On") : "-") : x.triggered && x.points ? x.points : "-";
-					return `<tr class="${x.triggered ? "" : "text-muted"}"><td>${esc(__(x.rule_type))}</td><td>${esc(x.rule_type === "Penalty" ? __(x.rule) : x.rule)}</td><td>${x.triggered ? "✓" : ""}</td><td>${esc(points)}</td><td>${esc(__(x.effect))}</td><td>${esc(hris_ats.translate_message(x.reason_template, x.reason_params, x.reason))}${x.evidence ? `<div class="small text-muted">${esc(x.evidence)}</div>` : ""}</td></tr>`;
-				})
-				.join("");
-			wrapper.html(`
-				<div class="mb-2">
-					${__("Base score (weighted metrics)")}: <b>${esc(frm.doc.base_score)}</b>
-					${hide_points ? "" : ` · ${__("Penalties")}: <b>${esc(frm.doc.penalty_points)}</b>`}
-					· ${__("Final")}: <b>${esc(frm.doc.total_score)}</b>
-					· ${__("Reading confidence")}: <b>${esc(__(frm.doc.confidence || "-"))}</b>
-					${frm.doc.needs_hr_review ? `<span class="indicator-pill orange ml-2">${__("Needs HR review")}</span>` : ""}
-				</div>
-				${frm.doc.confidence_reason ? `<div class="small text-muted mb-2">${esc(say("confidence", frm.doc.confidence_reason))}</div>` : ""}
-				${metric_rows ? `<h6>${__("Metric Results")}</h6><table class="table table-sm table-bordered"><thead><tr><th>${__("Metric")}</th><th>${__("Effective Weight")}</th><th>${__("Score")}</th><th>${__("Reason")}</th></tr></thead><tbody>${metric_rows}</tbody></table>` : ""}
-				${rows ? `<h6>${__("Rules")}</h6><table class="table table-sm table-bordered"><thead><tr><th>${__("Type")}</th><th>${__("Rule")}</th><th>${__("Triggered")}</th><th>${__("Points")}</th><th>${__("Effect")}</th><th>${__("Reason")}</th></tr></thead><tbody>${rows}</tbody></table>` : `<div class="text-muted">${__("No template rules were applied.")}</div>`}
-			`);
-		};
-		if (!frm.doc.template) return render(false);
-		frappe.db.get_value("Resume Screening Template", frm.doc.template, "hide_penalty_points").then((r) => render(!!(r.message || {}).hide_penalty_points));
+		// The metric and rule tables below are the standard grids; the server translates their reasons on load
+		const hide_points = !!(frm.doc.__onload || {}).hide_penalty_points;
+		wrapper.html(`
+			<div class="mb-2">
+				${__("Base score (weighted metrics)")}: <b>${esc(frm.doc.base_score)}</b>
+				${hide_points ? "" : ` · ${__("Penalties")}: <b>${esc(frm.doc.penalty_points)}</b>`}
+				· ${__("Final")}: <b>${esc(frm.doc.total_score)}</b>
+				· ${__("Reading confidence")}: <b>${esc(__(frm.doc.confidence || "-"))}</b>
+				${frm.doc.needs_hr_review ? `<span class="indicator-pill orange ml-2">${__("Needs HR review")}</span>` : ""}
+			</div>
+			${frm.doc.confidence_reason ? `<div class="small text-muted mb-2">${esc(say("confidence", frm.doc.confidence_reason))}</div>` : ""}
+			${(frm.doc.rule_results || []).length ? "" : `<div class="text-muted">${__("No template rules were applied.")}</div>`}
+		`);
 	},
 
 	render_banner(frm) {
