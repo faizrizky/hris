@@ -73,51 +73,52 @@ def calculate_total_score(
 			"reason_params": res.get("reason_params", "{}"),
 		})
 
-	total_score_int = round(weighted_sum)
-	total_score_int = max(0, min(100, total_score_int))
-	passed = 1 if total_score_int >= min_score_to_pass else 0
-
-	# Pencocokan Score Label
-	matched_label = None
-	matched_desc = None
-	matched_indicator = None
-
-	if score_labels:
-		for lbl in score_labels:
-			l_type = lbl.get("label_type", "Range")
-			s_from = int(lbl.get("score_from", 0))
-
-			if l_type == "Fixed":
-				if total_score_int == s_from:
-					matched_label = lbl.get("label")
-					matched_desc = lbl.get("description")
-					matched_indicator = lbl.get("indicator", "green")
-					break
-			else:
-				s_to = int(lbl.get("score_to", 100))
-				if s_from <= total_score_int <= s_to:
-					matched_label = lbl.get("label")
-					matched_desc = lbl.get("description")
-					matched_indicator = lbl.get("indicator", "green")
-					break
-
-	# Fallback bila tidak ada label yang cocok
-	if not matched_label:
-		if passed:
-			matched_label = "Qualified"
-			matched_desc = pass_description or "Applicant resume matches the applied job!"
-			matched_indicator = "green"
-		else:
-			matched_label = "Not Qualified"
-			matched_desc = fail_description or "Applicant resume does not meet the minimum criteria."
-			matched_indicator = "red"
-
+	total_score_int = max(0, min(100, round(weighted_sum)))
+	label = match_label(total_score_int, score_labels, min_score_to_pass, pass_description, fail_description)
 
 	return {
 		"total_score": float(total_score_int),
-		"passed": passed,
-		"result_label": matched_label,
-		"result_description": matched_desc,
-		"result_indicator": matched_indicator,
+		"passed": label["passed"],
+		"result_label": label["result_label"],
+		"result_description": label["result_description"],
+		"result_indicator": label["result_indicator"],
 		"results": detailed_results,
+	}
+
+
+def match_label(
+	score: float,
+	score_labels: list[dict[str, Any]] | None,
+	min_score_to_pass: float = 75.0,
+	pass_description: str = "",
+	fail_description: str = "",
+) -> dict[str, Any]:
+	"""Tier/label for a final score (Fixed or Range labels), with pass/fail fallback."""
+	score_int = round(score)
+	passed = 1 if score_int >= min_score_to_pass else 0
+	for lbl in score_labels or []:
+		s_from = int(lbl.get("score_from", 0))
+		if lbl.get("label_type", "Range") == "Fixed":
+			hit = score_int == s_from
+		else:
+			hit = s_from <= score_int <= int(lbl.get("score_to", 100))
+		if hit:
+			return {
+				"passed": passed,
+				"result_label": lbl.get("label"),
+				"result_description": lbl.get("description"),
+				"result_indicator": lbl.get("indicator", "green"),
+			}
+	if passed:
+		return {
+			"passed": 1,
+			"result_label": "Qualified",
+			"result_description": pass_description or "Applicant resume matches the applied job!",
+			"result_indicator": "green",
+		}
+	return {
+		"passed": 0,
+		"result_label": "Not Qualified",
+		"result_description": fail_description or "Applicant resume does not meet the minimum criteria.",
+		"result_indicator": "red",
 	}

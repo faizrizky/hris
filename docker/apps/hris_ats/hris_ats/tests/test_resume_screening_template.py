@@ -117,3 +117,39 @@ class TestResumeScreeningTemplate(FrappeTestCase):
 		t2.enabled = 0
 		t2.insert()
 		self.assertEqual(t2.enabled, 0)
+
+	def test_validate_blueprint_rules(self):
+		"""Red flag ganda, regex rusak, dan bahasa di luar id/en ditolak."""
+		template = frappe.new_doc("Resume Screening Template")
+		template.template_name = "Test Blueprint Rules Template"
+		template.insert()
+		# before_insert menambahkan 4 red flag nonaktif dan tier bawaan
+		self.assertEqual(len(template.penalty_rules), 4)
+		self.assertTrue(template.score_labels)
+
+		template.append("penalty_rules", {"rule": "Brevity", "points": 5})
+		with self.assertRaises(ValidationError):
+			template.save()
+		template.penalty_rules = template.penalty_rules[:4]
+
+		template.append("custom_rules", {"label": "Bad", "operator": "Matches regex", "value": "(", "effect": "Flag only"})
+		with self.assertRaises(ValidationError):
+			template.save()
+		template.custom_rules = []
+
+		template.allowed_languages = "id,fr"
+		with self.assertRaises(ValidationError):
+			template.save()
+
+	def test_level_presets_installed(self):
+		names = frappe.get_all("Resume Screening Template", filters={"name": ["like", "ATS Preset%"]}, pluck="name")
+		self.assertEqual(len(names), 4)
+		preset = frappe.get_doc("Resume Screening Template", "ATS Preset - Senior / Manager")
+		self.assertEqual(preset.total_weight, 100)
+		self.assertEqual(preset.min_score_to_pass, 80)
+
+	def test_bulk_upload_requires_consent(self):
+		from hris_ats.scoring.bulk_upload import start_bulk_upload
+
+		with self.assertRaises(ValidationError):
+			start_bulk_upload("any-job", ["/private/files/a.pdf"], consent_confirmed=0)

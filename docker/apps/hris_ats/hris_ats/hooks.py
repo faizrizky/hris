@@ -58,6 +58,7 @@ app_include_js = [
 # include js in doctype views
 doctype_js = {
 	"Job Applicant": "public/js/job_applicant.js",
+	"Job Opening": "public/js/job_opening.js",
 }
 
 doctype_list_js = {

@@ -14,6 +14,8 @@ frappe.listview_settings["Resume Screening"] = {
 			return [__("Screening..."), "blue", "status,=,Screening"];
 		} else if (doc.status === "Queued") {
 			return [__("Queued"), "orange", "status,=,Queued"];
+		} else if (doc.status === "Needs Review") {
+			return [__("Needs Manual Review"), "orange", "status,=,Needs Review"];
 		} else {
 			return [__("Failed"), "red", "status,=,Failed"];
 		}

@@ -88,4 +88,5 @@ def evaluate(extraction: ExtractionResult, sections: dict[str, str], criteria: d
 		"reason_template": final_template,
 		"reason_params": json.dumps(params) if params else "{}",
 		"findings_count": count,
+		"first_finding": matched_achievements[0][:160] if matched_achievements else "",
 	}

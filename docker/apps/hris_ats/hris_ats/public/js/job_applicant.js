@@ -29,7 +29,7 @@ frappe.ui.form.on("Job Applicant", {
 
 	refresh(frm) {
 		if (["Queued", "Screening"].includes(frm.doc.screening_status)) {
-			frm.dashboard.set_headline(__("Resume screening in progress…"), "blue");
+			frm.dashboard.set_headline(__("Resume screening in progress..."), "blue");
 			hris_ats_wait_for_screening(frm);
 		}
 

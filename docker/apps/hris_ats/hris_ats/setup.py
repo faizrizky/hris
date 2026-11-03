@@ -142,7 +142,7 @@ CUSTOM_FIELDS = {
 			"fieldname": "screening_status",
 			"label": "Screening Status",
 			"fieldtype": "Select",
-			"options": "\nQueued\nScreening\nDone\nFailed",
+			"options": "\nQueued\nScreening\nDone\nNeeds Review\nFailed",
 			"read_only": 1,
 			"insert_after": "resume_score",
 			"in_list_view": 1,
@@ -370,7 +370,7 @@ def setup_rekrutmen_workspace():
 	shortcuts = [
 		("Job Opening", "Job Opening", "DocType", "Blue", {"status": "Open"}, "{} Open"),
 		("Job Applicant", "Job Applicant", "DocType", "Grey", {"status": "Open"}, "{} Open"),
-		("Resume Screening", "Resume Screening", "DocType", "Green", None, None),
+		("Resume Screening", "Resume Screening", "DocType", "Green", {"status": "Needs Review"}, "{} Needs review"),
 		("Background Check", "Background Check", "DocType", "Orange", {"status": ["in", ["Waiting Consent", "Queued", "Crawling"]]}, "{} Active"),
 		("Interview", "Interview", "DocType", "Yellow", None, None),
 		("Job Offer", "Job Offer", "DocType", "Purple", None, None),
@@ -399,7 +399,7 @@ def setup_rekrutmen_workspace():
 		),
 		(
 			"Screening Resume",
-			[("Resume Screening", "DocType"), ("Resume Screening Template", "DocType"), ("Resume Screening Settings", "DocType")],
+			[("Resume Screening", "DocType"), ("Resume Screening Template", "DocType"), ("Resume Upload Batch", "DocType"), ("Resume Screening Settings", "DocType")],
 		),
 		(
 			"Background Check",
@@ -431,6 +431,70 @@ def setup_rekrutmen_workspace():
 	ws.content = json.dumps(content)
 	ws.flags.ignore_permissions = True
 	ws.save()
+
+
+# Blueprint presets: core qualifications carry the score; reading quality metrics (ATS friendly,
+# Date consistency, Information completeness) are turned off and only feed "reading confidence".
+SCREENING_PRESETS = [
+	{
+		"template_name": "ATS Preset - Entry-Level",
+		"candidate_level": "Entry-Level",
+		"weights": {"Skill relevance": 40, "Education relevance": 40, "Experience relevance": 10, "Certification relevance": 10},
+		"penalties": {"Job Hopping": False, "No Impact": False, "Grammar": True, "Brevity": True},
+	},
+	{
+		"template_name": "ATS Preset - Junior / Mid",
+		"candidate_level": "Junior / Mid",
+		"weights": {"Skill relevance": 50, "Experience relevance": 30, "Education relevance": 15, "Certification relevance": 5},
+		"penalties": {"Job Hopping": True, "No Impact": True, "Grammar": True, "Brevity": True},
+	},
+	{
+		"template_name": "ATS Preset - Senior / Manager",
+		"candidate_level": "Senior / Manager",
+		"weights": {"Experience relevance": 40, "Skill relevance": 35, "Education relevance": 15, "Certification relevance": 10},
+		"penalties": {"Job Hopping": True, "No Impact": True, "Grammar": True, "Brevity": True},
+	},
+	{
+		"template_name": "ATS Preset - C-Level / Researcher",
+		"candidate_level": "C-Level / Researcher",
+		"weights": {"Experience relevance": 40, "Skill relevance": 25, "Education relevance": 20, "Certification relevance": 15},
+		# Journals and portfolios make long CVs normal at this level
+		"penalties": {"Job Hopping": True, "No Impact": True, "Grammar": True, "Brevity": False},
+	},
+]
+
+
+def setup_screening_presets():
+	"""Ship one ready-to-use template per candidate level (created once; HR edits or clones them)."""
+	from hris_ats.hris_ats.doctype.resume_screening_template.resume_screening_template import (
+		ALL_METRICS,
+		DEFAULT_PENALTY_RULES,
+	)
+
+	if not frappe.db.exists("DocType", "Resume Screening Template"):
+		return
+	for preset in SCREENING_PRESETS:
+		if frappe.db.exists("Resume Screening Template", preset["template_name"]):
+			continue
+		doc = frappe.new_doc("Resume Screening Template")
+		doc.template_name = preset["template_name"]
+		doc.candidate_level = preset["candidate_level"]
+		doc.enabled = 1
+		doc.min_score_to_pass = 80
+		doc.allowed_languages = "id,en"
+		doc.hide_penalty_points = 1
+		for metric in ALL_METRICS:
+			weight = preset["weights"].get(metric, 0)
+			doc.append("metric_weights", {"metric": metric, "weight": weight, "enabled": 1 if weight else 0})
+		for rule, points, threshold, secondary in DEFAULT_PENALTY_RULES:
+			doc.append("penalty_rules", {
+				"rule": rule,
+				"enabled": 1 if preset["penalties"][rule] else 0,
+				"points": points,
+				"threshold": threshold,
+				"secondary_threshold": secondary,
+			})
+		doc.insert(ignore_permissions=True)
 
 
 def setup_roles():
@@ -698,6 +762,7 @@ def after_install():
 	setup_number_cards()
 	setup_dashboard_charts()
 	setup_rekrutmen_workspace()
+	setup_screening_presets()
 	setup_default_platforms()
 	setup_default_lexicon()
 	setup_default_settings()
@@ -711,6 +776,7 @@ def after_migrate():
 	setup_number_cards()
 	setup_dashboard_charts()
 	setup_rekrutmen_workspace()
+	setup_screening_presets()
 	setup_default_platforms()
 	setup_default_lexicon()
 	setup_default_settings()

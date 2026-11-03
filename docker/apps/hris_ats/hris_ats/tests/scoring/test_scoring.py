@@ -201,7 +201,7 @@ def test_all_10_fixtures_end_to_end():
 	files = [
 		("cv_01_single_column.pdf", "Done", 75.0, 100.0, "Experienced"),
 		("cv_02_two_column.pdf", "Done", 50.0, 95.0, "Experienced"),
-		("cv_03_scanned_image.pdf", "Failed", 0.0, 0.0, "Fresh Graduate"),
+		("cv_03_scanned_image.pdf", "Needs Review", 0.0, 0.0, "Fresh Graduate"),  # unreadable CVs go to manual review
 		("cv_04_sample.docx", "Done", 50.0, 95.0, "Experienced"),
 		("cv_05_english.pdf", "Done", 70.0, 100.0, "Experienced"),
 		("cv_06_indonesian.pdf", "Done", 50.0, 95.0, "Experienced"),

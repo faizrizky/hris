@@ -19,12 +19,20 @@
   "section_break_status",
   "status",
   "total_score",
+  "base_score",
+  "penalty_points",
+  "needs_hr_review",
   "passed",
   "experience_level",
   "column_break_status_2",
   "result_label",
   "result_indicator",
   "result_description",
+  "confidence",
+  "confidence_reason",
+  "detected_language",
+  "review_reason",
+  "template_version",
   "screened_on",
   "error",
   "section_break_override",
@@ -35,7 +43,10 @@
   "resume_text",
   "criteria_snapshot",
   "section_break_results",
-  "results"
+  "results",
+  "section_break_rules",
+  "explanation_html",
+  "rule_results"
  ],
  "fields": [
   {
@@ -122,7 +133,7 @@
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Status",
-   "options": "Queued\nScreening\nDone\nFailed"
+   "options": "Queued\nScreening\nDone\nNeeds Review\nFailed"
   },
   {
    "default": "0",
@@ -232,11 +243,79 @@
    "label": "Metric Results",
    "options": "Resume Screening Result",
    "read_only": 1
+  },
+  {
+   "fieldname": "base_score",
+   "fieldtype": "Float",
+   "label": "Base Score (Weighted)",
+   "read_only": 1
+  },
+  {
+   "fieldname": "penalty_points",
+   "fieldtype": "Float",
+   "label": "Penalty Points",
+   "read_only": 1
+  },
+  {
+   "fieldname": "needs_hr_review",
+   "fieldtype": "Check",
+   "label": "Needs HR Review",
+   "read_only": 1
+  },
+  {
+   "fieldname": "confidence",
+   "fieldtype": "Select",
+   "label": "Reading Confidence",
+   "options": "\nHigh\nMedium\nLow",
+   "read_only": 1
+  },
+  {
+   "fieldname": "confidence_reason",
+   "fieldtype": "Small Text",
+   "label": "Confidence Reason",
+   "read_only": 1
+  },
+  {
+   "fieldname": "detected_language",
+   "fieldtype": "Data",
+   "label": "Detected Language",
+   "read_only": 1
+  },
+  {
+   "fieldname": "review_reason",
+   "fieldtype": "Small Text",
+   "label": "Review Reason",
+   "read_only": 1
+  },
+  {
+   "fieldname": "template_version",
+   "fieldtype": "Data",
+   "label": "Template Version",
+   "read_only": 1,
+   "description": "Template last-modified time used for this result; the full rules are in the criteria snapshot."
+  },
+  {
+   "fieldname": "section_break_rules",
+   "fieldtype": "Section Break",
+   "label": "Score Explanation"
+  },
+  {
+   "fieldname": "explanation_html",
+   "fieldtype": "HTML",
+   "label": "Explanation"
+  },
+  {
+   "fieldname": "rule_results",
+   "fieldtype": "Table",
+   "label": "Rule Results",
+   "options": "Resume Screening Rule Result",
+   "read_only": 1,
+   "hidden": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-10-18 00:00:00.000000",
+ "modified": "2026-11-03 00:00:00.000000",
  "modified_by": "Administrator",
  "module": "HRIS ATS",
  "name": "Resume Screening",

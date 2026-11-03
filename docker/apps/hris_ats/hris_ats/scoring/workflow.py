@@ -13,10 +13,8 @@ from typing import Any
 import frappe
 from frappe import _
 
-from hris_ats.scoring.engine import METRIC_MODULES
+from hris_ats.scoring.engine import evaluate_resume
 from hris_ats.scoring.extract import extract_cv
-from hris_ats.scoring.sections import split_sections
-from hris_ats.scoring.total import calculate_total_score
 
 
 def resolve_file_path(file_url: str | None) -> str:
@@ -42,6 +40,62 @@ def resolve_file_path(file_url: str | None) -> str:
 	if os.path.exists(p2):
 		return p2
 	return p1
+
+
+RULE_TABLES = {
+	"metric_weights": ("metric", "weight", "enabled"),
+	"score_labels": ("label_type", "score_from", "score_to", "label", "indicator", "description"),
+	"penalty_rules": ("rule", "enabled", "points", "threshold", "secondary_threshold"),
+	"custom_rules": ("label", "enabled", "section", "operator", "value", "count", "effect", "points"),
+	"knockout_rules": ("condition", "enabled", "value", "match", "action", "cap_score", "description"),
+}
+
+
+def build_criteria(job_opening_name: str | None, applicant_name: str = "", city: str = "") -> dict[str, Any]:
+	"""Job Opening criteria the metrics score against."""
+	criteria: dict[str, Any] = {"applicant_name": applicant_name, "city": city}
+	if job_opening_name and frappe.db.exists("Job Opening", job_opening_name):
+		jo = frappe.get_doc("Job Opening", job_opening_name)
+		for field in (
+			"min_education", "education_majors", "min_years_experience", "relevant_titles",
+			"required_skills", "preferred_skills", "certification_keywords",
+		):
+			criteria[field] = jo.get(field)
+	return criteria
+
+
+def template_config(template) -> dict[str, Any]:
+	"""Plain-dict rules of a Resume Screening Template, as evaluate_resume expects them."""
+	config: dict[str, Any] = {
+		"min_score_to_pass": template.min_score_to_pass,
+		"pass_description": template.pass_description,
+		"fail_description": template.fail_description,
+		"allowed_languages": template.get("allowed_languages") or "",
+	}
+	for table, fields in RULE_TABLES.items():
+		config[table] = [{f: row.get(f) for f in fields} for row in (template.get(table) or [])]
+	return config
+
+
+def apply_result_to_screening(screening, result: dict[str, Any]) -> None:
+	"""Copy an evaluate_resume result onto a Resume Screening document (not saved)."""
+	screening.status = result["status"]
+	screening.error = result["error"] if result["status"] != "Done" else None
+	screening.resume_text = result["resume_text"]
+	for field in (
+		"base_score", "penalty_points", "total_score", "passed", "needs_hr_review", "result_label",
+		"result_description", "result_indicator", "confidence", "confidence_reason", "detected_language",
+		"review_reason",
+	):
+		screening.set(field, result.get(field))
+	if result.get("experience_level"):
+		screening.experience_level = result["experience_level"]
+	screening.set("results", [])
+	for r in result["results"]:
+		screening.append("results", r)
+	screening.set("rule_results", [])
+	for r in result["rule_results"]:
+		screening.append("rule_results", r)
 
 
 def get_template_for_job(job_opening_name: str | None) -> str | None:
@@ -172,110 +226,49 @@ def process_resume_screening(screening_name: str):
 	template = frappe.get_doc("Resume Screening Template", template_name)
 
 	# 2. Siapkan kriteria dari Job Opening
-	criteria = {
-		"applicant_name": applicant.applicant_name,
-		"city": applicant.get("city") or "",
-	}
+	criteria = build_criteria(applicant.job_title, applicant.applicant_name, applicant.get("city") or "")
 
-	if applicant.job_title and frappe.db.exists("Job Opening", applicant.job_title):
-		jo = frappe.get_doc("Job Opening", applicant.job_title)
-		criteria.update({
-			"min_education": jo.get("min_education"),
-			"education_majors": jo.get("education_majors"),
-			"min_years_experience": jo.get("min_years_experience"),
-			"relevant_titles": jo.get("relevant_titles"),
-			"required_skills": jo.get("required_skills"),
-			"preferred_skills": jo.get("preferred_skills"),
-			"certification_keywords": jo.get("certification_keywords"),
-		})
-
-	# Simpan snapshot kriteria
+	# Snapshot of the criteria and the full template rules (version = template modified time)
+	config = template_config(template)
+	screening.template_version = str(template.modified)
 	screening.criteria_snapshot = frappe.as_json({
 		"criteria": criteria,
 		"template": template_name,
-		"weights": [w.as_dict() for w in template.metric_weights],
+		"template_version": str(template.modified),
+		"rules": config,
 	})
 
-	# 3. Cari berkas resume
+	# 3. Read the CV and score it with the template (same path as the template simulation)
 	file_path = resolve_file_path(screening.resume_file or applicant.resume_attachment)
 	extraction = extract_cv(file_path, min_text_chars_per_page=settings.min_text_chars_per_page or 200)
 
-	if extraction.error:
-		screening.status = "Failed"
-		screening.error = extraction.error
-		screening.resume_text = extraction.raw_text
-		screening.total_score = 0.0
-		screening.passed = 0
-		screening.result_label = _("Failed Evaluation")
-		screening.result_description = extraction.error
-		screening.result_indicator = "red"
-		screening.save(ignore_permissions=True)
-		applicant.db_set("screening_status", "Failed")
-		return
-
-	# 4. Ekstraksi bagian dan jalankan metrik satu per satu
-	sections = split_sections(extraction.normalized_text)
-	screening.resume_text = extraction.normalized_text
-	screening.set("results", [])
-
-	metric_results = []
-	total_experience_years = 0.0
-	total_metrics = len(METRIC_MODULES)
-
-	for idx, (metric_name, module) in enumerate(METRIC_MODULES, start=1):
-		eval_res = module.evaluate(extraction, sections, criteria)
-		metric_results.append({
-			"metric": metric_name,
-			"score": eval_res["score"],
-			"applicable": eval_res["applicable"],
-			"reason": eval_res["reason"],
-			"reason_template": eval_res.get("reason_template", eval_res["reason"]),
-			"reason_params": eval_res.get("reason_params", "{}"),
-		})
-		if metric_name == "Experience relevance":
-			total_experience_years = float(eval_res.get("total_years", 0.0))
-
-		# Publish progress realtime per metrik
+	def on_metric_done(metric_name: str, idx: int, total: int) -> None:
 		frappe.publish_realtime(
 			"resume_screening_progress",
 			{
 				"screening": screening.name,
 				"metric": metric_name,
 				"metric_status": "Done",
-				"progress": int((idx / total_metrics) * 100),
+				"progress": int((idx / total) * 100),
 				"status": "Screening",
 			},
 			doctype="Resume Screening",
 			docname=screening.name,
 		)
 
-	# 5. Kalkulasi skor total
-	weights_data = [w.as_dict() for w in template.metric_weights]
-	labels_data = [l.as_dict() for l in template.score_labels]
-
-	total_calc = calculate_total_score(
-		metric_results=metric_results,
-		metric_weights=weights_data,
-		min_score_to_pass=template.min_score_to_pass,
-		pass_description=template.pass_description,
-		fail_description=template.fail_description,
-		score_labels=labels_data,
+	result = evaluate_resume(
+		extraction, config, criteria,
 		metric_pass_threshold=settings.metric_pass_threshold or 60.0,
+		on_metric_done=on_metric_done,
 	)
-
-	for r in total_calc["results"]:
-		screening.append("results", r)
-
-	screening.total_score = total_calc["total_score"]
-	screening.passed = total_calc["passed"]
-	screening.experience_level = "Experienced" if total_experience_years >= 1.0 else "Fresh Graduate"
-	screening.result_label = total_calc["result_label"]
-	screening.result_description = total_calc["result_description"]
-	screening.result_indicator = total_calc["result_indicator"]
+	apply_result_to_screening(screening, result)
 	screening.screened_on = frappe.utils.now_datetime()
-	screening.status = "Done"
-	screening.error = None
 	screening.save(ignore_permissions=True)
+
+	if result["status"] == "Needs Review":
+		applicant.db_set("resume_screening", screening.name)
+		applicant.db_set("screening_status", "Needs Review")
+		return
 
 	# 6. Salin hasil ke Job Applicant dan transisi stage ke 'Screening'
 	applicant.db_set("resume_screening", screening.name)

@@ -4,6 +4,7 @@
 frappe.ui.form.on("Resume Screening", {
 	refresh(frm) {
 		frm.trigger("render_banner");
+		frm.trigger("render_explanation");
 		frm.trigger("setup_realtime_listener");
 
 		if (!frm.is_new() && frm.doc.status !== "Screening") {
@@ -31,6 +32,42 @@ frappe.ui.form.on("Resume Screening", {
 				window.open(frm.doc.resume_file, "_blank");
 			}, __("Actions"));
 		}
+	},
+
+	// How the score was built: base (weighted metrics) -> red flags -> custom rules -> knock-outs
+	render_explanation(frm) {
+		const wrapper = frm.fields_dict.explanation_html && frm.fields_dict.explanation_html.$wrapper;
+		if (!wrapper) return;
+		const esc = (v) => frappe.utils.escape_html(v == null ? "" : String(v));
+		if (frm.doc.status === "Needs Review") {
+			wrapper.html(`<div class="alert alert-warning">${esc(__("Needs Manual Review"))}: ${esc(frm.doc.review_reason || frm.doc.error)}</div>`);
+			return;
+		}
+		if (frm.doc.status !== "Done") {
+			wrapper.empty();
+			return;
+		}
+		const render = (hide_points) => {
+			const rows = (frm.doc.rule_results || [])
+				.map((x) => {
+					const points = hide_points && x.rule_type === "Penalty" ? (x.triggered ? __("On") : "-") : x.triggered && x.points ? x.points : "-";
+					return `<tr class="${x.triggered ? "" : "text-muted"}"><td>${esc(__(x.rule_type))}</td><td>${esc(x.rule)}</td><td>${x.triggered ? "✓" : ""}</td><td>${esc(points)}</td><td>${esc(__(x.effect))}</td><td>${esc(x.reason)}${x.evidence ? `<div class="small text-muted">${esc(x.evidence)}</div>` : ""}</td></tr>`;
+				})
+				.join("");
+			wrapper.html(`
+				<div class="mb-2">
+					${__("Base score (weighted metrics)")}: <b>${esc(frm.doc.base_score)}</b>
+					${hide_points ? "" : ` · ${__("Penalties")}: <b>${esc(frm.doc.penalty_points)}</b>`}
+					· ${__("Final")}: <b>${esc(frm.doc.total_score)}</b>
+					· ${__("Reading confidence")}: <b>${esc(__(frm.doc.confidence || "-"))}</b>
+					${frm.doc.needs_hr_review ? `<span class="indicator-pill orange ml-2">${__("Needs HR review")}</span>` : ""}
+				</div>
+				${frm.doc.confidence_reason ? `<div class="small text-muted mb-2">${esc(frm.doc.confidence_reason)}</div>` : ""}
+				${rows ? `<table class="table table-sm table-bordered"><thead><tr><th>${__("Type")}</th><th>${__("Rule")}</th><th>${__("Triggered")}</th><th>${__("Points")}</th><th>${__("Effect")}</th><th>${__("Reason")}</th></tr></thead><tbody>${rows}</tbody></table>` : `<div class="text-muted">${__("No template rules were applied.")}</div>`}
+			`);
+		};
+		if (!frm.doc.template) return render(false);
+		frappe.db.get_value("Resume Screening Template", frm.doc.template, "hide_penalty_points").then((r) => render(!!(r.message || {}).hide_penalty_points));
 	},
 
 	render_banner(frm) {

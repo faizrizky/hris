@@ -140,4 +140,7 @@ def evaluate(extraction: ExtractionResult, sections: dict[str, str], criteria: d
 		"reason": final_reason,
 		"reason_template": final_template,
 		"reason_params": json.dumps(params) if params else "{}",
+		"word_count": word_count,
+		"typo_count": typo_count,
+		"typo_example": ", ".join(typo_examples[:2]),
 	}

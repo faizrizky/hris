@@ -972,3 +972,184 @@ Following,Mengikuti
 No posts found,Tidak ada post ditemukan
 Anonymize third-party mentions,Samarkan sebutan akun pihak ketiga
 "When on, @handles of other people in posts and comments are replaced by @[user]. Off shows the handle as written (public data on the candidate's own consented accounts).","Bila aktif, @username orang lain pada post dan komentar diganti @[user]. Bila nonaktif, username ditampilkan apa adanya (data publik pada akun kandidat yang disetujui)."
+Max Posts Checked for Comments,Maks. Post yang Dicek Komentarnya
+Max Posts Checked for Comments must be at least 1.,Maks. Post yang Dicek Komentarnya minimal 1.
+"Facebook with a crawler account: how many of the candidate's posts that have comments are opened to look for the candidate's own comments. Higher finds more comments but each post adds a few seconds and more activity on the crawler account.","Facebook dengan akun crawler: berapa banyak post kandidat yang punya komentar dibuka untuk mencari komentar kandidat sendiri. Makin tinggi makin banyak komentar ditemukan, tapi tiap post menambah beberapa detik dan aktivitas akun crawler."
+No posts found for this platform.,Tidak ada postingan untuk platform ini.
+"No comments written by the candidate were found on this platform. Without a crawler account, platforms do not expose comments.","Tidak ada komentar kandidat di platform ini. Tanpa akun crawler, platform tidak menampilkan komentar."
+A crawl test is already running; showing it.,Uji crawl sedang berjalan; menampilkannya.
+Achievements,Prestasi
+Action,Tindakan
+Add Knock-Out Preset,Tambah Preset Knock-Out
+Add points,Tambah poin
+"Add your own checks on the CV text: add or subtract points, cap the score, or flag for review.","Tambahkan pemeriksaan sendiri pada teks CV: tambah atau kurangi poin, batasi skor, atau tandai untuk ditinjau."
+All,Semua
+Allowed CV Languages,Bahasa CV yang Diizinkan
+Allowed CV languages can only be: {0}.,Bahasa CV yang diizinkan hanya: {0}.
+Any,Salah satu
+At most {0} files per upload.,Maksimal {0} file per unggahan.
+Base,Dasar
+Base Score (Weighted),Skor Dasar (Berbobot)
+Base score (weighted metrics),Skor dasar (metrik berbobot)
+Brevity,Keringkasan
+Brevity only: more words than this also triggers (default 1000).,Khusus Keringkasan: jumlah kata lebih dari ini juga memicu (bawaan 1000).
+Bulk Upload CVs,Unggah CV Massal
+C-Level / Researcher,C-Level / Peneliti
+Cancel,Batal
+Cancelled,Dibatalkan
+Candidate Level,Level Kandidat
+Cap Score,Batas Skor
+Cap score,Batasi skor
+Cap score must be between 0 and 100.,Batas skor harus antara 0 dan 100.
+Certifications,Sertifikasi
+Choose CV files (PDF or DOCX),Pilih file CV (PDF atau DOCX)
+Choose at least one CV file.,Pilih minimal satu file CV.
+Clone,Duplikat
+Clone Template,Duplikat Template
+"Comma separated (id, en). CVs in other languages go to manual review. Empty = no language check.","Dipisahkan koma (id, en). CV berbahasa lain masuk peninjauan manual. Kosong = tanpa cek bahasa."
+Condition,Kondisi
+Confidence Reason,Alasan Keyakinan
+Confirm that these candidates agreed to their data being processed for recruitment before uploading.,Konfirmasi bahwa kandidat ini menyetujui datanya diproses untuk rekrutmen sebelum mengunggah.
+Confirmed By,Dikonfirmasi Oleh
+Confirmed On,Dikonfirmasi Pada
+Consent (UU PDP),Persetujuan (UU PDP)
+Consent Link,Tautan Persetujuan
+Consent Required,Persetujuan Diperlukan
+Consent has not been granted for this record.,Persetujuan belum diberikan untuk data ini.
+Contains all,Mengandung semua
+Contains any,Mengandung salah satu
+Count at least,Jumlah minimal
+Created,Dibuat
+Custom,Kustom
+Custom Rules,Aturan Kustom
+Custom rule '{0}' has an invalid regular expression: {1},Aturan kustom '{0}' memiliki regular expression tidak valid: {1}
+Detected Language,Bahasa Terdeteksi
+Distribute remaining weight,Bagikan sisa bobot
+Does not contain,Tidak mengandung
+Duplicate,Duplikat
+"Each readable CV becomes a Job Applicant for this job opening and is screened automatically. Scanned images, encrypted PDFs and CVs without an email address go to manual review.","Setiap CV yang terbaca menjadi Pelamar untuk lowongan ini dan disaring otomatis. Gambar hasil pindai, PDF terenkripsi, dan CV tanpa alamat email masuk peninjauan manual."
+Education,Pendidikan
+Effect,Efek
+Engineering / Architecture,Teknik / Arsitektur
+Entry-Level,Entry-Level
+Every action flags the screening for HR review; the final decision stays with HR.,Setiap tindakan menandai screening untuk ditinjau HR; keputusan akhir tetap di HR.
+Evidence,Bukti
+Experience,Pengalaman
+Explanation,Penjelasan
+File URL,URL File
+Files,File
+Final,Akhir
+Finance / Audit,Keuangan / Audit
+Flag only,Tandai saja
+HR confirmed the candidates agreed to their data being processed for recruitment,HR mengonfirmasi kandidat menyetujui datanya diproses untuk rekrutmen
+"HR sees which red flags are on, not how many points they subtract.","HR melihat red flag mana yang aktif, bukan berapa poin yang dikurangi."
+HSE / K3,HSE / K3
+Health / Medical,Kesehatan / Medis
+Hide Penalty Points from HR,Sembunyikan Poin Penalti dari HR
+I confirm these candidates agreed to their data being processed for recruitment purposes.,Saya mengonfirmasi kandidat ini menyetujui datanya diproses untuk keperluan rekrutmen.
+Informational. Presets ship one template per level; duplicate one with Clone to start.,Informasi saja. Preset menyediakan satu template per level; duplikat salah satunya dengan Duplikat untuk memulai.
+Job Applicants,Pelamar
+Job Hopping,Sering Pindah Kerja
+Job Hopping: average years per job below this (default 1.5). No Impact: fewer measurable achievements than this (default 1). Grammar: typo ratio in % above this (default 3). Brevity: more pages than this (default 3).,"Sering Pindah Kerja: rata-rata tahun per pekerjaan di bawah ini (bawaan 1,5). Tanpa Dampak: prestasi terukur kurang dari ini (bawaan 1). Tata Bahasa: rasio salah ketik dalam % di atas ini (bawaan 3). Keringkasan: halaman lebih dari ini (bawaan 3)."
+Job Opening (criteria),Lowongan (kriteria)
+Job Opening {0} not found.,Lowongan {0} tidak ditemukan.
+Junior / Mid,Junior / Mid
+Keyword Match,Pencocokan Kata Kunci
+Knock-Out Rules,Aturan Knock-Out
+Legal / Compliance,Hukum / Kepatuhan
+Look In,Cari Di
+Lookback period in months for historical social posts. 0 = no limit (take everything the account exposes).,Periode mundur dalam bulan untuk postingan sosial lama. 0 = tanpa batas (ambil semua yang ditampilkan akun).
+Mandatory requirements (e.g. licenses for regulated professions). A failed rule caps or zeroes the score and asks HR to review; it never rejects on its own.,Syarat wajib (mis. lisensi untuk profesi teregulasi). Aturan yang gagal membatasi atau menolkan skor dan meminta HR meninjau; tidak pernah menolak dengan sendirinya.
+Matches regex,Cocok dengan regex
+Max Words,Maks. Kata
+Message,Pesan
+Metrics,Metrik
+Minimum Count,Jumlah Minimal
+Minimum education level,Pendidikan minimal
+Minimum years of experience,Pengalaman minimal (tahun)
+Minimum years of experience must be a number above 0.,Pengalaman minimal harus berupa angka di atas 0.
+N/A,T/A
+Needs HR Review,Perlu Ditinjau HR
+Needs HR review,Perlu ditinjau HR
+Needs Manual Review,Perlu Peninjauan Manual
+Needs Review,Perlu Ditinjau
+Needs review,Perlu ditinjau
+New template name,Nama template baru
+No Impact,Tanpa Dampak
+No email address found in the CV. Create this applicant manually.,Alamat email tidak ditemukan di CV. Buat pelamar ini secara manual.
+No files chosen yet.,Belum ada file yang dipilih.
+No template rules were applied.,Tidak ada aturan template yang diterapkan.
+Nothing to distribute.,Tidak ada yang perlu dibagikan.
+On,Aktif
+Only the candidate's replies among the top comments of their recent public posts (no login).,Hanya balasan kandidat di antara komentar teratas postingan publik terbarunya (tanpa login).
+"Optional: the skills, education and experience criteria to score against.","Opsional: kriteria keahlian, pendidikan, dan pengalaman yang dijadikan acuan skor."
+Penalties,Penalti
+Penalty Points,Poin Penalti
+Penalty points for '{0}' must be between 0 and 100.,Poin penalti untuk '{0}' harus antara 0 dan 100.
+Points,Poin
+Points for custom rule '{0}' must be between 0 and 100.,Poin aturan kustom '{0}' harus antara 0 dan 100.
+Points subtracted from the score when this red flag is found.,Poin yang dikurangi dari skor saat red flag ini ditemukan.
+"Points to add or subtract, or the maximum score for 'Cap score'.","Poin yang ditambah atau dikurangi, atau skor maksimum untuk 'Batasi skor'."
+Processed,Diproses
+Processing,Memproses
+Quality Red Flags (Penalties),Red Flag Kualitas (Penalti)
+Reading Confidence,Keyakinan Pembacaan
+Reading confidence,Keyakinan pembacaan
+Red Flag,Red Flag
+Red Flags,Red Flag
+Red flag '{0}' appears more than once.,Red flag '{0}' muncul lebih dari sekali.
+Required keyword,Kata kunci wajib
+"Required keyword: terms separated by commas (e.g. Brevet, CPA). Education: SMA, D3, S1, S2 or S3. Experience: number of years.","Kata kunci wajib: istilah dipisahkan koma (mis. Brevet, CPA). Pendidikan: SMA, D3, S1, S2, atau S3. Pengalaman: jumlah tahun."
+Resume screening finished (score {0}). Form updated.,Screening resume selesai (skor {0}). Formulir diperbarui.
+Resume screening in progress...,Screening resume sedang berjalan...
+Review Reason,Alasan Peninjauan
+Rule,Aturan
+Rule Results,Hasil Aturan
+Rules,Aturan
+Run simulation,Jalankan simulasi
+Sample CV (PDF or DOCX),Contoh CV (PDF atau DOCX)
+Score Explanation,Penjelasan Skor
+"Scores one sample CV with the rules on this form, including unsaved changes. The file is deleted afterwards and nothing is stored.","Menilai satu contoh CV dengan aturan di formulir ini, termasuk perubahan yang belum disimpan. File dihapus setelahnya dan tidak ada yang disimpan."
+Scoring...,Menilai...
+Senior / Manager,Senior / Manajer
+Shown to HR when this rule triggers (e.g. Legal: Peradi license required).,Ditampilkan ke HR saat aturan ini terpicu (mis. Hukum: wajib lisensi Peradi).
+Simulate with a CV,Simulasi dengan CV
+Single-use link to send to the candidate while consent is pending. Cleared once consent is processed.,Tautan sekali pakai untuk dikirim ke kandidat selama persetujuan tertunda. Dihapus setelah persetujuan diproses.
+Skills,Keahlian
+Start upload,Mulai unggah
+Subtract points,Kurangi poin
+Subtracted after the weighted score. Turn each red flag on or off for this template.,Dikurangkan setelah skor berbobot. Aktifkan atau nonaktifkan tiap red flag untuk template ini.
+Summary,Ringkasan
+Template Version,Versi Template
+Template last-modified time used for this result; the full rules are in the criteria snapshot.,Waktu terakhir template diubah yang dipakai untuk hasil ini; aturan lengkap ada di snapshot kriteria.
+"Terms separated by commas or new lines, or a regular expression for 'Matches regex'.","Istilah dipisahkan koma atau baris baru, atau regular expression untuk 'Cocok dengan regex'."
+The candidate has not consented to Social Media analysis.,Kandidat belum menyetujui analisis Media Sosial.
+The crawl stopped responding.,Crawl berhenti merespons.
+The total is over 100%. Lower a metric first.,Total melebihi 100%. Turunkan salah satu metrik dulu.
+This candidate already applied to this job opening.,Kandidat ini sudah melamar ke lowongan ini.
+Threshold,Ambang
+Total Files,Total File
+Total is {0}%: {1}% over. Lower a metric before saving.,Total {0}%: lebih {1}%. Turunkan salah satu metrik sebelum menyimpan.
+"Total is {0}%: {1}% still to assign. Use Weights > Distribute remaining weight, or raise a metric.","Total {0}%: masih {1}% belum dibagi. Gunakan Bobot > Bagikan sisa bobot, atau naikkan salah satu metrik."
+Total weight is exactly 100%.,Total bobot tepat 100%.
+Triggered,Terpicu
+Type,Tipe
+"Unknown education level '{0}'. Use SMA, D3, S1, S2 or S3.","Tingkat pendidikan '{0}' tidak dikenal. Gunakan SMA, D3, S1, S2, atau S3."
+Unnamed applicant,Pelamar tanpa nama
+Upload the sample CV from the simulation dialog.,Unggah contoh CV dari dialog simulasi.
+Value,Nilai
+Waiting for a free browser worker. Another crawl may be running; this will start right after it.,Menunggu worker browser kosong. Crawl lain mungkin sedang berjalan; ini akan mulai setelahnya.
+Weight of '{0}' must be between 0 and 100.,Bobot '{0}' harus antara 0 dan 100.
+Weights,Bobot
+Whole CV,Seluruh CV
+Zero score,Skor nol
+penalties,penalti
+{0} (copy),{0} (salinan)
+"{0} API stopped answering, partial data: {1}","API {0} berhenti merespons, data sebagian: {1}"
+{0} can be at most {1}% (other metrics already use {2}%).,{0} maksimal {1}% (metrik lain sudah memakai {2}%).
+{0} files ready,{0} file siap
+{0} of {1} files,{0} dari {1} file
+"{0} rate limit reached, partial data: {1}","Batas rate {0} tercapai, data sebagian: {1}"
+{0} rate limit: {1},Batas rate {0}: {1}
+"{0}: login session data is incomplete, adding public data","{0}: data sesi login tidak lengkap, menambahkan data publik"
+{0}: required licence or degree,{0}: wajib lisensi atau gelar
