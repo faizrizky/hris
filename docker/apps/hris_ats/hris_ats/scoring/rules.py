@@ -11,6 +11,7 @@ score and flag the screening for HR review.
 
 from __future__ import annotations
 
+import json
 import re
 from typing import Any
 
@@ -50,21 +51,36 @@ def detect_language(text: str) -> str:
 	return lang if count / len(words) >= MIN_STOPWORD_RATIO else "other"
 
 
+def say(out: dict[str, Any], template: str, **params: Any) -> None:
+	"""Set a result's reason from an English template. The template and parameters are stored too,
+	so the desk can translate the sentence when it is shown instead of when it was scored."""
+	out["reason"] = template.format(**params)
+	out["reason_template"] = template
+	out["reason_params"] = json.dumps(params, ensure_ascii=False, default=str)
+
+
 # --- Confidence (how well the CV was read) ----------------------------------------------------
 
 CONFIDENCE_METRICS = ("ATS friendly", "Date consistency", "Information completeness")
 
 
-def calculate_confidence(metric_results: list[dict[str, Any]], sections: dict[str, str]) -> tuple[str, str]:
+def calculate_confidence(
+	metric_results: list[dict[str, Any]], sections: dict[str, str]
+) -> tuple[str, dict[str, Any]]:
 	"""Reading quality, kept out of the score: a creative two-column CV is not a weaker candidate."""
 	scores = {r["metric"]: float(r.get("score", 0)) for r in metric_results if r["metric"] in CONFIDENCE_METRICS}
 	recognized = sum(1 for k, v in sections.items() if k not in ("header", "other") and v.strip())
 	lowest = min(scores.values()) if scores else 100.0
+	params = {"recognized": recognized, "lowest": f"{lowest:.0f}"}
+	message: dict[str, Any] = {}
 	if recognized < 2 or lowest < 50:
-		return "Low", f"Only {recognized} CV sections recognized; lowest reading score {lowest:.0f}."
-	if recognized < 3 or lowest < 70:
-		return "Medium", f"{recognized} CV sections recognized; lowest reading score {lowest:.0f}."
-	return "High", f"{recognized} CV sections recognized; reading scores all at least 70."
+		level, template = "Low", "Only {recognized} CV sections recognized; lowest reading score {lowest}."
+	elif recognized < 3 or lowest < 70:
+		level, template = "Medium", "{recognized} CV sections recognized; lowest reading score {lowest}."
+	else:
+		level, template = "High", "{recognized} CV sections recognized; reading scores all at least 70."
+	say(message, template, **params)
+	return level, message
 
 
 # --- Penalties ----------------------------------------------------------------------------------
@@ -106,18 +122,20 @@ def evaluate_penalty(
 		avg, jobs = average_tenure_years(sections.get("experience", "") or extraction.normalized_text)
 		limit = threshold or 1.5
 		if avg is None:
-			out["reason"] = f"Not enough dated jobs to judge tenure ({jobs} found)."
+			say(out, "Not enough dated jobs to judge tenure ({jobs} found).", jobs=jobs)
 		elif avg < limit:
-			out.update(triggered=1, reason=f"Average tenure {avg} years across {jobs} jobs is below {limit} years.")
+			out["triggered"] = 1
+			say(out, "Average tenure {avg} years across {jobs} jobs is below {limit} years.", avg=avg, jobs=jobs, limit=limit)
 		else:
-			out["reason"] = f"Average tenure {avg} years across {jobs} jobs."
+			say(out, "Average tenure {avg} years across {jobs} jobs.", avg=avg, jobs=jobs)
 	elif name == "No Impact":
 		found = int(signals.get("achievement_count", 0))
 		need = int(threshold or 1)
 		if found < need:
-			out.update(triggered=1, reason=f"{found} measurable achievements found (numbers, %, Rp); at least {need} expected.")
+			out["triggered"] = 1
+			say(out, "{found} measurable achievements found (numbers, %, Rp); at least {need} expected.", found=found, need=need)
 		else:
-			out["reason"] = f"{found} measurable achievements found."
+			say(out, "{found} measurable achievements found.", found=found)
 		out["evidence"] = signals.get("achievement_example", "")
 	elif name == "Grammar":
 		words = int(signals.get("word_count", 0))
@@ -125,20 +143,23 @@ def evaluate_penalty(
 		limit = threshold or 3.0
 		ratio = (typos / words * 100.0) if words else 0.0
 		if words and ratio > limit:
-			out.update(triggered=1, reason=f"Typo ratio {ratio:.1f}% is above {limit}%.")
+			out["triggered"] = 1
+			say(out, "Typo ratio {ratio}% is above {limit}%.", ratio=f"{ratio:.1f}", limit=limit)
 		else:
-			out["reason"] = f"Typo ratio {ratio:.1f}% (limit {limit}%)."
+			say(out, "Typo ratio {ratio}% (limit {limit}%).", ratio=f"{ratio:.1f}", limit=limit)
 		out["evidence"] = signals.get("typo_example", "")
 	elif name == "Brevity":
 		max_pages = int(threshold or 3)
 		max_words = int(rule.get("secondary_threshold") or 1000)
 		words = len(extraction.normalized_text.split())
 		if extraction.page_count > max_pages or words > max_words:
-			out.update(triggered=1, reason=f"{extraction.page_count} pages and {words} words (limit {max_pages} pages or {max_words} words).")
+			out["triggered"] = 1
+			say(out, "{pages} pages and {words} words (limit {max_pages} pages or {max_words} words).",
+				pages=extraction.page_count, words=words, max_pages=max_pages, max_words=max_words)
 		else:
-			out["reason"] = f"{extraction.page_count} pages and {words} words."
+			say(out, "{pages} pages and {words} words.", pages=extraction.page_count, words=words)
 	else:
-		out["reason"] = f"Unknown penalty rule: {name}"
+		say(out, "Unknown penalty rule: {name}", name=name)
 
 	if out["triggered"]:
 		out["points"] = -points
@@ -172,21 +193,21 @@ def custom_rule_matches(rule: dict[str, Any], text: str) -> tuple[bool, str]:
 		return bool(hit), ", ".join(hit)
 	if op == "Contains all":
 		missing = [t for t in terms if not _contains(text, t)]
-		return not missing and bool(terms), ("missing: " + ", ".join(missing)) if missing else ", ".join(terms)
+		return not missing and bool(terms), ", ".join(missing) if missing else ", ".join(terms)
 	if op == "Does not contain":
 		hit = [t for t in terms if _contains(text, t)]
-		return not hit, ("found: " + ", ".join(hit)) if hit else ""
+		return not hit, ", ".join(hit)
 	if op == "Matches regex":
 		try:
 			m = re.search(value, text, re.IGNORECASE)
 		except re.error:
-			return False, "invalid regular expression"
+			return False, ""
 		return bool(m), m.group(0)[:120] if m else ""
 	if op == "Count at least":
 		need = int(rule.get("count") or 1)
 		total = sum(len(re.findall(r"(?<!\w)" + re.escape(t) + r"(?!\w)", text, re.IGNORECASE)) for t in terms)
-		return total >= need, f"{total} occurrences"
-	return False, f"unknown operator {op}"
+		return total >= need, f"{total}x"
+	return False, ""
 
 
 def evaluate_custom(rule: dict[str, Any], extraction: ExtractionResult, sections: dict[str, str]) -> dict[str, Any]:
@@ -200,10 +221,14 @@ def evaluate_custom(rule: dict[str, Any], extraction: ExtractionResult, sections
 		"triggered": 1 if matched else 0,
 		"points": 0.0,
 		"effect": effect if matched else "",
-		"reason": f"{rule.get('operator')} '{rule.get('value')}' in {rule.get('section') or 'Whole CV'}: {'matched' if matched else 'not matched'}.",
 		"evidence": evidence,
 		"cap": None,
 	}
+	say(
+		out,
+		"{operator} '{value}' in {section}: matched." if matched else "{operator} '{value}' in {section}: not matched.",
+		operator=rule.get("operator") or "Contains any", value=rule.get("value") or "", section=rule.get("section") or "Whole CV",
+	)
 	if matched:
 		if effect == "Add points":
 			out["points"] = points
@@ -222,17 +247,17 @@ def evaluate_knockout(
 	cond = rule.get("condition") or "Required keyword"
 	value = rule.get("value") or ""
 	failed = False
-	reason = ""
+	template, params = "", {}
 	if cond == "Minimum education level":
 		need = parse_degree_level(value)
 		level, name = detect_candidate_degree(sections.get("education", "") or extraction.normalized_text)
 		failed = need > 0 and level < need
-		reason = f"Highest education detected: {name}; required {value}."
+		template, params = "Highest education detected: {detected}; required {required}.", {"detected": name, "required": value}
 	elif cond == "Minimum years of experience":
 		need = float(value or 0)
 		years = float(signals.get("total_years", 0))
 		failed = years < need
-		reason = f"{years} years of experience detected; required {need}."
+		template, params = "{years} years of experience detected; required {required}.", {"years": years, "required": need}
 	else:
 		terms = _terms(value)
 		found = [t for t in terms if _contains(extraction.normalized_text, t)]
@@ -240,18 +265,19 @@ def evaluate_knockout(
 			failed = len(found) < len(terms)
 		else:
 			failed = not found
-		reason = f"Required: {value}. Found: {', '.join(found) or 'none'}."
+		template, params = "Required: {required}. Found: {found}.", {"required": value, "found": ", ".join(found) or "none"}
 	action = rule.get("action") or "Cap score"
-	return {
+	out = {
 		"rule_type": "Knock-out",
 		"rule": rule.get("description") or f"{cond}: {value}",
 		"triggered": 1 if failed else 0,
 		"points": 0.0,
 		"effect": action if failed else "",
-		"reason": reason,
 		"evidence": "",
 		"cap": (0.0 if action == "Zero score" else float(rule.get("cap_score") or 60)) if failed and action != "Needs review" else None,
 	}
+	say(out, template, **params)
+	return out
 
 
 # --- Orchestration -----------------------------------------------------------------------------

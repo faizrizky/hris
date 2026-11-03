@@ -85,7 +85,7 @@ def apply_result_to_screening(screening, result: dict[str, Any]) -> None:
 	for field in (
 		"base_score", "penalty_points", "total_score", "passed", "needs_hr_review", "result_label",
 		"result_description", "result_indicator", "confidence", "confidence_reason", "detected_language",
-		"review_reason",
+		"review_reason", "message_data",
 	):
 		screening.set(field, result.get(field))
 	if result.get("experience_level"):

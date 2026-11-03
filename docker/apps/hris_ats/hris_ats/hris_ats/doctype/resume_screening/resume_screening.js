@@ -39,8 +39,18 @@ frappe.ui.form.on("Resume Screening", {
 		const wrapper = frm.fields_dict.explanation_html && frm.fields_dict.explanation_html.$wrapper;
 		if (!wrapper) return;
 		const esc = (v) => frappe.utils.escape_html(v == null ? "" : String(v));
+		let messages = {};
+		try {
+			messages = JSON.parse(frm.doc.message_data || "{}");
+		} catch (e) {
+			messages = {};
+		}
+		const say = (key, fallback) => {
+			const m = messages[key];
+			return m ? hris_ats.translate_message(m.reason_template, m.reason_params, fallback) : __(fallback || "");
+		};
 		if (frm.doc.status === "Needs Review") {
-			wrapper.html(`<div class="alert alert-warning">${esc(__("Needs Manual Review"))}: ${esc(frm.doc.review_reason || frm.doc.error)}</div>`);
+			wrapper.html(`<div class="alert alert-warning">${esc(__("Needs Manual Review"))}: ${esc(say("review", frm.doc.review_reason || frm.doc.error))}</div>`);
 			return;
 		}
 		if (frm.doc.status !== "Done") {
@@ -51,7 +61,7 @@ frappe.ui.form.on("Resume Screening", {
 			const rows = (frm.doc.rule_results || [])
 				.map((x) => {
 					const points = hide_points && x.rule_type === "Penalty" ? (x.triggered ? __("On") : "-") : x.triggered && x.points ? x.points : "-";
-					return `<tr class="${x.triggered ? "" : "text-muted"}"><td>${esc(__(x.rule_type))}</td><td>${esc(x.rule)}</td><td>${x.triggered ? "✓" : ""}</td><td>${esc(points)}</td><td>${esc(__(x.effect))}</td><td>${esc(x.reason)}${x.evidence ? `<div class="small text-muted">${esc(x.evidence)}</div>` : ""}</td></tr>`;
+					return `<tr class="${x.triggered ? "" : "text-muted"}"><td>${esc(__(x.rule_type))}</td><td>${esc(x.rule_type === "Penalty" ? __(x.rule) : x.rule)}</td><td>${x.triggered ? "✓" : ""}</td><td>${esc(points)}</td><td>${esc(__(x.effect))}</td><td>${esc(hris_ats.translate_message(x.reason_template, x.reason_params, x.reason))}${x.evidence ? `<div class="small text-muted">${esc(x.evidence)}</div>` : ""}</td></tr>`;
 				})
 				.join("");
 			wrapper.html(`
@@ -62,7 +72,7 @@ frappe.ui.form.on("Resume Screening", {
 					· ${__("Reading confidence")}: <b>${esc(__(frm.doc.confidence || "-"))}</b>
 					${frm.doc.needs_hr_review ? `<span class="indicator-pill orange ml-2">${__("Needs HR review")}</span>` : ""}
 				</div>
-				${frm.doc.confidence_reason ? `<div class="small text-muted mb-2">${esc(frm.doc.confidence_reason)}</div>` : ""}
+				${frm.doc.confidence_reason ? `<div class="small text-muted mb-2">${esc(say("confidence", frm.doc.confidence_reason))}</div>` : ""}
 				${rows ? `<table class="table table-sm table-bordered"><thead><tr><th>${__("Type")}</th><th>${__("Rule")}</th><th>${__("Triggered")}</th><th>${__("Points")}</th><th>${__("Effect")}</th><th>${__("Reason")}</th></tr></thead><tbody>${rows}</tbody></table>` : `<div class="text-muted">${__("No template rules were applied.")}</div>`}
 			`);
 		};

@@ -39,6 +39,7 @@ app_logo_url = "/assets/hris_ats/images/logo.png"
 # app_include_css = "/assets/hris_ats/css/hris_ats.css"
 app_include_js = [
 	"/assets/hris_ats/js/crawler_login_dialog.js",
+	"/assets/hris_ats/js/message.js",
 	"/assets/hris_ats/js/bulk_upload.js",
 ]
 

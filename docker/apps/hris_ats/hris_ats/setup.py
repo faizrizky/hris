@@ -464,6 +464,18 @@ SCREENING_PRESETS = [
 ]
 
 
+def fill_default_tier_descriptions():
+	"""Tier labels created before they had a description get the default one (never overwrites text)."""
+	from hris_ats.hris_ats.doctype.resume_screening_template.resume_screening_template import DEFAULT_TIERS
+
+	for _from, _to, label, _indicator, description in DEFAULT_TIERS:
+		frappe.db.sql(
+			"""UPDATE `tabResume Screening Score Label` SET description = %s
+			WHERE label = %s AND (description IS NULL OR description = '')""",
+			(description, label),
+		)
+
+
 def setup_screening_presets():
 	"""Ship one ready-to-use template per candidate level (created once; HR edits or clones them)."""
 	from hris_ats.hris_ats.doctype.resume_screening_template.resume_screening_template import (
@@ -763,6 +775,7 @@ def after_install():
 	setup_dashboard_charts()
 	setup_rekrutmen_workspace()
 	setup_screening_presets()
+	fill_default_tier_descriptions()
 	setup_default_platforms()
 	setup_default_lexicon()
 	setup_default_settings()
@@ -777,6 +790,7 @@ def after_migrate():
 	setup_dashboard_charts()
 	setup_rekrutmen_workspace()
 	setup_screening_presets()
+	fill_default_tier_descriptions()
 	setup_default_platforms()
 	setup_default_lexicon()
 	setup_default_settings()

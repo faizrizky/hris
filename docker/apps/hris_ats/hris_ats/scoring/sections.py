@@ -48,6 +48,9 @@ SECTION_PATTERNS = {
 		r"keterampilan",
 		r"kemampuan",
 		r"technical\s+skills",
+		r"key\s+competencies",
+		r"key\s+skills",
+		r"keahlian\s+utama",
 		r"core\s+competencies",
 		r"competencies",
 		r"skills",
@@ -58,6 +61,7 @@ SECTION_PATTERNS = {
 		r"sertifikasi",
 		r"sertifikat",
 		r"lisensi",
+		r"courses\s*(?:&|and)?\s*certifications",
 		r"licenses\s*(?:&|and)\s*certifications",
 		r"certifications",
 		r"certification",
@@ -88,6 +92,8 @@ def _build_header_regex() -> re.Pattern:
 
 
 HEADER_REGEX = _build_header_regex()
+# Designer CVs space out headings letter by letter ("P R O F I L E")
+SPACED_LETTERS_RE = re.compile(r"^(?:[^\W\d_] ){2,}[^\W\d_]$")
 
 
 def split_sections(text: str) -> dict[str, str]:
@@ -136,7 +142,7 @@ def split_sections(text: str) -> dict[str, str]:
 			continue
 
 		# Periksa apakah baris ini adalah judul bagian
-		match = HEADER_REGEX.match(stripped)
+		match = HEADER_REGEX.match(stripped.replace(" ", "") if SPACED_LETTERS_RE.match(stripped) else stripped)
 		if match:
 			# Temukan nama bagian dari group yang cocok
 			matched_group = [k for k, v in match.groupdict().items() if v]

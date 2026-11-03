@@ -151,20 +151,31 @@ function show_simulation_dialog(frm) {
 	dialog.show();
 }
 
+function review_text(r) {
+	let messages = {};
+	try {
+		messages = JSON.parse(r.message_data || "{}");
+	} catch (e) {
+		messages = {};
+	}
+	const m = messages.review;
+	return m ? hris_ats.translate_message(m.reason_template, m.reason_params, r.review_reason) : __(r.review_reason || r.error || "");
+}
+
 function render_simulation(r, hide_points) {
 	const esc = (v) => frappe.utils.escape_html(v == null ? "" : String(v));
 	if (r.status !== "Done") {
-		return `<div class="alert alert-warning">${esc(__("Needs Manual Review"))}: ${esc(r.review_reason || r.error)}</div>`;
+		return `<div class="alert alert-warning">${esc(__("Needs Manual Review"))}: ${esc(review_text(r))}</div>`;
 	}
 	const rules = (r.rule_results || [])
 		.map((x) => {
 			const points = hide_points && x.rule_type === "Penalty" ? (x.triggered ? __("On") : "-") : x.points ? x.points : "-";
-			return `<tr class="${x.triggered ? "" : "text-muted"}"><td>${esc(__(x.rule_type))}</td><td>${esc(x.rule)}</td><td>${x.triggered ? "✓" : ""}</td><td>${esc(points)}</td><td>${esc(x.reason)}${x.evidence ? `<div class="small text-muted">${esc(x.evidence)}</div>` : ""}</td></tr>`;
+			return `<tr class="${x.triggered ? "" : "text-muted"}"><td>${esc(__(x.rule_type))}</td><td>${esc(x.rule_type === "Penalty" ? __(x.rule) : x.rule)}</td><td>${x.triggered ? "✓" : ""}</td><td>${esc(points)}</td><td>${esc(hris_ats.translate_message(x.reason_template, x.reason_params, x.reason))}${x.evidence ? `<div class="small text-muted">${esc(x.evidence)}</div>` : ""}</td></tr>`;
 		})
 		.join("");
 	const metrics = (r.results || [])
 		.filter((m) => m.original_weight > 0)
-		.map((m) => `<tr><td>${esc(__(m.metric))}</td><td>${esc(m.score)}</td><td>${m.applicable ? esc(m.weight) + "%" : __("N/A")}</td><td>${esc(m.reason)}</td></tr>`)
+		.map((m) => `<tr><td>${esc(__(m.metric))}</td><td>${esc(m.score)}</td><td>${m.applicable ? esc(m.weight) + "%" : __("N/A")}</td><td>${esc(hris_ats.translate_message(m.reason_template, m.reason_params, m.reason))}</td></tr>`)
 		.join("");
 	return `
 		<div class="mb-3">

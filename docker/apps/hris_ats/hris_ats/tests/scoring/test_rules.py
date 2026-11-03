@@ -109,3 +109,20 @@ def test_extract_contact():
 	c = extract_contact(text, "fallback")
 	assert c == {"email": "budi.santoso@mail.com", "phone": "+6281234567890", "name": "Budi Santoso"}
 	assert extract_contact("no contact here", "file name")["name"] == "file name"
+
+
+def test_reasons_keep_template_and_params_for_translation():
+	import json
+
+	res = evaluate_penalty({"rule": "Brevity", "points": 5, "threshold": 3, "secondary_threshold": 1000}, _ext("x " * 50, pages=4), {}, {})
+	assert res["reason_template"] == "{pages} pages and {words} words (limit {max_pages} pages or {max_words} words)."
+	assert json.loads(res["reason_params"])["pages"] == 4
+	assert res["reason"] == res["reason_template"].format(**json.loads(res["reason_params"]))
+
+
+def test_split_sections_reads_spaced_and_key_competency_headings():
+	from hris_ats.scoring.sections import split_sections
+
+	text = "Budi\nP R O F I L E\nDeveloper with experience.\nKEY COMPETENCIES\nPython\nCOURSES CERTIFICATIONS\nAWS\n"
+	s = split_sections(text)
+	assert "Developer" in s["summary"] and "Python" in s["skills"] and "AWS" in s["certifications"]

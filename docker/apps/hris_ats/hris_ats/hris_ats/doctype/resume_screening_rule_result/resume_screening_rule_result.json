@@ -11,7 +11,9 @@
   "points",
   "effect",
   "reason",
-  "evidence"
+  "evidence",
+  "reason_template",
+  "reason_params"
  ],
  "fields": [
   {
@@ -60,6 +62,18 @@
    "fieldname": "evidence",
    "fieldtype": "Small Text",
    "label": "Evidence"
+  },
+  {
+   "fieldname": "reason_template",
+   "fieldtype": "Small Text",
+   "hidden": 1,
+   "label": "Reason Template"
+  },
+  {
+   "fieldname": "reason_params",
+   "fieldtype": "Small Text",
+   "hidden": 1,
+   "label": "Reason Parameters"
   }
  ],
  "index_web_pages_for_search": 1,

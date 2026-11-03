@@ -1153,3 +1153,33 @@ penalties,penalti
 {0} rate limit: {1},Batas rate {0}: {1}
 "{0}: login session data is incomplete, adding public data","{0}: data sesi login tidak lengkap, menambahkan data publik"
 {0}: required licence or degree,{0}: wajib lisensi atau gelar
+Penalty,Penalti
+Knock-out,Knock-out
+Tier 1 - Highly Recommended,Tier 1 - Sangat Direkomendasikan
+Tier 2 - Interview,Tier 2 - Wawancara
+Tier 3 - Reserve,Tier 3 - Cadangan
+Tier 4 - Not Recommended,Tier 4 - Tidak Direkomendasikan
+Strong match. Recommended to go straight to interview.,Sangat cocok. Disarankan langsung ke tahap wawancara.
+Good match. Recommended for interview.,Cocok. Disarankan untuk wawancara.
+Partial match. Keep in the reserve pool.,Cocok sebagian. Simpan di daftar cadangan.
+Does not meet the requirements. Not recommended for this role.,Belum memenuhi syarat. Tidak disarankan untuk posisi ini.
+Not enough dated jobs to judge tenure ({jobs} found).,Pekerjaan bertanggal belum cukup untuk menilai lama bekerja ({jobs} ditemukan).
+Average tenure {avg} years across {jobs} jobs is below {limit} years.,"Rata-rata lama bekerja {avg} tahun dari {jobs} pekerjaan, di bawah {limit} tahun."
+Average tenure {avg} years across {jobs} jobs.,Rata-rata lama bekerja {avg} tahun dari {jobs} pekerjaan.
+"{found} measurable achievements found (numbers, %, Rp); at least {need} expected.","{found} prestasi terukur ditemukan (angka, %, Rp); minimal {need} diharapkan."
+{found} measurable achievements found.,{found} prestasi terukur ditemukan.
+Typo ratio {ratio}% is above {limit}%.,Rasio salah ketik {ratio}% melebihi {limit}%.
+Typo ratio {ratio}% (limit {limit}%).,Rasio salah ketik {ratio}% (batas {limit}%).
+{pages} pages and {words} words (limit {max_pages} pages or {max_words} words).,{pages} halaman dan {words} kata (batas {max_pages} halaman atau {max_words} kata).
+{pages} pages and {words} words.,{pages} halaman dan {words} kata.
+Unknown penalty rule: {name},Aturan penalti tidak dikenal: {name}
+{operator} '{value}' in {section}: matched.,{operator} '{value}' di {section}: cocok.
+{operator} '{value}' in {section}: not matched.,{operator} '{value}' di {section}: tidak cocok.
+Highest education detected: {detected}; required {required}.,Pendidikan tertinggi terdeteksi: {detected}; dibutuhkan {required}.
+{years} years of experience detected; required {required}.,{years} tahun pengalaman terdeteksi; dibutuhkan {required}.
+Required: {required}. Found: {found}.,Dibutuhkan: {required}. Ditemukan: {found}.
+Only {recognized} CV sections recognized; lowest reading score {lowest}.,Hanya {recognized} bagian CV yang dikenali; skor keterbacaan terendah {lowest}.
+{recognized} CV sections recognized; lowest reading score {lowest}.,{recognized} bagian CV dikenali; skor keterbacaan terendah {lowest}.
+{recognized} CV sections recognized; reading scores all at least 70.,{recognized} bagian CV dikenali; semua skor keterbacaan minimal 70.
+CV language '{language}' is not processed by this template (allowed: {allowed}).,Bahasa CV '{language}' tidak diproses oleh template ini (diizinkan: {allowed}).
+Explanation Messages,Pesan Penjelasan

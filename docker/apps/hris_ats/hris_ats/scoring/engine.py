@@ -7,6 +7,7 @@ Menggabungkan ekstraksi teks, segmentasi bagian, evaluasi 9 metrik, dan kalkulas
 
 from __future__ import annotations
 
+import json
 from collections.abc import Callable
 from typing import Any
 
@@ -24,7 +25,7 @@ from hris_ats.scoring.metrics import (
 	information_completeness,
 	skill_relevance,
 )
-from hris_ats.scoring.rules import apply_rules, calculate_confidence, detect_language
+from hris_ats.scoring.rules import apply_rules, calculate_confidence, detect_language, say
 from hris_ats.scoring.sections import split_sections
 from hris_ats.scoring.total import calculate_total_score, match_label
 
@@ -61,7 +62,9 @@ def evaluate_resume(
 	allowed = [x.strip().lower() for x in (template.get("allowed_languages") or "").split(",") if x.strip()]
 	language = detect_language(extraction.normalized_text)
 	if allowed and language and language not in allowed:
-		return _needs_review(extraction, f"CV language '{language}' is not processed by this template (allowed: {', '.join(allowed)}).", language)
+		message: dict[str, Any] = {}
+		say(message, "CV language '{language}' is not processed by this template (allowed: {allowed}).", language=language, allowed=", ".join(allowed))
+		return _needs_review(extraction, message["reason"], language, message)
 
 	sections = split_sections(extraction.normalized_text)
 	metric_results = []
@@ -114,7 +117,7 @@ def evaluate_resume(
 		template.get("pass_description") or "",
 		template.get("fail_description") or "",
 	)
-	confidence, confidence_reason = calculate_confidence(metric_results, sections)
+	confidence, confidence_message = calculate_confidence(metric_results, sections)
 	total_years = signals.get("total_years", 0.0)
 	return {
 		"status": "Done",
@@ -132,15 +135,19 @@ def evaluate_resume(
 		"results": base["results"],
 		"rule_results": ruled["rule_results"],
 		"confidence": confidence,
-		"confidence_reason": confidence_reason,
+		"confidence_reason": confidence_message["reason"],
+		"message_data": json.dumps({"confidence": confidence_message}, ensure_ascii=False),
 		"detected_language": language,
 		"review_reason": "",
 		"sections": sections,
 	}
 
 
-def _needs_review(extraction: ExtractionResult, reason: str, language: str = "") -> dict[str, Any]:
+def _needs_review(
+	extraction: ExtractionResult, reason: str, language: str = "", message: dict[str, Any] | None = None
+) -> dict[str, Any]:
 	return {
+		"message_data": json.dumps({"review": message} if message else {}, ensure_ascii=False),
 		"status": "Needs Review",
 		"error": reason,
 		"resume_text": extraction.raw_text,

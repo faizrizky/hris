@@ -30,6 +30,7 @@
   "result_description",
   "confidence",
   "confidence_reason",
+  "message_data",
   "detected_language",
   "review_reason",
   "template_version",
@@ -313,6 +314,13 @@
    "options": "Resume Screening Rule Result",
    "read_only": 1,
    "hidden": 1
+  },
+  {
+   "fieldname": "message_data",
+   "fieldtype": "JSON",
+   "hidden": 1,
+   "read_only": 1,
+   "label": "Explanation Messages"
   }
  ],
  "index_web_pages_for_search": 1,

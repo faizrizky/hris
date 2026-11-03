@@ -29,10 +29,10 @@ DEFAULT_PENALTY_RULES = [
 	("Brevity", 5, 3, 1000),
 ]
 DEFAULT_TIERS = [
-	(90, 100, "Tier 1 - Highly Recommended", "green"),
-	(80, 89, "Tier 2 - Interview", "blue"),
-	(70, 79, "Tier 3 - Reserve", "orange"),
-	(0, 69, "Tier 4 - Not Recommended", "red"),
+	(90, 100, "Tier 1 - Highly Recommended", "green", "Strong match. Recommended to go straight to interview."),
+	(80, 89, "Tier 2 - Interview", "blue", "Good match. Recommended for interview."),
+	(70, 79, "Tier 3 - Reserve", "orange", "Partial match. Keep in the reserve pool."),
+	(0, 69, "Tier 4 - Not Recommended", "red", "Does not meet the requirements. Not recommended for this role."),
 ]
 SUPPORTED_LANGUAGES = {"id", "en"}
 
@@ -52,9 +52,10 @@ class ResumeScreeningTemplate(Document):
 					"rule": rule, "enabled": 0, "points": points, "threshold": threshold, "secondary_threshold": secondary,
 				})
 		if not self.score_labels:
-			for score_from, score_to, label, indicator in DEFAULT_TIERS:
+			for score_from, score_to, label, indicator, description in DEFAULT_TIERS:
 				self.append("score_labels", {
-					"label_type": "Range", "score_from": score_from, "score_to": score_to, "label": label, "indicator": indicator,
+					"label_type": "Range", "score_from": score_from, "score_to": score_to, "label": label,
+					"indicator": indicator, "description": description,
 				})
 		if not self.pass_description:
 			self.pass_description = _("Applicant resume is match with the applied job!")

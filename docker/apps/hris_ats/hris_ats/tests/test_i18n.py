@@ -495,3 +495,32 @@ def test_guard_i_social_media_scope_and_account_runner_isolation():
 	assert is_social_account("Medium") is False
 	assert is_social_account("Behance") is False
 
+
+
+# Guard (h): scoring sentences built with say() in rules.py are stored as English templates,
+# so each one must have an id.csv translation that keeps the same placeholders.
+def test_guard_h_rule_templates_translated():
+	translations = load_translations()
+	path = os.path.join(BASE_APP_DIR, "scoring", "rules.py")
+	with open(path, encoding="utf-8") as f:
+		tree = ast.parse(f.read())
+	templates: set[str] = set()
+	for node in ast.walk(tree):
+		if isinstance(node, ast.Call) and isinstance(node.func, ast.Name) and node.func.id == "say" and len(node.args) >= 2:
+			for const in ast.walk(node.args[1]):
+				if isinstance(const, ast.Constant) and isinstance(const.value, str):
+					templates.add(const.value)
+		if isinstance(node, ast.Assign) and isinstance(node.value, ast.Tuple) and len(node.value.elts) == 2:
+			for const in node.value.elts[:1]:
+				if isinstance(const, ast.Constant) and isinstance(const.value, str) and "{" in const.value:
+					templates.add(const.value)
+	# confidence templates are assigned as ("Level", "template") tuples
+	for node in ast.walk(tree):
+		if isinstance(node, ast.Tuple) and len(node.elts) == 2 and all(isinstance(e, ast.Constant) for e in node.elts):
+			second = node.elts[1].value
+			if isinstance(second, str) and "{" in second:
+				templates.add(second)
+	assert templates, "Expected to find say() templates in rules.py"
+	for t in sorted(templates):
+		assert t in translations, f"Missing id.csv translation: {t!r}"
+		assert set(re.findall(r"\{\w+\}", t)) == set(re.findall(r"\{\w+\}", translations[t])), t
