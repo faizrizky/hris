@@ -223,6 +223,7 @@
   {
    "fieldname": "resume_text",
    "fieldtype": "Long Text",
+   "hidden": 1,
    "label": "Extracted Text",
    "read_only": 1
   },
