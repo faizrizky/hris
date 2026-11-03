@@ -433,54 +433,6 @@ def setup_rekrutmen_workspace():
 	ws.save()
 
 
-def setup_rekrutmen_sidebar():
-	"""Sidebar modul HRIS ATS: dua kelompok terpisah, ATS (screening resume) dan BGC (background check)."""
-	if not frappe.db.exists("DocType", "Workspace Sidebar"):
-		return
-
-	def link(label, link_to, link_type="DocType", icon="", child=0):
-		row = {"type": "Link", "label": label, "link_to": link_to, "link_type": link_type, "icon": icon, "child": child}
-		return row
-
-	def section(label, icon):
-		return {"type": "Section Break", "label": label, "icon": icon, "indent": 1, "keep_closed": 0, "collapsible": 1}
-
-	items = [
-		link("Home", "Rekrutmen", "Workspace", "house"),
-		section("ATS - Resume Screening", "file-search"),
-		link("Resume Screening", "Resume Screening", child=1),
-		link("Resume Screening Template", "Resume Screening Template", child=1),
-		link("Resume Upload Batch", "Resume Upload Batch", child=1),
-		link("Resume Screening Settings", "Resume Screening Settings", child=1),
-		section("BGC - Background Check", "shield-check"),
-		link("Background Check", "Background Check", child=1),
-		link("Background Check Finding", "Background Check Finding", child=1),
-		link("Background Check Platform", "Background Check Platform", child=1),
-		link("Background Check Lexicon", "Background Check Lexicon", child=1),
-		link("Background Check Crawler Account", "Background Check Crawler Account", child=1),
-		link("Crawl Test", "bgc-crawl-test", "Page", child=1),
-		link("Background Check Settings", "Background Check Settings", child=1),
-	]
-	items = [
-		i for i in items
-		if i["type"] == "Section Break"
-		or i["link_type"] == "Workspace"
-		or frappe.db.exists(i["link_type"], i["link_to"])
-	]
-
-	name = "Rekrutmen"
-	doc = frappe.get_doc("Workspace Sidebar", name) if frappe.db.exists("Workspace Sidebar", name) else frappe.new_doc("Workspace Sidebar")
-	doc.title = name
-	doc.module = "HRIS ATS"
-	doc.app = "hris_ats"
-	doc.header_icon = "users"
-	doc.set("items", [])
-	for row in items:
-		doc.append("items", row)
-	doc.flags.ignore_permissions = True
-	doc.save()
-
-
 # Blueprint presets: core qualifications carry the score; reading quality metrics (ATS friendly,
 # Date consistency, Information completeness) are turned off and only feed "reading confidence".
 SCREENING_PRESETS = [
@@ -810,7 +762,6 @@ def after_install():
 	setup_number_cards()
 	setup_dashboard_charts()
 	setup_rekrutmen_workspace()
-	setup_rekrutmen_sidebar()
 	setup_screening_presets()
 	setup_default_platforms()
 	setup_default_lexicon()
@@ -825,7 +776,6 @@ def after_migrate():
 	setup_number_cards()
 	setup_dashboard_charts()
 	setup_rekrutmen_workspace()
-	setup_rekrutmen_sidebar()
 	setup_screening_presets()
 	setup_default_platforms()
 	setup_default_lexicon()
