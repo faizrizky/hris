@@ -538,5 +538,7 @@ def test_toxicity_matrix_per_post():
 	# Slang in a positive post does not lower the politeness score; the unclear one still does
 	assert res["abusive_posts_count"] == 2
 	assert res["toxicity_score"] < 0
+	slang_only = analyze_posts(posts=[{"text": "Gila anjing, UI/UX aplikasi ini keren banget!"}], lexicon_items=lexicon)
+	assert slang_only["toxicity_score"] == 0.0 and slang_only["abusive_posts_count"] == 0
 	# Sentiment words are not risk terms
 	assert not any("sentiment" in rp["risk_flags"] for rp in res["risk_posts"])

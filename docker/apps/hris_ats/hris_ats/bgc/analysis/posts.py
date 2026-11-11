@@ -145,7 +145,8 @@ def analyze_posts(
 		# 1. Kesantunan: matriks kata kasar x nada. Slang bernada positif tidak dihitung.
 		tone = classify_tone(text, profanity, positive, negative)
 		tone_counts[tone["cell"]] = tone_counts.get(tone["cell"], 0) + 1
-		total_weight += tone["weight"]
+		# Slang in a positive post is ignored, so it must not raise the toxicity score either
+		total_weight += 0.0 if tone["cell"] == "Slang" else tone["weight"]
 		total_words += tone["words"]
 
 		if tone["cell"] in ("Red flag", "Unclear"):
