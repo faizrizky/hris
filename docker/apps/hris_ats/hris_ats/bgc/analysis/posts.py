@@ -15,6 +15,41 @@ from typing import Any
 POSITIVE_WORDS = ["senang", "bangga", "terima kasih", "sukses", "hebat", "berhasil", "grateful", "happy", "congratulations", "proud", "amazing", "good"]
 NEGATIVE_WORDS = ["kecewa", "buruk", "rusak", "parah", "hancur", "menyesal", "bad", "terrible", "disappointed", "worst", "fail", "sad"]
 
+# Toxicity matrix (TalentaKu social media blueprint), judged per post so long polite posts cannot
+# dilute an attack: layer 1 = profanity weight / word count, layer 2 = tone from sentiment words.
+PROFANITY_WEIGHT = 5.0
+TOXIC_THRESHOLD = -0.05
+PROFANITY_CATEGORIES = ("Kata kasar", "Profanity")
+SENTIMENT_CATEGORIES = ("Positive sentiment", "Negative sentiment")
+
+
+def _count(term: str, text: str) -> int:
+	return len(re.findall(r"\b" + re.escape(term) + r"\b", text))
+
+
+def classify_tone(
+	text: str, profanity: dict[str, float], positive: dict[str, float], negative: dict[str, float]
+) -> dict[str, Any]:
+	"""One post through the 2x2 matrix. Returns cell, toxicity score and the profanity terms found.
+
+	Cells: Safe, Warning (negative tone, no profanity: information only, never a risk),
+	Slang (profanity in a positive post: ignored), Red flag (profanity in a negative post),
+	Unclear (profanity, tone unknown: the word lists cannot tell, so it is not flagged as an attack).
+	"""
+	clean = (text or "").lower()
+	words = len(clean.split())
+	hits = {t: _count(t, clean) for t in profanity}
+	terms = [t for t, n in hits.items() if n]
+	weight = sum(n * profanity[t] * PROFANITY_WEIGHT for t, n in hits.items())
+	score = -weight / words if words else 0.0
+	pos = sum(_count(t, clean) * w for t, w in positive.items())
+	neg = sum(_count(t, clean) * w for t, w in negative.items())
+	if score < TOXIC_THRESHOLD:
+		cell = "Red flag" if neg > pos else "Slang" if pos > neg else "Unclear"
+	else:
+		cell = "Warning" if neg > pos else "Safe"
+	return {"cell": cell, "score": score, "terms": terms, "weight": weight, "words": words}
+
 
 def analyze_posts(
 	posts: list[dict[str, Any]],
@@ -35,23 +70,34 @@ def analyze_posts(
 			"risk_posts": [],
 			"professional_relevance_pct": 0.0,
 			"sentiment_ratio": {"positive": 0, "negative": 0},
+			"toxicity_score": 0.0,
+			"tone_counts": {},
 		}
 
 	total_posts = len(posts)
 	lexicon = lexicon_items or []
 
 	# Pisahkan leksikon berdasarkan kategori
-	abusive_terms = [
-		item["term"].lower()
-		for item in lexicon
-		if item.get("enabled", 1) and item.get("category") in ("Kata kasar", "Profanity")
-	]
+	def weighted(categories: tuple[str, ...]) -> dict[str, float]:
+		return {
+			item["term"].lower(): float(item.get("weight") or 1.0)
+			for item in lexicon
+			if item.get("enabled", 1) and item.get("category") in categories and item.get("term")
+		}
+
+	profanity = weighted(PROFANITY_CATEGORIES)
+	# The built-in words keep tone detection working on sites that have no sentiment words yet
+	positive = {**dict.fromkeys(POSITIVE_WORDS, 1.0), **weighted(("Positive sentiment",))}
+	negative = {**dict.fromkeys(NEGATIVE_WORDS, 1.0), **weighted(("Negative sentiment",))}
+	tone_counts: dict[str, int] = {}
+	total_weight = 0.0
+	total_words = 0
 
 	risk_items = [
 		item
 		for item in lexicon
 		if item.get("enabled", 1)
-		and item.get("category") not in ("Kata kasar", "Profanity")
+		and item.get("category") not in PROFANITY_CATEGORIES + SENTIMENT_CATEGORIES
 		and item.get("severity") in ("Sedang", "Tinggi", "Medium", "High")
 	]
 
@@ -96,15 +142,13 @@ def analyze_posts(
 				hour = dt.hour
 				hour_distribution[hour] = hour_distribution.get(hour, 0) + 1
 
-		# 1. Kesantunan (Profanity / Kata kasar)
-		has_abuse = False
-		matched_abusive = []
-		for term in abusive_terms:
-			if re.search(r"\b" + re.escape(term) + r"\b", clean_text):
-				has_abuse = True
-				matched_abusive.append(term)
+		# 1. Kesantunan: matriks kata kasar x nada. Slang bernada positif tidak dihitung.
+		tone = classify_tone(text, profanity, positive, negative)
+		tone_counts[tone["cell"]] = tone_counts.get(tone["cell"], 0) + 1
+		total_weight += tone["weight"]
+		total_words += tone["words"]
 
-		if has_abuse:
+		if tone["cell"] in ("Red flag", "Unclear"):
 			abusive_count += 1
 			if is_reply:
 				abusive_replies_count += 1
@@ -112,6 +156,10 @@ def analyze_posts(
 		# 2. Konten berisiko (Hate speech, Threats/violence, Pornography, Online gambling, Narcotics, Fraud, etc.)
 		matched_risks = []
 		highest_sev = "Low"
+		if tone["cell"] == "Red flag":
+			# High = "Needs verification" until HR reviews it; the system never rejects on its own
+			matched_risks.append("Toxic language: " + ", ".join(tone["terms"]))
+			highest_sev = "High"
 		for item in risk_items:
 			term = item.get("term", "").lower()
 			if not term:
@@ -186,4 +234,7 @@ def analyze_posts(
 		"risk_posts": risk_posts,
 		"professional_relevance_pct": prof_pct,
 		"sentiment_ratio": {"positive": pos_count, "negative": neg_count},
+		# Blueprint display value: (profanity weight / all words) x 100, e.g. -5.0 at the threshold
+		"toxicity_score": round(-total_weight / total_words * 100, 1) if total_words else 0.0,
+		"tone_counts": tone_counts,
 	}

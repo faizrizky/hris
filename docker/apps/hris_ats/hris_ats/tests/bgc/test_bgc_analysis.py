@@ -513,3 +513,30 @@ def test_platform_check_provider_profile_matching_and_threshold():
 		assert res_hr["exists"] == 0
 		assert res_hr["identity_match"] == 0
 
+
+
+def test_toxicity_matrix_per_post():
+	lexicon = [
+		{"term": "anjing", "category": "Profanity", "severity": "Low", "enabled": 1, "weight": 1.0},
+		{"term": "bangsat", "category": "Profanity", "severity": "Low", "enabled": 1, "weight": 1.0},
+		{"term": "keren", "category": "Positive sentiment", "enabled": 1, "weight": 1.0},
+		{"term": "nyesel", "category": "Negative sentiment", "enabled": 1, "weight": 1.0},
+	]
+	posts = [
+		{"text": "Bersyukur bisa belajar banyak dari tim proyek ini."},
+		{"text": "Saya kecewa dengan kebijakan yang tidak adil."},
+		{"text": "Gila anjing, UI/UX aplikasi ini keren banget!"},
+		{"text": "Manajemen bangsat, nyesel kerja di sana!"},
+		{"text": "anjing lah"},
+	]
+	res = analyze_posts(posts=posts, lexicon_items=lexicon)
+	assert res["tone_counts"] == {"Safe": 1, "Warning": 1, "Slang": 1, "Red flag": 1, "Unclear": 1}
+	# Only the attack becomes a finding, and it waits for HR (High = needs verification)
+	assert len(res["risk_posts"]) == 1
+	assert res["risk_posts"][0]["severity"] == "High"
+	assert res["risk_posts"][0]["risk_flags"] == "Toxic language: bangsat"
+	# Slang in a positive post does not lower the politeness score; the unclear one still does
+	assert res["abusive_posts_count"] == 2
+	assert res["toxicity_score"] < 0
+	# Sentiment words are not risk terms
+	assert not any("sentiment" in rp["risk_flags"] for rp in res["risk_posts"])

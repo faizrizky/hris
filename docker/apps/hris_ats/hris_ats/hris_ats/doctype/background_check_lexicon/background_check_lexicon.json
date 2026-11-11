@@ -21,7 +21,7 @@
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Category",
-   "options": "Profanity\nHate speech\nThreats/violence\nPornography\nOnline gambling\nNarcotics\nFraud\nCompany information leak\nAchievement\nProfessional\nLegal-negative",
+   "options": "Profanity\nHate speech\nThreats/violence\nPornography\nOnline gambling\nNarcotics\nFraud\nCompany information leak\nAchievement\nProfessional\nLegal-negative\nPositive sentiment\nNegative sentiment",
    "reqd": 1
   },
   {

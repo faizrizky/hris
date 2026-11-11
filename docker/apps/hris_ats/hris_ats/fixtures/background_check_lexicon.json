@@ -308,5 +308,1095 @@
   "severity": "High",
   "weight": 2.0,
   "enabled": 1
+ },
+ {
+  "doctype": "Background Check Lexicon",
+  "name": "Positive sentiment-senang",
+  "category": "Positive sentiment",
+  "term": "senang",
+  "language": "id",
+  "severity": "Info",
+  "weight": 1.0,
+  "enabled": 1
+ },
+ {
+  "doctype": "Background Check Lexicon",
+  "name": "Positive sentiment-bangga",
+  "category": "Positive sentiment",
+  "term": "bangga",
+  "language": "id",
+  "severity": "Info",
+  "weight": 1.0,
+  "enabled": 1
+ },
+ {
+  "doctype": "Background Check Lexicon",
+  "name": "Positive sentiment-terima kasih",
+  "category": "Positive sentiment",
+  "term": "terima kasih",
+  "language": "id",
+  "severity": "Info",
+  "weight": 1.0,
+  "enabled": 1
+ },
+ {
+  "doctype": "Background Check Lexicon",
+  "name": "Positive sentiment-sukses",
+  "category": "Positive sentiment",
+  "term": "sukses",
+  "language": "id",
+  "severity": "Info",
+  "weight": 1.0,
+  "enabled": 1
+ },
+ {
+  "doctype": "Background Check Lexicon",
+  "name": "Positive sentiment-hebat",
+  "category": "Positive sentiment",
+  "term": "hebat",
+  "language": "id",
+  "severity": "Info",
+  "weight": 1.0,
+  "enabled": 1
+ },
+ {
+  "doctype": "Background Check Lexicon",
+  "name": "Positive sentiment-berhasil",
+  "category": "Positive sentiment",
+  "term": "berhasil",
+  "language": "id",
+  "severity": "Info",
+  "weight": 1.0,
+  "enabled": 1
+ },
+ {
+  "doctype": "Background Check Lexicon",
+  "name": "Positive sentiment-bersyukur",
+  "category": "Positive sentiment",
+  "term": "bersyukur",
+  "language": "id",
+  "severity": "Info",
+  "weight": 1.0,
+  "enabled": 1
+ },
+ {
+  "doctype": "Background Check Lexicon",
+  "name": "Positive sentiment-keren",
+  "category": "Positive sentiment",
+  "term": "keren",
+  "language": "id",
+  "severity": "Info",
+  "weight": 1.0,
+  "enabled": 1
+ },
+ {
+  "doctype": "Background Check Lexicon",
+  "name": "Positive sentiment-mantap",
+  "category": "Positive sentiment",
+  "term": "mantap",
+  "language": "id",
+  "severity": "Info",
+  "weight": 1.0,
+  "enabled": 1
+ },
+ {
+  "doctype": "Background Check Lexicon",
+  "name": "Positive sentiment-bagus",
+  "category": "Positive sentiment",
+  "term": "bagus",
+  "language": "id",
+  "severity": "Info",
+  "weight": 1.0,
+  "enabled": 1
+ },
+ {
+  "doctype": "Background Check Lexicon",
+  "name": "Positive sentiment-luar biasa",
+  "category": "Positive sentiment",
+  "term": "luar biasa",
+  "language": "id",
+  "severity": "Info",
+  "weight": 1.0,
+  "enabled": 1
+ },
+ {
+  "doctype": "Background Check Lexicon",
+  "name": "Positive sentiment-salut",
+  "category": "Positive sentiment",
+  "term": "salut",
+  "language": "id",
+  "severity": "Info",
+  "weight": 1.0,
+  "enabled": 1
+ },
+ {
+  "doctype": "Background Check Lexicon",
+  "name": "Positive sentiment-suka",
+  "category": "Positive sentiment",
+  "term": "suka",
+  "language": "id",
+  "severity": "Info",
+  "weight": 1.0,
+  "enabled": 1
+ },
+ {
+  "doctype": "Background Check Lexicon",
+  "name": "Positive sentiment-cinta",
+  "category": "Positive sentiment",
+  "term": "cinta",
+  "language": "id",
+  "severity": "Info",
+  "weight": 1.0,
+  "enabled": 1
+ },
+ {
+  "doctype": "Background Check Lexicon",
+  "name": "Positive sentiment-lucu",
+  "category": "Positive sentiment",
+  "term": "lucu",
+  "language": "id",
+  "severity": "Info",
+  "weight": 1.0,
+  "enabled": 1
+ },
+ {
+  "doctype": "Background Check Lexicon",
+  "name": "Positive sentiment-seru",
+  "category": "Positive sentiment",
+  "term": "seru",
+  "language": "id",
+  "severity": "Info",
+  "weight": 1.0,
+  "enabled": 1
+ },
+ {
+  "doctype": "Background Check Lexicon",
+  "name": "Positive sentiment-puas",
+  "category": "Positive sentiment",
+  "term": "puas",
+  "language": "id",
+  "severity": "Info",
+  "weight": 1.0,
+  "enabled": 1
+ },
+ {
+  "doctype": "Background Check Lexicon",
+  "name": "Positive sentiment-terbaik",
+  "category": "Positive sentiment",
+  "term": "terbaik",
+  "language": "id",
+  "severity": "Info",
+  "weight": 1.0,
+  "enabled": 1
+ },
+ {
+  "doctype": "Background Check Lexicon",
+  "name": "Positive sentiment-semangat",
+  "category": "Positive sentiment",
+  "term": "semangat",
+  "language": "id",
+  "severity": "Info",
+  "weight": 1.0,
+  "enabled": 1
+ },
+ {
+  "doctype": "Background Check Lexicon",
+  "name": "Positive sentiment-alhamdulillah",
+  "category": "Positive sentiment",
+  "term": "alhamdulillah",
+  "language": "id",
+  "severity": "Info",
+  "weight": 1.0,
+  "enabled": 1
+ },
+ {
+  "doctype": "Background Check Lexicon",
+  "name": "Positive sentiment-selamat",
+  "category": "Positive sentiment",
+  "term": "selamat",
+  "language": "id",
+  "severity": "Info",
+  "weight": 1.0,
+  "enabled": 1
+ },
+ {
+  "doctype": "Background Check Lexicon",
+  "name": "Positive sentiment-kagum",
+  "category": "Positive sentiment",
+  "term": "kagum",
+  "language": "id",
+  "severity": "Info",
+  "weight": 1.0,
+  "enabled": 1
+ },
+ {
+  "doctype": "Background Check Lexicon",
+  "name": "Positive sentiment-menyenangkan",
+  "category": "Positive sentiment",
+  "term": "menyenangkan",
+  "language": "id",
+  "severity": "Info",
+  "weight": 1.0,
+  "enabled": 1
+ },
+ {
+  "doctype": "Background Check Lexicon",
+  "name": "Positive sentiment-bahagia",
+  "category": "Positive sentiment",
+  "term": "bahagia",
+  "language": "id",
+  "severity": "Info",
+  "weight": 1.0,
+  "enabled": 1
+ },
+ {
+  "doctype": "Background Check Lexicon",
+  "name": "Positive sentiment-gokil",
+  "category": "Positive sentiment",
+  "term": "gokil",
+  "language": "id",
+  "severity": "Info",
+  "weight": 1.0,
+  "enabled": 1
+ },
+ {
+  "doctype": "Background Check Lexicon",
+  "name": "Positive sentiment-asik",
+  "category": "Positive sentiment",
+  "term": "asik",
+  "language": "id",
+  "severity": "Info",
+  "weight": 1.0,
+  "enabled": 1
+ },
+ {
+  "doctype": "Background Check Lexicon",
+  "name": "Positive sentiment-top",
+  "category": "Positive sentiment",
+  "term": "top",
+  "language": "id",
+  "severity": "Info",
+  "weight": 1.0,
+  "enabled": 1
+ },
+ {
+  "doctype": "Background Check Lexicon",
+  "name": "Positive sentiment-grateful",
+  "category": "Positive sentiment",
+  "term": "grateful",
+  "language": "en",
+  "severity": "Info",
+  "weight": 1.0,
+  "enabled": 1
+ },
+ {
+  "doctype": "Background Check Lexicon",
+  "name": "Positive sentiment-happy",
+  "category": "Positive sentiment",
+  "term": "happy",
+  "language": "en",
+  "severity": "Info",
+  "weight": 1.0,
+  "enabled": 1
+ },
+ {
+  "doctype": "Background Check Lexicon",
+  "name": "Positive sentiment-congratulations",
+  "category": "Positive sentiment",
+  "term": "congratulations",
+  "language": "en",
+  "severity": "Info",
+  "weight": 1.0,
+  "enabled": 1
+ },
+ {
+  "doctype": "Background Check Lexicon",
+  "name": "Positive sentiment-proud",
+  "category": "Positive sentiment",
+  "term": "proud",
+  "language": "en",
+  "severity": "Info",
+  "weight": 1.0,
+  "enabled": 1
+ },
+ {
+  "doctype": "Background Check Lexicon",
+  "name": "Positive sentiment-amazing",
+  "category": "Positive sentiment",
+  "term": "amazing",
+  "language": "en",
+  "severity": "Info",
+  "weight": 1.0,
+  "enabled": 1
+ },
+ {
+  "doctype": "Background Check Lexicon",
+  "name": "Positive sentiment-good",
+  "category": "Positive sentiment",
+  "term": "good",
+  "language": "en",
+  "severity": "Info",
+  "weight": 1.0,
+  "enabled": 1
+ },
+ {
+  "doctype": "Background Check Lexicon",
+  "name": "Positive sentiment-great",
+  "category": "Positive sentiment",
+  "term": "great",
+  "language": "en",
+  "severity": "Info",
+  "weight": 1.0,
+  "enabled": 1
+ },
+ {
+  "doctype": "Background Check Lexicon",
+  "name": "Positive sentiment-awesome",
+  "category": "Positive sentiment",
+  "term": "awesome",
+  "language": "en",
+  "severity": "Info",
+  "weight": 1.0,
+  "enabled": 1
+ },
+ {
+  "doctype": "Background Check Lexicon",
+  "name": "Positive sentiment-love",
+  "category": "Positive sentiment",
+  "term": "love",
+  "language": "en",
+  "severity": "Info",
+  "weight": 1.0,
+  "enabled": 1
+ },
+ {
+  "doctype": "Background Check Lexicon",
+  "name": "Positive sentiment-excellent",
+  "category": "Positive sentiment",
+  "term": "excellent",
+  "language": "en",
+  "severity": "Info",
+  "weight": 1.0,
+  "enabled": 1
+ },
+ {
+  "doctype": "Background Check Lexicon",
+  "name": "Positive sentiment-thanks",
+  "category": "Positive sentiment",
+  "term": "thanks",
+  "language": "en",
+  "severity": "Info",
+  "weight": 1.0,
+  "enabled": 1
+ },
+ {
+  "doctype": "Background Check Lexicon",
+  "name": "Positive sentiment-best",
+  "category": "Positive sentiment",
+  "term": "best",
+  "language": "en",
+  "severity": "Info",
+  "weight": 1.0,
+  "enabled": 1
+ },
+ {
+  "doctype": "Background Check Lexicon",
+  "name": "Positive sentiment-cool",
+  "category": "Positive sentiment",
+  "term": "cool",
+  "language": "en",
+  "severity": "Info",
+  "weight": 1.0,
+  "enabled": 1
+ },
+ {
+  "doctype": "Background Check Lexicon",
+  "name": "Positive sentiment-nice",
+  "category": "Positive sentiment",
+  "term": "nice",
+  "language": "en",
+  "severity": "Info",
+  "weight": 1.0,
+  "enabled": 1
+ },
+ {
+  "doctype": "Background Check Lexicon",
+  "name": "Positive sentiment-fun",
+  "category": "Positive sentiment",
+  "term": "fun",
+  "language": "en",
+  "severity": "Info",
+  "weight": 1.0,
+  "enabled": 1
+ },
+ {
+  "doctype": "Background Check Lexicon",
+  "name": "Positive sentiment-excited",
+  "category": "Positive sentiment",
+  "term": "excited",
+  "language": "en",
+  "severity": "Info",
+  "weight": 1.0,
+  "enabled": 1
+ },
+ {
+  "doctype": "Background Check Lexicon",
+  "name": "Negative sentiment-kecewa",
+  "category": "Negative sentiment",
+  "term": "kecewa",
+  "language": "id",
+  "severity": "Info",
+  "weight": 1.0,
+  "enabled": 1
+ },
+ {
+  "doctype": "Background Check Lexicon",
+  "name": "Negative sentiment-buruk",
+  "category": "Negative sentiment",
+  "term": "buruk",
+  "language": "id",
+  "severity": "Info",
+  "weight": 1.0,
+  "enabled": 1
+ },
+ {
+  "doctype": "Background Check Lexicon",
+  "name": "Negative sentiment-rusak",
+  "category": "Negative sentiment",
+  "term": "rusak",
+  "language": "id",
+  "severity": "Info",
+  "weight": 1.0,
+  "enabled": 1
+ },
+ {
+  "doctype": "Background Check Lexicon",
+  "name": "Negative sentiment-parah",
+  "category": "Negative sentiment",
+  "term": "parah",
+  "language": "id",
+  "severity": "Info",
+  "weight": 1.0,
+  "enabled": 1
+ },
+ {
+  "doctype": "Background Check Lexicon",
+  "name": "Negative sentiment-hancur",
+  "category": "Negative sentiment",
+  "term": "hancur",
+  "language": "id",
+  "severity": "Info",
+  "weight": 1.0,
+  "enabled": 1
+ },
+ {
+  "doctype": "Background Check Lexicon",
+  "name": "Negative sentiment-menyesal",
+  "category": "Negative sentiment",
+  "term": "menyesal",
+  "language": "id",
+  "severity": "Info",
+  "weight": 1.0,
+  "enabled": 1
+ },
+ {
+  "doctype": "Background Check Lexicon",
+  "name": "Negative sentiment-nyesel",
+  "category": "Negative sentiment",
+  "term": "nyesel",
+  "language": "id",
+  "severity": "Info",
+  "weight": 1.0,
+  "enabled": 1
+ },
+ {
+  "doctype": "Background Check Lexicon",
+  "name": "Negative sentiment-benci",
+  "category": "Negative sentiment",
+  "term": "benci",
+  "language": "id",
+  "severity": "Info",
+  "weight": 1.0,
+  "enabled": 1
+ },
+ {
+  "doctype": "Background Check Lexicon",
+  "name": "Negative sentiment-muak",
+  "category": "Negative sentiment",
+  "term": "muak",
+  "language": "id",
+  "severity": "Info",
+  "weight": 1.0,
+  "enabled": 1
+ },
+ {
+  "doctype": "Background Check Lexicon",
+  "name": "Negative sentiment-kesal",
+  "category": "Negative sentiment",
+  "term": "kesal",
+  "language": "id",
+  "severity": "Info",
+  "weight": 1.0,
+  "enabled": 1
+ },
+ {
+  "doctype": "Background Check Lexicon",
+  "name": "Negative sentiment-marah",
+  "category": "Negative sentiment",
+  "term": "marah",
+  "language": "id",
+  "severity": "Info",
+  "weight": 1.0,
+  "enabled": 1
+ },
+ {
+  "doctype": "Background Check Lexicon",
+  "name": "Negative sentiment-emosi",
+  "category": "Negative sentiment",
+  "term": "emosi",
+  "language": "id",
+  "severity": "Info",
+  "weight": 1.0,
+  "enabled": 1
+ },
+ {
+  "doctype": "Background Check Lexicon",
+  "name": "Negative sentiment-jelek",
+  "category": "Negative sentiment",
+  "term": "jelek",
+  "language": "id",
+  "severity": "Info",
+  "weight": 1.0,
+  "enabled": 1
+ },
+ {
+  "doctype": "Background Check Lexicon",
+  "name": "Negative sentiment-payah",
+  "category": "Negative sentiment",
+  "term": "payah",
+  "language": "id",
+  "severity": "Info",
+  "weight": 1.0,
+  "enabled": 1
+ },
+ {
+  "doctype": "Background Check Lexicon",
+  "name": "Negative sentiment-sampah",
+  "category": "Negative sentiment",
+  "term": "sampah",
+  "language": "id",
+  "severity": "Info",
+  "weight": 1.0,
+  "enabled": 1
+ },
+ {
+  "doctype": "Background Check Lexicon",
+  "name": "Negative sentiment-busuk",
+  "category": "Negative sentiment",
+  "term": "busuk",
+  "language": "id",
+  "severity": "Info",
+  "weight": 1.0,
+  "enabled": 1
+ },
+ {
+  "doctype": "Background Check Lexicon",
+  "name": "Negative sentiment-bodoh",
+  "category": "Negative sentiment",
+  "term": "bodoh",
+  "language": "id",
+  "severity": "Info",
+  "weight": 1.0,
+  "enabled": 1
+ },
+ {
+  "doctype": "Background Check Lexicon",
+  "name": "Negative sentiment-malas",
+  "category": "Negative sentiment",
+  "term": "malas",
+  "language": "id",
+  "severity": "Info",
+  "weight": 1.0,
+  "enabled": 1
+ },
+ {
+  "doctype": "Background Check Lexicon",
+  "name": "Negative sentiment-capek",
+  "category": "Negative sentiment",
+  "term": "capek",
+  "language": "id",
+  "severity": "Info",
+  "weight": 1.0,
+  "enabled": 1
+ },
+ {
+  "doctype": "Background Check Lexicon",
+  "name": "Negative sentiment-sial",
+  "category": "Negative sentiment",
+  "term": "sial",
+  "language": "id",
+  "severity": "Info",
+  "weight": 1.0,
+  "enabled": 1
+ },
+ {
+  "doctype": "Background Check Lexicon",
+  "name": "Negative sentiment-kapok",
+  "category": "Negative sentiment",
+  "term": "kapok",
+  "language": "id",
+  "severity": "Info",
+  "weight": 1.0,
+  "enabled": 1
+ },
+ {
+  "doctype": "Background Check Lexicon",
+  "name": "Negative sentiment-menjijikkan",
+  "category": "Negative sentiment",
+  "term": "menjijikkan",
+  "language": "id",
+  "severity": "Info",
+  "weight": 1.0,
+  "enabled": 1
+ },
+ {
+  "doctype": "Background Check Lexicon",
+  "name": "Negative sentiment-ngeselin",
+  "category": "Negative sentiment",
+  "term": "ngeselin",
+  "language": "id",
+  "severity": "Info",
+  "weight": 1.0,
+  "enabled": 1
+ },
+ {
+  "doctype": "Background Check Lexicon",
+  "name": "Negative sentiment-nyebelin",
+  "category": "Negative sentiment",
+  "term": "nyebelin",
+  "language": "id",
+  "severity": "Info",
+  "weight": 1.0,
+  "enabled": 1
+ },
+ {
+  "doctype": "Background Check Lexicon",
+  "name": "Negative sentiment-tidak adil",
+  "category": "Negative sentiment",
+  "term": "tidak adil",
+  "language": "id",
+  "severity": "Info",
+  "weight": 1.0,
+  "enabled": 1
+ },
+ {
+  "doctype": "Background Check Lexicon",
+  "name": "Negative sentiment-gagal",
+  "category": "Negative sentiment",
+  "term": "gagal",
+  "language": "id",
+  "severity": "Info",
+  "weight": 1.0,
+  "enabled": 1
+ },
+ {
+  "doctype": "Background Check Lexicon",
+  "name": "Negative sentiment-sedih",
+  "category": "Negative sentiment",
+  "term": "sedih",
+  "language": "id",
+  "severity": "Info",
+  "weight": 1.0,
+  "enabled": 1
+ },
+ {
+  "doctype": "Background Check Lexicon",
+  "name": "Negative sentiment-jahat",
+  "category": "Negative sentiment",
+  "term": "jahat",
+  "language": "id",
+  "severity": "Info",
+  "weight": 1.0,
+  "enabled": 1
+ },
+ {
+  "doctype": "Background Check Lexicon",
+  "name": "Negative sentiment-dendam",
+  "category": "Negative sentiment",
+  "term": "dendam",
+  "language": "id",
+  "severity": "Info",
+  "weight": 1.0,
+  "enabled": 1
+ },
+ {
+  "doctype": "Background Check Lexicon",
+  "name": "Negative sentiment-bad",
+  "category": "Negative sentiment",
+  "term": "bad",
+  "language": "en",
+  "severity": "Info",
+  "weight": 1.0,
+  "enabled": 1
+ },
+ {
+  "doctype": "Background Check Lexicon",
+  "name": "Negative sentiment-terrible",
+  "category": "Negative sentiment",
+  "term": "terrible",
+  "language": "en",
+  "severity": "Info",
+  "weight": 1.0,
+  "enabled": 1
+ },
+ {
+  "doctype": "Background Check Lexicon",
+  "name": "Negative sentiment-disappointed",
+  "category": "Negative sentiment",
+  "term": "disappointed",
+  "language": "en",
+  "severity": "Info",
+  "weight": 1.0,
+  "enabled": 1
+ },
+ {
+  "doctype": "Background Check Lexicon",
+  "name": "Negative sentiment-worst",
+  "category": "Negative sentiment",
+  "term": "worst",
+  "language": "en",
+  "severity": "Info",
+  "weight": 1.0,
+  "enabled": 1
+ },
+ {
+  "doctype": "Background Check Lexicon",
+  "name": "Negative sentiment-fail",
+  "category": "Negative sentiment",
+  "term": "fail",
+  "language": "en",
+  "severity": "Info",
+  "weight": 1.0,
+  "enabled": 1
+ },
+ {
+  "doctype": "Background Check Lexicon",
+  "name": "Negative sentiment-sad",
+  "category": "Negative sentiment",
+  "term": "sad",
+  "language": "en",
+  "severity": "Info",
+  "weight": 1.0,
+  "enabled": 1
+ },
+ {
+  "doctype": "Background Check Lexicon",
+  "name": "Negative sentiment-hate",
+  "category": "Negative sentiment",
+  "term": "hate",
+  "language": "en",
+  "severity": "Info",
+  "weight": 1.0,
+  "enabled": 1
+ },
+ {
+  "doctype": "Background Check Lexicon",
+  "name": "Negative sentiment-awful",
+  "category": "Negative sentiment",
+  "term": "awful",
+  "language": "en",
+  "severity": "Info",
+  "weight": 1.0,
+  "enabled": 1
+ },
+ {
+  "doctype": "Background Check Lexicon",
+  "name": "Negative sentiment-angry",
+  "category": "Negative sentiment",
+  "term": "angry",
+  "language": "en",
+  "severity": "Info",
+  "weight": 1.0,
+  "enabled": 1
+ },
+ {
+  "doctype": "Background Check Lexicon",
+  "name": "Negative sentiment-stupid",
+  "category": "Negative sentiment",
+  "term": "stupid",
+  "language": "en",
+  "severity": "Info",
+  "weight": 1.0,
+  "enabled": 1
+ },
+ {
+  "doctype": "Background Check Lexicon",
+  "name": "Negative sentiment-useless",
+  "category": "Negative sentiment",
+  "term": "useless",
+  "language": "en",
+  "severity": "Info",
+  "weight": 1.0,
+  "enabled": 1
+ },
+ {
+  "doctype": "Background Check Lexicon",
+  "name": "Negative sentiment-disgusting",
+  "category": "Negative sentiment",
+  "term": "disgusting",
+  "language": "en",
+  "severity": "Info",
+  "weight": 1.0,
+  "enabled": 1
+ },
+ {
+  "doctype": "Background Check Lexicon",
+  "name": "Negative sentiment-trash",
+  "category": "Negative sentiment",
+  "term": "trash",
+  "language": "en",
+  "severity": "Info",
+  "weight": 1.0,
+  "enabled": 1
+ },
+ {
+  "doctype": "Background Check Lexicon",
+  "name": "Negative sentiment-regret",
+  "category": "Negative sentiment",
+  "term": "regret",
+  "language": "en",
+  "severity": "Info",
+  "weight": 1.0,
+  "enabled": 1
+ },
+ {
+  "doctype": "Background Check Lexicon",
+  "name": "Negative sentiment-unfair",
+  "category": "Negative sentiment",
+  "term": "unfair",
+  "language": "en",
+  "severity": "Info",
+  "weight": 1.0,
+  "enabled": 1
+ },
+ {
+  "doctype": "Background Check Lexicon",
+  "name": "Negative sentiment-sucks",
+  "category": "Negative sentiment",
+  "term": "sucks",
+  "language": "en",
+  "severity": "Info",
+  "weight": 1.0,
+  "enabled": 1
+ },
+ {
+  "doctype": "Background Check Lexicon",
+  "name": "Profanity-bgst",
+  "category": "Profanity",
+  "term": "bgst",
+  "language": "id",
+  "severity": "Low",
+  "weight": 1.0,
+  "enabled": 1
+ },
+ {
+  "doctype": "Background Check Lexicon",
+  "name": "Profanity-bngst",
+  "category": "Profanity",
+  "term": "bngst",
+  "language": "id",
+  "severity": "Low",
+  "weight": 1.0,
+  "enabled": 1
+ },
+ {
+  "doctype": "Background Check Lexicon",
+  "name": "Profanity-anjg",
+  "category": "Profanity",
+  "term": "anjg",
+  "language": "id",
+  "severity": "Low",
+  "weight": 1.0,
+  "enabled": 1
+ },
+ {
+  "doctype": "Background Check Lexicon",
+  "name": "Profanity-anjir",
+  "category": "Profanity",
+  "term": "anjir",
+  "language": "id",
+  "severity": "Low",
+  "weight": 1.0,
+  "enabled": 1
+ },
+ {
+  "doctype": "Background Check Lexicon",
+  "name": "Profanity-anjay",
+  "category": "Profanity",
+  "term": "anjay",
+  "language": "id",
+  "severity": "Low",
+  "weight": 1.0,
+  "enabled": 1
+ },
+ {
+  "doctype": "Background Check Lexicon",
+  "name": "Profanity-kampret",
+  "category": "Profanity",
+  "term": "kampret",
+  "language": "id",
+  "severity": "Low",
+  "weight": 1.0,
+  "enabled": 1
+ },
+ {
+  "doctype": "Background Check Lexicon",
+  "name": "Profanity-bajingan",
+  "category": "Profanity",
+  "term": "bajingan",
+  "language": "id",
+  "severity": "Low",
+  "weight": 1.0,
+  "enabled": 1
+ },
+ {
+  "doctype": "Background Check Lexicon",
+  "name": "Profanity-brengsek",
+  "category": "Profanity",
+  "term": "brengsek",
+  "language": "id",
+  "severity": "Low",
+  "weight": 1.0,
+  "enabled": 1
+ },
+ {
+  "doctype": "Background Check Lexicon",
+  "name": "Profanity-keparat",
+  "category": "Profanity",
+  "term": "keparat",
+  "language": "id",
+  "severity": "Low",
+  "weight": 1.0,
+  "enabled": 1
+ },
+ {
+  "doctype": "Background Check Lexicon",
+  "name": "Profanity-tai",
+  "category": "Profanity",
+  "term": "tai",
+  "language": "id",
+  "severity": "Low",
+  "weight": 1.0,
+  "enabled": 1
+ },
+ {
+  "doctype": "Background Check Lexicon",
+  "name": "Profanity-kontol",
+  "category": "Profanity",
+  "term": "kontol",
+  "language": "id",
+  "severity": "Low",
+  "weight": 1.0,
+  "enabled": 1
+ },
+ {
+  "doctype": "Background Check Lexicon",
+  "name": "Profanity-memek",
+  "category": "Profanity",
+  "term": "memek",
+  "language": "id",
+  "severity": "Low",
+  "weight": 1.0,
+  "enabled": 1
+ },
+ {
+  "doctype": "Background Check Lexicon",
+  "name": "Profanity-ngentot",
+  "category": "Profanity",
+  "term": "ngentot",
+  "language": "id",
+  "severity": "Low",
+  "weight": 1.0,
+  "enabled": 1
+ },
+ {
+  "doctype": "Background Check Lexicon",
+  "name": "Profanity-jancok",
+  "category": "Profanity",
+  "term": "jancok",
+  "language": "id",
+  "severity": "Low",
+  "weight": 1.0,
+  "enabled": 1
+ },
+ {
+  "doctype": "Background Check Lexicon",
+  "name": "Profanity-asu",
+  "category": "Profanity",
+  "term": "asu",
+  "language": "id",
+  "severity": "Low",
+  "weight": 1.0,
+  "enabled": 1
+ },
+ {
+  "doctype": "Background Check Lexicon",
+  "name": "Profanity-bego",
+  "category": "Profanity",
+  "term": "bego",
+  "language": "id",
+  "severity": "Low",
+  "weight": 1.0,
+  "enabled": 1
+ },
+ {
+  "doctype": "Background Check Lexicon",
+  "name": "Profanity-idiot",
+  "category": "Profanity",
+  "term": "idiot",
+  "language": "id",
+  "severity": "Low",
+  "weight": 1.0,
+  "enabled": 1
+ },
+ {
+  "doctype": "Background Check Lexicon",
+  "name": "Profanity-bitch",
+  "category": "Profanity",
+  "term": "bitch",
+  "language": "en",
+  "severity": "Low",
+  "weight": 1.0,
+  "enabled": 1
+ },
+ {
+  "doctype": "Background Check Lexicon",
+  "name": "Profanity-asshole",
+  "category": "Profanity",
+  "term": "asshole",
+  "language": "en",
+  "severity": "Low",
+  "weight": 1.0,
+  "enabled": 1
+ },
+ {
+  "doctype": "Background Check Lexicon",
+  "name": "Profanity-bastard",
+  "category": "Profanity",
+  "term": "bastard",
+  "language": "en",
+  "severity": "Low",
+  "weight": 1.0,
+  "enabled": 1
+ },
+ {
+  "doctype": "Background Check Lexicon",
+  "name": "Profanity-damn",
+  "category": "Profanity",
+  "term": "damn",
+  "language": "en",
+  "severity": "Low",
+  "weight": 1.0,
+  "enabled": 1
  }
 ]
