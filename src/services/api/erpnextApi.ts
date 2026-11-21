@@ -323,11 +323,11 @@ interface TripRow {
   employee?: string;
   employee_name?: string;
   designation?: string | null;
-  destination: string;
-  from_date: string;
-  to_date: string;
-  transport: string;
-  purpose: string;
+  destination: string | null;
+  from_date: string | null;
+  to_date: string | null;
+  transport: string | null;
+  purpose: string | null;
   total_cost?: number;
   status: "pending" | "approved" | "rejected";
 }
@@ -392,15 +392,16 @@ function mapTrip(r: TripRow, saya?: string): LeaveRequest {
       ...(r.attachments ?? []),
       ...(r.costs ?? []).flatMap((c) => c.attachments ?? []),
     ]),
-    label: translate("api.dinasLabel", { kota: r.destination }),
-    reason: `${formatLeavePeriod(r.from_date, r.to_date)} · ${r.purpose}`,
+    label: translate("api.dinasLabel", { kota: r.destination ?? "—" }),
+    // Pengajuan dinas dari server bisa belum berisi tanggal/tujuan; jangan sampai merusak seluruh Beranda.
+    reason: `${r.from_date && r.to_date ? formatLeavePeriod(r.from_date, r.to_date) : "—"} · ${r.purpose ?? "—"}`,
     delegateName: null,
     stage: st.stage(),
     quota: "—",
     approverName: "",
     approverInitials: "",
     decision: st.decision,
-    createdAt: r.from_date,
+    createdAt: r.from_date ?? "",
   };
 }
 

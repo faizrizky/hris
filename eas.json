@@ -12,7 +12,7 @@
         "gradleCommand": ":app:assembleDebug -PreactNativeArchitectures=arm64-v8a"
       },
       "env": {
-        "EXPO_PUBLIC_API_BASE_URL": "http://192.168.1.43:8082",
+        "EXPO_PUBLIC_API_BASE_URL": "http://10.70.0.30:8743",
         "EXPO_PUBLIC_USE_ERPNEXT": "1",
         "EXPO_PUBLIC_REGISTRY_SITE": "admin.localhost"
       },
@@ -25,7 +25,21 @@
         "gradleCommand": ":app:assembleRelease -PreactNativeArchitectures=arm64-v8a"
       },
       "env": {
-        "EXPO_PUBLIC_API_BASE_URL": "http://192.168.1.43:8082",
+        "EXPO_PUBLIC_API_BASE_URL": "http://10.70.0.30:8743",
+        "EXPO_PUBLIC_USE_ERPNEXT": "1",
+        "EXPO_PUBLIC_REGISTRY_SITE": "admin.localhost"
+      },
+      "autoIncrement": true,
+      "channel": "preview"
+    },
+    "preview-a11": {
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk",
+        "gradleCommand": ":app:assembleRelease -PreactNativeArchitectures=armeabi-v7a,arm64-v8a"
+      },
+      "env": {
+        "EXPO_PUBLIC_API_BASE_URL": "http://10.70.0.30:8743",
         "EXPO_PUBLIC_USE_ERPNEXT": "1",
         "EXPO_PUBLIC_REGISTRY_SITE": "admin.localhost"
       },
