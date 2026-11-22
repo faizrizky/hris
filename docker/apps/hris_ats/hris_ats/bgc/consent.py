@@ -301,6 +301,8 @@ def submit_candidate_consent(
 	frappe.enqueue(
 		"hris_ats.bgc.runner.run_all_sources",
 		queue="long",
+		# Worker tidak boleh membaca dokumen sebelum transaksi ini commit (QueryDeadlockError 1020).
+		enqueue_after_commit=True,
 		bgc_name=bgc.name,
 	)
 
