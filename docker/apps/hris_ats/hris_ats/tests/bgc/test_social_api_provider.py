@@ -131,7 +131,9 @@ def test_rate_limit_mid_crawl_keeps_partial_data(env):
 	assert "rate limit reached, partial data" in res["comment_limitation"]
 
 
-def test_rate_limit_before_profile_fails(env):
+def test_rate_limit_before_profile_falls_back_to_public_page(env):
 	env.routes = {"/api/user/detail/": (429, {})}
 	res = _crawl()
-	assert res["status"] == "Failed" and "rate limit" in res["error"] and env.html_fetches == 0
+	# The login session failed, so the public page fills in; the rate-limit reason stays visible
+	assert res["status"] == "Success" and env.html_fetches == 1 and env.clients == 1
+	assert "rate limit" in res["comment_limitation"] and res["display_name"] == "Cand"

@@ -494,7 +494,7 @@ def is_response_blocked(
 
 	if any(k in title for k in ("just a moment...", "attention required!", "security check", "robot check", "cloudflare")):
 		return True, "blocked"
-	if any(k in body_lower for k in ("cf-browser-verification", "ray id:", "data-ray=", "dd-challenge", "perimeterx")):
+	if any(k in body_lower for k in ("cf-browser-verification", "ray id:", "data-ray=", "dd-challenge", "perimeterx", "_wafchallengeid", "slardarwaf")):
 		return True, "blocked"
 
 	try:
@@ -606,6 +606,8 @@ def _fetch_single_mode(
 				stealth_kwargs: dict[str, Any] = {
 					"timeout": config.timeout_seconds * 1000,
 					"headless": True,
+					# JS challenges (e.g. TikTok WAF) reload the page; without this the challenge page is returned
+					"network_idle": True,
 				}
 				if cookies_list:
 					stealth_kwargs["cookies"] = cookies_list

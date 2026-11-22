@@ -176,6 +176,35 @@ def cancel_crawl_test(test_id: str) -> dict[str, str]:
 	return {"status": state["status"]}
 
 
+def _add_tones(result: dict[str, Any]) -> None:
+	"""Toxicity matrix for the crawled items, by word lists and (when configured) by the model,
+	side by side so the two tone sources can be compared on the same real data."""
+	from hris_ats.bgc.analysis.posts import analyze_posts
+	from hris_ats.bgc.sentiment import fetch_sentiment_labels
+
+	items = result["posts"] + result["comments"]
+	if not items:
+		return
+	lexicon = frappe.get_all(
+		"Background Check Lexicon",
+		filters={"enabled": 1},
+		fields=["category", "term", "is_regex", "severity", "weight", "enabled"],
+	)
+	by_words = analyze_posts(posts=items, lexicon_items=lexicon)
+	labels = fetch_sentiment_labels(items, lexicon)
+	by_model = analyze_posts(posts=items, lexicon_items=lexicon, sentiment_labels=labels) if labels else None
+	for i, item in enumerate(items):
+		item["tone"] = by_words["tones"][i]
+		if by_model:
+			item["model_tone"] = by_model["tones"][i]
+	result["tone_summary"] = {
+		"words": {"counts": by_words["tone_counts"], "toxicity_score": by_words["toxicity_score"]},
+		"model": {"counts": by_model["tone_counts"], "toxicity_score": by_model["toxicity_score"]}
+		if by_model
+		else None,
+	}
+
+
 def run_crawl_test(
 	test_id: str, user: str, platform: str, username: str, max_posts: int, max_comments: int, lookback_months: int
 ) -> None:
@@ -236,6 +265,7 @@ def run_crawl_test(
 			"posts": res.get("posts", []),
 			"comments": res.get("comments", []),
 		}
+		_add_tones(state["result"])
 		log(
 			_("Finished: {0} posts, {1} comments").format(len(res.get("posts", [])), len(res.get("comments", [])))
 		)

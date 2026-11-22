@@ -28,13 +28,20 @@ def _count(term: str, text: str) -> int:
 
 
 def classify_tone(
-	text: str, profanity: dict[str, float], positive: dict[str, float], negative: dict[str, float]
+	text: str,
+	profanity: dict[str, float],
+	positive: dict[str, float],
+	negative: dict[str, float],
+	label: str | None = None,
 ) -> dict[str, Any]:
 	"""One post through the 2x2 matrix. Returns cell, toxicity score and the profanity terms found.
 
 	Cells: Safe, Warning (negative tone, no profanity: information only, never a risk),
 	Slang (profanity in a positive post: ignored), Red flag (profanity in a negative post),
 	Unclear (profanity, tone unknown: the word lists cannot tell, so it is not flagged as an attack).
+
+	`label` is the tone from the sentiment model ("positive", "neutral", "negative"). When given it
+	replaces the word lists, and a neutral tone is a real answer: profanity in it is Slang.
 	"""
 	clean = (text or "").lower()
 	words = len(clean.split())
@@ -44,11 +51,17 @@ def classify_tone(
 	score = -weight / words if words else 0.0
 	pos = sum(_count(t, clean) * w for t, w in positive.items())
 	neg = sum(_count(t, clean) * w for t, w in negative.items())
+	# The model reads profanity itself as negative ("anjing, keren banget!"), so when the words
+	# in the post are clearly positive the two disagree and the post is not called an attack
+	disagree = label == "negative" and pos > neg
+	if label:
+		pos, neg = float(label == "positive"), float(label == "negative")
+	tone = "Negative" if neg > pos else "Positive" if pos > neg else "Neutral"
 	if score < TOXIC_THRESHOLD:
-		cell = "Red flag" if neg > pos else "Slang" if pos > neg else "Unclear"
+		cell = "Unclear" if disagree else "Red flag" if neg > pos else "Slang" if pos > neg or label else "Unclear"
 	else:
 		cell = "Warning" if neg > pos else "Safe"
-	return {"cell": cell, "score": score, "terms": terms, "weight": weight, "words": words}
+	return {"cell": cell, "tone": tone, "score": score, "terms": terms, "weight": weight, "words": words}
 
 
 def analyze_posts(
@@ -56,6 +69,7 @@ def analyze_posts(
 	required_skills: list[str] | None = None,
 	preferred_skills: list[str] | None = None,
 	lexicon_items: list[dict[str, Any]] | None = None,
+	sentiment_labels: list[str] | None = None,
 ) -> dict[str, Any]:
 	"""Menganalisis daftar post publik secara faktual dan berbasis aturan."""
 	if not posts:
@@ -72,6 +86,7 @@ def analyze_posts(
 			"sentiment_ratio": {"positive": 0, "negative": 0},
 			"toxicity_score": 0.0,
 			"tone_counts": {},
+			"tones": [],
 		}
 
 	total_posts = len(posts)
@@ -90,6 +105,9 @@ def analyze_posts(
 	positive = {**dict.fromkeys(POSITIVE_WORDS, 1.0), **weighted(("Positive sentiment",))}
 	negative = {**dict.fromkeys(NEGATIVE_WORDS, 1.0), **weighted(("Negative sentiment",))}
 	tone_counts: dict[str, int] = {}
+	tones: list[dict[str, Any]] = []
+	# Model labels are used only when there is exactly one per post
+	labels = sentiment_labels if sentiment_labels and len(sentiment_labels) == len(posts) else None
 	total_weight = 0.0
 	total_words = 0
 
@@ -117,7 +135,7 @@ def analyze_posts(
 	pos_count = 0
 	neg_count = 0
 
-	for post in posts:
+	for index, post in enumerate(posts):
 		text = post.get("text") or post.get("snippet", "")
 		clean_text = text.lower()
 		is_reply = post.get("is_reply", False)
@@ -143,7 +161,8 @@ def analyze_posts(
 				hour_distribution[hour] = hour_distribution.get(hour, 0) + 1
 
 		# 1. Kesantunan: matriks kata kasar x nada. Slang bernada positif tidak dihitung.
-		tone = classify_tone(text, profanity, positive, negative)
+		tone = classify_tone(text, profanity, positive, negative, labels[index] if labels else None)
+		tones.append({"cell": tone["cell"], "tone": tone["tone"], "terms": tone["terms"]})
 		tone_counts[tone["cell"]] = tone_counts.get(tone["cell"], 0) + 1
 		# Slang in a positive post is ignored, so it must not raise the toxicity score either
 		total_weight += 0.0 if tone["cell"] == "Slang" else tone["weight"]
@@ -238,4 +257,6 @@ def analyze_posts(
 		# Blueprint display value: (profanity weight / all words) x 100, e.g. -5.0 at the threshold
 		"toxicity_score": round(-total_weight / total_words * 100, 1) if total_words else 0.0,
 		"tone_counts": tone_counts,
+		# One entry per post, in the order given: matrix cell, tone, profanity terms found
+		"tones": tones,
 	}

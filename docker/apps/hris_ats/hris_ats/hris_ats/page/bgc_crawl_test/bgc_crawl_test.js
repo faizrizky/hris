@@ -170,11 +170,35 @@ class BgcCrawlTest {
 					? `<a href="${this.esc(r.url)}" target="_blank" rel="noopener noreferrer">${__("Open")} ↗</a>`
 					: "";
 				return `<div class="ct-row">
-					<div class="ct-row-head"><span>${this.esc(r.published_on || "-")}</span>${link}</div>
+					<div class="ct-row-head"><span>${this.esc(r.published_on || "-")} ${this.toneBadge(__("Word lists"), r.tone)} ${this.toneBadge(__("Model"), r.model_tone)}</span>${link}</div>
 					<div class="ct-row-text">${this.esc(r.snippet)}</div>
 				</div>`;
 			})
 			.join("")}</div>`;
+	}
+
+	// Matrix cell of one item: profanity x tone (see bgc/analysis/posts.py)
+	toneBadge(source, t) {
+		if (!t) return "";
+		const color = { Safe: "green", Slang: "blue", Warning: "orange", Unclear: "gray", "Red flag": "red" }[t.cell] || "gray";
+		const terms = (t.terms || []).length ? ` · ${this.esc(t.terms.join(", "))}` : "";
+		return `<span class="indicator-pill ${color}" title="${this.esc(source)}">${this.esc(source)}: ${this.esc(__(t.cell))} (${this.esc(__(t.tone))})${terms}</span>`;
+	}
+
+	toneSummary(summary) {
+		if (!summary) return "";
+		const line = (label, part) => {
+			if (!part) return "";
+			const counts = ["Safe", "Warning", "Slang", "Unclear", "Red flag"]
+				.filter((c) => part.counts[c])
+				.map((c) => `${this.esc(__(c))}: <b>${part.counts[c]}</b>`)
+				.join(" · ");
+			return `<div class="mb-1"><b>${this.esc(label)}</b> — ${counts || "-"} · ${__("Toxicity score")}: <b>${this.esc(part.toxicity_score)}</b></div>`;
+		};
+		return `<div class="ct-card"><div class="mb-2"><b>${__("Toxicity matrix")}</b></div>
+			${line(__("Word lists"), summary.words)}
+			${summary.model ? line(__("Model"), summary.model) : `<div class="text-muted">${__("Sentiment model is not configured; tone comes from the word lists only.")}</div>`}
+		</div>`;
 	}
 
 	render() {
@@ -218,6 +242,7 @@ class BgcCrawlTest {
 				</dl>` : ""}
 			</div>
 			${s.result ? `
+			${this.toneSummary(res.tone_summary)}
 			<div class="ct-card">
 				<div class="ct-tabs">
 					<button type="button" class="ct-tab ${this.tab === "posts" ? "active" : ""}" data-tab="posts">${__("Posts")} (${posts.length})</button>

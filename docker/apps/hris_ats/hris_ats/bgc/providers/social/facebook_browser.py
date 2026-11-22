@@ -57,13 +57,14 @@ def story_nodes(blobs: list[Any]) -> list[dict[str, Any]]:
 	return [d for d in walk(blobs) if d.get("__typename") == "Story" and (d.get("post_id") or d.get("id"))]
 
 
-def comment_total(story: dict[str, Any]) -> int:
-	"""Largest comment total found in the story (several nested feedback objects carry their own counts)."""
-	best = 0
+def comment_total(story: dict[str, Any]) -> int | None:
+	"""Largest comment total found in the story (several nested feedback objects carry their own counts).
+	None when the story carries no count at all (e.g. shared posts), which is not the same as 0."""
+	best = None
 	for d in walk(story):
 		comments = d.get("comments")
 		if isinstance(comments, dict) and isinstance(comments.get("total_count"), int):
-			best = max(best, comments["total_count"])
+			best = max(best or 0, comments["total_count"])
 	return best
 
 
@@ -128,15 +129,31 @@ class FacebookBrowserClient:
 		result: dict[str, Any],
 		report: Callable[..., None],
 	) -> None:
-		if self.playwright_factory:
-			pw_cm = self.playwright_factory()
-		else:
-			from playwright.sync_api import sync_playwright
-
-			pw_cm = sync_playwright()
 		self.deadline = time.time() + self.time_budget
 		result["mode_used"] = "session-browser"
-		with pw_cm as pw:
+		if not self.playwright_factory:
+			# Facebook stops sending timeline batches to a plain Playwright browser after ~3 posts;
+			# scrapling's stealth context keeps paginating (3 vs 200 posts on the same account)
+			from scrapling.fetchers import StealthySession
+
+			with StealthySession(headless=True, cookies=self.storage_state.get("cookies") or []) as session:
+				session.context.route(
+					"**/*",
+					lambda route: route.abort()
+					if route.request.resource_type in ("image", "media", "font")
+					else route.continue_(),
+				)
+				self.page = session.context.new_page()
+				self.page.on("response", self._on_response)
+				self._crawl(username, max_posts, max_comments, earliest_ts, result, report)
+		else:
+			self._crawl_with_playwright(username, max_posts, max_comments, earliest_ts, result, report)
+		if self.budget_hit:
+			note = "Time budget for this account was reached; data is partial."
+			result["comment_limitation"] = " ".join(x for x in (result.get("comment_limitation"), note) if x)
+
+	def _crawl_with_playwright(self, username, max_posts, max_comments, earliest_ts, result, report) -> None:
+		with self.playwright_factory() as pw:
 			browser = pw.chromium.launch(
 				headless=True,
 				args=["--no-sandbox", "--disable-dev-shm-usage", "--disable-blink-features=AutomationControlled"],
@@ -156,9 +173,6 @@ class FacebookBrowserClient:
 				self._crawl(username, max_posts, max_comments, earliest_ts, result, report)
 			finally:
 				browser.close()
-		if self.budget_hit:
-			note = "Time budget for this account was reached; data is partial."
-			result["comment_limitation"] = " ".join(x for x in (result.get("comment_limitation"), note) if x)
 
 	def _crawl(self, username, max_posts, max_comments, earliest_ts, result, report) -> None:
 		report("{0} @{1}: reading profile", "Facebook", username)
@@ -199,10 +213,11 @@ class FacebookBrowserClient:
 
 		remaining = max_comments
 		visited = 0
-		for post in posts:
+		# Posts known to have comments first, then posts whose count Facebook did not send; known-zero posts are skipped
+		for post in sorted(posts, key=lambda p: p["_comments"] is None):
 			if remaining <= 0 or visited >= self.max_comment_posts or not self._time_left():
 				break
-			if not post["_comments"]:
+			if post["_comments"] == 0:
 				continue
 			visited += 1
 			got = self._post_comments(post, profile_id, remaining)
@@ -273,3 +288,61 @@ class FacebookBrowserClient:
 			self.page.wait_for_timeout(1200)
 		blobs = collect_blobs(html, self.bodies)
 		return self.helper.candidate_comments({"_story": blobs, "url": post["url"]}, owner_id, limit)
+
+
+def scroll_public_posts(
+	url: str,
+	max_posts: int,
+	earliest_ts: float | None,
+	max_rounds: int = 60,
+	report: Callable[..., None] | None = None,
+	cookies: list[dict[str, Any]] | None = None,
+) -> list[dict[str, Any]]:
+	"""Posts of a public profile/page read without login: a stealth browser scrolls the timeline and the
+	GraphQL batches Facebook sends are parsed. A plain Playwright context gets no batches past the first."""
+	from scrapling.fetchers import StealthyFetcher
+
+	bodies: list[str] = []
+	helper = FacebookApiClient({})
+	state: dict[str, Any] = {"page": None, "posts": {}}
+
+	def collect(html: str) -> list[dict[str, Any]]:
+		if not state["page"]:
+			owner_id = next((m.group(1) for rx in PROFILE_ID_RES if (m := rx.search(html))), None)
+			if not owner_id:
+				return []
+			state["page"] = {"id": owner_id, "url": url}
+		for st in story_nodes(collect_blobs(html, bodies)):
+			p = helper.normalize_story(st, state["page"])
+			if p and p["snippet"]:
+				state["posts"].setdefault(p["pk"], p)
+		return sorted(state["posts"].values(), key=lambda p: p["_ts"], reverse=True)
+
+	def on_response(resp: Any) -> None:
+		try:
+			if "/api/graphql" in resp.url:
+				bodies.append(resp.text())
+		except Exception:
+			pass
+
+	def scroll(page: Any) -> None:
+		page.on("response", on_response)
+		stale = 0
+		for round_no in range(max_rounds):
+			before = len(state["posts"])
+			posts = collect(page.content() if round_no == 0 else "")
+			dated = [p for p in posts if p["_ts"] and not p["_pinned"]]
+			if len(posts) >= max_posts or (earliest_ts and dated and dated[-1]["_ts"] < earliest_ts):
+				return
+			stale = stale + 1 if len(state["posts"]) == before else 0
+			if stale >= 4:
+				return
+			if report and len(state["posts"]) != before and round_no % 5 == 0:
+				report("{0}: {1} posts read", "Facebook", len(state["posts"]))
+			page.mouse.wheel(0, 6000)
+			page.wait_for_timeout(int(random.uniform(2.0, 3.0) * 1000))
+
+	extra = {"cookies": cookies} if cookies else {}
+	StealthyFetcher.fetch(url, headless=True, network_idle=True, timeout=60000, page_action=scroll, **extra)
+	posts = [p for p in collect("") if within_window(p["_ts"], earliest_ts)][:max_posts]
+	return [{k: p[k] for k in ("snippet", "published_on", "url", "media_type")} for p in posts]

@@ -33,6 +33,7 @@ def test_blobs_from_html_scripts_and_newline_delimited_graphql():
 def test_comment_total_takes_largest_nested_count():
 	assert comment_total(_story("1", OWNER, "t", comments=6)) == 6
 	assert comment_total(_story("1", OWNER, "t", comments=0)) == 0
+	assert comment_total({"__typename": "Story", "post_id": "1"}) is None
 
 
 def test_owner_only_stories_and_candidate_comments():

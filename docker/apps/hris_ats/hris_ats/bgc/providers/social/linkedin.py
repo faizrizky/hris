@@ -50,25 +50,43 @@ class LinkedInAdapter(BaseSocialAdapter):
 		bio = signals.get("og_description", "") or signals.get("meta_description", "")
 		location = ""
 
-		# Cari JSON-LD Person
+		followers_count = None
+		posts: list[dict[str, Any]] = []
+
+		# JSON-LD profil publik: Person + post (DiscussionForumPosting) + artikel (Article), sering di dalam @graph
 		for match in re.finditer(r'<script type="application/ld\+json">(.*?)</script>', raw_html, re.DOTALL):
 			try:
 				ld = json.loads(match.group(1))
-				if isinstance(ld, dict) and ld.get("@type") == "Person":
-					if not display_name and ld.get("name"):
-						display_name = ld["name"]
-					if ld.get("jobTitle") and not bio:
-						bio = ld["jobTitle"]
-					addr = ld.get("address", {})
+			except Exception:
+				continue
+			items = ld.get("@graph", [ld]) if isinstance(ld, dict) else ld if isinstance(ld, list) else []
+			for item in items:
+				if not isinstance(item, dict):
+					continue
+				if item.get("@type") == "Person":
+					if not display_name and item.get("name"):
+						display_name = item["name"]
+					if item.get("jobTitle") and not bio:
+						bio = item["jobTitle"]
+					addr = item.get("address", {})
 					if isinstance(addr, dict) and addr.get("addressLocality"):
 						location = addr["addressLocality"]
-			except Exception:
-				pass
-
-		posts: list[dict[str, Any]] = []
+					stat = item.get("interactionStatistic")
+					if isinstance(stat, dict) and stat.get("name") == "Follows":
+						followers_count = stat.get("userInteractionCount")
+				elif item.get("@type") in ("DiscussionForumPosting", "Article"):
+					text = clean_snippet(item.get("text") or item.get("headline") or "")
+					if text and not any(p["url"] == item.get("url") for p in posts):
+						published = (item.get("datePublished") or "")[:19].replace("T", " ") or None
+						posts.append({
+							"snippet": text,
+							"published_on": published,
+							"url": item.get("url") or url,
+							"media_type": "Article" if item["@type"] == "Article" else "Text",
+						})
 
 		# Cari postingan/aktivitas publik dari adaptor Scrapling
-		adaptor = create_adaptive_adaptor(raw_html)
+		adaptor = create_adaptive_adaptor(raw_html) if not posts else None
 		if adaptor:
 			for post_el in adaptor.css(".feed-shared-update-v2__description, .attributed-text-segment-list__content, .activity-card__text"):
 				text = post_el.text.strip()
@@ -100,7 +118,7 @@ class LinkedInAdapter(BaseSocialAdapter):
 			"display_name": display_name,
 			"bio": bio,
 			"location": location,
-			"followers_count": None,
+			"followers_count": followers_count,
 			"following_count": None,
 			"posts_count": len(posts) if posts else None,
 			"posts": posts,
@@ -161,3 +179,33 @@ class LinkedInAdapter(BaseSocialAdapter):
 
 		limitation = None if comments else "not exposed by platform"
 		return comments, limitation
+
+	def post_page_comments(self, raw_html: str, candidate_username: str, url: str = "") -> list[dict[str, Any]]:
+		"""Candidate's comments on a public post page (no login: LinkedIn shows the top ~10 comments).
+		The author's /in/ link is only in the HTML comment block; text and date come from the JSON-LD."""
+		target = candidate_username.strip().lstrip("@").lower()
+		ld_comments: list[dict[str, Any]] = []
+		for match in re.finditer(r'<script type="application/ld\+json">(.*?)</script>', raw_html or "", re.DOTALL):
+			try:
+				ld = json.loads(match.group(1))
+			except Exception:
+				continue
+			if isinstance(ld, dict) and isinstance(ld.get("comment"), list):
+				ld_comments.extend(c for c in ld["comment"] if isinstance(c, dict))
+
+		comments: list[dict[str, Any]] = []
+		for block in re.split(r'class="comment flex', raw_html or "")[1:]:
+			slug = re.search(r'linkedin\.com/in/([^"?/]+)', block)
+			text_m = re.search(r'comment__text[^>]*>(.*?)</', block, re.DOTALL)
+			if not slug or slug.group(1).lower() != target or not text_m:
+				continue
+			text = clean_snippet(html.unescape(re.sub(r"<[^>]+>", " ", text_m.group(1))))
+			ld = next((c for c in ld_comments if clean_snippet(c.get("text") or "")[:40] == text[:40]), {})
+			if text and not any(c["snippet"] == text for c in comments):
+				comments.append({
+					"snippet": text,
+					"published_on": (ld.get("datePublished") or "")[:19].replace("T", " ") or None,
+					"url": url,
+					"media_type": "Text",
+				})
+		return comments

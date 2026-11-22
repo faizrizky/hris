@@ -1197,3 +1197,15 @@ No required or preferred skill criteria specified for the job opening.,Lowongan 
 Positive sentiment,Sentimen positif
 Negative sentiment,Sentimen negatif
 Toxic language,Bahasa toksik
+Word lists,Daftar kata
+Model,Model
+Toxicity score,Skor toksisitas
+Toxicity matrix,Matriks toksisitas
+Sentiment model is not configured; tone comes from the word lists only.,Model sentimen belum diatur; nada hanya dari daftar kata.
+Safe,Aman
+Warning,Peringatan
+Slang,Slang
+Unclear,Tidak jelas
+Red flag,Red flag
+Positive,Positif
+Negative,Negatif

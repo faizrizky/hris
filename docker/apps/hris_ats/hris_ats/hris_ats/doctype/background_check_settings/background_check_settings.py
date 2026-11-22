@@ -288,6 +288,8 @@ class BackgroundCheckSettings(Document):
 			frappe.throw(_("Social Max Posts must be at least 1."))
 		if getattr(self, "social_max_comments", None) is not None and self.social_max_comments < 1:
 			frappe.throw(_("Social Max Comments must be at least 1."))
+		if getattr(self, "social_max_comment_posts", None) is not None and self.social_max_comment_posts < 1:
+			frappe.throw(_("Max Posts Checked for Comments must be at least 1."))
 		if self.social_lookback_months is not None and self.social_lookback_months < 0:
 			frappe.throw(_("Social Lookback Months cannot be negative (0 = no limit)."))
 		if self.export_max_mb is not None and self.export_max_mb < 1:

@@ -51,8 +51,20 @@ class FacebookAdapter(BaseSocialAdapter):
 
 		posts: list[dict[str, Any]] = []
 
+		# Story JSON di halaman hasil render: ada tanggal dan link post (tanpa login biasanya 1-3 post saja)
+		from hris_ats.bgc.providers.social.facebook_api import PROFILE_ID_RES, FacebookApiClient
+		from hris_ats.bgc.providers.social.facebook_browser import collect_blobs, story_nodes
+
+		owner_id = next((m.group(1) for r in PROFILE_ID_RES if (m := r.search(raw_html))), None)
+		if owner_id:
+			helper = FacebookApiClient({})
+			for st in story_nodes(collect_blobs(raw_html, [])):
+				p = helper.normalize_story(st, {"id": owner_id, "url": url})
+				if p and p["snippet"] and not any(x["snippet"] == p["snippet"] for x in posts):
+					posts.append({k: p[k] for k in ("snippet", "published_on", "url", "media_type")})
+
 		# Cari postingan dari embedded JSON story text
-		for pm in re.finditer(r'"message":\s*\{\s*"text":\s*"([^"]+)"', raw_html):
+		for pm in [] if posts else re.finditer(r'"message":\s*\{\s*"text":\s*"([^"]+)"', raw_html):
 			msg = clean_snippet(html.unescape(pm.group(1)))
 			if msg and not any(p["snippet"] == msg for p in posts):
 				posts.append({

@@ -3,13 +3,14 @@
 
 from __future__ import annotations
 
+import dataclasses
 import json
 import re
 from typing import Any
 
 import frappe
 from frappe import _
-from frappe.utils import add_months, now_datetime
+from frappe.utils import add_months, cint, now_datetime
 
 from hris_ats.bgc import fetch as bgc_fetch
 from hris_ats.bgc.consent import assert_social_consent
@@ -34,6 +35,7 @@ class SocialPublicProvider(BaseProvider):
 		lookback_months: int | None = 0,
 		raw_fetch_fn: Any = None,
 		progress: Any = None,
+		use_session: bool = True,
 	) -> dict[str, Any]:
 		"""Mengambil profil, postingan, dan komentar publik media sosial sesuai kepatuhan penuh PDP & ToS.
 
@@ -109,14 +111,25 @@ class SocialPublicProvider(BaseProvider):
 
 		# 2. Ambil halaman web dengan eskalasi mode
 		cfg = self.config or get_fetch_config_from_settings()
+		if not use_session:
+			cfg = dataclasses.replace(cfg, use_login_session=False)
 
 		# 2a. Post dan komentar hanya tersedia lewat API web platform dengan sesi akun crawler yang login
-		if platform_name in API_PLATFORMS and raw_fetch_fn is None and getattr(cfg, "use_login_session", False):
+		if use_session and platform_name in API_PLATFORMS and raw_fetch_fn is None and getattr(cfg, "use_login_session", False):
 			api_res = self._crawl_via_api(
 				platform_name, account, profile_url, clean_user, max_posts, max_comments, lookback_months, progress
 			)
 			if api_res is not None:
-				return api_res
+				incomplete = api_res.pop("_partial", False) or (api_res.get("status") == "Failed" and api_res.get("error") != "not found")
+				if not incomplete:
+					return api_res
+				# Sesi login berhenti di tengah atau gagal: lengkapi dengan data publik (tanpa login), tanpa duplikasi
+				if progress:
+					progress(_("{0}: login session data is incomplete, adding public data").format(platform_name))
+				public_res = self.crawl_account(
+					bgc, account, is_mock, max_posts, max_comments, lookback_months, raw_fetch_fn, progress, use_session=False
+				)
+				return merge_crawl_results(api_res, public_res, int(max_posts or 200), int(max_comments or 200))
 
 		# Cek apakah ada akun crawler untuk platform ini
 		crawler_account_label = None
@@ -135,6 +148,16 @@ class SocialPublicProvider(BaseProvider):
 		# 3. Urai isi respons dengan adapter
 		parsed = adapter.parse_profile(fetch_res.body, url=fetch_res.url)
 
+		# Platform modern mengirim HTML kosong (200) ke klien non-browser; post baru muncul setelah JS dirender
+		if not parsed.get("posts") and parsed.get("status") != "Failed" and cfg.stealth and "stealth" not in fetch_res.mode_used:
+			rendered = bgc_fetch.fetch(
+				profile_url, config=dataclasses.replace(cfg, auto_escalate=False), raw_fetch_fn=raw_fetch_fn
+			)
+			if "stealth" in rendered.mode_used and rendered.status == 200 and not rendered.is_blocked:
+				rendered.mode_used = f"{fetch_res.mode_used}>{rendered.mode_used}"
+				fetch_res = rendered
+				parsed = adapter.parse_profile(fetch_res.body, url=fetch_res.url)
+
 		has_session = "+session" in fetch_res.mode_used or ">session" in fetch_res.mode_used
 		provenance = "Crawled (session)" if has_session else "Crawled"
 
@@ -143,6 +166,29 @@ class SocialPublicProvider(BaseProvider):
 
 		# 4. Filter tanggal postingan berdasarkan lookback_months dan batasi max_posts
 		earliest_date = add_months(now_datetime(), -int(lookback_months)) if lookback_months else None
+
+		# Facebook tanpa login hanya merender 1-3 post; sisanya datang per batch GraphQL saat timeline di-scroll
+		if (
+			platform_name == "Facebook" and raw_fetch_fn is None and cfg.stealth and not has_session
+			and parsed.get("status") != "Failed" and bgc_fetch.is_scrapling_browser_installed()
+		):
+			from hris_ats.bgc.providers.social.facebook_browser import scroll_public_posts
+
+			def report(template: str, *args: Any) -> None:
+				if progress:
+					progress(_(template).format(*args))
+
+			report("Facebook: scrolling the public timeline")
+			try:
+				scrolled = scroll_public_posts(
+					profile_url, int(max_posts or 200), earliest_date.timestamp() if earliest_date else None, report=report
+				)
+			except Exception as e:
+				scrolled = []
+				frappe.log_error(title="Facebook public scroll failed", message=str(e))
+			if len(scrolled) > len(parsed.get("posts") or []):
+				raw_posts = parsed["posts"] = scrolled
+				fetch_res.mode_used = f"{fetch_res.mode_used}+scroll"
 
 		for p in raw_posts:
 			if len(posts) >= int(max_posts or 200):
@@ -164,6 +210,17 @@ class SocialPublicProvider(BaseProvider):
 
 		# 5. Ekstrak komentar yang ditulis kandidat sendiri
 		raw_comments, comment_limitation = adapter.extract_candidate_comments(fetch_res.body, clean_user, url=fetch_res.url)
+		# LinkedIn tanpa login: komentar hanya ada di halaman tiap post publik (±10 komentar teratas per post)
+		if platform_name == "LinkedIn" and raw_fetch_fn is None and int(max_comments or 0) > 0:
+			for p in [p for p in posts if "/posts/" in (p.get("url") or "")]:
+				if len(raw_comments) >= int(max_comments):
+					break
+				try:
+					page_res = bgc_fetch.fetch(p["url"], config=cfg)
+				except Exception:
+					continue
+				raw_comments.extend(adapter.post_page_comments(page_res.body, clean_user, url=p["url"]))
+			comment_limitation = _("Only the candidate's replies among the top comments of their recent public posts (no login).")
 		comments: list[dict[str, Any]] = []
 		for c in raw_comments:
 			if len(comments) >= int(max_comments or 200):
@@ -302,8 +359,11 @@ class SocialPublicProvider(BaseProvider):
 				else _("{0} API stopped answering, partial data: {1}")
 			).format(platform, e)
 			result["comment_limitation"] = " ".join(x for x in (note, result.get("comment_limitation")) if x)
+			result["_partial"] = True
 		finally:
 			release_crawler_account_lock(c_acc["name"])
+		if getattr(client, "budget_hit", False):
+			result["_partial"] = True
 		if platform == "Facebook" and getattr(client, "doc_id", None):
 			_remember_facebook_doc_id(client.doc_id)
 
@@ -325,6 +385,37 @@ class SocialPublicProvider(BaseProvider):
 
 
 API_PLATFORMS = ("Instagram", "TikTok", "Facebook", "LinkedIn", "Threads")
+
+
+def _item_key(item: dict[str, Any]) -> str:
+	"""Same post from the login and the public path: LinkedIn uses different URLs for it (/feed/update/urn:li:activity:N
+	vs /posts/...-activity-N-xxxx), so its activity id is the key; the other platforms build identical URLs."""
+	url = (item.get("url") or "").split("?")[0].rstrip("/").lower()
+	m = re.search(r"activity[:-](\d+)", url)
+	return m.group(1) if m else url
+
+
+def merge_crawl_results(session: dict[str, Any], public: dict[str, Any], max_posts: int, max_comments: int) -> dict[str, Any]:
+	"""Session result first (it is the fuller one), completed with public items it does not already have."""
+	if public.get("status") == "Failed":
+		return session
+	merged = dict(session)
+	for k in ("display_name", "bio", "location", "followers_count", "following_count", "is_private"):
+		if merged.get(k) in (None, "") and public.get(k) not in (None, ""):
+			merged[k] = public[k]
+	post_keys = {_item_key(p) for p in session.get("posts", [])}
+	merged["posts"] = (session.get("posts", []) + [p for p in public.get("posts", []) if _item_key(p) not in post_keys])[:max_posts]
+	comment_keys = {(c.get("snippet") or "").strip().lower() for c in session.get("comments", [])}
+	merged["comments"] = (
+		session.get("comments", []) + [c for c in public.get("comments", []) if (c.get("snippet") or "").strip().lower() not in comment_keys]
+	)[:max_comments]
+	merged["status"] = "Success"
+	merged["error"] = None
+	merged["mode_used"] = f"{session.get('mode_used')}+{public.get('mode_used')}"
+	merged["posts_count"] = max(session.get("posts_count") or 0, public.get("posts_count") or 0, len(merged["posts"])) or None
+	notes = (session.get("error") if session.get("status") == "Failed" else None, session.get("comment_limitation"), public.get("comment_limitation"))
+	merged["comment_limitation"] = _dedupe_sentences(" ".join(str(x) for x in notes if x)) or None
+	return merged
 FB_DOC_ID_CACHE_KEY = "bgc_facebook_timeline_doc_id"
 
 
@@ -358,7 +449,8 @@ def _make_api_client(platform: str, cookies: dict[str, str], state: dict[str, An
 		from hris_ats.bgc.providers.social.facebook_browser import FacebookBrowserClient
 
 		# Facebook's persisted-query ids rotate and hand-built GraphQL calls are refused; a browser works
-		return FacebookBrowserClient(state or {"cookies": [], "origins": []})
+		max_comment_posts = cint(frappe.db.get_single_value("Background Check Settings", "social_max_comment_posts")) or 40
+		return FacebookBrowserClient(state or {"cookies": [], "origins": []}, max_comment_posts=max_comment_posts)
 	if platform == "LinkedIn":
 		from hris_ats.bgc.providers.social.linkedin_api import LinkedInApiClient
 

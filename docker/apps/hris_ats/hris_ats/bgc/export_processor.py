@@ -33,6 +33,7 @@ from hris_ats.bgc.export_parsers import (
 )
 from hris_ats.bgc.fetch import get_fetch_config_from_settings, is_forbidden_domain
 from hris_ats.bgc.providers.base import FindingData
+from hris_ats.bgc.sentiment import fetch_sentiment_labels
 
 
 def process_candidate_export_data(
@@ -148,6 +149,7 @@ def process_candidate_export_data(
 
 	p_analysis = analyze_posts(
 		posts=all_for_analysis,
+		sentiment_labels=fetch_sentiment_labels(all_for_analysis, lexicon_records),
 		lexicon_items=lexicon_records,
 		preferred_skills=[],
 		required_skills=[],

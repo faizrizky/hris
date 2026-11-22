@@ -35,6 +35,7 @@ from hris_ats.bgc.providers.platform_check import PlatformCheckProvider
 from hris_ats.bgc.providers.posts import PostsProvider
 from hris_ats.bgc.providers.social_public import SocialPublicProvider
 from hris_ats.bgc.providers.web_search import WebSearchProvider
+from hris_ats.bgc.sentiment import fetch_sentiment_labels
 
 
 def is_social_account(platform_name: str, profile_url: str = "") -> bool:
@@ -90,6 +91,7 @@ def _save_social_items(bgc_name, items, required_skills, preferred_skills, lexic
 	"""Analisis risiko lalu simpan post/komentar satu akun sebagai Finding. Mengembalikan jumlah item berisiko."""
 	p_analysis = analyze_posts(
 		posts=items,
+		sentiment_labels=fetch_sentiment_labels(items, lexicon_records),
 		required_skills=required_skills,
 		preferred_skills=preferred_skills,
 		lexicon_items=lexicon_records,
@@ -378,6 +380,7 @@ def _run_all_sources(bgc_name: str) -> None:
 					if all_fetched_posts:
 						p_analysis = analyze_posts(
 							posts=all_fetched_posts,
+							sentiment_labels=fetch_sentiment_labels(all_fetched_posts, lexicon_records),
 							required_skills=required_skills,
 							preferred_skills=preferred_skills,
 							lexicon_items=lexicon_records,
@@ -578,6 +581,7 @@ def _run_all_sources(bgc_name: str) -> None:
 				if all_social_items:
 					p_analysis = analyze_posts(
 						posts=all_social_items,
+						sentiment_labels=fetch_sentiment_labels(all_social_items, lexicon_records),
 						required_skills=required_skills,
 						preferred_skills=preferred_skills,
 						lexicon_items=lexicon_records,

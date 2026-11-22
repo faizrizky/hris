@@ -111,6 +111,21 @@ class TikTokAdapter(BaseSocialAdapter):
 			except Exception:
 				pass
 
+		# Halaman hasil render browser: grid video berisi link /video/<id> dengan caption di alt thumbnail
+		if not posts:
+			for m_card in re.finditer(r'<a href="(https://www\.tiktok\.com/@[^"/]+/video/\d+)"[^>]*>(.*?)</a>', raw_html, re.DOTALL):
+				alt_m = re.search(r'<img alt="([^"]*)"', m_card.group(2))
+				# TikTok menambahkan " created by <nama> with <sound>" ke alt; itu bukan caption kandidat
+				caption = re.sub(r"\s+created by .*$", "", html.unescape(alt_m.group(1))) if alt_m else ""
+				video_url = m_card.group(1)
+				if not any(p["url"] == video_url for p in posts):
+					posts.append({
+						"snippet": clean_snippet(caption),
+						"published_on": None,
+						"url": video_url,
+						"media_type": "Video",
+					})
+
 		# Fallback: cari tag video / deskripsi dari HTML
 		# Skipped when the structured profile exists: the page's generic "desc" strings are SEO text, not videos
 		if not posts and not has_profile_json:

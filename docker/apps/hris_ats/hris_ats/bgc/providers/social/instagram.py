@@ -6,7 +6,9 @@ from __future__ import annotations
 import html
 import json
 import re
+from datetime import datetime
 from typing import Any
+from urllib.parse import urlparse
 
 from hris_ats.bgc.adaptive import create_adaptive_adaptor
 from hris_ats.bgc.providers.social.base import BaseSocialAdapter, clean_snippet
@@ -110,9 +112,29 @@ class InstagramAdapter(BaseSocialAdapter):
 			except Exception:
 				pass
 
-		# 2. Cari blok postingan dari pattern JSON Instagram yang tertanam
-		# Pattern post caption/edge_media_to_caption
-		post_matches = re.finditer(r'"caption":\s*"([^"\\]*(?:\\.[^"\\]*)*)"', raw_html)
+		# 2. Timeline JSON yang ikut di halaman hasil render (login: xdt_..., tanpa login: polaris_...)
+		from hris_ats.bgc.providers.social.instagram_browser import (
+			TIMELINE_KEY,
+			extract_embedded,
+			post_from_node,
+		)
+
+		username = urlparse(url).path.strip("/").split("/")[0] if url else ""
+		for key in (TIMELINE_KEY, "polaris_ordered_timeline_connection"):
+			for conn in extract_embedded(raw_html, key):
+				for edge in (conn.get("edges") or []) if isinstance(conn, dict) else []:
+					node = edge.get("node") if isinstance(edge, dict) else None
+					p = post_from_node(node, username) if isinstance(node, dict) else None
+					if not p or any(x["url"] == p["url"] for x in posts):
+						continue
+					if not p["published_on"]:
+						# Tanpa login tidak ada taken_at; tanggal hanya ada di alt otomatis "... on October 19, 2026."
+						dm = re.search(r" on ([A-Z][a-z]+ \d{1,2}, \d{4})", node.get("accessibility_caption") or "")
+						p["published_on"] = _parse_date(dm.group(1)) if dm else None
+					posts.append({k: p[k] for k in ("snippet", "published_on", "url", "media_type")})
+
+		# 3. Pattern post caption/edge_media_to_caption
+		post_matches = [] if posts else re.finditer(r'"caption":\s*"([^"\\]*(?:\\.[^"\\]*)*)"', raw_html)
 		for pm in post_matches:
 			caption_raw = pm.group(1)
 			clean_cap = clean_snippet(html.unescape(caption_raw))
@@ -124,7 +146,7 @@ class InstagramAdapter(BaseSocialAdapter):
 					"media_type": "Photo",
 				})
 
-		# 3. Fallback: Ekstrak dari elemen meta atau artikel jika Scrapling terpasang
+		# 4. Fallback: Ekstrak dari elemen meta atau artikel jika Scrapling terpasang
 		adaptor = create_adaptive_adaptor(raw_html)
 		if adaptor and not posts:
 			for post_el in adaptor.css("article a, div[role='presentation'] img[alt]"):
@@ -181,3 +203,10 @@ class InstagramAdapter(BaseSocialAdapter):
 					})
 
 		return comments, "not exposed by platform"
+
+
+def _parse_date(text: str) -> str | None:
+	try:
+		return datetime.strptime(text, "%B %d, %Y").strftime("%Y-%m-%d %H:%M:%S")
+	except ValueError:
+		return None

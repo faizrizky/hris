@@ -542,3 +542,21 @@ def test_toxicity_matrix_per_post():
 	assert slang_only["toxicity_score"] == 0.0 and slang_only["abusive_posts_count"] == 0
 	# Sentiment words are not risk terms
 	assert not any("sentiment" in rp["risk_flags"] for rp in res["risk_posts"])
+
+
+def test_toxicity_matrix_uses_model_labels_when_given():
+	lexicon = [{"term": "anjing", "category": "Profanity", "severity": "Low", "enabled": 1, "weight": 1.0}]
+	posts = [{"text": "anjing lah"}, {"text": "anjing lah kalian semua"}, {"text": "Tidak bagus sama sekali."}]
+	# Word lists cannot read these: no sentiment word, and "tidak bagus" counts as positive
+	words = analyze_posts(posts=posts, lexicon_items=lexicon)
+	assert [t["cell"] for t in words["tones"]] == ["Unclear", "Unclear", "Safe"]
+	model = analyze_posts(posts=posts, lexicon_items=lexicon, sentiment_labels=["neutral", "negative", "negative"])
+	assert [t["cell"] for t in model["tones"]] == ["Slang", "Red flag", "Warning"]
+	assert [t["tone"] for t in model["tones"]] == ["Neutral", "Negative", "Negative"]
+	# Model says negative but the words are clearly positive: disagreement, not an attack
+	praise = analyze_posts(
+		posts=[{"text": "Gila anjing, aplikasi ini amazing banget!"}], lexicon_items=lexicon, sentiment_labels=["negative"]
+	)
+	assert praise["tones"][0]["cell"] == "Unclear" and not praise["risk_posts"]
+	# A label list of the wrong length is ignored instead of being misaligned
+	assert analyze_posts(posts=posts, lexicon_items=lexicon, sentiment_labels=["negative"])["tones"] == words["tones"]

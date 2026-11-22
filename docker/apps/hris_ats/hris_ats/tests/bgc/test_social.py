@@ -505,3 +505,193 @@ def test_tiktok_profile_is_read_from_hydration_json_not_title():
 	assert res["status"] == "Success" and res["is_private"] is False
 	assert res["display_name"] == "Madeline" and res["bio"] == "Everyday finds"
 	assert res["followers_count"] == 15 and res["posts_count"] == 9
+
+
+def test_tiktok_posts_are_read_from_rendered_video_grid():
+	html = (
+		'<html><head><title>Mello (@mello_ai6) | TikTok</title></head><body>'
+		'<a href="https://www.tiktok.com/@mello_ai6/video/111" class="AVideoContainer"><picture>'
+		'<img alt="Will Banana win? #fyp created by Mello with S4MI&#x27;s original sound" src="x"></picture></a>'
+		'<a href="https://www.tiktok.com/@mello_ai6/video/222" class="AVideoContainer"><img alt="" src="y"></a>'
+		'</body></html>'
+	)
+	res = TikTokAdapter().parse_profile(html, url="https://www.tiktok.com/@mello_ai6")
+	assert [p["url"] for p in res["posts"]] == [
+		"https://www.tiktok.com/@mello_ai6/video/111",
+		"https://www.tiktok.com/@mello_ai6/video/222",
+	]
+	assert res["posts"][0]["snippet"] == "Will Banana win? #fyp"
+
+
+def test_instagram_posts_are_read_from_logged_out_timeline_json():
+	import json
+
+	conn = {"edges": [{"node": {
+		"code": "ABC123", "media_type": 2, "caption": {"text": "hello world"},
+		"accessibility_caption": "Video by Instagram on October 19, 2026. May be an image of text.",
+	}}]}
+	html = (
+		'<html><head><title>Instagram (@instagram) • Instagram photos and videos</title></head><body>'
+		f'<script type="application/json">{{"polaris_ordered_timeline_connection":{json.dumps(conn)}}}</script></body></html>'
+	)
+	res = InstagramAdapter().parse_profile(html, url="https://www.instagram.com/instagram/")
+	assert res["posts"] == [{
+		"snippet": "hello world", "published_on": "2026-10-19 00:00:00",
+		"url": "https://www.instagram.com/p/ABC123/", "media_type": "Video",
+	}]
+
+
+def test_threads_posts_are_read_from_rendered_page_json_without_replies():
+	import json
+
+	from hris_ats.bgc.providers.social.threads import ThreadsAdapter
+
+	own = {"code": "P1", "user": {"username": "threads"}, "caption": {"text": "own post"}, "taken_at": 1792000000}
+	reply = {"code": "P2", "user": {"username": "threads"}, "caption": {"text": "a reply"},
+		"text_post_app_info": {"reply_to_author": {"username": "x"}}}
+	other = {"code": "P3", "user": {"username": "someone"}, "caption": {"text": "not theirs"}}
+	data = {"thread_items": [{"post": own}, {"post": reply}, {"post": other}],
+		"user": {"username": "threads", "full_name": "Threads", "follower_count": 42}}
+	html = (
+		"<html><head><title>Threads (@threads) • Threads, Say more</title></head><body>"
+		f'<script type="application/json">{json.dumps(data)}</script></body></html>'
+	)
+	res = ThreadsAdapter().parse_profile(html, url="https://www.threads.com/@threads")
+	assert [p["url"] for p in res["posts"]] == ["https://www.threads.com/@threads/post/P1"]
+	assert res["posts"][0]["snippet"] == "own post" and res["followers_count"] == 42
+
+
+def test_linkedin_posts_are_read_from_json_ld_graph():
+	import json
+
+	graph = {"@graph": [
+		{"@type": "Person", "name": "Bill Gates", "interactionStatistic": {"name": "Follows", "userInteractionCount": 7}},
+		{"@type": "DiscussionForumPosting", "text": "a post", "datePublished": "2026-10-21T05:26:05.017Z",
+			"url": "https://www.linkedin.com/posts/x-activity-1"},
+		{"@type": "Article", "headline": "an article", "datePublished": "2026-10-12T20:10:59.000+00:00",
+			"url": "https://www.linkedin.com/pulse/y"},
+	]}
+	html = (
+		"<html><head><title>Bill Gates - Chair | LinkedIn</title></head><body>"
+		f'<script type="application/ld+json">{json.dumps(graph)}</script></body></html>'
+	)
+	res = LinkedInAdapter().parse_profile(html, url="https://www.linkedin.com/in/williamhgates/")
+	assert res["followers_count"] == 7
+	assert [(p["snippet"], p["published_on"]) for p in res["posts"]] == [
+		("a post", "2026-10-21 05:26:05"), ("an article", "2026-10-12 20:10:59"),
+	]
+
+
+def test_facebook_public_scroll_collects_graphql_batches_until_stale():
+	import json
+
+	from hris_ats.bgc.providers.social.facebook_browser import scroll_public_posts
+
+	def story(n):
+		return {"__typename": "Story", "post_id": str(n), "creation_time": 1792000000 - n * 86400,
+			"message": {"text": f"post {n}"}, "actors": [{"id": "42"}]}
+
+	class FakePage:
+		def __init__(self):
+			self.batch = 0
+			self.listener = None
+			self.mouse = self
+
+		def on(self, _event, fn):
+			self.listener = fn
+
+		def content(self):
+			return f'<html>"pageID":"42"<script type="application/json">{json.dumps({"s": story(0)})}</script></html>'
+
+		def wheel(self, *_a):
+			self.batch += 1
+			if self.batch <= 2:  # two batches, then Facebook stops sending more
+				body = json.dumps({"data": [story(self.batch * 10 + i) for i in range(3)]})
+				self.listener(type("R", (), {"url": "https://www.facebook.com/api/graphql/", "text": lambda _s: body})())
+
+		def wait_for_timeout(self, _ms):
+			pass
+
+	def fake_fetch(_url, page_action=None, **_kw):
+		page_action(FakePage())
+
+	with patch("scrapling.fetchers.StealthyFetcher.fetch", side_effect=fake_fetch):
+		posts = scroll_public_posts("https://www.facebook.com/x", max_posts=200, earliest_ts=None)
+	assert [p["snippet"] for p in posts] == ["post 0", "post 10", "post 11", "post 12", "post 20", "post 21", "post 22"]
+	assert posts[0]["published_on"]
+
+
+def test_linkedin_post_page_comments_match_author_by_profile_link():
+	import json
+
+	ld = {"@type": "DiscussionForumPosting", "comment": [
+		{"@type": "Comment", "datePublished": "2026-10-20T01:46:04.122Z", "text": "Thanks everyone!", "creator": {"name": "Bill Gates"}},
+		{"@type": "Comment", "datePublished": "2026-10-20T02:00:00.000Z", "text": "Great post", "creator": {"name": "Someone"}},
+	]}
+	block = (
+		'<section class="comment flex x"><a href="https://www.linkedin.com/in/{slug}?trk=public_post_comment_actor-image"></a>'
+		'<p class="comment__text x" dir="ltr">{text}</p></section>'
+	)
+	html = (
+		f'<script type="application/ld+json">{json.dumps(ld)}</script>'
+		+ block.format(slug="williamhgates", text="Thanks everyone!")
+		+ block.format(slug="someone-123", text="Great post")
+	)
+	res = LinkedInAdapter().post_page_comments(html, "williamhgates", url="https://www.linkedin.com/posts/x")
+	assert res == [{"snippet": "Thanks everyone!", "published_on": "2026-10-20 01:46:04",
+		"url": "https://www.linkedin.com/posts/x", "media_type": "Text"}]
+
+
+def test_merge_crawl_results_dedupes_posts_across_login_and_public_urls():
+	from hris_ats.bgc.providers.social_public import merge_crawl_results
+
+	session = {"status": "Success", "mode_used": "session-api", "display_name": "", "followers_count": None,
+		"comment_limitation": "partial", "posts_count": 1,
+		"posts": [{"url": "https://www.linkedin.com/feed/update/urn:li:activity:111/", "snippet": "a", "provenance": "Crawled (session)"}],
+		"comments": [{"snippet": "Thanks!", "url": "x"}]}
+	public = {"status": "Success", "mode_used": "company", "display_name": "Bill", "followers_count": 7, "comment_limitation": None,
+		"posts": [
+			{"url": "https://www.linkedin.com/posts/bill_a-activity-111-AbCd", "snippet": "a", "provenance": "Crawled"},
+			{"url": "https://www.linkedin.com/posts/bill_b-activity-222-XyZw", "snippet": "b", "provenance": "Crawled"},
+		],
+		"comments": [{"snippet": "thanks!", "url": "y"}, {"snippet": "new one", "url": "z"}]}
+	res = merge_crawl_results(session, public, max_posts=200, max_comments=200)
+	assert [p["snippet"] for p in res["posts"]] == ["a", "b"]
+	assert res["posts"][0]["provenance"] == "Crawled (session)" and res["posts"][1]["provenance"] == "Crawled"
+	assert [c["snippet"] for c in res["comments"]] == ["Thanks!", "new one"]
+	assert res["display_name"] == "Bill" and res["followers_count"] == 7
+	assert res["mode_used"] == "session-api+company" and res["posts_count"] == 2
+
+
+def test_partial_login_session_is_completed_with_public_data():
+	import json
+
+	from hris_ats.bgc.providers.social_public import SocialPublicProvider
+
+	session = {"status": "Success", "error": None, "mode_used": "session-api", "_partial": True, "comment_limitation": "cut",
+		"posts": [{"url": "https://www.linkedin.com/feed/update/urn:li:activity:111/", "snippet": "a"}], "comments": [],
+		"profile_url": "https://www.linkedin.com/in/bill/"}
+	graph = {"@graph": [
+		{"@type": "DiscussionForumPosting", "text": "a", "url": "https://www.linkedin.com/posts/bill_a-activity-111-x"},
+		{"@type": "DiscussionForumPosting", "text": "b", "url": "https://www.linkedin.com/posts/bill_b-activity-222-y"},
+	]}
+	page = f'<html><head><title>Bill - X | LinkedIn</title></head><script type="application/ld+json">{json.dumps(graph)}</script></html>'
+	cfg = FetchConfig(use_login_session=True)
+	with patch.object(SocialPublicProvider, "_crawl_via_api", return_value=session) as api, \
+		patch("hris_ats.bgc.providers.social_public.bgc_fetch.fetch",
+			return_value=FetchResult(url="https://www.linkedin.com/in/bill/", status=200, body=page, mode_used="company")):
+		res = SocialPublicProvider(config=cfg).crawl_account(DummyBGC(), DummyAccount("LinkedIn", "bill"), max_comments=0)
+	assert api.call_count == 1  # the public complement must not retry the login session
+	assert [p["snippet"] for p in res["posts"]] == ["a", "b"]
+	assert res["mode_used"] == "session-api+company"
+
+
+def test_complete_login_session_is_returned_as_is():
+	from hris_ats.bgc.providers.social_public import SocialPublicProvider
+
+	session = {"status": "Success", "error": None, "mode_used": "session-api", "posts": [], "comments": []}
+	with patch.object(SocialPublicProvider, "_crawl_via_api", return_value=session), \
+		patch("hris_ats.bgc.providers.social_public.bgc_fetch.fetch") as fetch:
+		res = SocialPublicProvider(config=FetchConfig(use_login_session=True)).crawl_account(
+			DummyBGC(), DummyAccount("LinkedIn", "bill"))
+	assert res is session and not fetch.called

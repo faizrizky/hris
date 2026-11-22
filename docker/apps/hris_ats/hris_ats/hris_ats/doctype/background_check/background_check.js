@@ -385,6 +385,12 @@ frappe.ui.form.on("Background Check", {
 					</div>
 				`;
 
+				const filterEmpty = (msg) => `
+					<div class="text-center text-muted p-3 border rounded bg-light mb-3 bgc-filter-empty" style="display: none;">
+						<p class="mb-0">${esc(msg)}</p>
+					</div>
+				`;
+
 				let allItems = [...posts, ...comments];
 				let provCounts = {};
 				let platSet = new Map();
@@ -421,12 +427,12 @@ frappe.ui.form.on("Background Check", {
 						<ul class="nav nav-pills mb-3" role="tablist">
 							<li class="nav-item">
 								<a class="nav-link active font-weight-bold" data-bgc-pane="tab-bgc-posts" href="javascript:void(0)" role="tab">
-									${__("Posts")} (${posts.length})
+									${__("Posts")} (<span class="bgc-count">${posts.length}</span>)
 								</a>
 							</li>
 							<li class="nav-item">
 								<a class="nav-link font-weight-bold" data-bgc-pane="tab-bgc-comments" href="javascript:void(0)" role="tab">
-									${__("Comments")} (${comments.length})
+									${__("Comments")} (<span class="bgc-count">${comments.length}</span>)
 								</a>
 							</li>
 						</ul>
@@ -434,10 +440,12 @@ frappe.ui.form.on("Background Check", {
 							<div class="tab-pane fade show active" id="tab-bgc-posts" role="tabpanel">
 								<h6 class="text-uppercase text-secondary font-weight-bold mb-2">${__("Posts")}</h6>
 								${posts_html}
+								${filterEmpty(__("No posts found for this platform."))}
 							</div>
 							<div class="tab-pane fade" id="tab-bgc-comments" role="tabpanel">
 								<h6 class="text-uppercase text-secondary font-weight-bold mb-2">${__("Comments")}</h6>
 								${comments_html}
+								${filterEmpty(__("No comments written by the candidate were found on this platform. Without a crawler account, platforms do not expose comments."))}
 							</div>
 						</div>
 					</div>
@@ -464,6 +472,14 @@ frappe.ui.form.on("Background Check", {
 						} else {
 							$(this).hide();
 						}
+					});
+					// Counts and empty state follow the filter; otherwise "Comments (26)" shows next to an empty list
+					container.find("a[data-bgc-pane]").each(function () {
+						const pane = container.find("#" + $(this).data("bgc-pane"));
+						const cards = pane.find(".finding-card");
+						const visible = cards.filter(function () { return $(this).css("display") !== "none"; }).length;
+						$(this).find(".bgc-count").text(visible);
+						pane.find(".bgc-filter-empty").toggle(cards.length > 0 && visible === 0);
 					});
 				});
 
