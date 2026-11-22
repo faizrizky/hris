@@ -85,6 +85,8 @@ docker compose exec -T backend bench --site "$SITE_NAME" clear-cache
 # 7. Restart service aplikasi Python agar modul baru dimuat ulang
 echo "[dev-ats] Memuat ulang service backend dan worker..."
 docker compose restart backend queue-short queue-long queue-browser scheduler >/dev/null 2>&1 || true
+# nginx menyimpan IP backend saat start; tanpa restart frontend, backend yang dapat IP baru memicu 502.
+docker compose restart frontend >/dev/null 2>&1 || true
 
 echo "[dev-ats] Selesai! hris_ats siap digunakan."
 
