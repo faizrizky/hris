@@ -34,6 +34,12 @@ docker compose exec -T -u root backend rm -rf /tmp/hris-seed
 docker compose exec -T -u root backend mkdir -p -m 777 /tmp/hris-seed
 docker compose cp seed/seed.py backend:/tmp/hris-seed/seed.py
 docker compose cp server-scripts backend:/tmp/hris-seed/server-scripts
+# Override per klien: clients/<site>/server-scripts/ menimpa skrip utama yang namanya sama (dan boleh menambah
+# skrip khusus klien). Skrip utama di server-scripts/ tidak pernah diubah; hanya salinan sementara untuk site ini.
+if [ -d "clients/$SITE/server-scripts" ]; then
+  docker compose cp "clients/$SITE/server-scripts/." backend:/tmp/hris-seed/server-scripts/
+  echo "[seed] override klien $SITE: $(ls "clients/$SITE/server-scripts" | tr '\n' ' ')"
+fi
 docker compose exec -T -u root backend chmod -R a+rX /tmp/hris-seed
 out=$(docker compose exec -T -w /home/frappe/frappe-bench/sites \
   -e SITE_NAME="$SITE" -e SEED_PAKET -e USER_EMAIL -e USER_PASSWORD -e MSS_USER_EMAIL -e MSS_USER_PASSWORD \
