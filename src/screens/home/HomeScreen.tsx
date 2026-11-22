@@ -23,6 +23,7 @@ import { ErrorState } from "@/components/ErrorState";
 import { EmptyState } from "@/components/EmptyState";
 import { useHome } from "@/hooks/useHome";
 import type { TranslationKey } from "@/i18n/id";
+import type { FormKind } from "@/hooks/useLeaveRequestForm";
 
 // Pengingat daftar ulang wajah muncul sekali per pembukaan aplikasi.
 
@@ -186,7 +187,7 @@ export function HomeScreen() {
     ink: tone === "warn" ? "#D97706" : c[tone].ink,
     onPress,
   });
-  const submitRequest = (kind: "cuti" | "lembur" | "trip" | "wfh") => () =>
+  const submitRequest = (kind: FormKind) => () =>
     navigation.navigate("LeaveRequest", { kind, n: Date.now() });
   // Tujuan yang sudah jadi tab di bar bawah tidak diulang di menu. Tab kedua
   // bergantung peran: Absensi (karyawan), Approval (mss), Absensi Kry (hr).
@@ -242,7 +243,7 @@ export function HomeScreen() {
       t("cr.dinas"),
       "briefcase-outline",
       "purple",
-      submitRequest("trip"),
+      submitRequest("dinas"),
     ),
     makeMenuItem(
       "wfh",
