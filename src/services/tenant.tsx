@@ -56,6 +56,9 @@ async function cariDiRegistry(kode: string): Promise<Tenant> {
     res = await fetch(
       `${REGISTRY_URL}/api/method/hris_cek_company?kode=${encodeURIComponent(kode)}`,
       {
+        // Registry satu host dengan tenant: tanpa "omit", cookie sid tenant ikut terkirim dan
+        // dibalas Set-Cookie sid=Guest sehingga sesi login terhapus.
+        credentials: "omit",
         headers: {
           Accept: "application/json",
           ...(REGISTRY_SITE ? { "X-Frappe-Site-Name": REGISTRY_SITE } : {}),
