@@ -47,6 +47,8 @@ export const id = {
   "err.timeout": "Server tidak merespons",
   "err.network": "Tidak bisa terhubung ke server",
   "err.sesiBerakhir": "Sesi berakhir, silakan masuk lagi",
+  "err.langgananNonaktif":
+    "Langganan company ini tidak aktif. Masukkan kode company lagi atau hubungi admin HR Anda.",
   "err.peran": "Gagal memuat peran akun",
   "err.peranCoba": "{pesan}. Coba lagi.",
   "err.tanpaKaryawan": "Akun belum terhubung ke karyawan",

@@ -63,6 +63,12 @@ export function setSessionExpiredHandler(handler: (() => void) | null) {
   onSessionExpired = handler;
 }
 
+// Site company dikunci server karena langganannya tidak aktif (HTTP 402, lihat hris_ats.subscription).
+let onSubscriptionInactive: (() => void) | null = null;
+export function setSubscriptionInactiveHandler(handler: (() => void) | null) {
+  onSubscriptionInactive = handler;
+}
+
 export class ApiError extends Error {
   constructor(
     message: string,
@@ -171,6 +177,14 @@ async function request<T>(
       throw new ApiError(translate("err.sesiBerakhir"), 403, "SessionExpired");
     }
     const excType = typeof obj.exc_type === "string" ? obj.exc_type : null;
+    if (res.status === 402 || excType === "SubscriptionInactive") {
+      onSubscriptionInactive?.();
+      throw new ApiError(
+        translate("err.langgananNonaktif"),
+        402,
+        "SubscriptionInactive",
+      );
+    }
     // Nginx menolak file terlalu besar dengan halaman HTML, bukan JSON.
     if (res.status === 413) {
       throw new ApiError(translate("err.fileBesar"), 413, "TooLarge");

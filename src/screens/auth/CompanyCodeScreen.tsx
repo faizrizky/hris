@@ -25,7 +25,7 @@ export function CompanyCodeScreen({
 }: {
   isExpired?: boolean;
 }) {
-  const { tenant, pilihCompany, gantiCompany } = useTenant();
+  const { tenant, pilihCompany, gantiCompany, alasanKeluar } = useTenant();
   const [kode, setKode] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -90,7 +90,9 @@ export function CompanyCodeScreen({
                   placeholderTextColor={c.mutedLabel}
                 />
               </View>
-              {error && <Text style={styles.errorText}>{error}</Text>}
+              {(error ?? alasanKeluar) && (
+                <Text style={styles.errorText}>{error ?? alasanKeluar}</Text>
+              )}
               <Pressable onPress={handleSubmit} disabled={isLoading}>
                 <LinearGradient
                   colors={[c.accent, c.accent2]}

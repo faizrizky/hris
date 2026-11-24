@@ -42,6 +42,8 @@ export const en: Record<TranslationKey, string> = {
   "err.timeout": "Server is not responding",
   "err.network": "Cannot connect to the server",
   "err.sesiBerakhir": "Session expired, please sign in again",
+  "err.langgananNonaktif":
+    "This company's subscription is inactive. Enter your company code again or contact your HR admin.",
   "err.peran": "Failed to load account role",
   "err.peranCoba": "{pesan}. Please try again.",
   "err.tanpaKaryawan": "Account is not linked to an employee",

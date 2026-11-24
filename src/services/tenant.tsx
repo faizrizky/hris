@@ -9,6 +9,7 @@ import {
   DEFAULT_SERVER_ADDRESS,
   get,
   setServerAddress,
+  setSubscriptionInactiveHandler,
 } from "@/services/api/http";
 
 // Registry: site khusus yang memetakan kode company -> site (docker/seed/registry.py).
@@ -136,6 +137,8 @@ interface TenantContextValue {
   // Cek ulang ke server saat aplikasi dibuka: paket bisa naik/turun atau habis.
   segarkan: () => Promise<void>;
   gantiCompany: () => Promise<void>;
+  // Pesan di layar kode setelah dilempar keluar (mis. langganan nonaktif); kosong bila tidak ada.
+  alasanKeluar: string | null;
   punyaFitur: (fitur: Fitur) => boolean;
 }
 
@@ -145,6 +148,7 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
   const [tenant, setTenant] = useState<Tenant | null>(null);
   const [langganan, setLangganan] = useState<Langganan | null>(null);
   const [isReady, setIsReady] = useState(false);
+  const [alasanKeluar, setAlasanKeluar] = useState<string | null>(null);
 
   useEffect(() => {
     Promise.all([baca<Tenant>(TENANT_KEY), baca<Langganan>(LANGGANAN_KEY)])
@@ -156,6 +160,7 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const pilihCompany = async (kode: string) => {
+    setAlasanKeluar(null);
     const t = await cariDiRegistry(kode.trim());
     await setServerAddress(t.baseUrl, t.site);
     const l = await ambilLangganan();
@@ -171,6 +176,17 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
     setLangganan(null);
   };
 
+  const keluarKarenaLangganan = async () => {
+    await gantiCompany();
+    setAlasanKeluar(translate("err.langgananNonaktif"));
+  };
+
+  // Site company terkunci saat aplikasi dipakai: kembali ke layar kode company.
+  useEffect(() => {
+    setSubscriptionInactiveHandler(() => void keluarKarenaLangganan());
+    return () => setSubscriptionInactiveHandler(null);
+  });
+
   const segarkan = async () => {
     if (!tenant) return;
     try {
@@ -184,6 +200,8 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
       // Kode dicabut dari registry: kembali ke layar kode. Gagal jaringan: pakai data terakhir.
       if (e instanceof ApiError && e.excType === "UnknownCompany")
         await gantiCompany();
+      else if (e instanceof ApiError && e.excType === "SubscriptionInactive")
+        await keluarKarenaLangganan();
     }
   };
 
@@ -196,6 +214,7 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
         pilihCompany,
         segarkan,
         gantiCompany,
+        alasanKeluar,
         // Belum tahu paketnya (mis. data lama): jangan sembunyikan apa pun, server tetap menolak yang di luar paket.
         punyaFitur: (f) => !langganan || langganan.fitur.includes(f),
       }}
