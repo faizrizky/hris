@@ -1,0 +1,20 @@
+# Lapisan di atas image dasar (frappe + erpnext + hrms, dibuat ./build-image.sh) yang memuat hris_ats beserta
+# semua yang sebelumnya dipasang dengan tangan ke container oleh dev-ats.sh: paket Python, Chromium, dan pytest.
+# Dengan ini container yang dibuat ulang tidak kehilangan apa pun, dan satu image yang sama dipakai semua site.
+ARG BASE_IMAGE
+FROM ${BASE_IMAGE}
+
+USER root
+COPY --chown=frappe:frappe hris_ats /home/frappe/frappe-bench/apps/hris_ats
+WORKDIR /home/frappe/frappe-bench
+
+USER frappe
+# Editable: mode dev yang me-mount ./apps/hris_ats tetap menimpa kode di dalam image tanpa build ulang.
+RUN env/bin/pip install --no-cache-dir -e apps/hris_ats pytest
+
+USER root
+RUN env/bin/python -m playwright install-deps chromium && rm -rf /var/lib/apt/lists/*
+
+USER frappe
+RUN env/bin/python -m playwright install chromium \
+ && env/bin/python -c "from scrapling.cli import __PACKAGE_DIR__; from tld.utils import update_tld_names; update_tld_names(fail_silently=True); __PACKAGE_DIR__.joinpath('.scrapling_dependencies_installed').touch()"
