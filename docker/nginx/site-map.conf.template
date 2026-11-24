@@ -10,7 +10,10 @@ map $host $hris_site_by_host {
 }
 
 # Nilai header dipakai di try_files, jadi hanya nama host yang sah yang diterima (menolak "..", "/", dsb.).
+# Urutan penting: regex dicek berurutan. Browser mengirim hostname-nya (mis. 10.70.0.30, dari frappe-ui di halaman
+# Roster); IP bukan nama site, jadi diabaikan dan dipilih lewat Host.
 map $http_x_frappe_site_name $hris_site {
+	~^[0-9.]+$ $hris_site_by_host;
 	~^[a-z0-9-]+(\.[a-z0-9-]+)+$ $http_x_frappe_site_name;
 	default $hris_site_by_host;
 }
