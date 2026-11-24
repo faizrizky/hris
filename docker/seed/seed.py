@@ -1574,24 +1574,15 @@ else:
     frappe.db.set_value("Client Script", _PCS, {"script": _PJS, "enabled": 1})
 frappe.db.commit()
 
-# Paket langganan company di site ini (Basic/Essential/Suite, lihat server-scripts/_lib/paket_lib.py). Hanya
-# Administrator (tim kita) yang mengubah, supaya admin klien tidak bisa menaikkan paketnya sendiri.
-if not frappe.db.exists("DocType", "Langganan HRIS"):
-    make(dict(
-        doctype="DocType", name="Langganan HRIS", module="HR", custom=1, issingle=1,
-        fields=[
-            dict(fieldname="paket", label="Paket", fieldtype="Select", options="Basic\nEssential\nSuite",
-                 default="Basic", reqd=1),
-            dict(fieldname="berlaku_sampai", label="Berlaku Sampai", fieldtype="Date",
-                 description="Kosong = tanpa batas. Lewat tanggal ini semua fitur berbayar dan aplikasi terkunci."),
-            dict(fieldname="aktif", label="Aktif", fieldtype="Check", default="1"),
-        ],
-        permissions=[dict(role="Administrator", read=1, write=1, create=1),
-                     dict(role="System Manager", read=1), dict(role="HR Manager", read=1)]))
-    frappe.clear_cache()
-    # Site dev memakai paket terlengkap supaya semua layar tetap bisa diuji.
-    frappe.db.set_single_value("Langganan HRIS", {"paket": os.environ.get("SEED_PAKET") or "Suite", "aktif": 1})
-    frappe.db.commit()
+# Paket langganan company di site ini (Basic/Essential/Suite, lihat server-scripts/_lib/paket_lib.py) adalah satu baris
+# HRIS Subscription yang dikirim dari sentra (hris_ats.subscription.apply_local). Site dev yang belum terdaftar di sentra
+# memakai paket terlengkap supaya semua layar tetap bisa diuji; sentra sendiri tidak punya baris ini.
+if not frappe.conf.get("hris_control_plane") and not frappe.db.count("HRIS Subscription"):
+    from hris_ats.subscription import apply_local
+    _site = frappe.local.site
+    apply_local(active=1, plan=os.environ.get("SEED_PAKET") or "Suite", until="",
+                code=_site.split(".")[0].upper(), name=_site.split(".")[0].title(), site=_site)
+    log("HRIS Subscription: baris bawaan dibuat untuk site ini")
 
 # Pembaruan aplikasi (APK) tanpa toko: HR/admin mengunggah APK dan mengisi versinya; aplikasi membaca lewat
 # hris_get_app_update dan mengunduh APK yang berstatus publik (aplikasi belum login saat memeriksa).
@@ -1641,8 +1632,6 @@ if frappe.db.exists("Sidebar", "HR Setup"):
     from frappe.desk.doctype.custom_sidebar.custom_sidebar import add_site_sidebar_item as _asi
     _asi("HR Setup", dict(label="App Update", type="Link", link_type="DocType", link_to="App Update", icon="upload",
                           collapsible=1))
-    _asi("HR Setup", dict(label="Langganan HRIS", type="Link", link_type="DocType", link_to="Langganan HRIS",
-                          icon="star", collapsible=1))
     frappe.db.commit()
 
 # Sidebar HR Setup: Profile Change Request, Face Enrollment, Face Settings. Sebelumnya Profile Change Request ada di Leaves
@@ -1881,7 +1870,7 @@ if os.path.isdir(SS_DIR):
         # "# @include: _lib/xxx.py" disisipkan apa adanya, dengan indentasi baris include (Server Script tidak bisa import)
         _out = []
         for _ln in code.split("\n"):
-            if _ln.startswith("# @fitur: "):  # fitur berbayar: tolak bila tidak termasuk paket Langganan HRIS site ini
+            if _ln.startswith("# @fitur: "):  # fitur berbayar: tolak bila tidak termasuk paket HRIS Subscription site ini
                 _out.extend(open(os.path.join(SS_DIR, "_lib/paket_lib.py"), encoding="utf-8").read().rstrip("\n").split("\n"))
                 _out += [f'if "{_ln[len("# @fitur: "):].strip()}" not in pk_info()["fitur"]:',
                          '    frappe.throw("This feature is not included in your subscription plan", frappe.PermissionError)']

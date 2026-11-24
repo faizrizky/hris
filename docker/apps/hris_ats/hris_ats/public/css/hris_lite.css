@@ -1,0 +1,10 @@
+/* Cosmetic only: permissions (not this file) are what actually restrict access. */
+html.hris-lite .page-head .view-switcher,
+html.hris-lite body[data-route^="List/"] .page-head .menu-btn-group,
+html.hris-lite .like-action,
+html.hris-lite .liked-by,
+html.hris-lite .list-row-like,
+html.hris-lite .list-liked-by-me,
+html.hris-lite .list-row .level-right span.mx-2 {
+	display: none !important;
+}

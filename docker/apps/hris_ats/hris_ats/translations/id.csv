@@ -1209,3 +1209,71 @@ Unclear,Tidak jelas
 Red flag,Red flag
 Positive,Positif
 Negative,Negatif
+HRIS Subscription,Langganan HRIS
+Company Code,Kode Company
+Site,Site
+Plan,Paket
+Valid Until,Berlaku Sampai
+Synchronization,Sinkronisasi
+Last Synced,Terakhir Disinkronkan
+Sync Error,Galat Sinkronisasi
+Inactive,Non Aktif
+Basic,Basic
+Essential,Essential
+Suite,Suite
+The code employees type in the mobile app.,Kode yang diketik karyawan di aplikasi mobile.
+"Frappe site name on this server, for example client-a.localhost.","Nama site Frappe di server ini, misalnya klien-a.localhost."
+Empty means no expiry. After this date the status becomes Inactive and the site is locked.,Kosong berarti tanpa batas. Lewat tanggal ini status menjadi Non Aktif dan site terkunci.
+Turn off to lock the site immediately.,Matikan untuk langsung mengunci site.
+This subscription is inactive. Contact your HRIS administrator.,Langganan ini tidak aktif. Hubungi administrator HRIS Anda.
+Subscriptions can only be managed on the control-plane site.,Langganan hanya bisa dikelola di site kontrol.
+Site must look like client-a.localhost.,Site harus berbentuk klien-a.localhost.
+The control-plane site cannot be locked.,Site kontrol tidak bisa dikunci.
+Sync Now,Sinkronkan Sekarang
+The last synchronization failed. See Sync Error below.,Sinkronisasi terakhir gagal. Lihat Galat Sinkronisasi di bawah.
+Site {0} does not exist on this server.,Site {0} tidak ada di server ini.
+Already registered,Sudah terdaftar
+Subscription inactive,Langganan tidak aktif
+Bank Account,Rekening Bank
+Account Name,Nama Akun
+Bank,Bank
+IBAN,IBAN
+Branch Code,Kode Cabang
+Bank Account No,Nomor Rekening
+Create,Buat
+NIK must be 16 digits.,NIK harus 16 digit.
+NPWP must be 15 or 16 digits.,NPWP harus 15 atau 16 digit.
+BPJS Ketenagakerjaan number must contain digits only.,Nomor BPJS Ketenagakerjaan hanya boleh berisi angka.
+BPJS Kesehatan number must contain digits only.,Nomor BPJS Kesehatan hanya boleh berisi angka.
+PKWT cannot have a probation period.,PKWT tidak boleh memiliki masa percobaan.
+PKWT needs a contract end date.,PKWT wajib memiliki tanggal berakhir kontrak.
+PKWT cannot run longer than 5 years including extensions.,PKWT tidak boleh lebih dari 5 tahun termasuk perpanjangan.
+Contract end date is before the start date.,Tanggal berakhir kontrak lebih awal dari tanggal mulai.
+Probation cannot exceed 3 months.,Masa percobaan tidak boleh lebih dari 3 bulan.
+Check the employee data,Periksa data karyawan
+You are not permitted to create Additional Salary entries.,Anda tidak diizinkan membuat entri Gaji Tambahan.
+Identity & Social Security,Identitas & Jaminan Sosial
+NIK (KTP),NIK (KTP)
+NPWP,NPWP
+BPJS Ketenagakerjaan No,No. BPJS Ketenagakerjaan
+BPJS Kesehatan No,No. BPJS Kesehatan
+Employment Agreement,Perjanjian Kerja
+Probation (months),Masa Percobaan (bulan)
+"PKWTT is permanent, PKWT is fixed term (at most 5 years, no probation).","PKWTT adalah karyawan tetap, PKWT adalah kontrak waktu tertentu (maksimal 5 tahun, tanpa masa percobaan)."
+"At most 3 months, and none for PKWT.","Maksimal 3 bulan, dan tidak ada untuk PKWT."
+Generate THR,Buat THR
+Payment Date,Tanggal Pembayaran
+Employee,Karyawan
+Months,Bulan
+Monthly Wage,Upah Sebulan
+Amount,Jumlah
+Note,Catatan
+Create THR entries,Buat entri THR
+THR entries created as draft Additional Salary.,Entri THR dibuat sebagai Gaji Tambahan berstatus draft.
+Preview THR,Pratinjau THR
+Nothing is due on this date.,Tidak ada THR yang jatuh tempo pada tanggal ini.
+HR Focus Profile,Profil HR Focus
+"Trims the Desk for non-admin users on this client: fewer menus, sensitive fields hidden, tighter permissions.","Menyederhanakan Desk untuk pengguna non-admin di klien ini: menu lebih sedikit, field sensitif disembunyikan, izin diperketat."
+Sync error,Galat sinkron
+Expiring,Segera berakhir
+"{0} active, {1} inactive, {2} expiring within 30 days, {3} with sync errors","{0} aktif, {1} nonaktif, {2} berakhir dalam 30 hari, {3} galat sinkronisasi"

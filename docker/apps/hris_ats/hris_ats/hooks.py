@@ -10,6 +10,18 @@ app_license = "mit"
 
 required_apps = ["erpnext", "hrms"]
 
+extend_bootinfo = "hris_ats.lite.extend_bootinfo"
+
+# Locks a client site whose subscription is inactive (see hris_ats.subscription).
+before_request = ["hris_ats.subscription.before_request"]
+
+has_permission = {
+	"HRIS Subscription": "hris_ats.subscription.has_permission",
+	"Bank Account": "hris_ats.bank.bank_account_has_permission",
+}
+
+permission_query_conditions = {"Bank Account": "hris_ats.bank.bank_account_conditions"}
+
 # Each item in the list will be shown as an app in the apps page
 add_to_apps_screen = [
 	{
@@ -36,8 +48,9 @@ app_logo_url = "/assets/hris_ats/images/logo.png"
 # ------------------
 
 # include js, css files in header of desk.html
-# app_include_css = "/assets/hris_ats/css/hris_ats.css"
+app_include_css = "/assets/hris_ats/css/hris_lite.css"
 app_include_js = [
+	"/assets/hris_ats/js/hris_lite.js",
 	"/assets/hris_ats/js/crawler_login_dialog.js",
 	"/assets/hris_ats/js/message.js",
 	"/assets/hris_ats/js/bulk_upload.js",
@@ -59,11 +72,15 @@ app_include_js = [
 
 # include js in doctype views
 doctype_js = {
+	"Employee": "public/js/employee.js",
+	"HRIS Subscription": "public/js/hris_subscription.js",
 	"Job Applicant": "public/js/job_applicant.js",
 	"Job Opening": "public/js/job_opening.js",
 }
 
 doctype_list_js = {
+	"Additional Salary": "public/js/additional_salary_list.js",
+	"HRIS Subscription": "public/js/hris_subscription_list.js",
 	"Job Applicant": "public/js/job_applicant_list.js",
 }
 
@@ -172,6 +189,7 @@ after_migrate = "hris_ats.setup.after_migrate"
 # Hook on document methods and events
 
 doc_events = {
+	"Employee": {"validate": ["hris_ats.bank.mirror_to_employee", "hris_ats.hr_compliance.validate_employee"]},
 	"Job Applicant": {
 		"after_insert": "hris_ats.scoring.workflow.on_job_applicant_insert",
 		"on_update": "hris_ats.scoring.workflow.on_job_applicant_update",
@@ -191,7 +209,8 @@ doc_events = {
 
 scheduler_events = {
 	"daily": [
-		"hris_ats.tasks.daily_retention_purge"
+		"hris_ats.tasks.daily_retention_purge",
+		"hris_ats.subscription.refresh_all",
 	],
 }
 # 		"hris_ats.tasks.monthly"

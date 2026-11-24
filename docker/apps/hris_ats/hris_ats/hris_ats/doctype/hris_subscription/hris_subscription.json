@@ -1,0 +1,134 @@
+{
+ "actions": [],
+ "autoname": "field:code",
+ "creation": "2026-11-25 00:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "company_name",
+  "status",
+  "code",
+  "site",
+  "column_break_1",
+  "plan",
+  "valid_until",
+  "enabled",
+  "hr_focus",
+  "section_sync",
+  "last_synced",
+  "sync_error"
+ ],
+ "fields": [
+  {
+   "fieldname": "company_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Company",
+   "reqd": 1
+  },
+  {
+   "default": "Active",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Status",
+   "options": "Active\nInactive",
+   "read_only": 1
+  },
+  {
+   "description": "The code employees type in the mobile app.",
+   "fieldname": "code",
+   "fieldtype": "Data",
+   "label": "Company Code",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "description": "Frappe site name on this server, for example client-a.localhost.",
+   "fieldname": "site",
+   "fieldtype": "Autocomplete",
+   "label": "Site",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "Basic",
+   "fieldname": "plan",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Plan",
+   "options": "Basic\nEssential\nSuite",
+   "reqd": 1
+  },
+  {
+   "description": "Empty means no expiry. After this date the status becomes Inactive and the site is locked.",
+   "fieldname": "valid_until",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Valid Until"
+  },
+  {
+   "default": "1",
+   "description": "Turn off to lock the site immediately.",
+   "fieldname": "enabled",
+   "fieldtype": "Check",
+   "label": "Enabled"
+  },
+  {
+   "default": "0",
+   "description": "Trims the Desk for non-admin users on this client: fewer menus, sensitive fields hidden, tighter permissions.",
+   "fieldname": "hr_focus",
+   "fieldtype": "Check",
+   "label": "HR Focus Profile"
+  },
+  {
+   "fieldname": "section_sync",
+   "fieldtype": "Section Break",
+   "label": "Synchronization"
+  },
+  {
+   "fieldname": "last_synced",
+   "fieldtype": "Datetime",
+   "label": "Last Synced",
+   "read_only": 1
+  },
+  {
+   "fieldname": "sync_error",
+   "fieldtype": "Small Text",
+   "label": "Sync Error",
+   "read_only": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-11-25 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "HRIS ATS",
+ "name": "HRIS Subscription",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "company_name"
+}

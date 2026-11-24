@@ -175,8 +175,31 @@ CUSTOM_FIELDS = {
 }
 
 
+BANK_FIELDS = {
+	"Employee": [
+		{"fieldname": "custom_bank_account", "label": "Bank Account", "fieldtype": "Link", "options": "Bank Account",
+			"insert_after": "bank_details_section", "depends_on": "eval:doc.salary_mode == 'Bank'"},
+		{"fieldname": "custom_ba_account_name", "label": "Account Name", "fieldtype": "Data", "read_only": 1,
+			"fetch_from": "custom_bank_account.account_name", "insert_after": "custom_bank_account"},
+		{"fieldname": "custom_ba_bank", "label": "Bank", "fieldtype": "Data", "read_only": 1,
+			"fetch_from": "custom_bank_account.bank", "insert_after": "custom_ba_account_name"},
+		{"fieldname": "custom_ba_column", "fieldtype": "Column Break", "insert_after": "custom_ba_bank"},
+		{"fieldname": "custom_ba_account_no", "label": "Bank Account No", "fieldtype": "Data", "read_only": 1,
+			"fetch_from": "custom_bank_account.bank_account_no", "insert_after": "custom_ba_column"},
+		{"fieldname": "custom_ba_iban", "label": "IBAN", "fieldtype": "Data", "read_only": 1,
+			"fetch_from": "custom_bank_account.iban", "insert_after": "custom_ba_account_no"},
+		{"fieldname": "custom_ba_branch_code", "label": "Branch Code", "fieldtype": "Data", "read_only": 1,
+			"fetch_from": "custom_bank_account.branch_code", "insert_after": "custom_ba_iban"},
+	]
+}
+
+
 def setup_custom_fields():
 	create_custom_fields(CUSTOM_FIELDS, update=True)
+	create_custom_fields(BANK_FIELDS, update=True)
+	from hris_ats.bank import setup_bank_account_access
+
+	setup_bank_account_access()
 	setup_job_applicant_layout()
 
 
@@ -794,4 +817,56 @@ def after_migrate():
 	setup_default_platforms()
 	setup_default_lexicon()
 	setup_default_settings()
+	apply_lite_profile()
+	setup_hr_compliance()
+	setup_subscription_access()
+	remove_legacy_langganan()
 
+
+
+def apply_lite_profile():
+	"""HR-focus profile, only on sites that opted in with `hris_lite_ui` (see hris_ats.lite.profile)."""
+	if frappe.conf.get("hris_lite_ui"):
+		from hris_ats.lite.profile import apply
+
+		apply()
+
+
+def setup_hr_compliance():
+	from hris_ats.hr_compliance import setup_hr_compliance as _setup
+
+	_setup()
+
+
+def remove_legacy_langganan():
+	from hris_ats.subscription import remove_legacy_langganan as _remove
+
+	_remove()
+
+
+def setup_subscription_access():
+	"""Subscriptions and app updates belong to the control-plane site (sentra); client sites get no access at all."""
+	if frappe.conf.get("hris_control_plane"):
+		if frappe.db.exists("Sidebar", "HR Setup"):
+			from frappe.desk.doctype.custom_sidebar.custom_sidebar import add_site_sidebar_item
+
+			add_site_sidebar_item(
+				"HR Setup",
+				{"label": "HRIS Subscription", "type": "Link", "link_type": "DocType",
+					"link_to": "HRIS Subscription", "icon": "star", "collapsible": 1},
+			)
+		return
+
+	from frappe.permissions import rights, update_permission_property
+
+	from hris_ats.subscription import MANAGED_DOCTYPES
+
+	for dt in MANAGED_DOCTYPES:
+		if not frappe.db.exists("DocType", dt):
+			continue
+		roles = set(frappe.get_all("DocPerm", filters={"parent": dt}, pluck="role")) | set(
+			frappe.get_all("Custom DocPerm", filters={"parent": dt}, pluck="role")
+		)
+		for role in roles - {"Administrator"}:
+			for ptype in rights:
+				update_permission_property(dt, role, 0, ptype, 0)

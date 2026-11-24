@@ -13,6 +13,8 @@ if [ "${1:-}" = "--semua" ]; then
   # Registry bukan site company (tidak punya erpnext/hrms), jadi dilewati.
   for s in $(docker compose exec -T backend sh -c 'cd sites && for d in */; do [ -f "$d/site_config.json" ] && echo "${d%/}"; done'); do
     [ "$s" = "${REGISTRY_SITE:-admin.localhost}" ] && continue
+    # Situs kontrol (sentra) bukan tenant: tidak punya data company untuk di-seed.
+    docker compose exec -T backend sh -c "grep -q hris_control_plane sites/$s/site_config.json" && { echo "===== $s (situs kontrol, dilewati)"; continue; }
     echo "===== $s"; "$0" "$s"
   done
   exit 0
