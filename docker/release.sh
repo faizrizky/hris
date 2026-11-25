@@ -18,6 +18,9 @@ REGISTRY_SITE="${REGISTRY_SITE:-admin.localhost}"
 OVERLAY=(-f docker-compose.yml -f docker-compose.dev.yml)
 PLAIN=(-f docker-compose.yml)
 
+# Hanya image -ats- yang memuat hris_ats; image dasar tanpa itu tidak bisa dijalankan sebagai target pemulihan.
+restorable() { [[ "$1" == *-ats-* ]]; }
+
 state() { [ -f "$STATE" ] && sed -n "s/^$1=//p" "$STATE" | tail -1 || true; }
 set_tag() {  # tulis CUSTOM_TAG ke .env supaya restart berikutnya memakai tag yang sama
   { grep -v '^CUSTOM_TAG=' .env 2>/dev/null || true; echo "CUSTOM_TAG=$1"; } > .env.tmp && mv .env.tmp .env
@@ -33,6 +36,7 @@ sites() { dc exec -T backend bash -c 'cd sites && for d in */; do [ -f "$d/site_
 if [ "${1:-}" = "--rollback" ]; then
   PREV_TAG="$(state prev_tag)"; PREV_OVERLAY="$(state prev_overlay)"
   [ -n "$PREV_TAG" ] || { echo "Tidak ada rilis sebelumnya yang tercatat."; exit 1; }
+  restorable "$PREV_TAG" || { echo "Rilis sebelumnya ($PREV_TAG) bukan image hris_ats sehingga tidak bisa dipulihkan. Bangun image lama dengan ./build-ats-image.sh <akhiran> lalu ./release.sh <tag>."; exit 1; }
   echo "==> Kembali ke $PREV_TAG (overlay dev: $PREV_OVERLAY)"
   up "$PREV_TAG" "$PREV_OVERLAY"
   printf 'tag=%s\noverlay=%s\n' "$PREV_TAG" "$PREV_OVERLAY" > "$STATE"
@@ -57,9 +61,13 @@ done
 printf '   %s\n' "${BACKUPS[@]}"
 
 rollback_on_error() {
-  echo "!! Rilis gagal. Mengembalikan stack ke $PREV_TAG." >&2
-  up "$PREV_TAG" "$PREV_OVERLAY" || true
-  printf 'tag=%s\noverlay=%s\n' "$PREV_TAG" "$PREV_OVERLAY" > "$STATE"
+  if restorable "$PREV_TAG"; then
+    echo "!! Rilis gagal. Mengembalikan stack ke $PREV_TAG." >&2
+    up "$PREV_TAG" "$PREV_OVERLAY" || true
+    printf 'tag=%s\noverlay=%s\n' "$PREV_TAG" "$PREV_OVERLAY" > "$STATE"
+  else
+    echo "!! Rilis gagal, dan $PREV_TAG bukan image hris_ats sehingga stack tidak dikembalikan otomatis." >&2
+  fi
   echo "!! Database tidak dipulihkan otomatis. Backup sebelum rilis:" >&2
   printf '   %s\n' "${BACKUPS[@]}" >&2
 }
