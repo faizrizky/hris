@@ -11,7 +11,15 @@ import os
 
 import frappe
 
-HIDDEN_APPS = ("erpnext", "hrms")
+HIDDEN_APPS = ()  # shortcut: default is rename-only; list apps in `hris_menu_hide_apps` to hide them
+RENAMES = {"erpnext": "Sentra Bisnis", "hrms": "Sentra SDM"}
+
+
+def rename_apps(bootinfo, names=RENAMES):
+	"""Retitle app tiles in the payload only; the apps' own files stay untouched."""
+	for entry in bootinfo.get("app_data") or []:
+		if entry.get("app_name") in names:
+			entry["app_title"] = names[entry["app_name"]]
 
 
 def hide_apps(bootinfo, apps=HIDDEN_APPS):
@@ -30,6 +38,7 @@ def extend_bootinfo(bootinfo):
 
 	conf = live_conf()
 	if conf.get("hris_menu_replace"):
+		rename_apps(bootinfo, conf.get("hris_menu_rename") or RENAMES)
 		hide_apps(bootinfo, tuple(conf.get("hris_menu_hide_apps") or HIDDEN_APPS))
 
 

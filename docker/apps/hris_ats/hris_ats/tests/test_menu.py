@@ -34,3 +34,11 @@ def test_every_link_in_our_menu_still_opens_something():
 	from hris_ats.menu import check_links
 
 	assert check_links() == []
+
+
+def test_rename_apps_changes_only_the_title():
+	from hris_ats.menu import rename_apps
+
+	boot = {"app_data": [{"app_name": "erpnext", "app_title": "ERPNext"}, {"app_name": "frappe", "app_title": "Framework"}]}
+	rename_apps(boot)
+	assert [e["app_title"] for e in boot["app_data"]] == ["Sentra Bisnis", "Framework"]
