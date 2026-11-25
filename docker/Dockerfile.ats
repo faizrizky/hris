@@ -11,6 +11,8 @@ WORKDIR /home/frappe/frappe-bench
 USER frappe
 # Editable: mode dev yang me-mount ./apps/hris_ats tetap menimpa kode di dalam image tanpa build ulang.
 RUN env/bin/pip install --no-cache-dir -e apps/hris_ats pytest
+# frontend (nginx) serves /assets from the image's own assets dir; configurator's symlink lands in a throwaway container
+RUN ln -sfn /home/frappe/frappe-bench/apps/hris_ats/hris_ats/public assets/hris_ats
 
 USER root
 RUN env/bin/python -m playwright install-deps chromium && rm -rf /var/lib/apt/lists/*
