@@ -19,8 +19,20 @@ SSH=(ssh -i "$KEY" -o ConnectTimeout=15 "$HOST")
 git diff --quiet HEAD -- . || { echo "ERROR: ada perubahan di docker/ yang belum di-commit. Commit dulu." >&2; exit 1; }
 SHA="$(git rev-parse --short HEAD)"
 
+# Dijalankan dari akar repo: git archive memotong isi menurut folder kerja, sehingga dari dalam docker/
+# arsipnya kosong (itulah bug sebelumnya).
+ROOT="$(git rev-parse --show-toplevel)"
+PREFIX="$(git rev-parse --show-prefix)"; PREFIX="${PREFIX%/}"
+ARCHIVE=(git -C "$ROOT" archive --format=tar "HEAD:$PREFIX")
+[ "$("${ARCHIVE[@]}" | tar -t | grep -c .)" -gt 10 ] || { echo "ERROR: arsip commit kosong atau terlalu kecil." >&2; exit 1; }
+
 echo "==> Mengirim docker/ pada commit $SHA ke $HOST:~/$DIR"
-git archive --format=tar "HEAD:$(git rev-parse --show-prefix | sed 's:/$::')" | "${SSH[@]}" "mkdir -p $DIR && tar -x -C $DIR"
+"${ARCHIVE[@]}" | "${SSH[@]}" "mkdir -p $DIR && tar -x -C $DIR"
+
+# Pastikan benar-benar tiba: bandingkan hash skrip rilis di server dengan yang ada di commit.
+WANT="$(git -C "$ROOT" show "HEAD:$PREFIX/release.sh" | shasum -a 256 | cut -d' ' -f1)"
+HAVE="$("${SSH[@]}" "sha256sum $DIR/release.sh" | cut -d' ' -f1)"
+[ "$WANT" = "$HAVE" ] || { echo "ERROR: berkas di server tidak sama dengan commit $SHA; deploy dihentikan." >&2; exit 1; }
 
 echo "==> Membangun image di server"
 TAG="$("${SSH[@]}" "cd $DIR && ./build-ats-image.sh $SHA | tail -1")"
