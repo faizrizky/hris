@@ -63,8 +63,7 @@ printf '   %s\n' "${BACKUPS[@]}"
 rollback_on_error() {
   if restorable "$PREV_TAG"; then
     echo "!! Rilis gagal. Mengembalikan stack ke $PREV_TAG." >&2
-    up "$PREV_TAG" "$PREV_OVERLAY" || true
-    printf 'tag=%s\noverlay=%s\n' "$PREV_TAG" "$PREV_OVERLAY" > "$STATE"
+    up "$PREV_TAG" "$PREV_OVERLAY" || true   # catatan status tidak diubah: stack kembali ke keadaan yang sudah tercatat
   else
     echo "!! Rilis gagal, dan $PREV_TAG bukan image hris_ats sehingga stack tidak dikembalikan otomatis." >&2
   fi
