@@ -10,7 +10,7 @@ app_license = "mit"
 
 required_apps = ["erpnext", "hrms"]
 
-extend_bootinfo = "hris_ats.lite.extend_bootinfo"
+extend_bootinfo = ["hris_ats.lite.extend_bootinfo", "hris_ats.menu.extend_bootinfo"]
 
 # Locks a client site whose subscription is inactive (see hris_ats.subscription).
 before_request = ["hris_ats.subscription.before_request"]
