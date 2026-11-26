@@ -49,6 +49,9 @@ def dedupe_shortcuts(bootinfo):
 			if sidebar:
 				labels = {i.get("label") for i in sidebar["items"] if i.get("link_to") in owned}
 				sidebar["items"] = filter_items(sidebar["items"], labels)
+	# Sentra People was the prototype's stand-in for HR; Sentra HR replaces it (a migrate does not drop a Dock row once synced).
+	if "hris_ats" in (bootinfo.get("dock") or {}):
+		bootinfo["dock"]["hris_ats"] = [e for e in bootinfo["dock"]["hris_ats"] if e.get("link_to") != "Sentra People"]
 	attendance = sidebars.get("Shift & Attendance")
 	if attendance and not any(i.get("label") == "Roster" for i in attendance["items"]):
 		attendance["items"].append(dict(ROSTER))

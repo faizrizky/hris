@@ -41,7 +41,7 @@ def test_rename_apps_changes_only_the_title():
 
 	boot = {"app_data": [{"app_name": "erpnext", "app_title": "ERPNext"}, {"app_name": "frappe", "app_title": "Framework"}]}
 	rename_apps(boot)
-	assert [e["app_title"] for e in boot["app_data"]] == ["Sentra Bisnis", "Framework"]
+	assert [e["app_title"] for e in boot["app_data"]] == ["Sentra General", "Framework"]
 
 
 def test_dedupe_keeps_each_shortcut_in_one_menu():
