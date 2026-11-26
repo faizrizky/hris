@@ -8,7 +8,7 @@ set -euo pipefail
 cd "$(dirname "${BASH_SOURCE[0]}")/.."
 CRED=.credentials.local
 [ -f .env ] && { set -a; . ./.env; set +a; }
-DEFAULT_SITE="${SITE_NAME:-hris.localhost}"
+DEFAULT_SITE="${SITE_NAME:-falah.localhost}"
 if [ "${1:-}" = "--semua" ]; then
   # Registry bukan site company (tidak punya erpnext/hrms), jadi dilewati.
   for s in $(docker compose exec -T backend sh -c 'cd sites && for d in */; do [ -f "$d/site_config.json" ] && echo "${d%/}"; done'); do

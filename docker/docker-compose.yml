@@ -76,7 +76,7 @@ services:
     restart: "no"
     entrypoint: ["bash", "-c"]
     environment:
-      SITE_NAME: ${SITE_NAME:-hris.localhost}
+      SITE_NAME: ${SITE_NAME:-falah.localhost}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:-admin}
       DB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-admin}
     command:
@@ -169,7 +169,7 @@ services:
       # dari header X-Frappe-Site-Name yang dikirim aplikasi, lalu Host, lalu
       # DEFAULT_SITE untuk akses lewat IP LAN / localhost (lihat nginx/site-map.conf.template).
       FRAPPE_SITE_NAME_HEADER: $$hris_site
-      DEFAULT_SITE: ${SITE_NAME:-hris.localhost}
+      DEFAULT_SITE: ${SITE_NAME:-falah.localhost}
       UPSTREAM_REAL_IP_ADDRESS: 127.0.0.1
       UPSTREAM_REAL_IP_HEADER: X-Forwarded-For
       UPSTREAM_REAL_IP_RECURSIVE: "off"
