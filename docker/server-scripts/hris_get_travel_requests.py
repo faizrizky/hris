@@ -2,6 +2,11 @@
 # Travel Request milik pemanggil, terbaru dulu, maks 50. status: pending (draft), approved (submitted),
 # rejected (custom_rejected atau dibatalkan). ?scope=team: bawahan langsung (HR: semua) untuk persetujuan.
 # @fitur: dinas_wfh
+# Travel Request is locked with the Expenses module (hris_ats.lock); this endpoint must not read around that lock.
+if frappe.session.user != "Administrator" and not frappe.get_all(
+    "Has Role", filters={"parent": frappe.session.user, "parenttype": "User", "role": "System Manager"}, limit_page_length=1
+):
+    frappe.throw("Travel Request is not available", frappe.PermissionError)
 user = frappe.session.user
 scope = frappe.form_dict.get("scope")
 me = frappe.get_all("Employee", filters={"user_id": user, "status": "Active"}, fields=["name"], limit_page_length=1)

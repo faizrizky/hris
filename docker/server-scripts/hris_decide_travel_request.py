@@ -2,6 +2,11 @@
 # POST body: name, decision ("approve" | "reject"). Hanya atasan langsung pemohon atau HR User/Manager,
 # dan bukan untuk dokumen milik sendiri. approve = submit Travel Request; reject = custom_rejected=1.
 # @fitur: dinas_wfh
+# Travel Request is locked with the Expenses module (hris_ats.lock); this endpoint must not read around that lock.
+if frappe.session.user != "Administrator" and not frappe.get_all(
+    "Has Role", filters={"parent": frappe.session.user, "parenttype": "User", "role": "System Manager"}, limit_page_length=1
+):
+    frappe.throw("Travel Request is not available", frappe.PermissionError)
 user = frappe.session.user
 name = frappe.form_dict.get("name")
 decision = frappe.form_dict.get("decision")

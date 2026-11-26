@@ -239,13 +239,6 @@ export function HomeScreen() {
       submitRequest("lembur"),
     ),
     makeMenuItem(
-      "trip",
-      t("cr.dinas"),
-      "briefcase-outline",
-      "purple",
-      submitRequest("dinas"),
-    ),
-    makeMenuItem(
       "wfh",
       t("cr.wfh"),
       "laptop-outline",

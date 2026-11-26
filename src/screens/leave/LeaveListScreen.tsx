@@ -182,31 +182,6 @@ export function LeaveListScreen({ navigation }: ScreenProps) {
                   <Text style={styles.actionTitle}>{t("cl.ajukanCuti")}</Text>
                   <Text style={styles.actionSub}>{t("cl.ajukanCutiSub")}</Text>
                 </Pressable>
-
-                <Pressable
-                  style={styles.actionCard}
-                  onPress={() =>
-                    navigation.navigate("LeaveRequest", {
-                      kind: "dinas",
-                      n: Date.now(),
-                    })
-                  }
-                >
-                  <View
-                    style={[
-                      styles.actionIcon,
-                      { backgroundColor: "transparent" },
-                    ]}
-                  >
-                    <Ionicons
-                      name="airplane-outline"
-                      size={26}
-                      color={c.purple.ink}
-                    />
-                  </View>
-                  <Text style={styles.actionTitle}>{t("cl.dinasLuar")}</Text>
-                  <Text style={styles.actionSub}>{t("cl.dinasLuarSub")}</Text>
-                </Pressable>
               </View>
 
               <Text style={styles.sectionTitle}>{t("cl.pengajuanSaya")}</Text>

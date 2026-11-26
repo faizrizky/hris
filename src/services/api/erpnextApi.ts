@@ -489,7 +489,11 @@ async function fetchOvertime(tim: boolean): Promise<LeaveRequest[]> {
   );
 }
 
+const TRAVEL_LOCKED = true;
+
 async function fetchTrips(tim: boolean): Promise<LeaveRequest[]> {
+  // Travel Request is locked (Expenses module), so the app no longer lists trips.
+  if (TRAVEL_LOCKED) return [];
   return emptyIfNotInPlan(
     get<{ message: TripRow[] }>(
       "/api/method/hris_get_travel_requests",

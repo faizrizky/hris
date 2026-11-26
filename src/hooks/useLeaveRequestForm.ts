@@ -33,11 +33,11 @@ import { WFH_DAYS } from "@/screens/leave/WfhFormCards";
 export const FORM_SEGMENTS = [
   { key: "cuti", label: "lr.cuti" },
   { key: "lembur", label: "lr.lembur" },
-  { key: "dinas", label: "lr.dinas" },
   { key: "wfh", label: "lr.wfh" },
 ] as const;
 
-export type FormKind = (typeof FORM_SEGMENTS)[number]["key"];
+// Travel Request is locked in the web (Expenses module), so it is not offered as a segment; the kind stays for old code paths.
+export type FormKind = (typeof FORM_SEGMENTS)[number]["key"] | "dinas";
 
 // Pengajuan di luar paket langganan company tidak ditawarkan.
 const SEGMENT_FITUR: Partial<Record<FormKind, Fitur>> = {
