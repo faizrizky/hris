@@ -8,3 +8,12 @@ html.hris-lite .list-liked-by-me,
 html.hris-lite .list-row .level-right span.mx-2 {
 	display: none !important;
 }
+
+/* Apps screen: let a long tile name (Sentra General) wrap under its first word instead of ending in "...". */
+.icon-caption .icon-title {
+	white-space: normal !important;
+	overflow: visible !important;
+	text-overflow: clip !important;
+	text-align: center;
+	line-height: 1.2 !important;
+}
