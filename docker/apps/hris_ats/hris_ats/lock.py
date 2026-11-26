@@ -9,7 +9,7 @@ and the reports are limited to System Manager with a Custom Role. Switch off wit
 
 import frappe
 from frappe.core.doctype.custom_docperm.custom_docperm import update_custom_docperm
-from frappe.permissions import reset_perms, rights, setup_custom_perms
+from frappe.permissions import add_permission, reset_perms, rights, setup_custom_perms
 
 ADMIN = "System Manager"
 
@@ -45,6 +45,12 @@ def apply():
 		if not frappe.db.exists("DocType", dt):
 			continue
 		setup_custom_perms(dt)  # copies the standard rows into Custom DocPerm the first time, as the Role Permissions Manager does
+		# System Manager needs a full row of its own: if no role may read the doctype, Frappe also refuses field access to
+		# Administrator ("You do not have permission to access field: ..."), and HR forms query these doctypes.
+		add_permission(dt, ADMIN, 0)
+		admin_row = frappe.db.get_value("Custom DocPerm", {"parent": dt, "role": ADMIN, "permlevel": 0, "if_owner": 0})
+		if admin_row:
+			update_custom_docperm(admin_row, {p: 1 for p in rights})
 		for row in frappe.get_all("Custom DocPerm", filters={"parent": dt, "role": ("!=", ADMIN)}, fields=["name", *rights]):
 			if any(row[p] for p in rights):
 				update_custom_docperm(row.name, {p: 0 for p in rights})
