@@ -8,14 +8,6 @@
   {
    "added": 0,
    "hidden": 0,
-   "icon": "briefcase-duotone",
-   "link_to": "Sentra People",
-   "link_type": "Sidebar",
-   "title": "Sentra People"
-  },
-  {
-   "added": 0,
-   "hidden": 0,
    "icon": "user-search-duotone",
    "link_to": "HRIS ATS",
    "link_type": "Sidebar",

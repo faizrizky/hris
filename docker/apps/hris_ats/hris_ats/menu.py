@@ -12,7 +12,12 @@ import os
 import frappe
 
 HIDDEN_APPS = ()  # shortcut: default is rename-only; list apps in `hris_menu_hide_apps` to hide them
-RENAMES = {"erpnext": "Sentra Bisnis", "hrms": "Sentra SDM"}
+RENAMES = {"erpnext": "Sentra General", "hrms": "Sentra HR"}
+
+# One home per shortcut: an entry that both menus carry stays only in the menu that owns it.
+HR_OWNED = ("Branch", "Department", "Designation", "Holiday List", "Timesheet", "Activity Type")
+GENERAL_OWNED = ("Company", "Payment Entry", "Journal Entry", "General Ledger", "Accounts Receivable", "Accounts Payable")
+ROSTER = {"label": "Roster", "type": "Link", "link_type": "URL", "url": "/hr/roster", "icon": "calendar-duotone", "added": 0, "hidden": 0}
 
 
 def rename_apps(bootinfo, names=RENAMES):
@@ -33,11 +38,28 @@ def hide_apps(bootinfo, apps=HIDDEN_APPS):
 			entry["dock"] = []
 
 
+def dedupe_shortcuts(bootinfo):
+	"""Remove from each menu the shortcuts the other menu owns, and add the Roster page next to attendance."""
+	from hris_ats.lite.profile import filter_items
+
+	sidebars = bootinfo.get("module_sidebars") or {}
+	for app, owned in (("erpnext", HR_OWNED), ("hrms", GENERAL_OWNED)):
+		for entry in (bootinfo.get("dock") or {}).get(app) or []:
+			sidebar = sidebars.get(entry.get("link_to"))
+			if sidebar:
+				labels = {i.get("label") for i in sidebar["items"] if i.get("link_to") in owned}
+				sidebar["items"] = filter_items(sidebar["items"], labels)
+	attendance = sidebars.get("Shift & Attendance")
+	if attendance and not any(i.get("label") == "Roster" for i in attendance["items"]):
+		attendance["items"].append(dict(ROSTER))
+
+
 def extend_bootinfo(bootinfo):
 	from hris_ats.subscription import live_conf
 
 	conf = live_conf()
 	if conf.get("hris_menu_replace"):
+		dedupe_shortcuts(bootinfo)
 		rename_apps(bootinfo, conf.get("hris_menu_rename") or RENAMES)
 		hide_apps(bootinfo, tuple(conf.get("hris_menu_hide_apps") or HIDDEN_APPS))
 

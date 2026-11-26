@@ -13,7 +13,7 @@ def _boot():
 
 def test_hide_apps_removes_only_the_replaced_apps():
 	boot = _boot()
-	hide_apps(boot)
+	hide_apps(boot, ("erpnext", "hrms"))
 	assert set(boot["dock"]) == {"hris_ats"}
 	assert [a["name"] for a in boot["apps"]] == ["hris_ats"]
 	assert boot["app_data"][0] == {"app_name": "hrms", "on_apps_screen": False, "dock": []}
@@ -22,7 +22,7 @@ def test_hide_apps_removes_only_the_replaced_apps():
 
 def test_hide_apps_is_a_no_op_on_an_empty_payload():
 	boot = {}
-	hide_apps(boot)
+	hide_apps(boot, ("erpnext",))
 	assert boot == {"apps": []}
 
 
@@ -42,3 +42,21 @@ def test_rename_apps_changes_only_the_title():
 	boot = {"app_data": [{"app_name": "erpnext", "app_title": "ERPNext"}, {"app_name": "frappe", "app_title": "Framework"}]}
 	rename_apps(boot)
 	assert [e["app_title"] for e in boot["app_data"]] == ["Sentra Bisnis", "Framework"]
+
+
+def test_dedupe_keeps_each_shortcut_in_one_menu():
+	from hris_ats.menu import dedupe_shortcuts
+
+	item = lambda name: {"label": name, "link_to": name, "type": "Link"}
+	boot = {
+		"dock": {"erpnext": [{"link_to": "Setup"}], "hrms": [{"link_to": "HR Setup"}]},
+		"module_sidebars": {
+			"Setup": {"items": [item("Company"), item("Department")]},
+			"HR Setup": {"items": [item("Company"), item("Department")]},
+			"Shift & Attendance": {"items": []},
+		},
+	}
+	dedupe_shortcuts(boot)
+	assert [i["label"] for i in boot["module_sidebars"]["Setup"]["items"]] == ["Company"]
+	assert [i["label"] for i in boot["module_sidebars"]["HR Setup"]["items"]] == ["Department"]
+	assert boot["module_sidebars"]["Shift & Attendance"]["items"][0]["label"] == "Roster"
