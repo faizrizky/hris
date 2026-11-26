@@ -1,7 +1,7 @@
 """Menu replacement: our own dock and sidebars stand in for ERPNext and Frappe HR, without touching their files.
 
 How it stays upgrade-safe: nothing of the other apps is edited or overwritten. Their menus are removed from the desk
-payload on the way out (`extend_bootinfo`) while the switch `hris_menu_replace` is on, so a pull of an official update
+payload on the way out (`extend_bootinfo`) unless the site sets `hris_menu_replace` to 0, so a pull of an official update
 only ever changes files we do not touch. Pages and DocTypes stay reachable by URL and search. Turn the switch off
 and the original menus are back instantly.
 """
@@ -61,7 +61,7 @@ def extend_bootinfo(bootinfo):
 	from hris_ats.subscription import live_conf
 
 	conf = live_conf()
-	if conf.get("hris_menu_replace"):
+	if conf.get("hris_menu_replace", 1):  # on by default for every site; set 0 in site_config to get the stock menus back
 		dedupe_shortcuts(bootinfo)
 		rename_apps(bootinfo, conf.get("hris_menu_rename") or RENAMES)
 		hide_apps(bootinfo, tuple(conf.get("hris_menu_hide_apps") or HIDDEN_APPS))
