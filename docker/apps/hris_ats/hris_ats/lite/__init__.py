@@ -17,6 +17,11 @@ def extend_bootinfo(bootinfo):
 
 	conf = live_conf()  # frappe.conf is cached per worker and would miss a toggle made from the control plane
 
+	# Client sites trim list and dashboard chrome (public/js/hris_lite.js); Framework's own pages keep it.
+	if not conf.get("hris_control_plane"):
+		modules = frappe.get_all("Module Def", filters={"app_name": "frappe"}, pluck="name")
+		bootinfo.hris_trim_except = frappe.get_all("DocType", filters={"module": ("in", modules)}, pluck="name")
+
 	sidebars = bootinfo.get("module_sidebars") or {}
 	if sidebars.get("HR Setup"):
 		hide = LEGACY_ON_CONTROL_PLANE if conf.get("hris_control_plane") else CONTROL_PLANE_MENUS

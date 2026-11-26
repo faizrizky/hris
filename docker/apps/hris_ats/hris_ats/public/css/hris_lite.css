@@ -1,11 +1,11 @@
 /* Cosmetic only: permissions (not this file) are what actually restrict access. */
-html.hris-lite .page-head .view-switcher,
-html.hris-lite body[data-route^="List/"] .page-head .menu-btn-group,
-html.hris-lite .like-action,
-html.hris-lite .liked-by,
-html.hris-lite .list-row-like,
-html.hris-lite .list-liked-by-me,
-html.hris-lite .list-row .level-right span.mx-2 {
+html.hris-trim .page-head .view-switcher,
+html.hris-trim .page-head .menu-btn-group,
+html.hris-trim .like-action,
+html.hris-trim .liked-by,
+html.hris-trim .list-row-like,
+html.hris-trim .list-liked-by-me,
+html.hris-trim .list-row .level-right span.mx-2 {
 	display: none !important;
 }
 
