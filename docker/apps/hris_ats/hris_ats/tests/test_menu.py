@@ -82,3 +82,15 @@ def test_locked_doctypes_have_no_rights_left_for_other_roles():
 	for dt in LOCKED_DOCTYPES:
 		if frappe.db.exists("DocType", dt):
 			assert not frappe.get_all("Custom DocPerm", filters={"parent": dt, "role": ("!=", ADMIN), "read": 1}), dt
+
+
+def test_hide_home_drops_only_the_workspace_home_of_those_apps():
+	from hris_ats.menu import hide_home
+
+	home = {"label": "Home", "link_type": "Workspace"}
+	dash = {"label": "Home", "link_type": "Dashboard"}  # CRM's home is a dashboard: kept
+	boot = {"dock": {"hrms": [{"link_to": "A"}], "erpnext": [{"link_to": "B"}], "hris_ats": [{"link_to": "C"}]},
+		"module_sidebars": {"A": {"items": [dict(home), {"label": "Dashboard"}]}, "B": {"items": [dash]}, "C": {"items": [dict(home)]}}}
+	hide_home(boot)
+	assert [i["label"] for i in boot["module_sidebars"]["A"]["items"]] == ["Dashboard"]
+	assert len(boot["module_sidebars"]["B"]["items"]) == 1 and len(boot["module_sidebars"]["C"]["items"]) == 1

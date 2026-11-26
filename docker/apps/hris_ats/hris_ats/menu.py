@@ -52,6 +52,16 @@ def hide_rails(bootinfo):
 			entry["dock"] = keep(entry.get("dock"))
 
 
+def hide_home(bootinfo, apps=("erpnext", "hrms")):
+	"""Drop the workspace "Home" entry of these apps' menus, so a menu opens on its dashboard (or first real entry)."""
+	sidebars = bootinfo.get("module_sidebars") or {}
+	for app in apps:
+		for entry in (bootinfo.get("dock") or {}).get(app) or []:
+			sidebar = sidebars.get(entry.get("link_to"))
+			if sidebar:
+				sidebar["items"] = [i for i in sidebar["items"] if not (i.get("label") == "Home" and i.get("link_type") == "Workspace")]
+
+
 def dedupe_shortcuts(bootinfo):
 	"""Remove from each menu the shortcuts the other menu owns, and add the Roster page next to attendance."""
 	from hris_ats.lite.profile import filter_items
@@ -77,6 +87,7 @@ def extend_bootinfo(bootinfo):
 	conf = live_conf()
 	if conf.get("hris_menu_replace", 1):  # on by default for every site; set 0 in site_config to get the stock menus back
 		hide_rails(bootinfo)
+		hide_home(bootinfo)
 		dedupe_shortcuts(bootinfo)
 		rename_apps(bootinfo, conf.get("hris_menu_rename") or RENAMES)
 		hide_apps(bootinfo, tuple(conf.get("hris_menu_hide_apps") or HIDDEN_APPS))
