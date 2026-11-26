@@ -94,3 +94,20 @@ def test_hide_home_drops_only_the_workspace_home_of_those_apps():
 	hide_home(boot)
 	assert [i["label"] for i in boot["module_sidebars"]["A"]["items"]] == ["Dashboard"]
 	assert len(boot["module_sidebars"]["B"]["items"]) == 1 and len(boot["module_sidebars"]["C"]["items"]) == 1
+
+
+def test_set_landing_prefers_a_dashboard_and_points_the_tile_at_it():
+	from hris_ats.menu import set_landing
+
+	boot = {
+		"dock": {"hrms": [{"link_to": "Leaves"}, {"link_to": "HR Setup"}]},
+		"module_sidebars": {
+			"Leaves": {"items": [{"link_type": "DocType", "link_to": "Leave Application", "type": "Link"}]},
+			"HR Setup": {"items": [{"link_type": "Dashboard", "link_to": "Human Resource", "type": "Link"}]},
+		},
+		"app_data": [{"app_name": "hrms", "app_route": "/desk/hr-setup"}],
+	}
+	set_landing(boot)
+	assert boot["hris_landing"]["leaves"] == ["leaves", "leave-application"]
+	assert boot["hris_landing"]["hr-setup"] == ["hr-setup", "dashboard-view", "Human Resource"]
+	assert boot["app_data"][0]["app_route"] == "/desk/hr-setup/dashboard-view/Human%20Resource"

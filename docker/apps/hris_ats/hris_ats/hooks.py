@@ -52,6 +52,7 @@ app_include_css = "/assets/hris_ats/css/hris_lite.css"
 app_include_js = [
 	"/assets/hris_ats/js/hris_lite.js",
 	"/assets/hris_ats/js/form_sidebar.js",
+	"/assets/hris_ats/js/landing.js",
 	"/assets/hris_ats/js/crawler_login_dialog.js",
 	"/assets/hris_ats/js/message.js",
 	"/assets/hris_ats/js/bulk_upload.js",

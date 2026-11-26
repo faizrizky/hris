@@ -62,6 +62,42 @@ def hide_home(bootinfo, apps=("erpnext", "hrms")):
 				sidebar["items"] = [i for i in sidebar["items"] if not (i.get("label") == "Home" and i.get("link_type") == "Workspace")]
 
 
+def slug(name: str) -> str:
+	"""Route segment for a sidebar or doctype, the same rule as frappe.router.slug in the desk."""
+	return name.lower().replace(" ", "-")
+
+
+def landing_parts(title, items):
+	"""Route segments of what a menu should open on: its dashboard, else its first doctype. None when it has neither."""
+	for item in items:
+		if item.get("link_type") == "Dashboard":
+			return [slug(title), "dashboard-view", item["link_to"]]
+	for item in items:
+		if item.get("link_type") == "DocType" and item.get("type") != "Section Break" and item.get("link_to"):
+			return [slug(title), slug(item["link_to"])]
+	return None
+
+
+def set_landing(bootinfo, apps=("erpnext", "hrms")):
+	"""`hris_landing` maps a menu's own route (slug) to where it should open (read by public/js/landing.js), and each
+	app tile opens its first menu that has a dashboard."""
+	sidebars = bootinfo.get("module_sidebars") or {}
+	landing = {}
+	for app in apps:
+		first = None
+		for entry in (bootinfo.get("dock") or {}).get(app) or []:
+			title = entry.get("link_to")
+			parts = landing_parts(title, (sidebars.get(title) or {}).get("items") or [])
+			if parts:
+				landing[slug(title)] = parts
+				if first is None or (first[1][1] != "dashboard-view" and parts[1] == "dashboard-view"):
+					first = (title, parts)
+		for tile in bootinfo.get("app_data") or []:
+			if first and tile.get("app_name") == app:
+				tile["app_route"] = "/desk/" + "/".join(quote(p, safe="") for p in first[1])
+	bootinfo["hris_landing"] = landing
+
+
 def dedupe_shortcuts(bootinfo):
 	"""Remove from each menu the shortcuts the other menu owns, and add the Roster page next to attendance."""
 	from hris_ats.lite.profile import filter_items
@@ -89,6 +125,7 @@ def extend_bootinfo(bootinfo):
 		hide_rails(bootinfo)
 		hide_home(bootinfo)
 		dedupe_shortcuts(bootinfo)
+		set_landing(bootinfo)
 		rename_apps(bootinfo, conf.get("hris_menu_rename") or RENAMES)
 		hide_apps(bootinfo, tuple(conf.get("hris_menu_hide_apps") or HIDDEN_APPS))
 
