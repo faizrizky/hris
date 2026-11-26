@@ -38,6 +38,20 @@ def hide_apps(bootinfo, apps=HIDDEN_APPS):
 			entry["dock"] = []
 
 
+def hide_rails(bootinfo):
+	"""Drop locked rails from the HR menu; their doctypes are also locked by permission (hris_ats.lock)."""
+	from hris_ats.lock import HIDDEN_RAILS, enabled
+
+	if not enabled():
+		return
+	keep = lambda entries: [e for e in entries or [] if e.get("link_to") not in HIDDEN_RAILS]
+	if "hrms" in (bootinfo.get("dock") or {}):
+		bootinfo["dock"]["hrms"] = keep(bootinfo["dock"]["hrms"])
+	for entry in bootinfo.get("app_data") or []:
+		if entry.get("app_name") == "hrms":
+			entry["dock"] = keep(entry.get("dock"))
+
+
 def dedupe_shortcuts(bootinfo):
 	"""Remove from each menu the shortcuts the other menu owns, and add the Roster page next to attendance."""
 	from hris_ats.lite.profile import filter_items
@@ -62,6 +76,7 @@ def extend_bootinfo(bootinfo):
 
 	conf = live_conf()
 	if conf.get("hris_menu_replace", 1):  # on by default for every site; set 0 in site_config to get the stock menus back
+		hide_rails(bootinfo)
 		dedupe_shortcuts(bootinfo)
 		rename_apps(bootinfo, conf.get("hris_menu_rename") or RENAMES)
 		hide_apps(bootinfo, tuple(conf.get("hris_menu_hide_apps") or HIDDEN_APPS))

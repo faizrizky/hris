@@ -821,6 +821,7 @@ def after_migrate():
 	setup_hr_compliance()
 	setup_subscription_access()
 	remove_legacy_langganan()
+	apply_module_lock()  # last: it must see the permissions set up above
 
 
 
@@ -830,6 +831,13 @@ def apply_lite_profile():
 		from hris_ats.lite.profile import apply
 
 		apply()
+
+
+def apply_module_lock():
+	"""Expenses, Payroll and Tax & Benefits locked by permissions on every site (see hris_ats.lock)."""
+	from hris_ats.lock import after_migrate
+
+	after_migrate()
 
 
 def setup_hr_compliance():

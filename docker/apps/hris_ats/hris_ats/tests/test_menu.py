@@ -60,3 +60,25 @@ def test_dedupe_keeps_each_shortcut_in_one_menu():
 	assert [i["label"] for i in boot["module_sidebars"]["Setup"]["items"]] == ["Company"]
 	assert [i["label"] for i in boot["module_sidebars"]["HR Setup"]["items"]] == ["Department"]
 	assert boot["module_sidebars"]["Shift & Attendance"]["items"][0]["label"] == "Roster"
+
+
+def test_hide_rails_drops_only_the_locked_rails():
+	from hris_ats.menu import hide_rails
+
+	boot = {"dock": {"hrms": [{"link_to": "Payroll"}, {"link_to": "Leaves"}]}, "app_data": [{"app_name": "hrms", "dock": [{"link_to": "Expenses"}, {"link_to": "Tenure"}]}]}
+	hide_rails(boot)
+	assert [e["link_to"] for e in boot["dock"]["hrms"]] == ["Leaves"]
+	assert [e["link_to"] for e in boot["app_data"][0]["dock"]] == ["Tenure"]
+
+
+def test_locked_doctypes_have_no_rights_left_for_other_roles():
+	import frappe
+
+	if not getattr(frappe.local, "site", None) or frappe.db is None:
+		pytest.skip("needs a site with a database")
+	from hris_ats.lock import ADMIN, LOCKED_DOCTYPES, apply
+
+	apply()
+	for dt in LOCKED_DOCTYPES:
+		if frappe.db.exists("DocType", dt):
+			assert not frappe.get_all("Custom DocPerm", filters={"parent": dt, "role": ("!=", ADMIN), "read": 1}), dt
