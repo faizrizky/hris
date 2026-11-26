@@ -111,3 +111,13 @@ def test_set_landing_prefers_a_dashboard_and_points_the_tile_at_it():
 	assert boot["hris_landing"]["leaves"] == ["leaves", "leave-application"]
 	assert boot["hris_landing"]["hr-setup"] == ["hr-setup", "dashboard-view", "Human Resource"]
 	assert boot["app_data"][0]["app_route"] == "/desk/hr-setup/dashboard-view/Human%20Resource"
+
+
+def test_assignable_masters_answers_false_for_a_doctype_the_user_cannot_read(monkeypatch):
+	import frappe
+
+	from hris_ats import overrides
+
+	monkeypatch.setattr(frappe, "has_permission", lambda dt, ptype: dt != "Salary Structure", raising=False)
+	monkeypatch.setattr(frappe, "get_list", lambda *a, **k: ["x"], raising=False)
+	assert overrides.get_assignable_masters("Co") == {"Leave Policy": True, "Salary Structure": False, "Shift Schedule": True}

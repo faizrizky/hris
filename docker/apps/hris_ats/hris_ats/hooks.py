@@ -238,6 +238,9 @@ scheduler_events = {
 # override_whitelisted_methods = {
 # 	"frappe.desk.doctype.event.event.get_events": "hris_ats.event.get_events"
 # }
+override_whitelisted_methods = {
+	"hrms.overrides.employee_master.get_assignable_masters": "hris_ats.overrides.get_assignable_masters",
+}
 #
 # each overriding function accepts a `data` argument;
 # generated from the base implementation of the doctype dashboard,
