@@ -8,6 +8,7 @@ and the original menus are back instantly.
 
 import json
 import os
+from urllib.parse import quote
 
 import frappe
 
