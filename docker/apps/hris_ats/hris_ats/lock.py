@@ -8,7 +8,8 @@ and the reports are limited to System Manager with a Custom Role. Switch off wit
 """
 
 import frappe
-from frappe.permissions import reset_perms, rights, update_permission_property
+from frappe.core.doctype.custom_docperm.custom_docperm import update_custom_docperm
+from frappe.permissions import reset_perms, rights, setup_custom_perms
 
 ADMIN = "System Manager"
 
@@ -39,15 +40,14 @@ def enabled() -> bool:
 
 
 def apply():
+	"""One save per permission row that still grants something, so a repeat run (every migrate) is nearly free."""
 	for dt in LOCKED_DOCTYPES:
 		if not frappe.db.exists("DocType", dt):
 			continue
-		rows = frappe.get_all("DocPerm", filters={"parent": dt}, fields=["role", "permlevel"]) + frappe.get_all(
-			"Custom DocPerm", filters={"parent": dt}, fields=["role", "permlevel"]
-		)
-		for role, level in {(r.role, r.permlevel) for r in rows if r.role != ADMIN}:
-			for ptype in rights:
-				update_permission_property(dt, role, level, ptype, 0)
+		setup_custom_perms(dt)  # copies the standard rows into Custom DocPerm the first time, as the Role Permissions Manager does
+		for row in frappe.get_all("Custom DocPerm", filters={"parent": dt, "role": ("!=", ADMIN)}, fields=["name", *rights]):
+			if any(row[p] for p in rights):
+				update_custom_docperm(row.name, {p: 0 for p in rights})
 	for report in LOCKED_REPORTS:
 		if not frappe.db.exists("Report", report):
 			continue
