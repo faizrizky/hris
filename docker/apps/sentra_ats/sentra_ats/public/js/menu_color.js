@@ -91,6 +91,12 @@ Object.assign(sentra_ats.menu_color, {
 			select($custom);
 			$field.removeClass("hide");
 			this.save(control.get_color() || this.BLUE);
+			// Open the picker right away: the field sits below the cards, often out of sight. Deferred, because this
+			// same click would otherwise reach the body and close the popover again.
+			setTimeout(() => {
+				$field[0].scrollIntoView({ block: "end", behavior: "instant" });
+				control.$wrapper.find(".selected-color").parent().trigger("click");
+			});
 		});
 		$grid.append($custom);
 		$grid.on("click", ".theme-card-wrapper", (event) => {
