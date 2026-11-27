@@ -1277,3 +1277,700 @@ HR Focus Profile,Profil HR Focus
 Sync error,Galat sinkron
 Expiring,Segera berakhir
 "{0} active, {1} inactive, {2} expiring within 30 days, {3} with sync errors","{0} aktif, {1} nonaktif, {2} berakhir dalam 30 hari, {3} galat sinkronisasi"
+HR Setup,Pengaturan SDM
+Organizational Chart,Bagan Organisasi
+Branch,Cabang
+Registered Device,Perangkat Terdaftar
+Face Verification,Verifikasi Wajah
+Face Enrollment,Pendaftaran Wajah
+Face Check Attempt,Percobaan Verifikasi Wajah
+Face Settings,Pengaturan Wajah
+HR Announcement,Pengumuman SDM
+Roster,Jadwal Sif
+WFH Schedule,Jadwal Kerja dari Rumah
+Shift Assignments,Penugasan Sif
+Shift Schedule Assignment,Penugasan Jadwal Sif
+Shift Assignment Tool,Alat Penugasan Sif
+Shift Setup,Penyiapan Sif
+Shift Location,Lokasi Sif
+Shift Schedule,Jadwal Sif
+Timesheet,Lembar Waktu
+Overtime,Lembur
+Overtime Type,Jenis Lembur
+Overtime Slip,Slip Lembur
+Shift Attendance,Kehadiran Sif
+Employee Hours Utilization,Pemanfaatan Jam Karyawan
+Project Profitability,Profitabilitas Proyek
+Leave Allocations,Alokasi Cuti
+Holidays,Hari Libur
+Holiday List Assignment,Penetapan Daftar Hari Libur
+Leave Setup,Penyiapan Cuti
+Leave Balance Summary,Ringkasan Saldo Cuti
+Employees Working on a Holiday,Karyawan yang Bekerja pada Hari Libur
+Performance,Kinerja
+Appraisal Cycle,Siklus Penilaian
+Employee Performance Feedback,Umpan Balik Kinerja Karyawan
+Appraisal Overview,Ikhtisar Penilaian
+Appraisal Template,Templat Penilaian
+KRA,Bidang Hasil Utama
+Employee Feedback Criteria,Kriteria Umpan Balik Karyawan
+Tenure,Masa Kerja
+Grievance,Keluhan
+Grievance Type,Jenis Keluhan
+Employee Grievance,Keluhan Karyawan
+Employee Exits,Karyawan Keluar
+Employee Birthday,Ulang Tahun Karyawan
+Employee Information,Informasi Karyawan
+Employee Analytics,Analisis Karyawan
+Hiring Pipeline,Alur Rekrutmen
+Job Opening Template,Templat Lowongan Kerja
+Job Offer Term Template,Templat Ketentuan Penawaran Kerja
+Job Requisition,Permintaan Tenaga Kerja
+Interview Type,Jenis Wawancara
+Job Portal,Portal Lowongan Kerja
+ATS - Resume Screening,ATS - Penyaringan Resume
+Resume Upload Batch,Kelompok Unggahan Resume
+BGC - Background Check,BGC - Pemeriksaan Latar Belakang
+Date of Birth,Tanggal Lahir
+Date of Joining,Tanggal Mulai Bekerja
+Suspended,Diberhentikan Sementara
+"System User (login) ID. If set, it will become default for all HR forms.","ID pengguna sistem (untuk masuk). Jika diisi, ID ini menjadi bawaan untuk semua formulir SDM."
+Create User Permission,Buat Izin Pengguna
+This will restrict user access to other employee records,Ini akan membatasi akses pengguna ke data karyawan lain
+Create User Automatically,Buat Pengguna Secara Otomatis
+"Creates a User account for this employee using the Preferred, Company, or Personal email.","Membuat akun Pengguna untuk karyawan ini menggunakan surel pilihan, surel perusahaan, atau surel pribadi."
+Company Details,Rincian Perusahaan
+Employment Type,Jenis Hubungan Kerja
+Reports to,Melapor kepada
+Grade,Golongan
+Company Email,Surel Perusahaan
+Provide Email Address registered in company,Masukkan alamat surel yang terdaftar di perusahaan
+Personal Email,Surel Pribadi
+Current Address,Alamat Saat Ini
+Permanent Address,Alamat Tetap
+Emergency Contact,Kontak Darurat
+Emergency Contact Name,Nama Kontak Darurat
+Emergency Phone,Telepon Darurat
+Relation,Hubungan
+Attendance & Leaves,Kehadiran dan Cuti
+Additional Emergency Contacts,Kontak Darurat Tambahan
+Employee Emergency Contact,Kontak Darurat Karyawan
+Contact Name,Nama Kontak
+Friend,Teman
+Employee Family Member,Anggota Keluarga Karyawan
+Attendance Device ID (Biometric/RF tag ID),ID Perangkat Kehadiran (ID Biometrik/Tag RF)
+Applicable Holiday List,Daftar Hari Libur yang Berlaku
+Default Shift,Sif Bawaan
+Approvers,Pemberi Persetujuan
+Expense Approver,Penyetuju Pengeluaran
+Shift Request Approver,Penyetuju Permintaan Sif
+Salary Mode,Cara Pembayaran Gaji
+Manual rate. Leave 0 to calculate PPh 21 automatically from the TER table.,Tarif manual. Isi 0 agar PPh 21 dihitung otomatis dari tabel TER.
+PTKP Status (auto),Status PTKP (otomatis)
+TER Category (auto),Kategori TER (otomatis)
+Personal Details,Data Pribadi
+Marital Status,Status Perkawinan
+Single,Belum Kawin
+Married,Kawin
+Divorced,Cerai Hidup
+Widowed,Cerai Mati
+Blood Group,Golongan Darah
+Passport Details,Rincian Paspor
+Passport Number,Nomor Paspor
+Valid Up To,Berlaku Sampai
+Date of Issue,Tanggal Terbit
+Place of Issue,Tempat Terbit
+Bio / Cover Letter,Biodata / Surat Lamaran
+Short biography for website and other publications.,Biografi singkat untuk situs web dan publikasi lainnya.
+Educational Qualification,Riwayat Pendidikan
+Previous Work Experience,Pengalaman Kerja Sebelumnya
+External Work History,Riwayat Kerja di Luar Perusahaan
+History In Company,Riwayat di Perusahaan
+Internal Work History,Riwayat Kerja di Perusahaan
+Joining,Penerimaan
+Offer Date,Tanggal Penawaran
+Confirmation Date,Tanggal Pengukuhan
+Contract End Date,Tanggal Akhir Kontrak
+Notice (days),Masa Pemberitahuan (hari)
+Date Of Retirement,Tanggal Pensiun
+Exit,Keluar
+Resignation Letter Date,Tanggal Surat Pengunduran Diri
+Relieving Date,Tanggal Terakhir Bekerja
+Exit Interview Held On,Tanggal Wawancara Keluar
+Leave Encashed?,Cuti Diuangkan?
+Encashment Date,Tanggal Penguangan
+Reason for Leaving,Alasan Keluar
+Approver,Pemberi Persetujuan
+Default Salary Structure,Struktur Gaji Bawaan
+Default Base Pay,Gaji Pokok Bawaan
+Employee Settings,Pengaturan Karyawan
+Employee Naming By,Penomoran Karyawan Berdasarkan
+Employee records are created using the selected option,Data karyawan dibuat menggunakan opsi yang dipilih
+Naming Series,Seri Penomoran
+Employee Number,Nomor Karyawan
+Standard Working Hours,Jam Kerja Standar
+Retirement Age (In Years),Usia Pensiun (Tahun)
+Reminders,Pengingat
+Work Anniversaries,Peringatan Masa Kerja
+Birthdays,Ulang Tahun
+Set the frequency for holiday reminders,Atur frekuensi pengingat hari libur
+Leave Settings,Pengaturan Cuti
+Auto Leave Encashment,Penguangan Cuti Otomatis
+Leave Approver Mandatory In Leave Application,Penyetuju Cuti Wajib Diisi pada Pengajuan Cuti
+Prevent self approval for leaves even if user has permissions,Cegah persetujuan cuti oleh diri sendiri meskipun pengguna memiliki izin
+Show Leaves Of All Department Members In Calendar,Tampilkan Cuti Semua Anggota Departemen di Kalender
+Send Leave Notification,Kirim Pemberitahuan Cuti
+Leave Approval Notification Template,Templat Pemberitahuan Persetujuan Cuti
+Leave Status Notification Template,Templat Pemberitahuan Status Cuti
+Restrict Backdated Leave Application,Batasi Pengajuan Cuti Bertanggal Mundur
+Role Allowed to Create Backdated Leave Application,Peran yang Diizinkan Membuat Pengajuan Cuti Bertanggal Mundur
+Expenses Settings,Pengaturan Pengeluaran
+Expense Approver Mandatory In Expense Claim,Penyetuju Pengeluaran Wajib Diisi pada Klaim Pengeluaran
+Prevent self approval for expense claims even if user has permissions,Cegah persetujuan klaim pengeluaran oleh diri sendiri meskipun pengguna memiliki izin
+Unlink Payment on Cancellation of Employee Advance,Lepaskan Tautan Pembayaran saat Uang Muka Karyawan Dibatalkan
+Enable Multi-Currency Expense Claims,Aktifkan Klaim Pengeluaran Multimata Uang
+Allow expense claims to be raised in a currency other than the company currency,Izinkan klaim pengeluaran diajukan dalam mata uang selain mata uang perusahaan
+Shift and Attendance,Sif dan Kehadiran
+Shift Settings,Pengaturan Sif
+Allow Multiple Shift Assignments for Same Date,Izinkan Beberapa Penugasan Sif pada Tanggal yang Sama
+Attendance Settings,Pengaturan Kehadiran
+Allow Employee Checkin from Mobile App,Izinkan Presensi Karyawan dari Aplikasi Seluler
+Allow Geolocation Tracking,Izinkan Pelacakan Lokasi
+Employee Exit Settings,Pengaturan Karyawan Keluar
+Exit Questionnaire Web Form,Formulir Web Kuesioner Karyawan Keluar
+Exit Questionnaire Notification Template,Templat Pemberitahuan Kuesioner Karyawan Keluar
+Hiring Settings,Pengaturan Perekrutan
+Check Vacancies On Job Offer Creation,Periksa Lowongan saat Membuat Penawaran Kerja
+Send Interview Reminder,Kirim Pengingat Wawancara
+Interview Reminder Notification Template,Templat Pemberitahuan Pengingat Wawancara
+Remind Before,Ingatkan Sebelumnya
+Send Interview Feedback Reminder,Kirim Pengingat Umpan Balik Wawancara
+Feedback Reminder Notification Template,Templat Pemberitahuan Pengingat Umpan Balik
+Approved,Disetujui
+Replace Previous Devices,Ganti Perangkat Sebelumnya
+"When approving this device, revoke the employee's other approved devices (e.g. new phone).","Saat menyetujui perangkat ini, cabut perangkat lain milik karyawan yang sudah disetujui (misalnya ponsel baru)."
+Device,Perangkat
+Device Name,Nama Perangkat
+Device ID,ID Perangkat
+Activity and Notes,Aktivitas dan Catatan
+Last Seen,Terakhir Terlihat
+Request,Permintaan
+Change Details,Rincian Perubahan
+Changes (JSON),Perubahan (JSON)
+Proposed Values (JSON),Nilai yang Diusulkan (JSON)
+Profile Photo,Foto Profil
+New Photo vs Registered Face (%),Foto Baru vs Wajah Terdaftar (%)
+New Photo vs ID Card (%),Foto Baru vs Kartu Identitas (%)
+HR Decision,Keputusan SDM
+Decided By,Diputuskan Oleh
+Decided On,Diputuskan Pada
+Superseded,Digantikan
+Match Scores,Skor Kecocokan
+Match with ID Card (%),Kecocokan dengan Kartu Identitas (%)
+Match with Profile Photo (%),Kecocokan dengan Foto Profil (%)
+Profile Photo vs ID Card (%),Foto Profil vs Kartu Identitas (%)
+Anti-spoofing,Antipemalsuan
+Anti-spoof Score,Skor Antipemalsuan
+Anti-spoof Frame Scores,Skor Antipemalsuan per Bingkai
+Registration,Pendaftaran
+ID Card Document,Dokumen Kartu Identitas
+Registration Selfie,Swafoto Pendaftaran
+Re-registration,Pendaftaran Ulang
+Needs Re-registration,Perlu Daftar Ulang
+Re-registration Deadline,Batas Waktu Daftar Ulang
+Attempt,Percobaan
+Log Type,Jenis Catatan
+IN,MASUK
+OUT,KELUAR
+Outcome,Hasil
+Mean Score,Skor Rata-Rata
+Min Score,Skor Minimum
+Frames,Bingkai
+Scores,Skor
+Frame Scores,Skor per Bingkai
+Minimum Match Scores,Skor Kecocokan Minimum
+Minimum Match with ID Card (%),Kecocokan Minimum dengan Kartu Identitas (%)
+"Cosine similarity x100. Below this, HR sees a warning.","Kemiripan kosinus x100. Di bawah nilai ini, SDM mendapat peringatan."
+Minimum Match with Profile Photo (%),Kecocokan Minimum dengan Foto Profil (%)
+"Below this, HR sees a warning; after a profile photo change the employee must re-register.","Di bawah nilai ini, SDM mendapat peringatan; setelah foto profil diganti, karyawan harus mendaftar ulang."
+Minimum Match at Clock In (%),Kecocokan Minimum saat Presensi Masuk (%)
+"Below this, the check-in is flagged Needs Review.","Di bawah nilai ini, presensi masuk ditandai Perlu Ditinjau."
+Registration Policy,Kebijakan Pendaftaran
+Re-registration Grace (days),Tenggang Daftar Ulang (hari)
+Require Registered Face to Clock In,Wajibkan Wajah Terdaftar untuk Presensi Masuk
+Announcement,Pengumuman
+Important,Penting
+Audience and Publishing,Sasaran dan Penerbitan
+Audience,Sasaran
+All Employees,Semua Karyawan
+Shift,Sif
+Location / Device ID,Lokasi / ID Perangkat
+Timezone Used,Zona Waktu yang Digunakan
+Offline Check-in,Presensi Luring
+Clock Skew (seconds),Selisih Jam Perangkat (detik)
+Queue Age (seconds),Lama Antrean (detik)
+Claimed Time,Waktu yang Diklaim
+Review Status,Status Tinjauan
+Flags,Penanda
+Geofence Status,Status Pagar Lokasi
+No Location,Tanpa Lokasi
+Inside,Di Dalam
+Outside,Di Luar
+WFH,Kerja dari Rumah
+Nearest Shift Location,Lokasi Sif Terdekat
+Distance (m),Jarak (m)
+GPS Accuracy (m),Akurasi GPS (m)
+GPS Time Skew (seconds),Selisih Waktu GPS (detik)
+Mock Location,Lokasi Palsu
+Anti-spoof Score (shadow),Skor Antipemalsuan (bayangan)
+Skip Auto Attendance,Lewati Kehadiran Otomatis
+Latitude,Lintang
+Longitude,Bujur
+Fetch Geolocation,Ambil Lokasi
+Shift Timings,Jam Sif
+Present,Hadir
+Absent,Tidak Hadir
+On Leave,Sedang Cuti
+Half Day,Setengah Hari
+Work From Home,Bekerja dari Rumah
+Status for Other Half,Status untuk Setengah Hari Lainnya
+Actual Overtime Duration,Durasi Lembur Aktual
+Set filters to fetch employees,Atur filter untuk mengambil data karyawan
+Filter by Shift,Saring Berdasarkan Sif
+Unmarked Employee Header,Judul Karyawan Belum Ditandai
+Unmarked Employees HTML,HTML Karyawan Belum Ditandai
+Horizontal Break,Pemisah Horizontal
+Half Day Marked Employee Header,Judul Karyawan Setengah Hari
+Employees on Half Day HTML,HTML Karyawan Setengah Hari
+Marked Attendance,Kehadiran yang Sudah Ditandai
+Marked Attendance HTML,HTML Kehadiran yang Sudah Ditandai
+Half Day Date,Tanggal Setengah Hari
+Include Holidays,Sertakan Hari Libur
+Select if any of the days selected for request are holidays,Centang jika ada hari libur di antara hari yang diajukan
+Note: Shift will not be overwritten in existing attendance records,Catatan: Sif pada data kehadiran yang sudah ada tidak akan ditimpa
+On Duty,Sedang Bertugas
+WFH Days,Hari Kerja dari Rumah
+Decision Note,Catatan Keputusan
+Decision,Keputusan
+Requested by Employee,Diminta oleh Karyawan
+Employee Details,Rincian Karyawan
+Shift Details,Rincian Sif
+Shift Status,Status Sif
+Select this if you want shift assignments to be automatically created indefinitely.,Pilih ini jika penugasan sif ingin dibuat otomatis tanpa batas waktu.
+Create Shifts After,Buat Sif Setelah
+New shift assignments will be created after this date.,Penugasan sif baru akan dibuat setelah tanggal ini.
+Assign Shift,Tugaskan Sif
+Assign Shift Schedule,Tugaskan Jadwal Sif
+Process Shift Requests,Proses Permintaan Sif
+Shift Assignment Details,Rincian Penugasan Sif
+"When set to 'Inactive', employees with conflicting active shifts will not be excluded.","Jika diatur ke 'Inactive', karyawan dengan sif aktif yang bentrok tidak akan dikecualikan."
+Shift Request Filters,Filter Permintaan Sif
+Shift Requests ending before this date will be excluded.,Permintaan sif yang berakhir sebelum tanggal ini akan dikecualikan.
+Shift Requests starting after this date will be excluded.,Permintaan sif yang dimulai setelah tanggal ini akan dikecualikan.
+Quick Filters,Filter Cepat
+Advanced Filters,Filter Lanjutan
+Employees HTML,HTML Karyawan
+Location Name,Nama Lokasi
+Search Place,Cari Tempat
+"Search an address or place, pick a result, and the map and coordinates follow.","Cari alamat atau tempat, pilih hasilnya, lalu peta dan koordinat akan mengikuti."
+Checkin Radius,Radius Presensi
+Radius within which check-in is allowed (in meters),Radius tempat presensi diizinkan (dalam meter)
+Roster Color,Warna Jadwal
+Fuchsia,Fuksia
+Lime,Hijau Limau
+Violet,Ungu Lembayung
+Enable Auto Attendance,Aktifkan Kehadiran Otomatis
+Mark attendance based on 'Employee Checkin' for Employees assigned to this shift.,Tandai kehadiran berdasarkan 'Employee Checkin' bagi karyawan yang ditugaskan pada sif ini.
+Auto Attendance Settings,Pengaturan Kehadiran Otomatis
+Determine Check-in and Check-out,Penentuan Presensi Masuk dan Keluar
+Alternating entries as IN and OUT during the same shift,Berselang-seling sebagai MASUK dan KELUAR dalam sif yang sama
+Strictly based on Log Type in Employee Checkin,Hanya berdasarkan Jenis Catatan pada Presensi Karyawan
+Working Hours Calculation Based On,Dasar Perhitungan Jam Kerja
+First Check-in and Last Check-out,Presensi Masuk Pertama dan Presensi Keluar Terakhir
+Every Valid Check-in and Check-out,Setiap Presensi Masuk dan Keluar yang Sah
+Begin check-in before shift start time (in minutes),Presensi masuk dibuka sebelum sif dimulai (menit)
+The time before the shift start time during which Employee Check-in is considered for attendance.,Rentang waktu sebelum sif dimulai ketika presensi karyawan diperhitungkan untuk kehadiran.
+Allow check-out after shift end time (in minutes),Presensi keluar diizinkan setelah sif berakhir (menit)
+Time after the end of shift during which check-out is considered for attendance.,Rentang waktu setelah sif berakhir ketika presensi keluar diperhitungkan untuk kehadiran.
+Mark Auto Attendance on Holidays,Tandai Kehadiran Otomatis pada Hari Libur
+"If enabled, auto attendance will be marked on holidays if Employee Checkins exist","Jika diaktifkan, kehadiran otomatis ditandai pada hari libur bila ada presensi karyawan"
+Working Hours Threshold for Half Day,Ambang Jam Kerja untuk Setengah Hari
+Working hours below which Half Day is marked. (Zero to disable),Jam kerja di bawah angka ini ditandai Setengah Hari. (Nol untuk menonaktifkan)
+Working Hours Threshold for Absent,Ambang Jam Kerja untuk Tidak Hadir
+Working hours below which Absent is marked. (Zero to disable),Jam kerja di bawah angka ini ditandai Tidak Hadir. (Nol untuk menonaktifkan)
+Process Attendance After,Proses Kehadiran Setelah
+Attendance will be marked automatically only after this date.,Kehadiran ditandai otomatis hanya setelah tanggal ini.
+Last Sync of Checkin,Sinkronisasi Presensi Terakhir
+Last Known Successful Sync of Employee Checkin. Reset this only if you are sure that all Logs are synced from all the locations. Please don't modify this if you are unsure.,Waktu sinkronisasi presensi karyawan terakhir yang diketahui berhasil. Atur ulang hanya jika Anda yakin semua catatan dari semua lokasi sudah tersinkron. Jangan diubah jika Anda tidak yakin.
+Automatically update Last Sync of Checkin,Perbarui Sinkronisasi Presensi Terakhir secara Otomatis
+Recommended for a single biometric device / checkins via mobile app,Disarankan untuk satu perangkat biometrik atau presensi melalui aplikasi seluler
+Late Entry & Early Exit Settings for Auto Attendance,Pengaturan Terlambat Masuk dan Pulang Awal untuk Kehadiran Otomatis
+Enable Late Entry Marking,Aktifkan Penandaan Terlambat Masuk
+Late Entry Grace Period,Masa Tenggang Terlambat Masuk
+The time after the shift start time when check-in is considered as late (in minutes).,Batas waktu setelah sif dimulai ketika presensi masuk dianggap terlambat (menit).
+Enable Early Exit Marking,Aktifkan Penandaan Pulang Awal
+Early Exit Grace Period,Masa Tenggang Pulang Awal
+The time before the shift end time when check-out is considered as early (in minutes).,Batas waktu sebelum sif berakhir ketika presensi keluar dianggap pulang awal (menit).
+Allow Overtime,Izinkan Lembur
+Every Week,Setiap Minggu
+Every 2 Weeks,Setiap 2 Minggu
+Every 3 Weeks,Setiap 3 Minggu
+Every 4 Weeks,Setiap 4 Minggu
+Repeat On Days,Ulangi pada Hari
+Maximum Overtime Hours Allowed Per Day,Jam Lembur Maksimum per Hari
+Overtime Salary Component,Komponen Gaji Lembur
+Overtime earnings will be booked under this salary component for payout.,Penghasilan lembur dibukukan pada komponen gaji ini untuk dibayarkan.
+Overtime Amount Calculation,Perhitungan Nilai Lembur
+"Choose how the hourly overtime amount is calculated:
+<ol style=""padding-left:15px""><li>Fixed Hourly Rate: A fixed, manually entered hourly rate.</li>
+<li>Salary Component-Based:
+
+(Sum of selected component amounts) ÷ (Payment Days) ÷ (Standard Daily Hours)</li></ol>","Pilih cara menghitung nilai lembur per jam:
+<ol style=""padding-left:15px""><li>Tarif Per Jam Tetap: tarif per jam tetap yang diisi manual.</li>
+<li>Berdasarkan Komponen Gaji:
+
+(Jumlah nilai komponen terpilih) ÷ (Hari Dibayar) ÷ (Jam Standar Harian)</li></ol>"
+Salary Component Based,Berdasarkan Komponen Gaji
+Fixed Hourly Rate,Tarif Per Jam Tetap
+Hourly Rate,Tarif Per Jam
+Pay Rate Multipliers,Pengali Tarif Upah
+Multipliers that adjust the hourly overtime amount for specific scenarios,Pengali yang menyesuaikan nilai lembur per jam untuk kondisi tertentu
+Standard Multiplier,Pengali Standar
+Apply for Public Holiday,Terapkan untuk Hari Libur Nasional
+"Enable this to use a specific multiplier for public holidays. If unchecked, the standard multiplier will be used instead.","Aktifkan untuk memakai pengali khusus pada hari libur nasional. Jika tidak dicentang, pengali standar yang dipakai."
+Public Holiday Multiplier,Pengali Hari Libur Nasional
+Apply for Weekend,Terapkan untuk Akhir Pekan
+"Enable this to use a specific multiplier for weekends. If unchecked, the standard multiplier will be used instead.","Aktifkan untuk memakai pengali khusus pada akhir pekan. Jika tidak dicentang, pengali standar yang dipakai."
+Weekend Multiplier,Pengali Akhir Pekan
+Total Overtime Duration,Total Durasi Lembur
+Payroll Entry,Proses Penggajian
+Overtime Details,Rincian Lembur
+Overtime Duration,Durasi Lembur
+Maximum Overtime Hours Allowed,Jam Lembur Maksimum yang Diizinkan
+Dates & Reason,Tanggal dan Alasan
+Total Leave Days,Total Hari Cuti
+Leave Balance Before Application,Saldo Cuti Sebelum Pengajuan
+Approval,Persetujuan
+Leave Approver Name,Nama Penyetuju Cuti
+Other Details,Rincian Lainnya
+pending,menunggu
+approved,disetujui
+paid,dibayar
+rejected,ditolak
+Overtime Time,Waktu Lembur
+Holiday / Weekly Off,Hari Libur / Libur Mingguan
+Work Description,Uraian Pekerjaan
+Travel Type,Jenis Perjalanan
+Domestic,Dalam Negeri
+International,Luar Negeri
+Travel Funding,Pendanaan Perjalanan
+Require Full Funding,Memerlukan Pendanaan Penuh
+Fully Sponsored,Disponsori Penuh
+"Partially Sponsored, Require Partial Funding","Disponsori Sebagian, Memerlukan Pendanaan Sebagian"
+Copy of Invitation/Announcement,Salinan Undangan/Pengumuman
+"Details of Sponsor (Name, Location)","Rincian Sponsor (Nama, Lokasi)"
+Destination,Tujuan
+Transport,Transportasi
+Work Location Timezone,Zona Waktu Lokasi Kerja
+"IANA timezone, e.g. Asia/Jakarta, Asia/Makassar, Asia/Jayapura","Zona waktu IANA, misalnya Asia/Jakarta, Asia/Makassar, Asia/Jayapura"
+Contact Number,Nomor Kontak
+Identification Document Number,Nomor Dokumen Identitas
+Any other details,Rincian lainnya
+Travel From,Berangkat Dari
+Travel To,Tujuan Perjalanan
+Mode of Travel,Moda Perjalanan
+Flight,Pesawat
+Train,Kereta Api
+Taxi,Taksi
+Rented Car,Mobil Sewaan
+Meal Preference,Pilihan Makanan
+Non-Vegetarian,Nonvegetarian
+Gluten Free,Bebas Gluten
+Non Diary,Tanpa Produk Susu
+Travel Advance Required,Memerlukan Uang Muka Perjalanan
+Departure Datetime,Waktu Keberangkatan
+Arrival Datetime,Waktu Kedatangan
+Lodging Required,Memerlukan Penginapan
+Preferred Area for Lodging,Wilayah Penginapan yang Diinginkan
+Check-in Date,Tanggal Masuk Penginapan
+Check-out Date,Tanggal Keluar Penginapan
+Costing Details,Rincian Biaya
+Costing,Pembiayaan
+Expense Type,Jenis Pengeluaran
+Sponsored Amount,Jumlah yang Disponsori
+Funded Amount,Jumlah yang Didanai
+Event Details,Rincian Acara
+Name of Organizer,Nama Penyelenggara
+Address of Organizer,Alamat Penyelenggara
+Actual Encashable Days,Hari yang Benar-Benar Dapat Diuangkan
+Number of leaves eligible for encashment based on leave type settings,Jumlah cuti yang dapat diuangkan berdasarkan pengaturan jenis cuti
+Encashment Amount,Nilai Penguangan
+Amount paid against this encashment,Jumlah yang sudah dibayarkan untuk penguangan ini
+New Leaves Allocated,Cuti Baru yang Dialokasikan
+Add unused leaves from previous allocations,Tambahkan sisa cuti dari alokasi sebelumnya
+Unused leaves,Sisa cuti
+Total Leaves Allocated,Total Cuti yang Dialokasikan
+Total Leaves Encashed,Total Cuti yang Diuangkan
+Carry Forwarded Leaves,Cuti Dibawa ke Periode Berikutnya
+Earned Leave Schedule,Jadwal Cuti Perolehan
+Allocation Date,Tanggal Alokasi
+Number of Leaves,Jumlah Cuti
+Is Allocated,Sudah Dialokasikan
+Allocated Via,Dialokasikan Melalui
+Manually,Secara Manual
+Failure Reason,Alasan Kegagalan
+Employee name,Nama karyawan
+Assignment based on,Dasar penugasan
+Joining Date,Tanggal Bergabung
+Effective From,Berlaku Mulai
+Effective To,Berlaku Sampai
+Set Leave Details,Atur Rincian Cuti
+Dates Based On,Dasar Tanggal
+Custom Range,Rentang Khusus
+New Leaves Allocated (In Days),Cuti Baru yang Dialokasikan (Hari)
+Allocate Based On Leave Policy,Alokasikan Berdasarkan Kebijakan Cuti
+Carry Forward,Bawa ke Periode Berikutnya
+Add unused leaves from previous leave period's allocation to this allocation,Tambahkan sisa cuti dari alokasi periode sebelumnya ke alokasi ini
+Assignment Starts From,Penugasan Berlaku Mulai
+Holiday List Start,Awal Daftar Hari Libur
+Holiday List End,Akhir Daftar Hari Libur
+Leave Type Name,Nama Jenis Cuti
+Is Compensatory,Cuti Pengganti
+Is Leave Without Pay,Cuti di Luar Tanggungan
+Is Partially Paid Leave,Cuti Dibayar Sebagian
+Fraction of Daily Salary per Leave,Bagian Gaji Harian per Hari Cuti
+"For a day of leave taken, if you still pay (say) 50% of the daily salary, then enter 0.50 in this field.","Jika cuti tetap dibayar, misalnya 50% dari gaji harian, isi kolom ini dengan 0,50."
+Allow Negative Balance,Izinkan Saldo Negatif
+Allow Over Allocation,Izinkan Alokasi Berlebih
+Allows allocating more leaves than the number of days in the allocation period.,Memungkinkan alokasi cuti melebihi jumlah hari dalam periode alokasi.
+Include holidays within leaves as leaves,Hitung hari libur di antara cuti sebagai cuti
+Leave for optional holiday,Cuti untuk libur pilihan
+"These leaves are holidays permitted by the company however, availing it is optional for an Employee.","Cuti ini adalah hari libur yang diizinkan perusahaan, tetapi karyawan boleh memilih untuk mengambilnya atau tidak."
+Maximum Carry Forwarded Leaves,Maksimum Cuti yang Dibawa ke Periode Berikutnya
+Expire Carry Forwarded Leaves (Days),Masa Berlaku Cuti Bawaan (Hari)
+Calculated in days,Dihitung dalam hari
+Encashment,Penguangan
+Allow Encashment,Izinkan Penguangan
+Maximum Encashable Leaves,Maksimum Cuti yang Dapat Diuangkan
+Non-Encashable Leaves,Cuti yang Tidak Dapat Diuangkan
+"Indicates the number of leaves that cannot be encashed from the leave balance. E.g. with a leave balance of 10 and 4 Non-Encashable Leaves, you can encash 6, while the remaining 4 can be carried forward or expired","Jumlah cuti dari saldo yang tidak dapat diuangkan. Misalnya saldo 10 dan cuti tidak dapat diuangkan 4: Anda dapat menguangkan 6, sedangkan 4 sisanya dibawa ke periode berikutnya atau hangus"
+Earning Component,Komponen Penghasilan
+Earned Leave,Cuti Perolehan
+Earned Leave Frequency,Frekuensi Cuti Perolehan
+Allocate on Day,Alokasikan pada Hari
+The day of the month when leaves should be allocated,Tanggal dalam bulan saat cuti dialokasikan
+First Day,Hari Pertama
+Last Day,Hari Terakhir
+Rounding,Pembulatan
+Limits,Batasan
+Maximum Leave Allocation Allowed per Leave Period,Alokasi Cuti Maksimum per Periode Cuti
+Maximum Consecutive Leaves Allowed,Maksimum Cuti Berturut-Turut
+Allow Leave Application After (Calendar Days),Pengajuan Cuti Diizinkan Setelah (Hari Kalender)
+Minimum calendar days required since Date of Joining to apply for this leave,Jumlah hari kalender minimum sejak tanggal mulai bekerja untuk mengajukan cuti ini
+Leave Policy Name,Nama Kebijakan Cuti
+Leave Policy Details,Rincian Kebijakan Cuti
+Annual Allocation,Alokasi Tahunan
+Holiday List for Optional Leave,Daftar Hari Libur untuk Cuti Pilihan
+Leave Block List Name,Nama Daftar Tanggal Terlarang Cuti
+Applies to Company,Berlaku untuk Perusahaan
+"If not checked, the list will have to be added to each Department where it has to be applied.","Jika tidak dicentang, daftar ini harus ditambahkan ke setiap departemen yang memakainya."
+Block Days,Tanggal Terlarang
+Stop users from making Leave Applications on following days.,Larang pengguna mengajukan cuti pada tanggal berikut.
+Add Day-wise Dates,Tambahkan Tanggal per Hari
+Leave Block List Dates,Tanggal Terlarang Cuti
+Block Date,Tanggal Larangan
+Allow Users,Pengguna yang Diizinkan
+Allow the following users to approve Leave Applications for block days.,Izinkan pengguna berikut menyetujui pengajuan cuti pada tanggal terlarang.
+Leave Block List Allowed,Pengguna yang Dikecualikan dari Larangan Cuti
+Allow User,Pengguna yang Diizinkan
+Parent Goal,Sasaran Induk
+Appraisal Linking,Keterkaitan Penilaian
+Link the cycle and tag KRA to your goal to update the appraisal's goal score based on the goal progress,Kaitkan siklus dan tandai bidang hasil utama pada sasaran Anda agar nilai sasaran dalam penilaian diperbarui sesuai kemajuan
+Cycle Name,Nama Siklus
+KRA Evaluation Method,Metode Evaluasi Bidang Hasil Utama
+Automated Based on Goal Progress,Otomatis Berdasarkan Kemajuan Sasaran
+Manual Rating,Penilaian Manual
+Calculate Final Score based on Formula,Hitung Nilai Akhir Berdasarkan Rumus
+"By default, the Final Score is calculated as the average of Goal Score, Feedback Score, and Self Appraisal Score. Enable this to set a different formula","Secara bawaan, nilai akhir adalah rata-rata nilai sasaran, nilai umpan balik, dan nilai penilaian diri. Aktifkan untuk memakai rumus lain"
+Final Score Formula,Rumus Nilai Akhir
+Set optional filters to fetch employees in the appraisee list,Atur filter opsional untuk mengambil karyawan ke daftar yang dinilai
+Employees,Karyawan
+Appraisee,Karyawan yang Dinilai
+Final Score,Nilai Akhir
+"Average of Goal Score, Feedback Score, and Self Appraisal Score","Rata-rata nilai sasaran, nilai umpan balik, dan nilai penilaian diri"
+KRAs,Bidang Hasil Utama
+Rate Goals Manually,Nilai Sasaran Secara Manual
+KRA vs Goals,Bidang Hasil Utama vs Sasaran
+Appraisal KRA,Bidang Hasil Utama Penilaian
+Key Performance Area,Bidang Kinerja Utama
+Weightage (%),Bobot (%)
+Goal Completion (%),Penyelesaian Sasaran (%)
+Goal Score (weighted),Nilai Sasaran (berbobot)
+Goal Score (%),Nilai Sasaran (%)
+Goals,Sasaran
+Key Responsibility Area,Bidang Tanggung Jawab Utama
+Score Earned,Nilai yang Diperoleh
+"Any other remarks, noteworthy effort that should go in the records",Catatan lain atau upaya yang patut dicatat
+Total Goal Score,Total Nilai Sasaran
+Feedback HTML,HTML Umpan Balik
+Self Appraisal,Penilaian Diri
+Ratings,Peringkat
+Employee Feedback Rating,Peringkat Umpan Balik Karyawan
+Criteria,Kriteria
+Total Self Score,Total Nilai Diri
+Reflections,Refleksi
+Reviewer,Peninjau
+Reviewer Name,Nama Peninjau
+Feedback Ratings,Peringkat Umpan Balik
+Salary Currency,Mata Uang Gaji
+Promotion Date,Tanggal Promosi
+Employee Promotion Details,Rincian Promosi Karyawan
+Set the properties that should be updated in the Employee master on promotion submission,Atur data induk karyawan yang diperbarui saat promosi diajukan
+Salary Details,Rincian Gaji
+Revised CTC,CTC Hasil Revisi
+Appraisal Template Title,Judul Templat Penilaian
+Key Result Area,Bidang Hasil Utama
+Rating Criteria,Kriteria Penilaian
+Criteria based on which employee should be rated in Performance Feedback and Self Appraisal,Kriteria untuk menilai karyawan dalam umpan balik kinerja dan penilaian diri
+Boarding Status,Status Orientasi
+In Process,Sedang Diproses
+Onboarding Begins On,Orientasi Dimulai Pada
+Onboarding Activities,Kegiatan Orientasi
+Activity Name,Nama Kegiatan
+Begin On (Days),Mulai pada (Hari Ke-)
+Duration (Days),Durasi (Hari)
+Task Weight,Bobot Tugas
+Required for Employee Creation,Wajib sebelum Karyawan Dibuat
+Applicable in the case of Employee Onboarding,Berlaku untuk orientasi karyawan baru
+Notify users by email,Beri tahu pengguna melalui surel
+Separation Begins On,Pelepasan Dimulai Pada
+Separation Activities,Kegiatan Pelepasan
+Exit Interview Summary,Ringkasan Wawancara Keluar
+Raised By,Diajukan Oleh
+Investigated,Sudah Diselidiki
+Reports To,Melapor Kepada
+Grievance Details,Rincian Keluhan
+Grievance Against Party,Pihak yang Dikeluhkan
+Grievance Against,Keluhan Terhadap
+Investigation Details,Rincian Penyelidikan
+Cause of Grievance,Penyebab Keluhan
+Resolution Details,Rincian Penyelesaian
+Resolved By,Diselesaikan Oleh
+Resolution Date,Tanggal Penyelesaian
+Employee Responsible,Karyawan Penanggung Jawab
+Employee Skills,Keterampilan Karyawan
+Proficiency,Tingkat Kecakapan
+Evaluation Date,Tanggal Evaluasi
+Trainings,Pelatihan
+Training Date,Tanggal Pelatihan
+Trainer Name,Nama Pelatih
+Trainer Email,Surel Pelatih
+Event Status,Status Acara
+Has Certificate,Bersertifikat
+Theory,Teori
+Workshop,Lokakarya
+Conference,Konferensi
+Exam,Ujian
+Self-Study,Belajar Mandiri
+Advance,Lanjutan
+Course,Kursus
+Invited,Diundang
+Feedback Submitted,Umpan Balik Terkirim
+Is Mandatory,Wajib
+Job Title,Judul Pekerjaan
+Posted On,Dipasang Pada
+Closes On,Ditutup Pada
+"If set, the job opening will be closed automatically after this date","Jika diisi, lowongan ditutup otomatis setelah tanggal ini"
+Closed On,Sudah Ditutup Pada
+Planned number of Positions,Rencana Jumlah Posisi
+Vacancies,Lowongan
+Publish on website,Terbitkan di Situs Web
+Prevent Duplicate Applications,Cegah Lamaran Ganda
+"If enabled, candidates who have already applied with the same email address will not be allowed to apply again","Jika diaktifkan, kandidat yang sudah melamar dengan surel yang sama tidak boleh melamar lagi"
+Publish Applications Received,Tampilkan Jumlah Lamaran Masuk
+"If enabled, the total no. of applications received for this opening will be displayed on the website","Jika diaktifkan, jumlah lamaran untuk lowongan ini ditampilkan di situs web"
+Application Web Form Route,Rute Formulir Web Lamaran
+Route to the custom Job Application Webform,Rute ke formulir web lamaran kerja khusus
+"Job profile, qualifications required etc.","Profil pekerjaan, kualifikasi yang disyaratkan, dan sebagainya."
+Pay Details,Rincian Upah
+Lower Range,Batas Bawah
+Upper Range,Batas Atas
+Salary Paid Per,Gaji Dibayar per
+Publish Salary Range,Tampilkan Rentang Gaji
+Separate with comma or new line,Pisahkan dengan koma atau baris baru
+Shortlisted,Masuk Daftar Pendek
+Applicant Rating,Peringkat Pelamar
+Cover Letter,Surat Lamaran
+Salary Expectation,Ekspektasi Gaji
+Resume link,Tautan Resume
+Under Review,Sedang Ditinjau
+Cleared,Lolos
+Scheduled On,Dijadwalkan Pada
+Interviewers,Pewawancara
+Interview Detail,Rincian Wawancara
+Interviewer,Pewawancara
+Expected Average Rating,Peringkat Rata-Rata yang Diharapkan
+Obtained Average Rating,Peringkat Rata-Rata yang Diperoleh
+Interview Summary,Ringkasan Wawancara
+Applicant Email Address,Alamat Surel Pelamar
+Awaiting Response,Menunggu Tanggapan
+Job Offer Terms,Ketentuan Penawaran Kerja
+Job Offer Term,Ketentuan Penawaran Kerja
+Value / Description,Nilai / Uraian
+Select Terms and Conditions,Pilih Syarat dan Ketentuan
+Printing Details,Rincian Pencetakan
+Appointment Date,Tanggal Pengangkatan
+Body,Isi
+Terms,Ketentuan
+Closing Notes,Catatan Penutup
+Offer Terms,Ketentuan Penawaran
+No of. Positions,Jumlah Posisi
+Expected Compensation,Kompensasi yang Diharapkan
+Open & Approved,Terbuka dan Disetujui
+Filled,Terisi
+Requested By,Diminta Oleh
+Requested By (Name),Diminta Oleh (Nama)
+Timelines,Lini Masa
+Completed On,Selesai Pada
+Expected By,Diharapkan Selesai
+Time to Fill,Waktu Pengisian
+Time taken to fill the open positions,Waktu yang diperlukan untuk mengisi posisi terbuka
+Reason for Requesting,Alasan Permintaan
+Get Job Requisitions,Ambil Permintaan Tenaga Kerja
+Staffing Details,Rincian Kepegawaian
+Estimated Cost Per Position,Perkiraan Biaya per Posisi
+Total Estimated Cost,Total Perkiraan Biaya
+Current Count,Jumlah Saat Ini
+Current Openings,Lowongan Saat Ini
+Number Of Positions,Jumlah Posisi
+Total Estimated Budget,Total Perkiraan Anggaran
+For Designation,Untuk Jabatan
+Referral Details,Rincian Referensi
+Contact No.,Nomor Kontak
+Resume Link,Tautan Resume
+Current Employer,Perusahaan Saat Ini
+Current Job Title,Jabatan Saat Ini
+Referrer Details,Rincian Pemberi Referensi
+Referrer Name,Nama Pemberi Referensi
+Is Applicable for Referral Bonus,Berhak atas Bonus Referensi
+Referral Bonus Payment Status,Status Pembayaran Bonus Referensi
+Why is this Candidate Qualified for this Position?,Mengapa kandidat ini memenuhi syarat untuk posisi tersebut?
+Work References,Referensi Kerja
+Skill Name,Nama Keterampilan
+Interview Type Name,Nama Jenis Wawancara
+Expected Skillset,Keterampilan yang Diharapkan
+Expected Skill Set,Keterampilan yang Diharapkan
+Resume Screening Rule Result,Hasil Aturan Penyaringan Resume
+Resume Screening Penalty Rule,Aturan Pengurang Nilai Penyaringan Resume
+Resume Screening Knockout Rule,Aturan Penggugur Penyaringan Resume
+Resume Screening Custom Rule,Aturan Khusus Penyaringan Resume
+Resume Upload Batch Item,Butir Kelompok Unggahan Resume
+Shift & Attendance,Sif dan Kehadiran
+Attendance,Kehadiran
+Employee Attendance Tool,Alat Kehadiran Karyawan
+Shift Request,Permintaan Sif
+Shift Type,Jenis Sif
+Timesheet Detail,Rincian Lembar Waktu
+Email Address,Alamat Surel
+Contact Email,Surel Kontak
+Sender Email,Surel Pengirim

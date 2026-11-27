@@ -18,3 +18,17 @@ def get_assignable_masters(company: str) -> dict[str, bool]:
 		and bool(frappe.get_list(doctype, filters=filters, limit=1, pluck="name"))
 		for doctype, filters in masters.items()
 	}
+
+
+# Single values stock forms read from a settings screen the user may no longer open (hris_ats.lite.profile.SETTINGS_LOCKED).
+# Only these fields are answered; everything else on those screens keeps the permission check.
+FORM_SETTINGS = {("HR Settings", "emp_created_by")}  # hrms: public/js/erpnext/employee.js
+
+
+@frappe.whitelist()
+def get_single_value(doctype: str, field: str):
+	if (doctype, field) in FORM_SETTINGS and frappe.session.user != "Guest":
+		return frappe.db.get_single_value(doctype, field)
+	from frappe.client import get_single_value as stock
+
+	return stock(doctype, field)

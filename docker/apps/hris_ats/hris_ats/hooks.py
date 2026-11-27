@@ -240,6 +240,7 @@ scheduler_events = {
 # }
 override_whitelisted_methods = {
 	"hrms.overrides.employee_master.get_assignable_masters": "hris_ats.overrides.get_assignable_masters",
+	"frappe.client.get_single_value": "hris_ats.overrides.get_single_value",
 }
 #
 # each overriding function accepts a `data` argument;
