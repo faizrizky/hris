@@ -129,5 +129,5 @@ def test_assignable_masters_answers_false_for_a_doctype_the_user_cannot_read(mon
 def test_menu_color_accepts_only_colours():
 	from sentra_ats.menu_color import is_valid
 
-	assert all(is_valid(v) for v in ("", None, "standard", "#467CF7"))
+	assert all(is_valid(v) for v in ("", None, "standard", "#467CF7"))  # "standard" = the default, kept for old values
 	assert not any(is_valid(v) for v in ("red", "#fff", "#467CF7;}body{display:none", "url(x)"))

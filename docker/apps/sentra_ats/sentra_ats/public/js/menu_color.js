@@ -1,14 +1,13 @@
-// Colour of the selected sidebar item: applied from boot.hris_menu_color and chosen in Settings > Appearance as cards,
+// Colour of the selected sidebar and dock items: applied from boot.hris_menu_color and chosen in Settings > Appearance as cards,
 // next to Frappe's own Theme/Layout/Dock cards. css/menu_color.css paints the item. See sentra_ats/menu_color.py.
 frappe.provide("sentra_ats.menu_color");
 
 Object.assign(sentra_ats.menu_color, {
-	DEFAULT: "#467CF7",
+	BLUE: "#467cf7",
 
-	// "standard" keeps Frappe's look; anything that is not a colour falls back to the default.
+	// Empty (the default) keeps ERPNext's own look; only a stored colour repaints the selected items.
 	resolve(value) {
-		if (value === "standard") return null;
-		return /^#[0-9a-f]{6}$/i.test(value || "") ? value : this.DEFAULT;
+		return /^#[0-9a-f]{6}$/i.test(value || "") ? value : null;
 	},
 
 	// Dark text on light colours, white text on dark ones.
@@ -62,13 +61,13 @@ Object.assign(sentra_ats.menu_color, {
 
 	render(panel) {
 		const presets = [
-			["", __("Default"), this.DEFAULT],
-			["standard", __("Plain"), null],
+			["", __("Default"), null],
+			[this.BLUE, __("Blue"), this.BLUE],
 			["#16a34a", __("Green"), "#16a34a"],
 			["#7c3aed", __("Purple"), "#7c3aed"],
 			["#ea580c", __("Orange"), "#ea580c"],
 		];
-		const current = (frappe.boot.hris_menu_color || "").toLowerCase();
+		const current = (this.resolve(frappe.boot.hris_menu_color) || "").toLowerCase();
 		const is_preset = presets.some(([value]) => value === current);
 		const $grid = $(`<div class="hris-color-cards"></div>`);
 		const select = ($card) => {
@@ -85,7 +84,7 @@ Object.assign(sentra_ats.menu_color, {
 			$grid.append($card);
 		});
 
-		const custom = is_preset ? this.DEFAULT : current;
+		const custom = is_preset ? this.BLUE : current;
 		const $custom = this.card(__("Custom"), custom).toggleClass("selected", !is_preset);
 		const $input = $(`<input type="color" class="hris-color-input">`)
 			.val(custom)

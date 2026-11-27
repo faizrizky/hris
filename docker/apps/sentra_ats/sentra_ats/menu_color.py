@@ -1,6 +1,7 @@
 """Per-user colour of the selected sidebar item (Settings > Appearance > Menu Color, public/js/menu_color.js).
 
-Stored in User.custom_menu_color: empty = the Sentra default, "standard" = Frappe's own look, or "#rrggbb".
+Stored in User.custom_menu_color: empty = ERPNext's own look (the default), or "#rrggbb" ("standard" from the first
+version also means the default).
 """
 
 import re

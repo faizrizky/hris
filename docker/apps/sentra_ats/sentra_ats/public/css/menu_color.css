@@ -1,4 +1,4 @@
-/* Selected sidebar item in the user's colour (public/js/menu_color.js sets the class and the two variables). */
+/* Selected sidebar and dock items in the user's colour (public/js/menu_color.js sets the class and the two variables). */
 html.hris-menu-color .body-sidebar .standard-sidebar-item.active-sidebar {
 	background: var(--hris-menu-bg);
 	box-shadow: none;
@@ -7,6 +7,17 @@ html.hris-menu-color .body-sidebar .standard-sidebar-item.active-sidebar {
 
 html.hris-menu-color .body-sidebar .standard-sidebar-item.active-sidebar :is(.item-anchor, .sidebar-item-label, .sidebar-item-icon, .sidebar-item-icon svg, .sidebar-item-control, .sidebar-item-control svg) {
 	color: var(--hris-menu-ink) !important;
+}
+
+/* The current tile in the dock (the icon rail). Its glyph is stroked from --icon-stroke/currentColor. */
+html.hris-menu-color .dock .dock-item.active {
+	background: var(--hris-menu-bg);
+	color: var(--hris-menu-ink);
+}
+
+html.hris-menu-color .dock .dock-item.active svg {
+	color: var(--hris-menu-ink);
+	--icon-stroke: var(--hris-menu-ink);
 }
 
 /* The cards in Settings > Appearance reuse Frappe's .theme-card styles. */
