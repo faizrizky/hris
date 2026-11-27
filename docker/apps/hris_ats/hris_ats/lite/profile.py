@@ -10,6 +10,8 @@ import frappe
 from frappe.custom.doctype.property_setter.property_setter import make_property_setter
 from frappe.permissions import add_permission, rights, update_permission_property
 
+from hris_ats.lock import strip
+
 ADMIN = "System Manager"
 # Dedicated level so a future ERPNext/HRMS grant at level 1 can never expose these fields.
 LEVEL = 9
@@ -18,13 +20,14 @@ LEVEL = 9
 HIDDEN_FIELDS = {
 	"Employee": [
 		"naming_series", "employee", "prefered_contact_email", "prefered_email", "unsubscribed",
-		"current_address", "current_accommodation_type", "permanent_address", "permanent_accommodation_type",
+		"current_accommodation_type", "permanent_accommodation_type",
+		"custom_em2_name", "custom_em2_relation", "custom_em2_phone",  # replaced by the Additional Emergency Contacts table
 		"ctc", "salary_currency", "payroll_cost_center", "employee_advance_account",
 		"family_background", "health_details", "health_insurance_section", "health_insurance_provider",
 		"health_insurance_no", "new_workplace",
 	],
 	"Department": ["payroll_cost_center"],
-	"Activity Type": ["costing_rate", "billing_rate"],
+	"Activity Type": ["costing_rate", "billing_rate", "disabled"],
 	"Timesheet": [
 		"naming_series", "parent_project", "customer", "currency", "exchange_rate", "billing_tab",
 		"total_billable_hours", "total_billable_amount", "base_total_billable_amount",
@@ -48,8 +51,21 @@ NOT_REQUIRED = {
 	"Leave Allocation": ["naming_series"], "Holiday List Assignment": ["naming_series"],
 }
 
+# Column breaks that would leave an empty column once the fields above are gone.
+HIDDEN_COLUMNS = {"Employee": ["column_break4", "salary_cb"], "Activity Type": ["column_break_3"]}
+
 # Roles that lose write access (read stays, so link fields and forms keep working).
-READ_ONLY = {"Company": ["HR Manager"], "HR Settings": ["HR Manager"], "Payroll Settings": ["HR Manager"]}
+READ_ONLY = {"Company": ["HR Manager"]}
+
+# Settings screens reached from the menus: System Manager only (hris_ats.lock.strip). Print Settings stays readable
+# because every print view needs it; Payroll Settings is already locked with Payroll.
+SETTINGS_LOCKED = [
+	"HR Settings", "Face Settings", "Resume Screening Settings", "Background Check Settings", "Accounts Settings",
+	"Selling Settings", "Buying Settings", "Stock Settings", "Manufacturing Settings", "Projects Settings", "CRM Settings",
+	"Support Settings", "POS Settings", "Subscription Settings", "Item Variant Settings", "Delivery Settings",
+	"Currency Exchange Settings", "Appointment Booking Settings", "Stock Reposting Settings", "SMS Settings",
+	"Incoming Call Settings", "Voice Call Settings", "Global Defaults",
+]
 WRITE_PTYPES = ("write", "create", "delete", "submit", "cancel", "amend", "import")
 
 # Roles that lose every right on the doctype.
@@ -61,6 +77,19 @@ REPORTS = [
 	"Project Profitability", "Employee Leave Balance", "Employee Leave Balance Summary",
 	"Employees working on a holiday", "Appraisal Overview", "Employee Exits", "Employee Birthday",
 	"Employee Information", "Employee Analytics", "Recruitment Analytics",
+	# the ERPNext menus' reports
+	"General Ledger", "Trial Balance", "Trial Balance for Party", "Profit and Loss Statement", "Balance Sheet", "Cash Flow",
+	"Consolidated Financial Statement", "Profitability Analysis", "Accounts Receivable", "Accounts Payable",
+	"Accounts Receivable Summary", "Accounts Payable Summary", "Budget Variance Report", "Sales Analytics",
+	"Sales Register", "Gross Profit", "Purchase Analytics", "Purchase Order Analysis", "Purchase Register",
+	"Supplier Quotation Comparison", "Stock Ledger", "Stock Balance", "Stock Projected Qty", "Stock Ageing",
+	"Stock Analytics", "Production Analytics", "Work Order Summary", "Job Card Summary", "Production Planning Report",
+	"Material Requirements Planning Report", "Project Summary", "Timesheet Billing Summary", "Daily Timesheet Summary",
+	"Delayed Tasks Summary", "Project wise Stock Tracking", "Fixed Asset Register", "Asset Depreciation Ledger",
+	"Asset Depreciations and Balances", "Asset Activity", "Quality Inspection Summary", "Review", "Maintenance Schedules",
+	"Lead Details", "Sales Pipeline Analytics", "Opportunity Summary by Sales Stage",
+	"Prospects Engaged But Not Converted", "First Response Time for Opportunity", "Campaign Efficiency",
+	"Lead Owner Efficiency", "First Response Time for Issues",
 ]
 
 # Desk sidebar entries removed for non-admins; "Reports" removes the whole section.
@@ -93,6 +122,16 @@ def filter_items(items, hide):
 	]
 
 
+def drop_reports_settings(items):
+	"""A menu without its reports and settings screens (their permissions are limited separately)."""
+	hide = {"Reports", "Settings"}
+	for item in items:
+		target = item.get("link_to") or ""
+		if item.get("link_type") == "Report" or target.endswith(" Settings") or target in ("Global Defaults", "sales-funnel"):
+			hide.add(item.get("label"))
+	return filter_items(items, hide)
+
+
 def _snapshot_path():
 	return frappe.get_site_path("private", "hris_lite_snapshot.json")
 
@@ -106,7 +145,7 @@ def _load_snapshot():
 
 
 def _perm_doctypes():
-	return {PARENT_OF.get(dt, dt) for dt in HIDDEN_FIELDS} | set(READ_ONLY) | set(NO_ACCESS)
+	return {PARENT_OF.get(dt, dt) for dt in HIDDEN_FIELDS} | set(READ_ONLY) | set(NO_ACCESS) | set(SETTINGS_LOCKED)
 
 
 def _setter_value(dt, fn, prop="permlevel"):
@@ -173,6 +212,15 @@ def apply():
 				for ptype in rights:
 					update_permission_property(dt, role, 0, ptype, 0)
 
+	for dt in SETTINGS_LOCKED:
+		if frappe.db.exists("DocType", dt):
+			strip(dt)
+
+	for dt, fns in HIDDEN_COLUMNS.items():
+		for fn in fns:
+			if frappe.get_meta(dt).has_field(fn):
+				make_property_setter(dt, fn, "hidden", 1, "Check")
+
 	for r in snap["reports"]:
 		_set_report_roles(r, [ADMIN])
 	frappe.clear_cache()
@@ -187,6 +235,9 @@ def revert():
 		_restore_field(key, old)
 	for key, old in snap.get("required", {}).items():
 		_restore_field(key, old, "reqd", "Check")
+	for dt, fns in HIDDEN_COLUMNS.items():
+		for fn in fns:
+			frappe.db.delete("Property Setter", {"doc_type": dt, "field_name": fn, "property": "hidden"})
 	for dt, rows in snap["perms"].items():
 		frappe.db.delete("Custom DocPerm", {"parent": dt})
 		for row in rows:

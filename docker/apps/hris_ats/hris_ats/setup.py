@@ -817,6 +817,7 @@ def after_migrate():
 	setup_default_platforms()
 	setup_default_lexicon()
 	setup_default_settings()
+	tidy_emergency_contacts()
 	apply_lite_profile()
 	setup_hr_compliance()
 	setup_subscription_access()
@@ -831,6 +832,25 @@ def apply_lite_profile():
 		from hris_ats.lite.profile import apply
 
 		apply()
+
+
+def tidy_emergency_contacts():
+	"""Give the two contact tables their own two-column section under the single emergency contact row."""
+	if not frappe.db.exists("Custom Field", {"dt": "Employee", "fieldname": "custom_emergency_contacts"}):
+		return
+	from frappe.custom.doctype.custom_field.custom_field import create_custom_fields
+
+	create_custom_fields({"Employee": [
+		{"fieldname": "custom_contact_tables_section", "fieldtype": "Section Break", "insert_after": "relation"},
+		{"fieldname": "custom_contact_tables_column", "fieldtype": "Column Break", "insert_after": "custom_emergency_contacts"},
+	]}, update=True)
+	for fieldname, after in (
+		("custom_emergency_contacts", "custom_contact_tables_section"), ("custom_family_members", "custom_contact_tables_column")
+	):
+		name = frappe.db.get_value("Custom Field", {"dt": "Employee", "fieldname": fieldname})
+		if name:
+			frappe.db.set_value("Custom Field", name, "insert_after", after)
+	frappe.clear_cache(doctype="Employee")
 
 
 def apply_module_lock():

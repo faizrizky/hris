@@ -39,21 +39,25 @@ def enabled() -> bool:
 	return bool(live_conf().get("hris_lock_modules", 1))
 
 
+def strip(dt):
+	"""Take every right on a doctype away from every role but System Manager, which keeps a full row."""
+	setup_custom_perms(dt)  # copies the standard rows into Custom DocPerm the first time, as the Role Permissions Manager does
+	# System Manager needs a full row of its own: if no role may read the doctype, Frappe also refuses field access to
+	# Administrator ("You do not have permission to access field: ..."), and HR forms query these doctypes.
+	add_permission(dt, ADMIN, 0)
+	admin_row = frappe.db.get_value("Custom DocPerm", {"parent": dt, "role": ADMIN, "permlevel": 0, "if_owner": 0})
+	if admin_row:
+		update_custom_docperm(admin_row, {p: 1 for p in rights})
+	for row in frappe.get_all("Custom DocPerm", filters={"parent": dt, "role": ("!=", ADMIN)}, fields=["name", *rights]):
+		if any(row[p] for p in rights):
+			update_custom_docperm(row.name, {p: 0 for p in rights})
+
+
 def apply():
 	"""One save per permission row that still grants something, so a repeat run (every migrate) is nearly free."""
 	for dt in LOCKED_DOCTYPES:
-		if not frappe.db.exists("DocType", dt):
-			continue
-		setup_custom_perms(dt)  # copies the standard rows into Custom DocPerm the first time, as the Role Permissions Manager does
-		# System Manager needs a full row of its own: if no role may read the doctype, Frappe also refuses field access to
-		# Administrator ("You do not have permission to access field: ..."), and HR forms query these doctypes.
-		add_permission(dt, ADMIN, 0)
-		admin_row = frappe.db.get_value("Custom DocPerm", {"parent": dt, "role": ADMIN, "permlevel": 0, "if_owner": 0})
-		if admin_row:
-			update_custom_docperm(admin_row, {p: 1 for p in rights})
-		for row in frappe.get_all("Custom DocPerm", filters={"parent": dt, "role": ("!=", ADMIN)}, fields=["name", *rights]):
-			if any(row[p] for p in rights):
-				update_custom_docperm(row.name, {p: 0 for p in rights})
+		if frappe.db.exists("DocType", dt):
+			strip(dt)
 	for report in LOCKED_REPORTS:
 		if not frappe.db.exists("Report", report):
 			continue

@@ -62,3 +62,19 @@ def test_filter_items_drops_a_section_with_nothing_left_under_it():
 		{"type": "Section Break", "label": "Trailing", "child": 0},
 	]
 	assert [i["label"] for i in filter_items(items, set())] == ["Expense Claim", "Accounting Entries", "Journal Entry"]
+
+
+def test_drop_reports_settings():
+	from hris_ats.lite.profile import drop_reports_settings
+
+	items = [
+		{"type": "Link", "label": "Employee", "link_to": "Employee", "link_type": "DocType"},
+		{"type": "Link", "label": "Fixed Asset Register", "link_to": "Fixed Asset Register", "link_type": "Report"},
+		{"type": "Section Break", "label": "Reports"},
+		{"type": "Link", "label": "Leave Balance", "link_to": "Employee Leave Balance", "link_type": "Report", "child": 1},
+		{"type": "Link", "label": "Settings", "link_to": "HR Settings", "link_type": "DocType", "child": 0},
+		{"type": "Section Break", "label": "Face Verification"},
+		{"type": "Link", "label": "Face Enrollment", "link_to": "Face Enrollment", "link_type": "DocType", "child": 1},
+		{"type": "Link", "label": "Face Settings", "link_to": "Face Settings", "link_type": "DocType", "child": 1},
+	]
+	assert [i["label"] for i in drop_reports_settings(items)] == ["Employee", "Face Verification", "Face Enrollment"]

@@ -83,6 +83,7 @@
   {
    "default": "0",
    "description": "Trims the Desk for non-admin users on this client: fewer menus, sensitive fields hidden, tighter permissions.",
+   "default": "1",
    "fieldname": "hr_focus",
    "fieldtype": "Check",
    "label": "HR Focus Profile"

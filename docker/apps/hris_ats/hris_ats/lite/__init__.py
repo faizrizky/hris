@@ -12,7 +12,7 @@ def is_lite(lite_flag, roles) -> bool:
 
 
 def extend_bootinfo(bootinfo):
-	from hris_ats.lite.profile import SIDEBAR_HIDE, filter_items
+	from hris_ats.lite.profile import SIDEBAR_HIDE, drop_reports_settings, filter_items
 	from hris_ats.subscription import live_conf
 
 	conf = live_conf()  # frappe.conf is cached per worker and would miss a toggle made from the control plane
@@ -32,3 +32,5 @@ def extend_bootinfo(bootinfo):
 		for name, hide in SIDEBAR_HIDE.items():
 			if sidebars.get(name):
 				sidebars[name]["items"] = filter_items(sidebars[name]["items"], hide)
+		for sidebar in sidebars.values():
+			sidebar["items"] = drop_reports_settings(sidebar["items"])
