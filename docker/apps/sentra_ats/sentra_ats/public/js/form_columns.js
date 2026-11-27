@@ -13,7 +13,12 @@ Object.assign(sentra_ats.form_columns, {
 	// should be left alone, else the fields in grid order as {column, row, span}.
 	plan(columns) {
 		const items = columns.flatMap((fields, column) =>
-			fields.map((wide, row) => ({ column, row, wide, span: wide, order: row * columns.length + column }))
+			fields.map((wide, row) => ({
+				column, row, wide, span: wide,
+				// Two columns keep their side-by-side pairs; three or more read column after column, so related
+				// fields (first, middle, last name) stay next to each other.
+				order: columns.length > 2 ? column * 1000 + row : row * columns.length + column,
+			}))
 		);
 		if (!items.length || items.every((item) => item.wide)) return null;
 		items.sort((a, b) => a.order - b.order);
@@ -40,9 +45,9 @@ Object.assign(sentra_ats.form_columns, {
 			columns.flat().forEach((el) => {
 				if (!plan) el.classList.remove("hris-span");
 			});
-			(plan || []).forEach(({ column, row, span, order }) => {
+			(plan || []).forEach(({ column, row, span }, position) => {
 				const el = columns[column][row];
-				el.style.order = order + 1; // 0 stays for column headings
+				el.style.order = position + 1; // 0 stays for column headings
 				el.classList.toggle("hris-span", span);
 			});
 		});
