@@ -5,7 +5,6 @@ authors = [
 ]
 description = "Resume Screening and Background Check for ERPNext / Frappe HR"
 requires-python = ">=3.14"
-readme = "README.md"
 dynamic = ["version"]
 dependencies = [
     # "frappe~=16.0.0" # Installed and managed by bench.
