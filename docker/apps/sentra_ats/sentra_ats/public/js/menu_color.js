@@ -113,6 +113,7 @@ Object.assign(sentra_ats.menu_color, {
 			render_input: true,
 		});
 		control.set_input(custom);
+		control.picker.color = custom; // set_input leaves the picker on white
 		// The picker reports every step of a drag: paint at once, store when it settles.
 		const store = frappe.utils.debounce((value) => this.save(value), 600);
 		control.df.change = () => {
