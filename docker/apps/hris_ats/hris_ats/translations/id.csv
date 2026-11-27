@@ -665,7 +665,7 @@ You must confirm profile ownership or permission before proceeding.,Anda harus m
 Permission Required,Izin Diperlukan
 Invalid URL,URL Tidak Valid
 URL must start with http:// or https://.,URL harus diawali dengan http:// atau https://.
-"Domain {0} is currently blocked in Settings. Remove it from blocked domains and acknowledge risk first to test.","Domain {0} saat ini diblokir di Pengaturan. Hapus dari domain terblokir dan akui risiko terlebih dahulu untuk menguji."
+Domain {0} is currently blocked in Settings. Remove it from blocked domains and acknowledge risk first to test.,Domain {0} saat ini diblokir di Pengaturan. Hapus dari domain terblokir dan akui risiko terlebih dahulu untuk menguji.
 Blocked Domain,Domain Terblokir
 Stealth mode skipped: browser is not installed.,Mode stealth dilewati: browser belum terpasang.
 Test Fetch,Uji Pengambilan
@@ -683,8 +683,8 @@ First 300 characters of display text,300 karakter pertama teks tampilan
 Signed consent document (consent_file) is mandatory when consent_method is 'Uploaded document'.,Dokumen persetujuan bertanda tangan (consent_file) wajib dilampirkan bila consent_method adalah 'Dokumen diunggah'.
 Attachment of consent_file is mandatory before social media consent can be granted for accounts.,Lampiran consent_file wajib ada sebelum persetujuan media sosial dapat diberikan untuk akun.
 Consent File Mandatory,Berkas Persetujuan Wajib
-"{0} social media accounts skipped due to missing consent or blocked domain.","{0} akun media sosial dilewati karena tidak adanya persetujuan atau domain diblokir."
-"{count} social media accounts skipped due to missing consent or blocked domain.","{count} akun media sosial dilewati karena tidak adanya persetujuan atau domain diblokir."
+{0} social media accounts skipped due to missing consent or blocked domain.,{0} akun media sosial dilewati karena tidak adanya persetujuan atau domain diblokir.
+{count} social media accounts skipped due to missing consent or blocked domain.,{count} akun media sosial dilewati karena tidak adanya persetujuan atau domain diblokir.
 This account belongs to me.,Akun ini milik saya.
 Public profile page will be fetched automatically.,Halaman profil publik akan diambil otomatis.
 Confirmed by candidate in document,Dikonfirmasi kandidat di dokumen
@@ -753,7 +753,7 @@ Maximum allowed file size for candidate data export packages in megabytes.,Batas
 Use Crawler Account Login Session,Gunakan Sesi Login Akun Crawler
 Use authenticated crawler account sessions for platforms requiring login.,Gunakan sesi akun crawler terotentikasi untuk platform yang membutuhkan login.
 Duplicate Active Account,Akun Aktif Duplikat
-"Only one active crawler account is allowed per platform ({0}). Existing active account: {1}","Hanya satu akun crawler aktif yang diizinkan per platform ({0}). Akun aktif yang sudah ada: {1}"
+Only one active crawler account is allowed per platform ({0}). Existing active account: {1},Hanya satu akun crawler aktif yang diizinkan per platform ({0}). Akun aktif yang sudah ada: {1}
 Test Session,Uji Sesi
 Disconnect,Putuskan
 Login,Masuk
@@ -765,13 +765,13 @@ Last Error,Galat Terakhir
 Last Error Template,Template Galat Terakhir
 Last Error Parameters,Parameter Galat Terakhir
 Session,Sesi
-"Account is not connected (current status: {0}).","Akun tidak terhubung (status saat ini: {0})."
+Account is not connected (current status: {0}).,Akun tidak terhubung (status saat ini: {0}).
 Account risk acknowledgment is required before starting login session.,Persetujuan risiko akun wajib dicentang sebelum memulai sesi login.
 Active,Aktif
 Add Crawler Account,Tambah Akun Crawler
 All session cookies have expired.,Semua cookie sesi telah kedaluwarsa.
 Browser Not Installed,Browser Belum Terpasang
-"Click 'Add Crawler Account' to set up an account per platform.","Klik 'Tambah Akun Crawler' untuk menyiapkan akun per platform."
+Click 'Add Crawler Account' to set up an account per platform.,Klik 'Tambah Akun Crawler' untuk menyiapkan akun per platform.
 Complete Login,Selesaikan Login
 Configured Crawler Accounts,Daftar Akun Crawler yang Dikonfigurasi
 Connecting...,Menghubungkan...
@@ -784,31 +784,31 @@ Discovered cookie domains,Domain cookie yang ditemukan
 Enabling crawler login sessions requires acknowledging legal and technical risks.,Mengaktifkan sesi login crawler memerlukan pengakuan risiko hukum dan teknis.
 Encrypting and saving session...,Menenkripsi dan menyimpan sesi...
 Fixed viewport: 1024x768,Viewport tetap: 1024x768
-"Human interactive login. Click and type directly into the browser view. Credentials are never logged by the system.","Login interaktif manusia. Klik dan ketik langsung di tampilan browser. Kredensial tidak pernah dicatat oleh sistem."
+Human interactive login. Click and type directly into the browser view. Credentials are never logged by the system.,Login interaktif manusia. Klik dan ketik langsung di tampilan browser. Kredensial tidak pernah dicatat oleh sistem.
 Import and Save,Impor dan Simpan
-"Interactive Login: {0} ({1})","Login Interaktif: {0} ({1})"
-"Invalid JSON format for session storage state: {0}","Format JSON status penyimpanan sesi tidak valid: {0}"
+Interactive Login: {0} ({1}),Login Interaktif: {0} ({1})
+Invalid JSON format for session storage state: {0},Format JSON status penyimpanan sesi tidak valid: {0}
 Last Login,Terakhir Login
 Last Used,Terakhir Dipakai
 Loading crawler accounts...,Memuat akun crawler...
 Loading remote browser session...,Memuat sesi browser jarak jauh...
 Login Successful,Login Berhasil
 Login session has expired or closed.,Sesi login telah kedaluwarsa atau ditutup.
-"Manual Cookie / Storage State Import: {0}","Impor Cookie / Storage State Manual: {0}"
+Manual Cookie / Storage State Import: {0},Impor Cookie / Storage State Manual: {0}
 Manual Cookie Import,Impor Cookie Manual
 Manual session imported successfully.,Sesi manual berhasil diimpor.
 No crawler accounts configured.,Belum ada akun crawler yang dikonfigurasi.
-"No valid authentication cookies found matching platform session domains: {0}","Tidak ditemukan cookie otentikasi valid yang cocok dengan domain sesi platform: {0}"
+No valid authentication cookies found matching platform session domains: {0},Tidak ditemukan cookie otentikasi valid yang cocok dengan domain sesi platform: {0}
 Only System Manager can manage crawler accounts and sessions.,Hanya System Manager yang dapat mengelola akun dan sesi crawler.
-"Paste the exported JSON storage state or array of cookies from your browser session. Only cookies matching the platform session domains will be retained and securely encrypted.","Tempelkan status penyimpanan JSON atau daftar cookie hasil ekspor dari sesi browser Anda. Hanya cookie yang cocok dengan domain sesi platform yang akan disimpan dan dienkripsi secara aman."
+Paste the exported JSON storage state or array of cookies from your browser session. Only cookies matching the platform session domains will be retained and securely encrypted.,Tempelkan status penyimpanan JSON atau daftar cookie hasil ekspor dari sesi browser Anda. Hanya cookie yang cocok dengan domain sesi platform yang akan disimpan dan dienkripsi secara aman.
 Platform {0} does not have a login URL configured.,Platform {0} belum memiliki URL login yang dikonfigurasi.
-"Playwright/Chromium browser is not installed on the server. Run './dev-ats.sh --with-browsers' first.","Browser Playwright/Chromium belum terpasang di server. Jalankan './dev-ats.sh --with-browsers' terlebih dahulu."
+Playwright/Chromium browser is not installed on the server. Run './dev-ats.sh --with-browsers' first.,Browser Playwright/Chromium belum terpasang di server. Jalankan './dev-ats.sh --with-browsers' terlebih dahulu.
 Risk acknowledgment in Background Check Settings is required before using crawler accounts.,Pengakuan risiko di Pengaturan Background Check wajib disetujui sebelum menggunakan akun crawler.
 Risk acknowledgment is required before saving crawler session.,Pengakuan risiko wajib disetujui sebelum menyimpan sesi crawler.
 Session Expiry,Kedaluwarsa Sesi
 Session Saved,Sesi Disimpan
 Session expires on,Sesi kedaluwarsa pada
-"Session valid: {0} active cookies found.","Sesi valid: ditemukan {0} cookie aktif."
+Session valid: {0} active cookies found.,Sesi valid: ditemukan {0} cookie aktif.
 Session {0} not found or expired.,Sesi {0} tidak ditemukan atau telah kedaluwarsa.
 Starting remote browser on server...,Memulai browser jarak jauh di server...
 Storage State / Cookies (JSON),Status Penyimpanan / Cookie (JSON)
@@ -816,18 +816,18 @@ Stored session state is empty or invalid.,Status sesi tersimpan kosong atau tida
 Testing...,Menguji...
 Timeout waiting for crawler browser to capture session state.,Batas waktu habis saat menunggu browser crawler mengambil status sesi.
 Verifying & saving session...,Memverifikasi & menyimpan sesi...
-"You must open the Crawler Account record and check 'Acknowledge Legal and Technical Risks' before initiating interactive login.","Anda harus membuka data Akun Crawler dan mencentang 'Akui Risiko Hukum dan Teknis' sebelum memulai login interaktif."
+You must open the Crawler Account record and check 'Acknowledge Legal and Technical Risks' before initiating interactive login.,Anda harus membuka data Akun Crawler dan mencentang 'Akui Risiko Hukum dan Teknis' sebelum memulai login interaktif.
 none,tidak ada
 Bio detected,Bio terdeteksi
 Browser Mode (No Session),Mode Browser (Tanpa Sesi)
 Comparison: Session vs Browser Mode (Without Session),Perbandingan: Mode Sesi vs Browser (Tanpa Sesi)
 Crawler Account,Akun Crawler
 Daily limit must be at least 1.,Batas harian minimal 1.
-"Daily rate limit of {0} requests exceeded for crawler account {1}.","Batas laju harian {0} permintaan terlampaui untuk akun crawler {1}."
-"Error saving crawler session: {0}","Gagal menyimpan sesi crawler: {0}"
+Daily rate limit of {0} requests exceeded for crawler account {1}.,Batas laju harian {0} permintaan terlampaui untuk akun crawler {1}.
+Error saving crawler session: {0},Gagal menyimpan sesi crawler: {0}
 Followers detected,Pengikut terdeteksi
 Hourly limit must be at least 1.,Batas per jam minimal 1.
-"Hourly rate limit of {0} requests exceeded for crawler account {1}.","Batas laju per jam {0} permintaan terlampaui untuk akun crawler {1}."
+Hourly rate limit of {0} requests exceeded for crawler account {1}.,Batas laju per jam {0} permintaan terlampaui untuk akun crawler {1}.
 Jitter seconds must be at least 0.,Jitter detik minimal 0.
 Max Candidate Export Size (MB) must be at least 1.,Ukuran Maksimal Ekspor Kandidat (MB) minimal 1.
 Min delay seconds must be at least 0.,Jeda minimal detik minimal 0.
@@ -841,15 +841,15 @@ Social Max Posts must be at least 1.,Maksimal Postingan Media Sosial minimal 1.
 Visible Posts Count,Jumlah Postingan yang Terlihat
 Yes,Ya
 Auto-escalate Fetch Mode,Eskalasi Otomatis Mode Pengambilan
-"Automatically escalate fetch mode (Company -> Browser -> Stealth -> Session) when blocked or encountering login walls.","Eskalasi otomatis mode pengambilan (Company -> Browser -> Stealth -> Session) saat terhalang atau mendapati dinding login."
+Automatically escalate fetch mode (Company -> Browser -> Stealth -> Session) when blocked or encountering login walls.,Eskalasi otomatis mode pengambilan (Company -> Browser -> Stealth -> Session) saat terhalang atau mendapati dinding login.
 Enabling auto-escalation of fetch modes requires acknowledging legal and technical risks.,Mengaktifkan eskalasi otomatis mode pengambilan memerlukan konfirmasi persetujuan risiko hukum dan teknis.
 "Saving settings with robots.txt ignored, Browser identity, stealth mode, auto-escalate mode, or removed default blocked domains requires risk acknowledgment (fetch_risk_acknowledged).","Menyimpan pengaturan dengan robots.txt diabaikan, identitas Browser, mode stealth, eskalasi otomatis, atau domain terblokir bawaan dihapus memerlukan persetujuan risiko (fetch_risk_acknowledged)."
 Background Check reference is required for social consent.,Referensi Background Check wajib diisi untuk persetujuan media sosial.
-"Candidate consent has not been given (status: {0}).","Persetujuan kandidat belum diberikan (status: {0})."
+Candidate consent has not been given (status: {0}).,Persetujuan kandidat belum diberikan (status: {0}).
 Scope 'Social Media' was not granted by the candidate.,Cakupan 'Social Media' tidak disetujui oleh kandidat.
 Account reference is required for social consent.,Referensi akun wajib diisi untuk persetujuan media sosial.
-"Candidate did not consent to screening for account {0}.","Kandidat tidak menyetujui pemeriksaan untuk akun {0}."
-"Domain '{0}' is currently blocked in Background Check Settings.","Domain '{0}' saat ini diblokir pada Pengaturan Background Check."
+Candidate did not consent to screening for account {0}.,Kandidat tidak menyetujui pemeriksaan untuk akun {0}.
+Domain '{0}' is currently blocked in Background Check Settings.,Domain '{0}' saat ini diblokir pada Pengaturan Background Check.
 Social Max Comments,Batas Maksimal Komentar Sosial
 Limit candidate comments collected per candidate account.,Batasi jumlah komentar kandidat yang dikumpulkan per akun kandidat.
 Comment,Komentar
@@ -864,10 +864,10 @@ Media Type,Tipe Media
 Comments Flagged as Risky,Komentar yang Ditandai Berisiko
 No public comments flagged as risky from candidate accounts.,Tidak ada komentar publik yang ditandai berisiko dari akun kandidat.
 Social Max Comments must be at least 1.,Batas Maksimal Komentar Sosial minimal 1.
-"Comments not exposed by platform: {0}; candidate export recommended.","Komentar tidak diekspos oleh platform: {0}; disarankan memakai jalur ekspor data."
-"Unsupported social media platform: {0}","Platform media sosial tidak didukung: {0}"
-"Crawler encountered challenge or checkpoint: {reason}","Crawler mendapati tantangan atau checkpoint: {reason}"
-"Crawler Account Challenge: {0}","Tantangan Akun Crawler: {0}"
+Comments not exposed by platform: {0}; candidate export recommended.,Komentar tidak diekspos oleh platform: {0}; disarankan memakai jalur ekspor data.
+Unsupported social media platform: {0},Platform media sosial tidak didukung: {0}
+Crawler encountered challenge or checkpoint: {reason},Crawler mendapati tantangan atau checkpoint: {reason}
+Crawler Account Challenge: {0},Tantangan Akun Crawler: {0}
 Signed consent document file is missing.,Berkas dokumen persetujuan bertanda tangan tidak ditemukan.
 Connection Method,Metode Koneksi
 Public page,Halaman publik
@@ -876,8 +876,8 @@ Data export,Ekspor data
 OAuth,OAuth
 Upload my data export (recommended),Unggah ekspor data saya (disarankan)
 Upload Candidate Data Export,Unggah Ekspor Data Kandidat
-"Invalid or unrecognized export archive format for {0}.","Format arsip ekspor tidak valid atau tidak dikenali untuk {0}."
-"Archive file size exceeds maximum limit of {0} MB.","Ukuran berkas arsip melebihi batas maksimum {0} MB."
+Invalid or unrecognized export archive format for {0}.,Format arsip ekspor tidak valid atau tidak dikenali untuk {0}.
+Archive file size exceeds maximum limit of {0} MB.,Ukuran berkas arsip melebihi batas maksimum {0} MB.
 Potential zip-slip path traversal detected in archive.,Potensi zip-slip path traversal terdeteksi dalam arsip.
 Zip-bomb compression ratio or uncompressed size limit exceeded.,Batas rasio kompresi atau ukuran tidak terkompresi zip-bomb terlampaui.
 Export data archive file is required.,Berkas arsip data ekspor wajib dilampirkan.
@@ -886,18 +886,18 @@ Download a copy of your information on Instagram,Unduh salinan informasi Anda di
 Access and download your Facebook information,Akses dan unduh informasi Facebook Anda
 Request your TikTok data,Ajukan permintaan data TikTok Anda
 Export your LinkedIn account data,Ekspor data akun LinkedIn Anda
-"Invalid or unrecognized export archive format for Instagram. Please upload the official JSON archive from 'Download your information'.","Format arsip ekspor tidak valid atau tidak dikenali untuk Instagram. Pastikan mengunggah arsip JSON resmi dari fitur 'Download your information'."
-"Invalid or unrecognized export archive format for Facebook. Please upload the official JSON archive from 'Download your information'.","Format arsip ekspor tidak valid atau tidak dikenali untuk Facebook. Pastikan mengunggah arsip JSON resmi dari fitur 'Download your information'."
-"Invalid or unrecognized export archive format for TikTok. Please upload the official 'user_data.json' file from 'Download your data'.","Format arsip ekspor tidak valid atau tidak dikenali untuk TikTok. Pastikan mengunggah berkas 'user_data.json' resmi dari fitur unduh data TikTok."
-"Corrupt or invalid TikTok JSON file: {0}","Berkas JSON TikTok rusak atau tidak valid: {0}"
+Invalid or unrecognized export archive format for Instagram. Please upload the official JSON archive from 'Download your information'.,Format arsip ekspor tidak valid atau tidak dikenali untuk Instagram. Pastikan mengunggah arsip JSON resmi dari fitur 'Download your information'.
+Invalid or unrecognized export archive format for Facebook. Please upload the official JSON archive from 'Download your information'.,Format arsip ekspor tidak valid atau tidak dikenali untuk Facebook. Pastikan mengunggah arsip JSON resmi dari fitur 'Download your information'.
+Invalid or unrecognized export archive format for TikTok. Please upload the official 'user_data.json' file from 'Download your data'.,Format arsip ekspor tidak valid atau tidak dikenali untuk TikTok. Pastikan mengunggah berkas 'user_data.json' resmi dari fitur unduh data TikTok.
+Corrupt or invalid TikTok JSON file: {0},Berkas JSON TikTok rusak atau tidak valid: {0}
 "Invalid or unrecognized export archive format for LinkedIn. Please upload the official archive containing Profile.csv, Shares.csv, or Comments.csv.","Format arsip ekspor tidak valid atau tidak dikenali untuk LinkedIn. Pastikan mengunggah arsip resmi berisi 'Profile.csv', 'Shares.csv', atau 'Comments.csv'."
-"Unsupported export platform: {0}","Platform ekspor tidak didukung: {0}"
+Unsupported export platform: {0},Platform ekspor tidak didukung: {0}
 All Platforms,Semua Platform
 Filter Platform,Saring Platform
 "Download your official data archive from platform settings, then upload it here.","Unduh arsip data resmi Anda dari pengaturan platform, lalu unggah di sini."
 "Allowed: ZIP, JSON, CSV. Max size: {0} MB.","Diizinkan: ZIP, JSON, CSV. Ukuran maks: {0} MB."
 Please select an export file or uncheck the export option.,Silakan pilih berkas ekspor atau hapus centang opsi ekspor.
-"File size exceeds maximum limit of {0} MB.","Ukuran berkas melebihi batas maksimum {0} MB."
+File size exceeds maximum limit of {0} MB.,Ukuran berkas melebihi batas maksimum {0} MB.
 Error reading export file.,Gagal membaca berkas ekspor.
 Export Processing Error,Kesalahan Pemrosesan Ekspor
 Invalid Format,Format Tidak Valid
@@ -905,7 +905,6 @@ Missing File,Berkas Tidak Ditemukan
 Parsing Error,Kesalahan Penguraian
 Security Error,Kesalahan Keamanan
 Size Limit Exceeded,Batas Ukuran Terlampaui
-
 Some social media accounts are not ticked and will NOT be screened (accounts: {0}). Continue?,Sebagian akun media sosial belum dicentang dan TIDAK akan diperiksa (jumlah akun: {0}). Lanjutkan?
 "Login was not detected for {0}. Finish signing in inside the browser (until your feed or profile is visible), then press Complete again.","Login untuk {0} tidak terdeteksi. Selesaikan login di browser (sampai beranda atau profil terlihat), lalu tekan Selesai lagi."
 Not Logged In,Belum Login
@@ -924,9 +923,9 @@ Stored session is missing or not signed in. Please log in again.,Sesi tersimpan 
 Waiting for the background worker...,Menunggu proses latar belakang...
 Results appear below as soon as each source or account is finished.,Hasil langsung tampil di bawah setiap kali satu sumber atau akun selesai.
 Crawl Progress,Progres Crawl
-"Background check is already running. Wait until it finishes.","Pemeriksaan latar belakang sedang berjalan. Tunggu sampai selesai."
-"Time budget for this account was reached; data is partial.","Batas waktu untuk akun ini tercapai; data sebagian."
-"Social Lookback Months cannot be negative (0 = no limit).","Social Lookback Months tidak boleh negatif (0 = tanpa batas)."
+Background check is already running. Wait until it finishes.,Pemeriksaan latar belakang sedang berjalan. Tunggu sampai selesai.
+Time budget for this account was reached; data is partial.,Batas waktu untuk akun ini tercapai; data sebagian.
+Social Lookback Months cannot be negative (0 = no limit).,Social Lookback Months tidak boleh negatif (0 = tanpa batas).
 Open on platform,Buka di platform
 Not risky,Tidak berisiko
 No public posts found for candidate accounts.,Tidak ada post publik yang ditemukan pada akun kandidat.
@@ -974,7 +973,7 @@ Anonymize third-party mentions,Samarkan sebutan akun pihak ketiga
 "When on, @handles of other people in posts and comments are replaced by @[user]. Off shows the handle as written (public data on the candidate's own consented accounts).","Bila aktif, @username orang lain pada post dan komentar diganti @[user]. Bila nonaktif, username ditampilkan apa adanya (data publik pada akun kandidat yang disetujui)."
 Max Posts Checked for Comments,Maks. Post yang Dicek Komentarnya
 Max Posts Checked for Comments must be at least 1.,Maks. Post yang Dicek Komentarnya minimal 1.
-"Facebook with a crawler account: how many of the candidate's posts that have comments are opened to look for the candidate's own comments. Higher finds more comments but each post adds a few seconds and more activity on the crawler account.","Facebook dengan akun crawler: berapa banyak post kandidat yang punya komentar dibuka untuk mencari komentar kandidat sendiri. Makin tinggi makin banyak komentar ditemukan, tapi tiap post menambah beberapa detik dan aktivitas akun crawler."
+Facebook with a crawler account: how many of the candidate's posts that have comments are opened to look for the candidate's own comments. Higher finds more comments but each post adds a few seconds and more activity on the crawler account.,"Facebook dengan akun crawler: berapa banyak post kandidat yang punya komentar dibuka untuk mencari komentar kandidat sendiri. Makin tinggi makin banyak komentar ditemukan, tapi tiap post menambah beberapa detik dan aktivitas akun crawler."
 No posts found for this platform.,Tidak ada postingan untuk platform ini.
 "No comments written by the candidate were found on this platform. Without a crawler account, platforms do not expose comments.","Tidak ada komentar kandidat di platform ini. Tanpa akun crawler, platform tidak menampilkan komentar."
 A crawl test is already running; showing it.,Uji crawl sedang berjalan; menampilkannya.
