@@ -1465,27 +1465,6 @@ else:
     frappe.db.set_value("Client Script", _FCS, {"script": _FJS, "enabled": 1})
 frappe.db.commit()
 
-# HR Setup: HR Announcement, lalu bagian "Geofence & Office Location" (Geofence Settings, Shift Location). Idempoten.
-if frappe.db.exists("Sidebar", "HR Setup"):
-    from frappe.desk.doctype.custom_sidebar.custom_sidebar import _save_customization, layer_arrangement
-    _GEO = ("Geofence Settings", "Shift Location")
-    _arr = layer_arrangement("HR Setup", None)
-    _anak = [r.get("link_to") for r in _arr if r.get("child") and r.get("link_to") in _GEO]
-    if sorted(_anak) != sorted(_GEO) or not any(r.get("link_to") == "HR Announcement" for r in _arr):
-        _baru = [r for r in _arr if r.get("link_to") not in _GEO + ("HR Announcement",)
-                 and r.get("label") != "Geofence & Office Location"]
-        _grup = [dict(label="HR Announcement", type="Link", link_type="DocType", link_to="HR Announcement",
-                      icon="bell", collapsible=1, child=0, indent=0, added=1),
-                 dict(label="Geofence & Office Location", type="Section Break", icon="map-pin", collapsible=1,
-                      child=0, indent=1, added=1)]
-        for _dt in _GEO:
-            _grup.append(dict(label=_dt, type="Link", link_type="DocType", link_to=_dt, collapsible=1, child=1,
-                              indent=0, added=1))
-        _save_customization("HR Setup", _baru + _grup, None)
-        frappe.db.commit()
-        frappe.clear_cache()
-        log("sidebar HR Setup: HR Announcement dan bagian Geofence & Office Location")
-
 # Karyawan boleh mengunggah foto/selfie ke dokumen pengajuan MILIKNYA (upload_file butuh hak tulis), tetapi semua field lain
 # dikunci di permlevel 1 (hanya HR): status, skor kemiripan, embedding tidak bisa diubah lewat REST.
 for _dt, _attach in (("Profile Change Request", "photo"), ("Face Enrollment", "selfie")):
