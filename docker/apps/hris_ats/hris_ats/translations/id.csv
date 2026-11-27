@@ -4626,3 +4626,609 @@ SLA Paused On,SLA Dijeda pada Status
 Workday,Hari Kerja
 Issue Credit Note,Terbitkan Nota Kredit
 Return Against Delivery Note,Retur atas Nota Pengiriman
+Employee Grade,Golongan Karyawan
+Employee Checkin,Presensi Karyawan
+Shift Assignment,Penugasan Sif
+Timesheets,Lembar Waktu
+Activity Type,Jenis Aktivitas
+Leave Encashment,Penguangan Cuti
+Leave Control Panel,Panel Kendali Cuti
+Leave Block List,Daftar Tanggal Terlarang Cuti
+Employee Onboarding,Orientasi Karyawan Baru
+Employee Separation,Pelepasan Karyawan
+Employee Onboarding Template,Templat Orientasi Karyawan Baru
+Employee Separation Template,Templat Pelepasan Karyawan
+Training,Pelatihan
+Training Program,Program Pelatihan
+Training Event,Acara Pelatihan
+Training Feedback,Umpan Balik Pelatihan
+Training Result,Hasil Pelatihan
+Job Offer,Penawaran Kerja
+Employee Referral,Rujukan Karyawan
+Recruitment Analytics,Analisis Rekrutmen
+Skill,Keterampilan
+Role Permissions,Izin Peran
+User Permissions,Izin Pengguna
+Letter Head,Kop Surat
+Email Account,Akun Surel
+Email Template,Templat Surel
+Data Import,Impor Data
+Rename Tool,Alat Ganti Nama
+Call Log,Catatan Panggilan
+Global Defaults,Pengaturan Bawaan Global
+Stock,Persediaan
+Manufacturing,Produksi
+Subscription,Langganan
+Sales Invoice,Faktur Penjualan
+Payment Entry,Entri Pembayaran
+Journal Entry,Entri Jurnal
+Trial Balance for Party,Neraca Saldo per Pihak
+Profit and Loss,Laba Rugi
+Cash Flow,Arus Kas
+Profitability Analysis,Analisis Profitabilitas
+Taxes,Pajak
+Sales Tax Template,Templat Pajak Penjualan
+Purchase Tax Template,Templat Pajak Pembelian
+Item Tax Template,Templat Pajak Barang
+Tax Rule,Aturan Pajak
+Fiscal Year,Tahun Fiskal
+Payment Terms Template,Templat Ketentuan Pembayaran
+Sales Order,Pesanan Penjualan
+Sales Analytics,Analisis Penjualan
+Gross Profit,Laba Kotor
+Items,Barang
+POS Profile,Profil Kasir
+Sales Person,Tenaga Penjual
+Material Request,Permintaan Bahan
+Request for Quotation,Permintaan Penawaran
+Purchase Receipt,Penerimaan Pembelian
+Purchase Analytics,Analisis Pembelian
+Purchase Register,Daftar Pembelian
+Item Group,Kelompok Barang
+Supplier Group,Kelompok Pemasok
+Stock Ledger,Buku Besar Persediaan
+Stock Ageing,Umur Persediaan
+Pick List,Daftar Pengambilan
+Landed Cost Voucher,Voucer Biaya Perolehan
+Packing Slip,Daftar Kemasan
+Serial No,Nomor Seri
+Batch No,Nomor Lot
+Item Attribute,Atribut Barang
+Production Plan,Rencana Produksi
+Work Order,Perintah Kerja
+Production Analytics,Analisis Produksi
+Job Card Summary,Ringkasan Kartu Kerja
+Routing,Alur Proses
+Project Summary,Ringkasan Proyek
+Daily Timesheet Summary,Ringkasan Lembar Waktu Harian
+Project wise Stock Tracking,Pelacakan Persediaan per Proyek
+Project Type,Jenis Proyek
+Project Template,Templat Proyek
+Asset Movement,Pemindahan Aset
+Asset Maintenance Log,Catatan Pemeliharaan Aset
+Quality,Mutu
+Quality Goal,Sasaran Mutu
+Quality Review,Tinjauan Mutu
+Quality Action,Tindakan Mutu
+Quality Inspection Summary,Ringkasan Inspeksi Mutu
+Review,Tinjauan
+Maintenance Schedules,Jadwal Pemeliharaan
+Quality Meeting,Rapat Mutu
+Quality Feedback,Umpan Balik Mutu
+Quality Inspection Template,Templat Inspeksi Mutu
+Home,Beranda
+Sales Funnel,Corong Penjualan
+Prospects Engaged But Not Converted,Prospek yang Dihubungi tetapi Belum Menjadi Pelanggan
+Warranty Claim,Klaim Garansi
+Sales Pipeline,Alur Penjualan
+Email Campaign,Kampanye Surel
+SMS Log,Catatan SMS
+Sales Stage,Tahap Penjualan
+Issue,Masalah
+Issue Type,Jenis Masalah
+Service Level Agreement,Perjanjian Tingkat Layanan
+Salutation,Sapaan
+Left,Sudah Keluar
+User Details,Rincian Pengguna
+Address & Contacts,Alamat dan Kontak
+Spouse,Suami/Istri
+To Date,Sampai Tanggal
+Is Group,Kelompok
+Department Approver,Penyetuju Departemen
+Designation Skill,Keterampilan Jabatan
+Employee Group Table,Tabel Kelompok Karyawan
+HR Settings,Pengaturan SDM
+Expenses,Pengeluaran
+Attendance Marked,Kehadiran Sudah Ditandai
+Details,Rincian
+In Time,Waktu Masuk
+Late Entry,Terlambat Masuk
+Early Exit,Pulang Awal
+Amended From,Diubah Dari
+Get Employees,Ambil Karyawan
+Pink,Merah Muda
+Submitted,Diajukan
+From Time,Waktu Mulai
+Expected Hrs,Perkiraan Jam
+To Time,Waktu Selesai
+Posting Date,Tanggal Pembukuan
+Reference Document,Dokumen Acuan
+Delegate,Delegasikan
+Identification Document Type,Jenis Dokumen Identitas
+Travel Itinerary,Rencana Perjalanan
+Cost Center,Pusat Biaya
+Expense Account,Akun Beban
+Payable Account,Akun Utang
+Currency,Mata Uang
+Paid Amount,Jumlah Dibayar
+Payroll,Penggajian
+Unpaid,Belum Dibayar
+Is Earned Leave,Cuti Perolehan
+Half-Yearly,Setengah Tahunan
+Leave Policy Detail,Rincian Kebijakan Cuti
+Leave Block List Date,Tanggal Terlarang Cuti
+Leave Block List Allow,Pengguna yang Dikecualikan dari Larangan Cuti
+In Progress,Sedang Berlangsung
+Not Started,Belum Dimulai
+Appraisal Goal,Sasaran Penilaian
+Rating,Peringkat
+Employee Property History,Riwayat Data Karyawan
+Property,Data
+Appraisal Template Goal,Sasaran Templat Penilaian
+Employee Boarding Activity,Kegiatan Orientasi Karyawan
+Employee Training,Pelatihan Karyawan
+Training Event Employee,Peserta Acara Pelatihan
+Training Result Employee,Hasil Pelatihan Karyawan
+Resume,Resume
+Offer Term,Ketentuan Penawaran
+Terms and Conditions,Syarat dan Ketentuan
+Template Title,Judul Templat
+Job Description,Deskripsi Pekerjaan
+Staffing Plan Detail,Rincian Rencana Kepegawaian
+Default Letter Head,Kop Surat Bawaan
+Tax ID,Nomor Pajak
+Address & Contact,Alamat dan Kontak
+Allow Account Creation Against Child Company,Izinkan Pembuatan Akun pada Anak Perusahaan
+Round Off,Pembulatan
+Daily,Harian
+Accounts Frozen Till Date,Akun Dibekukan Sampai Tanggal
+Stock Received But Not Billed,Persediaan Diterima tetapi Belum Ditagih
+Time Zone,Zona Waktu
+Send Welcome Email,Kirim Surel Selamat Datang
+Roles & Permissions,Peran dan Izin
+Roles,Peran
+Desk Settings,Pengaturan Meja Kerja
+Desk Theme,Tema Meja Kerja
+Send Notifications For Email Threads,Kirim Pemberitahuan untuk Utas Surel
+Send Me A Copy of Outgoing Emails,Kirimi Saya Salinan Surel Keluar
+Send Read Receipt,Kirim Tanda Terima Baca
+User Emails,Surel Pengguna
+User Email,Surel Pengguna
+Simultaneous Sessions,Sesi Bersamaan
+User Type,Jenis Pengguna
+Social Logins,Masuk dengan Akun Sosial
+User Social Login,Akun Sosial Pengguna
+Is Current,Sesi Saat Ini
+Desk Access,Akses Meja Kerja
+User Permission,Izin Pengguna
+Allow,Izinkan
+Is Default,Jadikan Bawaan
+Advanced Control,Kendali Lanjutan
+Apply To All Document Types,Terapkan pada Semua Jenis Dokumen
+Grand Total,Total Akhir
+Footer Based On,Kaki Halaman Berdasarkan
+Right,Kanan
+Footer HTML,HTML Kaki Halaman
+Footer will display correctly only in PDF,Kaki halaman hanya tampil dengan benar pada PDF
+Footer Image,Gambar Kaki Halaman
+Header Script,Skrip Kepala Halaman
+Footer Script,Skrip Kaki Halaman
+DocType,DocType
+Hide,Sembunyikan
+Repeat Header and Footer,Ulangi Kepala dan Kaki Halaman
+Legal,Legal
+Compact Item Print,Cetak Barang Ringkas
+Print UOM after Quantity,Cetak Satuan setelah Jumlah
+Allow Print for Draft,Izinkan Cetak Draf
+Allow Print for Cancelled,Izinkan Cetak Dokumen Batal
+Print Style Preview,Pratinjau Gaya Cetak
+Fonts,Fon
+Font Size,Ukuran Fon
+Email Account Name,Nama Akun Surel
+Enable Incoming,Aktifkan Surel Masuk
+Authentication,Autentikasi
+Validate Frappe Mail Settings,Validasi Pengaturan Frappe Mail
+Default Incoming,Surel Masuk Bawaan
+Email Sync Option,Opsi Sinkronisasi Surel
+Total number of emails to sync in initial sync process,Jumlah surel yang disinkronkan pada sinkronisasi awal
+Append Emails to Sent Folder,Tambahkan Surel ke Folder Terkirim
+"Append as communication against this DocType (must have fields: ""Sender"" and ""Subject""). These fields can be defined in the email settings section of the appended doctype.","Tambahkan sebagai komunikasi pada DocType ini (harus memiliki kolom ""Sender"" dan ""Subject""). Kolom tersebut dapat ditentukan pada bagian pengaturan surel DocType yang ditambahkan."
+Create Contacts from Incoming Emails,Buat Kontak dari Surel Masuk
+Notify if unreplied,Beri tahu jika belum dibalas
+Notify if unreplied for (in mins),Beri tahu jika belum dibalas selama (menit)
+Send Notification to,Kirim Pemberitahuan ke
+"List of email addresses, separated by comma or new line.","Daftar alamat surel, dipisahkan koma atau baris baru."
+Default Outgoing,Surel Keluar Bawaan
+Notifications and bulk mails will be sent from this outgoing server.,Pemberitahuan dan surel massal dikirim dari server keluar ini.
+Send unsubscribe message in email,Kirim pesan berhenti berlangganan pada surel
+Track Email Status,Lacak Status Surel
+"Track if your email has been opened by the recipient.
+<br>
+Note: If you're sending to multiple recipients, even if 1 recipient reads the email, it'll be considered ""Opened""","Lacak apakah surel Anda sudah dibuka penerima.
+<br>
+Catatan: jika dikirim ke beberapa penerima, surel dianggap ""Opened"" meskipun hanya 1 penerima yang membacanya"
+Addresses added here will be used as the Reply-To header for outgoing emails sent from this account.,Alamat yang ditambahkan di sini dipakai sebagai header Reply-To untuk surel keluar dari akun ini.
+"Use this, for example, if all sent emails should also be send to an archive.","Gunakan ini, misalnya, jika semua surel terkirim juga harus dikirim ke arsip."
+Add Signature,Tambahkan Tanda Tangan
+Open Projects,Proyek Terbuka
+Open Notifications,Pemberitahuan Terbuka
+Import Type,Jenis Impor
+Submit After Import,Ajukan setelah Impor
+Don't Send Emails,Jangan Kirim Surel
+Import File Errors and Warnings,Galat dan Peringatan Berkas Impor
+Preview,Pratinjau
+Import Log,Catatan Impor
+Import Log Preview,Pratinjau Catatan Impor
+Error Log,Catatan Galat
+Agent Group,Kelompok Agen
+To,Kepada
+Ringing,Berdering
+Link Document Type,Jenis Dokumen Tautan
+Number Format,Format Angka
+First Day of the Week,Hari Pertama dalam Seminggu
+Float Precision,Presisi Desimal
+Currency Precision,Presisi Mata Uang
+Commercial Rounding,Pembulatan Niaga
+Permissions,Izin
+Disable Username/Password Login,Nonaktifkan masuk dengan nama pengguna/kata sandi
+Allow Login using Mobile Number,Izinkan Masuk dengan Nomor Ponsel
+User can login using Email id or Mobile number,Pengguna dapat masuk dengan alamat surel atau nomor ponsel
+Allow Login using User Name,Izinkan Masuk dengan Nama Pengguna
+User can login using Email id or User Name,Pengguna dapat masuk dengan alamat surel atau nama pengguna
+Brute Force Security,Pengamanan Serangan Brute Force
+Allow Login After Fail,Izinkan Masuk setelah Gagal
+Enable Two Factor Auth,Aktifkan Autentikasi Dua Faktor
+Logout All Sessions on Password Reset,Keluarkan semua sesi saat kata sandi diatur ulang
+Password Reset Link Generation Limit,Batas Pembuatan Tautan Atur Ulang Kata Sandi
+Email Footer Address,Alamat pada Kaki Surel
+Your organization name and address for the email footer.,Nama dan alamat organisasi Anda untuk kaki surel.
+Disable Standard Email Footer,Nonaktifkan kaki surel standar
+Hide footer in auto email reports,Sembunyikan kaki pada laporan surel otomatis
+Welcome Email Template,Templat Surel Selamat Datang
+Allow Guests to Upload Files,Izinkan Tamu Mengunggah Berkas
+Only allow System Managers to upload public files,Hanya System Manager yang boleh mengunggah berkas publik
+Allowed File Extensions,Ekstensi Berkas yang Diizinkan
+Hide Empty Read-Only Fields,Sembunyikan Kolom Hanya Baca yang Kosong
+Number of Backups,Jumlah Cadangan
+Encrypt Backups,Enkripsi Cadangan
+Run Jobs only Daily if Inactive For (Days),Jalankan tugas hanya harian jika tidak aktif selama (hari)
+Show Full Error and Allow Reporting of Issues to the Developer,Tampilkan galat lengkap dan izinkan pelaporan masalah ke pengembang
+Allow Clearing Link Fields,Izinkan Pengosongan Kolom Tautan
+"Adds a clear (×) button to Link fields, allowing users to quickly remove the selected value.",Menambahkan tombol hapus (×) pada kolom tautan agar nilai terpilih cepat dikosongkan.
+Accounts Settings,Pengaturan Akuntansi
+Stop,Hentikan
+Payments,Pembayaran
+Doctype,DocType
+Payment Request,Permintaan Pembayaran
+Pricing,Penetapan Harga
+Defaults,Nilai Bawaan
+Supplier Name,Nama Pemasok
+Item Code,Kode Barang
+Rate,Tarif
+Serial & Batch Item,Barang Bernomor Seri dan Berlot
+Manufacturing Settings,Pengaturan Produksi
+Update BOM Cost Automatically,Perbarui Biaya Daftar Bahan Otomatis
+Issues,Masalah
+Support Search Source,Sumber Pencarian Dukungan
+POS Field,Kolom Kasir
+Fieldname,Nama Kolom
+Fieldtype,Jenis Kolom
+Field,Kolom
+Item Variant Settings,Pengaturan Varian Barang
+Variant Field,Kolom Varian
+Field Name,Nama Kolom
+Root Type,Jenis Akar
+Liability,Liabilitas
+Income,Pendapatan
+Expense,Beban
+Report Type,Jenis Laporan
+Account Type,Jenis Akun
+Capital Work in Progress,Pekerjaan Modal dalam Pelaksanaan
+Expenses Included In Asset Valuation,Beban Termasuk dalam Penilaian Aset
+Expenses Included In Valuation,Beban Termasuk dalam Penilaian
+Fixed Asset,Aset Tetap
+Income Account,Akun Pendapatan
+Payable,Utang
+Tax,Pajak
+Debit,Debit
+Tax Id,Nomor Pajak
+Posting Time,Waktu Pembukuan
+Edit Posting Date and Time,Ubah Tanggal dan Waktu Pembukuan
+Source Warehouse,Gudang Asal
+Sales Invoice Item,Barang Faktur Penjualan
+Item Name,Nama Barang
+Quantity,Jumlah
+Stock UOM,Satuan Persediaan
+UOM Conversion Factor,Faktor Konversi Satuan
+Accounting Details,Rincian Akuntansi
+Delivered Qty,Jumlah Terkirim
+POS Invoice Item,Barang Faktur POS
+Internal Transfer,Pemindahan Internal
+Purchase Order Item,Barang Pesanan Pembelian
+Total Quantity,Total Jumlah
+Net Total,Total Neto
+Sales Taxes and Charges,Pajak dan Biaya Penjualan
+Account Head,Pos Akun
+Rounded Total,Total Dibulatkan
+Outstanding Amount,Jumlah Belum Dibayar
+Party Type,Jenis Pihak
+Lower Deduction Certificate,Surat Keterangan Pemotongan Lebih Rendah
+Pricing Rule Detail,Rincian Aturan Harga
+Packed Item,Barang Terkemas
+Conversion Factor,Faktor Konversi
+Qty,Jumlah
+Actual Qty,Jumlah Aktual
+Projected Qty,Proyeksi Jumlah
+Ordered Qty,Jumlah Dipesan
+Requested Qty,Jumlah Diminta
+Incoming Rate,Tarif Masuk
+Sales Invoice Timesheet,Lembar Waktu Faktur Penjualan
+Reference Type,Jenis Referensi
+Reference Name,Nama Referensi
+Exchange Gain/Loss,Laba/Rugi Selisih Kurs
+Write Off,Penghapusbukuan
+Loyalty Program,Program Loyalitas
+Payment Terms,Ketentuan Pembayaran
+Payment Schedule,Jadwal Pembayaran
+Payment Term,Termin Pembayaran
+Invoice Portion,Porsi Faktur
+Payment Amount,Jumlah Pembayaran
+Total Commission,Total Komisi
+Overdue,Lewat Jatuh Tempo
+Supplier Invoice No,Nomor Faktur Pemasok
+Supplier Invoice Date,Tanggal Faktur Pemasok
+Purchase Invoice Item,Barang Faktur Pembelian
+Product Bundle,Paket Produk
+Received Qty,Jumlah Diterima
+Accepted Qty,Jumlah Disetujui
+Accepted Qty in Stock UOM,Jumlah Disetujui dalam Satuan Persediaan
+Accepted Warehouse,Gudang Penerima
+Add Serial / Batch No,Tambah Nomor Seri / Lot
+Manufacture,Produksi
+Manufacturer,Pabrikan
+Manufacturer Part Number,Nomor Suku Cadang Pabrikan
+Include Exploded Items,Sertakan Barang Terurai
+Purchase Taxes and Charges,Pajak dan Biaya Pembelian
+Add or Deduct,Tambah atau Kurangi
+Purchase Receipt Item Supplied,Barang Dipasok Penerimaan Pembelian
+Current Stock,Persediaan Saat Ini
+Allocated Amount,Jumlah Dialokasikan
+Release Date,Tanggal Pelepasan
+Reason For Putting On Hold,Alasan Penahanan
+Party Name,Nama Pihak
+Payment Entry Reference,Referensi Entri Pembayaran
+Unallocated Amount,Jumlah Belum Dialokasikan
+Add Or Deduct,Tambah atau Kurangi
+Payment Entry Deduction,Potongan Entri Pembayaran
+Cheque/Reference No,Nomor Cek/Referensi
+Cheque/Reference Date,Tanggal Cek/Referensi
+Depreciation Entry,Entri Penyusutan
+Exchange Rate Revaluation,Revaluasi Kurs
+Multi Currency,Multimata Uang
+Journal Entry Account,Akun Entri Jurnal
+Invoice Discounting,Pendiskontoan Faktur
+Reference Number,Nomor Referensi
+Process Deferred Accounting,Proses Akuntansi Tangguhan
+Remark,Keterangan
+Account Subtype,Subjenis Akun
+Account Details,Rincian Akun
+Include POS Transactions,Sertakan Transaksi Kasir
+Tax Withholding Rate,Tarif Pemotongan Pajak
+To Fiscal Year,Sampai Tahun Fiskal
+(Purchase Order + Material Request + Actual Expense),(Pesanan Pembelian + Permintaan Bahan + Pengeluaran Aktual)
+Monthly Distribution Percentage,Persentase Distribusi Bulanan
+Reference Document Type,Jenis Dokumen Referensi
+Accounting Dimension Detail,Rincian Dimensi Akuntansi
+Opening Balance,Saldo Awal
+Closing Balance,Saldo Akhir
+Mode of Payment Account,Akun Cara Pembayaran
+Payment Terms Template Detail,Rincian Templat Ketentuan Pembayaran
+Individual,Perorangan
+Party Account,Akun Pihak
+Allowed To Transact With,Diizinkan Bertransaksi dengan
+Valid Till,Berlaku Sampai
+Order Type,Jenis Pesanan
+Quotation Item,Barang Penawaran
+Valuation Rate,Tarif Penilaian
+Blanket Order,Pesanan Payung
+Lost Reasons,Alasan Kalah
+Quotation Lost Reason Detail,Rincian Alasan Penawaran Kalah
+Quotation Lost Reason,Alasan Penawaran Kalah
+Delivery Date,Tanggal Pengiriman
+Sales Order Item,Barang Pesanan Penjualan
+Finished Good,Barang Jadi
+BOM No,Nomor Daftar Bahan
+Returned Qty,Jumlah Diretur
+Material Request Item,Barang Permintaan Bahan
+To Deliver and Bill,Belum Dikirim dan Ditagih
+To Bill,Belum Ditagih
+To Deliver,Belum Dikirim
+% of materials billed against this Sales Order,% bahan yang sudah ditagih atas pesanan penjualan ini
+% Picked,% Diambil
+Delivery Note Item,Barang Nota Pengiriman
+Available Qty,Jumlah Tersedia
+% Returned,% Diretur
+Item Default,Nilai Bawaan Barang
+Default Discount Account,Akun Diskon Bawaan
+Default Buying Cost Center,Pusat Biaya Pembelian Bawaan
+Default Supplier,Pemasok Bawaan
+Default Expense Account,Akun Beban Bawaan
+Default Selling Cost Center,Pusat Biaya Penjualan Bawaan
+UOM Conversion Detail,Rincian Konversi Satuan
+Item Tax,Pajak Barang
+Valuation Method,Metode Penilaian
+Material Transfer,Pemindahan Bahan
+"Example: ABCD.#####. If series is set and Batch No is not mentioned in transactions, then automatic batch number will be created based on this series. If you always want to explicitly mention Batch No for this item, leave this blank. Note: this setting will take priority over the Naming Series Prefix in Stock Settings.","Contoh: ABCD.#####. Jika seri diatur dan nomor lot tidak disebut pada transaksi, nomor lot otomatis dibuat dari seri ini."
+Purchasing,Pembelian
+Safety Stock,Persediaan Pengaman
+Last Purchase Rate,Tarif Pembelian Terakhir
+Item Prices,Harga Barang
+Pricing Rule Item Code,Kode Barang Aturan Harga
+Pricing Rule Item Group,Kelompok Barang Aturan Harga
+Advanced Settings,Pengaturan Lanjutan
+Help Article,Artikel Bantuan
+POS Payment Method,Cara Pembayaran Kasir
+POS Profile User,Pengguna Profil Kasir
+POS Item Group,Kelompok Barang Kasir
+POS Customer Group,Kelompok Pelanggan Kasir
+Target Detail,Rincian Target
+Transaction Date,Tanggal Transaksi
+Required By,Diperlukan oleh
+Target Warehouse,Gudang Tujuan
+Material Request Plan Item,Barang Rencana Permintaan Bahan
+Reorder Level,Titik Pemesanan Ulang
+Reorder Qty,Jumlah Pemesanan Ulang
+Partially Received,Diterima Sebagian
+In Transit,Dalam Perjalanan
+Request for Quotation Supplier,Pemasok Permintaan Penawaran
+Request for Quotation Item,Barang Permintaan Penawaran
+Preview Email,Pratinjau Surel
+Supplier Quotation Item,Barang Penawaran Pemasok
+Expected Delivery Date,Perkiraan Tanggal Pengiriman
+Customer Contact,Kontak Pelanggan
+To Receive and Bill,Belum Diterima dan Ditagih
+To Receive,Belum Diterima
+Purchase Order Item Supplied,Barang Dipasok Pesanan Pembelian
+Required Qty,Jumlah Dibutuhkan
+Supplied Qty,Jumlah Dipasok
+Consumed Qty,Jumlah Dipakai
+Purchase Receipt Item,Barang Penerimaan Pembelian
+Accepted Quantity,Jumlah Disetujui
+Add Serial / Batch No (Rejected Qty),Tambah Nomor Seri / Lot (Jumlah Ditolak)
+Subcontract BOM,Daftar Bahan Subkontrak
+Supplier Scorecard Scoring Standing,Peringkat Penilaian Kartu Nilai Pemasok
+Supplier Scorecard Scoring Criteria,Kriteria Penilaian Kartu Nilai Pemasok
+Parent Warehouse,Gudang Induk
+State/Province,Provinsi
+Stock Entry Type,Jenis Entri Persediaan
+Add to Transit,Tambahkan ke Transit
+Inspection Required,Wajib Inspeksi
+BOM Info,Informasi Daftar Bahan
+Get Items,Ambil Barang
+% Process Loss,% Susut Proses
+Subcontracted Item,Barang Disubkontrakkan
+Transferred Qty,Jumlah Dipindahkan
+Landed Cost Taxes and Charges,Pajak dan Biaya Perolehan
+Opening Stock,Persediaan Awal
+Serial No and Batch,Nomor Seri dan Lot
+Pick List Item,Barang Daftar Pengambilan
+% of materials delivered against this Pick List,% bahan yang sudah dikirim pada daftar pengambilan ini
+Landed Cost Purchase Receipt,Penerimaan Pembelian Biaya Perolehan
+Landed Cost Item,Barang Biaya Perolehan
+Inspection Type,Jenis Inspeksi
+Acceptance Criteria Formula,Rumus Kriteria Penerimaan
+Packing Slip Item,Barang Daftar Kemasan
+AMC Expiry Date,Tanggal Akhir Kontrak Pemeliharaan
+Qty To Produce,Jumlah yang Akan Diproduksi
+Produced Qty,Jumlah Diproduksi
+Voucher No,Nomor Voucer
+Total Qty,Total Jumlah
+Item Attribute Value,Nilai Atribut Barang
+Must be Whole Number,Harus Bilangan Bulat
+Production Item,Barang Produksi
+WIP Warehouse,Gudang Barang dalam Proses
+Batch Size,Ukuran Lot
+BOM Item,Barang Daftar Bahan
+Process Loss %,% Susut Proses
+Conversion Rate,Kurs Konversi
+BOM Explosion Item,Barang Terurai Daftar Bahan
+Get Items From,Ambil Barang Dari
+Sales Orders,Pesanan Penjualan
+Production Plan Sales Order,Pesanan Penjualan Rencana Produksi
+Production Plan Material Request,Permintaan Bahan Rencana Produksi
+Material Request Date,Tanggal Permintaan Bahan
+Select Items to Manufacture,Pilih Barang yang Diproduksi
+Production Plan Item,Barang Rencana Produksi
+Planned Qty,Jumlah Direncanakan
+Planned Start Date,Rencana Tanggal Mulai
+Pending Qty,Jumlah Tertunda
+Product Bundle Item,Barang Paket Produk
+Subcontract,Subkontrak
+Qty to Order,Jumlah yang Akan Dipesan
+Schedule Date,Tanggal Jadwal
+Raw Materials,Bahan Baku
+Qty To Manufacture,Jumlah yang Akan Diproduksi
+Manufactured Qty,Jumlah Diproduksi
+Work Order Operation,Operasi Perintah Kerja
+Work Order Item,Barang Perintah Kerja
+Planned End Date,Rencana Tanggal Selesai
+Manufacture against Material Request,Produksi Berdasarkan Permintaan Bahan
+Job Card Time Log,Catatan Waktu Kartu Kerja
+Job Card Item,Barang Kartu Kerja
+Expected Start Date,Perkiraan Tanggal Mulai
+Expected End Date,Perkiraan Tanggal Selesai
+Complete,Selesaikan
+Pause,Jeda
+Work In Progress,Sedang Dikerjakan
+Add Serial / Batch Bundle,Tambah Paket Nomor Seri / Lot
+Billed Qty,Jumlah Ditagih
+Finished Good Item Code,Kode Barang Jadi
+Stop Reason,Alasan Berhenti
+Workstation Dashboard,Dasbor Stasiun Kerja
+Workstation Working Hour,Jam Kerja Stasiun Kerja
+Is Corrective Operation,Operasi Korektif
+% Complete Method,Metode % Penyelesaian
+Estimated Cost,Perkiraan Biaya
+Project User,Pengguna Proyek
+Welcome email sent,Surel selamat datang terkirim
+Project Status,Status Proyek
+% Progress,% Kemajuan
+Dependencies,Ketergantungan
+Task Depends On,Tugas Bergantung Pada
+Project Template Task,Tugas Templat Proyek
+Opening Accumulated Depreciation,Akumulasi Penyusutan Awal
+Partially Depreciated,Disusutkan Sebagian
+Fully Depreciated,Disusutkan Penuh
+Scrapped,Dihapuskan
+In Maintenance,Dalam Pemeliharaan
+Out of Order,Rusak
+Depreciation Amount,Jumlah Penyusutan
+Asset Movement Item,Barang Pemindahan Aset
+Periodicity,Periodisitas
+Half-yearly,Setengah Tahunan
+Completion Date,Tanggal Penyelesaian
+Quality Goal Objective,Sasaran Tujuan Mutu
+Quality Review Objective,Sasaran Tinjauan Mutu
+Quality Action Resolution,Penyelesaian Tindakan Mutu
+Quality Meeting Agenda,Agenda Rapat Mutu
+Quality Meeting Minutes,Notula Rapat Mutu
+Document Name,Nama Dokumen
+Maintenance Schedule Item,Barang Jadwal Pemeliharaan
+Maintenance Schedule Detail,Rincian Jadwal Pemeliharaan
+Scheduled Date,Tanggal Terjadwal
+Maintenance Visit Purpose,Tujuan Kunjungan Pemeliharaan
+Item Quality Inspection Parameter,Parameter Inspeksi Mutu Barang
+Quality Feedback Template,Templat Umpan Balik Mutu
+Quality Feedback Parameter,Parameter Umpan Balik Mutu
+Quality Feedback Template Parameter,Parameter Templat Umpan Balik Mutu
+Lost Quotation,Penawaran Kalah
+Opportunity Type,Jenis Peluang
+First Response Time,Waktu Tanggapan Pertama
+Opportunity Lost Reason Detail,Rincian Alasan Peluang Kalah
+Opportunity Lost Reason,Alasan Peluang Kalah
+Opportunity Item,Barang Peluang
+Contract Template,Templat Kontrak
+Send After,Kirim Setelah
+Communication Date,Tanggal Komunikasi
+Email Status,Status Surel
+Campaign Email Schedule,Jadwal Surel Kampanye
+All Sales Person,Semua Tenaga Penjual
+Total Subscribers,Total Pelanggan Terdaftar
+Sign Up and Confirmation,Pendaftaran dan Konfirmasi
+Confirmation Email Template,Templat Surel Konfirmasi
+Contact Details,Rincian Kontak
+Contact Phone,Telepon Kontak
+SMS Gateway URL,URL Gerbang SMS
+Has Role,Memiliki Peran
+Reset Service Level Agreement,Atur Ulang Perjanjian Tingkat Layanan
+blue,biru
