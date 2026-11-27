@@ -139,7 +139,7 @@ export function AnimatedSplash({ onDone }: { onDone: () => void }) {
   const isCheckingStage = stage === "cek" && isTenantReady;
   const handleExitSplash = useEffectEvent(exitSplash);
   const handleStartDownload = useEffectEvent(startDownload);
-  // Belum ada company: langsung ke layar kode company; layar ini diputar lagi setelah kode dipilih.
+  // Belum ada company: cek pembaruan JavaScript saja, lalu ke layar kode; layar ini diputar lagi setelah kode dipilih.
   const readTenant = useEffectEvent(() => tenant);
   const refreshTenant = useEffectEvent(segarkan);
   useEffect(() => {
@@ -153,7 +153,11 @@ export function AnimatedSplash({ onDone }: { onDone: () => void }) {
     }).start();
     (async () => {
       const company = readTenant();
-      if (!company) return handleExitSplash();
+      if (!company) {
+        // Layar kode perusahaan juga harus memakai versi terbaru; tanpa company dipakai channel bawaan build.
+        await checkAndApplyOta(() => setStage("ota"));
+        return handleExitSplash();
+      }
       await refreshTenant(); // paket/fitur terbaru; kode yang dicabut mengembalikan ke layar kode
       const baru = await checkAppUpdate();
       if (isCancelled) return;
