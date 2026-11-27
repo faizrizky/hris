@@ -125,6 +125,36 @@ export function translateNotification(
     title = "Koreksi absensimu ditolak";
   }
 
+  const fixed: Record<string, string> = {
+    "Your shift request was approved": "Pengajuan sifmu disetujui",
+    "Your shift request was rejected": "Pengajuan sifmu ditolak",
+    "Your leave encashment was approved": "Pencairan cutimu disetujui",
+    "Your promotion has been recorded": "Promosimu sudah dicatat",
+    "Your separation process has started":
+      "Proses pemberhentianmu sudah dimulai",
+    "Your exit interview is scheduled": "Exit interview-mu sudah dijadwalkan",
+    "A new grievance is waiting for review": "Pengaduan baru menunggu ditinjau",
+    "Your grievance is now open": "Pengaduanmu dibuka kembali",
+    "Your grievance is now investigated": "Pengaduanmu sedang diselidiki",
+    "Your grievance is now resolved": "Pengaduanmu sudah diselesaikan",
+    "Your grievance is now invalid": "Pengaduanmu dinyatakan tidak valid",
+    "Your grievance is now cancelled": "Pengaduanmu dibatalkan",
+  };
+  if (fixed[subject]) title = fixed[subject];
+  else if (
+    (m = subject.match(
+      /^Shift request from (.+) is waiting for your approval$/,
+    ))
+  ) {
+    title = `Pengajuan sif ${m[1]} menunggu persetujuanmu`;
+  } else if (
+    (m = subject.match(/^Leave encashment from (.+) is waiting for review$/))
+  ) {
+    title = `Pencairan cuti ${m[1]} menunggu ditinjau`;
+  } else if ((m = subject.match(/^You are enrolled in training: (.+)$/))) {
+    title = `Kamu terdaftar di pelatihan: ${m[1]}`;
+  }
+
   let content = body;
   const leave = body.match(/^(Annual Leave|Sick Leave): (\S+) to (\S+)$/);
   if (leave) {

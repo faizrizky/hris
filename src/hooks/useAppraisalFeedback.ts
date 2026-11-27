@@ -13,9 +13,10 @@ export function useAppraisalFeedback({ navigation, route }: ScreenProps) {
   const t = useT();
   const c = useTheme();
   const confirm = useConfirm();
-  const { employeeId, employeeName } = getRouteParams<{
+  const { employeeId, employeeName, isSelf } = getRouteParams<{
     employeeId: string;
     employeeName: string;
+    isSelf?: boolean; // penilaian diri: disimpan ke Appraisal, bisa diubah sampai difinalkan HR
   }>(route);
   const triggerRef = useRef<View>(null);
   const [form, setForm] = useState<FeedbackForm | null>(null);
@@ -97,6 +98,7 @@ export function useAppraisalFeedback({ navigation, route }: ScreenProps) {
   };
   return {
     employeeName,
+    isSelf,
     triggerRef,
     form,
     loadError,

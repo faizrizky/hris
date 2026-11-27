@@ -32,6 +32,7 @@ const STEPS = 0.5;
 export function AppraisalFeedbackScreen({ navigation, route }: ScreenProps) {
   const {
     employeeName,
+    isSelf,
     triggerRef,
     form,
     loadError,
@@ -64,7 +65,9 @@ export function AppraisalFeedbackScreen({ navigation, route }: ScreenProps) {
         <Text style={styles.headerTitle} numberOfLines={1}>
           {employeeName}
         </Text>
-        <Text style={styles.headerSub}>{form?.cycle ?? t("fb.judul")}</Text>
+        <Text style={styles.headerSub}>
+          {form?.cycle ?? t(isSelf ? "fb.diriJudul" : "fb.judul")}
+        </Text>
       </View>
     </View>
   );
@@ -120,7 +123,7 @@ export function AppraisalFeedbackScreen({ navigation, route }: ScreenProps) {
               {isSubmitted
                 ? t("fb.sudahTerkirim")
                 : form.mine
-                  ? t("fb.draftTersimpan")
+                  ? t(isSelf ? "fb.diriTersimpan" : "fb.draftTersimpan")
                   : t("fb.belumDinilai")}
             </Text>
           </LinearGradient>
@@ -212,18 +215,20 @@ export function AppraisalFeedbackScreen({ navigation, route }: ScreenProps) {
 
       {!isSubmitted && (
         <View style={[styles.actionBar, { paddingBottom: insets.bottom + 14 }]}>
-          <Pressable
-            style={styles.draftBtn}
-            disabled={isSending}
-            onPress={() => save(false)}
-          >
-            <Text style={styles.draftText}>{t("fb.simpanDraft")}</Text>
-          </Pressable>
+          {isSelf ? null : (
+            <Pressable
+              style={styles.draftBtn}
+              disabled={isSending}
+              onPress={() => save(false)}
+            >
+              <Text style={styles.draftText}>{t("fb.simpanDraft")}</Text>
+            </Pressable>
+          )}
           <Pressable
             ref={triggerRef}
             style={{ flex: 2 }}
             disabled={isSending}
-            onPress={() => save(true)}
+            onPress={() => save(!isSelf)}
           >
             <LinearGradient
               colors={[c.accent, c.accent2]}
@@ -232,7 +237,9 @@ export function AppraisalFeedbackScreen({ navigation, route }: ScreenProps) {
               style={styles.sendBtn}
             >
               <Text style={styles.sendText}>
-                {isSending ? t("umum.memproses") : t("fb.kirim")}
+                {isSending
+                  ? t("umum.memproses")
+                  : t(isSelf ? "fb.diriSimpan" : "fb.kirim")}
               </Text>
             </LinearGradient>
           </Pressable>

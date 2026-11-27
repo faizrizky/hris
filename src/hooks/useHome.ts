@@ -14,10 +14,19 @@ import {
 } from "@/services/types";
 import { describeError } from "@/services/api/http";
 import { useConfirm } from "@/components/ConfirmDialog";
+import { isTourSeen } from "@/components/Tour";
 
-export let hasShownFaceReminder = false;
+// Pengingat kelengkapan muncul sekali per akun setiap aplikasi dibuka.
+let remindedEmployeeId: string | null = null;
 
-export let hasShownDeviceReminder = false;
+const FACE_REMINDERS = {
+  none: { title: "fe.belumJudul", message: "fe.belumIsi" },
+  rejected: { title: "fe.ditolakJudul", message: "fe.ditolakIsi" },
+  needs_reenroll: {
+    title: "fe.pengingatJudul",
+    message: "fe.perluDaftarUlang",
+  },
+} as const;
 
 export function useHome() {
   const t = useT();
@@ -31,6 +40,47 @@ export function useHome() {
   const [history, setHistory] = useState<AttendanceRecord[] | null>(null);
   const [employment, setEmployment] = useState<EmploymentSlice[] | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [canStartTour, setCanStartTour] = useState(false);
+  // Berurutan: dua dialog sekaligus saling membatalkan. Perangkat baru yang sudah terdaftar mendapat tutorial dulu;
+  // pengingat wajah menyusul saat Beranda dibuka lagi.
+  const remind = useCallback(
+    async (employeeId: string) => {
+      remindedEmployeeId = employeeId;
+      try {
+        const device = await hrisApi.registerDevice();
+        if (device.status === "Approved" && !(await isTourSeen())) {
+          remindedEmployeeId = null;
+          setCanStartTour(true);
+          return;
+        }
+        if (device.status === "Pending" || device.status === "Rejected") {
+          await confirm({
+            title: t("dv.judul"),
+            message: t(
+              device.status === "Pending" ? "dv.menunggu" : "dv.ditolak",
+            ),
+            tone: "warn",
+            confirmText: t("dv.ok"),
+            cancelText: null,
+          });
+        }
+        const face = await hrisApi.getFaceStatus();
+        if (face.state === "active" || face.state === "pending") return;
+        const text = FACE_REMINDERS[face.state];
+        const isOpen = await confirm({
+          title: t(text.title),
+          message: t(text.message, { tgl: face.graceUntil ?? "-" }),
+          tone: "warn",
+          confirmText: t("fe.daftarSekarang"),
+          cancelText: t("fe.nanti"),
+        });
+        if (isOpen) navigation.navigate("Profil", { screen: "FaceEnroll" });
+      } catch {
+        remindedEmployeeId = null; // gagal jaringan: coba lagi pada fokus berikutnya
+      }
+    },
+    [confirm, t, navigation],
+  );
   const load = useCallback(() => {
     if (!employee) return;
     setErrorMessage(null);
@@ -57,40 +107,8 @@ export function useHome() {
         },
       )
       .catch((e) => setErrorMessage(describeError(e)));
-    if (!hasShownDeviceReminder) {
-      hrisApi
-        .registerDevice()
-        .then((d) => {
-          if (d.status !== "Pending" && d.status !== "Rejected") return;
-          hasShownDeviceReminder = true;
-          confirm({
-            title: t("dv.judul"),
-            message: t(d.status === "Pending" ? "dv.menunggu" : "dv.ditolak"),
-            tone: "warn",
-            confirmText: t("dv.ok"),
-            cancelText: t("fe.nanti"),
-          });
-        })
-        .catch(() => {});
-    }
-    if (!hasShownFaceReminder) {
-      hrisApi
-        .getFaceStatus()
-        .then(async (f) => {
-          if (f.state !== "needs_reenroll" || hasShownFaceReminder) return;
-          hasShownFaceReminder = true;
-          const isOpen = await confirm({
-            title: t("fe.pengingatJudul"),
-            message: t("fe.perluDaftarUlang", { tgl: f.graceUntil ?? "-" }),
-            tone: "warn",
-            confirmText: t("fe.daftarUlang"),
-            cancelText: t("fe.nanti"),
-          });
-          if (isOpen) navigation.navigate("Profil", { screen: "FaceEnroll" });
-        })
-        .catch(() => {});
-    }
-  }, [employee, confirm, t, navigation]);
+    if (remindedEmployeeId !== employee.id) void remind(employee.id);
+  }, [employee, remind]);
   useFocusEffect(load);
   const refreshClock = useCallback(() => {
     if (!employee) return;
@@ -111,5 +129,6 @@ export function useHome() {
     employment,
     errorMessage,
     load,
+    canStartTour,
   };
 }

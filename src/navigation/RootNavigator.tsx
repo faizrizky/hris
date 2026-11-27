@@ -47,6 +47,8 @@ import { ProfileUploadScreen } from "@/screens/profile/ProfileUploadScreen";
 import { ProfileSecurityScreen } from "@/screens/profile/ProfileSecurityScreen";
 import { ProfilePasswordScreen } from "@/screens/profile/ProfilePasswordScreen";
 import { RevealScope } from "@/components/Reveal";
+import { TourOverlay } from "@/components/Tour";
+import { HrServiceScreen } from "@/screens/hr/HrServiceScreen";
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -194,6 +196,7 @@ function HomeStack({ initial = "HomeMain" }: { initial?: string } = {}) {
       <Stack.Screen name="TaxDetail" component={TaxScreen} />
       <Stack.Screen name="Notifications" component={NotificationScreen} />
       <Stack.Screen name="Appraisal" component={AppraisalScreen} />
+      <Stack.Screen name="HrService" component={HrServiceScreen} />
       <Stack.Screen name="StaffList" component={StaffListScreen} />
       <Stack.Screen name="StaffDetail" component={StaffDetailScreen} />
       <Stack.Screen name="StaffAttendance" component={StaffAttendanceScreen} />
@@ -254,54 +257,57 @@ function MainTabs() {
   const canApprove = employee?.role === "mss" || employee?.role === "hr";
 
   return (
-    <Tab.Navigator tabBar={(props) => <FloatingTabBar {...props} />}>
-      <Tab.Screen
-        name="Beranda"
-        component={HomeStack}
-        options={{ headerShown: false }}
-      />
-      <Tab.Screen
-        name="Absensi"
-        component={AttendanceStack}
-        options={{ headerShown: false }}
-      />
-      <Tab.Screen
-        name="Notifikasi"
-        component={NotificationStack}
-        options={{ headerShown: false }}
-      />
-      {employee?.role === "hr" && (
+    <View style={{ flex: 1 }}>
+      <Tab.Navigator tabBar={(props) => <FloatingTabBar {...props} />}>
         <Tab.Screen
-          name="AbsensiTim"
-          layout={revealLayout}
-          component={StaffAttendanceScreen}
+          name="Beranda"
+          component={HomeStack}
           options={{ headerShown: false }}
         />
-      )}
-      <Tab.Screen
-        name="Cuti"
-        component={LeaveStack}
-        options={{ headerShown: false }}
-      />
-      {canApprove && (
         <Tab.Screen
-          name="Approval"
-          layout={revealLayout}
-          component={LeaveApprovalScreen}
+          name="Absensi"
+          component={AttendanceStack}
           options={{ headerShown: false }}
         />
-      )}
-      <Tab.Screen
-        name="Slip Gaji"
-        component={PayrollStack}
-        options={{ headerShown: false }}
-      />
-      <Tab.Screen
-        name="Profil"
-        component={ProfileStack}
-        options={{ headerShown: false }}
-      />
-    </Tab.Navigator>
+        <Tab.Screen
+          name="Notifikasi"
+          component={NotificationStack}
+          options={{ headerShown: false }}
+        />
+        {employee?.role === "hr" && (
+          <Tab.Screen
+            name="AbsensiTim"
+            layout={revealLayout}
+            component={StaffAttendanceScreen}
+            options={{ headerShown: false }}
+          />
+        )}
+        <Tab.Screen
+          name="Cuti"
+          component={LeaveStack}
+          options={{ headerShown: false }}
+        />
+        {canApprove && (
+          <Tab.Screen
+            name="Approval"
+            layout={revealLayout}
+            component={LeaveApprovalScreen}
+            options={{ headerShown: false }}
+          />
+        )}
+        <Tab.Screen
+          name="Slip Gaji"
+          component={PayrollStack}
+          options={{ headerShown: false }}
+        />
+        <Tab.Screen
+          name="Profil"
+          component={ProfileStack}
+          options={{ headerShown: false }}
+        />
+      </Tab.Navigator>
+      <TourOverlay />
+    </View>
   );
 }
 

@@ -203,6 +203,12 @@ export const mockApi: HrisApi = {
     return [];
   },
 
+  async getHrService() {
+    return { items: [], fields: [], notice: null };
+  },
+
+  async submitHrService() {},
+
   async getFeedbackForm(employeeId: string) {
     return {
       employeeId,

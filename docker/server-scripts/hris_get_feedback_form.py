@@ -1,5 +1,5 @@
 # Server Script (type: API, method: hris_get_feedback_form, allow_guest: 0)
-# GET ?employee=HR-EMP-xxxxx. Hanya atasan langsung karyawan itu atau HR (403 selain itu).
+# GET ?employee=HR-EMP-xxxxx. Diri sendiri (penilaian diri), atasan langsung, atau HR (403 selain itu).
 # Hasil: {"employee","employee_name","appraisal","cycle","criteria":[{criteria,per_weightage}],
 #         "my_feedback":{"status","ratings":[{criteria,rating(0-5)}],"feedback","total_score"}|null,
 #         "goals":[{name,progress}]}
@@ -17,13 +17,13 @@ cycle = cycles[0].name if cycles else None
 target = frappe.form_dict.get("employee")
 if not target or not frappe.db.exists("Employee", target):
     frappe.throw("employee is required and must exist")
-allowed = is_hr or (caller and frappe.db.get_value("Employee", target, "reports_to") == caller[0].name)
-if caller and caller[0].name == target:
-    allowed = False
+is_self = bool(caller and caller[0].name == target)  # penilaian diri: Appraisal.self_ratings + reflections
+allowed = is_self or is_hr or (caller and frappe.db.get_value("Employee", target, "reports_to") == caller[0].name)
 if not allowed:
     frappe.throw("You can only review your direct reports", frappe.PermissionError)
 apr = frappe.get_all("Appraisal", filters={"employee": target, "appraisal_cycle": cycle, "docstatus": ["<", 2]},
-                     fields=["name", "appraisal_template"], limit_page_length=1) if cycle else []
+                     fields=["name", "appraisal_template", "docstatus", "self_score", "reflections"],
+                     limit_page_length=1) if cycle else []
 if not apr:
     frappe.throw("This employee has no appraisal in the active cycle")
 appraisal = apr[0].name
@@ -53,6 +53,16 @@ if mine:
           "ratings": [{"criteria": r.criteria, "rating": round((r.rating or 0) * 5, 2)} for r in ratings],
           "feedback": frappe.utils.strip_html(mine[0].feedback) if mine[0].feedback else "",
           "total_score": mine[0].total_score}
+if is_self:
+    ratings = frappe.get_all("Employee Feedback Rating", filters={"parent": appraisal, "parenttype": "Appraisal",
+                             "parentfield": "self_ratings"}, fields=["criteria", "rating"], order_by="idx asc",
+                             parent_doctype="Appraisal", limit_page_length=50)
+    my = None
+    if ratings or apr[0].docstatus == 1:
+        my = {"name": appraisal, "status": "submitted" if apr[0].docstatus == 1 else "draft",
+              "ratings": [{"criteria": r.criteria, "rating": round((r.rating or 0) * 5, 2)} for r in ratings],
+              "feedback": frappe.utils.strip_html(apr[0].reflections) if apr[0].reflections else "",
+              "total_score": apr[0].self_score}
 goals = [{"name": g.goal_name, "progress": g.progress or 0}
          for g in frappe.get_all("Goal", filters={"employee": target, "appraisal_cycle": cycle},
                                  fields=["goal_name", "progress"], order_by="creation asc", limit_page_length=100)]

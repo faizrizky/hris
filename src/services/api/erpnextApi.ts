@@ -20,6 +20,7 @@ import {
   OfflineCheckin,
   ProfileChange,
   FeedbackForm,
+  HrService,
   ReviewDocument,
   TeamAppraisal,
   AttachmentFile,
@@ -2112,6 +2113,36 @@ export const erpnextApi: HrisApi = {
       myStatus: r.my_feedback_status,
       myScore: r.my_feedback_score,
     }));
+  },
+
+  async getHrService(kind): Promise<HrService> {
+    const res = await get<{
+      message: {
+        items: HrService["items"];
+        fields: {
+          key: HrService["fields"][number]["key"];
+          type: HrService["fields"][number]["type"];
+          required: 0 | 1;
+          choices?: { value: string; label: string }[];
+        }[];
+        notice: HrService["notice"];
+      };
+    }>("/api/method/hris_get_hr_service", { kind });
+    const m = res.message;
+    return {
+      items: m.items,
+      fields: m.fields.map((f) => ({
+        key: f.key,
+        type: f.type,
+        isRequired: f.required === 1,
+        choices: f.choices ?? [],
+      })),
+      notice: m.notice,
+    };
+  },
+
+  async submitHrService(kind, values) {
+    await post("/api/method/hris_submit_hr_service", { kind, ...values });
   },
 
   async getFeedbackForm(employeeId: string): Promise<FeedbackForm> {

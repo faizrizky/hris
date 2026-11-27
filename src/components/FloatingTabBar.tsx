@@ -1,5 +1,7 @@
 import { hrisApi } from "@/services/api";
 import { isInboxNotification } from "@/utils/notification";
+import { tabOrder } from "@/navigation/tabOrder";
+import { tourTarget } from "@/components/Tour";
 import { setUnreadCount, useUnreadCount } from "@/navigation/notifBadge";
 import { markBackNavigation } from "@/navigation/navigationBack";
 import { useTabBarHidden } from "@/navigation/tabBarVisibility";
@@ -23,8 +25,6 @@ import { useSession } from "@/services/session";
 import { useT } from "@/i18n";
 import type { TranslationKey } from "@/i18n/id";
 import { getFocusedRouteNameFromRoute } from "@react-navigation/native";
-
-const RIGHT = ["Slip Gaji", "Profil"];
 
 // Label di mockup beda dari nama route-nya.
 const LABEL: Record<string, TranslationKey> = {
@@ -88,16 +88,7 @@ export function FloatingTabBar({ state, navigation }: BottomTabBarProps) {
       .catch(() => {});
   }, [employeeId, state.index]);
 
-  const order = [
-    "Beranda",
-    employee?.role === "mss"
-      ? "Approval"
-      : employee?.role === "hr"
-        ? "AbsensiTim"
-        : "Absensi",
-    "Notifikasi",
-    ...RIGHT,
-  ];
+  const order = tabOrder(employee?.role);
   const idx = order.indexOf(currentRoute);
 
   const [barWidth, setBarWidth] = useState(0);
@@ -243,6 +234,7 @@ export function FloatingTabBar({ state, navigation }: BottomTabBarProps) {
     return (
       <Pressable
         key={routeName}
+        ref={tourTarget(`tab:${routeName}`)}
         style={styles.tab}
         onPress={() => go(routeName)}
       >

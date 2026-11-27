@@ -1,6 +1,15 @@
-import { useMemo } from "react";
+import { useCallback, useMemo, useRef } from "react";
 import { useProfilePhoto } from "@/hooks/useProfilePhoto";
-import { Image, Pressable, StyleSheet, Text, View } from "react-native";
+import {
+  Image,
+  Pressable,
+  ScrollView as RNScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
+import { TourStarter, tourTarget } from "@/components/Tour";
+import { tabOrder } from "@/navigation/tabOrder";
 import { Reveal, RevealScrollView as ScrollView } from "@/components/Reveal";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -15,7 +24,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { getShiftInfo, employeeGreeting } from "@/utils/greeting";
 import { formatLongDate, formatJam } from "@/utils/date";
 import { useT, getActiveLanguage } from "@/i18n";
-import { EmploymentSlice } from "@/services/types";
+import { EmploymentSlice, type HrServiceKind } from "@/services/types";
 import { ICON } from "@/constants/icons";
 import { DonutChart } from "@/components/DonutChart";
 import { Skeleton } from "@/components/Skeleton";
@@ -52,6 +61,11 @@ const MENU_SECTION_OF: Record<string, MenuSectionKey> = {
   trip: "transaction",
   wfh: "transaction",
   correction: "transaction",
+  shiftRequest: "transaction",
+  leaveEncashment: "transaction",
+  grievance: "transaction",
+  onboarding: "data",
+  training: "data",
   appraisal: "transaction",
   history: "data",
   leaveList: "data",
@@ -72,6 +86,8 @@ const MENU_FITUR: Partial<Record<string, Fitur>> = {
   requestOvertime: "lembur",
   overtimeList: "lembur",
   trip: "dinas_wfh",
+  shiftRequest: "absensi",
+  leaveEncashment: "cuti",
   wfh: "dinas_wfh",
   appraisal: "penilaian_kinerja",
   tax: "pajak_bpjs",
@@ -89,7 +105,16 @@ export function HomeScreen() {
     employment,
     errorMessage,
     load,
+    canStartTour,
   } = useHome();
+  const scrollRef = useRef<RNScrollView>(null);
+  const scrollOffset = useRef(0);
+  const scrollHome = useCallback((dy: number) => {
+    scrollRef.current?.scrollTo({
+      y: Math.max(0, scrollOffset.current + dy),
+      animated: false,
+    });
+  }, []);
   const t = useT();
   const { punyaFitur } = useTenant();
   const { employee } = useSession();
@@ -189,6 +214,8 @@ export function HomeScreen() {
   });
   const submitRequest = (kind: FormKind) => () =>
     navigation.navigate("LeaveRequest", { kind, n: Date.now() });
+  const openService = (kind: HrServiceKind) => () =>
+    navigation.navigate("HrService", { kind });
   // Tujuan yang sudah jadi tab di bar bawah tidak diulang di menu. Tab kedua
   // bergantung peran: Absensi (karyawan), Approval (mss), Absensi Kry (hr).
   const alreadyInTabs = new Set([
@@ -244,6 +271,41 @@ export function HomeScreen() {
       "laptop-outline",
       "ok",
       submitRequest("wfh"),
+    ),
+    makeMenuItem(
+      "shiftRequest",
+      t("hs.title.shift_request"),
+      "swap-horizontal-outline",
+      "info",
+      openService("shift_request"),
+    ),
+    makeMenuItem(
+      "leaveEncashment",
+      t("hs.title.leave_encashment"),
+      "cash-outline",
+      "ok",
+      openService("leave_encashment"),
+    ),
+    makeMenuItem(
+      "grievance",
+      t("hs.title.grievance"),
+      "chatbox-ellipses-outline",
+      "warn",
+      openService("grievance"),
+    ),
+    makeMenuItem(
+      "onboarding",
+      t("hs.title.onboarding"),
+      "list-outline",
+      "info",
+      openService("onboarding"),
+    ),
+    makeMenuItem(
+      "training",
+      t("hs.title.training"),
+      "school-outline",
+      "purple",
+      openService("training"),
     ),
     makeMenuItem("payslip", t("hm.aSlip"), "wallet-outline", "ok", () =>
       navigation.navigate("PayslipList"),
@@ -332,6 +394,15 @@ export function HomeScreen() {
 
   return (
     <View style={styles.container}>
+      {canStartTour && !isLoading ? (
+        <TourStarter
+          menuKeys={menuSections.flatMap((s) =>
+            s.items.map((item) => ({ key: item.key, label: item.label })),
+          )}
+          tabs={tabOrder(employee.role)}
+          onScroll={scrollHome}
+        />
+      ) : null}
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
         <RadialGlow size={200} color={c.glowHeader} top={-60} right={-40} />
 
@@ -357,8 +428,19 @@ export function HomeScreen() {
         <Text style={styles.greeting}>{greeting}</Text>
         <Text style={styles.greetingSub}>{greetingSub}</Text>
       </View>
-      <ScrollView contentContainerStyle={styles.content}>
-        <View style={styles.heroShadow}>
+      <ScrollView
+        ref={scrollRef}
+        scrollEventThrottle={16}
+        onScroll={(e) => {
+          scrollOffset.current = e.nativeEvent.contentOffset.y;
+        }}
+        contentContainerStyle={styles.content}
+      >
+        <View
+          ref={tourTarget("clock")}
+          collapsable={false}
+          style={styles.heroShadow}
+        >
           <LinearGradient
             colors={[c.accent, c.accent2]}
             start={{ x: 0, y: 0 }}
@@ -430,7 +512,11 @@ export function HomeScreen() {
           </LinearGradient>
         </View>
 
-        <View style={styles.statGrid}>
+        <View
+          ref={tourTarget("stats")}
+          collapsable={false}
+          style={styles.statGrid}
+        >
           <StatCard
             iconBg={c.info.bg}
             ink={c.info.ink}
@@ -482,6 +568,7 @@ export function HomeScreen() {
               {section.items.map((q) => (
                 <QuickAction
                   key={q.key}
+                  targetRef={tourTarget(`menu:${q.key}`)}
                   iconBg={q.bg}
                   ink={q.ink}
                   icon={q.icon}
@@ -608,7 +695,9 @@ function QuickAction({
   icon,
   label,
   onPress,
+  targetRef,
 }: {
+  targetRef: (node: View | null) => void;
   iconBg: string;
   ink: string;
   icon: keyof typeof Ionicons.glyphMap;
@@ -620,7 +709,7 @@ function QuickAction({
 
   return (
     <Reveal style={styles.quickCell}>
-      <Pressable style={styles.quickCard} onPress={onPress}>
+      <Pressable ref={targetRef} style={styles.quickCard} onPress={onPress}>
         <View style={styles.quickIcon}>
           <Ionicons name={icon} size={26} color={ink} />
         </View>

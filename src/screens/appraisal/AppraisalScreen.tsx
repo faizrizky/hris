@@ -8,7 +8,7 @@ import { RevealScrollView as ScrollView } from "@/components/Reveal";
 import Svg, { Circle, G } from "react-native-svg";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Palette } from "@/theme/colors";
+import { Palette, primaryButtonStyle } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
 import { hrisApi } from "@/services/api";
 import { useSession } from "@/services/session";
@@ -64,13 +64,13 @@ export function AppraisalScreen({ navigation }: ScreenProps) {
       {tab === "tim" ? (
         <TimAppraisal navigation={navigation} />
       ) : (
-        <AppraisalSaya />
+        <AppraisalSaya navigation={navigation} />
       )}
     </View>
   );
 }
 
-function AppraisalSaya() {
+function AppraisalSaya({ navigation }: Pick<ScreenProps, "navigation">) {
   const t = useT();
   const { employee } = useSession();
   const appraisalData = useLoad(
@@ -172,6 +172,21 @@ function AppraisalSaya() {
             </View>
           </View>
         </View>
+
+        {employee ? (
+          <Pressable
+            style={styles.selfButton}
+            onPress={() =>
+              navigation.navigate("AppraisalFeedback", {
+                employeeId: employee.id,
+                employeeName: employee.fullName,
+                isSelf: true,
+              })
+            }
+          >
+            <Text style={styles.selfButtonText}>{t("fb.diriIsi")}</Text>
+          </Pressable>
+        ) : null}
 
         <View style={styles.sheet}>
           <Text style={styles.sheetTitle}>{t("ap2.penilai")}</Text>
@@ -346,6 +361,14 @@ export const makeStyles = (c: Palette) =>
       marginTop: 6,
     },
     container: { flex: 1, backgroundColor: c.bg },
+    selfButton: {
+      ...primaryButtonStyle(c),
+      borderRadius: 16,
+      paddingVertical: 14,
+      alignItems: "center",
+      marginTop: 12,
+    },
+    selfButtonText: { fontSize: 13.5, fontWeight: "700", color: "#fff" },
 
     header: {
       paddingHorizontal: 20,

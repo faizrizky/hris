@@ -840,20 +840,6 @@ if not frappe.db.exists("DocType", "HR Announcement"):
                      dict(role="Employee", read=1)]))
     frappe.clear_cache()
 frappe.db.commit()
-# Sidebar "Shift and Attendance": HR Announcement tepat di bawah Dashboard.
-if frappe.db.exists("Sidebar", "Shift & Attendance"):
-    from frappe.desk.doctype.custom_sidebar.custom_sidebar import add_site_sidebar_item, _save_customization, layer_arrangement
-    add_site_sidebar_item("Shift and Attendance", dict(label="HR Announcement", type="Link", link_type="DocType",
-                                                      link_to="HR Announcement", icon="bell", collapsible=1))
-    _arr = layer_arrangement("Shift and Attendance", None)
-    _mine = [r for r in _arr if r.get("link_to") == "HR Announcement"]
-    _rest = [r for r in _arr if r not in _mine]
-    _at = next((n for n, r in enumerate(_rest) if r.get("label") == "Dashboard"), 0) + 1
-    _save_customization("Shift and Attendance", _rest[:_at] + _mine + _rest[_at:], None)
-    frappe.db.commit()
-    log("sidebar Shift & Attendance: HR Announcement di bawah Dashboard")
-    frappe.clear_cache()
-
 # ---- Check-in offline tahan kecurangan ----
 if not frappe.db.exists("DocType", "Attendance Offline Settings"):
     make(dict(
@@ -1479,6 +1465,27 @@ else:
     frappe.db.set_value("Client Script", _FCS, {"script": _FJS, "enabled": 1})
 frappe.db.commit()
 
+# HR Setup: HR Announcement, lalu bagian "Geofence & Office Location" (Geofence Settings, Shift Location). Idempoten.
+if frappe.db.exists("Sidebar", "HR Setup"):
+    from frappe.desk.doctype.custom_sidebar.custom_sidebar import _save_customization, layer_arrangement
+    _GEO = ("Geofence Settings", "Shift Location")
+    _arr = layer_arrangement("HR Setup", None)
+    _anak = [r.get("link_to") for r in _arr if r.get("child") and r.get("link_to") in _GEO]
+    if sorted(_anak) != sorted(_GEO) or not any(r.get("link_to") == "HR Announcement" for r in _arr):
+        _baru = [r for r in _arr if r.get("link_to") not in _GEO + ("HR Announcement",)
+                 and r.get("label") != "Geofence & Office Location"]
+        _grup = [dict(label="HR Announcement", type="Link", link_type="DocType", link_to="HR Announcement",
+                      icon="bell", collapsible=1, child=0, indent=0, added=1),
+                 dict(label="Geofence & Office Location", type="Section Break", icon="map-pin", collapsible=1,
+                      child=0, indent=1, added=1)]
+        for _dt in _GEO:
+            _grup.append(dict(label=_dt, type="Link", link_type="DocType", link_to=_dt, collapsible=1, child=1,
+                              indent=0, added=1))
+        _save_customization("HR Setup", _baru + _grup, None)
+        frappe.db.commit()
+        frappe.clear_cache()
+        log("sidebar HR Setup: HR Announcement dan bagian Geofence & Office Location")
+
 # Karyawan boleh mengunggah foto/selfie ke dokumen pengajuan MILIKNYA (upload_file butuh hak tulis), tetapi semua field lain
 # dikunci di permlevel 1 (hanya HR): status, skor kemiripan, embedding tidak bisa diubah lewat REST.
 for _dt, _attach in (("Profile Change Request", "photo"), ("Face Enrollment", "selfie")):
@@ -1639,7 +1646,8 @@ if frappe.db.exists("Sidebar", "HR Setup"):
 if frappe.db.exists("Sidebar", "HR Setup"):
     from frappe.desk.doctype.custom_sidebar.custom_sidebar import (
         add_site_sidebar_item, _save_customization, layer_arrangement)
-    _salah = {"Leaves": ("Profile Change Request",), "Shift and Attendance": ("Face Enrollment", "Face Settings")}
+    _salah = {"Leaves": ("Profile Change Request",),
+              "Shift and Attendance": ("Face Enrollment", "Face Settings", "HR Announcement")}
     for _mod, _dts in _salah.items():
         try:
             _arr = layer_arrangement(_mod, None)
@@ -1674,6 +1682,27 @@ if frappe.db.exists("Sidebar", "HR Setup"):
         frappe.db.commit()
         frappe.clear_cache()
         log("sidebar HR Setup: bagian Face Verification (Face Enrollment, Face Check Attempt, Face Settings)")
+
+# HR Setup: HR Announcement, lalu bagian "Geofence & Office Location" (Geofence Settings, Shift Location). Idempoten.
+if frappe.db.exists("Sidebar", "HR Setup"):
+    from frappe.desk.doctype.custom_sidebar.custom_sidebar import _save_customization, layer_arrangement
+    _GEO = ("Geofence Settings", "Shift Location")
+    _arr = layer_arrangement("HR Setup", None)
+    _anak = [r.get("link_to") for r in _arr if r.get("child") and r.get("link_to") in _GEO]
+    if sorted(_anak) != sorted(_GEO) or not any(r.get("link_to") == "HR Announcement" for r in _arr):
+        _baru = [r for r in _arr if r.get("link_to") not in _GEO + ("HR Announcement",)
+                 and r.get("label") != "Geofence & Office Location"]
+        _grup = [dict(label="HR Announcement", type="Link", link_type="DocType", link_to="HR Announcement",
+                      icon="bell", collapsible=1, child=0, indent=0, added=1),
+                 dict(label="Geofence & Office Location", type="Section Break", icon="map-pin", collapsible=1,
+                      child=0, indent=1, added=1)]
+        for _dt in _GEO:
+            _grup.append(dict(label=_dt, type="Link", link_type="DocType", link_to=_dt, collapsible=1, child=1,
+                              indent=0, added=1))
+        _save_customization("HR Setup", _baru + _grup, None)
+        frappe.db.commit()
+        frappe.clear_cache()
+        log("sidebar HR Setup: HR Announcement dan bagian Geofence & Office Location")
 
 # Karyawan boleh mengunggah foto/selfie ke dokumen pengajuan MILIKNYA (upload_file butuh hak tulis), tetapi semua field lain
 # dikunci di permlevel 1 (hanya HR): status, skor kemiripan, embedding tidak bisa diubah lewat REST.
@@ -1727,6 +1756,15 @@ EVENT_SCRIPTS = {  # script berbasis event dokumen: nama_file -> (DocType, event
     "hris_announcement_publish": ("HR Announcement", "Before Save"),
     "hris_notify_announcement": ("HR Announcement", "After Save"),
     "hris_push_on_notification": ("Notification Log", "After Insert"),
+    "hris_notify_shift_created": ("Shift Request", "After Insert"),
+    "hris_notify_shift_decided": ("Shift Request", "After Submit"),
+    "hris_notify_encashment_created": ("Leave Encashment", "After Insert"),
+    "hris_notify_encashment_done": ("Leave Encashment", "After Submit"),
+    "hris_notify_promotion": ("Employee Promotion", "After Submit"),
+    "hris_notify_separation": ("Employee Separation", "After Submit"),
+    "hris_notify_training": ("Training Event", "After Submit"),
+    "hris_notify_exit_interview": ("Exit Interview", "After Save"),
+    "hris_notify_grievance": ("Employee Grievance", "After Save"),
 }
 
 # 8z. Tata letak form (section berlabel dan 2-3 kolom) untuk DocType buatan sendiri --------

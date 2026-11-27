@@ -287,6 +287,61 @@ export interface FeedItem {
   createdAt: string;
 }
 
+export type HrServiceKind =
+  | "shift_request"
+  | "leave_encashment"
+  | "grievance"
+  | "training"
+  | "onboarding";
+
+export type HrFieldKey =
+  | "shift_type"
+  | "from_date"
+  | "to_date"
+  | "leave_type"
+  | "days"
+  | "grievance_type"
+  | "against"
+  | "subject"
+  | "description"
+  | "training_event"
+  | "feedback";
+
+export type HrItemStatus =
+  | "pending"
+  | "approved"
+  | "rejected"
+  | "cancelled"
+  | "open"
+  | "investigated"
+  | "resolved"
+  | "invalid"
+  | "feedback_sent"
+  | "awaiting_feedback"
+  | "upcoming"
+  | "absent"
+  | "done"
+  | "todo";
+
+// Bentuk isian ditentukan server (pilihan, wajib/tidak), aplikasi hanya menggambarnya.
+export interface HrService {
+  items: {
+    id: string;
+    title: string;
+    detail: string | null;
+    from: string | null;
+    to: string | null;
+    status: HrItemStatus;
+  }[];
+  fields: {
+    key: HrFieldKey;
+    type: "choice" | "date" | "number" | "text" | "multiline";
+    isRequired: boolean;
+    choices: { value: string; label: string }[];
+  }[];
+  notice: "no_approver" | "nothing_encashable" | "no_grievance_type" | null;
+}
+
 export type NotifCategory =
   "Approval" | "Payroll" | "Presensi" | "Appraisal" | "Pengumuman";
 
@@ -588,6 +643,11 @@ export interface HrisApi {
 
   // Atasan/HR: penilaian kinerja tim.
   getTeamAppraisals(): Promise<TeamAppraisal[]>;
+  getHrService(kind: HrServiceKind): Promise<HrService>;
+  submitHrService(
+    kind: HrServiceKind,
+    values: Partial<Record<HrFieldKey, string>>,
+  ): Promise<void>;
   getFeedbackForm(employeeId: string): Promise<FeedbackForm>;
   submitFeedback(input: {
     employeeId: string;

@@ -4,11 +4,18 @@ import { useFocusEffect } from "@react-navigation/native";
 import { hrisApi } from "@/services/api";
 import { describeError } from "@/services/api/http";
 import { useSession } from "@/services/session";
-import { AppNotification } from "@/services/types";
+import { AppNotification, type HrServiceKind } from "@/services/types";
 import { setUnreadCount } from "@/navigation/notifBadge";
 import { isInboxNotification } from "@/utils/notification";
 
 export type NotificationTab = "inbox" | "announcements";
+
+const HR_SERVICE_OF: Partial<Record<string, HrServiceKind>> = {
+  "Shift Request": "shift_request",
+  "Leave Encashment": "leave_encashment",
+  "Employee Grievance": "grievance",
+  "Training Event": "training",
+};
 
 export function useNotification({
   navigation,
@@ -72,6 +79,21 @@ export function useNotification({
           navigation.navigate("Profil", { screen: "FaceEnroll" });
         }
         return;
+      case "Registered Device":
+        if (employee?.role !== "hr") {
+          navigation.navigate("Profil", { screen: "ProfileSecurity" });
+        }
+        return;
+      case "Shift Request":
+      case "Leave Encashment":
+      case "Employee Grievance":
+      case "Training Event": {
+        // Kabar untuk penyetuju / HR ditindaklanjuti di web.
+        if (isPending) return;
+        const kind = HR_SERVICE_OF[n.documentType];
+        if (kind) navigation.navigate("HrService", { kind });
+        return;
+      }
       case "HR Announcement":
         setAnnouncementOpenId(n.documentName ?? null);
         setActiveTab("announcements");

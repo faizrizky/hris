@@ -17,13 +17,13 @@ cycle = cycles[0].name if cycles else None
 target = frappe.form_dict.get("employee")
 if not target or not frappe.db.exists("Employee", target):
     frappe.throw("employee is required and must exist")
-allowed = is_hr or (caller and frappe.db.get_value("Employee", target, "reports_to") == caller[0].name)
-if caller and caller[0].name == target:
-    allowed = False
+is_self = bool(caller and caller[0].name == target)  # penilaian diri: Appraisal.self_ratings + reflections
+allowed = is_self or is_hr or (caller and frappe.db.get_value("Employee", target, "reports_to") == caller[0].name)
 if not allowed:
     frappe.throw("You can only review your direct reports", frappe.PermissionError)
 apr = frappe.get_all("Appraisal", filters={"employee": target, "appraisal_cycle": cycle, "docstatus": ["<", 2]},
-                     fields=["name", "appraisal_template"], limit_page_length=1) if cycle else []
+                     fields=["name", "appraisal_template", "docstatus", "self_score", "reflections"],
+                     limit_page_length=1) if cycle else []
 if not apr:
     frappe.throw("This employee has no appraisal in the active cycle")
 appraisal = apr[0].name
@@ -72,31 +72,43 @@ for c in criteria:
 for k in given:
     if k not in [c["criteria"] for c in criteria]:
         frappe.throw("Unknown criteria: " + k)
-if mine and mine[0].docstatus == 1:
-    frappe.throw("Feedback has already been submitted and cannot be changed")
-if mine:
-    doc = frappe.get_doc("Employee Performance Feedback", mine[0].name)
-    doc.set("feedback_ratings", rows)
-    doc.feedback = text
-    doc.added_on = frappe.utils.now_datetime()
+if is_self:
+    # Penilaian diri boleh diubah sampai HR men-submit Appraisal; hrms menghitung self_score saat disimpan.
+    if apr[0].docstatus == 1:
+        frappe.throw("This appraisal is already final and cannot be changed")
+    doc = frappe.get_doc("Appraisal", appraisal)
+    doc.set("self_ratings", rows)
+    doc.reflections = text
     doc.flags.ignore_permissions = True
     doc.save()
+    frappe.response["message"] = {"name": doc.name, "status": "draft", "total_score": doc.self_score,
+                                  "appraisal_final_score": doc.final_score}
 else:
-    doc = frappe.get_doc({"doctype": "Employee Performance Feedback", "employee": target,
-                          "company": frappe.db.get_value("Employee", target, "company"), "reviewer": caller[0].name,
-                          "appraisal": appraisal, "appraisal_cycle": cycle, "added_on": frappe.utils.now_datetime(),
-                          "feedback": text, "feedback_ratings": rows})
-    doc.insert(ignore_permissions=True)
-if do_submit:
-    doc.flags.ignore_permissions = True
-    doc.submit()
-    target_user = frappe.db.get_value("Employee", target, "user_id")
-    if target_user:
-        frappe.get_doc({"doctype": "Notification Log", "type": "Alert", "for_user": target_user,
-                        "subject": "You received performance feedback from " + str(caller[0].employee_name),
-                        "email_content": "Score: " + str(doc.total_score) + " / 5",
-                        "document_type": "Employee Performance Feedback", "document_name": doc.name}
-                       ).insert(ignore_permissions=True)
-frappe.response["message"] = {"name": doc.name, "status": "submitted" if do_submit else "draft",
-                              "total_score": doc.total_score,
-                              "appraisal_final_score": frappe.db.get_value("Appraisal", appraisal, "final_score")}
+    if mine and mine[0].docstatus == 1:
+        frappe.throw("Feedback has already been submitted and cannot be changed")
+    if mine:
+        doc = frappe.get_doc("Employee Performance Feedback", mine[0].name)
+        doc.set("feedback_ratings", rows)
+        doc.feedback = text
+        doc.added_on = frappe.utils.now_datetime()
+        doc.flags.ignore_permissions = True
+        doc.save()
+    else:
+        doc = frappe.get_doc({"doctype": "Employee Performance Feedback", "employee": target,
+                              "company": frappe.db.get_value("Employee", target, "company"), "reviewer": caller[0].name,
+                              "appraisal": appraisal, "appraisal_cycle": cycle, "added_on": frappe.utils.now_datetime(),
+                              "feedback": text, "feedback_ratings": rows})
+        doc.insert(ignore_permissions=True)
+    if do_submit:
+        doc.flags.ignore_permissions = True
+        doc.submit()
+        target_user = frappe.db.get_value("Employee", target, "user_id")
+        if target_user:
+            frappe.get_doc({"doctype": "Notification Log", "type": "Alert", "for_user": target_user,
+                            "subject": "You received performance feedback from " + str(caller[0].employee_name),
+                            "email_content": "Score: " + str(doc.total_score) + " / 5",
+                            "document_type": "Employee Performance Feedback", "document_name": doc.name}
+                           ).insert(ignore_permissions=True)
+    frappe.response["message"] = {"name": doc.name, "status": "submitted" if do_submit else "draft",
+                                  "total_score": doc.total_score,
+                                  "appraisal_final_score": frappe.db.get_value("Appraisal", appraisal, "final_score")}
