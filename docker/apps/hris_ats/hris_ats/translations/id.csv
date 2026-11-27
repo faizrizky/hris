@@ -1974,3 +1974,2656 @@ Timesheet Detail,Rincian Lembar Waktu
 Email Address,Alamat Surel
 Contact Email,Surel Kontak
 Sender Email,Surel Pengirim
+Access,Akses
+Bulk Transaction Log,Catatan Transaksi Massal
+Transaction Deletion Record,Catatan Penghapusan Transaksi
+Incoming Call Settings,Pengaturan Panggilan Masuk
+Voice Call Settings,Pengaturan Panggilan Suara
+Telephony Call Type,Jenis Panggilan Telepon
+Code List,Daftar Kode
+Common Code,Kode Umum
+Support,Dukungan
+Item Variant,Varian Barang
+Appointment Booking,Pemesanan Janji Temu
+Stock Reposting,Pengeposan Ulang Persediaan
+Trial Balance,Neraca Saldo
+Consolidated Report,Laporan Konsolidasi
+Budgeting,Penganggaran
+Cost Center Allocation,Alokasi Pusat Biaya
+Budget Variance,Selisih Anggaran
+Account Category,Kategori Akun
+Financial Report Template,Templat Laporan Keuangan
+Item,Barang
+Supplier,Pemasok
+Supplier Quotation,Penawaran Pemasok
+Purchase Order,Pesanan Pembelian
+Supplier Scorecard,Kartu Nilai Pemasok
+Tools,Alat
+Serial & Batch,Nomor Seri dan Lot
+Serial and Batch Bundle,Paket Nomor Seri dan Lot
+Unit of Measure (UOM),Satuan Ukur
+Inventory Dimension,Dimensi Persediaan
+BOM,Daftar Bahan
+Material Requirements Planning Report,Laporan Perencanaan Kebutuhan Bahan
+Subcontracting,Subkontrak
+Subcontracting Order,Pesanan Subkontrak
+Subcontracting Receipt,Penerimaan Subkontrak
+Subcontracting BOM,Daftar Bahan Subkontrak
+Subcontracting Inward Order,Pesanan Masuk Subkontrak
+BOM Creator,Penyusun Daftar Bahan
+Workstation,Stasiun Kerja
+Plant Floor,Lantai Produksi
+Timesheet Billing Summary,Ringkasan Penagihan Lembar Waktu
+Delayed Tasks Summary,Ringkasan Tugas Terlambat
+Asset Activity,Aktivitas Aset
+Value Changes,Perubahan Nilai
+Asset Capitalization,Kapitalisasi Aset
+Meetings & Feedback,Rapat dan Umpan Balik
+Feedback Template,Templat Umpan Balik
+Sales Pipeline Analytics,Analisis Alur Penjualan
+Opportunity Summary by Sales Stage,Ringkasan Peluang per Tahap Penjualan
+SMS Center,Pusat SMS
+Prospect,Calon Pelanggan
+CRM Settings,Pengaturan CRM
+School/University,Sekolah/Universitas
+Graduate,Sarjana
+Post Graduate,Pascasarjana
+Under Graduate,Mahasiswa Sarjana
+Year of Passing,Tahun Lulus
+Class / Percentage,Kelas / Persentase
+Major/Optional Subjects,Jurusan/Mata Pelajaran Pilihan
+Total Experience,Total Pengalaman
+Parent Department,Departemen Induk
+Days for which Holidays are blocked for this department.,Hari ketika libur diblokir untuk departemen ini.
+The first Approver in the list will be set as the default Approver.,Penyetuju pertama dalam daftar ditetapkan sebagai penyetuju bawaan.
+ERPNext User ID,ID Pengguna ERPNext
+Salary Slip,Slip Gaji
+Partially Billed,Ditagih Sebagian
+Payslip,Slip Gaji
+Employee Detail,Rincian Karyawan
+Time Sheets,Lembar Waktu
+Hrs,Jam
+Billing Rate,Tarif Penagihan
+Costing Rate,Tarif Biaya
+Costing Amount,Jumlah Biaya
+Total Working Hours,Total Jam Kerja
+Billing Details,Rincian Penagihan
+Total Costing Amount,Total Jumlah Biaya
+Base Total Costing Amount,Total Jumlah Biaya Dasar
+Total Billed Hours,Total Jam Ditagih
+Total Billed Amount,Total Jumlah Ditagih
+Base Total Billed Amount,Total Jumlah Ditagih Dasar
+Holiday List Name,Nama Daftar Hari Libur
+Total Holidays,Total Hari Libur
+Weekly Off,Libur Mingguan
+Is Half Day,Setengah Hari
+Subdivision,Wilayah Bagian
+Clear Table,Kosongkan Tabel
+Default Currency,Mata Uang Bawaan
+Default Holiday List,Daftar Hari Libur Bawaan
+Domain,Bidang Usaha
+Date of Establishment,Tanggal Pendirian
+Parent Company,Perusahaan Induk
+Reporting Currency,Mata Uang Pelaporan
+Date of Incorporation,Tanggal Pengesahan Badan Hukum
+Phone No,Nomor Telepon
+Company Description,Deskripsi Perusahaan
+Date of Commencement,Tanggal Mulai Beroperasi
+Registration Details,Rincian Registrasi
+Company registration numbers for your reference. Tax numbers etc.,"Nomor registrasi perusahaan sebagai acuan Anda, misalnya nomor pajak."
+Create Chart Of Accounts Based On,Buat Bagan Akun Berdasarkan
+Standard Template,Templat Standar
+Existing Company,Perusahaan yang Sudah Ada
+Chart Of Accounts Template,Templat Bagan Akun
+Default Accounts,Akun Bawaan
+Default Bank Account,Akun Bank Bawaan
+Default Cash Account,Akun Kas Bawaan
+Default Receivable Account,Akun Piutang Bawaan
+Default Payable Account,Akun Utang Bawaan
+Write Off Account,Akun Penghapusbukuan
+Unrealized Profit / Loss Account,Akun Laba/Rugi Belum Terealisasi
+Default Cost of Goods Sold Account,Akun Harga Pokok Penjualan Bawaan
+Default Income Account,Akun Pendapatan Bawaan
+Default Payment Discount Account,Akun Diskon Pembayaran Bawaan
+Default Payment Terms Template,Templat Ketentuan Pembayaran Bawaan
+Default Cost Center,Pusat Biaya Bawaan
+Default Finance Book,Buku Keuangan Bawaan
+Exchange Gain / Loss,Laba/Rugi Selisih Kurs
+Exchange Gain / Loss Account,Akun Laba/Rugi Selisih Kurs
+Unrealized Exchange Gain/Loss Account,Akun Laba/Rugi Selisih Kurs Belum Terealisasi
+Round Off Account,Akun Pembulatan
+Round Off Cost Center,Pusat Biaya Pembulatan
+Round Off for Opening,Pembulatan untuk Saldo Awal
+Deferred Accounting,Akuntansi Tangguhan
+Default Deferred Revenue Account,Akun Pendapatan Ditangguhkan Bawaan
+Default Deferred Expense Account,Akun Beban Ditangguhkan Bawaan
+Book Advance Payments in Separate Party Account,Bukukan Uang Muka pada Akun Pihak Terpisah
+Enabling this option will allow you to record - <br><br> 1. Advances Received in a <b>Liability Account</b> instead of the <b>Asset Account</b><br><br>2. Advances Paid in an <b>Asset Account</b> instead of the <b> Liability Account</b>,"Jika opsi ini diaktifkan, Anda dapat mencatat - <br><br> 1. Uang muka diterima pada <b>akun liabilitas</b>, bukan <b>akun aset</b><br><br>2. Uang muka dibayar pada <b>akun aset</b>, bukan <b> akun liabilitas</b>"
+Reconciliation Takes Effect On,Rekonsiliasi Berlaku Pada
+Oldest Of Invoice Or Advance,Yang Paling Lama antara Faktur atau Uang Muka
+Reconciliation Date,Tanggal Rekonsiliasi
+Default Advance Received Account,Akun Uang Muka Diterima Bawaan
+Only 'Payment Entries' made against this advance account are supported.,Hanya entri pembayaran terhadap akun uang muka ini yang didukung.
+Default Advance Paid Account,Akun Uang Muka Dibayar Bawaan
+Exchange Rate Revaluation Settings,Pengaturan Revaluasi Kurs
+Auto Create Exchange Rate Revaluation,Buat Revaluasi Kurs Otomatis
+Submit ERR Journals?,Ajukan Jurnal Revaluasi Kurs?
+"Upon enabling this, the JV will be submitted for a different exchange rate.","Jika diaktifkan, voucer jurnal diajukan untuk kurs yang berbeda."
+Budget Detail,Rincian Anggaran
+Exception Budget Approver Role,Peran Penyetuju Pengecualian Anggaran
+Fixed Asset Defaults,Pengaturan Bawaan Aset Tetap
+Accumulated Depreciation Account,Akun Akumulasi Penyusutan
+Depreciation Expense Account,Akun Beban Penyusutan
+Series for Asset Depreciation Entry (Journal Entry),Seri Entri Penyusutan Aset (Entri Jurnal)
+Asset Depreciation Cost Center,Pusat Biaya Penyusutan Aset
+Capital Work In Progress Account,Akun Pekerjaan Modal dalam Pelaksanaan
+Accounting entries are frozen up to this date. Only users with the specified role can create or modify entries before this date.,Entri akuntansi dibekukan sampai tanggal ini. Hanya pengguna dengan peran tertentu yang dapat membuat atau mengubah entri sebelum tanggal ini.
+Roles Allowed to Set and Edit Frozen Account Entries,Peran yang Diizinkan Mengatur dan Mengubah Entri Akun yang Dibekukan
+Buying and Selling,Pembelian dan Penjualan
+Buying & Selling Settings,Pengaturan Pembelian dan Penjualan
+Default Buying Terms,Ketentuan Pembelian Bawaan
+Monthly Sales Target,Target Penjualan Bulanan
+Total Monthly Sales,Total Penjualan Bulanan
+Default Selling Terms,Ketentuan Penjualan Bawaan
+Default Sales Contact,Kontak Penjualan Bawaan
+Default Warehouse for Sales Return,Gudang Bawaan untuk Retur Penjualan
+Purchase Expense,Beban Pembelian
+Purchase Expense Account,Akun Beban Pembelian
+Service Expense Account,Akun Beban Jasa
+For service item,Untuk barang jasa
+Purchase Expense Contra Account,Akun Lawan Beban Pembelian
+Stock Expense,Beban Persediaan
+Expenses Added To Stock Account,Akun Beban yang Ditambahkan ke Persediaan
+Expenses Added To Stock Contra Account,Akun Lawan Beban yang Ditambahkan ke Persediaan
+HR & Payroll,SDM dan Penggajian
+HR & Payroll Settings,Pengaturan SDM dan Penggajian
+Default Expense Claim Payable Account,Akun Utang Klaim Pengeluaran Bawaan
+Default Employee Advance Account,Akun Uang Muka Karyawan Bawaan
+Default Payroll Payable Account,Akun Utang Gaji Bawaan
+Stock and Manufacturing,Persediaan dan Produksi
+Enable Perpetual Inventory,Aktifkan Persediaan Perpetual
+Enable Item-wise Inventory Account,Aktifkan Akun Persediaan per Barang
+"If enabled, the system will use the inventory account set in the Item Master or Item Group or Brand. Otherwise, it will use the inventory account set in the Warehouse.","Jika diaktifkan, sistem memakai akun persediaan yang diatur pada induk barang, kelompok barang, atau merek. Jika tidak, sistem memakai akun persediaan yang diatur pada gudang."
+Enable Provisional Accounting For Non Stock Items,Aktifkan Akuntansi Provisi untuk Barang Nonpersediaan
+Default Inventory Account,Akun Persediaan Bawaan
+Default Stock Valuation Method,Metode Penilaian Persediaan Bawaan
+Moving Average,Rata-Rata Bergerak
+Stock Adjustment Account,Akun Penyesuaian Persediaan
+Default Provisional Account,Akun Provisi Bawaan
+Default In-Transit Warehouse,Gudang Dalam Perjalanan Bawaan
+Default Operating Cost Account,Akun Biaya Operasional Bawaan
+Default Work In Progress Warehouse,Gudang Barang dalam Proses Bawaan
+Default Finished Goods Warehouse,Gudang Barang Jadi Bawaan
+Default Scrap Warehouse,Gudang Barang Sisa Bawaan
+Mobile No,Nomor Ponsel
+Search Bar,Bilah Pencarian
+Show My Space,Tampilkan Ruang Saya
+Add a link to your own private workspaces in the user menu.,Tambahkan tautan ke ruang kerja pribadi Anda pada menu pengguna.
+Dock,Dok Aplikasi
+Pinned sits beside the sidebar. Floating slides in from the left edge.,Mode sematan berada di samping bilah sisi. Mode melayang muncul dari tepi kiri.
+Floating,Melayang
+Bulk Actions,Tindakan Massal
+View Switcher,Pengalih Tampilan
+Show navigation buttons,Tampilkan tombol navigasi
+Timeline,Lini Masa
+Report Settings,Pengaturan Laporan
+Split view in reports,Tampilan terbagi pada laporan
+Open linked documents in a side panel instead of navigating away from the report.,Buka dokumen tertaut pada panel samping tanpa meninggalkan laporan.
+"<a href=""https://docs.frappe.io/framework/user/en/api/rest#1-token-based-authentication"" target=""_blank"" rel=""noopener noreferrer"">
+  Click here to learn about token-based authentication
+</a>","<a href=""https://docs.frappe.io/framework/user/en/api/rest#1-token-based-authentication"" target=""_blank"" rel=""noopener noreferrer"">
+  Klik di sini untuk mempelajari autentikasi berbasis token
+</a>"
+Document Permissions,Izin Dokumen
+Pages,Halaman
+Average Discount,Diskon Rata-Rata
+Customerwise Discount,Diskon per Pelanggan
+Itemwise Discount,Diskon per Barang
+Item Group wise Discount,Diskon per Kelompok Barang
+Not Applicable,Tidak Berlaku
+Customer / Item / Item Group,Pelanggan / Barang / Kelompok Barang
+Authorized Value,Nilai yang Diotorisasi
+Applicable To (Role),Berlaku untuk (Peran)
+Applicable To (Employee),Berlaku untuk (Karyawan)
+Applicable To (User),Berlaku untuk (Pengguna)
+Applicable To (Designation),Berlaku untuk (Jabatan)
+Approving Role (above authorized value),Peran Penyetuju (di atas nilai yang diotorisasi)
+Approving User  (above authorized value),Pengguna Penyetuju (di atas nilai yang diotorisasi)
+Header,Kepala Halaman
+Header HTML,HTML Kepala Halaman
+Footer,Kaki Halaman
+"Ship as files in an app, tracked in git. Developer mode only; duplicate to edit.","Kirim sebagai berkas dalam aplikasi, dilacak di git. Hanya mode pengembang; duplikasi untuk mengubah."
+Write the format by hand in HTML and Jinja.,Tulis format secara manual dalam HTML dan Jinja.
+Send raw ESC/POS commands to a label or thermal printer.,Kirim perintah ESC/POS mentah ke pencetak label atau pencetak termal.
+Label Color,Warna Label
+Value Color,Warna Nilai
+Show Colon After Field Labels,Tampilkan Titik Dua setelah Label Kolom
+"Show a colon after field labels (e.g. ""Name:""), matching the older print style.","Tampilkan titik dua setelah label kolom (misalnya ""Nama:""), sesuai gaya cetak lama."
+Print Format Builder Beta,Penyusun Format Cetak Beta
+Edit in the visual builder.,Ubah pada penyusun visual.
+wkhtmltopdf is deprecated; Chrome is the supported renderer.,wkhtmltopdf sudah usang; Chrome adalah perender yang didukung.
+Max Bulk Print Documents,Maksimum Dokumen Cetak Massal
+Maximum number of documents that can be combined into a single bulk PDF export.,Jumlah maksimum dokumen yang dapat digabung dalam satu ekspor PDF massal.
+Max Concurrent Bulk Exports Per User,Maksimum Ekspor Massal Bersamaan per Pengguna
+Maximum number of bulk PDF export jobs a single user can have queued or running at once.,Jumlah maksimum pekerjaan ekspor PDF massal yang dapat diantrekan atau dijalankan satu pengguna sekaligus.
+Font,Fon
+Email Digest Settings,Pengaturan Ringkasan Surel
+For Company,Untuk Perusahaan
+How frequently?,Seberapa sering?
+Next email will be sent on:,Surel berikutnya dikirim pada:
+Note: Email will not be sent to disabled users,Catatan: surel tidak dikirim kepada pengguna yang dinonaktifkan
+Email Digest Recipient,Penerima Ringkasan Surel
+New Income,Pendapatan Baru
+New Expenses,Pengeluaran Baru
+Annual Income,Pendapatan Tahunan
+Annual Expenses,Pengeluaran Tahunan
+Bank Balance,Saldo Bank
+Bank Credit Balance,Saldo Kredit Bank
+Receivables,Piutang
+Payables,Utang
+Work in Progress,Pekerjaan dalam Proses
+Sales Orders to Bill,Pesanan Penjualan Belum Ditagih
+Purchase Orders to Bill,Pesanan Pembelian Belum Ditagih
+New Sales Orders,Pesanan Penjualan Baru
+New Purchase Orders,Pesanan Pembelian Baru
+Sales Orders to Deliver,Pesanan Penjualan Belum Dikirim
+Purchase Orders to Receive,Pesanan Pembelian Belum Diterima
+New Sales Invoice,Faktur Penjualan Baru
+New Purchase Invoice,Faktur Pembelian Baru
+New Quotations,Penawaran Baru
+Open Quotations,Penawaran Terbuka
+Open Issues,Masalah Terbuka
+Purchase Orders Items Overdue,Barang Pesanan Pembelian yang Lewat Tenggat
+Upcoming Calendar Events,Acara Kalender Mendatang
+Open To Do,Daftar Tugas Terbuka
+Insert or Update Records,Sisipkan atau Perbarui Data
+Value Mappings,Pemetaan Nilai
+Data Import Value Mapping,Pemetaan Nilai Impor Data
+Value in File,Nilai dalam Berkas
+No. of Rows,Jumlah Baris
+Row Numbers,Nomor Baris
+Map To,Petakan ke
+Tree Preview,Pratinjau Pohon
+Type of document to rename.,Jenis dokumen yang akan diganti namanya.
+File to Rename,Berkas untuk Ganti Nama
+"Attach a comma separated .csv file with two columns, one for the old name and one for the new name.",Lampirkan berkas .csv berpemisah koma dengan dua kolom: satu untuk nama lama dan satu untuk nama baru.
+Rename Log,Catatan Penggantian Nama
+Log Entries,Entri Catatan
+Succeeded,Berhasil
+Delete Bins,Hapus Wadah Persediaan
+Delete Leads and Addresses,Hapus Prospek dan Alamat
+Reset Company Default Values,Atur Ulang Nilai Bawaan Perusahaan
+Clear Notifications,Bersihkan Pemberitahuan
+Initialize Summary Table,Inisialisasi Tabel Ringkasan
+Delete Transactions,Hapus Transaksi
+Transaction Deletion Record Details,Rincian Catatan Penghapusan Transaksi
+No of Docs,Jumlah Dokumen
+DocTypes To Delete,DocType yang Akan Dihapus
+Transaction Deletion Record To Delete,Daftar Penghapusan pada Catatan Penghapusan Transaksi
+Company Field,Kolom Perusahaan
+Company link field name used for filtering (optional - leave empty to delete all records),Nama kolom tautan perusahaan untuk penyaringan (opsional - kosongkan untuk menghapus semua data)
+Document Count,Jumlah Dokumen
+Child DocTypes,DocType Anak
+Child tables that will also be deleted,Tabel anak yang juga akan dihapus
+Excluded DocTypes,DocType yang Dikecualikan
+DocTypes that will NOT be deleted.,DocType yang TIDAK akan dihapus.
+Transaction Deletion Record Item,Butir Catatan Penghapusan Transaksi
+Call Routing,Perutean Panggilan
+Sequential,Berurutan
+Simultaneous,Serentak
+Greeting Message,Pesan Sambutan
+Agent Busy Message,Pesan Agen Sibuk
+Call Handling Schedule,Jadwal Penanganan Panggilan
+Incoming Call Handling Schedule,Jadwal Penanganan Panggilan Masuk
+Day Of Week,Hari
+Call Receiving Device,Perangkat Penerima Panggilan
+Computer,Komputer
+Call Details,Rincian Panggilan
+Call Received By,Panggilan Diterima Oleh
+Busy,Sibuk
+No Answer,Tidak Dijawab
+Call Duration in seconds,Durasi panggilan dalam detik
+Recording HTML,HTML Rekaman
+Type Of Call,Jenis Panggilan
+Call Type,Jenis Panggilan
+Communication Channel,Saluran Komunikasi
+Communication Medium Type,Jenis Media Komunikasi
+Voice,Suara
+Catch All,Penampung Umum
+"If there is no assigned timeslot, then communication will be handled by this group","Jika tidak ada slot waktu yang ditetapkan, komunikasi ditangani kelompok ini"
+Timeslots,Slot Waktu
+Canonical URI,URI Kanonis
+Default Common Code,Kode Umum Bawaan
+This value shall be used when no matching Common Code for a record is found.,Nilai ini dipakai jika tidak ditemukan kode umum yang cocok untuk suatu data.
+Publisher,Penerbit
+Publisher ID,ID Penerbit
+Applies To,Berlaku untuk
+Default display currency,Mata uang tampilan bawaan
+Use Number Format from Currency,Gunakan Format Angka dari Mata Uang
+Note: Multiple sessions will be allowed in case of mobile device,Catatan: beberapa sesi diizinkan pada perangkat seluler
+Rate limit for email link login,Batas frekuensi untuk masuk lewat tautan surel
+You can set a high value here if multiple users will be logging in from the same network.,Anda dapat mengisi nilai tinggi jika banyak pengguna masuk dari jaringan yang sama.
+OTP placeholder should be defined as <code>{{ otp }}</code>,Penanda OTP harus ditulis sebagai <code>{{ otp }}</code>
+Hourly rate limit for generating password reset links,Batas per jam untuk pembuatan tautan atur ulang kata sandi
+Max Zip Extract Size (MB),Ukuran Maksimum Ekstraksi Zip (MB)
+Maximum total size a ZIP archive is allowed to expand to when extracted.,Ukuran total maksimum arsip ZIP setelah diekstrak.
+Allowed Doctypes for Guest Uploads,DocType yang Diizinkan untuk Unggahan Tamu
+"Provide a list of allowed Doctypes for file uploads. Each line should contain one allowed Doctype. If unset, uploads to all doctypes are allowed. Example: <br>User<br>Item<br>Quotation","Isi daftar DocType yang diizinkan untuk unggahan berkas, satu DocType per baris. Jika dikosongkan, unggahan ke semua DocType diizinkan. Contoh: <br>User<br>Item<br>Quotation"
+Snapshot Reports,Laporan Cuplikan
+Enable Snapshot Reports,Aktifkan Laporan Cuplikan
+Sync In Batches,Sinkronkan per Kelompok
+Sync Timeout (Seconds),Batas Waktu Sinkronisasi (Detik)
+Default Company,Perusahaan Bawaan
+Default Distance Unit,Satuan Jarak Bawaan
+Hide Currency Symbol,Sembunyikan Simbol Mata Uang
+Do not show any symbol like $ etc next to currencies.,Jangan tampilkan simbol seperti $ di samping nilai mata uang.
+Disable Rounded Total,Nonaktifkan Total Pembulatan
+"If disable, 'Rounded Total' field will not be visible in any transaction","Jika dinonaktifkan, kolom 'Rounded Total' tidak terlihat di transaksi mana pun"
+Disable In Words,Nonaktifkan Terbilang
+"If disable, 'In Words' field will not be visible in any transaction","Jika dinonaktifkan, kolom 'In Words' tidak terlihat di transaksi mana pun"
+Use Posting Datetime for Naming Documents,Gunakan Waktu Pembukuan untuk Penamaan Dokumen
+"When checked, the system will use the posting datetime of the document for naming the document instead of the creation datetime of the document.","Jika dicentang, sistem memakai waktu pembukuan dokumen, bukan waktu pembuatannya, untuk menamai dokumen."
+Enable Item Search Index,Aktifkan Indeks Pencarian Barang
+"Speeds up Item search on large catalogues. Requires a single app server: the index is a file on that server's disk, and several servers would each answer from a different copy. Building it takes about 20 minutes for 3 million items, and runs in the background.","Mempercepat pencarian barang pada katalog besar. Memerlukan satu server aplikasi: indeks berupa berkas di diska server tersebut, sehingga beberapa server akan menjawab dari salinan berbeda. Pembuatannya memakan waktu sekitar 20 menit untuk 3 juta barang dan berjalan di latar belakang."
+Invoice and Billing,Faktur dan Penagihan
+Invoice Cancellation,Pembatalan Faktur
+Unlink Payment on cancellation of invoice,Lepaskan Tautan Pembayaran saat Faktur Dibatalkan
+Unlink Advance Payment on cancellation of order,Lepaskan Tautan Uang Muka saat Pesanan Dibatalkan
+Delete Accounting and Stock Ledger entries on deletion of transaction,Hapus Entri Buku Besar Akuntansi dan Persediaan saat Transaksi Dihapus
+Enable Immutable Ledger,Aktifkan Buku Besar Tidak Dapat Diubah
+On enabling this cancellation entries will be posted on the actual cancellation date and reports will consider cancelled entries as well,"Jika diaktifkan, entri pembatalan dibukukan pada tanggal pembatalan sebenarnya dan laporan turut memperhitungkan entri yang dibatalkan"
+Invoicing Features,Fitur Faktur
+Check Supplier invoice number uniqueness,Periksa Keunikan Nomor Faktur Pemasok
+Enabling this ensures each Purchase Invoice has a unique value in Supplier Invoice No. field within a particular fiscal year,Mengaktifkan ini memastikan setiap faktur pembelian memiliki nilai unik pada kolom Nomor Faktur Pemasok dalam satu tahun fiskal
+Automatically fetch Payment Terms from Order/Quotation,Ambil Ketentuan Pembayaran dari Pesanan/Penawaran Secara Otomatis
+Payment Terms from orders will be fetched into the invoices as is,Ketentuan pembayaran dari pesanan diambil ke faktur apa adanya
+Enable Subscription,Aktifkan Langganan
+Enable Subscription tracking in invoice,Aktifkan pelacakan langganan pada faktur
+Enable Common Party Accounting,Aktifkan Akuntansi Pihak Bersama
+"Learn about <a href=""https://docs.frappe.io/erpnext/user/manual/en/common_party_accounting"" rel=""noopener noreferrer"">Common Party</a>","Pelajari <a href=""https://docs.frappe.io/erpnext/user/manual/en/common_party_accounting"" rel=""noopener noreferrer"">Pihak Bersama</a>"
+Allow multi-currency invoices against single party account,Izinkan faktur multimata uang pada satu akun pihak
+Enabling this will allow creation of multi-currency invoices against single party account in company currency,Mengaktifkan ini memungkinkan pembuatan faktur multimata uang pada satu akun pihak dalam mata uang perusahaan
+Confirm before resetting posting date,Minta konfirmasi sebelum mengatur ulang tanggal pembukuan
+"If enabled, user will be alerted before resetting posting date to current date in relevant transactions","Jika diaktifkan, pengguna diperingatkan sebelum tanggal pembukuan diatur ulang ke tanggal hari ini pada transaksi terkait"
+Stock Expense Accounting,Akuntansi Beban Persediaan
+Book Stock Expense GL Entries,Bukukan Entri Buku Besar Beban Persediaan
+"Books Purchase Expense and Expenses Added To Stock account pairs against stock value. On enabling this, the accounts become mandatory in Company or Item Defaults for Purchase Receipt, Purchase Invoice, Stock Entry, Stock Reconciliation and Landed Cost Voucher","Membukukan pasangan akun Beban Pembelian dan Beban yang Ditambahkan ke Persediaan terhadap nilai persediaan. Jika diaktifkan, akun tersebut wajib diisi pada Perusahaan atau Nilai Bawaan Barang untuk Penerimaan Pembelian, Faktur Pembelian, Entri Persediaan, Rekonsiliasi Persediaan, dan Voucer Biaya Perolehan"
+Analytical Accounting,Akuntansi Analitis
+Enable Discounts and Margin,Aktifkan Diskon dan Margin
+Apply discounts and margins on products,Terapkan diskon dan margin pada produk
+Enable Accounting Dimensions,Aktifkan Dimensi Akuntansi
+"Enable cost center, projects and other custom accounting dimensions","Aktifkan pusat biaya, proyek, dan dimensi akuntansi khusus lainnya"
+Journals,Jurnal
+Merge similar Account Heads,Gabungkan Pos Akun Serupa
+Rows with Same Account heads will be merged on Ledger,Baris dengan pos akun yang sama digabungkan pada buku besar
+Deferred Accounting Settings,Pengaturan Akuntansi Tangguhan
+Book Deferred entries based on,Dasar pembukuan entri tangguhan
+"If ""Months"" is selected, a fixed amount will be booked as deferred revenue or expense for each month irrespective of the number of days in a month. It will be prorated if deferred revenue or expense is not booked for an entire month","Jika ""Months"" dipilih, jumlah tetap dibukukan sebagai pendapatan atau beban ditangguhkan tiap bulan tanpa memandang jumlah hari. Nilainya dihitung proporsional jika tidak dibukukan untuk satu bulan penuh"
+Days,Hari
+Automatically process deferred Accounting entry,Proses entri akuntansi tangguhan secara otomatis
+Book deferred entries via Journal Entry,Bukukan entri tangguhan lewat entri jurnal
+"If this is unchecked, direct GL entries will be created to book deferred revenue or expense","Jika tidak dicentang, entri buku besar langsung dibuat untuk membukukan pendapatan atau beban ditangguhkan"
+Submit Journal entries,Ajukan entri jurnal
+If this is unchecked Journal Entries will be saved in a Draft state and will have to be submitted manually,"Jika tidak dicentang, entri jurnal disimpan sebagai draf dan harus diajukan secara manual"
+Tax Settings,Pengaturan Pajak
+Determine Address Tax Category from,Tentukan Kategori Pajak Alamat dari
+Billing Address,Alamat Penagihan
+Automatically add Taxes and Charges from Item Tax Template,Tambahkan pajak dan biaya dari templat pajak barang secara otomatis
+Automatically add taxes from Taxes and Charges Template,Tambahkan pajak dari templat pajak dan biaya secara otomatis
+"If no taxes are set, and Taxes and Charges Template is selected, the system will automatically apply the taxes from the chosen template.","Jika pajak tidak diatur dan templat pajak dan biaya dipilih, sistem otomatis menerapkan pajak dari templat tersebut."
+Book tax loss on early payment discount,Bukukan kerugian pajak atas diskon pembayaran dini
+Split Early Payment Discount Loss into Income and Tax Loss,Pisahkan kerugian diskon pembayaran dini menjadi kerugian pendapatan dan pajak
+Round tax amount row-wise,Bulatkan jumlah pajak per baris
+Tax Amount will be rounded on a row(items) level,Jumlah pajak dibulatkan di tingkat baris (barang)
+Show inclusive tax in print,Tampilkan pajak termasuk harga pada cetakan
+Show taxes as table in print,Tampilkan pajak sebagai tabel pada cetakan
+Show Payment Schedule in print,Tampilkan jadwal pembayaran pada cetakan
+Item Price Settings,Pengaturan Harga Barang
+Maintain same rate throughout internal Transaction,Pertahankan tarif yang sama sepanjang transaksi internal
+Fetch valuation rate for internal Transaction,Ambil tarif penilaian untuk transaksi internal
+Action if same rate is not maintained throughout internal transaction,Tindakan jika tarif tidak sama sepanjang transaksi internal
+Warn,Peringatkan
+Role allowed to override stop action,Peran yang diizinkan mengesampingkan tindakan penghentian
+Allow Stale Exchange Rates,Izinkan Kurs Usang
+"System will use the latest saved Currency Exchange rate on or before the transaction date, however old it is. <br>
+Uncheck to ignore rates older than Stale Days and fetch a fresh rate from the exchange rate provider instead.","Sistem memakai kurs tersimpan terbaru pada atau sebelum tanggal transaksi, selama apa pun usianya. <br>
+Hilangkan centang untuk mengabaikan kurs yang lebih lama dari batas hari usang dan mengambil kurs baru dari penyedia kurs."
+Allow Implicit Pegged Currency Conversion,Izinkan Konversi Mata Uang Patokan Implisit
+"System will do an implicit conversion using the pegged currency. <br>
+Ex: Instead of AED -&gt; INR, system will do AED -&gt; USD -&gt; INR using the pegged exchange rate of AED against USD.","Sistem melakukan konversi implisit memakai mata uang patokan. <br>
+Contoh: alih-alih AED -&gt; INR, sistem melakukan AED -&gt; USD -&gt; INR memakai kurs patokan AED terhadap USD."
+Stale Days,Batas Hari Usang
+Payment Reconciliation Settings,Pengaturan Rekonsiliasi Pembayaran
+Auto reconcile Payments,Rekonsiliasi pembayaran otomatis
+Posting Date inheritance for exchange gain / loss,Pewarisan tanggal pembukuan untuk laba/rugi selisih kurs
+Only applies for Normal Payments,Hanya berlaku untuk pembayaran biasa
+Auto Reconciliation job trigger,Pemicu pekerjaan rekonsiliasi otomatis
+Interval should be between 1 to 59 MInutes,Selang waktu harus antara 1 dan 59 menit
+Reconciliation queue size,Ukuran antrean rekonsiliasi
+Documents Processed on each trigger. Queue Size should be between 5 and 100,Dokumen yang diproses pada tiap pemicu. Ukuran antrean harus antara 5 dan 100
+Repost,Pembukuan Ulang
+"Changing the account in any transaction of the DocTypes listed below will trigger a repost. To prevent reposting, remove the relevant DocType from the list.","Mengubah akun pada transaksi DocType di bawah ini akan memicu pembukuan ulang. Untuk mencegahnya, hapus DocType terkait dari daftar."
+Allowed DocTypes,DocType yang Diizinkan
+Repost Allowed Types,Jenis yang Diizinkan untuk Pembukuan Ulang
+Payment Options,Opsi Pembayaran
+Fetch Payment Schedule in Payment Request,Ambil jadwal pembayaran pada permintaan pembayaran
+Enable Loyalty Point Program,Aktifkan Program Poin Loyalitas
+Credit Limits,Batas Kredit
+Over Billing Allowance (%),Toleransi Tagihan Berlebih (%)
+"The percentage you are allowed to bill more against the amount ordered. For example, if the order value is $100 for an item and tolerance is set as 10%, then you are allowed to bill up to $110","Persentase tagihan yang boleh melebihi nilai pesanan. Misalnya, jika nilai pesanan suatu barang $100 dan toleransi 10%, Anda boleh menagih sampai $110"
+Role allowed to bypass credit limit,Peran yang diizinkan melewati batas kredit
+Role Allowed to over bill,Peran yang Diizinkan Menagih Berlebih
+Users with this role are allowed to over bill above the allowance percentage,Pengguna dengan peran ini boleh menagih melebihi persentase toleransi
+Prevent Sales Invoice when Customer is Overdue,Cegah Faktur Penjualan saat Pelanggan Menunggak
+Enabling this option prevents the creation of a new Sales Invoice when the customer has an overdue limit set and their outstanding overdue amount exceeds that limit.,Opsi ini mencegah pembuatan faktur penjualan baru jika pelanggan memiliki batas tunggakan dan jumlah tunggakannya melebihi batas tersebut.
+Role Allowed to Bypass Over Billing Restriction,Peran yang Diizinkan Melewati Pembatasan Tagihan Berlebih
+Users with this role can still submit invoices for customers who have crossed their Overdue Limit.,Pengguna dengan peran ini tetap dapat mengajukan faktur bagi pelanggan yang melewati batas tunggakan.
+Asset Settings,Pengaturan Aset
+Book Asset Depreciation entry automatically,Bukukan entri penyusutan aset secara otomatis
+Calculate daily depreciation using total days in depreciation period,Hitung penyusutan harian memakai total hari dalam periode penyusutan
+"Enable this option to calculate daily depreciation by considering the total number of days in the entire depreciation period, (including leap years) while using daily pro-rata based depreciation",Aktifkan untuk menghitung penyusutan harian dengan memperhitungkan jumlah hari seluruh periode penyusutan (termasuk tahun kabisat) pada penyusutan prorata harian
+Role to Notify on Depreciation Failure,Peran yang Diberi Tahu saat Penyusutan Gagal
+Users with this role will be notified if the asset depreciation gets failed,Pengguna dengan peran ini diberi tahu jika penyusutan aset gagal
+Ignore Account closing balance,Abaikan saldo penutup akun
+Financial reports will be generated using GL Entry doctypes (should be enabled if Period Closing Voucher is not posted for all years sequentially or missing),Laporan keuangan dibuat memakai entri buku besar (harus diaktifkan jika voucer penutupan periode tidak dibukukan berurutan untuk semua tahun atau tidak ada)
+Use legacy controller for Period Closing Voucher,Gunakan pengendali lama untuk voucer penutupan periode
+PCV Job Timeout (seconds),Batas waktu pekerjaan voucer penutupan periode (detik)
+Timeout (in seconds) for each background job enqueued by Process Period Closing Voucher,Batas waktu (detik) untuk tiap pekerjaan latar belakang yang diantrekan proses voucer penutupan periode
+General Ledger Report,Laporan Buku Besar
+"Disable ""Consider Accounting Dimension"" Filter","Nonaktifkan filter ""Pertimbangkan Dimensi Akuntansi"""
+General Ledger remarks length,Panjang keterangan buku besar
+Truncates 'Remarks' column to set character length,Memotong kolom 'Remarks' sesuai batas karakter
+Accounts Receivable / Payable Report,Laporan Piutang / Utang
+Data fetch method,Metode pengambilan data
+Default Ageing Range,Rentang Umur Bawaan
+Accounts Receivable / Payable remarks length,Panjang keterangan piutang / utang
+Legacy Fields,Kolom Lama
+Ignore Is Opening check for reporting,Abaikan pemeriksaan saldo awal pada pelaporan
+Ignores legacy Is Opening field in GL Entry that allows adding opening balance post the system is in use while generating reports,Mengabaikan kolom saldo awal lama pada entri buku besar yang memungkinkan penambahan saldo awal saat sistem sudah dipakai
+Show balances in Chart of Accounts,Tampilkan saldo pada bagan akun
+Enable Automatic Party Matching,Aktifkan Pencocokan Pihak Otomatis
+Auto match and set the Party in Bank Transactions,Cocokkan dan isi pihak pada transaksi bank secara otomatis
+Automatically run rules on unreconciled transactions,Jalankan aturan pada transaksi yang belum direkonsiliasi secara otomatis
+"If enabled, rule matching algorithm will run every hour","Jika diaktifkan, algoritma pencocokan aturan berjalan setiap jam"
+Enable Fuzzy Matching,Aktifkan Pencocokan Samar
+Approximately match the description/party name against parties,Cocokkan deskripsi/nama pihak dengan pihak secara perkiraan
+Match transfers within 'N' days,Cocokkan transfer dalam 'N' hari
+Number of days to consider for matching transfers across bank accounts,Jumlah hari yang dipertimbangkan untuk mencocokkan transfer antarrekening bank
+Create payment requests in Draft status,Buat permintaan pembayaran berstatus draf
+Payment Requests made from Sales / Purchase Invoice will be put in Draft explicitly,Permintaan pembayaran dari faktur penjualan / pembelian dibuat sebagai draf
+Use legacy Budget Controller,Gunakan pengendali anggaran lama
+Enable this if you are experiencing issues with the new budget controller. Uses the older budget validation logic,Aktifkan jika pengendali anggaran baru bermasalah. Memakai logika validasi anggaran lama
+Document Naming,Penamaan Dokumen
+Customer Defaults,Nilai Bawaan Pelanggan
+Customer Naming By,Penamaan Pelanggan Berdasarkan
+Default Customer Group,Kelompok Pelanggan Bawaan
+Default Territory,Wilayah Bawaan
+Default Price List,Daftar Harga Bawaan
+Use prices from Default Price List as fallback,Gunakan harga daftar harga bawaan sebagai cadangan
+"If no Item Price is found for an item in the Price List set in the transaction, prices from the Default Price List will be fetched.","Jika harga barang tidak ditemukan pada daftar harga transaksi, harga diambil dari daftar harga bawaan."
+Allow editing Price List rate in transactions,Izinkan mengubah tarif daftar harga pada transaksi
+Maintain same rate throughout sales cycle,Pertahankan tarif yang sama sepanjang siklus penjualan
+Warn or stop if Item rate is changed in Delivery Notes and Sales Invoices generated from a Sales Order.,Peringatkan atau hentikan jika tarif barang berubah pada nota pengiriman dan faktur penjualan yang dibuat dari pesanan penjualan.
+Action if same rate is not maintained throughout sales cycle,Tindakan jika tarif tidak sama sepanjang siklus penjualan
+Validate selling price for Item against purchase or valuation rate,Validasi harga jual barang terhadap tarif pembelian atau penilaian
+Enable this to block transactions where the selling price is less than the purchase or valuation rate,Aktifkan untuk memblokir transaksi dengan harga jual di bawah tarif pembelian atau penilaian
+Calculate Product Bundle price based on child Item's rates,Hitung harga paket produk dari tarif barang anaknya
+"Enabling this will do the following:
+<ul style=""padding-left:16px"">
+<li>Make the rate column of all Packed/Bundle Items tables editable.</li>
+<li>Calculate the prices of all <a href=""/desk/product-bundle"" rel=""noopener noreferrer"">Product Bundles</a> in the Items table, based on the prices of its child Items, specified in the Packed/Bundle Items table. </li>
+</ul>
+Note: If this is enabled, updating the rate of the Product Bundle in the Items table will not change its price. It will get reset to the price based on its Child Items on saving the doc.","Jika diaktifkan:
+<ul style=""padding-left:16px"">
+<li>Kolom tarif pada semua tabel barang paket dapat diubah.</li>
+<li>Harga semua <a href=""/desk/product-bundle"" rel=""noopener noreferrer"">paket produk</a> pada tabel barang dihitung dari harga barang anaknya pada tabel barang paket. </li>
+</ul>
+Catatan: jika diaktifkan, mengubah tarif paket produk pada tabel barang tidak mengubah harganya. Harga kembali mengikuti barang anak saat dokumen disimpan."
+Allow negative rates for Items,Izinkan tarif negatif untuk barang
+"Enable this option to permit the use of negative rates for items in sales transactions. This setting is useful for applying substantial discounts, processing refunds or returns, and handling special promotional pricing.","Aktifkan untuk mengizinkan tarif negatif pada transaksi penjualan. Berguna untuk diskon besar, pengembalian dana atau retur, dan harga promosi khusus."
+Transaction Settings,Pengaturan Transaksi
+Is Sales Order required to create Sales Invoice/Delivery Note?,Apakah pesanan penjualan wajib untuk membuat faktur penjualan/nota pengiriman?
+Is Delivery Note required to create Sales Invoice?,Apakah nota pengiriman wajib untuk membuat faktur penjualan?
+How often should sales data be updated in Company/Project?,Seberapa sering data penjualan diperbarui pada perusahaan/proyek?
+The frequency at which project progress and company transaction details will be updated. Set it to daily or monthly if you post a lot of transactions.,Frekuensi pembaruan kemajuan proyek dan rincian transaksi perusahaan. Atur harian atau bulanan jika transaksi Anda banyak.
+Each Transaction,Setiap Transaksi
+Allow same Item to be added multiple times in a transaction,Izinkan barang yang sama ditambahkan beberapa kali dalam satu transaksi
+Allow multiple Sales Orders against a customer's Purchase Order,Izinkan beberapa pesanan penjualan untuk satu pesanan pembelian pelanggan
+Hide Customer's Tax ID from sales transactions,Sembunyikan nomor pajak pelanggan pada transaksi penjualan
+Most Customers have a unique Tax ID that is fetched into selling transactions. Enable this setting if you do not want Customer Tax IDs to appear in sales transactions.,Sebagian besar pelanggan memiliki nomor pajak unik yang diambil ke transaksi penjualan. Aktifkan jika nomor pajak pelanggan tidak ingin ditampilkan.
+Allow Sales Order creation for expired Quotation,Izinkan pesanan penjualan dari penawaran kedaluwarsa
+"This allows creation of sales orders from quotations that have passed their expiration date, providing flexibility in processing orders despite outdated quotes.",Memungkinkan pembuatan pesanan penjualan dari penawaran yang sudah lewat masa berlaku.
+Don't reserve Sales Order qty on sales return,Jangan cadangkan jumlah pesanan penjualan saat retur
+Prevents the automatic reservation of stock quantities from sales orders when processing sales returns.,Mencegah pencadangan persediaan otomatis dari pesanan penjualan saat memproses retur penjualan.
+Enable cut-off date on creating bulk Delivery Notes,Aktifkan tanggal batas saat membuat nota pengiriman massal
+"When enabled, it adds a cutoff date filter to Delivery Notes created in bulk from Sales Orders. This allows you to process orders only with a transaction date up to the specified cutoff date, which is useful for period-end processing and batch fulfillment.","Jika diaktifkan, filter tanggal batas ditambahkan pada nota pengiriman massal dari pesanan penjualan, sehingga hanya pesanan sampai tanggal tersebut yang diproses."
+Set incoming rate as zero for expired Batch,Atur tarif masuk nol untuk lot kedaluwarsa
+"If enabled, system will set incoming rate as zero for stand-alone credit notes with expired batch item.","Jika diaktifkan, tarif masuk diatur nol untuk nota kredit mandiri dengan barang lot kedaluwarsa."
+Zero-Quantity Line Items,Baris Barang Berjumlah Nol
+Allow sales transactions with zero quantities if the rate is fixed but the quantities are not. e.g. Rate Contracts,"Izinkan transaksi penjualan berjumlah nol jika tarif tetap tetapi jumlah belum pasti, misalnya kontrak tarif"
+Allow Quotation with zero quantity,Izinkan penawaran dengan jumlah nol
+Allow Sales Order with zero quantity,Izinkan pesanan penjualan dengan jumlah nol
+Blanket Orders,Pesanan Payung
+Blanket Order Allowance (%),Toleransi Pesanan Payung (%)
+Percentage you are allowed to sell beyond the Blanket Order quantity.,Persentase yang boleh dijual melebihi jumlah pesanan payung.
+Advanced Features,Fitur Lanjutan
+Enable tracking sales commissions,Aktifkan pelacakan komisi penjualan
+Manage sales partner's and sales team's commissions,Kelola komisi mitra dan tim penjualan
+Enable discount accounting for selling,Aktifkan akuntansi diskon penjualan
+"If enabled, additional ledger entries will be made for discounts in a separate Discount Account","Jika diaktifkan, entri buku besar tambahan dibuat untuk diskon pada akun diskon terpisah"
+Enable UTM,Aktifkan UTM
+"Enable Urchin Tracking Module parameters in Quotation, Sales Order, Sales Invoice, POS Invoice, Lead,  and Delivery Note.","Aktifkan parameter Urchin Tracking Module pada penawaran, pesanan penjualan, faktur penjualan, faktur POS, prospek, dan nota pengiriman."
+Use Legacy (Client side) Reactivity,Gunakan reaktivitas lama (sisi klien)
+Subcontracting Inward,Subkontrak Masuk
+Allow delivery of overproduced quantity,Izinkan pengiriman kuantitas produksi berlebih
+"If enabled, system will allow user to deliver the entire quantity of the finished goods produced against the Subcontracting Inward Order. If disabled, system will allow delivery of only the ordered quantity.","Jika diaktifkan, pengguna boleh mengirim seluruh barang jadi yang diproduksi atas pesanan masuk subkontrak. Jika tidak, hanya jumlah yang dipesan."
+Deliver secondary Items,Kirim barang sekunder
+"If enabled, the Secondary Items generated against a Finished Good will also be added in the Stock Entry when delivering that Finished Good.","Jika diaktifkan, barang sekunder dari suatu barang jadi juga ditambahkan pada entri persediaan saat barang jadi itu dikirim."
+Supplier Defaults,Nilai Bawaan Pemasok
+Supplier Naming By,Penamaan Pemasok Berdasarkan
+Default Supplier Group,Kelompok Pemasok Bawaan
+Default Buying Price List,Daftar Harga Pembelian Bawaan
+Maintain same rate throughout the purchase  cycle,Pertahankan tarif yang sama sepanjang siklus pembelian
+Warn or stop if Item rate is changed in Purchase Invoice or Purchase Receipt generated from a Purchase Order.,Peringatkan atau hentikan jika tarif barang berubah pada faktur atau penerimaan pembelian yang dibuat dari pesanan pembelian.
+Set Landed Cost Based on Purchase Invoice Rate,Tetapkan biaya perolehan berdasarkan tarif faktur pembelian
+Users can enable the checkbox If they want to adjust the incoming rate (set using purchase receipt) based on the purchase invoice rate.,Aktifkan jika tarif masuk (dari penerimaan pembelian) ingin disesuaikan dengan tarif faktur pembelian.
+Action if same rate is not maintained,Tindakan jika tarif tidak dipertahankan
+Configure the action to stop the transaction or just warn if the same rate is not maintained.,Atur apakah transaksi dihentikan atau hanya diperingatkan jika tarif tidak sama.
+Is Purchase Order required for Purchase Invoice & Receipt creation?,Apakah pesanan pembelian wajib untuk membuat faktur dan penerimaan pembelian?
+Is Purchase Receipt required for Purchase Invoice creation?,Apakah penerimaan pembelian wajib untuk membuat faktur pembelian?
+How often should project be updated of Total Purchase Cost ?,Seberapa sering total biaya pembelian proyek diperbarui?
+Over Order Allowance (%),Toleransi Pesanan Berlebih (%)
+"The percentage by which you are allowed to order more on a Purchase Order than the quantity requested on the originating Material Request. For example, if the Material Request has 100 units and the allowance is 10%, you can order up to 110 units","Persentase yang boleh dipesan pada pesanan pembelian melebihi jumlah pada permintaan bahan asal. Misalnya permintaan 100 unit dengan toleransi 10%, Anda boleh memesan sampai 110 unit"
+Allow Item to be added multiple times in a transaction,Izinkan barang ditambahkan beberapa kali dalam satu transaksi
+Set valuation rate for rejected Materials,Atur tarif penilaian untuk bahan yang ditolak
+"If enabled, the system will generate an accounting entry for materials rejected in the Purchase Receipt.","Jika diaktifkan, sistem membuat entri akuntansi untuk bahan yang ditolak pada penerimaan pembelian."
+Disable last purchase rate,Nonaktifkan tarif pembelian terakhir
+Prevents the system from automatically using the rate from the last purchase transaction when creating new purchase orders or transactions.,Mencegah sistem otomatis memakai tarif transaksi pembelian terakhir saat membuat pesanan atau transaksi baru.
+Show pay button in Purchase Order portal,Tampilkan tombol bayar pada portal pesanan pembelian
+Purchase Invoice Settings,Pengaturan Faktur Pembelian
+Bill for rejected quantity in Purchase Invoice,Tagih jumlah yang ditolak pada faktur pembelian
+"If checked, Rejected Quantity will be included while making Purchase Invoice from Purchase Receipt.","Jika dicentang, jumlah ditolak disertakan saat membuat faktur pembelian dari penerimaan pembelian."
+Use Transaction Date Exchange Rate,Gunakan kurs tanggal transaksi
+"While making Purchase Invoice from Purchase Order, use Exchange Rate on Invoice's transaction date rather than inheriting it from Purchase Order. Only applies for Purchase Invoice.","Saat membuat faktur pembelian dari pesanan pembelian, gunakan kurs pada tanggal faktur, bukan kurs pesanan. Hanya berlaku untuk faktur pembelian."
+Allow Supplier Quotation with Zero Quantity,Izinkan penawaran pemasok dengan jumlah nol
+Allows users to submit Supplier Quotations with zero quantity. Useful when rates are fixed but the quantities are not. Eg. Rate Contracts.,"Memungkinkan pengajuan penawaran pemasok berjumlah nol. Berguna jika tarif tetap tetapi jumlah belum pasti, misalnya kontrak tarif."
+Allow Request for Quotation with Zero Quantity,Izinkan permintaan penawaran dengan jumlah nol
+Allows users to submit Request for Quotations with zero quantity. Useful when rates are fixed but the quantities are not. Eg. Rate Contracts.,"Memungkinkan pengajuan permintaan penawaran berjumlah nol. Berguna jika tarif tetap tetapi jumlah belum pasti, misalnya kontrak tarif."
+Allow Purchase Order with Zero Quantity,Izinkan pesanan pembelian dengan jumlah nol
+Allows users to submit Purchase Orders with zero quantity. Useful when rates are fixed but the quantities are not. Eg. Rate Contracts.,"Memungkinkan pengajuan pesanan pembelian berjumlah nol. Berguna jika tarif tetap tetapi jumlah belum pasti, misalnya kontrak tarif."
+Percentage you are allowed to order beyond the Blanket Order quantity.,Persentase yang boleh dipesan melebihi jumlah pesanan payung.
+Subcontracting Settings,Pengaturan Subkontrak
+Backflush raw materials of subcontract based on,Dasar pembebanan otomatis bahan baku subkontrak
+Material Transferred for Subcontract,Bahan yang Dipindahkan untuk Subkontrak
+Over Transfer Allowance (%),Toleransi Pemindahan Berlebih (%)
+Percentage you are allowed to transfer more against the quantity ordered. For example: If you have ordered 100 units. and your Allowance is 10% then you are allowed to transfer 110 units.,"Persentase yang boleh dipindahkan melebihi jumlah pesanan. Misalnya pesanan 100 unit dan toleransi 10%, Anda boleh memindahkan 110 unit."
+Validate consumed quantity (as per BOM),Validasi jumlah terpakai (sesuai daftar bahan)
+Raw materials consumed qty will be validated based on FG BOM required qty,Jumlah bahan baku terpakai divalidasi terhadap kebutuhan daftar bahan barang jadi
+Auto create Subcontracting Order,Buat pesanan subkontrak otomatis
+Subcontracting Order (Draft) will be auto-created on submission of Purchase Order.,Pesanan subkontrak (draf) dibuat otomatis saat pesanan pembelian diajukan.
+Auto create Purchase Receipt,Buat penerimaan pembelian otomatis
+Purchase Receipt (Draft) will be auto-created on submission of Subcontracting Receipt.,Penerimaan pembelian (draf) dibuat otomatis saat penerimaan subkontrak diajukan.
+Fixed Outgoing Email Account,Akun Surel Keluar Tetap
+"If set, the system does not use the user's Email or the standard outgoing Email account for sending request for quotations.","Jika diisi, sistem tidak memakai surel pengguna atau akun surel keluar standar untuk mengirim permintaan penawaran."
+Item Defaults,Nilai Bawaan Barang
+Item Naming By,Penamaan Barang Berdasarkan
+Default Item Group,Kelompok Barang Bawaan
+Default Valuation Method,Metode Penilaian Bawaan
+Price List Defaults,Nilai Bawaan Daftar Harga
+Auto insert Item Price if missing,Sisipkan harga barang otomatis jika belum ada
+Update existing Price List Rate,Perbarui tarif daftar harga yang sudah ada
+Update Price List based on,Perbarui daftar harga berdasarkan
+Price List Rate,Tarif Daftar Harga
+UOM Defaults,Nilai Bawaan Satuan Ukur
+Default Stock UOM,Satuan Persediaan Bawaan
+Allow to edit stock UOM qty for Sales documents,Izinkan mengubah jumlah satuan persediaan pada dokumen penjualan
+Allow to edit stock UOM qty for Purchase documents,Izinkan mengubah jumlah satuan persediaan pada dokumen pembelian
+Allow to edit stock UOM qty for Stock Entry,Izinkan mengubah jumlah satuan persediaan pada entri persediaan
+Allow UOM with conversion rate defined in Item,Izinkan satuan ukur dengan faktor konversi yang diatur pada barang
+"If enabled, the system will allow selecting UOMs in sales and purchase transactions only if the conversion rate is set in the item master.","Jika diaktifkan, satuan ukur pada transaksi penjualan dan pembelian hanya dapat dipilih jika faktor konversinya diatur pada induk barang."
+Warehouse Defaults,Nilai Bawaan Gudang
+Default Warehouse,Gudang Bawaan
+Sample Retention Warehouse,Gudang Penyimpanan Sampel
+Stock Validations,Validasi Persediaan
+Negative Stock,Persediaan Negatif
+Allow negative stock,Izinkan persediaan negatif
+This can be enabled at specific Item level as well,Dapat juga diaktifkan di tingkat barang tertentu
+Quantity Tolerance,Toleransi Jumlah
+Over Delivery/Receipt Allowance (%),Toleransi Pengiriman/Penerimaan Berlebih (%)
+"The percentage you are allowed to receive or deliver more against the quantity ordered. For example, if you have ordered 100 units, and your Allowance is 10%, then you are allowed to receive 110 units.","Persentase yang boleh diterima atau dikirim melebihi jumlah pesanan. Misalnya pesanan 100 unit dan toleransi 10%, Anda boleh menerima 110 unit."
+"The percentage you are allowed to transfer more against the quantity ordered. For example, if you have ordered 100 units, and your Allowance is 10%, then you are allowed transfer 110 units.","Persentase yang boleh dipindahkan melebihi jumlah pesanan. Misalnya pesanan 100 unit dan toleransi 10%, Anda boleh memindahkan 110 unit."
+The percentage you are allowed to pick more items in the pick list than the ordered quantity.,Persentase barang yang boleh diambil pada daftar pengambilan melebihi jumlah pesanan.
+Role Allowed to Over Deliver/Receive,Peran yang Diizinkan Mengirim/Menerima Berlebih
+Users with this role are allowed to over deliver/receive against orders above the allowance percentage,Pengguna dengan peran ini boleh mengirim/menerima pesanan melebihi persentase toleransi
+Display & Data Formatting,Tampilan dan Format Data
+Show barcode field in stock transactions,Tampilkan kolom kode batang pada transaksi persediaan
+Convert Item description to clean HTML in transactions,Ubah deskripsi barang menjadi HTML bersih pada transaksi
+Internal Transfer Rules,Aturan Pemindahan Internal
+Allow internal transfers at user-defined rate,Izinkan pemindahan internal dengan tarif yang ditentukan pengguna
+"If enabled, the item rate won't adjust to the valuation rate during internal transfers, but accounting will still use the valuation rate. This will allow the user to specify a different rate for printing or taxation purposes.","Jika diaktifkan, tarif barang tidak disesuaikan dengan tarif penilaian saat pemindahan internal, tetapi akuntansi tetap memakai tarif penilaian. Pengguna dapat menentukan tarif lain untuk cetak atau pajak."
+Validate Material Transfer warehouses,Validasi gudang pemindahan bahan
+"If enabled, the source and target warehouse in the Material Transfer Stock Entry must be different else an error will be thrown. If inventory dimensions are present, same source and target warehouse can be allowed but atleast any one of the inventory dimension fields must be different.","Jika diaktifkan, gudang asal dan tujuan pada entri pemindahan bahan harus berbeda. Jika ada dimensi persediaan, gudang boleh sama asalkan sedikitnya satu kolom dimensi berbeda."
+Activate Serial / Batch No for Item,Aktifkan nomor seri / lot untuk barang
+Serial Item settings,Pengaturan barang bernomor seri
+Pick Serial / Batch Based On,Pilih nomor seri / lot berdasarkan
+Expiry,Kedaluwarsa
+Allow existing Serial No to be Manufactured/Received again,Izinkan nomor seri yang sudah ada diproduksi/diterima lagi
+Use Serial / Batch fields,Gunakan kolom nomor seri / lot
+"On submission of the stock transaction, system will auto create the Serial and Batch Bundle based on the Serial No / Batch fields.","Saat transaksi persediaan diajukan, sistem membuat paket nomor seri dan lot otomatis berdasarkan kolom nomor seri / lot."
+Disable Serial No and Batch selector,Nonaktifkan pemilih nomor seri dan lot
+"If enabled, users must enter Serial No. / Batch data manually instead of using the selector dialog.","Jika diaktifkan, nomor seri / data lot harus diisi manual tanpa dialog pemilih."
+Batch Item settings,Pengaturan barang berlot
+Allow negative stock for Batch,Izinkan persediaan negatif untuk lot
+"If enabled, the system will allow negative stock entries for the batch. But, this may lead to incorrect valuation rates, so it is recommended to avoid using this option. The system will permit negative stock only when it is caused by backdated entries and will validate and block negative stock in all other cases.","Jika diaktifkan, entri persediaan negatif untuk lot diizinkan. Ini dapat membuat tarif penilaian keliru sehingga tidak disarankan. Persediaan negatif hanya diizinkan jika disebabkan entri bertanggal mundur; selain itu tetap diblokir."
+Do not use Batch-wise Valuation,Jangan gunakan penilaian per lot
+"If enabled, the system will use the moving average valuation method to calculate the valuation rate for the batched items and will not consider the individual batch-wise incoming rate.","Jika diaktifkan, sistem memakai metode rata-rata bergerak untuk barang berlot dan tidak memperhitungkan tarif masuk tiap lot."
+Have default Naming Series for Batch ID?,Gunakan seri penamaan bawaan untuk ID lot?
+This will be applied if no naming series is configured in Item master,Diterapkan jika seri penamaan tidak diatur pada induk barang
+Naming Series Prefix,Awalan Seri Penamaan
+Auto create Serial and Batch Bundle for outward,Buat paket nomor seri dan lot otomatis untuk barang keluar
+Do not update Serial / Batch on creation of auto bundle,Jangan perbarui nomor seri / lot saat paket otomatis dibuat
+"If enabled, do not update serial / batch values in the stock transactions on creation of auto Serial 
+ / Batch Bundle.","Jika diaktifkan, nilai nomor seri / lot pada transaksi persediaan tidak diperbarui saat paket otomatis 
+ dibuat."
+Auto Map Raw Materials to Finished Goods,Petakan bahan baku ke barang jadi secara otomatis
+"On submit of a Manufacture / Repack entry, map the raw material serial / batch nos that were not mapped in draft to the finished goods, in order","Saat entri produksi / kemas ulang diajukan, petakan nomor seri / lot bahan baku yang belum dipetakan ke barang jadi secara berurutan"
+Set Serial and Batch Bundle Naming Based on Naming Series,Atur penamaan paket nomor seri dan lot berdasarkan seri penamaan
+Stock Reservation,Pencadangan Persediaan
+Enable stock reservation,Aktifkan pencadangan persediaan
+Allows to keep aside a specific quantity of inventory for a particular order.,Memungkinkan menyisihkan sejumlah persediaan untuk pesanan tertentu.
+Auto reserve stock,Cadangkan persediaan otomatis
+"Upon submission of the Sales Order, Work Order, or Production Plan, the system will automatically reserve the stock.","Saat pesanan penjualan, perintah kerja, atau rencana produksi diajukan, persediaan dicadangkan otomatis."
+Allow partial reservation,Izinkan pencadangan sebagian
+"Partial stock can be reserved. For example, If you have a Sales Order of 100 units and the Available Stock is 90 units then a Stock Reservation Entry will be created for 90 units.",Persediaan dapat dicadangkan sebagian. Misalnya pesanan 100 unit dengan persediaan 90 unit menghasilkan pencadangan 90 unit.
+Auto reserve Stock for Sales Order on Purchase,Cadangkan persediaan untuk pesanan penjualan saat pembelian
+Stock will be reserved on submission of <b>Purchase Receipt</b> created against Material Request for Sales Order.,Persediaan dicadangkan saat <b>penerimaan pembelian</b> atas permintaan bahan untuk pesanan penjualan diajukan.
+Serial and Batch Reservation,Pencadangan Nomor Seri dan Lot
+Auto reserve Serial and Batch Nos,Cadangkan nomor seri dan lot otomatis
+Serial and Batch Nos will be auto-reserved based on <b>Pick Serial / Batch Based On</b>,Nomor seri dan lot dicadangkan otomatis berdasarkan <b>Pilih nomor seri / lot berdasarkan</b>
+Allow to make Quality Inspection after Purchase / Delivery,Izinkan inspeksi mutu setelah pembelian / pengiriman
+Action if Quality Inspection is rejected,Tindakan jika inspeksi mutu ditolak
+Action if Quality Inspection is not submitted,Tindakan jika inspeksi mutu belum diajukan
+Stock Planning,Perencanaan Persediaan
+Auto Material Request,Permintaan Bahan Otomatis
+Raise Material Request when stock reaches re-order level,Ajukan permintaan bahan saat persediaan mencapai titik pemesanan ulang
+This option is useful if you want to ensure a constant supply of raw materials/products and avoid shortage. A Material Request will be raised automatically when stock reached the re-order level defined in the Item form.,Berguna untuk menjaga pasokan bahan baku/produk tetap tersedia. Permintaan bahan dibuat otomatis saat persediaan mencapai titik pemesanan ulang pada formulir barang.
+Notify by email on creation of automatic Material Request,Beri tahu lewat surel saat permintaan bahan otomatis dibuat
+An email will be sent to notify the User with the role 'Purchase Manager' when an automatic Material Request is created.,Surel dikirim kepada pengguna berperan 'Purchase Manager' saat permintaan bahan otomatis dibuat.
+Stock Closing,Penutupan Persediaan
+Control Historical Stock Transactions,Kendalikan Transaksi Persediaan Lampau
+Freeze stocks older than (days),Bekukan persediaan yang lebih lama dari (hari)
+Stock transactions that are older than the mentioned days cannot be modified.,Transaksi persediaan yang lebih lama dari jumlah hari tersebut tidak dapat diubah.
+Stock frozen up to,Persediaan dibekukan sampai
+No stock transactions can be created or modified before this date.,Transaksi persediaan sebelum tanggal ini tidak dapat dibuat atau diubah.
+Role allowed to edit frozen stock,Peran yang diizinkan mengubah persediaan beku
+"The users with this Role are allowed to create/modify a stock transaction, even though the transaction is frozen.",Pengguna dengan peran ini boleh membuat/mengubah transaksi persediaan meskipun dibekukan.
+Role allowed to create/edit back-dated transactions,Peran yang diizinkan membuat/mengubah transaksi bertanggal mundur
+"If mentioned, the system will allow only the users with this Role to create or modify any stock transaction earlier than the latest stock transaction for a specific item and warehouse. If set as blank, it allows all users to create/edit back-dated transactions.","Jika diisi, hanya pengguna dengan peran ini yang boleh membuat atau mengubah transaksi persediaan yang lebih lama dari transaksi terakhir untuk barang dan gudang terkait. Jika kosong, semua pengguna diizinkan."
+BOM and Production,Daftar Bahan dan Produksi
+Raw Materials Consumption,Pemakaian Bahan Baku
+Allow Continuous Material Consumption,Izinkan pemakaian bahan berkelanjutan
+Allow material consumptions without immediately manufacturing finished goods against a Work Order,Izinkan pemakaian bahan atas perintah kerja tanpa langsung memproduksi barang jadi
+Get Raw Materials Cost from Consumption Entry,Ambil biaya bahan baku dari entri pemakaian
+Backflush Raw Materials Based On,Dasar pembebanan otomatis bahan baku
+Material Transferred for Manufacture,Bahan yang Dipindahkan untuk Produksi
+Validate Components and Quantities Per BOM,Validasi komponen dan jumlah sesuai daftar bahan
+"Update BOM cost automatically via scheduler, based on the latest Valuation Rate/Price List Rate/Last Purchase Rate of raw materials","Perbarui biaya daftar bahan secara otomatis lewat penjadwal, berdasarkan tarif penilaian/daftar harga/pembelian terakhir bahan baku"
+Allow Editing of Items and Quantities in Work Order,Izinkan mengubah barang dan jumlah pada perintah kerja
+"If enabled, the system will allow users to edit the raw materials and their quantities in the Work Order. The system will not reset the quantities as per the BOM, if the user has changed them.","Jika diaktifkan, pengguna dapat mengubah bahan baku dan jumlahnya pada perintah kerja. Jumlah yang diubah pengguna tidak dikembalikan sesuai daftar bahan."
+Overproduction for Sales and Work Order,Produksi Berlebih untuk Penjualan dan Perintah Kerja
+Overproduction Percentage For Sales Order,Persentase Produksi Berlebih untuk Pesanan Penjualan
+Overproduction Percentage For Work Order,Persentase Produksi Berlebih untuk Perintah Kerja
+Extra Material Transfer,Pemindahan Bahan Tambahan
+Transfer Extra Raw Materials to WIP (%),Pindahkan bahan baku tambahan ke barang dalam proses (%)
+The user will be able to transfer additional materials from the store to the Work in Progress (WIP) warehouse.,Pengguna dapat memindahkan bahan tambahan dari gudang ke gudang barang dalam proses.
+Job Card and Capacity Planning,Kartu Kerja dan Perencanaan Kapasitas
+Add Corrective Operation Cost in Finished Good Valuation,Tambahkan biaya operasi korektif pada penilaian barang jadi
+Enforce Time Logs,Wajibkan Catatan Waktu
+Enabling this checkbox will force each Job Card Time Log to have From Time and To Time,Mencentang ini mewajibkan tiap catatan waktu kartu kerja memiliki waktu mulai dan waktu selesai
+Allow Excess Material Transfer,Izinkan pemindahan bahan berlebih
+Allow transferring raw materials even after the Required Quantity is fulfilled,Izinkan pemindahan bahan baku meskipun jumlah yang diperlukan sudah terpenuhi
+Capacity Planning,Perencanaan Kapasitas
+Disable Capacity Planning,Nonaktifkan perencanaan kapasitas
+Plan time logs outside Workstation working hours,Rencanakan waktu di luar jam kerja stasiun kerja
+Allow Production on Holidays,Izinkan produksi pada hari libur
+Capacity Planning For (Days),Perencanaan Kapasitas untuk (Hari)
+Plan operations X days in advance,Rencanakan operasi X hari sebelumnya
+Time Between Operations (Mins),Jeda Antaroperasi (Menit)
+Default: 10 mins,Bawaan: 10 menit
+Other Settings,Pengaturan Lainnya
+Set Operating Cost / Secondary Items From Sub-assemblies,Atur biaya operasi / barang sekunder dari subrakitan
+"To include sub-assembly costs and secondary items in Finished Goods on a work order without using a job card, when the 'Use Multi-Level BOM' option is enabled.","Menyertakan biaya subrakitan dan barang sekunder pada barang jadi di perintah kerja tanpa kartu kerja, jika opsi daftar bahan bertingkat diaktifkan."
+Make Serial No / Batch from Work Order,Buat nomor seri / lot dari perintah kerja
+System will automatically create the serial numbers / batch for the Finished Good on submission of work order,Sistem otomatis membuat nomor seri / lot barang jadi saat perintah kerja diajukan
+Ignore Workstation Time Overlap,Abaikan tumpang tindih waktu stasiun kerja
+Ignore User Time Overlap,Abaikan tumpang tindih waktu pengguna
+Ignore Employee Time Overlap,Abaikan tumpang tindih waktu karyawan
+Fetch Timesheet in Sales Invoice,Ambil lembar waktu pada faktur penjualan
+Enabling the check box will fetch timesheet on select of a Project in Sales Invoice,Mencentang ini mengambil lembar waktu saat proyek dipilih pada faktur penjualan
+Campaign Naming By,Penamaan Kampanye Berdasarkan
+Campaign Name,Nama Kampanye
+Allow Lead Duplication based on Emails,Izinkan duplikasi prospek berdasarkan surel
+Auto Creation of Contact,Pembuatan Kontak Otomatis
+Close Replied Opportunity After Days,Tutup peluang yang sudah dibalas setelah (hari)
+Auto close Opportunity Replied after the no. of days mentioned above,Peluang berstatus dibalas ditutup otomatis setelah jumlah hari di atas
+Enable Opportunity Creation from Contact Us,Aktifkan pembuatan peluang dari halaman Hubungi Kami
+Default Quotation Validity Days,Masa Berlaku Penawaran Bawaan (Hari)
+Carry Forward Communication and Comments,Teruskan Komunikasi dan Komentar
+All the Comments and Emails will be copied from one document to another newly created document(Lead -> Opportunity -> Quotation) throughout the CRM documents.,Semua komentar dan surel disalin dari satu dokumen ke dokumen baru berikutnya (prospek -> peluang -> penawaran) pada seluruh dokumen CRM.
+Update timestamp on new communication,Perbarui penanda waktu saat ada komunikasi baru
+Update the modified timestamp on new communications received in Lead & Opportunity.,Perbarui waktu perubahan saat prospek dan peluang menerima komunikasi baru.
+Enable Frappe CRM Data Synchronization,Aktifkan Sinkronisasi Data Frappe CRM
+Service Level Agreements,Perjanjian Tingkat Layanan
+Track Service Level Agreement,Lacak Perjanjian Tingkat Layanan
+Allow Resetting Service Level Agreement,Izinkan Pengaturan Ulang Perjanjian Tingkat Layanan
+Close Issue After Days,Tutup masalah setelah (hari)
+Set this value to 0 to disable the feature.,Isi 0 untuk menonaktifkan fitur ini.
+Support Portal,Portal Dukungan
+Get Started Sections,Bagian Memulai
+Show Latest Forum Posts,Tampilkan Kiriman Forum Terbaru
+Forum Posts,Kiriman Forum
+Forum URL,URL Forum
+Get Latest Query,Ambil Pertanyaan Terbaru
+Response Key List,Daftar Kunci Respons
+Post Title Key,Kunci Judul Kiriman
+Post Description Key,Kunci Deskripsi Kiriman
+Post Route Key,Kunci Rute Kiriman
+Post Route String,Teks Rute Kiriman
+Greetings Section,Bagian Sapaan
+Greeting Title,Judul Sapaan
+Greeting Subtitle,Subjudul Sapaan
+Search APIs,API Pencarian
+Source Type,Jenis Sumber
+Query Route String,Teks Rute Kueri
+Search Term Param Name,Nama Parameter Kata Pencarian
+Response Options,Opsi Respons
+Response Result Key Path,Jalur Kunci Hasil Respons
+Post Route Key List,Daftar Kunci Rute Kiriman
+Link Options,Opsi Tautan
+Source DocType,DocType Sumber
+Result Title Field,Kolom Judul Hasil
+Result Preview Field,Kolom Pratinjau Hasil
+Result Route Field,Kolom Rute Hasil
+Invoice Type Created via POS Screen,Jenis Faktur yang Dibuat lewat Layar Kasir
+"The system will create a Sales Invoice or a POS Invoice from the POS interface based on this setting. For high-volume transactions, it is recommended to use POS Invoice.","Sistem membuat faktur penjualan atau faktur POS dari antarmuka kasir sesuai pengaturan ini. Untuk transaksi bervolume tinggi, disarankan faktur POS."
+Create Ledger Entries for Change Amount,Buat Entri Buku Besar untuk Uang Kembalian
+"If enabled, ledger entries will be posted for change amount in POS transactions","Jika diaktifkan, entri buku besar dibukukan untuk uang kembalian pada transaksi kasir"
+POS Additional Fields,Kolom Tambahan Kasir
+POS Search Fields,Kolom Pencarian Kasir
+Grace Period,Masa Tenggang
+Number of days after invoice date has elapsed before canceling subscription or marking subscription as unpaid,Jumlah hari setelah tanggal faktur sebelum langganan dibatalkan atau ditandai belum dibayar
+Cancel Subscription After Grace Period,Batalkan Langganan setelah Masa Tenggang
+Prorate,Prorata
+Do not update variants on save,Jangan perbarui varian saat disimpan
+Fields will be copied over only at time of creation.,Kolom hanya disalin saat pembuatan.
+Allow Rename Attribute Value,Izinkan Ganti Nama Nilai Atribut
+Rename Attribute Value in Item Attribute.,Ganti nama nilai atribut pada atribut barang.
+Allow Variant UOM to be different from Template UOM,Izinkan satuan ukur varian berbeda dari satuan templat
+Copy Fields to Variant,Salin Kolom ke Varian
+Dispatch Settings,Pengaturan Pengiriman
+Dispatch Notification Template,Templat Pemberitahuan Pengiriman
+Dispatch Notification Attachment,Lampiran Pemberitahuan Pengiriman
+Leave blank to use the standard Delivery Note format,Kosongkan untuk memakai format standar nota pengiriman
+Send with Attachment,Kirim dengan Lampiran
+Delay between Delivery Stops,Jeda antar-Perhentian Pengiriman
+In minutes,Dalam menit
+Use HTTP Protocol,Gunakan Protokol HTTP
+Example URL,Contoh URL
+Request Parameters,Parameter Permintaan
+Parameters,Parameter
+Currency Exchange Settings Details,Rincian Pengaturan Kurs Mata Uang
+Result Key,Kunci Hasil
+Currency Exchange Settings Result,Hasil Pengaturan Kurs Mata Uang
+Appointment Details,Rincian Janji Temu
+Appointment Duration (In Minutes),Durasi Janji Temu (Menit)
+Notify Via Email,Beri Tahu lewat Surel
+Notify customer and agent via email on the day of the appointment.,Beri tahu pelanggan dan agen lewat surel pada hari janji temu.
+Number of Concurrent Appointments,Jumlah Janji Temu Bersamaan
+Appointment Scheduling,Penjadwalan Janji Temu
+Enable Appointment Scheduling,Aktifkan Penjadwalan Janji Temu
+Number of days appointments can be booked in advance,Jumlah hari janji temu dapat dipesan sebelumnya
+Appointment Booking Portal Settings,Pengaturan Portal Pemesanan Janji Temu
+Enable Appointment Booking Through Portal,Aktifkan Pemesanan Janji Temu lewat Portal
+Verification Link Expiry Duration,Masa Berlaku Tautan Verifikasi
+"In Minutes (min: 15 mins, max: 60 mins)","Dalam menit (min: 15, maks: 60)"
+Success Redirect URL,URL Pengalihan jika Berhasil
+"Leave blank for home.
+This is relative to site URL, for example ""about"" will redirect to ""https://yoursitename.com/about""","Kosongkan untuk halaman utama.
+Relatif terhadap URL situs, misalnya ""about"" dialihkan ke ""https://yoursitename.com/about"""
+Action for Expired Unverified Appointments,Tindakan untuk Janji Temu Tak Terverifikasi yang Kedaluwarsa
+Mark as Closed,Tandai Ditutup
+Delete Permanently,Hapus Permanen
+Stock Reposting Settings,Pengaturan Pengeposan Ulang Persediaan
+Scheduling,Penjadwalan
+Limit timeslot for Stock Reposting,Batasi Slot Waktu Pengeposan Ulang Persediaan
+Limits don't apply on,Batasan tidak berlaku pada
+Use Item based reposting,Gunakan pengeposan ulang berbasis barang
+Do not fetch incoming rate from Serial No,Jangan ambil tarif masuk dari nomor seri
+"For legacy serial nos, do not fetch incoming rate from serial no and calculate it based on the inward transaction","Untuk nomor seri lama, jangan ambil tarif masuk dari nomor seri; hitung berdasarkan transaksi masuk"
+Enable Parallel Reposting,Aktifkan Pengeposan Ulang Paralel
+No of Parallel Reposting (Per Item),Jumlah Pengeposan Ulang Paralel (per Barang)
+Enable Separate Reposting for GL,Aktifkan Pengeposan Ulang Terpisah untuk Buku Besar
+Errors Notification,Pemberitahuan Galat
+Notify Reposting Error to Role,Beri Tahu Peran saat Pengeposan Ulang Gagal
+Auto Reposting of Incorrect Valuation,Pengeposan Ulang Otomatis atas Penilaian Keliru
+Auto Repost Incorrect Valuation Entries (Weekly),Pos ulang entri penilaian keliru secara otomatis (mingguan)
+"If enabled, a weekly scheduler scans the Stock Ledger Variance for item-warehouses with incorrect valuation in the current financial year and auto-creates Item & Warehouse based reposts to fix them.","Jika diaktifkan, penjadwal mingguan memindai selisih buku besar persediaan untuk barang-gudang dengan penilaian keliru pada tahun buku berjalan dan membuat pengeposan ulang otomatis."
+Disable,Nonaktifkan
+Parent Account,Akun Induk
+Used with Financial Report Template,Digunakan dengan Templat Laporan Keuangan
+Setting Account Type helps in selecting this Account in transactions.,Mengatur jenis akun membantu pemilihan akun ini pada transaksi.
+Chargeable,Dapat Dibebankan
+Current Asset,Aset Lancar
+Current Liability,Liabilitas Jangka Pendek
+Direct Expense,Beban Langsung
+Indirect Expense,Beban Tidak Langsung
+Service Received But Not Billed,Jasa Diterima tetapi Belum Ditagih
+Rate at which this tax is applied,Tarif pajak yang diterapkan
+Frozen,Dibekukan
+"If the account is frozen, entries are allowed to restricted users.","Jika akun dibekukan, entri hanya diizinkan bagi pengguna terbatas."
+Balance must be,Saldo harus
+Include in gross,Masukkan dalam bruto
+Company Tax ID,Nomor Pajak Perusahaan
+Include Payment (POS),Sertakan Pembayaran (Kasir)
+Is Consolidated,Terkonsolidasi
+Is Return (Credit Note),Retur (Nota Kredit)
+Return Against,Retur Atas
+Update Outstanding for Self,Perbarui Tunggakan Sendiri
+"Credit Note will update it's own outstanding amount, even if 'Return Against' is specified.",Nota kredit memperbarui jumlah tunggakannya sendiri meskipun 'Return Against' diisi.
+Update Billed Amount in Sales Order,Perbarui Jumlah Ditagih pada Pesanan Penjualan
+Update Billed Amount in Delivery Note,Perbarui Jumlah Ditagih pada Nota Pengiriman
+Is Rate Adjustment Entry (Debit Note),Entri Penyesuaian Tarif (Nota Debit)
+Issue a debit note against an existing Sales Invoice to adjust the rate. The quantity will be retained from the original invoice.,Terbitkan nota debit atas faktur penjualan yang ada untuk menyesuaikan tarif. Jumlah barang tetap mengikuti faktur asal.
+Consider for Tax Withholding,Perhitungkan untuk Pemotongan Pajak
+Currency and Price List,Mata Uang dan Daftar Harga
+Exchange Rate,Kurs
+Rate at which Customer Currency is converted to customer's base currency,Kurs konversi mata uang pelanggan ke mata uang dasar pelanggan
+Price List Currency,Mata Uang Daftar Harga
+Price List Exchange Rate,Kurs Daftar Harga
+Rate at which Price list currency is converted to customer's base currency,Kurs konversi mata uang daftar harga ke mata uang dasar pelanggan
+Ignore Pricing Rule,Abaikan Aturan Harga
+Last Scanned Warehouse,Gudang Terakhir Dipindai
+Update Stock,Perbarui Persediaan
+"If checked, updates inventory; stock and accounting entries are created together. Leave unchecked if a Delivery Note is created separately.","Jika dicentang, persediaan diperbarui; entri persediaan dan akuntansi dibuat bersamaan. Biarkan kosong jika nota pengiriman dibuat terpisah."
+Set Target Warehouse,Tetapkan Gudang Tujuan
+Has Item Scanned,Barang Sudah Dipindai
+UOM,Satuan Ukur
+Qty as per Stock UOM,Jumlah menurut Satuan Persediaan
+Price List Rate (Company Currency),Tarif Daftar Harga (Mata Uang Perusahaan)
+Margin Type,Jenis Margin
+Margin Rate or Amount,Tarif atau Jumlah Margin
+Rate With Margin,Tarif dengan Margin
+Discount (%) on Price List Rate with Margin,Diskon (%) atas Tarif Daftar Harga dengan Margin
+Discount Amount,Jumlah Diskon
+Distributed Discount Amount,Jumlah Diskon yang Didistribusikan
+Rate With Margin (Company Currency),Tarif dengan Margin (Mata Uang Perusahaan)
+Rate (Company Currency),Tarif (Mata Uang Perusahaan)
+Amount (Company Currency),Jumlah (Mata Uang Perusahaan)
+Rate of Stock UOM,Tarif Satuan Persediaan
+Is Free Item,Barang Gratis
+Grant Commission,Berikan Komisi
+Allow Zero Valuation Rate,Izinkan Tarif Penilaian Nol
+Net Rate,Tarif Neto
+Net Amount,Jumlah Neto
+Net Rate (Company Currency),Tarif Neto (Mata Uang Perusahaan)
+Net Amount (Company Currency),Jumlah Neto (Mata Uang Perusahaan)
+Drop Ship,Kirim Langsung dari Pemasok
+Delivered By Supplier,Dikirim oleh Pemasok
+Deferred Revenue,Pendapatan Ditangguhkan
+Deferred Revenue Account,Akun Pendapatan Ditangguhkan
+Service Stop Date,Tanggal Henti Layanan
+Enable Deferred Revenue,Aktifkan Pendapatan Ditangguhkan
+Service Start Date,Tanggal Mulai Layanan
+Service End Date,Tanggal Akhir Layanan
+Item Weight Details,Rincian Berat Barang
+Weight Per Unit,Berat per Satuan
+Weight UOM,Satuan Berat
+Stock Details,Rincian Persediaan
+Pick Serial / Batch No,Pilih Nomor Seri / Lot
+Use Serial No / Batch Fields,Gunakan Kolom Nomor Seri / Lot
+Incoming Rate (Costing),Tarif Masuk (Biaya)
+Available Batch Qty at Warehouse,Jumlah Lot Tersedia di Gudang
+Available Quantity,Jumlah Tersedia
+Qty (Warehouse),Jumlah (Gudang)
+Qty (Company),Jumlah (Perusahaan)
+Total Net Weight,Total Berat Bersih
+Total (Company Currency),Total (Mata Uang Perusahaan)
+Net Total (Company Currency),Total Neto (Mata Uang Perusahaan)
+Taxes and Charges,Pajak dan Biaya
+Named Place,Tempat yang Disebutkan
+On Net Total,Atas Total Neto
+On Previous Row Amount,Atas Jumlah Baris Sebelumnya
+On Previous Row Total,Atas Total Baris Sebelumnya
+On Item Quantity,Atas Jumlah Barang
+Reference Row #,Nomor Baris Acuan
+Is this Tax included in Basic Rate?,Apakah pajak ini termasuk dalam tarif dasar?
+"If checked, the tax amount will be considered as already included in the Print Rate / Print Amount","Jika dicentang, jumlah pajak dianggap sudah termasuk dalam tarif/jumlah cetak"
+Considered In Paid Amount,Diperhitungkan dalam Jumlah Dibayar
+"If checked, the tax amount will be considered as already included in the Paid Amount in Payment Entry","Jika dicentang, jumlah pajak dianggap sudah termasuk dalam jumlah dibayar pada entri pembayaran"
+Is Tax Withholding Account,Akun Pemotongan Pajak
+Tax Amount After Discount Amount,Jumlah Pajak setelah Diskon
+Tax Amount After Discount Amount (Company Currency),Jumlah Pajak setelah Diskon (Mata Uang Perusahaan)
+Total Taxes and Charges (Company Currency),Total Pajak dan Biaya (Mata Uang Perusahaan)
+Total Taxes and Charges,Total Pajak dan Biaya
+Use Company default Cost Center for Round off,Gunakan pusat biaya bawaan perusahaan untuk pembulatan
+In Words,Terbilang
+Rounding Adjustment,Penyesuaian Pembulatan
+Totals (Company Currency),Total (Mata Uang Perusahaan)
+In Words will be visible once you save the Sales Invoice.,Terbilang akan terlihat setelah faktur penjualan disimpan.
+Tax Withholding Entry,Entri Pemotongan Pajak
+Tax Withholding Group,Kelompok Pemotongan Pajak
+Ignore Tax Withholding Threshold,Abaikan Ambang Pemotongan Pajak
+Edit Tax Withholding Entries,Ubah Entri Pemotongan Pajak
+Tax Withholding Entries,Entri Pemotongan Pajak
+Base Taxable Amount,Dasar Pengenaan Pajak
+Base Tax Withheld,Pajak Dipotong (Dasar)
+Transaction for which tax is withheld,Transaksi yang dipotong pajaknya
+Taxable Document Type,Jenis Dokumen Kena Pajak
+Taxable Document Name,Nama Dokumen Kena Pajak
+Taxable Date,Tanggal Kena Pajak
+Under Withheld Reason,Alasan Kurang Potong
+Threshold Exemption,Pengecualian Ambang
+Deducted From,Dipotong Dari
+Transaction from which tax is withheld,Transaksi asal pemotongan pajak
+Withholding Document Type,Jenis Dokumen Pemotongan
+Withholding Document Name,Nama Dokumen Pemotongan
+Withholding Date,Tanggal Pemotongan
+Under Withheld,Kurang Potong
+Over Withheld,Lebih Potong
+Apply Additional Discount On,Terapkan Diskon Tambahan pada
+Is Cash or Non Trade Discount,Diskon Tunai atau Nondagang
+Tax Breakup,Rincian Pajak
+Taxes and Charges Calculation,Perhitungan Pajak dan Biaya
+Pricing Rules,Aturan Harga
+Rule Applied,Aturan Diterapkan
+Packing List,Daftar Kemasan
+Packed Items,Barang Terkemas
+Parent Item,Barang Induk
+Supplier delivers to Customer,Pemasok mengirim ke pelanggan
+From Warehouse,Dari Gudang
+To Warehouse (Optional),Ke Gudang (Opsional)
+Actual Batch Quantity,Jumlah Lot Aktual
+Packed Qty,Jumlah Dikemas
+Picked Qty,Jumlah Diambil
+Product Bundle Help,Bantuan Paket Produk
+Time Sheet List,Daftar Lembar Waktu
+Time Sheet,Lembar Waktu
+Total Billing Hours,Total Jam Penagihan
+Total Billing Amount,Total Jumlah Penagihan
+Reference No,Nomor Referensi
+Base Amount (Company Currency),Jumlah Dasar (Mata Uang Perusahaan)
+Paid Amount (Company Currency),Jumlah Dibayar (Mata Uang Perusahaan)
+Base Change Amount (Company Currency),Kembalian Dasar (Mata Uang Perusahaan)
+Change Amount,Uang Kembalian
+Allocate Advances Automatically (FIFO),Alokasikan Uang Muka Otomatis (FIFO)
+Only Include Allocated Payments,Hanya Sertakan Pembayaran yang Dialokasikan
+Advance payments allocated against orders will only be fetched,Hanya uang muka yang dialokasikan pada pesanan yang diambil
+Get Advances Received,Ambil Uang Muka Diterima
+Allocated amount,Jumlah dialokasikan
+Reference Exchange Rate,Kurs Acuan
+Difference Posting Date,Tanggal Pembukuan Selisih
+Write Off Amount,Jumlah Penghapusbukuan
+Write Off Amount (Company Currency),Jumlah Penghapusbukuan (Mata Uang Perusahaan)
+Write Off Outstanding Amount,Hapus Buku Jumlah Tunggakan
+Write Off Cost Center,Pusat Biaya Penghapusbukuan
+Loyalty Amount,Jumlah Loyalitas
+Don't Create Loyalty Points,Jangan Buat Poin Loyalitas
+Redemption Account,Akun Penukaran
+Redemption Cost Center,Pusat Biaya Penukaran
+Customer Address,Alamat Pelanggan
+Contact Person,Narahubung
+Shipping Address Name,Nama Alamat Pengiriman
+Dispatch Address Name,Nama Alamat Asal Kirim
+Dispatch Address,Alamat Asal Kirim
+Company Address,Alamat Perusahaan
+Company Address Name,Nama Alamat Perusahaan
+Company Contact Person,Narahubung Perusahaan
+Day(s) after invoice date,Hari setelah tanggal faktur
+Day(s) after the end of the invoice month,Hari setelah akhir bulan faktur
+Month(s) after the end of the invoice month,Bulan setelah akhir bulan faktur
+Credit Days,Jumlah Hari Kredit
+Credit Months,Jumlah Bulan Kredit
+Discount Date,Tanggal Diskon
+Discount Type,Jenis Diskon
+Discount Validity Based On,Dasar Masa Berlaku Diskon
+Discount Validity,Masa Berlaku Diskon
+Outstanding,Tunggakan
+Discounted Amount,Jumlah setelah Diskon
+Payment Amount (Company Currency),Jumlah Pembayaran (Mata Uang Perusahaan)
+Outstanding (Company Currency),Tunggakan (Mata Uang Perusahaan)
+Terms and Conditions Details,Rincian Syarat dan Ketentuan
+Customer PO Details,Rincian Pesanan Pembelian Pelanggan
+Customer's Purchase Order,Pesanan Pembelian Pelanggan
+Customer's Purchase Order Date,Tanggal Pesanan Pembelian Pelanggan
+Debit To,Debit Ke
+Unrealized Profit / Loss account for intra-company transfers,Akun laba/rugi belum terealisasi untuk pemindahan antarunit perusahaan
+Amount Eligible for Commission,Jumlah yang Berhak atas Komisi
+Commission Rate (%),Tarif Komisi (%)
+Sales Contributions and Incentives,Kontribusi Penjualan dan Insentif
+Contribution (%),Kontribusi (%)
+Contribution to Net Total,Kontribusi terhadap Total Neto
+Commission Rate,Tarif Komisi
+Group same items,Kelompokkan barang yang sama
+Update Auto Repeat Reference,Perbarui Referensi Pengulangan Otomatis
+UTM Analytics,Analisis UTM
+Partly Paid,Dibayar Sebagian
+Unpaid and Discounted,Belum Dibayar dan Didiskontokan
+Partly Paid and Discounted,Dibayar Sebagian dan Didiskontokan
+Overdue and Discounted,Lewat Jatuh Tempo dan Didiskontokan
+Is Internal Customer,Pelanggan Internal
+Represents Company,Mewakili Perusahaan
+Company which internal customer represents,Perusahaan yang diwakili pelanggan internal
+Inter Company Invoice Reference,Referensi Faktur Antarperusahaan
+Is Discounted,Didiskontokan
+Is Paid,Sudah Dibayar
+Is Return (Debit Note),Retur (Nota Debit)
+Return Against Purchase Invoice,Retur atas Faktur Pembelian
+"Debit Note will update it's own outstanding amount, even if 'Return Against' is specified.",Nota debit memperbarui jumlah tunggakannya sendiri meskipun 'Return Against' diisi.
+Update Billed Amount in Purchase Order,Perbarui Jumlah Ditagih pada Pesanan Pembelian
+Update Billed Amount in Purchase Receipt,Perbarui Jumlah Ditagih pada Penerimaan Pembelian
+Supplier Invoice,Faktur Pemasok
+"If checked, updates inventory; stock and accounting entries are created together. Leave unchecked if a Purchase Receipt is created separately.","Jika dicentang, persediaan diperbarui; entri persediaan dan akuntansi dibuat bersamaan. Biarkan kosong jika penerimaan pembelian dibuat terpisah."
+Set Accepted Warehouse,Tetapkan Gudang Penerima
+Set From Warehouse,Tetapkan Gudang Asal
+Is Subcontracted,Disubkontrakkan
+Rejected Warehouse,Gudang Barang Ditolak
+Supplier Warehouse,Gudang Pemasok
+Quantity and Rate,Jumlah dan Tarif
+Rejected Qty,Jumlah Ditolak
+Discount and Margin,Diskon dan Margin
+Discount on Price List Rate (%),Diskon atas Tarif Daftar Harga (%)
+Landed Cost Voucher Amount,Jumlah Voucer Biaya Perolehan
+Rejected Serial and Batch Bundle,Paket Nomor Seri dan Lot Ditolak
+Rejected Serial No,Nomor Seri Ditolak
+Expense Head,Pos Beban
+WIP Composite Asset,Aset Gabungan dalam Pengerjaan
+Asset Location,Lokasi Aset
+Deferred Expense,Beban Ditangguhkan
+Deferred Expense Account,Akun Beban Ditangguhkan
+Enable Deferred Expense,Aktifkan Beban Ditangguhkan
+Claimed Landed Cost Amount (Company Currency),Jumlah Biaya Perolehan yang Diklaim (Mata Uang Perusahaan)
+Consider Tax or Charge for,Perhitungkan Pajak atau Biaya untuk
+Valuation and Total,Penilaian dan Total
+Valuation,Penilaian
+Deduct,Kurangkan
+Allocate Full Amount to Stock Items,Alokasikan Seluruh Jumlah ke Barang Persediaan
+"If checked, the entire amount (e.g. Freight) is allocated to the valuation of stock & asset items only. If unchecked, the amount is distributed across all items and the portion belonging to non-stock items is not added to valuation.","Jika dicentang, seluruh jumlah (misalnya ongkos angkut) hanya dialokasikan ke penilaian barang persediaan dan aset. Jika tidak, jumlah dibagi ke semua barang dan bagian barang nonpersediaan tidak ditambahkan ke penilaian."
+Taxes and Charges Added (Company Currency),Pajak dan Biaya Ditambahkan (Mata Uang Perusahaan)
+Taxes and Charges Deducted (Company Currency),Pajak dan Biaya Dikurangkan (Mata Uang Perusahaan)
+Taxes and Charges Added,Pajak dan Biaya Ditambahkan
+Taxes and Charges Deducted,Pajak dan Biaya Dikurangkan
+Use Company Default Round Off Cost Center,Gunakan Pusat Biaya Pembulatan Bawaan Perusahaan
+Raw Materials Supplied,Bahan Baku yang Dipasok
+Supplied Items,Barang yang Dipasok
+Raw Material Item Code,Kode Barang Bahan Baku
+Stock Uom,Satuan Persediaan
+Available Qty For Consumption,Jumlah Tersedia untuk Dipakai
+Qty to Be Consumed,Jumlah yang Akan Dipakai
+Cash/Bank Account,Akun Kas/Bank
+Set Advances and Allocate (FIFO),Tetapkan Uang Muka dan Alokasikan (FIFO)
+Get Advances Paid,Ambil Uang Muka Dibayar
+Supplier Address,Alamat Pemasok
+Select Supplier Address,Pilih Alamat Pemasok
+Select Dispatch Address,Pilih Alamat Asal Kirim
+Select Shipping Address,Pilih Alamat Pengiriman
+Company Billing Address,Alamat Penagihan Perusahaan
+Select Billing Address,Pilih Alamat Penagihan
+Debit Note Issued,Nota Debit Diterbitkan
+Credit To,Kredit Ke
+Is Opening Entry,Entri Saldo Awal
+Unrealized Profit/Loss account for intra-company transfers,Akun laba/rugi belum terealisasi untuk pemindahan antarunit perusahaan
+Start date of current invoice's period,Tanggal mulai periode faktur berjalan
+End date of current invoice's period,Tanggal akhir periode faktur berjalan
+"Once set, this invoice will be on hold till the set date","Setelah diisi, faktur ini ditahan sampai tanggal tersebut"
+Is Internal Supplier,Pemasok Internal
+Company which internal supplier represents,Perusahaan yang diwakili pemasok internal
+Type of Payment,Jenis Pembayaran
+Receive,Terima
+Pay,Bayar
+Payment From / To,Pembayaran Dari / Kepada
+Company Bank Account,Rekening Bank Perusahaan
+Party Bank Account,Rekening Bank Pihak
+Source Exchange Rate,Kurs Asal
+Received Amount,Jumlah Diterima
+Target Exchange Rate,Kurs Tujuan
+Received Amount (Company Currency),Jumlah Diterima (Mata Uang Perusahaan)
+Get Outstanding Invoices,Ambil Faktur Belum Lunas
+Get Outstanding Orders,Ambil Pesanan Belum Lunas
+Payment References,Referensi Pembayaran
+Payment Term Outstanding,Tunggakan Termin Pembayaran
+Reconcile Effect On,Rekonsiliasi Berlaku Pada
+Allocated,Dialokasikan
+Payment Request Outstanding,Tunggakan Permintaan Pembayaran
+Advance Voucher Type,Jenis Voucer Uang Muka
+Advance Voucher No,Nomor Voucer Uang Muka
+Writeoff,Penghapusbukuan
+Total Allocated Amount,Total Dialokasikan
+Total Allocated Amount (Company Currency),Total Dialokasikan (Mata Uang Perusahaan)
+Difference Amount (Company Currency),Selisih (Mata Uang Perusahaan)
+Write Off Difference Amount,Hapus Buku Selisih
+Advance Taxes and Charges,Pajak dan Biaya Uang Muka
+On Paid Amount,Atas Jumlah Dibayar
+Deductions or Loss,Potongan atau Kerugian
+Payment Deductions or Loss,Potongan atau Kerugian Pembayaran
+Is Exchange Gain / Loss?,Laba/Rugi Selisih Kurs?
+Dunning,Penagihan Tunggakan
+Transaction ID,ID Transaksi
+Custom Remarks,Keterangan Khusus
+In Words (Company Currency),Terbilang (Mata Uang Perusahaan)
+Is Opening,Saldo Awal
+Entry Type,Jenis Entri
+Inter Company Journal Entry,Entri Jurnal Antarperusahaan
+Bank Entry,Entri Bank
+Cash Entry,Entri Kas
+Credit Card Entry,Entri Kartu Kredit
+Debit Note,Nota Debit
+Contra Entry,Entri Kontra
+Excise Entry,Entri Cukai
+Write Off Entry,Entri Penghapusbukuan
+Opening Entry,Entri Saldo Awal
+Asset Disposal,Pelepasan Aset
+Periodic Accounting Entry,Entri Akuntansi Periodik
+Exchange Gain Or Loss,Laba atau Rugi Selisih Kurs
+Periodic Accounting,Akuntansi Periodik
+For All Stock Asset Accounts,Untuk Semua Akun Aset Persediaan
+Stock Asset Account,Akun Aset Persediaan
+Periodic Entry Difference Account,Akun Selisih Entri Periodik
+Get Balance,Ambil Saldo
+If Income or Expense,Jika Pendapatan atau Beban
+Debit in Company Currency,Debit dalam Mata Uang Perusahaan
+Credit in Company Currency,Kredit dalam Mata Uang Perusahaan
+Expense Claim,Klaim Pengeluaran
+Loan,Pinjaman
+Employee Advance,Uang Muka Karyawan
+Fees,Biaya
+Full and Final Statement,Pernyataan Penyelesaian Akhir
+Reference Due Date,Tanggal Jatuh Tempo Acuan
+Is Advance,Uang Muka
+Total Credit,Total Kredit
+Difference (Dr - Cr),Selisih (Dr - Cr)
+Make Difference Entry,Buat Entri Selisih
+Inter Company Journal Entry Reference,Referensi Entri Jurnal Antarperusahaan
+Reversal Of,Pembalikan Atas
+Printing Settings,Pengaturan Cetak
+Pay To / Recd From,Dibayar Kepada / Diterima Dari
+Write Off Based On,Dasar Penghapusbukuan
+From Template,Dari Templat
+Custom Remark,Keterangan Khusus
+Company Account,Akun Perusahaan
+Is Default Account,Akun Bawaan
+Is Company Account,Akun Milik Perusahaan
+Setting the account as a Company Account is necessary for Bank Reconciliation,Menandai akun sebagai akun perusahaan diperlukan untuk rekonsiliasi bank
+Is Credit Card,Kartu Kredit
+"If checked, journal entries made using bank reconciliation will be of type ""Credit Card Entry""","Jika dicentang, entri jurnal dari rekonsiliasi bank berjenis ""Credit Card Entry"""
+Party Details,Rincian Pihak
+Statement PDF Password,Kata Sandi PDF Rekening Koran
+Password used to open password-protected PDF statements for this account. Stored encrypted.,Kata sandi untuk membuka rekening koran PDF akun ini. Disimpan terenkripsi.
+Contact HTML,HTML Kontak
+Integration Details,Rincian Integrasi
+Last Integration Date,Tanggal Integrasi Terakhir
+Change this date manually to setup the next synchronization start date,Ubah tanggal ini secara manual untuk mengatur awal sinkronisasi berikutnya
+Select the Bank Account to reconcile.,Pilih rekening bank yang akan direkonsiliasi.
+Include Reconciled Entries,Sertakan Entri yang Sudah Direkonsiliasi
+Payment Entries,Entri Pembayaran
+Cheque Number,Nomor Cek
+Cheque Date,Tanggal Cek
+Tax Rates,Tarif Pajak
+Check if this tax is not applicable to items (distinct from 0% rate),Centang jika pajak ini tidak berlaku untuk barang (berbeda dengan tarif 0%)
+Tax Type,Jenis Pajak
+Use for Shopping Cart,Gunakan untuk Keranjang Belanja
+Billing City,Kota Penagihan
+Billing County,Kabupaten Penagihan
+Billing State,Provinsi Penagihan
+Billing Zipcode,Kode Pos Penagihan
+Billing Country,Negara Penagihan
+Shipping City,Kota Pengiriman
+Shipping County,Kabupaten Pengiriman
+Shipping State,Provinsi Pengiriman
+Shipping Zipcode,Kode Pos Pengiriman
+Shipping Country,Negara Pengiriman
+Category Details,Rincian Kategori
+Deduct Tax On Basis,Dasar Pemotongan Pajak
+Gross Total,Total Bruto
+Round Off Tax Amount,Bulatkan Jumlah Pajak
+Checking this will round off the tax amount to the nearest integer,"Jika dicentang, jumlah pajak dibulatkan ke bilangan bulat terdekat"
+Only Deduct Tax On Excess Amount,Hanya Potong Pajak atas Kelebihan
+Tax withheld only for amount exceeding cumulative threshold,Pajak hanya dipotong atas jumlah di atas ambang kumulatif
+Disable Cumulative Threshold,Nonaktifkan Ambang Kumulatif
+"When checked, only transaction threshold will be applied for transaction individually","Jika dicentang, hanya ambang per transaksi yang diterapkan"
+Disable Transaction Threshold,Nonaktifkan Ambang Transaksi
+"When checked, only cumulative threshold will be applied","Jika dicentang, hanya ambang kumulatif yang diterapkan"
+Tax Withholding Rates,Tarif Pemotongan Pajak
+Rates,Tarif
+Cumulative Threshold,Ambang Kumulatif
+Transaction Threshold,Ambang Transaksi
+Distribution Frequency,Frekuensi Distribusi
+Budget Amount,Jumlah Anggaran
+Distribute Equally,Bagi Rata
+Budget Distribution,Distribusi Anggaran
+Budget Distribution Total,Total Distribusi Anggaran
+Control Action,Tindakan Pengendalian
+Applicable on Material Request,Berlaku pada Permintaan Bahan
+Action if Annual Budget Exceeded on MR,Tindakan jika anggaran tahunan terlampaui pada permintaan bahan
+Ignore,Abaikan
+Action if Accumulated Monthly Budget Exceeded on MR,Tindakan jika anggaran bulanan akumulasi terlampaui pada permintaan bahan
+Applicable on Purchase Order,Berlaku pada Pesanan Pembelian
+Action if Annual Budget Exceeded on PO,Tindakan jika anggaran tahunan terlampaui pada pesanan pembelian
+Action if Accumulated Monthly Budget Exceeded on PO,Tindakan jika anggaran bulanan akumulasi terlampaui pada pesanan pembelian
+Applicable on booking actual expenses,Berlaku saat membukukan pengeluaran aktual
+Action if Annual Budget Exceeded on Actual,Tindakan jika anggaran tahunan terlampaui pada realisasi
+Action if Accumulated Monthly Budget Exceeded on Actual,Tindakan jika anggaran bulanan akumulasi terlampaui pada realisasi
+Control Action for Cumulative Expense,Tindakan Pengendalian untuk Pengeluaran Kumulatif
+Applicable on Cumulative Expense,Berlaku pada Pengeluaran Kumulatif
+Action if Anual Budget Exceeded on Cumulative Expense,Tindakan jika anggaran tahunan terlampaui pada pengeluaran kumulatif
+Action if Accumulative Monthly Budget Exceeded on Cumulative Expense,Tindakan jika anggaran bulanan akumulasi terlampaui pada pengeluaran kumulatif
+Revision Of,Revisi Dari
+Main Cost Center,Pusat Biaya Utama
+Valid From,Berlaku Mulai
+Cost Center Allocation Percentages,Persentase Alokasi Pusat Biaya
+Cost Center Allocation Percentage,Persentase Alokasi Pusat Biaya
+Percentage (%),Persentase (%)
+Distribution Name,Nama Distribusi
+Name of the Monthly Distribution,Nama Distribusi Bulanan
+Monthly Distribution Percentages,Persentase Distribusi Bulanan
+Percentage Allocation,Persentase Alokasi
+Year Name,Nama Tahun
+"For e.g. 2012, 2012-13","Contoh: 2012, 2012-13"
+Is Short/Long Year,Tahun Pendek/Panjang
+More/Less than 12 months.,Lebih/kurang dari 12 bulan.
+Year Start Date,Tanggal Awal Tahun
+Year End Date,Tanggal Akhir Tahun
+Companies,Perusahaan
+Cost Center Name,Nama Pusat Biaya
+Parent Cost Center,Pusat Biaya Induk
+Dimension Name,Nama Dimensi
+Dimension Defaults,Nilai Bawaan Dimensi
+Default Dimension,Dimensi Bawaan
+Mandatory For Balance Sheet,Wajib untuk Neraca
+Mandatory For Profit and Loss Account,Wajib untuk Akun Laba Rugi
+Automatically post balancing accounting entry,Bukukan entri akuntansi penyeimbang secara otomatis
+Offsetting Account,Akun Pengimbang
+Account Category Name,Nama Kategori Akun
+"Descriptive name for your template (e.g., 'Standard P&L', 'Detailed Balance Sheet')","Nama deskriptif untuk templat (misalnya 'Laba Rugi Standar', 'Neraca Terperinci')"
+Type of financial statement this template generates,Jenis laporan keuangan yang dihasilkan templat ini
+Custom Financial Statement,Laporan Keuangan Khusus
+Module (for Export),Modul (untuk Ekspor)
+Disable template to prevent use in reports,Nonaktifkan templat agar tidak dipakai pada laporan
+Report Line Items,Butir Baris Laporan
+Financial Report Row,Baris Laporan Keuangan
+Line Reference,Referensi Baris
+"Code to reference this line in formulas (e.g., REV100, EXP200, ASSET100)","Kode untuk merujuk baris ini dalam rumus (misalnya REV100, EXP200, ASSET100)"
+"Text displayed on the financial statement (e.g., 'Total Revenue', 'Cash and Cash Equivalents')","Teks yang ditampilkan pada laporan keuangan (misalnya 'Total Pendapatan', 'Kas dan Setara Kas')"
+Indent Level,Tingkat Indentasi
+"Indentation level: 0 = Main heading, 1 = Sub-category, 2 = Individual accounts, etc.","Tingkat indentasi: 0 = judul utama, 1 = subkategori, 2 = akun satuan, dan seterusnya"
+Data Source,Sumber Data
+How this line gets its data,Cara baris ini memperoleh data
+Account Data,Data Akun
+Calculated Amount,Jumlah Terhitung
+Custom API,API Khusus
+Blank Line,Baris Kosong
+Balance Type,Jenis Saldo
+"Opening Balance = Start of period, Closing Balance = End of period, Period Movement = Net change during period","Saldo awal = awal periode, saldo akhir = akhir periode, mutasi periode = perubahan neto selama periode"
+Period Movement (Debits - Credits),Mutasi Periode (Debit - Kredit)
+Value Type,Jenis Nilai
+How to format and present values in the financial report (only if different from column fieldtype),Cara memformat dan menyajikan nilai pada laporan keuangan (hanya jika berbeda dari jenis kolom)
+Int,Bilangan Bulat
+"Color to highlight values (e.g., red for exceptions)",Warna untuk menyorot nilai (misalnya merah untuk pengecualian)
+Bold Text,Teks Tebal
+"Bold text for emphasis (totals, major headings)","Teks tebal untuk penegasan (total, judul utama)"
+Italic Text,Teks Miring
+Italic text for subtotals or notes,Teks miring untuk subtotal atau catatan
+Hidden Line (Internal Use Only),Baris Tersembunyi (Penggunaan Internal)
+Calculate but don't show on final report,Dihitung tetapi tidak ditampilkan pada laporan akhir
+Hide If Zero,Sembunyikan jika Nol
+Hide this line if amount is zero,Sembunyikan baris ini jika jumlahnya nol
+Reverse Sign,Balik Tanda
+Show negative values as positive (for expenses in P&L),Tampilkan nilai negatif sebagai positif (untuk beban pada laba rugi)
+Include in Charts,Sertakan dalam Grafik
+"If enabled, this row's values will be displayed on financial charts","Jika diaktifkan, nilai baris ini ditampilkan pada grafik keuangan"
+Advanced Filtering,Penyaringan Lanjutan
+Use <strong>Python</strong> filters to get Accounts,Gunakan filter <strong>Python</strong> untuk mengambil akun
+Formula or Account Filter,Rumus atau Filter Akun
+Default Account,Akun Bawaan
+Default account will be automatically updated in POS Invoice when this mode is selected.,Akun bawaan diperbarui otomatis pada faktur POS saat cara pembayaran ini dipilih.
+Allocate Payment Based On Payment Terms,Alokasikan Pembayaran Berdasarkan Ketentuan Pembayaran
+"If this checkbox is checked, paid amount will be splitted and allocated as per the amounts in payment schedule against each payment term","Jika dicentang, jumlah dibayar dibagi dan dialokasikan sesuai jumlah pada jadwal pembayaran tiap termin"
+Invoice Portion (%),Porsi Faktur (%)
+Discount Settings,Pengaturan Diskon
+From Currency,Dari Mata Uang
+To Currency,Ke Mata Uang
+For Buying,Untuk Pembelian
+For Selling,Untuk Penjualan
+Customer Type,Jenis Pelanggan
+Partnership,Persekutuan
+Alias,Nama Lain
+Billing Currency,Mata Uang Penagihan
+All invoices and orders for this customer will be created in this currency.,Semua faktur dan pesanan pelanggan ini dibuat dalam mata uang ini.
+Pre-filled on payment entries for this customer. Must be a company account.,Terisi otomatis pada entri pembayaran pelanggan ini. Harus akun milik perusahaan.
+Fetched automatically on sales orders and invoices for this customer.,Diambil otomatis pada pesanan penjualan dan faktur pelanggan ini.
+"Defines when payment is due (e.g. Net 30, 50% advance). Applied automatically on invoices for this customer.","Menentukan kapan pembayaran jatuh tempo (misalnya Net 30, uang muka 50%). Diterapkan otomatis pada faktur pelanggan ini."
+Loyalty scheme this customer earns points under. Auto-assigned if a matching program exists.,Skema loyalitas tempat pelanggan memperoleh poin. Ditetapkan otomatis jika ada program yang cocok.
+Loyalty Program Tier,Tingkat Program Loyalitas
+Current tier based on accumulated points. Updated automatically on each invoice.,Tingkat saat ini berdasarkan akumulasi poin. Diperbarui otomatis tiap faktur.
+Customer Primary Address,Alamat Utama Pelanggan
+"Reselect, if the chosen address is edited after save",Pilih ulang jika alamat terpilih diubah setelah disimpan
+Customer Primary Contact,Kontak Utama Pelanggan
+"Reselect, if the chosen contact is edited after save",Pilih ulang jika kontak terpilih diubah setelah disimpan
+"If set, accounting entries for this customer will post to these accounts instead of the company default.","Jika diisi, entri akuntansi pelanggan ini dibukukan ke akun-akun tersebut, bukan akun bawaan perusahaan."
+Advance Account,Akun Uang Muka
+Credit & Overdue Limits,Batas Kredit dan Tunggakan
+"Transactions are blocked when the outstanding balance exceeds the credit limit. When Restrict Customer Over Billing is enabled, new invoices are also blocked when the customer's overdue amount exceeds the Overdue Limit.","Transaksi diblokir jika saldo terutang melebihi batas kredit. Jika pembatasan tagihan berlebih pelanggan aktif, faktur baru juga diblokir saat tunggakan melebihi batas."
+Bypass credit limit check at sales order,Lewati pemeriksaan batas kredit pada pesanan penjualan
+Internal Customer Accounting,Akuntansi Pelanggan Internal
+Mark if this customer represents an internal company. Enables inter-company transactions.,Tandai jika pelanggan ini mewakili perusahaan internal. Mengaktifkan transaksi antarperusahaan.
+Allowed to transact with,Diizinkan bertransaksi dengan
+Controls which tax template is auto-applied when this customer is selected on a transaction.,Menentukan templat pajak yang diterapkan otomatis saat pelanggan ini dipilih pada transaksi.
+Select the group first to filter the applicable withholding categories below.,Pilih kelompok terlebih dahulu untuk menyaring kategori pemotongan di bawah.
+TDS/TCS is calculated at the rate defined here on every payment from this customer.,TDS/TCS dihitung dengan tarif ini pada setiap pembayaran dari pelanggan ini.
+Allow sales invoice creation without sales order,Izinkan faktur penjualan tanpa pesanan penjualan
+Allow sales invoice creation without delivery note,Izinkan faktur penjualan tanpa nota pengiriman
+Blocks this customer from being used on any new transaction.,Mencegah pelanggan ini dipakai pada transaksi baru.
+"Blocks new transactions and further accounting entries on this customer's account. Only users with the role set in Company's ""Roles Allowed to Set and Edit Frozen Account Entries"" can transact.","Memblokir transaksi baru dan entri akuntansi lanjutan pada akun pelanggan ini. Hanya pengguna dengan peran pada ""Roles Allowed to Set and Edit Frozen Account Entries"" di perusahaan yang dapat bertransaksi."
+Split commission credit across multiple sales persons.,Bagi kredit komisi ke beberapa tenaga penjual.
+Commission paid to the Sales Partner on transactions with this customer.,Komisi yang dibayarkan kepada mitra penjualan atas transaksi dengan pelanggan ini.
+Portal Users,Pengguna Portal
+"Users listed here can log into the customer portal to view their orders, invoices, and deliveries.","Pengguna di daftar ini dapat masuk ke portal pelanggan untuk melihat pesanan, faktur, dan pengiriman."
+Customer Portal Users,Pengguna Portal Pelanggan
+Portal User,Pengguna Portal
+"Classify the type of market this customer belongs to, used for sales analysis and targeting.",Golongkan jenis pasar pelanggan ini untuk analisis dan penargetan penjualan.
+Industry,Industri
+Customer POS ID,ID Kasir Pelanggan
+Customer Details,Rincian Pelanggan
+Internal notes about this customer. Not visible on transactions or the portal.,Catatan internal tentang pelanggan ini. Tidak terlihat pada transaksi atau portal.
+Supplier Numbers,Nomor Pemasok
+Numbers this customer uses to identify your company in their own system.,Nomor yang dipakai pelanggan ini untuk mengenali perusahaan Anda di sistem mereka.
+Supplier Number At Customer,Nomor Pemasok pada Pelanggan
+Supplier Number,Nomor Pemasok
+Quotation To,Penawaran Kepada
+Shopping Cart,Keranjang Belanja
+Rate at which customer's currency is converted to company's base currency,Kurs konversi mata uang pelanggan ke mata uang dasar perusahaan
+Rate at which Price list currency is converted to company's base currency,Kurs konversi mata uang daftar harga ke mata uang dasar perusahaan
+Is Alternative,Alternatif
+Warehouse and Reference,Gudang dan Referensi
+Against Blanket Order,Atas Pesanan Payung
+Blanket Order Rate,Tarif Pesanan Payung
+Against Docname,Atas Nama Dokumen
+Grand Total (Company Currency),Total Akhir (Mata Uang Perusahaan)
+Rounding Adjustment (Company Currency),Penyesuaian Pembulatan (Mata Uang Perusahaan)
+Rounded Total (Company Currency),Total Dibulatkan (Mata Uang Perusahaan)
+Referral Sales Partner,Mitra Penjualan Perujuk
+Bundle Items,Barang Paket
+Term Details,Rincian Ketentuan
+Competitors,Pesaing
+Competitor Detail,Rincian Pesaing
+Competitor,Pesaing
+Ordered,Sudah Dipesan
+Skip Delivery Note,Lewati Nota Pengiriman
+Set Source Warehouse,Tetapkan Gudang Asal
+Reserve Stock,Cadangkan Persediaan
+"If checked, Stock will be reserved on <b>Submit</b>","Jika dicentang, persediaan dicadangkan saat <b>diajukan</b>"
+Finished Good Qty,Jumlah Barang Jadi
+Ensure Delivery Based on Produced Serial No,Pastikan pengiriman berdasarkan nomor seri yang diproduksi
+Subcontracted Quantity,Jumlah Disubkontrakkan
+Stock Reserved Qty (in Stock UOM),Jumlah Persediaan Dicadangkan (Satuan Persediaan)
+Basic Rate (Company Currency),Tarif Dasar (Mata Uang Perusahaan)
+Billed Amt,Jumlah Ditagih
+Sales Order Schedule,Jadwal Pesanan Penjualan
+Add Schedule,Tambah Jadwal
+Manufacturing Section,Bagian Produksi
+Production Plan Qty,Jumlah Rencana Produksi
+Work Order Qty,Jumlah Perintah Kerja
+Picked Qty (in Stock UOM),Jumlah Diambil (Satuan Persediaan)
+Inter Transfer Reference,Referensi Pemindahan Antarunit
+In Words will be visible once you save the Sales Order.,Terbilang akan terlihat setelah pesanan penjualan disimpan.
+"Applying a Discount Amount? When this Sales Order is partially fulfilled through multiple Delivery Notes and Sales Invoices, the Discount Amount is allocated on a FIFO basis. The earlier transactions receive a larger share of the discount. To spread the discount proportionally across item prices, use Additional Discount Percentage instead.","Menerapkan jumlah diskon? Jika pesanan ini dipenuhi sebagian lewat beberapa nota pengiriman dan faktur, jumlah diskon dialokasikan secara FIFO, sehingga transaksi awal mendapat porsi lebih besar. Untuk membagi diskon secara proporsional ke harga barang, gunakan persentase diskon tambahan."
+Terms & Conditions,Syarat dan Ketentuan
+To Pay,Harus Dibayar
+% of materials delivered against this Sales Order,% bahan yang sudah dikirim atas pesanan penjualan ini
+Inter Company Order Reference,Referensi Pesanan Antarperusahaan
+Qty in Stock UOM,Jumlah dalam Satuan Persediaan
+Returned Qty in Stock UOM,Jumlah Diretur dalam Satuan Persediaan
+Against Sales Order,Atas Pesanan Penjualan
+Against Sales Invoice,Atas Faktur Penjualan
+Against Pick List,Atas Daftar Pengambilan
+Serial and Batch No,Nomor Seri dan Lot
+Available Batch Qty at From Warehouse,Jumlah Lot Tersedia di Gudang Asal
+Installed Qty,Jumlah Terpasang
+In Words (Export) will be visible once you save the Delivery Note.,Terbilang (ekspor) akan terlihat setelah nota pengiriman disimpan.
+In Words will be visible once you save the Delivery Note.,Terbilang akan terlihat setelah nota pengiriman disimpan.
+Billing Address Name,Nama Alamat Penagihan
+Return Issued,Retur Diterbitkan
+Transporter Info,Informasi Pengangkut
+Transporter,Pengangkut
+Transport Receipt No,Nomor Resi Angkutan
+Transporter Name,Nama Pengangkut
+Transport Receipt Date,Tanggal Resi Angkutan
+Vehicle No,Nomor Kendaraan
+Driver Name,Nama Pengemudi
+Customer's Purchase Order No,Nomor Pesanan Pembelian Pelanggan
+Print Without Amount,Cetak Tanpa Jumlah
+Company which internal customer represents.,Perusahaan yang diwakili pelanggan internal.
+Inter Company Reference,Referensi Antarperusahaan
+Default Unit of Measure,Satuan Ukur Bawaan
+Disabled items cannot be selected in any transaction.,Barang yang dinonaktifkan tidak dapat dipilih pada transaksi.
+Maintain Stock,Kelola Persediaan
+ERPNext will make a stock ledger entry for each transaction of this item. Keep unchecked for non-stock or service items.,ERPNext membuat entri buku besar persediaan untuk setiap transaksi barang ini. Biarkan tidak dicentang untuk barang nonpersediaan atau jasa.
+Is Fixed Asset,Aset Tetap
+Enable if this item is a company asset like machinery or furniture.,"Aktifkan jika barang ini aset perusahaan, seperti mesin atau perabot."
+Auto create assets on purchase,Buat aset otomatis saat pembelian
+Create Grouped Asset,Buat Aset Gabungan
+Creates a single grouped asset instead of individual assets when purchased in bulk.,"Membuat satu aset gabungan, bukan aset satuan, saat dibeli dalam jumlah banyak."
+Asset Naming Series,Seri Penamaan Aset
+Item Attributes,Atribut Barang
+Allow Sales,Boleh Dijual
+Allow this item to be used in sales transactions.,Izinkan barang ini dipakai pada transaksi penjualan.
+Allow substituting this item with an alternative from the Item Alternative list when stock is unavailable.,Izinkan mengganti barang ini dengan alternatif dari daftar alternatif barang saat persediaan kosong.
+Has Variants,Memiliki Varian
+"If this item has variants, then it cannot be selected in sales orders etc.",Barang yang memiliki varian tidak dapat dipilih pada pesanan penjualan dan sejenisnya.
+Allow Purchase,Boleh Dibeli
+Allow this item to be used in purchase transactions.,Izinkan barang ini dipakai pada transaksi pembelian.
+Is Customer Provided Item,Barang Titipan Pelanggan
+Enable if this item is provided by a customer and received via Stock Entry.,Aktifkan jika barang ini disediakan pelanggan dan diterima lewat entri persediaan.
+Standard Selling Rate,Tarif Jual Standar
+Creates an Item Price automatically when the item is saved,Membuat harga barang otomatis saat barang disimpan
+"Percentage by which over-delivery or over-receipt is allowed against a Sales/Purchase Order for this item. If not set, value from Stock Settings will be used.","Persentase kelebihan pengiriman atau penerimaan yang diizinkan terhadap pesanan untuk barang ini. Jika kosong, dipakai nilai dari pengaturan persediaan."
+"Percentage by which over-billing is allowed against a Sales/Purchase Order for this item. If not set, value from Accounts Settings will be used.","Persentase tagihan berlebih yang diizinkan terhadap pesanan untuk barang ini. Jika kosong, dipakai nilai dari pengaturan akuntansi."
+Default price list for buying or selling this item,Daftar harga bawaan untuk membeli atau menjual barang ini
+Stock account where inventory value for this item will be tracked,Akun persediaan untuk mencatat nilai persediaan barang ini
+Inventory Account Currency,Mata Uang Akun Persediaan
+Purchase Defaults,Nilai Bawaan Pembelian
+Cost center used for tracking purchase expenses for this item,Pusat biaya untuk melacak beban pembelian barang ini
+This supplier will be auto-selected in new purchase transactions,Pemasok ini dipilih otomatis pada transaksi pembelian baru
+Account where the cost of this item will be debited on purchase,Akun yang didebit dengan biaya barang ini saat pembelian
+Default Provisional Account (Service),Akun Provisi Bawaan (Jasa)
+Provisional liability account used for service items before invoice is received,Akun liabilitas provisi untuk barang jasa sebelum faktur diterima
+Account to record additional purchase expenses like freight or customs for this item,Akun untuk mencatat beban pembelian tambahan seperti ongkos angkut atau bea cukai
+Used to balance the books when recording extra purchase costs like freight or customs,Dipakai untuk menyeimbangkan pembukuan saat mencatat biaya pembelian tambahan
+"Account to track value added to stock via Stock Entry, Stock Reconciliation or Landed Cost Voucher","Akun untuk melacak nilai yang ditambahkan ke persediaan lewat entri persediaan, rekonsiliasi, atau voucer biaya perolehan"
+Used to balance the books when recording expenses added to stock,Dipakai untuk menyeimbangkan pembukuan saat mencatat beban yang ditambahkan ke persediaan
+Sales Defaults,Nilai Bawaan Penjualan
+Cost center used for tracking sales revenue for this item,Pusat biaya untuk melacak pendapatan penjualan barang ini
+Account where revenue from selling this item will be credited,Akun yang dikredit dengan pendapatan penjualan barang ini
+Default COGS Account,Akun Harga Pokok Penjualan Bawaan
+Account where cost of goods sold will be posted when this item is sold,Akun pembukuan harga pokok penjualan saat barang ini dijual
+Deferred Accounting Defaults,Nilai Bawaan Akuntansi Tangguhan
+"When you pay for something upfront (like annual insurance), the cost is held here and recognized gradually over time",Biaya yang dibayar di muka (misalnya asuransi tahunan) ditampung di sini dan diakui bertahap
+Revenue received in advance (e.g. annual subscription) is held here and recognized gradually over time,Pendapatan diterima di muka (misalnya langganan tahunan) ditampung di sini dan diakui bertahap
+Expense for this item will be recognized over a period of months. Eg: prepaid insurance or annual software license,"Beban barang ini diakui selama beberapa bulan, misalnya asuransi dibayar di muka atau lisensi tahunan"
+No of Months (Expense),Jumlah Bulan (Beban)
+Income from this item will be recognized over a period of months instead of all at once. Eg: annual subscription paid upfront.,"Pendapatan barang ini diakui selama beberapa bulan, bukan sekaligus, misalnya langganan tahunan dibayar di muka."
+No of Months (Revenue),Jumlah Bulan (Pendapatan)
+UOM Conversion Details,Rincian Konversi Satuan
+Will also apply for variants,Juga berlaku untuk varian
+Minimum Net Rate,Tarif Neto Minimum
+Maximum Net Rate,Tarif Neto Maksimum
+Purchase Tax Withholding Category,Kategori Pemotongan Pajak Pembelian
+Sales Tax Withholding Category,Kategori Pemotongan Pajak Penjualan
+Inventory,Persediaan
+Stock Levels HTML,HTML Tingkat Persediaan
+Inventory Valuation,Penilaian Persediaan
+Serialized items are valued at Moving Average once stock transactions exist and Serial No Wise Valuation is disabled.,Barang bernomor seri dinilai dengan rata-rata bergerak jika sudah ada transaksi persediaan dan penilaian per nomor seri dinonaktifkan.
+Inventory Settings,Pengaturan Persediaan
+End of Life,Akhir Masa Pakai
+Defines the date after which the item can no longer be used in transactions or manufacturing,Tanggal setelah barang tidak dapat dipakai lagi pada transaksi atau produksi
+Default Material Request Type,Jenis Permintaan Bahan Bawaan
+Material Issue,Pengeluaran Bahan
+Customer Provided,Disediakan Pelanggan
+Warranty Period (in days),Masa Garansi (hari)
+Allow Negative Stock,Izinkan Persediaan Negatif
+"Allow stock to go below zero for this item, even if negative stock is disabled in Stock Settings.",Izinkan persediaan barang ini di bawah nol meskipun persediaan negatif dinonaktifkan pada pengaturan.
+Barcodes,Kode Batang
+Item Barcode,Kode Batang Barang
+Barcode Type,Jenis Kode Batang
+Auto re-order,Pemesanan Ulang Otomatis
+Reorder level based on Warehouse,Titik pemesanan ulang berdasarkan gudang
+Will also apply for variants unless overridden,Juga berlaku untuk varian kecuali diganti
+Item Reorder,Pemesanan Ulang Barang
+Request for,Permintaan untuk
+Check Availability in Warehouse,Periksa Ketersediaan di Gudang
+Re-order Level,Titik Pemesanan Ulang
+Re-order Qty,Jumlah Pemesanan Ulang
+Material Request Type,Jenis Permintaan Bahan
+Transfer,Pemindahan
+Serial Nos / Batches,Nomor Seri / Lot
+Has Batch No,Memiliki Nomor Lot
+Track this item in batches. Cannot be changed after a stock transaction exists.,Lacak barang ini per lot. Tidak dapat diubah setelah ada transaksi persediaan.
+Automatically Create New Batch,Buat Lot Baru Otomatis
+Batch number will be auto-created in format AAAA.00001 if not specified in transactions. Leave blank to always enter batch numbers manually.,Nomor lot dibuat otomatis dengan format AAAA.00001 jika tidak diisi pada transaksi. Kosongkan untuk selalu mengisi nomor lot secara manual.
+Batch Number Series,Seri Nomor Lot
+Has Expiry Date,Memiliki Tanggal Kedaluwarsa
+Batch number will be created based on expiry date. Expiry dates can be set in the Batch master.,"Nomor lot dibuat berdasarkan tanggal kedaluwarsa, yang dapat diatur pada data lot."
+Shelf Life In Days,Masa Simpan (Hari)
+Retain Sample,Simpan Sampel
+Enable to reserve a small sample from each batch for any analysis arising ahead,Aktifkan untuk menyisihkan sampel kecil dari tiap lot guna analisis di kemudian hari
+Max Sample Quantity,Jumlah Sampel Maksimum
+Maximum sample quantity that can be retained,Jumlah sampel maksimum yang dapat disimpan
+Has Serial No,Memiliki Nomor Seri
+Track each unit with a unique serial number for warranty and return tracking. Cannot be changed after a stock transaction exists.,Lacak tiap unit dengan nomor seri unik untuk garansi dan retur. Tidak dapat diubah setelah ada transaksi persediaan.
+Serial Number Series,Seri Nomor Seri
+"Example: ABCD.#####
+If series is set and Serial No is not mentioned in transactions, then automatic serial number will be created based on this series. If you always want to explicitly mention Serial Nos for this item. leave this blank.","Contoh: ABCD.#####
+Jika seri diatur dan nomor seri tidak disebut pada transaksi, nomor seri otomatis dibuat dari seri ini. Kosongkan jika nomor seri selalu ingin disebut secara eksplisit."
+Use Serial No Wise Valuation,Gunakan Penilaian per Nomor Seri
+"Value every outward movement at each Serial No's own incoming rate. If unchecked, the item is valued at Moving Average once stock transactions exist. Cannot be enabled once Serial Nos exist for this item.","Nilai tiap pengeluaran memakai tarif masuk nomor seri masing-masing. Jika tidak dicentang, barang dinilai dengan rata-rata bergerak. Tidak dapat diaktifkan setelah nomor seri ada."
+Variants,Varian
+Variant Of,Varian dari
+"If item is a variant of another item then description, image, pricing, taxes etc will be set from the template unless explicitly specified","Jika barang merupakan varian barang lain, deskripsi, gambar, harga, pajak, dan lainnya mengikuti templat kecuali diisi sendiri"
+Variant Based On,Varian Berdasarkan
+Default Purchase Unit of Measure,Satuan Pembelian Bawaan
+Minimum Order Qty,Jumlah Pesanan Minimum
+Minimum quantity should be as per Stock UOM,Jumlah minimum harus sesuai satuan persediaan
+Minimum stock level to maintain as a buffer. Used to calculate recommended reorder level: Reorder Level = Safety Stock + (Average Daily Consumption × Lead Time).,Persediaan minimum sebagai penyangga. Dipakai menghitung titik pemesanan ulang: titik pesan ulang = persediaan pengaman + (rata-rata pemakaian harian × waktu tunggu).
+Lead Time in days,Waktu Tunggu (hari)
+Average time taken by the supplier to deliver,Rata-rata waktu pemasok untuk mengirim
+The rate at which this item was last purchased via a Purchase Invoice. Auto-updated by the system.,Tarif pembelian terakhir barang ini lewat faktur pembelian. Diperbarui otomatis oleh sistem.
+Supplier Details,Rincian Pemasok
+Delivered by Supplier (Drop Ship),Dikirim oleh Pemasok (Kirim Langsung)
+Enable for drop shipping - supplier delivers directly to the customer without passing through your warehouse.,Aktifkan untuk kirim langsung: pemasok mengirim ke pelanggan tanpa melewati gudang Anda.
+Item Supplier,Pemasok Barang
+Supplier Part Number,Nomor Suku Cadang Pemasok
+Foreign Trade Details,Rincian Perdagangan Luar Negeri
+Country of Origin,Negara Asal
+Default Sales Unit of Measure,Satuan Penjualan Bawaan
+"If enabled, sales from this item will be included in Sales Person and Sales Partner commission calculations","Jika diaktifkan, penjualan barang ini dihitung dalam komisi tenaga penjual dan mitra penjualan"
+Max Discount (%),Diskon Maksimum (%)
+"Maximum discount % allowed when selling this item. Eg: if set to 20%, a discount greater than 20% cannot be applied in sales transactions.","Persentase diskon maksimum saat menjual barang ini. Misalnya jika diisi 20%, diskon di atas 20% tidak dapat diterapkan."
+Customer Items,Barang Pelanggan
+Ref Code,Kode Referensi
+Enter the Item Code that this customer uses at their end. This will be shown in Sales Orders for the customer's reference.,Isi kode barang yang dipakai pelanggan ini. Kode ditampilkan pada pesanan penjualan sebagai acuan pelanggan.
+Include Item In Manufacturing,Sertakan Barang dalam Produksi
+Enable for raw material items used in BOM. Uncheck for additional services like 'washing' used in manufacturing.,Aktifkan untuk bahan baku pada daftar bahan. Hilangkan centang untuk jasa tambahan seperti pencucian yang dipakai dalam produksi.
+Is Subcontracted Item,Barang Disubkontrakkan
+Enable if a vendor manufactures this item for you. You can choose to provide them raw materials using the default BOM.,Aktifkan jika vendor memproduksi barang ini untuk Anda. Anda dapat menyediakan bahan bakunya dengan daftar bahan bawaan.
+Default BOM,Daftar Bahan Bawaan
+Production Capacity,Kapasitas Produksi
+Default Manufacturer Part No,Nomor Suku Cadang Pabrikan Bawaan
+Default Item Manufacturer,Pabrikan Barang Bawaan
+Inspection Required before Purchase,Wajib Inspeksi sebelum Pembelian
+A quality inspection must be completed before generating a Purchase Receipt for this item.,Inspeksi mutu harus selesai sebelum penerimaan pembelian barang ini dibuat.
+Inspection Required before Delivery,Wajib Inspeksi sebelum Pengiriman
+A quality inspection must be completed before generating a Delivery Note for this item.,Inspeksi mutu harus selesai sebelum nota pengiriman barang ini dibuat.
+Prices HTML,HTML Harga
+Price List Name,Nama Daftar Harga
+Price Not UOM Dependent,Harga Tidak Bergantung Satuan
+Applicable for Countries,Berlaku untuk Negara
+Apply On,Terapkan pada
+Price or Product Discount,Diskon Harga atau Produk
+Product,Produk
+Apply Rule On Item Code,Terapkan Aturan pada Kode Barang
+Apply Rule On Item Group,Terapkan Aturan pada Kelompok Barang
+Apply Rule On Brand,Terapkan Aturan pada Merek
+Mixed Conditions,Kondisi Gabungan
+Conditions will be applied on all the selected items combined.,Kondisi diterapkan pada gabungan semua barang terpilih.
+Is Cumulative,Kumulatif
+Coupon Code Based,Berdasarkan Kode Kupon
+Discount on Other Item,Diskon pada Barang Lain
+Apply Rule On Other,Terapkan Aturan pada Lainnya
+Party Information,Informasi Pihak
+Quantity and Amount,Jumlah dan Nilai
+Min Qty (As Per Stock UOM),Jumlah Minimum (Satuan Persediaan)
+Max Qty (As Per Stock UOM),Jumlah Maksimum (Satuan Persediaan)
+Min Amt,Nilai Minimum
+Max Amt,Nilai Maksimum
+Product Discount Scheme,Skema Diskon Produk
+Same Item,Barang yang Sama
+Free Item,Barang Gratis
+Free Item Rate,Tarif Barang Gratis
+"If rate is zero then item will be treated as ""Free Item""","Jika tarif nol, barang diperlakukan sebagai ""barang gratis"""
+Round Free Qty,Bulatkan Jumlah Gratis
+Don't Enforce Free Item Qty,Jangan Paksakan Jumlah Barang Gratis
+Is Recursive,Berulang
+"Discounts to be applied in sequential ranges like buy 1 get 1, buy 2 get 2, buy 3 get 3 and so on","Diskon diterapkan bertingkat, seperti beli 1 gratis 1, beli 2 gratis 2, dan seterusnya"
+Recurse Every (As Per Transaction UOM),Ulangi Setiap (Satuan Transaksi)
+Give free item for every N quantity,Beri barang gratis setiap kelipatan N
+Apply Recursion Over (As Per Transaction UOM),Terapkan Pengulangan Mulai (Satuan Transaksi)
+Qty for which recursion isn't applicable.,Jumlah yang tidak dikenai pengulangan.
+Period Settings,Pengaturan Periode
+Price Discount Scheme,Skema Diskon Harga
+Rate or Discount,Tarif atau Diskon
+Discount Percentage,Persentase Diskon
+Apply Discount On,Terapkan Diskon pada
+For Price List,Untuk Daftar Harga
+Dynamic Condition,Kondisi Dinamis
+"Simple Python Expression, Example: territory != 'All Territories'","Ekspresi Python sederhana, contoh: territory != 'All Territories'"
+Apply Multiple Pricing Rules,Terapkan Beberapa Aturan Harga
+Apply Discount on Discounted Rate,Terapkan Diskon pada Tarif Terdiskon
+Threshold for Suggestion (In Percentage),Ambang Saran (Persen)
+System will notify to increase or decrease quantity or amount,Sistem memberi tahu agar jumlah atau nilai dinaikkan atau diturunkan
+Validate Pricing Rule,Validasi Aturan Harga
+Validate Applied Rule,Validasi Aturan yang Diterapkan
+"If enabled, then system will only validate the pricing rule and not apply automatically. User has to manually set the discount percentage / margin / free items to validate the pricing rule","Jika diaktifkan, sistem hanya memvalidasi aturan harga tanpa menerapkannya otomatis. Pengguna harus mengisi diskon / margin / barang gratis secara manual"
+Rule Description,Deskripsi Aturan
+Has Priority,Memiliki Prioritas
+Enable this checkbox even if you want to set the zero priority,Centang juga jika ingin mengisi prioritas nol
+"Higher the number, higher the priority","Makin besar angka, makin tinggi prioritas"
+Pricing Rule Help,Bantuan Aturan Harga
+Payment Methods,Cara Pembayaran
+Allow In Returns,Izinkan pada Retur
+Set Grand Total to Default Payment Method,Isi Total Akhir pada Cara Pembayaran Bawaan
+Price List & Currency,Daftar Harga dan Mata Uang
+Write Off Limit,Batas Penghapusbukuan
+Auto write off precision loss while consolidation,Hapus buku selisih ketelitian otomatis saat konsolidasi
+Income and Expense,Pendapatan dan Beban
+Miscellaneous,Lain-Lain
+"If enabled, the consolidated invoices will have rounded total disabled","Jika diaktifkan, total pembulatan pada faktur konsolidasi dinonaktifkan"
+Allow Partial Payment,Izinkan Pembayaran Sebagian
+Applicable on POS Invoice,Berlaku pada Faktur POS
+POS Configurations,Konfigurasi Kasir
+Action on New Invoice,Tindakan pada Faktur Baru
+Always Ask,Selalu Tanyakan
+Save Changes and Load New Invoice,Simpan Perubahan dan Muat Faktur Baru
+Validate Stock on Save,Validasi Persediaan saat Simpan
+Print Receipt on Order Complete,Cetak Struk saat Pesanan Selesai
+POS Item Selector,Pemilih Barang Kasir
+Hide Images,Sembunyikan Gambar
+Hide Unavailable Items,Sembunyikan Barang yang Tidak Tersedia
+Automatically Add Filtered Item To Cart,Tambahkan Barang Tersaring ke Keranjang Otomatis
+POS Item Details,Rincian Barang Kasir
+Allow User to Edit Rate,Izinkan Pengguna Mengubah Tarif
+Allow User to Edit Discount,Izinkan Pengguna Mengubah Diskon
+Applicable for Users,Berlaku untuk Pengguna
+Item Groups,Kelompok Barang
+Only show Items from these Item Groups,Hanya tampilkan barang dari kelompok barang ini
+Customer Groups,Kelompok Pelanggan
+Only show Customer of these Customer Groups,Hanya tampilkan pelanggan dari kelompok ini
+Consolidated Sales Invoice,Faktur Penjualan Terkonsolidasi
+Available Qty at Warehouse,Jumlah Tersedia di Gudang
+Consolidated,Terkonsolidasi
+Customer Group Name,Nama Kelompok Pelanggan
+Parent Customer Group,Kelompok Pelanggan Induk
+Only leaf nodes are allowed in transaction,Hanya simpul ujung yang diizinkan pada transaksi
+Mention if non-standard receivable account applicable,Isi jika akun piutang tidak standar berlaku
+Territory Name,Nama Wilayah
+Parent Territory,Wilayah Induk
+Territory Manager,Manajer Wilayah
+For reference,Sebagai acuan
+Territory Targets,Target Wilayah
+Set Item Group-wise budgets on this Territory. You can also include seasonality by setting the Distribution.,Atur anggaran per kelompok barang untuk wilayah ini. Anda dapat memasukkan faktor musiman dengan mengatur distribusi.
+Targets,Target
+Target Qty,Target Jumlah
+Target  Amount,Target Nilai
+Target Distribution,Distribusi Target
+Name and Employee ID,Nama dan ID Karyawan
+Sales Person Name,Nama Tenaga Penjual
+Parent Sales Person,Atasan Tenaga Penjual
+Select company name first.,Pilih nama perusahaan terlebih dahulu.
+Sales Person Targets,Target Tenaga Penjual
+Set targets Item Group-wise for this Sales Person.,Atur target per kelompok barang untuk tenaga penjual ini.
+Supplier Type,Jenis Pemasok
+Per-Company Accounts,Akun per Perusahaan
+Override the default payable / advance accounts on a per-company basis. Leave blank to use each company's defaults from Company settings.,Ganti akun utang / uang muka bawaan untuk tiap perusahaan. Kosongkan untuk memakai nilai bawaan pengaturan perusahaan.
+Internal Supplier Details,Rincian Pemasok Internal
+Used for inter-company transactions,Dipakai untuk transaksi antarperusahaan
+Tax Identification,Identitas Pajak
+"Supplier's tax identification number (e.g. PAN, VAT, GST)",Nomor identitas pajak pemasok (misalnya NPWP atau PPN)
+Determines which tax rules apply to this supplier,Menentukan aturan pajak yang berlaku bagi pemasok ini
+TDS / withholding tax category applied when paying this supplier,Kategori pemotongan pajak yang diterapkan saat membayar pemasok ini
+Used to pick the correct rate row inside the Tax Withholding Category for this supplier (e.g. Company vs Individual rates),Dipakai untuk memilih baris tarif yang tepat pada kategori pemotongan pajak (misalnya tarif badan atau orang pribadi)
+Is Transporter,Pengangkut
+Enable to make this supplier selectable as a transporter on Delivery Notes and Stock Entries,Aktifkan agar pemasok ini dapat dipilih sebagai pengangkut pada nota pengiriman dan entri persediaan
+Allow purchase invoice creation without purchase order,Izinkan faktur pembelian tanpa pesanan pembelian
+Allow purchase invoice creation without purchase receipt,Izinkan faktur pembelian tanpa penerimaan pembelian
+Disabled suppliers are hidden from selection in new transactions but remain in historical records,Pemasok nonaktif disembunyikan pada transaksi baru tetapi tetap ada pada riwayat
+"Frozen suppliers block new transactions and ledger entries until unfrozen. Only users with the role set in Company's ""Roles Allowed to Set and Edit Frozen Account Entries"" can transact.","Pemasok yang dibekukan tidak dapat bertransaksi atau memiliki entri buku besar sampai dibuka. Hanya pengguna dengan peran pada ""Roles Allowed to Set and Edit Frozen Account Entries"" di perusahaan yang dapat bertransaksi."
+Block Supplier,Blokir Pemasok
+"When enabled, transactions with this supplier will be blocked based on the Hold Type below","Jika diaktifkan, transaksi dengan pemasok ini diblokir sesuai jenis penahanan di bawah"
+Hold Type,Jenis Penahanan
+Leave blank if the Supplier is blocked indefinitely,Kosongkan jika pemasok diblokir tanpa batas waktu
+Supplier Portal Users,Pengguna Portal Pemasok
+General information about your Supplier,Informasi umum tentang pemasok Anda
+Customer Numbers,Nomor Pelanggan
+Account / customer numbers assigned to your companies by this supplier (for reconciliation on their statements),Nomor akun / pelanggan yang diberikan pemasok ini kepada perusahaan Anda (untuk rekonsiliasi pada laporan mereka)
+Customer Number At Supplier,Nomor Pelanggan pada Pemasok
+Customer Number,Nomor Pelanggan
+Auto Created (Reorder),Dibuat Otomatis (Pemesanan Ulang)
+Quantity and Warehouse,Jumlah dan Gudang
+Min Order Qty,Jumlah Pesanan Minimum
+Completed Qty,Jumlah Selesai
+Lead Time Date,Tanggal Waktu Tunggu
+Projected On Hand,Proyeksi Stok Tersedia
+"If the reorder check is set at the Group warehouse level, the available quantity becomes the sum of the projected quantities of all its child warehouses.","Jika pemeriksaan pemesanan ulang diatur di tingkat gudang kelompok, jumlah tersedia merupakan total proyeksi semua gudang anaknya."
+Terms and Conditions Content,Isi Syarat dan Ketentuan
+Transferred,Dipindahkan
+Transfer Status,Status Pemindahan
+Required Date,Tanggal Dibutuhkan
+Suppliers,Pemasok
+Quote Status,Status Penawaran
+Send Email,Kirim Surel
+Email Sent,Surel Terkirim
+Quantity & Stock,Jumlah dan Persediaan
+Email Details,Rincian Surel
+Send Attached Files,Kirim Berkas Lampiran
+"If enabled, all files attached to this document will be attached to each email","Jika diaktifkan, semua berkas pada dokumen ini dilampirkan pada setiap surel"
+Send Document Print,Kirim Cetakan Dokumen
+"If enabled, a print of this document will be attached to each email","Jika diaktifkan, cetakan dokumen ini dilampirkan pada setiap surel"
+Message for Supplier,Pesan untuk Pemasok
+Billing Address Details,Rincian Alamat Penagihan
+Company Shipping Address,Alamat Pengiriman Perusahaan
+Shipping Address Details,Rincian Alamat Pengiriman
+Quotation Number,Nomor Penawaran
+Supplier Lead Time (days),Waktu Tunggu Pemasok (hari)
+Rounding Adjustment (Company Currency,Penyesuaian Pembulatan (Mata Uang Perusahaan)
+Terms Template,Templat Ketentuan
+Order Confirmation No,Nomor Konfirmasi Pesanan
+Order Confirmation Date,Tanggal Konfirmasi Pesanan
+Warehouse Settings,Pengaturan Gudang
+Available Qty at Target Warehouse,Jumlah Tersedia di Gudang Tujuan
+Available Qty at Company,Jumlah Tersedia di Perusahaan
+Sales Order Packed Item,Barang Paket Pesanan Penjualan
+To be Delivered to Customer,Akan Dikirim ke Pelanggan
+"Billed, Received & Returned","Ditagih, Diterima, dan Diretur"
+Purchase Order Pricing Rule,Aturan Harga Pesanan Pembelian
+Set Reserve Warehouse,Tetapkan Gudang Cadangan
+Advance Paid (Company Currency),Uang Muka Dibayar (Mata Uang Perusahaan)
+Supplier Address Details,Rincian Alamat Pemasok
+Supplier Contact,Kontak Pemasok
+Contact Mobile No,Nomor Ponsel Kontak
+Dispatch Address Details,Rincian Alamat Asal Kirim
+Order Status,Status Pesanan
+Delivered,Terkirim
+MPS,Jadwal Induk Produksi
+Reserve Warehouse,Gudang Cadangan
+BOM Detail No,Nomor Rincian Daftar Bahan
+Supplier Delivery Note,Nota Pengiriman Pemasok
+Apply Putaway Rule,Terapkan Aturan Penempatan
+Return Against Purchase Receipt,Retur atas Penerimaan Pembelian
+Rate at which supplier's currency is converted to company's base currency,Kurs konversi mata uang pemasok ke mata uang dasar perusahaan
+Received and Accepted,Diterima dan Disetujui
+Rejected Quantity,Jumlah Ditolak
+Sample Quantity,Jumlah Sampel
+Qty as Per Stock UOM,Jumlah menurut Satuan Persediaan
+Received Qty in Stock UOM,Jumlah Diterima dalam Satuan Persediaan
+Rate and Amount,Tarif dan Jumlah
+Amount Difference with Purchase Invoice,Selisih Jumlah dengan Faktur Pembelian
+Return Qty from Rejected Warehouse,Jumlah Retur dari Gudang Barang Ditolak
+Putaway Rule,Aturan Penempatan
+Provisional Expense Account,Akun Beban Provisi
+Raw Materials Consumed,Bahan Baku Terpakai
+Get Current Stock,Ambil Persediaan Saat Ini
+Consumed Items,Barang Terpakai
+Dispatch Address Template,Templat Alamat Asal Kirim
+Shipping Address Template,Templat Alamat Pengiriman
+Vehicle Number,Nomor Kendaraan
+Vehicle Date,Tanggal Kendaraan
+General Settings,Pengaturan Umum
+Item Group Name,Nama Kelompok Barang
+Parent Item Group,Kelompok Barang Induk
+Item Group Defaults,Nilai Bawaan Kelompok Barang
+Supplier Group Name,Nama Kelompok Pemasok
+Parent Supplier Group,Kelompok Pemasok Induk
+Supplier Score,Nilai Pemasok
+Evaluation Period,Periode Evaluasi
+Per Week,Per Minggu
+Per Month,Per Bulan
+Per Year,Per Tahun
+Scoring Setup,Penyiapan Penilaian
+Weighting Function,Fungsi Pembobotan
+"Scorecard variables can be used, as well as:
+{total_score} (the total score from that period),
+{period_number} (the number of periods to present day)","Variabel kartu nilai dapat dipakai, serta:
+{total_score} (total nilai periode tersebut),
+{period_number} (jumlah periode sampai hari ini)"
+Scoring Standings,Peringkat Penilaian
+Standing Name,Nama Peringkat
+Min Grade,Nilai Minimum
+Max Grade,Nilai Maksimum
+Warn RFQs,Peringatkan Permintaan Penawaran
+Warn Purchase Orders,Peringatkan Pesanan Pembelian
+Prevent RFQs,Cegah Permintaan Penawaran
+Prevent Purchase Orders,Cegah Pesanan Pembelian
+Criteria Setup,Penyiapan Kriteria
+Load All Criteria,Muat Semua Kriteria
+Scoring Criteria,Kriteria Penilaian
+Criteria Name,Nama Kriteria
+Criteria Weight,Bobot Kriteria
+Scorecard Actions,Tindakan Kartu Nilai
+Warn for new Request for Quotations,Peringatkan untuk permintaan penawaran baru
+Warn for new Purchase Orders,Peringatkan untuk pesanan pembelian baru
+Prevent POs,Cegah pesanan pembelian
+Warehouse Detail,Rincian Gudang
+Warehouse Name,Nama Gudang
+Is Rejected Warehouse,Gudang Barang Ditolak
+"If yes, then this warehouse will be used to store rejected materials","Jika ya, gudang ini dipakai untuk menyimpan bahan yang ditolak"
+"If blank, parent Warehouse Account or company default will be considered in transactions","Jika kosong, akun gudang induk atau nilai bawaan perusahaan dipakai pada transaksi"
+Is Group Warehouse,Gudang Kelompok
+Only to be used for Subcontracting Inward.,Hanya untuk subkontrak masuk.
+Warehouse Contact Info,Informasi Kontak Gudang
+PIN,Kode Pos
+Tree Details,Rincian Pohon
+Stock Entry (Outward GIT),Entri Persediaan (Keluar Dalam Perjalanan)
+Source Stock Entry (Manufacture),Entri Persediaan Sumber (Produksi)
+From BOM,Dari Daftar Bahan
+Use Multi-Level BOM,Gunakan Daftar Bahan Bertingkat
+Including items for sub assemblies,Termasuk barang untuk subrakitan
+Finished Good Quantity,Jumlah Barang Jadi
+As per Stock UOM,Menurut Satuan Persediaan
+Process Loss,Susut Proses
+Default Source Warehouse,Gudang Asal Bawaan
+Sets 'Source Warehouse' in each row of the items table.,Mengisi gudang asal pada tiap baris tabel barang.
+Source Warehouse Address Link,Tautan Alamat Gudang Asal
+Source Warehouse Address,Alamat Gudang Asal
+Default Target Warehouse,Gudang Tujuan Bawaan
+Sets 'Target Warehouse' in each row of the items table.,Mengisi gudang tujuan pada tiap baris tabel barang.
+Target Warehouse Address Link,Tautan Alamat Gudang Tujuan
+Target Warehouse Address,Alamat Gudang Tujuan
+Is Finished Item,Barang Jadi
+Valuation Type,Jenis Penilaian
+% of Component Cost,% dari Biaya Komponen
+Co-Product,Produk Bersama
+By-Product,Produk Sampingan
+Scrap,Barang Sisa
+Additional Finished Good,Barang Jadi Tambahan
+Against Finished Good,Atas Barang Jadi
+Basic Rate (as per Stock UOM),Tarif Dasar (Satuan Persediaan)
+Customer Provided Item Cost,Biaya Barang Titipan Pelanggan
+Set Basic Rate Manually,Isi Tarif Dasar Secara Manual
+Basic Amount,Jumlah Dasar
+Serial No / Batch,Nomor Seri / Lot
+Actual Qty (at source/target),Jumlah Aktual (asal/tujuan)
+Against Stock Entry,Atas Entri Persediaan
+Stock Entry Child,Entri Persediaan Anak
+Reference Purchase Receipt,Penerimaan Pembelian Acuan
+Update Rate and Availability,Perbarui Tarif dan Ketersediaan
+Total Outgoing Value (Consumption),Total Nilai Keluar (Pemakaian)
+Total Incoming Value (Receipt),Total Nilai Masuk (Penerimaan)
+Total Value Difference (Incoming - Outgoing),Total Selisih Nilai (Masuk - Keluar)
+Has Corrective Cost,Memiliki Biaya Korektif
+Has Operating Cost,Memiliki Biaya Operasi
+Total Additional Costs,Total Biaya Tambahan
+Supplier Info,Informasi Pemasok
+Other Info,Informasi Lain
+Delivery Note No,Nomor Nota Pengiriman
+Sales Invoice No,Nomor Faktur Penjualan
+Purchase Receipt No,Nomor Penerimaan Pembelian
+Per Transferred,Persentase Dipindahkan
+Adjustment Entry,Entri Penyesuaian
+Scan Mode,Mode Pindai
+Disables auto-fetching of existing quantity,Menonaktifkan pengambilan otomatis jumlah yang ada
+Reconcile All Serial Nos / Batches,Rekonsiliasi Semua Nomor Seri / Lot
+Serial / Batch Bundle,Paket Nomor Seri / Lot
+Current Serial / Batch Bundle,Paket Nomor Seri / Lot Saat Ini
+Before reconciliation,Sebelum rekonsiliasi
+Current Amount,Jumlah Saat Ini
+Current Valuation Rate,Tarif Penilaian Saat Ini
+Current Serial No,Nomor Seri Saat Ini
+Quantity Difference,Selisih Jumlah
+Amount Difference,Selisih Nilai
+Material Transfer for Manufacture,Pemindahan Bahan untuk Produksi
+Qty of raw materials will be decided based on the qty of the Finished Goods Item,Jumlah bahan baku ditentukan berdasarkan jumlah barang jadi
+Items under this warehouse will be suggested,Barang di gudang ini akan disarankan
+Consider Rejected Warehouses,Pertimbangkan Gudang Barang Ditolak
+Enable it if users want to consider rejected materials to dispatch.,Aktifkan jika bahan yang ditolak ingin dipertimbangkan untuk dikirim.
+Get Item Locations,Ambil Lokasi Barang
+Pick Manually,Ambil Secara Manual
+If enabled then system won't override the picked qty / batches / serial numbers / warehouse.,"Jika diaktifkan, sistem tidak mengganti jumlah / lot / nomor seri / gudang yang diambil."
+If enabled then system won't apply the pricing rule on the delivery note which will be create from the pick list,"Jika diaktifkan, sistem tidak menerapkan aturan harga pada nota pengiriman dari daftar pengambilan"
+"If checked, picked qty won't automatically be fulfilled on submit of pick list.","Jika dicentang, jumlah diambil tidak dipenuhi otomatis saat daftar pengambilan diajukan."
+Prompt Qty,Minta Jumlah
+Item Locations,Lokasi Barang
+Qty (in Stock UOM),Jumlah (Satuan Persediaan)
+Delivered Qty (in Stock UOM),Jumlah Dikirim (Satuan Persediaan)
+Transferred Qty (in Stock UOM),Jumlah Dipindahkan (Satuan Persediaan)
+Group Same Items,Kelompokkan Barang yang Sama
+Vouchers,Voucer
+Receipt Document Type,Jenis Dokumen Penerimaan
+Receipt Document,Dokumen Penerimaan
+Receipt Items,Barang Penerimaan
+Applicable Charges,Biaya yang Berlaku
+Stock Entry Item,Barang Entri Persediaan
+Vendor Invoices,Faktur Vendor
+Landed Cost Vendor Invoice,Faktur Vendor Biaya Perolehan
+Vendor Invoice,Faktur Vendor
+Landed Cost,Biaya Perolehan
+Total Vendor Invoices Cost (Company Currency),Total Biaya Faktur Vendor (Mata Uang Perusahaan)
+Total Landed Cost (Company Currency),Total Biaya Perolehan (Mata Uang Perusahaan)
+Distribute Charges Based On,Bagikan Biaya Berdasarkan
+Distribute Manually,Bagikan Manual
+Landed Cost Help,Bantuan Biaya Perolehan
+Item Serial No,Nomor Seri Barang
+Manual Inspection,Inspeksi Manual
+Readings,Hasil Pengukuran
+Parameter Group,Kelompok Parameter
+Numeric,Numerik
+Set the status manually.,Atur status secara manual.
+Minimum Value,Nilai Minimum
+Applied on each reading.,Diterapkan pada setiap hasil pengukuran.
+Maximum Value,Nilai Maksimum
+Formula Based Criteria,Kriteria Berbasis Rumus
+"Simple Python formula applied on Reading fields.<br> Numeric eg. 1: <b>reading_1 &gt; 0.2 and reading_1 &lt; 0.5</b><br>
+Numeric eg. 2: <b>mean &gt; 3.5</b> (mean of populated fields)<br>
+Value based eg.:  <b>reading_value in (""A"", ""B"", ""C"")</b>","Rumus Python sederhana pada kolom hasil pengukuran.<br> Contoh numerik 1: <b>reading_1 &gt; 0.2 and reading_1 &lt; 0.5</b><br>
+Contoh numerik 2: <b>mean &gt; 3.5</b> (rata-rata kolom terisi)<br>
+Contoh berbasis nilai:  <b>reading_value in (""A"", ""B"", ""C"")</b>"
+Value Based Inspection,Inspeksi Berbasis Nilai
+Reading Value,Nilai Pengukuran
+Numeric Inspection,Inspeksi Numerik
+Reading 1,Pengukuran 1
+Reading 2,Pengukuran 2
+Reading 3,Pengukuran 3
+Reading 4,Pengukuran 4
+Reading 5,Pengukuran 5
+Reading 6,Pengukuran 6
+Reading 7,Pengukuran 7
+Reading 8,Pengukuran 8
+Reading 9,Pengukuran 9
+Reading 10,Pengukuran 10
+Verified By,Diverifikasi Oleh
+Indicates that the package is a part of this delivery (Only Draft),Menandakan kemasan ini bagian dari pengiriman tersebut (hanya draf)
+From Package No.,Dari Nomor Kemasan
+Identification of the package for the delivery (for print),Identitas kemasan untuk pengiriman (untuk cetak)
+To Package No.,Sampai Nomor Kemasan
+If more than one package of the same type (for print),Jika ada lebih dari satu kemasan sejenis (untuk cetak)
+Net Weight,Berat Bersih
+Package Weight Details,Rincian Berat Kemasan
+The net weight of this package. (calculated automatically as sum of net weight of items),Berat bersih kemasan ini (dihitung otomatis dari jumlah berat bersih barang)
+Net Weight UOM,Satuan Berat Bersih
+Gross Weight,Berat Kotor
+The gross weight of the package. Usually net weight + packaging material weight. (for print),"Berat kotor kemasan, biasanya berat bersih + berat bahan kemasan (untuk cetak)"
+Gross Weight UOM,Satuan Berat Kotor
+Asset Details,Rincian Aset
+Asset Status,Status Aset
+Warranty / AMC Details,Rincian Garansi / Kontrak Pemeliharaan
+Warranty Expiry Date,Tanggal Akhir Garansi
+Maintenance Status,Status Pemeliharaan
+Under Warranty,Masih Bergaransi
+Out of Warranty,Garansi Habis
+Under AMC,Dalam Kontrak Pemeliharaan
+Out of AMC,Di Luar Kontrak Pemeliharaan
+Warranty Period (Days),Masa Garansi (Hari)
+Source Document,Dokumen Sumber
+Source Document Type,Jenis Dokumen Sumber
+Source Document Name,Nama Dokumen Sumber
+Batch,Lot
+Batch Details,Rincian Lot
+Batch ID,ID Lot
+Parent Batch,Lot Induk
+Manufacturing Date,Tanggal Produksi
+Batch Quantity,Jumlah Lot
+Batch UOM,Satuan Lot
+Expiry Date,Tanggal Kedaluwarsa
+Use Batch-wise Valuation,Gunakan Penilaian per Lot
+Allow Negative Stock for Batch,Izinkan Persediaan Negatif untuk Lot
+"If enabled, the system will allow negative stock entries for this batch, overriding the 'Allow negative stock for Batch' setting in Stock Settings. This may lead to incorrect valuation rates, so it is recommended to avoid using this option.","Jika diaktifkan, entri persediaan negatif untuk lot ini diizinkan, mengganti pengaturan pada persediaan. Ini dapat membuat tarif penilaian keliru sehingga tidak disarankan."
+Batch Description,Deskripsi Lot
+Serial and Batch,Nomor Seri dan Lot
+Type of Transaction,Jenis Transaksi
+Inward,Masuk
+Outward,Keluar
+Serial / Batch No,Nomor Seri / Lot
+Serial and Batch Entry,Entri Nomor Seri dan Lot
+Finished Good Serial No,Nomor Seri Barang Jadi
+Finished good serial no this raw material was consumed into (Manufacture / Repack),Nomor seri barang jadi tempat bahan baku ini dipakai (produksi / kemas ulang)
+Finished Good Batch No,Nomor Lot Barang Jadi
+Finished good batch this raw material was consumed into (Manufacture / Repack),Lot barang jadi tempat bahan baku ini dipakai (produksi / kemas ulang)
+Change in Stock Value,Perubahan Nilai Persediaan
+"FIFO Stock Queue (qty, rate)","Antrean Persediaan FIFO (jumlah, tarif)"
+Voucher Type,Jenis Voucer
+Is Cancelled,Dibatalkan
+Posting Datetime,Waktu Pembukuan
+Voucher Detail No,Nomor Rincian Voucer
+Avg Rate,Tarif Rata-Rata
+Returned Against,Diretur Atas
+Is Packed,Terkemas
+Is Rejected,Ditolak
+Attribute Name,Nama Atribut
+Numeric Values,Nilai Numerik
+From Range,Rentang Awal
+Increment,Kenaikan
+To Range,Rentang Akhir
+Item Attribute Values,Nilai Atribut Barang
+Attribute Value,Nilai Atribut
+"This will be appended to the Item Code of the variant. For example, if your abbreviation is ""SM"", and the item code is ""T-SHIRT"", the item code of the variant will be ""T-SHIRT-SM""","Ditambahkan pada kode barang varian. Misalnya singkatan ""SM"" dan kode barang ""T-SHIRT"" menghasilkan ""T-SHIRT-SM"""
+Brand Name,Nama Merek
+Brand Defaults,Nilai Bawaan Merek
+UOM Name,Nama Satuan
+Check this to disallow fractions. (for Nos),Centang untuk melarang pecahan (untuk satuan buah)
+Dimension Details,Rincian Dimensi
+Source Fieldname,Nama Kolom Sumber
+Target Fieldname (Stock Ledger Entry),Nama Kolom Tujuan (Entri Buku Besar Persediaan)
+Apply to All Inventory Documents,Terapkan pada Semua Dokumen Persediaan
+Validate Negative Stock,Validasi Persediaan Negatif
+Apply to Document,Terapkan pada Dokumen
+Both,Keduanya
+Fetch Value From,Ambil Nilai Dari
+Set fieldname from which you want to fetch the data from the parent form.,Isi nama kolom sumber data pada formulir induk.
+Conditional Rule,Aturan Bersyarat
+Mandatory Section,Bagian Wajib
+Mandatory Depends On (Backend),Wajib Bergantung pada (Peladen)
+Python expression evaluated on the server. Use doc.fieldname for the row and parent.fieldname for the parent document. When it evaluates to true the dimension becomes mandatory. Example: doc.t_warehouse and doc.qty > 0,"Ekspresi Python yang dievaluasi di server. Gunakan doc.fieldname untuk baris dan parent.fieldname untuk dokumen induk. Jika benar, dimensi menjadi wajib. Contoh: doc.t_warehouse and doc.qty > 0"
+Conditional Rule Examples,Contoh Aturan Bersyarat
+Item to Manufacture,Barang yang Diproduksi
+The final item that will be produced using this BOM.,Barang akhir yang diproduksi dengan daftar bahan ini.
+Quantity (Output Qty),Jumlah (Hasil)
+How many units of the final product this BOM makes.,Jumlah unit produk akhir yang dihasilkan daftar bahan ini.
+Unit Of Measure,Satuan Ukur
+Cost Allocation / Process Loss,Alokasi Biaya / Susut Proses
+% Cost Allocation,% Alokasi Biaya
+With Operations,Dengan Operasi
+Manage cost of operations,Kelola biaya operasi
+Track Semi Finished Goods,Lacak Barang Setengah Jadi
+Users can make manufacture entry against Job Cards,Pengguna dapat membuat entri produksi atas kartu kerja
+Transfer Material Against,Pindahkan Bahan Atas
+Finished Goods Based Operating Cost,Biaya Operasi Berbasis Barang Jadi
+Finished Goods based Operating Cost,Biaya Operasi Berbasis Barang Jadi
+Operating Cost Per BOM Quantity,Biaya Operasi per Jumlah Daftar Bahan
+BOM Operation,Operasi Daftar Bahan
+Sequence ID,ID Urutan
+"If you want to run operations in parallel, keep the same sequence ID for them.","Untuk menjalankan operasi secara paralel, beri ID urutan yang sama."
+FG / Semi FG Item,Barang Jadi / Setengah Jadi
+Qty to Produce,Jumlah Diproduksi
+Workstation Type,Jenis Stasiun Kerja
+Operation Time,Waktu Operasi
+Fixed Time,Waktu Tetap
+Operation time does not depend on quantity to produce,Waktu operasi tidak bergantung pada jumlah yang diproduksi
+Is Final Finished Good,Barang Jadi Akhir
+Set Operating Cost Based On BOM Quantity,Atur Biaya Operasi Berdasarkan Jumlah Daftar Bahan
+Quality Inspection Required,Wajib Inspeksi Mutu
+Skip Material Transfer,Lewati Pemindahan Bahan
+Backflush Materials From WIP Warehouse,Bebankan Bahan Otomatis dari Gudang Barang dalam Proses
+Hour Rate,Tarif per Jam
+Base Hour Rate(Company Currency),Tarif Dasar per Jam (Mata Uang Perusahaan)
+Cost Per Unit,Biaya per Satuan
+Operating Cost(Company Currency),Biaya Operasi (Mata Uang Perusahaan)
+Components,Komponen
+Item operation,Operasi Barang
+Operation ID,ID Operasi
+Do Not Explode,Jangan Urai
+Is Stock Item,Barang Persediaan
+Item Description,Deskripsi Barang
+Rate & Amount,Tarif dan Jumlah
+Sourced by Supplier,Dipasok oleh Pemasok
+Is Sub Assembly Item,Barang Subrakitan
+Is Phantom Item,Barang Semu
+Secondary Items,Barang Sekunder
+BOM Secondary Item,Barang Sekunder Daftar Bahan
+"Valuation Rate and Manual value this item on its own and deduct that cost from the raw material cost, like the pre-v16 scrap items. % of Component Cost allocates a percentage of the remaining raw material cost.","Pilihan Tarif Penilaian dan Manual menilai barang ini tersendiri dan mengurangkan biayanya dari biaya bahan baku, seperti barang sisa sebelum v16. % dari Biaya Komponen mengalokasikan persentase sisa biaya bahan baku."
+Cost,Biaya
+BOM Configuration,Konfigurasi Daftar Bahan
+Set rate of sub-assembly item based on BOM,Atur tarif barang subrakitan berdasarkan daftar bahan
+Is Phantom BOM,Daftar Bahan Semu
+Consume Components,Pakai Komponen
+Controls how raw materials are consumed during the ‘Manufacture’ stock entry.,Mengatur cara bahan baku dipakai pada entri persediaan 'Manufacture'.
+Raw Material Cost,Biaya Bahan Baku
+Secondary Items Cost,Biaya Barang Sekunder
+Operating Cost (Company Currency),Biaya Operasi (Mata Uang Perusahaan)
+Raw Material Cost (Company Currency),Biaya Bahan Baku (Mata Uang Perusahaan)
+Secondary Items Cost (Company Currency),Biaya Barang Sekunder (Mata Uang Perusahaan)
+Total Cost,Total Biaya
+Total Cost (Company Currency),Total Biaya (Mata Uang Perusahaan)
+Cost Configuration,Konfigurasi Biaya
+Rate Of Materials Based On,Tarif Bahan Berdasarkan
+Production Item Info,Informasi Barang Produksi
+Exploded Items,Barang Terurai
+Qty Consumed Per Unit,Jumlah Dipakai per Satuan
+Show in Website,Tampilkan di Situs Web
+Website Image,Gambar Situs Web
+Item Image (if not slideshow),Gambar Barang (jika bukan salindia)
+Thumbnail,Gambar Mini
+Website Specifications,Spesifikasi di Situs Web
+Show Items,Tampilkan Barang
+Show Operations,Tampilkan Operasi
+Website Description,Deskripsi di Situs Web
+BOM Creator Item,Barang Penyusun Daftar Bahan
+Sales Order Status,Status Pesanan Penjualan
+From Delivery Date,Dari Tanggal Pengiriman
+To Delivery Date,Sampai Tanggal Pengiriman
+Consolidate Sales Order Items,Gabungkan Barang Pesanan Penjualan
+Get Sales Orders,Ambil Pesanan Penjualan
+Sales Order Date,Tanggal Pesanan Penjualan
+Material Request Detail,Rincian Permintaan Bahan
+Get Material Request,Ambil Permintaan Bahan
+Material Requests,Permintaan Bahan
+Get Finished Goods,Ambil Barang Jadi
+Get Finished Goods for Manufacture,Ambil Barang Jadi untuk Diproduksi
+Assembly Items,Barang Rakitan
+Quantity and Description,Jumlah dan Deskripsi
+Sub Assembly Items,Barang Subrakitan
+Sub Assembly Warehouse,Gudang Subrakitan
+"When a parent warehouse is chosen, the system conducts Project Qty checks against the associated child warehouses","Jika gudang induk dipilih, sistem memeriksa proyeksi jumlah pada gudang anaknya"
+Consider Projected Qty in Calculation,Perhitungkan Proyeksi Jumlah
+"If enabled, formula for <b>Qty to Order</b>: <br>
+Required Qty (BOM) - <a href=""https://docs.frappe.io/erpnext/user/manual/en/projected-quantity"" rel=""noopener noreferrer"">Projected Qty</a>. <br> This helps avoid over-ordering.","Jika diaktifkan, rumus <b>jumlah dipesan</b>: <br>
+Jumlah dibutuhkan (daftar bahan) - <a href=""https://docs.frappe.io/erpnext/user/manual/en/projected-quantity"" rel=""noopener noreferrer"">proyeksi jumlah</a>. <br> Ini membantu mencegah pemesanan berlebih."
+Consolidate Sub Assembly Items,Gabungkan Barang Subrakitan
+Get Sub Assembly Items,Ambil Barang Subrakitan
+Production Plan Sub Assembly Item,Barang Subrakitan Rencana Produksi
+Sub Assembly Item Code,Kode Barang Subrakitan
+Level (BOM),Tingkat (Daftar Bahan)
+Manufacturing Type,Jenis Produksi
+In House,Internal
+Stock Reserved Qty,Jumlah Persediaan Dicadangkan
+Item Details,Rincian Barang
+description,deskripsi
+Preview Required Materials,Pratinjau Bahan yang Dibutuhkan
+Download Required Materials,Unduh Bahan yang Dibutuhkan
+For Raw Materials,Untuk Bahan Baku
+Include Non Stock Items,Sertakan Barang Nonpersediaan
+Include Subcontracted Items,Sertakan Barang Disubkontrakkan
+Consider Minimum Order Qty,Perhitungkan Jumlah Pesanan Minimum
+Include Safety Stock in Required Qty Calculation,Sertakan persediaan pengaman dalam perhitungan jumlah dibutuhkan
+Consider Projected Qty in Calculation (RM),Perhitungkan Proyeksi Jumlah (Bahan Baku)
+"If enabled, formula for <b>Required Qty</b>: <br>
+Required Qty (BOM) - <a href=""https://docs.frappe.io/erpnext/user/manual/en/projected-quantity"" rel=""noopener noreferrer"">Projected Qty</a>. <br> This helps avoid over-ordering.","Jika diaktifkan, rumus <b>jumlah dibutuhkan</b>: <br>
+Jumlah dibutuhkan (daftar bahan) - <a href=""https://docs.frappe.io/erpnext/user/manual/en/projected-quantity"" rel=""noopener noreferrer"">proyeksi jumlah</a>. <br> Ini membantu mencegah pemesanan berlebih."
+Raw Material Group Warehouse,Gudang Kelompok Bahan Baku
+Optional group warehouse. Raw material availability is checked across its child warehouses; material is still received into For Warehouse.,Gudang kelompok opsional. Ketersediaan bahan baku diperiksa pada gudang anaknya; bahan tetap diterima di gudang tujuan.
+Get Items for Purchase Only,Ambil Barang untuk Pembelian Saja
+Get Items for Purchase / Transfer,Ambil Barang untuk Pembelian / Pemindahan
+"If items in stock, proceed with Material Transfer or Purchase.","Jika persediaan ada, lanjutkan dengan pemindahan bahan atau pembelian."
+Main Item Code,Kode Barang Utama
+Reqd Qty (BOM),Jumlah Dibutuhkan (Daftar Bahan)
+Minimum Order Quantity,Jumlah Pesanan Minimum
+BIN Qty,Jumlah di Wadah
+Qty In Stock,Jumlah Persediaan
+Reserved Qty for Production,Jumlah Dicadangkan untuk Produksi
+Total Planned Qty,Total Jumlah Direncanakan
+Total Produced Qty,Total Jumlah Diproduksi
+Material Requested,Bahan Diminta
+Item To Manufacture,Barang yang Diproduksi
+Disassembled Qty,Jumlah Dibongkar
+Material Transferred for Manufacturing,Bahan Dipindahkan untuk Produksi
+Additional Transferred Qty,Jumlah Tambahan Dipindahkan
+Work-in-Progress Warehouse,Gudang Barang dalam Proses
+This is a location where operations are executed.,Lokasi pelaksanaan operasi.
+This is a location where final product stored.,Lokasi penyimpanan produk akhir.
+Scrap Warehouse,Gudang Barang Sisa
+This is a location where scraped materials are stored.,Lokasi penyimpanan bahan sisa.
+Skip Material Transfer to WIP Warehouse,Lewati Pemindahan Bahan ke Gudang Barang dalam Proses
+Check if material transfer entry is not required,Centang jika entri pemindahan bahan tidak diperlukan
+Backflush Raw Materials From Work-in-Progress Warehouse,Bebankan Bahan Baku Otomatis dari Gudang Barang dalam Proses
+Operation completed for how many finished goods?,Operasi selesai untuk berapa barang jadi?
+BOM No (For Semi-Finished Goods),Nomor Daftar Bahan (Barang Setengah Jadi)
+Semi Finished Goods / Finished Goods,Barang Setengah Jadi / Barang Jadi
+WIP WH,Gudang Proses
+Operation Description,Deskripsi Operasi
+Estimated Time and Cost,Perkiraan Waktu dan Biaya
+Planned Start Time,Rencana Waktu Mulai
+Planned End Time,Rencana Waktu Selesai
+Planned Operating Cost,Rencana Biaya Operasi
+Actual Time and Cost,Waktu dan Biaya Aktual
+Actual Start Time,Waktu Mulai Aktual
+Updated via 'Time Log' (In Minutes),Diperbarui lewat catatan waktu (menit)
+Required Items,Barang yang Dibutuhkan
+Plan material for sub-assemblies,Rencanakan bahan untuk subrakitan
+Default source Warehouse,Gudang Asal Bawaan
+This is a location where raw materials are available.,Lokasi ketersediaan bahan baku.
+Operation Row Id,ID Baris Operasi
+Available Qty at Source Warehouse,Jumlah Tersedia di Gudang Asal
+Available Qty at WIP Warehouse,Jumlah Tersedia di Gudang Proses
+Is Additional Item,Barang Tambahan
+Voucher Detail Reference,Referensi Rincian Voucer
+Scheduling & Costing,Penjadwalan dan Pembiayaan
+Lead Time,Waktu Tunggu
+In Mins,Dalam Menit
+Operation Cost,Biaya Operasi
+Corrective Operation Cost,Biaya Operasi Korektif
+From Corrective Job Card,Dari Kartu Kerja Korektif
+Total Operating Cost,Total Biaya Operasi
+Stock Entries,Entri Persediaan
+Finished Good Serial / Batch,Nomor Seri / Lot Barang Jadi
+Additional Costs (as per BOM),Biaya Tambahan (sesuai daftar bahan)
+Work Order Additional Item,Barang Tambahan Perintah Kerja
+Secondary Items (as per BOM),Barang Sekunder (sesuai daftar bahan)
+Update Consumed Material Cost In Project,Perbarui Biaya Bahan Terpakai pada Proyek
+Stock Reserved,Persediaan Dicadangkan
+Stock Partially Reserved,Persediaan Dicadangkan Sebagian
+Qty to Manufacture,Jumlah yang Akan Diproduksi
+Final Product,Produk Akhir
+Final BOM,Daftar Bahan Akhir
+Time In Mins,Waktu dalam Menit
+Sub Operation,Sub-operasi
+Semi Finished Good / Finished Good,Barang Setengah Jadi / Barang Jadi
+Manufacturing BOM,Daftar Bahan Produksi
+Skip Material Transfer to WIP,Lewati Pemindahan Bahan ke Gudang Proses
+Backflush Materials from WIP Warehouse,Bebankan Bahan Otomatis dari Gudang Proses
+Pending qty,Jumlah tertunda
+Process Loss qty,Jumlah susut proses
+Total Completed qty,Total jumlah selesai
+Transferred Raw Materials,Bahan Baku Dipindahkan
+Time logs,Catatan waktu
+Scheduled Time,Waktu Terjadwal
+Expected Time Required (In Mins),Perkiraan Waktu Dibutuhkan (Menit)
+Scheduled Time Logs,Catatan Waktu Terjadwal
+Job Card Scheduled Time,Waktu Terjadwal Kartu Kerja
+Actual Time,Waktu Aktual
+Total Time in Mins,Total Waktu dalam Menit
+Time Logs,Catatan Waktu
+Sub Operations,Sub-operasi
+Job Card Operation,Operasi Kartu Kerja
+Completed Time,Waktu Selesai
+In mins,Dalam menit
+Job Card Secondary Item,Barang Sekunder Kartu Kerja
+Secondary Item Code,Kode Barang Sekunder
+Secondary Item Name,Nama Barang Sekunder
+Corrective Operation,Operasi Korektif
+For Job Card,Untuk Kartu Kerja
+Is Corrective Job Card,Kartu Kerja Korektif
+For Operation,Untuk Operasi
+Status and Reference,Status dan Referensi
+Partially Transferred,Dipindahkan Sebagian
+Material Transferred,Bahan Dipindahkan
+To Manufacture,Untuk Diproduksi
+Operation Row Number,Nomor Baris Operasi
+Serial / Batch,Nomor Seri / Lot
+Subcontracting Purchase Order,Pesanan Pembelian Subkontrak
+Job Worker,Pelaksana Maklun
+Job Worker Name,Nama Pelaksana Maklun
+Job Worker Warehouse,Gudang Pelaksana Maklun
+Sets 'Warehouse' in each row of the Items table.,Mengisi gudang pada tiap baris tabel barang.
+Subcontracting Order Item,Barang Pesanan Subkontrak
+Raw Material Cost Per Qty,Biaya Bahan Baku per Satuan
+Service Cost Per Qty,Biaya Jasa per Satuan
+Warehouse Details,Rincian Gudang
+Service Items,Barang Jasa
+Subcontracting Order Service Item,Barang Jasa Pesanan Subkontrak
+Finished Good Item,Barang Jadi
+Finished Good Item Quantity,Jumlah Barang Jadi
+Sets 'Reserve Warehouse' in each row of the Supplied Items table.,Mengisi gudang cadangan pada tiap baris tabel barang yang dipasok.
+Subcontracting Order Supplied Item,Barang Dipasok Pesanan Subkontrak
+Reserved Qty,Jumlah Dicadangkan
+Job Worker Address,Alamat Pelaksana Maklun
+Job Worker Address Details,Rincian Alamat Pelaksana Maklun
+Job Worker Contact,Kontak Pelaksana Maklun
+Distribute Additional Costs Based On,Bagikan Biaya Tambahan Berdasarkan
+Partial Material Transferred,Bahan Dipindahkan Sebagian
+Job Worker Delivery Note,Nota Pengiriman Pelaksana Maklun
+Time at which materials were received,Waktu bahan diterima
+Return Against Subcontracting Receipt,Retur atas Penerimaan Subkontrak
+Sets 'Accepted Warehouse' in each row of the Items table.,Mengisi gudang penerima pada tiap baris tabel barang.
+Sets 'Rejected Warehouse' in each row of the Items table.,Mengisi gudang barang ditolak pada tiap baris tabel barang.
+Subcontracting Receipt Item,Barang Penerimaan Subkontrak
+Qty (As per BOM),Jumlah (sesuai daftar bahan)
+Secondary Items Cost Per Qty,Biaya Barang Sekunder per Satuan
+Serial and Batch Details,Rincian Nomor Seri dan Lot
+Get Secondary Items,Ambil Barang Sekunder
+Raw Materials Actions,Tindakan Bahan Baku
+Reset Raw Materials Table,Atur Ulang Tabel Bahan Baku
+Click this button if you encounter a negative stock error for a serial or batch item. The system will fetch the available serials or batches automatically.,Klik tombol ini jika muncul galat persediaan negatif pada barang bernomor seri atau berlot. Sistem mengambil nomor seri atau lot yang tersedia secara otomatis.
+Subcontracting Receipt Supplied Item,Barang Dipasok Penerimaan Subkontrak
+Select Job Worker Address,Pilih Alamat Pelaksana Maklun
+Auto Repeat Detail,Rincian Pengulangan Otomatis
+Transporter Details,Rincian Pengangkut
+Finished Good UOM,Satuan Barang Jadi
+Finished Good BOM,Daftar Bahan Barang Jadi
+Service Item,Barang Jasa
+Service Item Qty,Jumlah Barang Jasa
+Service Item UOM,Satuan Barang Jasa
+Service Item Qty / Finished Good Qty,Jumlah Barang Jasa / Jumlah Barang Jadi
+Subcontracting Sales Order,Pesanan Penjualan Subkontrak
+Customer Warehouse,Gudang Pelanggan
+Set Delivery Warehouse,Tetapkan Gudang Pengiriman
+Subcontracting Inward Order Item,Barang Pesanan Masuk Subkontrak
+Delivery Warehouse,Gudang Pengiriman
+Raw Materials Required,Bahan Baku yang Dibutuhkan
+Subcontracting Inward Order Received Item,Barang Diterima Pesanan Masuk Subkontrak
+Secondary Items Generated,Barang Sekunder Dihasilkan
+Subcontracting Inward Order Secondary Item,Barang Sekunder Pesanan Masuk Subkontrak
+Subcontracting Inward Order Service Item,Barang Jasa Pesanan Masuk Subkontrak
+Produced,Diproduksi
+Returned,Diretur
+% Produced,% Diproduksi
+BOM Tree,Pohon Daftar Bahan
+Operations Routing,Alur Operasi
+Sub Assemblies & Raw Materials,Subrakitan dan Bahan Baku
+Set Valuation Rate Based on Source Warehouse,Atur Tarif Penilaian Berdasarkan Gudang Asal
+Finished Goods Item,Barang Jadi
+Is Expandable,Dapat Diperluas
+Parent Row No,Nomor Baris Induk
+Finished Goods Reference,Referensi Barang Jadi
+Instruction,Petunjuk
+Replace BOM,Ganti Daftar Bahan
+Current BOM,Daftar Bahan Saat Ini
+The BOM which will be replaced,Daftar bahan yang akan diganti
+The new BOM after replacement,Daftar bahan baru sebagai pengganti
+Replace,Ganti
+Update latest price in all BOMs,Perbarui harga terbaru di semua daftar bahan
+Workstation / Machine,Stasiun Kerja / Mesin
+Downtime,Waktu Henti
+Downtime Reason,Alasan Waktu Henti
+Excessive machine set up time,Waktu penyiapan mesin terlalu lama
+Unplanned machine maintenance,Perawatan mesin tidak terencana
+On-machine press checks,Pemeriksaan cetak pada mesin
+Machine operator errors,Kesalahan operator mesin
+Machine malfunction,Kerusakan mesin
+Electricity down,Listrik padam
+Workstation Name,Nama Stasiun Kerja
+Job Capacity,Kapasitas Pekerjaan
+Run parallel job cards in a workstation,Jalankan kartu kerja paralel pada satu stasiun kerja
+Workstation Status,Status Stasiun Kerja
+Idle,Menganggur
+Problem,Bermasalah
+Status Illustration,Ilustrasi Status
+Inactive Status,Status Tidak Aktif
+Operating Costs,Biaya Operasi
+Operating Costs (Per Hour),Biaya Operasi (per Jam)
+Operating Components Cost,Biaya Komponen Operasi
+Workstation Cost,Biaya Stasiun Kerja
+Operating Component,Komponen Operasi
+Net Hour Rate,Tarif Neto per Jam
+per hour,per jam
+Default Workstation,Stasiun Kerja Bawaan
+Create Job Card based on Batch Size,Buat Kartu Kerja Berdasarkan Ukuran Lot
+Time in mins,Waktu dalam menit
+Total Operation Time,Total Waktu Operasi
+Time in mins.,Waktu dalam menit.
+Routing Name,Nama Alur Proses
+Workstations,Stasiun Kerja
+Plant Dashboard,Dasbor Pabrik
+Floor Name,Nama Lantai
+On hold,Ditunda
+Task Completion,Penyelesaian Tugas
+Task Progress,Kemajuan Tugas
+Actual Start Date (via Timesheet),Tanggal Mulai Aktual (dari Lembar Waktu)
+Actual Time in Hours (via Timesheet),Waktu Aktual dalam Jam (dari Lembar Waktu)
+Actual End Date (via Timesheet),Tanggal Selesai Aktual (dari Lembar Waktu)
+Costing and Billing,Pembiayaan dan Penagihan
+Total Costing Amount (via Timesheet),Total Biaya (dari Lembar Waktu)
+Total Expense Claim (via Expense Claims),Total Klaim Pengeluaran
+Total Purchase Cost (via Purchase Invoice),Total Biaya Pembelian (dari Faktur Pembelian)
+Total Sales Amount (via Sales Order),Total Penjualan (dari Pesanan Penjualan)
+Total Billable Amount (via Timesheet),Total Dapat Ditagih (dari Lembar Waktu)
+Total Billed Amount (via Sales Invoice),Total Ditagih (dari Faktur Penjualan)
+Total Consumed Material Cost (via Stock Entry),Total Biaya Bahan Terpakai (dari Entri Persediaan)
+Gross Margin,Margin Kotor
+Gross Margin %,% Margin Kotor
+Collect Progress,Kumpulkan Kemajuan
+Frequency To Collect Progress,Frekuensi Pengumpulan Kemajuan
+Twice Daily,Dua Kali Sehari
+First Email,Surel Pertama
+Second Email,Surel Kedua
+Daily Time to send,Waktu Kirim Harian
+Day to Send,Hari Pengiriman
+Weekly Time to send,Waktu Kirim Mingguan
+Message will be sent to the users to get their status on the Project,Pesan dikirim kepada pengguna untuk meminta status proyek
+Project will be accessible on the website to these users,Proyek dapat diakses pengguna ini di situs web
+View attachments,Lihat lampiran
+Hide timesheets,Sembunyikan lembar waktu
+Working,Sedang Dikerjakan
+Pending Review,Menunggu Tinjauan
+Urgent,Mendesak
+Parent Task,Tugas Induk
+Completed By,Diselesaikan Oleh
+Is Template,Templat
+Expected Time (in hours),Perkiraan Waktu (jam)
+Is Milestone,Tonggak Capaian
+Task Description,Deskripsi Tugas
+Dependent Tasks,Tugas Bergantung
+Total Expense Claim (via Expense Claim),Total Klaim Pengeluaran
+Review Date,Tanggal Tinjauan
+Closing Date,Tanggal Penutupan
+Asset Type,Jenis Aset
+Existing Asset,Aset yang Sudah Ada
+Composite Asset,Aset Gabungan
+Composite Component,Komponen Gabungan
+Maintenance Required,Perlu Pemeliharaan
+Calculate Depreciation,Hitung Penyusutan
+Purchase Details,Rincian Pembelian
+Available for Use Date,Tanggal Siap Digunakan
+Disposal Date,Tanggal Pelepasan
+Net Purchase Amount,Jumlah Pembelian Neto
+Asset Quantity,Jumlah Aset
+Total Asset Cost,Total Biaya Aset
+Is Fully Depreciated,Sudah Disusutkan Penuh
+Opening Number of Booked Depreciations,Jumlah Penyusutan Awal yang Sudah Dibukukan
+Finance Books,Buku Keuangan
+Depreciation Method,Metode Penyusutan
+Straight Line,Garis Lurus
+Double Declining Balance,Saldo Menurun Ganda
+Written Down Value,Nilai Buku Menurun
+Frequency of Depreciation (Months),Frekuensi Penyusutan (Bulan)
+Total Number of Depreciations,Total Jumlah Penyusutan
+Increase In Asset Life (Months),Penambahan Umur Aset (Bulan)
+via Asset Repair,lewat Perbaikan Aset
+Depreciation Posting Date,Tanggal Pembukuan Penyusutan
+Salvage Value Percentage,Persentase Nilai Residu
+Salvage Value,Nilai Residu
+Expected Value After Useful Life,Nilai yang Diharapkan setelah Masa Manfaat
+Rate of Depreciation (%),Tarif Penyusutan (%)
+Depreciate based on daily pro-rata,Susutkan prorata harian
+Depreciate based on shifts,Susutkan berdasarkan sif
+Total Number of Booked Depreciations,Total Penyusutan yang Sudah Dibukukan
+Ownership,Kepemilikan
+Asset Owner,Pemilik Aset
+Asset Owner Company,Perusahaan Pemilik Aset
+Insurance,Asuransi
+Policy number,Nomor polis
+Insurer,Penanggung
+Insured value,Nilai pertanggungan
+Insurance Start Date,Tanggal Mulai Asuransi
+Insurance End Date,Tanggal Akhir Asuransi
+Comprehensive Insurance,Asuransi Menyeluruh
+Capitalized,Dikapitalisasi
+Custodian,Penanggung Jawab Aset
+Journal Entry for Scrap,Entri Jurnal Penghapusan
+Split From,Dipecah Dari
+Asset Depreciation Schedule,Jadwal Penyusutan Aset
+Depreciation Details,Rincian Penyusutan
+Rate of Depreciation,Tarif Penyusutan
+In Percentage,Dalam Persen
+Make Depreciation Entry,Buat Entri Penyusutan
+Transfer and Issue,Pemindahan dan Penyerahan
+Source Location,Lokasi Asal
+From Employee,Dari Karyawan
+Target Location,Lokasi Tujuan
+To Employee,Kepada Karyawan
+Target Asset,Aset Tujuan
+Consumed Stock Items,Barang Persediaan Terpakai
+Stock Items,Barang Persediaan
+Asset Capitalization Stock Item,Barang Persediaan Kapitalisasi Aset
+Actual Qty in Warehouse,Jumlah Aktual di Gudang
+Batch and Serial No,Nomor Lot dan Seri
+Consumed Stock Total Value,Total Nilai Persediaan Terpakai
+Consumed Assets,Aset Terpakai
+Asset Capitalization Asset Item,Aset Kapitalisasi Aset
+Current Asset Value,Nilai Aset Saat Ini
+Fixed Asset Account,Akun Aset Tetap
+Consumed Asset Total Value,Total Nilai Aset Terpakai
+Service Expenses,Beban Jasa
+Asset Capitalization Service Item,Jasa Kapitalisasi Aset
+Qty and Rate,Jumlah dan Tarif
+Service Expense Total Amount,Total Beban Jasa
+Total Value,Total Nilai
+Target Incoming Rate,Tarif Masuk Tujuan
+Target Fixed Asset Account,Akun Aset Tetap Tujuan
+Value Details,Rincian Nilai
+New Asset Value,Nilai Aset Baru
+Maintenance Team,Tim Pemeliharaan
+Maintenance Manager Name,Nama Manajer Pemeliharaan
+Maintenance Tasks,Tugas Pemeliharaan
+Maintenance Task,Tugas Pemeliharaan
+Maintenance Type,Jenis Pemeliharaan
+Preventive Maintenance,Pemeliharaan Pencegahan
+Calibration,Kalibrasi
+Planned,Direncanakan
+Certificate Required,Wajib Sertifikat
+Assign to Name,Nama Penerima Tugas
+Next Due Date,Tanggal Jatuh Tempo Berikutnya
+Last Completion Date,Tanggal Penyelesaian Terakhir
+Maintenance Details,Rincian Pemeliharaan
+Task Name,Nama Tugas
+Certificate,Sertifikat
+Task Assignee Email,Surel Penerima Tugas
+Actions performed,Tindakan yang dilakukan
+Repair Status,Status Perbaikan
+Failure Date,Tanggal Kerusakan
+Error Description,Deskripsi Kerusakan
+Repair Purchase Invoices,Faktur Pembelian Perbaikan
+Asset Repair Purchase Invoice,Faktur Pembelian Perbaikan Aset
+Repair Cost,Biaya Perbaikan
+Asset Repair Consumed Item,Barang Terpakai Perbaikan Aset
+Consumed Quantity,Jumlah Terpakai
+Pick Serial / Batch,Pilih Nomor Seri / Lot
+Consumed Items Cost,Biaya Barang Terpakai
+Capitalize Repair Cost,Kapitalisasi Biaya Perbaikan
+Increase In Asset Life(Months),Penambahan Umur Aset (Bulan)
+Total Repair Cost,Total Biaya Perbaikan
+Connection,Koneksi
+Maintenance Team Name,Nama Tim Pemeliharaan
+Team,Tim
+Maintenance Team Members,Anggota Tim Pemeliharaan
+Team Member,Anggota Tim
+Maintenance Role,Peran Pemeliharaan
+Asset Category Name,Nama Kategori Aset
+Depreciation Options,Opsi Penyusutan
+Enable Capital Work in Progress Accounting,Aktifkan Akuntansi Pekerjaan Modal dalam Pelaksanaan
+Non Depreciable Category,Kategori Tidak Disusutkan
+Finance Book Detail,Rincian Buku Keuangan
+Parent Location,Lokasi Induk
+Is Container,Wadah
+Check if it is a hydroponic unit,Centang jika berupa unit hidroponik
+Location Details,Rincian Lokasi
+Area,Luas
+Area UOM,Satuan Luas
+Monitoring Frequency,Frekuensi Pemantauan
+Procedure,Prosedur
+Weekday,Hari Kerja
+Objectives,Sasaran
+Objective,Sasaran
+Process Owner,Pemilik Proses
+Processes,Proses
+Process Description,Deskripsi Proses
+Sub Procedure,Subprosedur
+Link existing Quality Procedure.,Tautkan prosedur mutu yang sudah ada.
+Parent Procedure,Prosedur Induk
+Reviews,Tinjauan
+Corrective Action,Tindakan Korektif
+Preventive Action,Tindakan Pencegahan
+Corrective/Preventive,Korektif/Pencegahan
+Corrective,Korektif
+Preventive,Pencegahan
+Resolution,Penyelesaian
+Resolutions,Penyelesaian
+Responsible,Penanggung Jawab
+Completion By,Diselesaikan Paling Lambat
+Minutes,Notula
+Minute,Butir Notula
+Feedback By,Umpan Balik Dari
+No of Visits,Jumlah Kunjungan
+Generate Schedule,Buat Jadwal
+Schedules,Jadwal
+Actual Date,Tanggal Aktual
+Completion Status,Status Penyelesaian
+Partially Completed,Selesai Sebagian
+Fully Completed,Selesai Seluruhnya
+Contact Info,Informasi Kontak
+Maintenance Date,Tanggal Pemeliharaan
+Maintenance Time,Waktu Pemeliharaan
+Unscheduled,Tidak Terjadwal
+Breakdown,Kerusakan
+Purposes,Tujuan Kunjungan
+Work Done,Pekerjaan Dilakukan
+Customer Feedback,Umpan Balik Pelanggan
+Quality Inspection Template Name,Nama Templat Inspeksi Mutu
+From Customer,Dari Pelanggan
+Lead Type,Jenis Prospek
+Channel Partner,Mitra Saluran
+Consultant,Konsultan
+Request Type,Jenis Permintaan
+Product Enquiry,Pertanyaan Produk
+Request for Information,Permintaan Informasi
+Suggestions,Saran
+Phone Ext.,Ekstensi Telepon
+Organization Name,Nama Organisasi
+No of Employees,Jumlah Karyawan
+Annual Revenue,Pendapatan Tahunan
+Qualification Status,Status Kualifikasi
+Unqualified,Tidak Memenuhi Syarat
+Qualified By,Dikualifikasi Oleh
+Qualified on,Dikualifikasi Pada
+Blog Subscriber,Pelanggan Blog
+Open Activities HTML,HTML Aktivitas Terbuka
+Notes HTML,HTML Catatan
+Opportunity Owner,Pemilik Peluang
+Expected Closing Date,Perkiraan Tanggal Penutupan
+Probability (%),Probabilitas (%)
+Opportunity Value,Nilai Peluang
+Opportunity Amount (Company Currency),Jumlah Peluang (Mata Uang Perusahaan)
+Opportunity Date,Tanggal Peluang
+Contact Mobile,Ponsel Kontak
+Issue Date,Tanggal Masalah
+Item and Warranty Details,Rincian Barang dan Garansi
+Warranty / AMC Status,Status Garansi / Kontrak Pemeliharaan
+Service Address,Alamat Layanan
+If different than customer address,Jika berbeda dengan alamat pelanggan
+From Company,Dari Perusahaan
+Signed,Ditandatangani
+Party User,Pengguna Pihak
+Party Full Name,Nama Lengkap Pihak
+Contract Period,Masa Kontrak
+Signee Details,Rincian Penanda Tangan
+Signee,Penanda Tangan
+Signed On,Ditandatangani Pada
+Contract Details,Rincian Kontrak
+Contract Terms,Ketentuan Kontrak
+Fulfilment Details,Rincian Pemenuhan
+Requires Fulfilment,Memerlukan Pemenuhan
+Fulfilment Deadline,Batas Waktu Pemenuhan
+Fulfilment Terms,Ketentuan Pemenuhan
+Fulfilled,Terpenuhi
+Requirement,Persyaratan
+Authorised By,Disahkan Oleh
+Signee (Company),Penanda Tangan (Perusahaan)
+Signed By (Company),Ditandatangani Oleh (Perusahaan)
+Unverified,Belum Terverifikasi
+Created through Portal,Dibuat lewat Portal
+Email Verified,Surel Terverifikasi
+Skype ID,ID Skype
+Linked Documents,Dokumen Tertaut
+Appointment With,Janji Temu Dengan
+Calendar Event,Acara Kalender
+CC,Tembusan
+BCC,Tembusan Buta
+Campaign Schedules,Jadwal Kampanye
+Send After (days),Kirim Setelah (hari)
+Email Campaign For,Kampanye Surel untuk
+Send To,Kirim Ke
+Create Receiver List,Buat Daftar Penerima
+Receiver List,Daftar Penerima
+Messages greater than 160 characters will be split into multiple messages,Pesan lebih dari 160 karakter dipecah menjadi beberapa pesan
+Total Characters,Total Karakter
+Total Message(s),Total Pesan
+Is Billing Contact,Kontak Penagihan
+No. of Employees,Jumlah Karyawan
+Prospect Owner,Pemilik Calon Pelanggan
+Leads,Prospek
+Prospect Lead,Prospek Calon Pelanggan
+Prospect Opportunity,Peluang Calon Pelanggan
+Stage,Tahap
+Deal Owner,Pemilik Transaksi
+Probability,Probabilitas
+Closing,Penutupan
+Stage Name,Nama Tahap
+Only users with one of these roles can send SMS. Leave empty to allow only System Manager.,Hanya pengguna dengan salah satu peran ini yang dapat mengirim SMS. Kosongkan untuk hanya mengizinkan System Manager.
+Raised By (Email),Diajukan Oleh (Surel)
+Issue Split From,Masalah Dipecah Dari
+Service Level Agreement Details,Rincian Perjanjian Tingkat Layanan
+Response By,Batas Tanggapan
+Service Level Agreement Status,Status Perjanjian Tingkat Layanan
+First Response Due,Batas Tanggapan Pertama
+Resolution Due,Batas Penyelesaian
+Resolution By,Penyelesaian Paling Lambat
+Total Hold Time,Total Waktu Penahanan
+Response Details,Rincian Tanggapan
+First Responded On,Pertama Ditanggapi Pada
+Average Response Time,Rata-Rata Waktu Tanggapan
+Opening Date,Tanggal Dibuka
+Opening Time,Waktu Dibuka
+Resolution Time,Waktu Penyelesaian
+User Resolution Time,Waktu Penyelesaian oleh Pengguna
+Via Customer Portal,Lewat Portal Pelanggan
+Default Priority,Prioritas Bawaan
+Service Level Name,Nama Tingkat Layanan
+Assignment Conditions,Syarat Penugasan
+Default Service Level Agreement,Perjanjian Tingkat Layanan Bawaan
+Entity,Entitas
+"Simple Python Expression, Example: doc.status == 'Open' and doc.issue_type == 'Bug'","Ekspresi Python sederhana, contoh: doc.status == 'Open' and doc.issue_type == 'Bug'"
+Response and Resolution,Tanggapan dan Penyelesaian
+Apply SLA for Resolution Time,Terapkan SLA pada Waktu Penyelesaian
+Priorities,Prioritas
+Status Details,Rincian Status
+SLA Fulfilled On,SLA Terpenuhi pada Status
+SLA Fulfilled On Status,Status SLA Terpenuhi
+SLA Paused On,SLA Dijeda pada Status
+Workday,Hari Kerja
+Issue Credit Note,Terbitkan Nota Kredit
+Return Against Delivery Note,Retur atas Nota Pengiriman
