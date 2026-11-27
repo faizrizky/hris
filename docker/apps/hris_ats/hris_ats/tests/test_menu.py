@@ -62,8 +62,11 @@ def test_dedupe_keeps_each_shortcut_in_one_menu():
 	assert boot["module_sidebars"]["Shift & Attendance"]["items"][0]["label"] == "Roster"
 
 
-def test_hide_rails_drops_only_the_locked_rails():
+def test_hide_rails_drops_only_the_locked_rails(monkeypatch):
+	from hris_ats import lock
 	from hris_ats.menu import hide_rails
+
+	monkeypatch.setattr(lock, "enabled", lambda: True)
 
 	boot = {"dock": {"hrms": [{"link_to": "Payroll"}, {"link_to": "Leaves"}]}, "app_data": [{"app_name": "hrms", "dock": [{"link_to": "Expenses"}, {"link_to": "Tenure"}]}]}
 	hide_rails(boot)
