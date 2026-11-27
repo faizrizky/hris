@@ -118,12 +118,14 @@ export function CompanyCodeScreen({
 const makeStyles = (c: Palette) =>
   StyleSheet.create({
     container: { flex: 1, backgroundColor: c.headerBg },
+    // Warna kartu di balik lembar bawah. Harus lebih pendek dari lembarnya: dulu 38% layar, lebih tinggi daripada
+    // lembar yang pendek ini, sehingga judul putih jatuh di atas latar putih dan tampak terpotong.
     bottomFiller: {
       position: "absolute",
       left: 0,
       right: 0,
       bottom: 0,
-      height: "38%",
+      height: 60,
       backgroundColor: c.card,
     },
     top: { paddingHorizontal: 20, alignItems: "flex-start", zIndex: 2 },
