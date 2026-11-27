@@ -74,20 +74,10 @@ html.hris-menu-color .dock .dock-item.active svg {
 	box-shadow: var(--shadow-sm);
 }
 
-.hris-color-input {
-	position: absolute;
-	right: 10px;
-	top: 8px;
-	width: 28px;
-	height: 28px;
-	padding: 0;
-	border: 0;
-	background: transparent;
-	cursor: pointer;
-}
-
-.hris-color-cards .theme-card-preview {
-	position: relative;
+/* The Color field under the cards, shown while "Custom" is selected. */
+.hris-color-field {
+	max-width: 260px;
+	margin-bottom: var(--margin-lg);
 }
 
 @media (max-width: 576px) {

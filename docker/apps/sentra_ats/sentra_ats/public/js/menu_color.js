@@ -86,27 +86,43 @@ Object.assign(sentra_ats.menu_color, {
 
 		const custom = is_preset ? this.BLUE : current;
 		const $custom = this.card(__("Custom"), custom).toggleClass("selected", !is_preset);
-		const $input = $(`<input type="color" class="hris-color-input">`)
-			.val(custom)
-			.attr("aria-label", __("Choose a color"));
-		$custom.find(".theme-card-preview").append($input);
-		$custom.find(".theme-card").on("click", () => $input.trigger("click"));
-		$input.on("click", (event) => event.stopPropagation());
-		// "input" previews while the picker is open, "change" saves the final choice.
-		$input.on("input", () => $custom.find(".hris-color-selected").css("background", $input.val()));
-		$input.on("change", () => {
+		const $field = $(`<div class="hris-color-field"></div>`).toggleClass("hide", is_preset);
+		$custom.on("click", () => {
 			select($custom);
-			this.save($input.val());
+			$field.removeClass("hide");
+			this.save(control.get_color() || this.BLUE);
 		});
 		$grid.append($custom);
+		$grid.on("click", ".theme-card-wrapper", (event) => {
+			if (event.currentTarget !== $custom[0]) $field.addClass("hide");
+		});
 
 		panel.body.append(
 			$(`<div class="hris-color-heading">
 				<div class="hris-color-title">${__("Menu Color")}</div>
 				<div class="text-muted">${__("Choose the color of the selected menu item.")}</div>
 			</div>`),
-			$grid
+			$grid,
+			$field
 		);
+
+		// Frappe's own Color field (swatches and picker), so choosing a colour looks like the rest of the desk.
+		const control = frappe.ui.form.make_control({
+			parent: $field,
+			df: { fieldtype: "Color", fieldname: "menu_color", label: __("Custom color") },
+			render_input: true,
+		});
+		control.set_input(custom);
+		// The picker reports every step of a drag: paint at once, store when it settles.
+		const store = frappe.utils.debounce((value) => this.save(value), 600);
+		control.df.change = () => {
+			const value = control.get_color();
+			if (!value || value.toLowerCase() === (frappe.boot.hris_menu_color || "").toLowerCase()) return;
+			select($custom);
+			$custom.find(".hris-color-selected").css("background", value);
+			this.apply(value);
+			store(value);
+		};
 	},
 
 	// Frappe has no hook for the Appearance tab, so the lazily loaded settings dialog class is extended once.
