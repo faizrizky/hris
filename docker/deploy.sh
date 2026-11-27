@@ -34,9 +34,16 @@ WANT="$(git -C "$ROOT" show "HEAD:$PREFIX/release.sh" | shasum -a 256 | cut -d' 
 HAVE="$("${SSH[@]}" "sha256sum $DIR/release.sh" | cut -d' ' -f1)"
 [ "$WANT" = "$HAVE" ] || { echo "ERROR: berkas di server tidak sama dengan commit $SHA; deploy dihentikan." >&2; exit 1; }
 
-echo "==> Membangun image di server"
-TAG="$("${SSH[@]}" "cd $DIR && ./build-ats-image.sh $SHA | tail -1")"
-echo "    $TAG"
-
-echo "==> Rilis"
-"${SSH[@]}" "cd $DIR && ./release.sh ${TAG#*:}"
+echo "==> Membangun image dan merilis di server (berjalan lepas dari koneksi ssh)"
+# Build memakan beberapa menit; koneksi yang putus dulu menggagalkan rilis. Sekarang server menjalankannya sendiri
+# (nohup) dan kita hanya membaca lognya.
+LOG="deploy-$SHA.log"
+"${SSH[@]}" "cd $DIR && rm -f $LOG && (nohup bash -c './build-ats-image.sh $SHA > $LOG 2>&1 && ./release.sh \$(tail -1 $LOG | sed s/.*://) >> $LOG 2>&1; echo EXIT=\$? >> $LOG' >/dev/null 2>&1 &)"
+code=""
+for _ in $(seq 1 120); do
+  sleep 15
+  code="$("${SSH[@]}" "sed -n 's/^EXIT=//p' $DIR/$LOG" 2>/dev/null || true)"
+  [ -n "$code" ] && break
+done
+"${SSH[@]}" "grep -E '^(==>|   |!!|--)|ERROR' $DIR/$LOG | tail -30" || true
+[ "$code" = 0 ] || { echo "ERROR: rilis gagal atau belum selesai; lihat ~/$DIR/$LOG di server." >&2; exit 1; }
