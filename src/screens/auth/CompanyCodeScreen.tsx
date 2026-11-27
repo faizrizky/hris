@@ -76,10 +76,12 @@ export function CompanyCodeScreen({
             </Pressable>
           ) : (
             <>
-              <View style={styles.fieldBox}>
-                <Text style={styles.fieldLabel}>{t("kode.label")}</Text>
+              <Text style={styles.fieldLabel}>{t("kode.label")}</Text>
+              <View style={[styles.fieldBox, error ? styles.fieldError : null]}>
                 <TextInput
-                  style={styles.fieldInput}
+                  // Wider letter spacing only for a typed code: on the placeholder it pushed the text past the box.
+                  style={[styles.fieldInput, kode ? styles.fieldCode : null]}
+                  accessibilityLabel={t("kode.label")}
                   value={kode}
                   onChangeText={setKode}
                   autoCapitalize="characters"
@@ -152,28 +154,29 @@ const makeStyles = (c: Palette) =>
       paddingHorizontal: 24,
       paddingTop: 26,
     },
+    fieldLabel: {
+      fontSize: 13,
+      fontWeight: "600",
+      color: c.ink,
+      marginBottom: 8,
+    },
     fieldBox: {
       borderWidth: 1,
       borderColor: c.fieldBorder,
       borderRadius: 14,
-      paddingHorizontal: 14,
-      paddingVertical: 11,
+      minHeight: 52,
+      justifyContent: "center",
+      paddingHorizontal: 16,
     },
-    fieldLabel: {
-      fontSize: 10,
-      fontWeight: "600",
-      letterSpacing: 0.6,
-      textTransform: "uppercase",
-      color: c.mutedLabel,
-    },
+    fieldError: { borderColor: c.bad.ink },
+    // No fixed line height and no zero padding box: Android clipped the glyphs.
     fieldInput: {
       fontSize: 16,
-      fontWeight: "600",
-      letterSpacing: 1,
       color: c.ink,
-      marginTop: 3,
-      padding: 0,
+      paddingVertical: 12,
+      paddingHorizontal: 0,
     },
+    fieldCode: { fontWeight: "600", letterSpacing: 1 },
     errorText: { color: c.bad.ink, fontSize: 13, marginTop: 10 },
     submitButton: {
       ...primaryButtonStyle(c),

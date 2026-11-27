@@ -958,7 +958,7 @@ export const en: Record<TranslationKey, string> = {
   "kode.sub":
     "Your company's HR gives you this code. You only need it once on this phone.",
   "kode.label": "Company code",
-  "kode.isi": "e.g. PTMAJU",
+  "kode.isi": "Enter company code",
   "kode.lanjut": "Continue",
   "kode.kosong": "Enter your company code",
   "kode.tidakDikenal":
