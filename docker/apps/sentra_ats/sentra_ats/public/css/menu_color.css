@@ -13,6 +13,9 @@ html.hris-menu-color .body-sidebar .standard-sidebar-item.active-sidebar :is(.it
 html.hris-menu-color .dock .dock-item.active {
 	background: var(--hris-menu-bg);
 	color: var(--hris-menu-ink);
+	/* Frappe's duotone glyphs fill from these two variables, not from color. */
+	--duotone-dark: var(--hris-menu-ink);
+	--duotone-light: color-mix(in srgb, var(--hris-menu-ink) 60%, transparent);
 }
 
 html.hris-menu-color .dock .dock-item.active svg {
