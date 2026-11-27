@@ -1,0 +1,30 @@
+/* Two-column flow for sparse form sections (public/js/form_columns.js adds .hris-flow). Phones keep one column. */
+@media (min-width: 768px) {
+	.form-layout .section-body.hris-flow {
+		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		column-gap: 30px;
+		align-items: start;
+		/* the columns' own padding disappears with display: contents */
+		padding-left: var(--padding-md, 15px);
+		padding-right: var(--padding-md, 15px);
+	}
+
+	.form-layout .section-body.hris-flow > .form-column,
+	.form-layout .section-body.hris-flow > .form-column > form {
+		display: contents;
+	}
+
+	/* column headings, and fields that need the whole width */
+	.form-layout .section-body.hris-flow > .form-column > :not(form),
+	.form-layout .section-body.hris-flow .frappe-control:is([data-fieldtype="Table"], [data-fieldtype="Table MultiSelect"],
+		[data-fieldtype="Text Editor"], [data-fieldtype="Text"], [data-fieldtype="Long Text"], [data-fieldtype="Code"],
+		[data-fieldtype="HTML Editor"], [data-fieldtype="Markdown Editor"], [data-fieldtype="HTML"],
+		[data-fieldtype="Geolocation"], [data-fieldtype="Heading"], [data-fieldtype="Signature"]) {
+		grid-column: 1 / -1;
+	}
+
+	.form-layout .section-body.hris-flow .frappe-control.hide-control {
+		display: none !important;
+	}
+}

@@ -10,7 +10,7 @@ app_license = "mit"
 
 required_apps = ["erpnext", "hrms"]
 
-extend_bootinfo = ["hris_ats.lite.extend_bootinfo", "hris_ats.menu.extend_bootinfo"]
+extend_bootinfo = ["hris_ats.lite.extend_bootinfo", "hris_ats.menu.extend_bootinfo", "hris_ats.menu_color.extend_bootinfo"]
 
 # Locks a client site whose subscription is inactive (see hris_ats.subscription).
 before_request = ["hris_ats.subscription.before_request"]
@@ -48,11 +48,17 @@ app_logo_url = "/assets/hris_ats/images/logo.png"
 # ------------------
 
 # include js, css files in header of desk.html
-app_include_css = "/assets/hris_ats/css/hris_lite.css"
+app_include_css = [
+	"/assets/hris_ats/css/hris_lite.css",
+	"/assets/hris_ats/css/menu_color.css",
+	"/assets/hris_ats/css/form_columns.css",
+]
 app_include_js = [
 	"/assets/hris_ats/js/hris_lite.js",
 	"/assets/hris_ats/js/form_sidebar.js",
 	"/assets/hris_ats/js/landing.js",
+	"/assets/hris_ats/js/menu_color.js",
+	"/assets/hris_ats/js/form_columns.js",
 	"/assets/hris_ats/js/crawler_login_dialog.js",
 	"/assets/hris_ats/js/message.js",
 	"/assets/hris_ats/js/bulk_upload.js",
@@ -191,6 +197,7 @@ after_migrate = "hris_ats.setup.after_migrate"
 # Hook on document methods and events
 
 doc_events = {
+	"User": {"validate": "hris_ats.menu_color.validate_user"},
 	"Employee": {"validate": ["hris_ats.bank.mirror_to_employee", "hris_ats.hr_compliance.validate_employee"]},
 	"Job Applicant": {
 		"after_insert": "hris_ats.scoring.workflow.on_job_applicant_insert",

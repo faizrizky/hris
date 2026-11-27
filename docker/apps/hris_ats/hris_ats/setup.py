@@ -197,6 +197,10 @@ BANK_FIELDS = {
 def setup_custom_fields():
 	create_custom_fields(CUSTOM_FIELDS, update=True)
 	create_custom_fields(BANK_FIELDS, update=True)
+	create_custom_fields(
+		{"User": [{"fieldname": "custom_menu_color", "label": "Menu Color", "fieldtype": "Data", "insert_after": "desk_theme", "hidden": 1, "no_copy": 1}]},
+		update=True,
+	)
 	from hris_ats.bank import setup_bank_account_access
 
 	setup_bank_account_access()

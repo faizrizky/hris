@@ -1,0 +1,76 @@
+/* Selected sidebar item in the user's colour (public/js/menu_color.js sets the class and the two variables). */
+html.hris-menu-color .body-sidebar .standard-sidebar-item.active-sidebar {
+	background: var(--hris-menu-bg);
+	box-shadow: none;
+	border-radius: 10px;
+}
+
+html.hris-menu-color .body-sidebar .standard-sidebar-item.active-sidebar :is(.item-anchor, .sidebar-item-label, .sidebar-item-icon, .sidebar-item-icon svg, .sidebar-item-control, .sidebar-item-control svg) {
+	color: var(--hris-menu-ink) !important;
+}
+
+/* The cards in Settings > Appearance reuse Frappe's .theme-card styles. */
+.hris-color-heading {
+	margin: var(--margin-lg) 0 var(--margin-sm);
+}
+
+.hris-color-title {
+	font-weight: var(--font-weight-semibold);
+	color: var(--ink-gray-9);
+}
+
+.hris-color-cards {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+	gap: 12px;
+	margin-bottom: var(--margin-lg);
+}
+
+.hris-color-cards .theme-card {
+	width: 100%;
+}
+
+.hris-color-preview {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	gap: 8px;
+	height: 96px;
+	padding: 0 18px;
+	background: var(--surface-gray-1);
+}
+
+.hris-color-row {
+	height: 14px;
+	border-radius: 6px;
+	background: var(--surface-gray-3);
+	opacity: 0.6;
+}
+
+.hris-color-row.hris-color-selected {
+	height: 22px;
+	opacity: 1;
+}
+
+.hris-color-row.hris-color-plain {
+	height: 22px;
+	opacity: 1;
+	background: var(--surface-base);
+	box-shadow: var(--shadow-sm);
+}
+
+.hris-color-input {
+	position: absolute;
+	right: 10px;
+	top: 8px;
+	width: 28px;
+	height: 28px;
+	padding: 0;
+	border: 0;
+	background: transparent;
+	cursor: pointer;
+}
+
+.hris-color-cards .theme-card-preview {
+	position: relative;
+}

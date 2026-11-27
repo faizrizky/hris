@@ -124,3 +124,10 @@ def test_assignable_masters_answers_false_for_a_doctype_the_user_cannot_read(mon
 	monkeypatch.setattr(frappe, "has_permission", lambda dt, ptype: dt != "Salary Structure", raising=False)
 	monkeypatch.setattr(frappe, "get_list", lambda *a, **k: ["x"], raising=False)
 	assert overrides.get_assignable_masters("Co") == {"Leave Policy": True, "Salary Structure": False, "Shift Schedule": True}
+
+
+def test_menu_color_accepts_only_colours():
+	from hris_ats.menu_color import is_valid
+
+	assert all(is_valid(v) for v in ("", None, "standard", "#467CF7"))
+	assert not any(is_valid(v) for v in ("red", "#fff", "#467CF7;}body{display:none", "url(x)"))

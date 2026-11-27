@@ -5234,3 +5234,13 @@ Reset Service Level Agreement,Atur Ulang Perjanjian Tingkat Layanan
 blue,biru
 Left,Sudah Keluar,Employee
 Resume,Resume,Job Applicant
+Menu Color,Warna Menu
+Choose the color of the selected menu item.,Pilih warna menu yang sedang dipilih.
+Default,Bawaan
+Plain,Polos
+Green,Hijau
+Purple,Ungu
+Orange,Oranye
+Choose a color,Pilih warna
+Saved,Tersimpan
+Menu Color must be a colour such as #467CF7.,"Warna Menu harus berupa warna, misalnya #467CF7."
