@@ -14,7 +14,7 @@ cd "$(dirname "${BASH_SOURCE[0]}")"
 HOST="${1:-${DEPLOY_HOST:-infra@10.70.0.30}}"
 KEY="${DEPLOY_KEY:-$HOME/Downloads/private_key_rsa_2048.pem}"
 DIR="${DEPLOY_DIR:-hris-docker}"
-SSH=(ssh -i "$KEY" -o ConnectTimeout=15 "$HOST")
+SSH=(ssh -i "$KEY" -o ConnectTimeout=15 -o ServerAliveInterval=30 -o ServerAliveCountMax=6 "$HOST")
 
 git diff --quiet HEAD -- . || { echo "ERROR: ada perubahan di docker/ yang belum di-commit. Commit dulu." >&2; exit 1; }
 SHA="$(git rev-parse --short HEAD)"
