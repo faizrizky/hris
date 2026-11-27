@@ -4728,7 +4728,7 @@ Issue,Masalah
 Issue Type,Jenis Masalah
 Service Level Agreement,Perjanjian Tingkat Layanan
 Salutation,Sapaan
-Left,Sudah Keluar
+Left,Kiri
 User Details,Rincian Pengguna
 Address & Contacts,Alamat dan Kontak
 Spouse,Suami/Istri
@@ -4779,7 +4779,7 @@ Employee Boarding Activity,Kegiatan Orientasi Karyawan
 Employee Training,Pelatihan Karyawan
 Training Event Employee,Peserta Acara Pelatihan
 Training Result Employee,Hasil Pelatihan Karyawan
-Resume,Resume
+Resume,Lanjutkan
 Offer Term,Ketentuan Penawaran
 Terms and Conditions,Syarat dan Ketentuan
 Template Title,Judul Templat
@@ -5232,3 +5232,5 @@ SMS Gateway URL,URL Gerbang SMS
 Has Role,Memiliki Peran
 Reset Service Level Agreement,Atur Ulang Perjanjian Tingkat Layanan
 blue,biru
+Left,Sudah Keluar,Employee
+Resume,Resume,Job Applicant
