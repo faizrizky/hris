@@ -15,6 +15,11 @@
 		display: contents;
 	}
 
+	/* Frappe halves inputs of a single-column section (.input-max-width); in the grid each cell is already half. */
+	.form-layout .section-body.hris-flow .frappe-control.input-max-width {
+		max-width: 100%;
+	}
+
 	/* column headings, and fields that need the whole width */
 	.form-layout .section-body.hris-flow > .form-column > :not(form),
 	.form-layout .section-body.hris-flow .frappe-control:is([data-fieldtype="Table"], [data-fieldtype="Table MultiSelect"],
