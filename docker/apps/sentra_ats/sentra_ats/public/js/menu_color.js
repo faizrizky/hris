@@ -95,7 +95,8 @@ Object.assign(sentra_ats.menu_color, {
 			// same click would otherwise reach the body and close the popover again.
 			setTimeout(() => {
 				$field[0].scrollIntoView({ block: "end", behavior: "instant" });
-				control.$wrapper.find(".selected-color").parent().trigger("click");
+				// first(): the control keeps a second, hidden swatch; clicking both would open and close the popover.
+				control.$wrapper.find(".selected-color").first().parent().trigger("click");
 			});
 		});
 		$grid.append($custom);
