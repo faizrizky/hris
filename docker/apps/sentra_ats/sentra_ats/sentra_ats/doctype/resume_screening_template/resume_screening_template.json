@@ -1,0 +1,216 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "field:template_name",
+ "creation": "2026-10-18 00:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "template_name",
+  "enabled",
+  "column_break_1",
+  "min_score_to_pass",
+  "candidate_level",
+  "total_weight",
+  "allowed_languages",
+  "hide_penalty_points",
+  "section_break_roles",
+  "job_roles",
+  "section_break_weights",
+  "metric_weights",
+  "section_break_penalties",
+  "penalty_rules",
+  "section_break_knockouts",
+  "knockout_rules",
+  "section_break_custom",
+  "custom_rules",
+  "section_break_descriptions",
+  "pass_description",
+  "fail_description",
+  "section_break_labels",
+  "score_labels"
+ ],
+ "fields": [
+  {
+   "fieldname": "template_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Template Name",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "default": "1",
+   "fieldname": "enabled",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Enabled"
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "75",
+   "fieldname": "min_score_to_pass",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Minimum Score to Pass",
+   "reqd": 1
+  },
+  {
+   "default": "100",
+   "fieldname": "total_weight",
+   "fieldtype": "Percent",
+   "in_list_view": 1,
+   "label": "Total Weight",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_roles",
+   "fieldtype": "Section Break",
+   "label": "Target Job Roles"
+  },
+  {
+   "fieldname": "job_roles",
+   "fieldtype": "Table MultiSelect",
+   "label": "Designations",
+   "options": "Resume Screening Template Role"
+  },
+  {
+   "fieldname": "section_break_weights",
+   "fieldtype": "Section Break",
+   "label": "Metric Weights"
+  },
+  {
+   "fieldname": "metric_weights",
+   "fieldtype": "Table",
+   "label": "Metric Weights",
+   "options": "Resume Screening Metric Weight",
+   "reqd": 1
+  },
+  {
+   "fieldname": "section_break_descriptions",
+   "fieldtype": "Section Break",
+   "label": "Result Descriptions"
+  },
+  {
+   "default": "Applicant resume is match with the applied job!",
+   "fieldname": "pass_description",
+   "fieldtype": "Small Text",
+   "label": "Pass Description"
+  },
+  {
+   "default": "Applicant resume does not meet the minimum criteria.",
+   "fieldname": "fail_description",
+   "fieldtype": "Small Text",
+   "label": "Fail Description"
+  },
+  {
+   "fieldname": "section_break_labels",
+   "fieldtype": "Section Break",
+   "label": "Score Labels"
+  },
+  {
+   "fieldname": "score_labels",
+   "fieldtype": "Table",
+   "label": "Score Labels",
+   "options": "Resume Screening Score Label"
+  },
+  {
+   "default": "Custom",
+   "fieldname": "candidate_level",
+   "fieldtype": "Select",
+   "label": "Candidate Level",
+   "options": "Custom\nEntry-Level\nJunior / Mid\nSenior / Manager\nC-Level / Researcher",
+   "description": "Informational. Presets ship one template per level; duplicate one with Clone to start."
+  },
+  {
+   "default": "id,en",
+   "fieldname": "allowed_languages",
+   "fieldtype": "Data",
+   "label": "Allowed CV Languages",
+   "description": "Comma separated (id, en). CVs in other languages go to manual review. Empty = no language check."
+  },
+  {
+   "default": "1",
+   "fieldname": "hide_penalty_points",
+   "fieldtype": "Check",
+   "label": "Hide Penalty Points from HR",
+   "description": "HR sees which red flags are on, not how many points they subtract."
+  },
+  {
+   "fieldname": "section_break_penalties",
+   "fieldtype": "Section Break",
+   "label": "Quality Red Flags (Penalties)",
+   "description": "Subtracted after the weighted score. Turn each red flag on or off for this template."
+  },
+  {
+   "fieldname": "penalty_rules",
+   "fieldtype": "Table",
+   "label": "Red Flags",
+   "options": "Resume Screening Penalty Rule"
+  },
+  {
+   "fieldname": "section_break_knockouts",
+   "fieldtype": "Section Break",
+   "label": "Knock-Out Rules",
+   "description": "Mandatory requirements (e.g. licenses for regulated professions). A failed rule caps or zeroes the score and asks HR to review; it never rejects on its own."
+  },
+  {
+   "fieldname": "knockout_rules",
+   "fieldtype": "Table",
+   "label": "Knock-Out Rules",
+   "options": "Resume Screening Knockout Rule"
+  },
+  {
+   "fieldname": "section_break_custom",
+   "fieldtype": "Section Break",
+   "label": "Custom Rules",
+   "description": "Add your own checks on the CV text: add or subtract points, cap the score, or flag for review."
+  },
+  {
+   "fieldname": "custom_rules",
+   "fieldtype": "Table",
+   "label": "Custom Rules",
+   "options": "Resume Screening Custom Rule"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-11-03 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Sentra ATS",
+ "name": "Resume Screening Template",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "HR Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 0,
+   "delete": 0,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "HR User",
+   "share": 0,
+   "write": 0
+  }
+ ],
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

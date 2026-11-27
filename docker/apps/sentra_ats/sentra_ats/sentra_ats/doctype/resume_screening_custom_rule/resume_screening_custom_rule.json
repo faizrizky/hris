@@ -1,0 +1,96 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2026-11-03 00:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "enabled",
+  "label",
+  "section",
+  "operator",
+  "value",
+  "count",
+  "effect",
+  "points"
+ ],
+ "fields": [
+  {
+   "default": "1",
+   "fieldname": "enabled",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Enabled",
+   "columns": 1
+  },
+  {
+   "fieldname": "label",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Label",
+   "reqd": 1,
+   "columns": 2
+  },
+  {
+   "default": "Whole CV",
+   "fieldname": "section",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Look In",
+   "columns": 1,
+   "options": "Whole CV\nSummary\nExperience\nEducation\nSkills\nCertifications\nAchievements"
+  },
+  {
+   "default": "Contains any",
+   "fieldname": "operator",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Condition",
+   "columns": 2,
+   "options": "Contains any\nContains all\nDoes not contain\nMatches regex\nCount at least"
+  },
+  {
+   "fieldname": "value",
+   "fieldtype": "Small Text",
+   "in_list_view": 1,
+   "label": "Value",
+   "reqd": 1,
+   "columns": 2,
+   "description": "Terms separated by commas or new lines, or a regular expression for 'Matches regex'."
+  },
+  {
+   "default": "1",
+   "fieldname": "count",
+   "fieldtype": "Int",
+   "label": "Minimum Count",
+   "depends_on": "eval:doc.operator=='Count at least'"
+  },
+  {
+   "default": "Add points",
+   "fieldname": "effect",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Effect",
+   "columns": 1,
+   "options": "Add points\nSubtract points\nCap score\nFlag only"
+  },
+  {
+   "fieldname": "points",
+   "fieldtype": "Int",
+   "label": "Points",
+   "description": "Points to add or subtract, or the maximum score for 'Cap score'."
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2026-11-03 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Sentra ATS",
+ "name": "Resume Screening Custom Rule",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ===========================================================================
-# Pasang / perbarui custom app hris_ats di stack ERPNext dev.
+# Pasang / perbarui custom app sentra_ats di stack ERPNext dev.
 # Aman dijalankan berulang kali (idempotent).
 #
 # Penggunaan:
@@ -26,15 +26,15 @@ done
 [ -f .env ] && { set -a; . ./.env; set +a; }
 SITE_NAME="${SITE_NAME:-hris.localhost}"
 
-# 1. Pastikan container dev sudah berjalan dengan volume mount hris_ats
+# 1. Pastikan container dev sudah berjalan dengan volume mount sentra_ats
 echo "[dev-ats] Memastikan stack container dev berjalan..."
 docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d
 
-# 2. Pasang hris_ats dalam mode editable di virtualenv setiap service Python
+# 2. Pasang sentra_ats dalam mode editable di virtualenv setiap service Python
 PYTHON_SERVICES=("backend" "queue-short" "queue-long" "queue-browser" "scheduler")
 for svc in "${PYTHON_SERVICES[@]}"; do
-  echo "[dev-ats] Memasang hris_ats di virtualenv service $svc..."
-  docker compose exec -T "$svc" env/bin/pip install -q -e apps/hris_ats
+  echo "[dev-ats] Memasang sentra_ats di virtualenv service $svc..."
+  docker compose exec -T "$svc" env/bin/pip install -q -e apps/sentra_ats
 done
 
 if [ "$WITH_BROWSERS" -eq 1 ]; then
@@ -55,28 +55,28 @@ fi
 echo "[dev-ats] Memastikan dependensi pengujian (pytest) terpasang di service backend..."
 docker compose exec -T backend env/bin/pip install -q pytest
 
-# 3. Pastikan hris_ats tercantum di sites/apps.txt
-echo "[dev-ats] Memastikan hris_ats ada di sites/apps.txt..."
+# 3. Pastikan sentra_ats tercantum di sites/apps.txt
+echo "[dev-ats] Memastikan sentra_ats ada di sites/apps.txt..."
 docker compose exec -T backend bash -c '
-  if ! grep -Fxq "hris_ats" sites/apps.txt 2>/dev/null; then
-    echo "hris_ats" >> sites/apps.txt
+  if ! grep -Fxq "sentra_ats" sites/apps.txt 2>/dev/null; then
+    echo "sentra_ats" >> sites/apps.txt
   fi
 '
 
 # 4. Pasang app di site bila belum terpasang, atau migrate bila sudah
-echo "[dev-ats] Memeriksa status hris_ats di site $SITE_NAME..."
-if docker compose exec -T backend bench --site "$SITE_NAME" list-apps | grep -qw "hris_ats"; then
-  echo "[dev-ats] hris_ats sudah terpasang di site. Menjalankan bench migrate..."
+echo "[dev-ats] Memeriksa status sentra_ats di site $SITE_NAME..."
+if docker compose exec -T backend bench --site "$SITE_NAME" list-apps | grep -qw "sentra_ats"; then
+  echo "[dev-ats] sentra_ats sudah terpasang di site. Menjalankan bench migrate..."
   docker compose exec -T backend bench --site "$SITE_NAME" migrate
 else
-  echo "[dev-ats] hris_ats belum terpasang. Menjalankan install-app..."
-  docker compose exec -T backend bench --site "$SITE_NAME" install-app hris_ats
+  echo "[dev-ats] sentra_ats belum terpasang. Menjalankan install-app..."
+  docker compose exec -T backend bench --site "$SITE_NAME" install-app sentra_ats
 fi
 
-# 5. Bangun aset frontend hris_ats
-echo "[dev-ats] Membangun aset hris_ats..."
-docker compose exec -T backend bench build --app hris_ats
-docker compose exec -T -u root frontend ln -sfn /home/frappe/frappe-bench/apps/hris_ats/hris_ats/public /home/frappe/frappe-bench/assets/hris_ats 2>/dev/null || true
+# 5. Bangun aset frontend sentra_ats
+echo "[dev-ats] Membangun aset sentra_ats..."
+docker compose exec -T backend bench build --app sentra_ats
+docker compose exec -T -u root frontend ln -sfn /home/frappe/frappe-bench/apps/sentra_ats/sentra_ats/public /home/frappe/frappe-bench/assets/sentra_ats 2>/dev/null || true
 
 # 6. Bersihkan cache site
 echo "[dev-ats] Membersihkan cache site..."
@@ -88,5 +88,5 @@ docker compose restart backend queue-short queue-long queue-browser scheduler >/
 # nginx menyimpan IP backend saat start; tanpa restart frontend, backend yang dapat IP baru memicu 502.
 docker compose restart frontend >/dev/null 2>&1 || true
 
-echo "[dev-ats] Selesai! hris_ats siap digunakan."
+echo "[dev-ats] Selesai! sentra_ats siap digunakan."
 

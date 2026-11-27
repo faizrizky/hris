@@ -16,6 +16,6 @@ else
     --mariadb-user-host-login-scope='%' \
     --db-root-username=root --db-root-password="${DB_ROOT_PASSWORD:-admin}" \
     --admin-password="$PASS" \
-    --install-app erpnext --install-app hrms --install-app hris_ats
+    --install-app erpnext --install-app hrms --install-app sentra_ats
 fi
 ./seed/seed.sh "$SITE"

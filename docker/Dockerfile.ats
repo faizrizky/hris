@@ -1,18 +1,18 @@
-# Lapisan di atas image dasar (frappe + erpnext + hrms, dibuat ./build-image.sh) yang memuat hris_ats beserta
+# Lapisan di atas image dasar (frappe + erpnext + hrms, dibuat ./build-image.sh) yang memuat sentra_ats beserta
 # semua yang sebelumnya dipasang dengan tangan ke container oleh dev-ats.sh: paket Python, Chromium, dan pytest.
 # Dengan ini container yang dibuat ulang tidak kehilangan apa pun, dan satu image yang sama dipakai semua site.
 ARG BASE_IMAGE
 FROM ${BASE_IMAGE}
 
 USER root
-COPY --chown=frappe:frappe hris_ats /home/frappe/frappe-bench/apps/hris_ats
+COPY --chown=frappe:frappe sentra_ats /home/frappe/frappe-bench/apps/sentra_ats
 WORKDIR /home/frappe/frappe-bench
 
 USER frappe
-# Editable: mode dev yang me-mount ./apps/hris_ats tetap menimpa kode di dalam image tanpa build ulang.
-RUN env/bin/pip install --no-cache-dir -e apps/hris_ats pytest
+# Editable: mode dev yang me-mount ./apps/sentra_ats tetap menimpa kode di dalam image tanpa build ulang.
+RUN env/bin/pip install --no-cache-dir -e apps/sentra_ats pytest
 # frontend (nginx) serves /assets from the image's own assets dir; configurator's symlink lands in a throwaway container
-RUN ln -sfn /home/frappe/frappe-bench/apps/hris_ats/hris_ats/public assets/hris_ats
+RUN ln -sfn /home/frappe/frappe-bench/apps/sentra_ats/sentra_ats/public assets/sentra_ats
 
 USER root
 RUN env/bin/python -m playwright install-deps chromium && rm -rf /var/lib/apt/lists/*

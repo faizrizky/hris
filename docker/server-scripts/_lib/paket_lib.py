@@ -2,7 +2,7 @@
 # Fitur per paket mengikuti tabel harga di landing (hris-cms/src/seed/content.ts, PRICING_MATRIX); aplikasi mobile
 # hanya membaca daftar "fitur" dari sini, jadi kunci baru cukup ditambah di satu tempat ini.
 def pk_info():
-    # Satu baris HRIS Subscription per site klien, dikirim dari sentra (hris_ats.subscription.apply_local).
+    # Satu baris HRIS Subscription per site klien, dikirim dari sentra (sentra_ats.subscription.apply_local).
     rows = frappe.get_all("HRIS Subscription", fields=["plan", "enabled", "valid_until"], limit=1)
     lg = rows[0] if rows else {}
     paket = lg.get("plan") or "Basic"

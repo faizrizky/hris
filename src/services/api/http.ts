@@ -63,7 +63,7 @@ export function setSessionExpiredHandler(handler: (() => void) | null) {
   onSessionExpired = handler;
 }
 
-// Site company dikunci server karena langganannya tidak aktif (HTTP 402, lihat hris_ats.subscription).
+// Site company dikunci server karena langganannya tidak aktif (HTTP 402, lihat sentra_ats.subscription).
 let onSubscriptionInactive: (() => void) | null = null;
 export function setSubscriptionInactiveHandler(handler: (() => void) | null) {
   onSubscriptionInactive = handler;

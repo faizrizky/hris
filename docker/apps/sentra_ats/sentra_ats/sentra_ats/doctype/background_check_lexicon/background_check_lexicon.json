@@ -1,0 +1,110 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "format:{category}-{term}",
+ "creation": "2026-10-18 00:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "category",
+  "term",
+  "severity",
+  "column_break_1",
+  "language",
+  "is_regex",
+  "weight",
+  "enabled"
+ ],
+ "fields": [
+  {
+   "fieldname": "category",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Category",
+   "options": "Profanity\nHate speech\nThreats/violence\nPornography\nOnline gambling\nNarcotics\nFraud\nCompany information leak\nAchievement\nProfessional\nLegal-negative\nPositive sentiment\nNegative sentiment",
+   "reqd": 1
+  },
+  {
+   "fieldname": "term",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Term / Keyword",
+   "reqd": 1
+  },
+  {
+   "default": "Medium",
+   "fieldname": "severity",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Severity",
+   "options": "Info\nLow\nMedium\nHigh"
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "id",
+   "fieldname": "language",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Language",
+   "options": "id\nen"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_regex",
+   "fieldtype": "Check",
+   "label": "Is Regex"
+  },
+  {
+   "default": "1.0",
+   "fieldname": "weight",
+   "fieldtype": "Float",
+   "label": "Weight"
+  },
+  {
+   "default": "1",
+   "fieldname": "enabled",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Enabled"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-10-18 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Sentra ATS",
+ "name": "Background Check Lexicon",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "HR Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 0,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Background Check Officer",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "category",
+ "sort_order": "ASC",
+ "states": []
+}

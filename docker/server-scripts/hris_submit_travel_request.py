@@ -7,7 +7,7 @@
 # custom_timezone diisi dari kota tujuan (default Asia/Jakarta); HR dapat mengubahnya di web.
 # Hasil: {"name","destination","from_date","to_date","transport","purpose","timezone","costs":[...],"status":"pending"}
 # @fitur: dinas_wfh
-# Travel Request is locked with the Expenses module (hris_ats.lock); this endpoint must not read around that lock.
+# Travel Request is locked with the Expenses module (sentra_ats.lock); this endpoint must not read around that lock.
 if frappe.session.user != "Administrator" and not frappe.get_all(
     "Has Role", filters={"parent": frappe.session.user, "parenttype": "User", "role": "System Manager"}, limit_page_length=1
 ):

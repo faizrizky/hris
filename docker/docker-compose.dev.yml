@@ -1,7 +1,7 @@
 # ===========================================================================
-# Docker Compose Override untuk Mode Pengembangan (hris_ats)
+# Docker Compose Override untuk Mode Pengembangan (sentra_ats)
 #
-# Me-mount source code custom app hris_ats dari direktori lokal ke dalam
+# Me-mount source code custom app sentra_ats dari direktori lokal ke dalam
 # container bench, sehingga perubahan kode Python/JS langsung terbaca
 # tanpa harus build image ulang.
 #
@@ -12,32 +12,32 @@
 services:
   configurator:
     volumes:
-      - ./apps/hris_ats:/home/frappe/frappe-bench/apps/hris_ats
+      - ./apps/sentra_ats:/home/frappe/frappe-bench/apps/sentra_ats
 
   backend:
     volumes:
-      - ./apps/hris_ats:/home/frappe/frappe-bench/apps/hris_ats
+      - ./apps/sentra_ats:/home/frappe/frappe-bench/apps/sentra_ats
 
   queue-short:
     volumes:
-      - ./apps/hris_ats:/home/frappe/frappe-bench/apps/hris_ats
+      - ./apps/sentra_ats:/home/frappe/frappe-bench/apps/sentra_ats
 
   queue-long:
     volumes:
-      - ./apps/hris_ats:/home/frappe/frappe-bench/apps/hris_ats
+      - ./apps/sentra_ats:/home/frappe/frappe-bench/apps/sentra_ats
 
   queue-browser:
     volumes:
-      - ./apps/hris_ats:/home/frappe/frappe-bench/apps/hris_ats
+      - ./apps/sentra_ats:/home/frappe/frappe-bench/apps/sentra_ats
 
   scheduler:
     volumes:
-      - ./apps/hris_ats:/home/frappe/frappe-bench/apps/hris_ats
+      - ./apps/sentra_ats:/home/frappe/frappe-bench/apps/sentra_ats
 
   websocket:
     volumes:
-      - ./apps/hris_ats:/home/frappe/frappe-bench/apps/hris_ats
+      - ./apps/sentra_ats:/home/frappe/frappe-bench/apps/sentra_ats
 
   frontend:
     volumes:
-      - ./apps/hris_ats:/home/frappe/frappe-bench/apps/hris_ats
+      - ./apps/sentra_ats:/home/frappe/frappe-bench/apps/sentra_ats

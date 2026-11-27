@@ -1,0 +1,172 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2026-10-18 00:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "platform",
+  "username",
+  "display_name",
+  "profile_url",
+  "profile_location",
+  "identity_match",
+  "identity_reasons",
+  "identity_reasons_template",
+  "identity_reasons_params",
+  "bio_snippet",
+  "declared_by",
+  "connection_method",
+  "exists",
+  "last_active",
+  "post_access",
+  "social_consent",
+  "social_consent_attested_by",
+  "social_consent_attested_on"
+ ],
+ "fields": [
+  {
+   "columns": 2,
+   "fieldname": "platform",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Platform",
+   "options": "Background Check Platform",
+   "reqd": 1
+  },
+  {
+   "columns": 2,
+   "fieldname": "username",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Username",
+   "reqd": 1
+  },
+  {
+   "columns": 2,
+   "fieldname": "display_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Display Name",
+   "read_only": 1
+  },
+  {
+   "fieldname": "profile_url",
+   "fieldtype": "Data",
+   "label": "Profile URL",
+   "read_only": 1
+  },
+  {
+   "fieldname": "profile_location",
+   "fieldtype": "Data",
+   "label": "Profile Location",
+   "read_only": 1
+  },
+  {
+   "columns": 1,
+   "fieldname": "identity_match",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Identity Match (%)",
+   "read_only": 1
+  },
+  {
+   "columns": 3,
+   "fieldname": "identity_reasons",
+   "fieldtype": "Small Text",
+   "in_list_view": 1,
+   "label": "Identity Match Reasons",
+   "read_only": 1
+  },
+  {
+   "fieldname": "bio_snippet",
+   "fieldtype": "Small Text",
+   "label": "Bio Snippet",
+   "length": 300,
+   "read_only": 1
+  },
+  {
+   "default": "Candidate",
+   "fieldname": "declared_by",
+   "fieldtype": "Select",
+   "label": "Declared By",
+   "options": "Candidate\nHR"
+  },
+  {
+   "default": "Public page",
+   "fieldname": "connection_method",
+   "fieldtype": "Select",
+   "label": "Connection Method",
+   "options": "Public page\nLogged-in session\nData export\nOAuth",
+   "read_only": 1
+  },
+  {
+   "columns": 1,
+   "default": "0",
+   "fieldname": "exists",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Exists",
+   "read_only": 1
+  },
+  {
+   "fieldname": "last_active",
+   "fieldtype": "Datetime",
+   "label": "Last Active",
+   "read_only": 1
+  },
+  {
+   "default": "Manual review only",
+   "fieldname": "post_access",
+   "fieldtype": "Select",
+   "label": "Post Access",
+   "options": "API\nManual review only\nNot supported",
+   "read_only": 1
+  },
+  {
+   "fieldname": "identity_reasons_template",
+   "fieldtype": "Small Text",
+   "label": "Identity Match Reasons Template",
+   "read_only": 1
+  },
+  {
+   "fieldname": "identity_reasons_params",
+   "fieldtype": "Small Text",
+   "label": "Identity Match Reasons Parameters",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "description": "Confirmed by candidate in document",
+   "fieldname": "social_consent",
+   "fieldtype": "Check",
+   "label": "Social Media Consent",
+   "read_only": 1
+  },
+  {
+   "fieldname": "social_consent_attested_by",
+   "fieldtype": "Link",
+   "label": "Social Consent Attested By",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "fieldname": "social_consent_attested_on",
+   "fieldtype": "Datetime",
+   "label": "Social Consent Attested On",
+   "read_only": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2026-10-19 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Sentra ATS",
+ "name": "Background Check Account",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

@@ -2,7 +2,7 @@
 # Travel Request milik pemanggil, terbaru dulu, maks 50. status: pending (draft), approved (submitted),
 # rejected (custom_rejected atau dibatalkan). ?scope=team: bawahan langsung (HR: semua) untuk persetujuan.
 # @fitur: dinas_wfh
-# Travel Request is locked with the Expenses module (hris_ats.lock); this endpoint must not read around that lock.
+# Travel Request is locked with the Expenses module (sentra_ats.lock); this endpoint must not read around that lock.
 if frappe.session.user != "Administrator" and not frappe.get_all(
     "Has Role", filters={"parent": frappe.session.user, "parenttype": "User", "role": "System Manager"}, limit_page_length=1
 ):

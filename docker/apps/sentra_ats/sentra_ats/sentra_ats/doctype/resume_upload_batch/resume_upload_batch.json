@@ -1,0 +1,133 @@
+{
+ "actions": [],
+ "autoname": "RUB-.YYYY.-.#####",
+ "creation": "2026-11-03 00:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "job_opening",
+  "status",
+  "column_break_1",
+  "total_files",
+  "processed_files",
+  "section_break_consent",
+  "consent_confirmed",
+  "consent_confirmed_by",
+  "consent_confirmed_on",
+  "section_break_items",
+  "items"
+ ],
+ "fields": [
+  {
+   "fieldname": "job_opening",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Job Opening",
+   "options": "Job Opening",
+   "reqd": 1,
+   "read_only": 1
+  },
+  {
+   "default": "Queued",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Status",
+   "options": "Queued\nProcessing\nDone",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "total_files",
+   "fieldtype": "Int",
+   "label": "Total Files",
+   "read_only": 1
+  },
+  {
+   "fieldname": "processed_files",
+   "fieldtype": "Int",
+   "label": "Processed",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_consent",
+   "fieldtype": "Section Break",
+   "label": "Consent (UU PDP)"
+  },
+  {
+   "fieldname": "consent_confirmed",
+   "fieldtype": "Check",
+   "label": "HR confirmed the candidates agreed to their data being processed for recruitment",
+   "read_only": 1
+  },
+  {
+   "fieldname": "consent_confirmed_by",
+   "fieldtype": "Link",
+   "label": "Confirmed By",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "fieldname": "consent_confirmed_on",
+   "fieldtype": "Datetime",
+   "label": "Confirmed On",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_items",
+   "fieldtype": "Section Break",
+   "label": "Files"
+  },
+  {
+   "fieldname": "items",
+   "fieldtype": "Table",
+   "label": "Files",
+   "options": "Resume Upload Batch Item",
+   "read_only": 1
+  }
+ ],
+ "links": [],
+ "modified": "2026-11-03 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Sentra ATS",
+ "name": "Resume Upload Batch",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "HR Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "read": 1,
+   "role": "HR User",
+   "write": 1
+  }
+ ],
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1,
+ "title_field": "job_opening",
+ "in_create": 1
+}

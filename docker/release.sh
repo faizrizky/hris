@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ===========================================================================
-# Menaikkan stack ke image hris_ats yang sudah dibangun, lalu migrate semua site. Dijalankan DI SERVER.
+# Menaikkan stack ke image sentra_ats yang sudah dibangun, lalu migrate semua site. Dijalankan DI SERVER.
 #
 #   ./release.sh <tag>        mis. 16-ats-1a2b3c4 (hasil build-ats-image.sh)
 #   ./release.sh --rollback   kembali ke tag dan mode sebelumnya
@@ -18,7 +18,7 @@ REGISTRY_SITE="${REGISTRY_SITE:-admin.localhost}"
 OVERLAY=(-f docker-compose.yml -f docker-compose.dev.yml)
 PLAIN=(-f docker-compose.yml)
 
-# Hanya image -ats- yang memuat hris_ats; image dasar tanpa itu tidak bisa dijalankan sebagai target pemulihan.
+# Hanya image -ats- yang memuat sentra_ats; image dasar tanpa itu tidak bisa dijalankan sebagai target pemulihan.
 restorable() { [[ "$1" == *-ats-* ]]; }
 
 state() { [ -f "$STATE" ] && sed -n "s/^$1=//p" "$STATE" | tail -1 || true; }
@@ -32,12 +32,22 @@ up() {       # up <tag> <overlay 0|1>
 dc() { if [ "${ACTIVE_OVERLAY:-0}" = 1 ]; then docker compose "${OVERLAY[@]}" "$@"; else docker compose "${PLAIN[@]}" "$@"; fi; }
 wait_backend() { for _ in $(seq 1 40); do dc exec -T backend bench version >/dev/null 2>&1 && return 0; sleep 3; done; return 1; }
 sites() { dc exec -T backend bash -c 'cd sites && for d in */; do [ -f "$d/site_config.json" ] && echo "${d%/}"; done'; }
+# Ganti nama app hris_ats -> sentra_ats di database tiap site (rename_app.py); --reverse untuk rollback.
+rename_app() {
+  local s
+  for s in $(sites); do
+    [ "$s" = "$REGISTRY_SITE" ] && continue
+    dc exec -T -w /home/frappe/frappe-bench/sites backend ../env/bin/python - "$s" "$@" < rename_app.py | grep -E "^(RENAMED|SKIP)" || return 1
+  done
+  dc exec -T redis-cache redis-cli flushall >/dev/null   # daftar app terpasang tersimpan di cache
+}
 
 if [ "${1:-}" = "--rollback" ]; then
   PREV_TAG="$(state prev_tag)"; PREV_OVERLAY="$(state prev_overlay)"
   [ -n "$PREV_TAG" ] || { echo "Tidak ada rilis sebelumnya yang tercatat."; exit 1; }
-  restorable "$PREV_TAG" || { echo "Rilis sebelumnya ($PREV_TAG) bukan image hris_ats sehingga tidak bisa dipulihkan. Bangun image lama dengan ./build-ats-image.sh <akhiran> lalu ./release.sh <tag>."; exit 1; }
+  restorable "$PREV_TAG" || { echo "Rilis sebelumnya ($PREV_TAG) bukan image sentra_ats sehingga tidak bisa dipulihkan. Bangun image lama dengan ./build-ats-image.sh <akhiran> lalu ./release.sh <tag>."; exit 1; }
   echo "==> Kembali ke $PREV_TAG (overlay dev: $PREV_OVERLAY)"
+  if [ "$(state renamed)" = 1 ]; then echo "==> Mengembalikan nama app lama di database"; rename_app --reverse; fi
   up "$PREV_TAG" "$PREV_OVERLAY"
   printf 'tag=%s\noverlay=%s\n' "$PREV_TAG" "$PREV_OVERLAY" > "$STATE"
   exit 0
@@ -60,12 +70,14 @@ for s in $(sites); do
 done
 printf '   %s\n' "${BACKUPS[@]}"
 
+RENAMED=0
 rollback_on_error() {
+  [ "$RENAMED" = 1 ] && { echo "!! Mengembalikan nama app lama di database." >&2; rename_app --reverse >&2 || true; }
   if restorable "$PREV_TAG"; then
     echo "!! Rilis gagal. Mengembalikan stack ke $PREV_TAG." >&2
     up "$PREV_TAG" "$PREV_OVERLAY" || true   # catatan status tidak diubah: stack kembali ke keadaan yang sudah tercatat
   else
-    echo "!! Rilis gagal, dan $PREV_TAG bukan image hris_ats sehingga stack tidak dikembalikan otomatis." >&2
+    echo "!! Rilis gagal, dan $PREV_TAG bukan image sentra_ats sehingga stack tidak dikembalikan otomatis." >&2
   fi
   echo "!! Database tidak dipulihkan otomatis. Backup sebelum rilis:" >&2
   printf '   %s\n' "${BACKUPS[@]}" >&2
@@ -76,6 +88,11 @@ echo "==> Mengganti image ke $IMAGE:$TAG (tanpa mount dev)"
 up "$TAG" 0
 ACTIVE_OVERLAY=0
 wait_backend
+
+echo "==> Penyesuaian nama app di database (sekali saja)"
+renames="$(rename_app)"
+printf '   %s\n' "$renames"
+if grep -q "^RENAMED" <<<"$renames"; then RENAMED=1; fi
 
 echo "==> Migrate semua site"
 for s in $(sites); do
@@ -101,5 +118,5 @@ for s in $(sites); do
 done
 
 trap - ERR
-printf 'tag=%s\noverlay=0\nprev_tag=%s\nprev_overlay=%s\n' "$TAG" "$PREV_TAG" "$PREV_OVERLAY" > "$STATE"
+printf 'tag=%s\noverlay=0\nprev_tag=%s\nprev_overlay=%s\nrenamed=%s\n' "$TAG" "$PREV_TAG" "$PREV_OVERLAY" "$RENAMED" > "$STATE"
 echo "==> Rilis $TAG selesai. Kembalikan dengan ./release.sh --rollback"

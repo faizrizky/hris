@@ -1575,10 +1575,10 @@ else:
 frappe.db.commit()
 
 # Paket langganan company di site ini (Basic/Essential/Suite, lihat server-scripts/_lib/paket_lib.py) adalah satu baris
-# HRIS Subscription yang dikirim dari sentra (hris_ats.subscription.apply_local). Site dev yang belum terdaftar di sentra
+# HRIS Subscription yang dikirim dari sentra (sentra_ats.subscription.apply_local). Site dev yang belum terdaftar di sentra
 # memakai paket terlengkap supaya semua layar tetap bisa diuji; sentra sendiri tidak punya baris ini.
 if not frappe.conf.get("hris_control_plane") and not frappe.db.count("HRIS Subscription"):
-    from hris_ats.subscription import apply_local
+    from sentra_ats.subscription import apply_local
     _site = frappe.local.site
     apply_local(active=1, plan=os.environ.get("SEED_PAKET") or "Suite", until="",
                 code=_site.split(".")[0].upper(), name=_site.split(".")[0].title(), site=_site)
@@ -2045,7 +2045,7 @@ for _sl in frappe.get_all("Shift Location", filters={"geolocation": ["is", "not 
     log(f"Shift Location {_sl}: peta diisi dari koordinat")
 
 # 11. ATS Resume Screening & Background Check Seed -------------------------
-log("memulai seed HRIS ATS & Background Check...")
+log("memulai seed Sentra ATS & Background Check...")
 
 if not exists("Designation", "Senior Product Designer"):
     make(dict(doctype="Designation", designation_name="Senior Product Designer"))
@@ -2087,13 +2087,13 @@ cv_fixtures = [
     ("cv_04_docx.docx", "Budi Santoso", "budi.santoso@example.com", "08123456783", "Surabaya"),
 ]
 
-fixtures_src_dir = "/home/frappe/frappe-bench/apps/hris_ats/hris_ats/tests/fixtures"
+fixtures_src_dir = "/home/frappe/frappe-bench/apps/sentra_ats/sentra_ats/tests/fixtures"
 files_dest_dir = frappe.get_site_path("public", "files")
 os.makedirs(files_dest_dir, exist_ok=True)
 
-from hris_ats.scoring.workflow import process_resume_screening
-from hris_ats.bgc.consent import initiate_background_check, submit_candidate_consent
-from hris_ats.bgc.runner import run_all_sources
+from sentra_ats.scoring.workflow import process_resume_screening
+from sentra_ats.bgc.consent import initiate_background_check, submit_candidate_consent
+from sentra_ats.bgc.runner import run_all_sources
 
 applicant_docs = {}
 
@@ -2201,5 +2201,5 @@ if ronald_app:
             )
 
 frappe.db.commit()
-log("seed HRIS ATS & Background Check selesai")
+log("seed Sentra ATS & Background Check selesai")
 log("selesai")

@@ -44,9 +44,6 @@ services:
       - |
         set -e
         ls -1 apps > sites/apps.txt
-        if ! grep -q "hris_ats" sites/apps.txt; then echo "hris_ats" >> sites/apps.txt; fi
-        mkdir -p sites/assets
-        ln -sfn /home/frappe/frappe-bench/apps/hris_ats/hris_ats/public sites/assets/hris_ats
         bench set-config -g db_host "$$DB_HOST"
         bench set-config -gp db_port "$$DB_PORT"
         bench set-config -g redis_cache "redis://$$REDIS_CACHE"
