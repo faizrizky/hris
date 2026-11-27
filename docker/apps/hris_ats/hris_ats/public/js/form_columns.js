@@ -1,5 +1,5 @@
 // Tidy form sections into two columns: a section whose fields sit in a single column (leaving the rest of the page
-// empty), or in three or more columns that are mostly empty, flows its fields into a two-column grid
+// empty), or in three or more columns of which some are empty, flows its fields into a two-column grid
 // (css/form_columns.css). Fields are only re-flowed, never moved in the DOM. Hook: jQuery "form-refresh"; a
 // MutationObserver repeats the check when depends_on shows or hides fields.
 frappe.provide("hris_ats.form_columns");
@@ -11,7 +11,7 @@ Object.assign(hris_ats.form_columns, {
 		const filled = counts.filter(Boolean).length;
 		if (!total) return false;
 		if (filled === 1) return true;
-		return counts.length >= 3 && (filled < counts.length || total < counts.length * 2);
+		return counts.length >= 3 && filled < counts.length;
 	},
 
 	tidy(wrapper) {

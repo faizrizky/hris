@@ -21,7 +21,8 @@ html.hris-menu-color .body-sidebar .standard-sidebar-item.active-sidebar :is(.it
 
 .hris-color-cards {
 	display: grid;
-	grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	max-width: 760px;
 	gap: 12px;
 	margin-bottom: var(--margin-lg);
 }
@@ -73,4 +74,10 @@ html.hris-menu-color .body-sidebar .standard-sidebar-item.active-sidebar :is(.it
 
 .hris-color-cards .theme-card-preview {
 	position: relative;
+}
+
+@media (max-width: 576px) {
+	.hris-color-cards {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
 }
