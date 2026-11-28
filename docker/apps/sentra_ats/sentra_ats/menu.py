@@ -55,12 +55,20 @@ def hide_rails(bootinfo):
 
 def hide_home(bootinfo, apps=("erpnext", "hrms")):
 	"""Drop the workspace "Home" entry of these apps' menus, so a menu opens on its dashboard (or first real entry)."""
+	from sentra_ats.lite.profile import in_both_languages
+
 	sidebars = bootinfo.get("module_sidebars") or {}
+	home = in_both_languages({"Home"})
 	for app in apps:
-		for entry in (bootinfo.get("dock") or {}).get(app) or []:
+		# the app's own tiles as well as the arrangement: an app without one is absent from `dock`
+		tiles = list((bootinfo.get("dock") or {}).get(app) or [])
+		for data in bootinfo.get("app_data") or []:
+			if data.get("app_name") == app:
+				tiles += data.get("dock") or []
+		for entry in tiles:
 			sidebar = sidebars.get(entry.get("link_to"))
 			if sidebar:
-				sidebar["items"] = [i for i in sidebar["items"] if not (i.get("label") == "Home" and i.get("link_type") == "Workspace")]
+				sidebar["items"] = [i for i in sidebar["items"] if not (i.get("label") in home and i.get("link_type") == "Workspace")]
 
 
 def slug(name: str) -> str:
@@ -111,8 +119,13 @@ def dedupe_shortcuts(bootinfo):
 				labels = {i.get("label") for i in sidebar["items"] if i.get("link_to") in owned}
 				sidebar["items"] = filter_items(sidebar["items"], labels)
 	# Sentra People was the prototype's stand-in for HR; Sentra HR replaces it (a migrate does not drop a Dock row once synced).
+	# The desk builds its tiles from app_data[].dock; `dock` only carries the arrangement, so both are filtered.
+	keep = lambda entries: [e for e in entries or [] if e.get("link_to") != "Sentra People"]
 	if "sentra_ats" in (bootinfo.get("dock") or {}):
-		bootinfo["dock"]["sentra_ats"] = [e for e in bootinfo["dock"]["sentra_ats"] if e.get("link_to") != "Sentra People"]
+		bootinfo["dock"]["sentra_ats"] = keep(bootinfo["dock"]["sentra_ats"])
+	for entry in bootinfo.get("app_data") or []:
+		if entry.get("app_name") == "sentra_ats":
+			entry["dock"] = keep(entry.get("dock"))
 	attendance = sidebars.get("Shift & Attendance")
 	if attendance and not any(i.get("label") == "Roster" for i in attendance["items"]):
 		attendance["items"].append(dict(ROSTER))

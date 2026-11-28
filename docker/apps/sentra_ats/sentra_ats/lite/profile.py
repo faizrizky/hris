@@ -104,10 +104,19 @@ SIDEBAR_HIDE = {
 }
 
 
+def in_both_languages(names):
+	"""Menu labels arrive already translated into the user's language, so a name must also match its translation."""
+	try:
+		return set(names) | {frappe._(name) for name in names}
+	except (AttributeError, RuntimeError):  # no site context (unit tests)
+		return set(names)
+
+
 def filter_items(items, hide):
 	"""Drop entries named in `hide`; a hidden Section Break takes its children with it.
 
 	A section left with nothing under it (its entries were hidden here or removed by permissions) loses its heading too."""
+	hide = in_both_languages(hide)
 	kept, skipping = [], False
 	for item in items:
 		if item.get("type") == "Section Break":

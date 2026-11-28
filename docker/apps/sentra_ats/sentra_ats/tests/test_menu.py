@@ -160,3 +160,25 @@ def test_prune_menus_keeps_partial_menus_and_drops_empty_ones(monkeypatch):
 	assert [i["label"] for i in boot["module_sidebars"]["Partly"]["items"]] == ["Jobs"]
 	assert boot["module_sidebars"]["Denied"]["items"] == []
 	assert [a["on_apps_screen"] for a in boot["app_data"]] == [True, False]
+
+
+def test_sentra_people_is_dropped_from_the_dock_and_the_app_tile():
+	from sentra_ats.menu import dedupe_shortcuts
+
+	tiles = [{"link_to": "Sentra People"}, {"link_to": "Sentra ATS"}]
+	boot = {"dock": {"sentra_ats": list(tiles)}, "app_data": [{"app_name": "sentra_ats", "dock": list(tiles)}]}
+	dedupe_shortcuts(boot)
+	assert boot["dock"]["sentra_ats"] == boot["app_data"][0]["dock"] == [{"link_to": "Sentra ATS"}]
+
+
+def test_labels_are_matched_in_the_users_language_too(monkeypatch):
+	import frappe
+
+	from sentra_ats.lite.profile import filter_items
+	from sentra_ats.menu import hide_home
+
+	monkeypatch.setattr(frappe, "_", lambda s: {"Home": "Beranda", "Reports": "Laporan"}.get(s, s), raising=False)
+	assert filter_items([{"label": "Laporan", "type": "Section Break"}, {"label": "X", "child": 1}, {"label": "Y"}], {"Reports"}) == [{"label": "Y"}]
+	boot = {"app_data": [{"app_name": "hrms", "dock": [{"link_to": "A"}]}], "module_sidebars": {"A": {"items": [{"label": "Beranda", "link_type": "Workspace"}]}}}
+	hide_home(boot)
+	assert boot["module_sidebars"]["A"]["items"] == []
