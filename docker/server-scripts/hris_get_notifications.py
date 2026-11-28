@@ -2,7 +2,8 @@
 # Kotak masuk notifikasi pemanggil (Notification Log, for_user = session user), terbaru dulu, maks 50.
 # category diturunkan dari document_type: Leave Application -> Approval, Salary Slip -> Payroll,
 # Attendance Request -> Presensi. tone: ok | warn | info | bad. time = waktu server (Asia/Jakarta, tanpa offset).
-cat_map = {"Leave Application": "Approval", "Salary Slip": "Payroll", "Attendance Request": "Presensi", "Travel Request": "Approval", "Overtime Request": "Approval", "WFH Schedule": "Approval", "Employee Document": "Pengumuman", "Employee Checkin": "Presensi", "Employee Performance Feedback": "Appraisal", "Appraisal": "Appraisal", "Shift Request": "Approval", "Leave Encashment": "Approval", "Employee Grievance": "Approval"}
+# @include: _lib/notif_lib.py
+cat_map = {"Leave Application": "Approval", "Salary Slip": "Payroll", "Attendance Request": "Presensi", "Travel Request": "Approval", "Overtime Request": "Approval", "WFH Schedule": "Approval", "Employee Document": "Pengumuman", "Employee Checkin": "Presensi", "Employee Performance Feedback": "Appraisal", "Appraisal": "Appraisal", "Shift Request": "Approval", "Leave Encashment": "Approval", "Employee Grievance": "Approval", "Task": "Tugas"}
 is_hr = frappe.session.user == "Administrator" or len(
     frappe.get_all("Has Role", filters={"parent": frappe.session.user, "parenttype": "User",
                                         "role": ["in", ["HR User", "HR Manager", "System Manager"]]},
@@ -17,7 +18,7 @@ rows = frappe.get_all(
 )
 result = []
 for r in rows:
-    subj = r.subject or ""
+    subj = nt_teks(r.subject)
     low = subj.lower()
     tone = "info"
     if "approved" in low:
@@ -28,7 +29,7 @@ for r in rows:
         tone = "warn"
     if r.document_type == "HR Announcement":
         tone = "warn" if frappe.db.get_value("HR Announcement", r.document_name, "priority") == "Important" else "info"
-    body = frappe.utils.strip_html(r.email_content) if r.email_content else ""
+    body = nt_teks(r.email_content)
     file_url = None
     file_name = None
     if r.document_type == "Employee Document" and r.document_name:

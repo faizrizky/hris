@@ -343,7 +343,7 @@ export interface HrService {
 }
 
 export type NotifCategory =
-  "Approval" | "Payroll" | "Presensi" | "Appraisal" | "Pengumuman";
+  "Approval" | "Payroll" | "Presensi" | "Appraisal" | "Pengumuman" | "Tugas";
 
 export interface AppNotification {
   id: string;

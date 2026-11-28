@@ -450,6 +450,7 @@ export const en: Record<TranslationKey, string> = {
   "cat.Presensi": "Attendance",
   "cat.Appraisal": "Appraisal",
   "cat.Pengumuman": "Announcement",
+  "cat.Tugas": "Task",
   "nt.judul": "Notifications",
   "nt.tabInbox": "Inbox",
   "nt.tabPengumuman": "Announcements",

@@ -457,6 +457,7 @@ export const id = {
   "cat.Presensi": "Presensi",
   "cat.Appraisal": "Appraisal",
   "cat.Pengumuman": "Pengumuman",
+  "cat.Tugas": "Tugas",
   "nt.judul": "Notifikasi",
   "nt.tabInbox": "Kotak Masuk",
   "nt.tabPengumuman": "Pengumuman",

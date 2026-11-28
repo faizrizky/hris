@@ -16,7 +16,8 @@ if raw:
 for n in frappe.get_all("Notification Log", filters=filters, pluck="name", limit_page_length=1000):
     frappe.db.set_value("Notification Log", n, "read", 1)
 
-cat_map = {"Leave Application": "Approval", "Salary Slip": "Payroll", "Attendance Request": "Presensi", "Travel Request": "Approval", "Overtime Request": "Approval", "WFH Schedule": "Approval", "Employee Document": "Pengumuman", "Employee Checkin": "Presensi", "Employee Performance Feedback": "Appraisal", "Appraisal": "Appraisal", "Shift Request": "Approval", "Leave Encashment": "Approval", "Employee Grievance": "Approval"}
+# @include: _lib/notif_lib.py
+cat_map = {"Leave Application": "Approval", "Salary Slip": "Payroll", "Attendance Request": "Presensi", "Travel Request": "Approval", "Overtime Request": "Approval", "WFH Schedule": "Approval", "Employee Document": "Pengumuman", "Employee Checkin": "Presensi", "Employee Performance Feedback": "Appraisal", "Appraisal": "Appraisal", "Shift Request": "Approval", "Leave Encashment": "Approval", "Employee Grievance": "Approval", "Task": "Tugas"}
 is_hr = frappe.session.user == "Administrator" or len(
     frappe.get_all("Has Role", filters={"parent": frappe.session.user, "parenttype": "User",
                                         "role": ["in", ["HR User", "HR Manager", "System Manager"]]},
@@ -31,7 +32,7 @@ rows = frappe.get_all(
 )
 result = []
 for r in rows:
-    subj = r.subject or ""
+    subj = nt_teks(r.subject)
     low = subj.lower()
     tone = "info"
     if "approved" in low:
@@ -59,7 +60,7 @@ for r in rows:
         {
             "name": r.name,
             "subject": subj,
-            "body": frappe.utils.strip_html(r.email_content) if r.email_content else "",
+            "body": nt_teks(r.email_content),
             "category": cat_map.get(r.document_type, "Pengumuman"),
             "tone": tone,
             "time": str(r.creation)[:19].replace(" ", "T"),

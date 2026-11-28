@@ -153,6 +153,8 @@ export function translateNotification(
     title = `Pencairan cuti ${m[1]} menunggu ditinjau`;
   } else if ((m = subject.match(/^You are enrolled in training: (.+)$/))) {
     title = `Kamu terdaftar di pelatihan: ${m[1]}`;
+  } else if ((m = subject.match(/^(.+) assigned you a task: (.+)$/))) {
+    title = `Tugas baru dari ${m[1]}: ${m[2]}`;
   }
 
   let content = body;

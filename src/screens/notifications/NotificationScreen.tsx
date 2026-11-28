@@ -27,6 +27,7 @@ const CATEGORY_ICONS: Record<NotifCategory, keyof typeof Ionicons.glyphMap> = {
   Presensi: "finger-print-outline",
   Appraisal: "star-outline",
   Pengumuman: "megaphone-outline",
+  Tugas: "list-outline",
 };
 
 export function NotificationScreen({ navigation }: ScreenProps) {
