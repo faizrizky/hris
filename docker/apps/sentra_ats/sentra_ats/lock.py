@@ -29,6 +29,14 @@ LOCKED_REPORTS = (
 	"Unpaid Expense Claim", "Vehicle Expenses", "Employee CTC Break-up", "Salary Register", "Income Tax Computation",
 	"Income Tax Deductions", "Accrued Earnings Report",
 )
+# Doctypes ERPNext lets every desk user read although only the quality team works with them: that grant is removed,
+# the job roles keep theirs. Core doctypes with the same generic grant (User, Contact, Letter Head, ...) stay readable
+# because forms, printing and email need them; they are only left out of the menu (sentra_ats.menu).
+NOT_FOR_EVERYONE = (
+	"Quality Goal", "Quality Procedure", "Quality Review", "Non Conformance", "Quality Action", "Quality Meeting",
+	"Quality Feedback",
+)
+EVERYONE = ("All", "Desk User")
 # Sidebars (rails) removed from the Desk menu.
 HIDDEN_RAILS = ("Expenses", "Payroll", "Tax & Benefits")
 
@@ -53,11 +61,22 @@ def strip(dt):
 			update_custom_docperm(row.name, {p: 0 for p in rights})
 
 
+def revoke_generic(dt):
+	"""Remove the rights every desk user gets; rows of job roles are untouched."""
+	setup_custom_perms(dt)
+	for row in frappe.get_all("Custom DocPerm", filters={"parent": dt, "role": ("in", EVERYONE)}, fields=["name", *rights]):
+		if any(row[p] for p in rights):
+			update_custom_docperm(row.name, {p: 0 for p in rights})
+
+
 def apply():
 	"""One save per permission row that still grants something, so a repeat run (every migrate) is nearly free."""
 	for dt in LOCKED_DOCTYPES:
 		if frappe.db.exists("DocType", dt):
 			strip(dt)
+	for dt in NOT_FOR_EVERYONE:
+		if frappe.db.exists("DocType", dt):
+			revoke_generic(dt)
 	for report in LOCKED_REPORTS:
 		if not frappe.db.exists("Report", report):
 			continue
@@ -70,7 +89,7 @@ def apply():
 
 
 def revert():
-	for dt in LOCKED_DOCTYPES:
+	for dt in LOCKED_DOCTYPES + NOT_FOR_EVERYONE:
 		if frappe.db.exists("DocType", dt):
 			reset_perms(dt)
 	for name in frappe.get_all("Custom Role", filters={"report": ("in", LOCKED_REPORTS)}, pluck="name"):

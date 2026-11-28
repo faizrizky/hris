@@ -140,6 +140,7 @@ def test_prune_menus_keeps_partial_menus_and_drops_empty_ones(monkeypatch):
 
 	monkeypatch.setattr(frappe, "has_permission", lambda dt, ptype: dt == "Job Opening", raising=False)
 	monkeypatch.setattr(menu, "dashboard_has_content", lambda name: name == "Full")
+	monkeypatch.setattr(frappe, "get_roles", lambda: ["HR User"], raising=False)
 	link = lambda label, link_type, **extra: {"type": "Link", "label": label, "link_type": link_type, **extra}
 	tile = lambda name: {"link_type": "Sidebar", "link_to": name}
 	boot = {
@@ -182,3 +183,16 @@ def test_labels_are_matched_in_the_users_language_too(monkeypatch):
 	boot = {"app_data": [{"app_name": "hrms", "dock": [{"link_to": "A"}]}], "module_sidebars": {"A": {"items": [{"label": "Beranda", "link_type": "Workspace"}]}}}
 	hide_home(boot)
 	assert boot["module_sidebars"]["A"]["items"] == []
+
+
+def test_a_doctype_everybody_may_read_is_not_a_menu_of_the_user(monkeypatch):
+	import frappe
+
+	from sentra_ats import menu
+
+	meta = type("Meta", (), {"permissions": [{"role": "Desk User", "read": 1}, {"role": "Quality Manager", "read": 1}]})
+	monkeypatch.setattr(frappe, "get_meta", lambda dt: meta, raising=False)
+	item = {"link_type": "DocType", "link_to": "Quality Goal"}
+	assert not menu.may_open(item, ["Employee", "Desk User", "All"])
+	assert menu.may_open(item, ["Quality Manager", "Desk User"])
+	assert menu.may_open(item, ["System Manager"])

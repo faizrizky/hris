@@ -151,7 +151,19 @@ def dashboard_has_content(name) -> bool:
 		return False
 
 
-def may_open(item) -> bool:
+# Roles every desk user carries. A menu entry readable only through these was never assigned to the user's job.
+GENERIC_ROLES = {"All", "Desk User", "Guest"}
+
+
+def granted_by_own_role(doctype, roles) -> bool:
+	"""Whether one of the user's job roles (not a role everybody has) may read the doctype."""
+	own = set(roles) - GENERIC_ROLES
+	return any(p.get("read") and p.get("role") in own for p in frappe.get_meta(doctype).permissions)
+
+
+def may_open(item, roles=()) -> bool:
+	if item.get("link_type") == "DocType" and item.get("link_to") and "System Manager" not in roles:
+		return granted_by_own_role(item["link_to"], roles)
 	if item.get("link_type") == "URL":
 		need = URL_NEEDS.get(item.get("url") or item.get("link_to"))
 		return not need or bool(frappe.has_permission(*need))
@@ -161,13 +173,14 @@ def may_open(item) -> bool:
 
 
 def prune_menus(bootinfo):
-	"""Show only what the user can open: drop denied links, then every dock tile whose menu has nothing left (a lone
+	"""Show only what the user can open: drop denied links (and doctypes readable only because everybody may), then every dock tile whose menu has nothing left (a lone
 	"Home" workspace counts as nothing), then every app tile without a dock tile. A menu with some rights keeps those."""
 	from sentra_ats.lite.profile import filter_items
 
 	usable = set()
+	roles = frappe.get_roles()
 	for name, sidebar in (bootinfo.get("module_sidebars") or {}).items():
-		sidebar["items"] = filter_items([i for i in sidebar.get("items") or [] if may_open(i)], set())
+		sidebar["items"] = filter_items([i for i in sidebar.get("items") or [] if may_open(i, roles)], set())
 		if any(i.get("type") != "Section Break" and i.get("link_type") != "Workspace" for i in sidebar["items"]):
 			usable.add(name)
 
