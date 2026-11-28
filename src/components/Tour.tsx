@@ -8,7 +8,9 @@ import {
   useSyncExternalStore,
 } from "react";
 import {
+  Animated,
   BackHandler,
+  Easing,
   Pressable,
   StyleSheet,
   Text,
@@ -16,6 +18,8 @@ import {
   useWindowDimensions,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Ionicons } from "@expo/vector-icons";
+import Svg, { Defs, Mask, Rect } from "react-native-svg";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useT } from "@/i18n";
 import type { TranslationKey } from "@/i18n/id";
@@ -25,9 +29,11 @@ import { useTheme } from "@/theme/ThemeContext";
 
 const SEEN_KEY = "hris.tourSeen.v2"; // v2: ditampilkan sekali lagi ke semua pengguna
 const START_DELAY_MS = 900; // menunggu animasi masuk Beranda selesai
-const SCROLL_WAIT_MS = 120;
-const DIM = "rgba(8,12,18,0.72)";
+const SCROLL_WAIT_MS = 380; // gulir beranimasi sebelum target diukur ulang
+const MOVE_MS = 340;
+const DIM = "rgba(8,12,18,0.74)";
 const PAD = 6;
+const RADIUS = 18;
 const TAB_BAR_SPACE = 130;
 
 interface Step {
@@ -41,7 +47,9 @@ interface Tour {
   onScroll: (dy: number) => void;
 }
 
-interface Rect {
+const AnimatedRect = Animated.createAnimatedComponent(Rect);
+
+interface Box {
   x: number;
   y: number;
   w: number;
@@ -76,6 +84,27 @@ const setTour = (tour: Tour | null) => {
   listeners.forEach((listener) => listener());
 };
 
+// Putar ulang dari Profil: penghitung me-mount ulang TourStarter, tanda sekali-pakai melewati cek "sudah dilihat".
+let replayCount = 0;
+let isReplayPending = false;
+const replayListeners = new Set<() => void>();
+export function requestTourReplay() {
+  replayCount += 1;
+  isReplayPending = true;
+  replayListeners.forEach((listener) => listener());
+}
+export function useTourReplay() {
+  return useSyncExternalStore(
+    (listener) => {
+      replayListeners.add(listener);
+      return () => {
+        replayListeners.delete(listener);
+      };
+    },
+    () => replayCount,
+  );
+}
+
 export const isTourSeen = async (): Promise<boolean> => {
   try {
     return (await AsyncStorage.getItem(SEEN_KEY)) === "1";
@@ -108,7 +137,9 @@ export function TourStarter({
   });
   useEffect(() => {
     const timer = setTimeout(async () => {
-      if (activeTour || (await isTourSeen())) return;
+      const isReplay = isReplayPending;
+      isReplayPending = false;
+      if (activeTour || (!isReplay && (await isTourSeen()))) return;
       const { menuKeys: menu, tabs: bar, t: tr } = latest.current;
       setTour({
         onScroll: latest.current.onScroll,
@@ -149,25 +180,65 @@ function TourSteps({ tour }: { tour: Tour }) {
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
   const insets = useSafeAreaInsets();
-  const { height } = useWindowDimensions();
+  const { width, height } = useWindowDimensions();
   const rootRef = useRef<View>(null);
   const [index, setIndex] = useState(0);
-  const [spot, setSpot] = useState<{ index: number; rect: Rect | null }>({
-    index: -1,
-    rect: null,
+  // Langkah yang sedang tampil di kartu; berganti hanya saat kartu tak terlihat supaya teks tidak meloncat.
+  const [shown, setShown] = useState<{ index: number; hole: Box | null }>({
+    index: 0,
+    hole: null,
   });
-  const step = tour.steps[index]!;
-  const isLast = index === tour.steps.length - 1;
+  const [anim] = useState(() => ({
+    x: new Animated.Value(width / 2),
+    y: new Animated.Value(height / 2),
+    w: new Animated.Value(0),
+    h: new Animated.Value(0),
+    ring: new Animated.Value(0),
+    card: new Animated.Value(0),
+  }));
+  const total = tour.steps.length;
+  const step = tour.steps[shown.index]!;
+  const isLast = shown.index === total - 1;
 
   useEffect(() => {
     let isCancelled = false;
     let timer: ReturnType<typeof setTimeout>;
+    const target = tour.steps[index]!.target;
+    const reveal = (rect: Box | null) => {
+      if (isCancelled) return;
+      const hole = rect && {
+        x: rect.x - PAD,
+        y: rect.y - PAD,
+        w: rect.w + PAD * 2,
+        h: rect.h + PAD * 2,
+      };
+      setShown({ index, hole });
+      const to = hole ?? { x: width / 2, y: height / 2, w: 0, h: 0 };
+      const glide = (value: Animated.Value, toValue: number) =>
+        Animated.timing(value, {
+          toValue,
+          duration: MOVE_MS,
+          easing: Easing.out(Easing.cubic),
+          useNativeDriver: false,
+        });
+      Animated.parallel([
+        glide(anim.x, to.x),
+        glide(anim.y, to.y),
+        glide(anim.w, to.w),
+        glide(anim.h, to.h),
+        glide(anim.ring, hole ? 1 : 0),
+        Animated.timing(anim.card, {
+          toValue: 1,
+          duration: 260,
+          delay: MOVE_MS - 120,
+          easing: Easing.out(Easing.cubic),
+          useNativeDriver: true,
+        }),
+      ]).start();
+    };
     const measure = (canScroll: boolean) => {
-      const node = step.target ? targets.get(step.target) : undefined;
-      if (!node || !rootRef.current) {
-        setSpot({ index, rect: null });
-        return;
-      }
+      const node = target ? targets.get(target) : undefined;
+      if (!node || !rootRef.current) return reveal(null);
       rootRef.current.measureInWindow((rootX, rootY) => {
         node.measureInWindow((x, y, w, h) => {
           if (isCancelled) return;
@@ -175,21 +246,28 @@ function TourSteps({ tour }: { tour: Tour }) {
           const isOffscreen =
             top < insets.top + 90 || top + h > height - TAB_BAR_SPACE;
           // Tab bar selalu terlihat; hanya isi Beranda yang perlu digulir.
-          if (canScroll && isOffscreen && !step.target!.startsWith("tab:")) {
-            tour.onScroll(top - height * 0.35);
+          if (canScroll && isOffscreen && !target!.startsWith("tab:")) {
+            tour.onScroll(top - height * 0.32);
             timer = setTimeout(() => measure(false), SCROLL_WAIT_MS);
             return;
           }
-          setSpot({ index, rect: { x: x - rootX, y: top, w, h } });
+          reveal({ x: x - rootX, y: top, w, h });
         });
       });
     };
-    timer = setTimeout(() => measure(true), 0);
+    // Kartu memudar dulu, baru sorotan berpindah.
+    Animated.timing(anim.card, {
+      toValue: 0,
+      duration: 140,
+      useNativeDriver: true,
+    }).start(() => {
+      timer = setTimeout(() => measure(true), 0);
+    });
     return () => {
       isCancelled = true;
       clearTimeout(timer);
     };
-  }, [index, step, tour, height, insets.top]);
+  }, [index, tour, width, height, insets.top, anim]);
 
   useEffect(() => {
     // Tombol kembali Android melewati tutorial, bukan memindahkan halaman di belakangnya.
@@ -200,143 +278,209 @@ function TourSteps({ tour }: { tour: Tour }) {
     return () => sub.remove();
   }, []);
 
-  const rect = spot.index === index ? spot.rect : null;
-  const hole = rect && {
-    x: rect.x - PAD,
-    y: rect.y - PAD,
-    w: rect.w + PAD * 2,
-    h: rect.h + PAD * 2,
-  };
+  const hole = shown.hole;
   const isCardBelow = !!hole && hole.y + hole.h / 2 < height / 2;
   const cardPosition = !hole
     ? { top: height * 0.3 }
     : isCardBelow
-      ? { top: hole.y + hole.h + 14 }
-      : { bottom: height - hole.y + 14 };
+      ? { top: hole.y + hole.h + 16 }
+      : { bottom: height - hole.y + 16 };
+  const isBusy = shown.index !== index; // tombol diabaikan selama perpindahan
 
   return (
     <View ref={rootRef} collapsable={false} style={StyleSheet.absoluteFill}>
       {/* Menahan semua sentuhan ke layar di belakang. */}
       <Pressable style={StyleSheet.absoluteFill} accessible={false} />
-      {hole ? (
-        <View pointerEvents="none" style={StyleSheet.absoluteFill}>
-          <View
-            style={[
-              styles.dim,
-              { top: 0, left: 0, right: 0, height: Math.max(0, hole.y) },
-            ]}
-          />
-          <View
-            style={[
-              styles.dim,
-              { top: hole.y + hole.h, left: 0, right: 0, bottom: 0 },
-            ]}
-          />
-          <View
-            style={[
-              styles.dim,
-              {
-                top: hole.y,
-                left: 0,
-                width: Math.max(0, hole.x),
-                height: hole.h,
-              },
-            ]}
-          />
-          <View
-            style={[
-              styles.dim,
-              { top: hole.y, left: hole.x + hole.w, right: 0, height: hole.h },
-            ]}
-          />
-          <View
-            style={[
-              styles.ring,
-              { top: hole.y, left: hole.x, width: hole.w, height: hole.h },
-            ]}
-          />
-        </View>
-      ) : (
-        <View
-          pointerEvents="none"
-          style={[StyleSheet.absoluteFill, styles.dim]}
+      <Svg
+        pointerEvents="none"
+        width={width}
+        height={height}
+        style={StyleSheet.absoluteFill}
+      >
+        <Defs>
+          <Mask id="tourHole">
+            <Rect width={width} height={height} fill="#FFFFFF" />
+            <AnimatedRect
+              x={anim.x}
+              y={anim.y}
+              width={anim.w}
+              height={anim.h}
+              rx={RADIUS}
+              fill="#000000"
+            />
+          </Mask>
+        </Defs>
+        <Rect
+          width={width}
+          height={height}
+          fill={DIM}
+          mask="url(#tourHole)"
         />
-      )}
-      <View
-        style={[styles.card, cardPosition]}
+      </Svg>
+      <Animated.View
+        pointerEvents="none"
+        style={[
+          styles.ring,
+          {
+            left: anim.x,
+            top: anim.y,
+            width: anim.w,
+            height: anim.h,
+            opacity: anim.ring,
+          },
+        ]}
+      />
+      <Animated.View
+        style={[
+          styles.card,
+          cardPosition,
+          {
+            opacity: anim.card,
+            transform: [
+              {
+                translateY: anim.card.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [isCardBelow || !hole ? 10 : -10, 0],
+                }),
+              },
+            ],
+          },
+        ]}
         accessibilityViewIsModal
         accessibilityLiveRegion="polite"
       >
-        <Text style={styles.count}>
-          {t("tour.count", { n: index + 1, total: tour.steps.length })}
-        </Text>
-        <Text style={styles.title}>{step.title}</Text>
-        <Text style={styles.text}>{t(step.text)}</Text>
-        <View style={styles.actions}>
-          {isLast ? (
-            <View />
-          ) : (
+        <View style={styles.headRow}>
+          <Text style={styles.count}>
+            {t("tour.count", { n: shown.index + 1, total })}
+          </Text>
+          {isLast ? null : (
             <Pressable
               accessibilityRole="button"
               onPress={finishTour}
-              hitSlop={10}
+              hitSlop={12}
             >
               <Text style={styles.skip}>{t("tour.skip")}</Text>
             </Pressable>
           )}
+        </View>
+        <View style={styles.track}>
+          <View
+            style={[
+              styles.fill,
+              { width: `${((shown.index + 1) / total) * 100}%` },
+            ]}
+          />
+        </View>
+        <Text style={styles.title}>{step.title}</Text>
+        <Text style={styles.text}>{t(step.text)}</Text>
+        <View style={styles.actions}>
+          {shown.index > 0 && !isLast ? (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={t("tour.back")}
+              style={styles.back}
+              disabled={isBusy}
+              onPress={() => setIndex(shown.index - 1)}
+            >
+              <Ionicons name="chevron-back" size={18} color={c.ink} />
+            </Pressable>
+          ) : null}
           <Pressable
             accessibilityRole="button"
-            style={styles.next}
-            onPress={() => (isLast ? finishTour() : setIndex(index + 1))}
+            disabled={isBusy}
+            style={({ pressed }) => [
+              styles.next,
+              pressed && { opacity: 0.85 },
+            ]}
+            onPress={() =>
+              isLast ? finishTour() : setIndex(shown.index + 1)
+            }
           >
             <Text style={styles.nextText}>
               {t(
                 isLast
                   ? "tour.finish"
-                  : index === 0
+                  : shown.index === 0
                     ? "tour.start"
                     : "tour.next",
               )}
             </Text>
+            <Ionicons
+              name={isLast ? "checkmark" : "arrow-forward"}
+              size={16}
+              color="#FFFFFF"
+            />
           </Pressable>
         </View>
-      </View>
+      </Animated.View>
     </View>
   );
 }
 
 const makeStyles = (c: Palette) =>
   StyleSheet.create({
-    dim: { position: "absolute", backgroundColor: DIM },
     ring: {
       position: "absolute",
-      borderRadius: 16,
+      borderRadius: RADIUS,
       borderWidth: 2,
-      borderColor: "#FFFFFF",
+      borderColor: "rgba(255,255,255,0.95)",
     },
     card: {
       position: "absolute",
-      left: 18,
-      right: 18,
+      left: 16,
+      right: 16,
       backgroundColor: c.card,
-      borderRadius: 22,
-      padding: 18,
+      borderRadius: 24,
+      paddingHorizontal: 20,
+      paddingTop: 16,
+      paddingBottom: 18,
+      shadowColor: "#000000",
+      shadowOffset: { width: 0, height: 10 },
+      shadowOpacity: 0.25,
+      shadowRadius: 24,
+      elevation: 12,
     },
-    count: { fontSize: 11, fontWeight: "700", color: c.muted },
-    title: { fontSize: 17, fontWeight: "800", color: c.ink, marginTop: 6 },
-    text: { fontSize: 13.5, lineHeight: 20, color: c.muted, marginTop: 6 },
-    actions: {
+    headRow: {
       flexDirection: "row",
       justifyContent: "space-between",
       alignItems: "center",
-      marginTop: 16,
     },
-    skip: { fontSize: 13, fontWeight: "700", color: c.muted },
+    count: { fontSize: 12, fontWeight: "700", color: c.accent },
+    skip: { fontSize: 13, fontWeight: "600", color: c.muted },
+    track: {
+      height: 4,
+      borderRadius: 2,
+      backgroundColor: c.chip,
+      marginTop: 10,
+      overflow: "hidden",
+    },
+    fill: { height: 4, borderRadius: 2, backgroundColor: c.accent },
+    title: { fontSize: 18, fontWeight: "800", color: c.ink, marginTop: 14 },
+    text: { fontSize: 14, lineHeight: 21, color: c.muted, marginTop: 6 },
+    actions: {
+      flexDirection: "row",
+      justifyContent: "flex-end",
+      alignItems: "center",
+      gap: 10,
+      marginTop: 18,
+    },
+    back: {
+      width: 46,
+      height: 46,
+      borderRadius: 23,
+      backgroundColor: c.chip,
+      alignItems: "center",
+      justifyContent: "center",
+    },
     next: {
       ...primaryButtonStyle(c),
-      borderRadius: 14,
-      paddingVertical: 11,
+      backgroundColor: c.accent,
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 8,
+      height: 46,
+      borderRadius: 23,
       paddingHorizontal: 22,
     },
-    nextText: { fontSize: 13, fontWeight: "700", color: "#FFFFFF" },
+    nextText: { fontSize: 14.5, fontWeight: "700", color: "#FFFFFF" },
   });

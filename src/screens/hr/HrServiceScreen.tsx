@@ -322,6 +322,7 @@ const makeStyles = (c: Palette) =>
     },
     submit: {
       ...primaryButtonStyle(c),
+      backgroundColor: c.accent,
       borderRadius: 16,
       paddingVertical: 14,
       alignItems: "center",

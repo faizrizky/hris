@@ -23,6 +23,7 @@ import { signOutSafely, useSession } from "@/services/session";
 import { useConfirm } from "@/components/ConfirmDialog";
 import { useT } from "@/i18n";
 import { LanguagePicker } from "@/components/LanguagePicker";
+import { requestTourReplay } from "@/components/Tour";
 import { useProfile } from "@/hooks/useProfile";
 
 export function ProfileScreen({ navigation }: ScreenProps) {
@@ -227,6 +228,17 @@ export function ProfileScreen({ navigation }: ScreenProps) {
             title={t("profil.bahasa")}
             subtitle={t("profil.bahasaSub")}
             trailing={<LanguagePicker />}
+          />
+          <MenuRow
+            iconBg={c.info.bg}
+            ink={c.info.ink}
+            icon="sparkles-outline"
+            title={t("profil.tutorial")}
+            subtitle={t("profil.tutorialSub")}
+            onPress={() => {
+              requestTourReplay();
+              navigation.navigate("Beranda");
+            }}
             isLast
           />
         </View>

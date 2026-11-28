@@ -8,7 +8,7 @@ import {
   Text,
   View,
 } from "react-native";
-import { TourStarter, tourTarget } from "@/components/Tour";
+import { TourStarter, tourTarget, useTourReplay } from "@/components/Tour";
 import { tabOrder } from "@/navigation/tabOrder";
 import { Reveal, RevealScrollView as ScrollView } from "@/components/Reveal";
 import { Ionicons } from "@expo/vector-icons";
@@ -107,12 +107,13 @@ export function HomeScreen() {
     load,
     canStartTour,
   } = useHome();
+  const replayCount = useTourReplay();
   const scrollRef = useRef<RNScrollView>(null);
   const scrollOffset = useRef(0);
   const scrollHome = useCallback((dy: number) => {
     scrollRef.current?.scrollTo({
       y: Math.max(0, scrollOffset.current + dy),
-      animated: false,
+      animated: true,
     });
   }, []);
   const t = useT();
@@ -394,8 +395,9 @@ export function HomeScreen() {
 
   return (
     <View style={styles.container}>
-      {canStartTour && !isLoading ? (
+      {(canStartTour || replayCount > 0) && !isLoading ? (
         <TourStarter
+          key={replayCount}
           menuKeys={menuSections.flatMap((s) =>
             s.items.map((item) => ({ key: item.key, label: item.label })),
           )}
