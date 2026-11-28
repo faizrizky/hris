@@ -1324,7 +1324,7 @@ export const en: Record<TranslationKey, string> = {
     "This card shows whether your face is registered. Have a verified ID card and a profile photo ready, then tap the card.",
   "tur.p.wajahMulai.j": "Register your face",
   "tur.p.wajahMulai":
-    "Tap this button, keep your face in the frame without a mask or dark glasses, then follow the requested movements. HR will review it.",
+    "Face registration starts here. If a verified ID card or profile photo is missing, add it first as instructed. Then tap start, face the camera without a mask or dark glasses, follow the movements and wait for HR to review it.",
   "tur.p.perangkat.j": "Registered device",
   "tur.p.perangkat":
     "Your first phone is registered automatically. If you change phones, you can clock in only after HR approves the new one.",

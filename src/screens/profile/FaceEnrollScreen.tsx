@@ -109,23 +109,25 @@ export function FaceEnrollScreen({ navigation }: ScreenProps) {
     return (
       <View style={styles.container}>
         {lightHeader}
-        <EmptyState
-          title={t(isIdCardMissing ? "fe.butuhKtp" : "fe.butuhFoto")}
-          text={t(isIdCardMissing ? "fe.butuhKtpPesan" : "fe.butuhFotoPesan")}
-        >
-          <Pressable
-            style={styles.lightButton}
-            onPress={() =>
-              navigation.navigate(
-                isIdCardMissing ? "ProfileDocs" : "ProfilePhoto",
-              )
-            }
+        <TourTarget id="p.wajahMulai">
+          <EmptyState
+            title={t(isIdCardMissing ? "fe.butuhKtp" : "fe.butuhFoto")}
+            text={t(isIdCardMissing ? "fe.butuhKtpPesan" : "fe.butuhFotoPesan")}
           >
-            <Text style={styles.lightButtonText}>
-              {t(isIdCardMissing ? "fe.keDokumen" : "fe.keFoto")}
-            </Text>
-          </Pressable>
-        </EmptyState>
+            <Pressable
+              style={styles.lightButton}
+              onPress={() =>
+                navigation.navigate(
+                  isIdCardMissing ? "ProfileDocs" : "ProfilePhoto",
+                )
+              }
+            >
+              <Text style={styles.lightButtonText}>
+                {t(isIdCardMissing ? "fe.keDokumen" : "fe.keFoto")}
+              </Text>
+            </Pressable>
+          </EmptyState>
+        </TourTarget>
       </View>
     );
   }
@@ -134,11 +136,13 @@ export function FaceEnrollScreen({ navigation }: ScreenProps) {
     return (
       <View style={styles.container}>
         {lightHeader}
-        <EmptyState
-          icon="M5 13l4 4L19 7"
-          title={t("fe.menunggu")}
-          text={t("fe.menungguPesan")}
-        />
+        <TourTarget id="p.wajahMulai">
+          <EmptyState
+            icon="M5 13l4 4L19 7"
+            title={t("fe.menunggu")}
+            text={t("fe.menungguPesan")}
+          />
+        </TourTarget>
       </View>
     );
   }
@@ -255,7 +259,7 @@ export function FaceEnrollScreen({ navigation }: ScreenProps) {
           ) : null}
           <View style={{ flex: 1 }} />
           {phase === "cek" ? null : (
-            <TourTarget id="p.wajahMulai">
+            <TourTarget id="p.wajahMulai" style={styles.stretch}>
               <Pressable style={styles.blueButton} onPress={mulai}>
                 <Text style={styles.blueButtonText}>
                   {t(
@@ -364,6 +368,7 @@ const makeStyles = (c: Palette) =>
     cancel: { position: "absolute", left: 20 },
     cancelText: { fontSize: 16, fontWeight: "500", color: BLUE },
 
+    stretch: { alignSelf: "stretch" },
     introWrapper: {
       flex: 1,
       alignItems: "center",

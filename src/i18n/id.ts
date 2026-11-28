@@ -1326,7 +1326,7 @@ export const id = {
     "Kartu ini menunjukkan apakah wajahmu sudah terdaftar. Siapkan KTP yang sudah diverifikasi dan foto profil, lalu ketuk kartunya.",
   "tur.p.wajahMulai.j": "Daftarkan wajah",
   "tur.p.wajahMulai":
-    "Tekan tombol ini, posisikan wajah di dalam bingkai tanpa masker dan kacamata gelap, lalu ikuti gerakan yang diminta. HR akan meninjaunya.",
+    "Daftar wajah dimulai dari halaman ini. Bila KTP terverifikasi atau foto profil belum ada, lengkapi dulu sesuai petunjuk. Setelah itu tekan mulai, hadapkan wajah tanpa masker dan kacamata gelap, ikuti gerakannya, lalu tunggu tinjauan HR.",
   "tur.p.perangkat.j": "Daftarkan perangkat",
   "tur.p.perangkat":
     "HP pertamamu terdaftar otomatis. Kalau ganti HP, absen baru bisa setelah HR menyetujui perangkat baru itu.",
