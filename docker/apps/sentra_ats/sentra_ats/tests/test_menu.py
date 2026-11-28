@@ -131,3 +131,32 @@ def test_menu_color_accepts_only_colours():
 
 	assert all(is_valid(v) for v in ("", None, "standard", "#467CF7"))  # "standard" = the default, kept for old values
 	assert not any(is_valid(v) for v in ("red", "#fff", "#467CF7;}body{display:none", "url(x)"))
+
+
+def test_prune_menus_keeps_partial_menus_and_drops_empty_ones(monkeypatch):
+	import frappe
+
+	from sentra_ats import menu
+
+	monkeypatch.setattr(frappe, "has_permission", lambda dt, ptype: dt == "Job Opening", raising=False)
+	monkeypatch.setattr(menu, "dashboard_has_content", lambda name: name == "Full")
+	link = lambda label, link_type, **extra: {"type": "Link", "label": label, "link_type": link_type, **extra}
+	tile = lambda name: {"link_type": "Sidebar", "link_to": name}
+	boot = {
+		"module_sidebars": {
+			"Partly": {"items": [link("Roster", "URL", url="/hr/roster"), link("Jobs", "URL", url="/jobs")]},
+			"Empty": {"items": []},
+			"Home only": {"items": [link("Home", "Workspace")]},
+			"Denied": {"items": [{"type": "Section Break", "label": "S"}, link("D", "Dashboard", link_to="Blank")]},
+		},
+		"dock": {"hrms": [tile("Partly"), tile("Empty"), tile("Home only"), tile("Denied")]},
+		"app_data": [
+			{"app_name": "hrms", "dock": [tile("Partly"), tile("Empty")], "on_apps_screen": True},
+			{"app_name": "other", "dock": [tile("Denied")], "on_apps_screen": True},
+		],
+	}
+	menu.prune_menus(boot)
+	assert [e["link_to"] for e in boot["dock"]["hrms"]] == ["Partly"]
+	assert [i["label"] for i in boot["module_sidebars"]["Partly"]["items"]] == ["Jobs"]
+	assert boot["module_sidebars"]["Denied"]["items"] == []
+	assert [a["on_apps_screen"] for a in boot["app_data"]] == [True, False]

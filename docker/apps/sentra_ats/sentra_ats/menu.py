@@ -118,14 +118,68 @@ def dedupe_shortcuts(bootinfo):
 		attendance["items"].append(dict(ROSTER))
 
 
+# Frappe hides DocType, Report and Page entries the user may not open, but not plain links: each of ours needs a right.
+URL_NEEDS = {
+	"/hr/roster": ("Shift Assignment", "create"),
+	"/desk/job-applicant/view/kanban": ("Job Applicant", "read"),
+	"/jobs": ("Job Opening", "read"),
+	"/banking": ("Bank Transaction", "read"),
+}
+
+
+def dashboard_has_content(name) -> bool:
+	"""A dashboard is worth listing only if the user may see at least one of its charts or number cards."""
+	from frappe.desk.doctype.dashboard.dashboard import get_permitted_cards, get_permitted_charts
+
+	try:
+		return bool(get_permitted_charts(name) or get_permitted_cards(name))
+	except (frappe.PermissionError, frappe.DoesNotExistError):
+		frappe.clear_last_message()
+		return False
+
+
+def may_open(item) -> bool:
+	if item.get("link_type") == "URL":
+		need = URL_NEEDS.get(item.get("url") or item.get("link_to"))
+		return not need or bool(frappe.has_permission(*need))
+	if item.get("link_type") == "Dashboard":
+		return dashboard_has_content(item.get("link_to"))
+	return True
+
+
+def prune_menus(bootinfo):
+	"""Show only what the user can open: drop denied links, then every dock tile whose menu has nothing left (a lone
+	"Home" workspace counts as nothing), then every app tile without a dock tile. A menu with some rights keeps those."""
+	from sentra_ats.lite.profile import filter_items
+
+	usable = set()
+	for name, sidebar in (bootinfo.get("module_sidebars") or {}).items():
+		sidebar["items"] = filter_items([i for i in sidebar.get("items") or [] if may_open(i)], set())
+		if any(i.get("type") != "Section Break" and i.get("link_type") != "Workspace" for i in sidebar["items"]):
+			usable.add(name)
+
+	keep = lambda entries: [e for e in entries or [] if e.get("link_type") != "Sidebar" or e.get("link_to") in usable]
+	dock = bootinfo.get("dock") or {}
+	for app in list(dock):
+		dock[app] = keep(dock[app])
+	for entry in bootinfo.get("app_data") or []:
+		had = entry.get("dock")
+		entry["dock"] = keep(had)
+		if had and not entry["dock"]:
+			entry["on_apps_screen"] = False
+
+
 def extend_bootinfo(bootinfo):
 	from sentra_ats.subscription import live_conf
 
 	conf = live_conf()
+	if not conf.get("hris_menu_replace", 1):
+		prune_menus(bootinfo)  # also with the stock menus
 	if conf.get("hris_menu_replace", 1):  # on by default for every site; set 0 in site_config to get the stock menus back
 		hide_rails(bootinfo)
 		hide_home(bootinfo)
 		dedupe_shortcuts(bootinfo)
+		prune_menus(bootinfo)  # after the Roster link is added, before the landing pages are chosen
 		set_landing(bootinfo)
 		rename_apps(bootinfo, conf.get("hris_menu_rename") or RENAMES)
 		hide_apps(bootinfo, tuple(conf.get("hris_menu_hide_apps") or HIDDEN_APPS))
