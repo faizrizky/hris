@@ -23,7 +23,7 @@ import { signOutSafely, useSession } from "@/services/session";
 import { useConfirm } from "@/components/ConfirmDialog";
 import { useT } from "@/i18n";
 import { LanguagePicker } from "@/components/LanguagePicker";
-import { requestTourReplay } from "@/components/Tour";
+import { TourTarget } from "@/components/TourTarget";
 import { useProfile } from "@/hooks/useProfile";
 
 export function ProfileScreen({ navigation }: ScreenProps) {
@@ -151,97 +151,98 @@ export function ProfileScreen({ navigation }: ScreenProps) {
         </View>
 
         <SectionLabel title={t("profil.secAkun")} icon="person-outline" />
-        <View style={styles.menuCard}>
-          <MenuRow
-            iconBg={c.info.bg}
-            ink={c.info.ink}
-            icon="person-outline"
-            title={t("profil.dataPribadi")}
-            subtitle={t("profil.dataPribadiSub")}
-            onPress={() => navigation.navigate("ProfileData")}
-            isLast={!punyaFitur("dokumen")}
-          />
-          {punyaFitur("dokumen") && (
+        <TourTarget id="p.data">
+          <View style={styles.menuCard}>
             <MenuRow
-              iconBg={c.ok.bg}
-              ink={c.ok.ink}
-              icon="document-text-outline"
-              title={t("profil.dokumen")}
-              subtitle={t("profil.dokumenSub")}
-              onPress={() => navigation.navigate("ProfileDocs")}
-              isLast
+              iconBg={c.info.bg}
+              ink={c.info.ink}
+              icon="person-outline"
+              title={t("profil.dataPribadi")}
+              subtitle={t("profil.dataPribadiSub")}
+              onPress={() => navigation.navigate("ProfileData")}
+              isLast={!punyaFitur("dokumen")}
             />
-          )}
-        </View>
+            {punyaFitur("dokumen") && (
+              <MenuRow
+                iconBg={c.ok.bg}
+                ink={c.ok.ink}
+                icon="document-text-outline"
+                title={t("profil.dokumen")}
+                subtitle={t("profil.dokumenSub")}
+                onPress={() => navigation.navigate("ProfileDocs")}
+                isLast
+              />
+            )}
+          </View>
+        </TourTarget>
 
         <SectionLabel
           title={t("profil.secPengaturan")}
           icon="settings-outline"
         />
-        <View style={styles.menuCard}>
-          <MenuRow
-            iconBg={c.purple.bg}
-            ink={c.purple.ink}
-            icon="shield-checkmark-outline"
-            title={t("profil.keamanan")}
-            subtitle={t("profil.keamananSub")}
-            onPress={() => navigation.navigate("ProfileSecurity")}
-          />
-          <MenuRow
-            iconBg={c.warn.bg}
-            ink={c.warn.ink}
-            icon="notifications-outline"
-            title={t("profil.push")}
-            subtitle={t("profil.pushSub")}
-            trailing={
-              <Switch
-                value={isPushOn}
-                onValueChange={setIsPushOn}
-                trackColor={{ false: c.track, true: c.accent }}
-                thumbColor="#fff"
-              />
-            }
-          />
-          <MenuRow
-            iconBg={c.info.bg}
-            ink={c.info.ink}
-            icon="moon-outline"
-            title={t("profil.modeGelap")}
-            subtitle={
-              mode === "dark"
-                ? t("profil.modeGelapAktif")
-                : t("profil.modeGelapIkuti")
-            }
-            trailing={
-              <Switch
-                value={mode === "dark"}
-                onValueChange={toggle}
-                trackColor={{ false: c.track, true: c.accent }}
-                thumbColor="#fff"
-              />
-            }
-          />
-          <MenuRow
-            iconBg={c.ok.bg}
-            ink={c.ok.ink}
-            icon="language-outline"
-            title={t("profil.bahasa")}
-            subtitle={t("profil.bahasaSub")}
-            trailing={<LanguagePicker />}
-          />
-          <MenuRow
-            iconBg={c.info.bg}
-            ink={c.info.ink}
-            icon="sparkles-outline"
-            title={t("profil.tutorial")}
-            subtitle={t("profil.tutorialSub")}
-            onPress={() => {
-              requestTourReplay();
-              navigation.navigate("Beranda");
-            }}
-            isLast
-          />
-        </View>
+        <TourTarget id="k.pengaturan">
+          <View style={styles.menuCard}>
+            <MenuRow
+              iconBg={c.purple.bg}
+              ink={c.purple.ink}
+              icon="shield-checkmark-outline"
+              title={t("profil.keamanan")}
+              subtitle={t("profil.keamananSub")}
+              onPress={() => navigation.navigate("ProfileSecurity")}
+            />
+            <MenuRow
+              iconBg={c.warn.bg}
+              ink={c.warn.ink}
+              icon="notifications-outline"
+              title={t("profil.push")}
+              subtitle={t("profil.pushSub")}
+              trailing={
+                <Switch
+                  value={isPushOn}
+                  onValueChange={setIsPushOn}
+                  trackColor={{ false: c.track, true: c.accent }}
+                  thumbColor="#fff"
+                />
+              }
+            />
+            <MenuRow
+              iconBg={c.info.bg}
+              ink={c.info.ink}
+              icon="moon-outline"
+              title={t("profil.modeGelap")}
+              subtitle={
+                mode === "dark"
+                  ? t("profil.modeGelapAktif")
+                  : t("profil.modeGelapIkuti")
+              }
+              trailing={
+                <Switch
+                  value={mode === "dark"}
+                  onValueChange={toggle}
+                  trackColor={{ false: c.track, true: c.accent }}
+                  thumbColor="#fff"
+                />
+              }
+            />
+            <MenuRow
+              iconBg={c.ok.bg}
+              ink={c.ok.ink}
+              icon="language-outline"
+              title={t("profil.bahasa")}
+              subtitle={t("profil.bahasaSub")}
+              trailing={<LanguagePicker />}
+            />
+            <MenuRow
+              iconBg={c.info.bg}
+              ink={c.info.ink}
+              icon="sparkles-outline"
+              title={t("profil.tutorial")}
+              subtitle={t("profil.tutorialSub")}
+              onPress={() => navigation.navigate("Tutorial")}
+              isLast
+            />
+          </View>
+        </TourTarget>
 
         <Pressable
           ref={exitRef}

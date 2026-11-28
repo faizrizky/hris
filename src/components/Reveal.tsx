@@ -14,6 +14,7 @@ import React, {
   forwardRef,
   useContext,
   useEffect,
+  useImperativeHandle,
   useMemo,
   useRef,
   useState,
@@ -33,6 +34,7 @@ import {
 import { NavigationContext } from "@react-navigation/native";
 import { useTheme } from "@/theme/ThemeContext";
 import { consumeBackMark } from "@/navigation/navigationBack";
+import { registerScroller } from "@/components/TourTarget";
 
 const EASE = Easing.bezier(0.25, 0.1, 0.25, 1);
 const ITEM_MS = 500;
@@ -239,11 +241,36 @@ function wrapChild(child: React.ReactNode): React.ReactNode {
   );
 }
 
-// Pengganti ScrollView: setiap anak langsung memudar masuk bergiliran.
+// Pengganti ScrollView: setiap anak langsung memudar masuk bergiliran. Daftar tegak juga mendaftar ke tutorial,
+// supaya elemen yang dijelaskan bisa digulir ke dalam layar.
 export const RevealScrollView = forwardRef<ScrollView, ScrollViewProps>(
-  function RevealScrollView({ children, ...props }, ref) {
+  function RevealScrollView({ children, onScroll, ...props }, ref) {
+    const inner = useRef<ScrollView>(null);
+    const offset = useRef(0);
+    const navigation = useContext(NavigationContext);
+    const isHorizontal = !!props.horizontal;
+    useImperativeHandle(ref, () => inner.current as ScrollView);
+    useEffect(() => {
+      if (isHorizontal) return;
+      return registerScroller({
+        isFocused: () => navigation?.isFocused() ?? true,
+        scrollBy: (dy) =>
+          inner.current?.scrollTo({
+            y: Math.max(0, offset.current + dy),
+            animated: true,
+          }),
+      });
+    }, [navigation, isHorizontal]);
     return (
-      <ScrollView ref={ref} {...props}>
+      <ScrollView
+        ref={inner}
+        scrollEventThrottle={32}
+        {...props}
+        onScroll={(e) => {
+          offset.current = e.nativeEvent.contentOffset.y;
+          onScroll?.(e);
+        }}
+      >
         {React.Children.map(children, wrapChild)}
       </ScrollView>
     );

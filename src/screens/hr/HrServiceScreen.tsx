@@ -1,3 +1,4 @@
+import { TourTarget } from "@/components/TourTarget";
 import { useMemo, useState } from "react";
 import {
   KeyboardAvoidingView,
@@ -97,28 +98,30 @@ function ServiceView({
             </View>
           ) : null}
           {data && data.fields.length > 0 ? (
-            <View style={styles.card}>
-              {data.fields.map((field) => (
-                <Field
-                  key={field.key}
-                  field={field}
-                  value={values[field.key] ?? ""}
-                  onChange={(value) => setValue(field.key, value)}
-                />
-              ))}
-              {errorMessage ? (
-                <Text style={styles.error}>{errorMessage}</Text>
-              ) : null}
-              <Pressable
-                style={styles.submit}
-                disabled={isSending}
-                onPress={submit}
-              >
-                <Text style={styles.submitText}>
-                  {isSending ? t("umum.memproses") : t("hs.submit")}
-                </Text>
-              </Pressable>
-            </View>
+            <TourTarget id="h.form">
+              <View style={styles.card}>
+                {data.fields.map((field) => (
+                  <Field
+                    key={field.key}
+                    field={field}
+                    value={values[field.key] ?? ""}
+                    onChange={(value) => setValue(field.key, value)}
+                  />
+                ))}
+                {errorMessage ? (
+                  <Text style={styles.error}>{errorMessage}</Text>
+                ) : null}
+                <Pressable
+                  style={styles.submit}
+                  disabled={isSending}
+                  onPress={submit}
+                >
+                  <Text style={styles.submitText}>
+                    {isSending ? t("umum.memproses") : t("hs.submit")}
+                  </Text>
+                </Pressable>
+              </View>
+            </TourTarget>
           ) : null}
           {data && data.items.length > 0 ? (
             <Text style={styles.section}>

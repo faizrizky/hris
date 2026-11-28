@@ -49,6 +49,8 @@ import { ProfilePasswordScreen } from "@/screens/profile/ProfilePasswordScreen";
 import { RevealScope } from "@/components/Reveal";
 import { TourOverlay } from "@/components/Tour";
 import { HrServiceScreen } from "@/screens/hr/HrServiceScreen";
+import { TutorialScreen } from "@/screens/profile/TutorialScreen";
+import { navigationRef } from "@/navigation/navigationRef";
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -248,6 +250,7 @@ function ProfileStack() {
       />
       <Stack.Screen name="ProfileSecurity" component={ProfileSecurityScreen} />
       <Stack.Screen name="ProfilePassword" component={ProfilePasswordScreen} />
+      <Stack.Screen name="Tutorial" component={TutorialScreen} />
     </Stack.Navigator>
   );
 }
@@ -337,7 +340,7 @@ export function RootNavigator() {
   }
 
   return (
-    <NavigationContainer>
+    <NavigationContainer ref={navigationRef}>
       {/* Kode company dulu, lalu login; langganan berakhir mengunci seluruh aplikasi. */}
       {!tenant ? (
         <RevealScope>

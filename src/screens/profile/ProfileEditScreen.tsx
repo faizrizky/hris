@@ -1,3 +1,4 @@
+import { TourTarget } from "@/components/TourTarget";
 import { useMemo } from "react";
 import type { ScreenProps } from "@/navigation/types";
 import {
@@ -220,112 +221,118 @@ export function ProfileEditScreen({ navigation }: ScreenProps) {
             <Text style={styles.note}>{t("pe.catatanKunci")}</Text>
           </View>
 
-          <View style={[styles.card, { marginTop: 12 }]}>
-            <Text style={styles.cardTitle}>{t("pe.kontakAlamat")}</Text>
+          <TourTarget id="p.kontak">
+            <View style={[styles.card, { marginTop: 12 }]}>
+              <Text style={styles.cardTitle}>{t("pe.kontakAlamat")}</Text>
 
-            <Text style={styles.label}>{t("pe.telepon")}</Text>
-            <TextInput
-              style={styles.input}
-              value={draft?.phone ?? ""}
-              onChangeText={(v) => update({ phone: v })}
-              placeholder="08xx xxxx xxxx"
-              placeholderTextColor={c.mutedLabel}
-              keyboardType="phone-pad"
-            />
+              <Text style={styles.label}>{t("pe.telepon")}</Text>
+              <TextInput
+                style={styles.input}
+                value={draft?.phone ?? ""}
+                onChangeText={(v) => update({ phone: v })}
+                placeholder="08xx xxxx xxxx"
+                placeholderTextColor={c.mutedLabel}
+                keyboardType="phone-pad"
+              />
 
-            <Text style={styles.label}>{t("pe.emailPribadi")}</Text>
-            <TextInput
-              style={[
-                styles.input,
-                hasInvalidEmail && { borderColor: c.bad.ink },
-              ]}
-              value={draft?.personalEmail ?? ""}
-              onChangeText={(v) => update({ personalEmail: v })}
-              placeholder="nama@email.com"
-              placeholderTextColor={c.mutedLabel}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              autoCorrect={false}
-            />
-            {hasInvalidEmail && (
-              <Text style={styles.error}>{t("pe.emailSalah")}</Text>
-            )}
+              <Text style={styles.label}>{t("pe.emailPribadi")}</Text>
+              <TextInput
+                style={[
+                  styles.input,
+                  hasInvalidEmail && { borderColor: c.bad.ink },
+                ]}
+                value={draft?.personalEmail ?? ""}
+                onChangeText={(v) => update({ personalEmail: v })}
+                placeholder="nama@email.com"
+                placeholderTextColor={c.mutedLabel}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoCorrect={false}
+              />
+              {hasInvalidEmail && (
+                <Text style={styles.error}>{t("pe.emailSalah")}</Text>
+              )}
 
-            <Text style={styles.label}>{t("pe.alamat")}</Text>
-            <TextInput
-              style={[styles.input, styles.textarea]}
-              value={draft?.address ?? ""}
-              onChangeText={(v) => update({ address: v })}
-              placeholder={t("pe.alamatPh")}
-              placeholderTextColor={c.mutedLabel}
-              multiline
-            />
-          </View>
+              <Text style={styles.label}>{t("pe.alamat")}</Text>
+              <TextInput
+                style={[styles.input, styles.textarea]}
+                value={draft?.address ?? ""}
+                onChangeText={(v) => update({ address: v })}
+                placeholder={t("pe.alamatPh")}
+                placeholderTextColor={c.mutedLabel}
+                multiline
+              />
+            </View>
+          </TourTarget>
 
-          <View style={[styles.card, { marginTop: 12 }]}>
-            <Text style={styles.cardTitle}>{t("pe.kontakDarurat")}</Text>
-            <Text style={styles.note}>{t("pe.kontakDesc")}</Text>
+          <TourTarget id="p.darurat">
+            <View style={[styles.card, { marginTop: 12 }]}>
+              <Text style={styles.cardTitle}>{t("pe.kontakDarurat")}</Text>
+              <Text style={styles.note}>{t("pe.kontakDesc")}</Text>
 
-            {draft.contacts.map((k, i) => (
-              <View key={i} style={styles.contactBox}>
-                <View style={styles.contactHead}>
-                  <Text style={styles.contactTitle}>
-                    {t("pe.kontakN", { n: i + 1 })}
-                  </Text>
-                  <Pressable onPress={() => removeContact(i)} hitSlop={8}>
-                    <Text style={styles.removeText}>{t("pe.hapusKontak")}</Text>
-                  </Pressable>
-                </View>
+              {draft.contacts.map((k, i) => (
+                <View key={i} style={styles.contactBox}>
+                  <View style={styles.contactHead}>
+                    <Text style={styles.contactTitle}>
+                      {t("pe.kontakN", { n: i + 1 })}
+                    </Text>
+                    <Pressable onPress={() => removeContact(i)} hitSlop={8}>
+                      <Text style={styles.removeText}>
+                        {t("pe.hapusKontak")}
+                      </Text>
+                    </Pressable>
+                  </View>
 
-                <Text style={styles.label}>{t("pe.nama2")}</Text>
-                <TextInput
-                  style={styles.input}
-                  value={k.name}
-                  onChangeText={(v) => updateContact(i, { name: v })}
-                  placeholder={t("pe.namaPh")}
-                  placeholderTextColor={c.mutedLabel}
-                />
+                  <Text style={styles.label}>{t("pe.nama2")}</Text>
+                  <TextInput
+                    style={styles.input}
+                    value={k.name}
+                    onChangeText={(v) => updateContact(i, { name: v })}
+                    placeholder={t("pe.namaPh")}
+                    placeholderTextColor={c.mutedLabel}
+                  />
 
-                <Text style={styles.label}>{t("pe.hubungan")}</Text>
-                <View style={styles.chipRow}>
-                  {RELATIONSHIPS.map((h) => {
-                    const isOn = k.relation === h;
-                    return (
-                      <Pressable
-                        key={h}
-                        onPress={() => updateContact(i, { relation: h })}
-                        style={[styles.chip, isOn && styles.chipOn]}
-                      >
-                        <Text
-                          style={[styles.chipText, isOn && styles.chipTextOn]}
+                  <Text style={styles.label}>{t("pe.hubungan")}</Text>
+                  <View style={styles.chipRow}>
+                    {RELATIONSHIPS.map((h) => {
+                      const isOn = k.relation === h;
+                      return (
+                        <Pressable
+                          key={h}
+                          onPress={() => updateContact(i, { relation: h })}
+                          style={[styles.chip, isOn && styles.chipOn]}
                         >
-                          {translateServerLabel("relation", h)}
-                        </Text>
-                      </Pressable>
-                    );
-                  })}
+                          <Text
+                            style={[styles.chipText, isOn && styles.chipTextOn]}
+                          >
+                            {translateServerLabel("relation", h)}
+                          </Text>
+                        </Pressable>
+                      );
+                    })}
+                  </View>
+
+                  <Text style={styles.label}>{t("pe.telepon")}</Text>
+                  <TextInput
+                    style={styles.input}
+                    value={k.phone}
+                    onChangeText={(v) => updateContact(i, { phone: v })}
+                    placeholder="08xx xxxx xxxx"
+                    placeholderTextColor={c.mutedLabel}
+                    keyboardType="phone-pad"
+                  />
                 </View>
+              ))}
 
-                <Text style={styles.label}>{t("pe.telepon")}</Text>
-                <TextInput
-                  style={styles.input}
-                  value={k.phone}
-                  onChangeText={(v) => updateContact(i, { phone: v })}
-                  placeholder="08xx xxxx xxxx"
-                  placeholderTextColor={c.mutedLabel}
-                  keyboardType="phone-pad"
-                />
-              </View>
-            ))}
-
-            {draft.contacts.length < MAX_CONTACTS && (
-              <Pressable style={styles.addContact} onPress={appendContact}>
-                <Text style={styles.addContactText}>
-                  {t("pe.tambahKontak")}
-                </Text>
-              </Pressable>
-            )}
-          </View>
+              {draft.contacts.length < MAX_CONTACTS && (
+                <Pressable style={styles.addContact} onPress={appendContact}>
+                  <Text style={styles.addContactText}>
+                    {t("pe.tambahKontak")}
+                  </Text>
+                </Pressable>
+              )}
+            </View>
+          </TourTarget>
 
           <View style={[styles.card, { marginTop: 12 }]}>
             <Text style={styles.cardTitle}>{t("pe.statusNikah")}</Text>

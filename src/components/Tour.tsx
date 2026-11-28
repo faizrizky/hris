@@ -1,5 +1,6 @@
-// Tutorial sorot (spotlight), sekali per perangkat terdaftar: tanda "sudah dilihat" disimpan di HP dan di server
-// (Registered Device), jadi tidak muncul lagi setelah pasang ulang. Elemen yang dijelaskan mendaftarkan diri lewat `ref={tourTarget(id)}`; lapisan gelap diberi lubang di posisi elemen itu.
+// Tutorial sorot (spotlight): tiap langkah membuka halaman yang dijelaskan, lalu menyorot elemennya. Tampil otomatis
+// sekali per perangkat terdaftar (tanda disimpan di HP dan di Registered Device); bisa diputar ulang per bagian dari
+// Profil. Isi langkah ada di src/tour/steps.ts. Lapisan menahan semua sentuhan, jadi tidak ada yang terkirim.
 import {
   useEffect,
   useMemo,
@@ -22,29 +23,30 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Spotlight } from "@/components/Spotlight";
+import { scrollFocused, tourNodes } from "@/components/TourTarget";
 import { useT } from "@/i18n";
-import type { TranslationKey } from "@/i18n/id";
+import { navigationRef } from "@/navigation/navigationRef";
 import { hrisApi } from "@/services/api";
+import { useSession } from "@/services/session";
+import { useTenant } from "@/services/tenant";
 import { Palette, primaryButtonStyle } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
+import {
+  buildTour,
+  type TourRoute,
+  type TourSectionId,
+  type TourStep,
+} from "@/tour/steps";
 
-const SEEN_KEY = "hris.tourSeen.v2"; // v2: ditampilkan sekali lagi ke semua pengguna
+const SEEN_KEY = "hris.tourSeen.v2";
 const START_DELAY_MS = 900; // menunggu animasi masuk Beranda selesai
+const PAGE_WAIT_MS = 1000; // halaman baru: tunggu isinya selesai memudar naik (Reveal), kalau tidak posisi meleset
 const SCROLL_WAIT_MS = 380; // gulir beranimasi sebelum target diukur ulang
+const RETRY_MS = 120;
+const MAX_TRIES = 14;
 const MOVE_MS = 300;
 const PAD = 6;
-const TAB_BAR_SPACE = 130;
-
-interface Step {
-  target: string | null; // null = kartu di tengah (sambutan / penutup)
-  title: string;
-  text: TranslationKey;
-}
-
-interface Tour {
-  steps: Step[];
-  onScroll: (dy: number) => void;
-}
+const CARD_SPACE = 290; // tinggi yang disisakan untuk kartu
 
 interface Box {
   x: number;
@@ -53,22 +55,7 @@ interface Box {
   h: number;
 }
 
-const targets = new Map<string, View>();
-const callbacks = new Map<string, (node: View | null) => void>();
-
-export function tourTarget(id: string) {
-  let callback = callbacks.get(id);
-  if (!callback) {
-    callback = (node) => {
-      if (node) targets.set(id, node);
-      else targets.delete(id);
-    };
-    callbacks.set(id, callback);
-  }
-  return callback;
-}
-
-let activeTour: Tour | null = null;
+let activeTour: TourStep[] | null = null;
 const listeners = new Set<() => void>();
 const subscribe = (listener: () => void) => {
   listeners.add(listener);
@@ -76,31 +63,23 @@ const subscribe = (listener: () => void) => {
     listeners.delete(listener);
   };
 };
-const setTour = (tour: Tour | null) => {
-  activeTour = tour;
+const setTour = (steps: TourStep[] | null) => {
+  activeTour = steps;
   listeners.forEach((listener) => listener());
 };
 
-// Putar ulang dari Profil: penghitung me-mount ulang TourStarter, tanda sekali-pakai melewati cek "sudah dilihat".
-let replayCount = 0;
-let isReplayPending = false;
-const replayListeners = new Set<() => void>();
-export function requestTourReplay() {
-  replayCount += 1;
-  isReplayPending = true;
-  replayListeners.forEach((listener) => listener());
-}
-export function useTourReplay() {
-  return useSyncExternalStore(
-    (listener) => {
-      replayListeners.add(listener);
-      return () => {
-        replayListeners.delete(listener);
-      };
-    },
-    () => replayCount,
-  );
-}
+// Buka sebuah halaman dengan tumpukan bersih, supaya puluhan langkah tidak menumpuk puluhan layar.
+const openRoute = ({ tab, screen, params }: TourRoute) => {
+  if (!navigationRef.isReady()) return;
+  const main = tab === "Beranda" ? "HomeMain" : "ProfileMain";
+  const routes = screen
+    ? [{ name: main }, { name: screen, params }]
+    : [{ name: main }];
+  navigationRef.reset({
+    index: 0,
+    routes: [{ name: tab, state: { index: routes.length - 1, routes } }],
+  });
+};
 
 export const isTourSeen = async (): Promise<boolean> => {
   try {
@@ -111,56 +90,33 @@ export const isTourSeen = async (): Promise<boolean> => {
 };
 
 const finishTour = () => {
-  setTour(null);
   AsyncStorage.setItem(SEEN_KEY, "1").catch(() => {});
+  setTour(null);
+  openRoute({ tab: "Beranda" }); // Beranda membaca tanda di atas sebelum memunculkan pengingat
   // Gagal kirim tidak apa-apa: useHome mengirim ulang tanda di HP saat aplikasi dibuka lagi.
   hrisApi.registerDevice(true).catch(() => {});
 };
 
-// Dipasang Beranda setelah datanya tampil; menyusun langkah dari menu yang benar-benar dimiliki akun ini.
-export function TourStarter({
-  menuKeys,
-  tabs,
-  onScroll,
-}: {
-  menuKeys: { key: string; label: string }[];
-  tabs: string[];
-  onScroll: (dy: number) => void;
-}) {
-  const t = useT();
-  const latest = useRef({ menuKeys, tabs, onScroll, t });
+// section kosong = seluruh tutorial; selain itu hanya bagian yang dipilih.
+export function useStartTour() {
+  const { employee } = useSession();
+  const { punyaFitur } = useTenant();
+  return (section: TourSectionId | null) => {
+    if (!employee || activeTour) return;
+    setTour(buildTour({ section, role: employee.role, has: punyaFitur }));
+  };
+}
+
+// Dipasang Beranda setelah datanya tampil, pada perangkat yang belum pernah melihat tutorial.
+export function TourStarter() {
+  const start = useStartTour();
+  const latest = useRef(start);
   useEffect(() => {
-    latest.current = { menuKeys, tabs, onScroll, t };
+    latest.current = start;
   });
   useEffect(() => {
     const timer = setTimeout(async () => {
-      const isReplay = isReplayPending;
-      isReplayPending = false;
-      if (activeTour || (!isReplay && (await isTourSeen()))) return;
-      const { menuKeys: menu, tabs: bar, t: tr } = latest.current;
-      setTour({
-        onScroll: latest.current.onScroll,
-        steps: [
-          {
-            target: null,
-            title: tr("tour.welcomeTitle"),
-            text: "tour.welcome",
-          },
-          { target: "clock", title: tr("tour.clockTitle"), text: "tour.clock" },
-          { target: "stats", title: tr("tour.statsTitle"), text: "tour.stats" },
-          ...menu.map((item) => ({
-            target: `menu:${item.key}`,
-            title: item.label,
-            text: `tour.menu.${item.key}` as TranslationKey,
-          })),
-          ...bar.map((route) => ({
-            target: `tab:${route}`,
-            title: tr(`tour.tabTitle.${route}` as TranslationKey),
-            text: `tour.tab.${route}` as TranslationKey,
-          })),
-          { target: null, title: tr("tour.doneTitle"), text: "tour.done" },
-        ],
-      });
+      if (!(await isTourSeen())) latest.current(null);
     }, START_DELAY_MS);
     return () => clearTimeout(timer);
   }, []);
@@ -168,11 +124,31 @@ export function TourStarter({
 }
 
 export function TourOverlay() {
-  const tour = useSyncExternalStore(subscribe, () => activeTour);
-  return tour ? <TourSteps tour={tour} /> : null;
+  const steps = useSyncExternalStore(subscribe, () => activeTour);
+  return steps ? <TourSteps steps={steps} /> : null;
 }
 
-function TourSteps({ tour }: { tour: Tour }) {
+const measureNode = (node: View) =>
+  new Promise<Box | null>((resolve) => {
+    const timer = setTimeout(() => resolve(null), 200);
+    node.measureInWindow((x, y, w, h) => {
+      clearTimeout(timer);
+      resolve({ x, y, w, h });
+    });
+  });
+
+// Node pertama yang benar-benar tampil (layar tersembunyi melapor ukuran nol).
+const measureTarget = async (id: string, width: number) => {
+  for (const node of tourNodes(id)) {
+    const box = await measureNode(node);
+    if (box && box.w > 0 && box.h > 0 && box.x > -10 && box.x < width) {
+      return box;
+    }
+  }
+  return null;
+};
+
+function TourSteps({ steps }: { steps: TourStep[] }) {
   const t = useT();
   const c = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
@@ -193,38 +169,98 @@ function TourSteps({ tour }: { tour: Tour }) {
     ring: new Animated.Value(0),
     card: new Animated.Value(0),
   }));
-  const total = tour.steps.length;
-  const step = tour.steps[shown.index]!;
+  const openedRoute = useRef("");
+  const total = steps.length;
+  const step = steps[shown.index]!;
   const isLast = shown.index === total - 1;
 
   useEffect(() => {
     let isCancelled = false;
-    let timer: ReturnType<typeof setTimeout>;
-    const target = tour.steps[index]!.target;
-    const reveal = (rect: Box | null) => {
-      if (isCancelled) return;
-      const hole = rect && {
-        x: rect.x - PAD,
-        y: rect.y - PAD,
-        w: rect.w + PAD * 2,
-        h: rect.h + PAD * 2,
-      };
-      setShown({ index, hole });
+    const { target, route, isFixed } = steps[index]!;
+    const wait = (ms: number) =>
+      new Promise<void>((resolve) => setTimeout(resolve, ms));
+    const glide = (value: Animated.Value, toValue: number) =>
+      Animated.timing(value, {
+        toValue,
+        duration: MOVE_MS,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: true,
+      });
+    const moveHole = (hole: Box | null) => {
       const to = hole ?? { x: width / 2, y: height / 2, w: 0, h: 0 };
       const snap = PixelRatio.roundToNearestPixel; // tepi pecahan memunculkan garis rambut antar bidang
-      const glide = (value: Animated.Value, toValue: number) =>
-        Animated.timing(value, {
-          toValue,
-          duration: MOVE_MS,
-          easing: Easing.out(Easing.cubic),
-          useNativeDriver: true,
-        });
-      Animated.parallel([
+      return [
         glide(anim.left, snap(to.x)),
         glide(anim.top, snap(to.y)),
         glide(anim.right, snap(to.x + to.w)),
         glide(anim.bottom, snap(to.y + to.h)),
         glide(anim.ring, hole ? 1 : 0),
+      ];
+    };
+    // Cari elemen sampai ada dan posisinya diam (data halaman masih bisa menggesernya).
+    const locate = async () => {
+      if (!target || !rootRef.current) return null;
+      const root = await measureNode(rootRef.current);
+      let previous: Box | null = null;
+      let canScroll = !isFixed;
+      for (let i = 0; i < MAX_TRIES && !isCancelled; i++) {
+        const box: Box | null = await measureTarget(target, width);
+        const isStill = !!box && !!previous && Math.abs(box.y - previous.y) < 1;
+        previous = box;
+        if (!box || !isStill) {
+          await wait(RETRY_MS);
+          continue;
+        }
+        const top = box.y - (root?.y ?? 0);
+        const isHidden =
+          top < insets.top + 60 ||
+          (top + box.h > height - CARD_SPACE && top > insets.top + 170);
+        if (canScroll && isHidden && scrollFocused(top - insets.top - 150)) {
+          canScroll = false;
+          previous = null;
+          await wait(SCROLL_WAIT_MS);
+          continue;
+        }
+        return { x: box.x - (root?.x ?? 0), y: top, w: box.w, h: box.h };
+      }
+      return null;
+    };
+    const run = async () => {
+      // Kartu memudar dulu, baru halaman dan sorotan berpindah.
+      await new Promise<void>((resolve) =>
+        Animated.timing(anim.card, {
+          toValue: 0,
+          duration: 140,
+          useNativeDriver: true,
+        }).start(() => resolve()),
+      );
+      if (isCancelled) return;
+      const key = route ? JSON.stringify(route) : openedRoute.current;
+      if (route && key !== openedRoute.current) {
+        openedRoute.current = key;
+        Animated.parallel(moveHole(null)).start();
+        openRoute(route);
+        await wait(PAGE_WAIT_MS);
+      }
+      const box = await locate();
+      if (isCancelled) return;
+      let hole = box && {
+        x: box.x - PAD,
+        y: box.y - PAD,
+        w: box.w + PAD * 2,
+        h: box.h + PAD * 2,
+      };
+      // Elemen tinggi dipotong supaya kartu penjelasan tetap muat di bawahnya.
+      if (
+        hole &&
+        hole.y < CARD_SPACE &&
+        hole.y + hole.h > height - CARD_SPACE
+      ) {
+        hole = { ...hole, h: Math.max(60, height - CARD_SPACE - hole.y) };
+      }
+      setShown({ index, hole });
+      Animated.parallel([
+        ...moveHole(hole),
         Animated.timing(anim.card, {
           toValue: 1,
           duration: 260,
@@ -234,38 +270,11 @@ function TourSteps({ tour }: { tour: Tour }) {
         }),
       ]).start();
     };
-    const measure = (canScroll: boolean) => {
-      const node = target ? targets.get(target) : undefined;
-      if (!node || !rootRef.current) return reveal(null);
-      rootRef.current.measureInWindow((rootX, rootY) => {
-        node.measureInWindow((x, y, w, h) => {
-          if (isCancelled) return;
-          const top = y - rootY;
-          const isOffscreen =
-            top < insets.top + 90 || top + h > height - TAB_BAR_SPACE;
-          // Tab bar selalu terlihat; hanya isi Beranda yang perlu digulir.
-          if (canScroll && isOffscreen && !target!.startsWith("tab:")) {
-            tour.onScroll(top - height * 0.32);
-            timer = setTimeout(() => measure(false), SCROLL_WAIT_MS);
-            return;
-          }
-          reveal({ x: x - rootX, y: top, w, h });
-        });
-      });
-    };
-    // Kartu memudar dulu, baru sorotan berpindah.
-    Animated.timing(anim.card, {
-      toValue: 0,
-      duration: 140,
-      useNativeDriver: true,
-    }).start(() => {
-      timer = setTimeout(() => measure(true), 0);
-    });
+    void run();
     return () => {
       isCancelled = true;
-      clearTimeout(timer);
     };
-  }, [index, tour, width, height, insets.top, anim]);
+  }, [index, steps, width, height, insets.top, anim]);
 
   useEffect(() => {
     // Tombol kembali Android melewati tutorial, bukan memindahkan halaman di belakangnya.
@@ -277,9 +286,12 @@ function TourSteps({ tour }: { tour: Tour }) {
   }, []);
 
   const hole = shown.hole;
-  const isCardBelow = !!hole && hole.y + hole.h / 2 < height / 2;
+  // Kartu diletakkan di sisi yang ruangnya lebih lega.
+  const isCardBelow = !!hole && height - (hole.y + hole.h) > hole.y;
   const cardPosition = !hole
-    ? { top: height * 0.3 }
+    ? step.route
+      ? { bottom: insets.bottom + 24 }
+      : { top: height * 0.3 }
     : isCardBelow
       ? { top: hole.y + hole.h + 16 }
       : { bottom: height - hole.y + 16 };
@@ -332,7 +344,7 @@ function TourSteps({ tour }: { tour: Tour }) {
             ]}
           />
         </View>
-        <Text style={styles.title}>{step.title}</Text>
+        <Text style={styles.title}>{t(step.title)}</Text>
         <Text style={styles.text}>{t(step.text)}</Text>
         <View style={styles.actions}>
           {shown.index > 0 && !isLast ? (
@@ -349,13 +361,8 @@ function TourSteps({ tour }: { tour: Tour }) {
           <Pressable
             accessibilityRole="button"
             disabled={isBusy}
-            style={({ pressed }) => [
-              styles.next,
-              pressed && { opacity: 0.85 },
-            ]}
-            onPress={() =>
-              isLast ? finishTour() : setIndex(shown.index + 1)
-            }
+            style={({ pressed }) => [styles.next, pressed && { opacity: 0.85 }]}
+            onPress={() => (isLast ? finishTour() : setIndex(shown.index + 1))}
           >
             <Text style={styles.nextText}>
               {t(

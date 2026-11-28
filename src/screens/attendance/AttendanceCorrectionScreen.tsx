@@ -1,3 +1,4 @@
+import { TourTarget } from "@/components/TourTarget";
 import { useMemo } from "react";
 import type { ScreenProps } from "@/navigation/types";
 import {
@@ -94,41 +95,49 @@ export function AttendanceCorrectionScreen({ navigation }: ScreenProps) {
             />
           ) : (
             <>
-              <DatePickerCard
-                mode="single"
-                allow="past"
-                title={t("kor.tglKoreksi")}
-                hint={t("kor.hintTgl")}
-                start={selectedDate}
-                end={selectedDate}
-                onChange={handlePickDate}
-                footer={footer}
-              />
+              <TourTarget id="kor.tgl">
+                <DatePickerCard
+                  mode="single"
+                  allow="past"
+                  title={t("kor.tglKoreksi")}
+                  hint={t("kor.hintTgl")}
+                  start={selectedDate}
+                  end={selectedDate}
+                  onChange={handlePickDate}
+                  footer={footer}
+                />
+              </TourTarget>
 
               {selectedDate && <RecordedCard record={record} />}
 
-              <RequestedTimeCard
-                checkIn={checkIn}
-                checkOut={checkOut}
-                onChangeCheckIn={setCheckIn}
-                onChangeCheckOut={setCheckOut}
-              />
+              <TourTarget id="kor.jam">
+                <RequestedTimeCard
+                  checkIn={checkIn}
+                  checkOut={checkOut}
+                  onChangeCheckIn={setCheckIn}
+                  onChangeCheckOut={setCheckOut}
+                />
+              </TourTarget>
 
-              <CorrectionReasonCard
-                kind={kind}
-                onPickKind={setKind}
-                reason={reasonText}
-                onChangeReason={setReasonText}
-              />
+              <TourTarget id="kor.alasan">
+                <CorrectionReasonCard
+                  kind={kind}
+                  onPickKind={setKind}
+                  reason={reasonText}
+                  onChangeReason={setReasonText}
+                />
+              </TourTarget>
 
-              <CorrectionProofCard
-                files={files}
-                isRequired={isProofRequired}
-                onAdd={addProof}
-                onRemove={(i) =>
-                  setFiles((prev) => prev.filter((_, idx) => idx !== i))
-                }
-              />
+              <TourTarget id="kor.bukti">
+                <CorrectionProofCard
+                  files={files}
+                  isRequired={isProofRequired}
+                  onAdd={addProof}
+                  onRemove={(i) =>
+                    setFiles((prev) => prev.filter((_, idx) => idx !== i))
+                  }
+                />
+              </TourTarget>
 
               <ApprovalFlowCard steps={approvalSteps} />
             </>
@@ -137,40 +146,44 @@ export function AttendanceCorrectionScreen({ navigation }: ScreenProps) {
       </KeyboardAvoidingView>
 
       {!done && (
-        <View style={[styles.actionBar, { paddingBottom: insets.bottom + 14 }]}>
-          <View style={{ flex: 1, minWidth: 0 }}>
-            <Text
-              style={[
-                styles.sumSub,
-                blockMsg || errorMessage ? { color: c.bad.ink } : null,
-              ]}
-            >
-              {blockMsg || errorMessage || t("kor.siap")}
-            </Text>
-            <Text style={styles.sumTop}>
-              {selectedDate && checkOut > checkIn
-                ? formatHourDuration((checkOut - checkIn) / 60)
-                : "—"}
-            </Text>
-          </View>
-          <Pressable onPress={handleSubmit} disabled={!canSubmit}>
-            <LinearGradient
-              colors={canSubmit ? [c.accent, c.accent2] : [c.track, c.track]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.submitBtn}
-            >
+        <TourTarget id="kor.kirim">
+          <View
+            style={[styles.actionBar, { paddingBottom: insets.bottom + 14 }]}
+          >
+            <View style={{ flex: 1, minWidth: 0 }}>
               <Text
                 style={[
-                  styles.submitText,
-                  canSubmit ? { color: "#fff" } : null,
+                  styles.sumSub,
+                  blockMsg || errorMessage ? { color: c.bad.ink } : null,
                 ]}
               >
-                {isSending ? t("kor.mengirim") : t("kor.kirim")}
+                {blockMsg || errorMessage || t("kor.siap")}
               </Text>
-            </LinearGradient>
-          </Pressable>
-        </View>
+              <Text style={styles.sumTop}>
+                {selectedDate && checkOut > checkIn
+                  ? formatHourDuration((checkOut - checkIn) / 60)
+                  : "—"}
+              </Text>
+            </View>
+            <Pressable onPress={handleSubmit} disabled={!canSubmit}>
+              <LinearGradient
+                colors={canSubmit ? [c.accent, c.accent2] : [c.track, c.track]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.submitBtn}
+              >
+                <Text
+                  style={[
+                    styles.submitText,
+                    canSubmit ? { color: "#fff" } : null,
+                  ]}
+                >
+                  {isSending ? t("kor.mengirim") : t("kor.kirim")}
+                </Text>
+              </LinearGradient>
+            </Pressable>
+          </View>
+        </TourTarget>
       )}
     </View>
   );

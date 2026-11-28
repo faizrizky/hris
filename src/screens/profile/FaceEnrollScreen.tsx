@@ -1,3 +1,4 @@
+import { TourTarget } from "@/components/TourTarget";
 import { useMemo } from "react";
 import type { ScreenProps } from "@/navigation/types";
 import {
@@ -254,16 +255,18 @@ export function FaceEnrollScreen({ navigation }: ScreenProps) {
           ) : null}
           <View style={{ flex: 1 }} />
           {phase === "cek" ? null : (
-            <Pressable style={styles.blueButton} onPress={mulai}>
-              <Text style={styles.blueButtonText}>
-                {t(
-                  status?.state === "active" ||
-                    status?.state === "needs_reenroll"
-                    ? "fe.daftarUlang"
-                    : "fe.mulaiSingkat",
-                )}
-              </Text>
-            </Pressable>
+            <TourTarget id="p.wajahMulai">
+              <Pressable style={styles.blueButton} onPress={mulai}>
+                <Text style={styles.blueButtonText}>
+                  {t(
+                    status?.state === "active" ||
+                      status?.state === "needs_reenroll"
+                      ? "fe.daftarUlang"
+                      : "fe.mulaiSingkat",
+                  )}
+                </Text>
+              </Pressable>
+            </TourTarget>
           )}
         </Animated.View>
       ) : (

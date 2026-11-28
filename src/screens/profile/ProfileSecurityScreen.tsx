@@ -1,3 +1,4 @@
+import { TourTarget } from "@/components/TourTarget";
 import { useMemo } from "react";
 import { IconBox } from "@/components/IconBox";
 import type { ScreenProps } from "@/navigation/types";
@@ -112,231 +113,257 @@ export function ProfileSecurityScreen({ navigation }: ScreenProps) {
       {header}
 
       <ScrollView contentContainerStyle={styles.content}>
-        <Pressable
-          style={styles.faceCard}
-          onPress={() => navigation.navigate("FaceEnroll")}
-        >
-          <RadialGlow size={200} color={c.glowHeader} top={-60} right={-40} />
+        <TourTarget id="k.wajah">
+          <Pressable
+            style={styles.faceCard}
+            onPress={() => navigation.navigate("FaceEnroll")}
+          >
+            <RadialGlow size={200} color={c.glowHeader} top={-60} right={-40} />
 
-          <View style={styles.faceTop}>
-            <LinearGradient
-              colors={[c.accent, c.accent2]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.faceIcon}
-            >
-              <LineIcon d={ICON.faceId} color="#fff" size={28} />
-            </LinearGradient>
-
-            <View style={{ flex: 1, minWidth: 0 }}>
-              <Text style={styles.faceTitle}>{t("profil.wajah")}</Text>
-              <Text style={styles.faceSub}>
-                {face ? t(`sec.wajahSub.${face.state}` as never) : "…"}
-              </Text>
-            </View>
-            <Ionicons name="chevron-forward" size={18} color={c.onDark.muted} />
-          </View>
-
-          {face ? (
-            <View style={styles.facePills}>
-              <View
-                style={[styles.pill, { backgroundColor: PILL[face.state].bg }]}
+            <View style={styles.faceTop}>
+              <LinearGradient
+                colors={[c.accent, c.accent2]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.faceIcon}
               >
-                <Text
-                  style={[styles.pillText, { color: PILL[face.state].ink }]}
-                >
-                  {t(`sec.wajah.${face.state}` as never)}
+                <LineIcon d={ICON.faceId} color="#fff" size={28} />
+              </LinearGradient>
+
+              <View style={{ flex: 1, minWidth: 0 }}>
+                <Text style={styles.faceTitle}>{t("profil.wajah")}</Text>
+                <Text style={styles.faceSub}>
+                  {face ? t(`sec.wajahSub.${face.state}` as never) : "…"}
                 </Text>
               </View>
-              {face.state === "needs_reenroll" && face.graceUntil ? (
+              <Ionicons
+                name="chevron-forward"
+                size={18}
+                color={c.onDark.muted}
+              />
+            </View>
+
+            {face ? (
+              <View style={styles.facePills}>
                 <View
-                  style={[styles.pill, { backgroundColor: PILL.pending.bg }]}
+                  style={[
+                    styles.pill,
+                    { backgroundColor: PILL[face.state].bg },
+                  ]}
                 >
-                  <Text style={[styles.pillText, { color: PILL.pending.ink }]}>
-                    {t("sec.batas", {
-                      tgl: formatShortDateWithYear(face.graceUntil),
-                    })}
+                  <Text
+                    style={[styles.pillText, { color: PILL[face.state].ink }]}
+                  >
+                    {t(`sec.wajah.${face.state}` as never)}
                   </Text>
                 </View>
-              ) : null}
-            </View>
-          ) : null}
-        </Pressable>
-
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>{t("sec.keamananAkun")}</Text>
-
-          <Text style={styles.groupLabel}>{t("sec.grupBiometrik")}</Text>
-          <View style={styles.baris}>
-            <View style={{ flex: 1, minWidth: 0 }}>
-              <Text style={styles.rowTitle}>
-                {t("bio.loginBio", { nama: biometricName })}
-              </Text>
-              <Text style={styles.rowSub}>
-                {isBiometricLogin
-                  ? t("bio.loginBioAktif")
-                  : t("bio.loginBioMati")}
-              </Text>
-            </View>
-            <Switch
-              value={isBiometricLogin}
-              onValueChange={toggleBiometric}
-              trackColor={{ false: c.track, true: c.accent }}
-              thumbColor="#fff"
-            />
-          </View>
-          <View style={[styles.baris, !isBiometricLogin && { opacity: 0.45 }]}>
-            <View style={{ flex: 1, minWidth: 0 }}>
-              <Text style={styles.rowTitle}>{t("bio.kunciOtomatis")}</Text>
-              <Text style={styles.rowSub}>
-                {isBiometricLogin
-                  ? t("bio.kunciSub", { nama: biometricName })
-                  : t("bio.kunciButuhBiometrik")}
-              </Text>
-            </View>
-            <Switch
-              value={isBiometricLogin && cacheKey.settings.isActive}
-              onValueChange={changeLock}
-              disabled={!isBiometricLogin}
-              trackColor={{ false: c.track, true: c.accent }}
-              thumbColor="#fff"
-            />
-          </View>
-          {isBiometricLogin && cacheKey.settings.isActive ? (
-            <View style={{ paddingVertical: 8 }}>
-              <Text style={styles.rowSub}>{t("bio.timeout")}</Text>
-              <View style={{ flexDirection: "row", gap: 8, marginTop: 8 }}>
-                {TIMEOUT_OPTIONS.map(([ms, label]) => {
-                  const isOn = cacheKey.settings.timeoutMs === ms;
-                  return (
-                    <Pressable
-                      key={ms}
-                      onPress={() =>
-                        cacheKey.update({ ...cacheKey.settings, timeoutMs: ms })
-                      }
-                      style={{
-                        flex: 1,
-                        alignItems: "center",
-                        paddingVertical: 10,
-                        borderRadius: 12,
-                        borderWidth: 1,
-                        borderColor: isOn ? c.accent : c.fieldBorder,
-                        backgroundColor: isOn ? c.accent : "transparent",
-                      }}
+                {face.state === "needs_reenroll" && face.graceUntil ? (
+                  <View
+                    style={[styles.pill, { backgroundColor: PILL.pending.bg }]}
+                  >
+                    <Text
+                      style={[styles.pillText, { color: PILL.pending.ink }]}
                     >
-                      <Text
-                        style={{
-                          fontSize: 12.5,
-                          fontWeight: "600",
-                          color: isOn ? "#fff" : c.ink,
-                        }}
-                      >
-                        {label}
-                      </Text>
-                    </Pressable>
-                  );
-                })}
+                      {t("sec.batas", {
+                        tgl: formatShortDateWithYear(face.graceUntil),
+                      })}
+                    </Text>
+                  </View>
+                ) : null}
               </View>
-            </View>
-          ) : null}
-          {biometricMessage ? (
-            <Text style={[styles.rowSub, { color: c.bad.ink, marginTop: 8 }]}>
-              {biometricMessage}
-            </Text>
-          ) : null}
-
-          <Text style={[styles.groupLabel, { marginTop: 18 }]}>
-            {t("sec.grupAkun")}
-          </Text>
-          <Pressable
-            style={styles.baris}
-            onPress={() => navigation.navigate("ProfilePassword")}
-          >
-            <IconBox icon="lock-closed-outline" color={c.info.ink} />
-            <View style={{ flex: 1, minWidth: 0 }}>
-              <Text style={styles.rowTitle}>{t("sec.ubahPw")}</Text>
-              <Text style={styles.rowSub}>
-                {info.passwordChangedDaysAgo === 0
-                  ? t("sec.baruSaja")
-                  : t("sec.terakhir", { n: info.passwordChangedDaysAgo })}
-              </Text>
-            </View>
-            <Ionicons name="chevron-forward" size={16} color={c.mutedLabel} />
+            ) : null}
           </Pressable>
-          {info.toggles.map((toggle, i) => (
-            <View
-              key={toggle.key}
-              style={[
-                styles.baris,
-                i === info.toggles.length - 1 && styles.finalRow,
-              ]}
-            >
-              <IconBox icon="notifications-outline" color={c.warn.ink} />
+        </TourTarget>
+
+        <TourTarget id="k.biometrik">
+          <View style={styles.card}>
+            <Text style={styles.cardTitle}>{t("sec.keamananAkun")}</Text>
+
+            <Text style={styles.groupLabel}>{t("sec.grupBiometrik")}</Text>
+            <View style={styles.baris}>
               <View style={{ flex: 1, minWidth: 0 }}>
-                <Text style={styles.rowTitle}>{toggle.title}</Text>
-                <Text style={styles.rowSub}>{toggle.subtitle}</Text>
+                <Text style={styles.rowTitle}>
+                  {t("bio.loginBio", { nama: biometricName })}
+                </Text>
+                <Text style={styles.rowSub}>
+                  {isBiometricLogin
+                    ? t("bio.loginBioAktif")
+                    : t("bio.loginBioMati")}
+                </Text>
               </View>
               <Switch
-                value={toggle.enabled}
-                onValueChange={(v) => changeToggle(toggle.key, v)}
+                value={isBiometricLogin}
+                onValueChange={toggleBiometric}
                 trackColor={{ false: c.track, true: c.accent }}
                 thumbColor="#fff"
               />
             </View>
-          ))}
-        </View>
-
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>{t("sec.perangkat")}</Text>
-          <View style={{ gap: 13, marginTop: 14 }}>
-            {info.devices.map((d) => (
-              <View key={d.id} style={styles.devRow}>
-                <IconBox
-                  icon={
-                    d.kind === "mobile"
-                      ? "phone-portrait-outline"
-                      : "desktop-outline"
-                  }
-                  color={c.info.ink}
-                />
-                <View style={{ flex: 1, minWidth: 0 }}>
-                  <Text style={styles.devName}>{d.name}</Text>
-                  <Text style={styles.devMeta}>{d.meta}</Text>
+            <View
+              style={[styles.baris, !isBiometricLogin && { opacity: 0.45 }]}
+            >
+              <View style={{ flex: 1, minWidth: 0 }}>
+                <Text style={styles.rowTitle}>{t("bio.kunciOtomatis")}</Text>
+                <Text style={styles.rowSub}>
+                  {isBiometricLogin
+                    ? t("bio.kunciSub", { nama: biometricName })
+                    : t("bio.kunciButuhBiometrik")}
+                </Text>
+              </View>
+              <Switch
+                value={isBiometricLogin && cacheKey.settings.isActive}
+                onValueChange={changeLock}
+                disabled={!isBiometricLogin}
+                trackColor={{ false: c.track, true: c.accent }}
+                thumbColor="#fff"
+              />
+            </View>
+            {isBiometricLogin && cacheKey.settings.isActive ? (
+              <View style={{ paddingVertical: 8 }}>
+                <Text style={styles.rowSub}>{t("bio.timeout")}</Text>
+                <View style={{ flexDirection: "row", gap: 8, marginTop: 8 }}>
+                  {TIMEOUT_OPTIONS.map(([ms, label]) => {
+                    const isOn = cacheKey.settings.timeoutMs === ms;
+                    return (
+                      <Pressable
+                        key={ms}
+                        onPress={() =>
+                          cacheKey.update({
+                            ...cacheKey.settings,
+                            timeoutMs: ms,
+                          })
+                        }
+                        style={{
+                          flex: 1,
+                          alignItems: "center",
+                          paddingVertical: 10,
+                          borderRadius: 12,
+                          borderWidth: 1,
+                          borderColor: isOn ? c.accent : c.fieldBorder,
+                          backgroundColor: isOn ? c.accent : "transparent",
+                        }}
+                      >
+                        <Text
+                          style={{
+                            fontSize: 12.5,
+                            fontWeight: "600",
+                            color: isOn ? "#fff" : c.ink,
+                          }}
+                        >
+                          {label}
+                        </Text>
+                      </Pressable>
+                    );
+                  })}
                 </View>
-                {!d.current ? (
-                  <Pressable
-                    onPress={() => signOutDevice(d)}
-                    hitSlop={8}
-                    style={styles.devSignOut}
-                  >
-                    <Text style={styles.devSignOutText}>
-                      {t("sec.keluarkan")}
-                    </Text>
-                  </Pressable>
-                ) : null}
-                <View
-                  style={[
-                    styles.devTag,
-                    { backgroundColor: d.current ? c.ok.bg : c.info.bg },
-                  ]}
-                >
-                  <Text
-                    style={[
-                      styles.devTagText,
-                      { color: d.current ? c.ok.ink : c.info.ink },
-                    ]}
-                  >
-                    {d.current
-                      ? t("sec.iniPerangkat")
-                      : d.kind === "mobile"
-                        ? t("sec.aplikasi")
-                        : t("sec.web")}
+              </View>
+            ) : null}
+            {biometricMessage ? (
+              <Text style={[styles.rowSub, { color: c.bad.ink, marginTop: 8 }]}>
+                {biometricMessage}
+              </Text>
+            ) : null}
+
+            <Text style={[styles.groupLabel, { marginTop: 18 }]}>
+              {t("sec.grupAkun")}
+            </Text>
+            <TourTarget id="k.sandi">
+              <Pressable
+                style={styles.baris}
+                onPress={() => navigation.navigate("ProfilePassword")}
+              >
+                <IconBox icon="lock-closed-outline" color={c.info.ink} />
+                <View style={{ flex: 1, minWidth: 0 }}>
+                  <Text style={styles.rowTitle}>{t("sec.ubahPw")}</Text>
+                  <Text style={styles.rowSub}>
+                    {info.passwordChangedDaysAgo === 0
+                      ? t("sec.baruSaja")
+                      : t("sec.terakhir", { n: info.passwordChangedDaysAgo })}
                   </Text>
                 </View>
+                <Ionicons
+                  name="chevron-forward"
+                  size={16}
+                  color={c.mutedLabel}
+                />
+              </Pressable>
+            </TourTarget>
+            {info.toggles.map((toggle, i) => (
+              <View
+                key={toggle.key}
+                style={[
+                  styles.baris,
+                  i === info.toggles.length - 1 && styles.finalRow,
+                ]}
+              >
+                <IconBox icon="notifications-outline" color={c.warn.ink} />
+                <View style={{ flex: 1, minWidth: 0 }}>
+                  <Text style={styles.rowTitle}>{toggle.title}</Text>
+                  <Text style={styles.rowSub}>{toggle.subtitle}</Text>
+                </View>
+                <Switch
+                  value={toggle.enabled}
+                  onValueChange={(v) => changeToggle(toggle.key, v)}
+                  trackColor={{ false: c.track, true: c.accent }}
+                  thumbColor="#fff"
+                />
               </View>
             ))}
           </View>
-        </View>
+        </TourTarget>
+
+        <TourTarget id="k.perangkat">
+          <View style={styles.card}>
+            <Text style={styles.cardTitle}>{t("sec.perangkat")}</Text>
+            <View style={{ gap: 13, marginTop: 14 }}>
+              {info.devices.map((d) => (
+                <View key={d.id} style={styles.devRow}>
+                  <IconBox
+                    icon={
+                      d.kind === "mobile"
+                        ? "phone-portrait-outline"
+                        : "desktop-outline"
+                    }
+                    color={c.info.ink}
+                  />
+                  <View style={{ flex: 1, minWidth: 0 }}>
+                    <Text style={styles.devName}>{d.name}</Text>
+                    <Text style={styles.devMeta}>{d.meta}</Text>
+                  </View>
+                  {!d.current ? (
+                    <Pressable
+                      onPress={() => signOutDevice(d)}
+                      hitSlop={8}
+                      style={styles.devSignOut}
+                    >
+                      <Text style={styles.devSignOutText}>
+                        {t("sec.keluarkan")}
+                      </Text>
+                    </Pressable>
+                  ) : null}
+                  <View
+                    style={[
+                      styles.devTag,
+                      { backgroundColor: d.current ? c.ok.bg : c.info.bg },
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.devTagText,
+                        { color: d.current ? c.ok.ink : c.info.ink },
+                      ]}
+                    >
+                      {d.current
+                        ? t("sec.iniPerangkat")
+                        : d.kind === "mobile"
+                          ? t("sec.aplikasi")
+                          : t("sec.web")}
+                    </Text>
+                  </View>
+                </View>
+              ))}
+            </View>
+          </View>
+        </TourTarget>
       </ScrollView>
 
       <Modal

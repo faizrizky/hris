@@ -1,3 +1,4 @@
+import { TourTarget } from "@/components/TourTarget";
 import { useMemo } from "react";
 import type { ScreenProps } from "@/navigation/types";
 import { formatDuration, getAttendanceStatus } from "@/utils/attendanceStatus";
@@ -79,25 +80,29 @@ export function ClockScreen({ navigation }: ScreenProps) {
           {loadError ? <ErrorState message={loadError} onRetry={load} /> : null}
           {!loadError ? (
             <>
-              <View style={styles.steps}>
-                {[0, 1, 2].map((i) => (
-                  <View
-                    key={i}
-                    style={[styles.stepBar, { backgroundColor: c.track }]}
-                  />
-                ))}
-              </View>
+              <TourTarget id="a.tahap">
+                <View style={styles.steps}>
+                  {[0, 1, 2].map((i) => (
+                    <View
+                      key={i}
+                      style={[styles.stepBar, { backgroundColor: c.track }]}
+                    />
+                  ))}
+                </View>
+              </TourTarget>
 
-              <View style={styles.panel}>
-                <Skeleton width="100%" height={216} radius={0} />
-                <View style={styles.locationRow}>
-                  <Skeleton width={34} height={34} radius={11} />
-                  <View style={{ flex: 1, minWidth: 0, gap: 7 }}>
-                    <Skeleton width="72%" height={12} radius={4} />
-                    <Skeleton width="54%" height={10} radius={4} />
+              <TourTarget id="a.lokasi">
+                <View style={styles.panel}>
+                  <Skeleton width="100%" height={216} radius={0} />
+                  <View style={styles.locationRow}>
+                    <Skeleton width={34} height={34} radius={11} />
+                    <View style={{ flex: 1, minWidth: 0, gap: 7 }}>
+                      <Skeleton width="72%" height={12} radius={4} />
+                      <Skeleton width="54%" height={10} radius={4} />
+                    </View>
                   </View>
                 </View>
-              </View>
+              </TourTarget>
 
               <Skeleton height={48} radius={16} style={{ marginTop: 12 }} />
             </>
@@ -407,45 +412,49 @@ export function ClockScreen({ navigation }: ScreenProps) {
           <Text style={styles.errorText}>{errorMessage}</Text>
         ) : null}
         <View style={styles.actions}>
-          <Pressable
-            style={[
-              styles.cta,
-              {
-                backgroundColor: done
-                  ? c.ok.ink
-                  : blockReason || (step === 1 && !isFaceOk)
-                    ? c.track
-                    : c.accent,
-              },
-            ]}
-            onPress={handleNext}
-            disabled={isLoading || !!blockReason || (step === 1 && !isFaceOk)}
-          >
-            <Text style={styles.ctaText}>
-              {isLoading ? t("umum.memproses") : ctaCaption}
-            </Text>
-          </Pressable>
+          <TourTarget id="a.tombol">
+            <Pressable
+              style={[
+                styles.cta,
+                {
+                  backgroundColor: done
+                    ? c.ok.ink
+                    : blockReason || (step === 1 && !isFaceOk)
+                      ? c.track
+                      : c.accent,
+                },
+              ]}
+              onPress={handleNext}
+              disabled={isLoading || !!blockReason || (step === 1 && !isFaceOk)}
+            >
+              <Text style={styles.ctaText}>
+                {isLoading ? t("umum.memproses") : ctaCaption}
+              </Text>
+            </Pressable>
+          </TourTarget>
 
-          <Pressable
-            style={styles.secondary}
-            onPress={() => navigation.navigate("History")}
-          >
-            <Text style={styles.secondaryText}>{t("ab.riwayat")}</Text>
-          </Pressable>
+          <TourTarget id="a.lainnya" style={styles.actionsGroup}>
+            <Pressable
+              style={styles.secondary}
+              onPress={() => navigation.navigate("History")}
+            >
+              <Text style={styles.secondaryText}>{t("ab.riwayat")}</Text>
+            </Pressable>
 
-          <Pressable
-            style={styles.secondary}
-            onPress={() => navigation.navigate("AttendanceCorrection")}
-          >
-            <Text style={styles.secondaryText}>{t("ab.koreksi")}</Text>
-          </Pressable>
+            <Pressable
+              style={styles.secondary}
+              onPress={() => navigation.navigate("AttendanceCorrection")}
+            >
+              <Text style={styles.secondaryText}>{t("ab.koreksi")}</Text>
+            </Pressable>
 
-          <Pressable
-            style={styles.secondary}
-            onPress={() => navigation.navigate("AttendanceCorrectionHistory")}
-          >
-            <Text style={styles.secondaryText}>{t("ab.riwayatKoreksi")}</Text>
-          </Pressable>
+            <Pressable
+              style={styles.secondary}
+              onPress={() => navigation.navigate("AttendanceCorrectionHistory")}
+            >
+              <Text style={styles.secondaryText}>{t("ab.riwayatKoreksi")}</Text>
+            </Pressable>
+          </TourTarget>
         </View>
       </ScrollView>
     </View>
@@ -628,6 +637,7 @@ const makeStyles = (c: Palette) =>
     },
 
     actions: { marginTop: 14, gap: 9 },
+    actionsGroup: { gap: 9 },
     cta: {
       borderWidth: 1,
       borderColor: "rgba(255,255,255,0.3)",

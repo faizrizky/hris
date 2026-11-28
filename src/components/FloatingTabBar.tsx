@@ -1,7 +1,7 @@
 import { hrisApi } from "@/services/api";
 import { isInboxNotification } from "@/utils/notification";
 import { tabOrder } from "@/navigation/tabOrder";
-import { tourTarget } from "@/components/Tour";
+import { tourTarget } from "@/components/TourTarget";
 import { setUnreadCount, useUnreadCount } from "@/navigation/notifBadge";
 import { markBackNavigation } from "@/navigation/navigationBack";
 import { useTabBarHidden } from "@/navigation/tabBarVisibility";

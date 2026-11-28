@@ -1,3 +1,4 @@
+import { TourTarget } from "@/components/TourTarget";
 import { useMemo } from "react";
 import { usePagedList } from "@/hooks/usePagedList";
 import { searchableText } from "@/utils/searchText";
@@ -59,12 +60,14 @@ export function ProfileDocsScreen({ navigation }: ScreenProps) {
           <Ionicons name="chevron-back" size={18} color={c.ink} />
         </Pressable>
         <Text style={styles.headerTitle}>{t("doc.judul")}</Text>
-        <Pressable
-          style={styles.uploadBtn}
-          onPress={() => navigation.navigate("ProfileUpload")}
-        >
-          <Text style={styles.uploadText}>{t("doc.unggah")}</Text>
-        </Pressable>
+        <TourTarget id="p.unggah">
+          <Pressable
+            style={styles.uploadBtn}
+            onPress={() => navigation.navigate("ProfileUpload")}
+          >
+            <Text style={styles.uploadText}>{t("doc.unggah")}</Text>
+          </Pressable>
+        </TourTarget>
       </View>
 
       <View style={styles.heroWrap}>

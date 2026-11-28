@@ -1,15 +1,8 @@
-import { useCallback, useMemo, useRef } from "react";
+import { useMemo } from "react";
 import { useProfilePhoto } from "@/hooks/useProfilePhoto";
-import {
-  Image,
-  Pressable,
-  ScrollView as RNScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
-import { TourStarter, tourTarget, useTourReplay } from "@/components/Tour";
-import { tabOrder } from "@/navigation/tabOrder";
+import { Image, Pressable, StyleSheet, Text, View } from "react-native";
+import { TourStarter } from "@/components/Tour";
+import { tourTarget } from "@/components/TourTarget";
 import { Reveal, RevealScrollView as ScrollView } from "@/components/Reveal";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -107,15 +100,6 @@ export function HomeScreen() {
     load,
     canStartTour,
   } = useHome();
-  const replayCount = useTourReplay();
-  const scrollRef = useRef<RNScrollView>(null);
-  const scrollOffset = useRef(0);
-  const scrollHome = useCallback((dy: number) => {
-    scrollRef.current?.scrollTo({
-      y: Math.max(0, scrollOffset.current + dy),
-      animated: true,
-    });
-  }, []);
   const t = useT();
   const { punyaFitur } = useTenant();
   const { employee } = useSession();
@@ -395,16 +379,7 @@ export function HomeScreen() {
 
   return (
     <View style={styles.container}>
-      {(canStartTour || replayCount > 0) && !isLoading ? (
-        <TourStarter
-          key={replayCount}
-          menuKeys={menuSections.flatMap((s) =>
-            s.items.map((item) => ({ key: item.key, label: item.label })),
-          )}
-          tabs={tabOrder(employee.role)}
-          onScroll={scrollHome}
-        />
-      ) : null}
+      {canStartTour && !isLoading ? <TourStarter /> : null}
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
         <RadialGlow size={200} color={c.glowHeader} top={-60} right={-40} />
 
@@ -430,14 +405,7 @@ export function HomeScreen() {
         <Text style={styles.greeting}>{greeting}</Text>
         <Text style={styles.greetingSub}>{greetingSub}</Text>
       </View>
-      <ScrollView
-        ref={scrollRef}
-        scrollEventThrottle={16}
-        onScroll={(e) => {
-          scrollOffset.current = e.nativeEvent.contentOffset.y;
-        }}
-        contentContainerStyle={styles.content}
-      >
+      <ScrollView contentContainerStyle={styles.content}>
         <View
           ref={tourTarget("clock")}
           collapsable={false}
@@ -570,7 +538,6 @@ export function HomeScreen() {
               {section.items.map((q) => (
                 <QuickAction
                   key={q.key}
-                  targetRef={tourTarget(`menu:${q.key}`)}
                   iconBg={q.bg}
                   ink={q.ink}
                   icon={q.icon}
@@ -697,9 +664,7 @@ function QuickAction({
   icon,
   label,
   onPress,
-  targetRef,
 }: {
-  targetRef: (node: View | null) => void;
   iconBg: string;
   ink: string;
   icon: keyof typeof Ionicons.glyphMap;
@@ -711,7 +676,7 @@ function QuickAction({
 
   return (
     <Reveal style={styles.quickCell}>
-      <Pressable ref={targetRef} style={styles.quickCard} onPress={onPress}>
+      <Pressable style={styles.quickCard} onPress={onPress}>
         <View style={styles.quickIcon}>
           <Ionicons name={icon} size={26} color={ink} />
         </View>

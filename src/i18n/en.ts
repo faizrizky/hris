@@ -29,8 +29,8 @@ export const en: Record<TranslationKey, string> = {
   "profil.modeGelapIkuti": "Follows your choice",
   "profil.bahasa": "Language",
   "profil.bahasaSub": "Indonesia or English",
-  "profil.tutorial": "Replay tutorial",
-  "profil.tutorialSub": "A tour of the app features",
+  "profil.tutorial": "Tutorial",
+  "profil.tutorialSub": "Choose a part to learn",
   "profil.keamanan": "Security & Biometrics",
   "profil.keamananSub": "Biometrics, change password",
   "profil.sinkron": "Sync status",
@@ -1304,6 +1304,176 @@ export const en: Record<TranslationKey, string> = {
     "Complete your information: register your face for attendance verification. You need a verified ID card and a profile photo.",
   "fe.ditolakJudul": "Face verification rejected",
   "fe.ditolakIsi": "HR rejected your face registration. Please register again.",
+  "tur.p.data.j": "1. Complete your profile",
+  "tur.p.data":
+    "Your profile must be complete before you can clock in. It all starts with Personal Data and Documents on the Profile page.",
+  "tur.p.foto.j": "Profile photo",
+  "tur.p.foto":
+    "Add a clear photo of your face with the change photo button. It is compared with your face during verification.",
+  "tur.p.kontak.j": "Contact and address",
+  "tur.p.kontak":
+    "Fill in your phone number, personal email and current address. Changes go to HR and apply once approved.",
+  "tur.p.darurat.j": "Emergency contacts",
+  "tur.p.darurat":
+    "Add people who can be reached in an emergency and how they are related to you, then save at the bottom of the page.",
+  "tur.p.ktp.j": "Upload your ID card",
+  "tur.p.ktp":
+    "Tap Upload, choose the identity category, then photograph your ID card in good light without cropping it. Wait for HR to verify it.",
+  "tur.p.wajah.j": "Face verification status",
+  "tur.p.wajah":
+    "This card shows whether your face is registered. Have a verified ID card and a profile photo ready, then tap the card.",
+  "tur.p.wajahMulai.j": "Register your face",
+  "tur.p.wajahMulai":
+    "Tap this button, keep your face in the frame without a mask or dark glasses, then follow the requested movements. HR will review it.",
+  "tur.p.perangkat.j": "Registered device",
+  "tur.p.perangkat":
+    "Your first phone is registered automatically. If you change phones, you can clock in only after HR approves the new one.",
+  "tur.a.beranda.j": "2. Attendance",
+  "tur.a.beranda":
+    "This card shows today's clock in and out times. Tap its button to open the attendance page.",
+  "tur.a.tahap.j": "Three steps",
+  "tur.a.tahap":
+    "Clocking in goes in order: location check, face verification, then done. These bars show where you are.",
+  "tur.a.lokasi.j": "Location check",
+  "tur.a.lokasi":
+    "Turn on GPS and allow location access. To clock in you must be inside the office radius, except on WFH days. You can clock out anywhere.",
+  "tur.a.wajah.j": "Face verification",
+  "tur.a.wajah":
+    "Once the location is accepted, face the camera in good light. Remove masks and dark glasses, then follow the blink or turn prompts.",
+  "tur.a.tombol.j": "Continue button",
+  "tur.a.tombol":
+    "This button moves to the next step and sends your attendance at the end. If it is grey, read the reason under the location name. Without signal, it is saved and sent once you reconnect.",
+  "tur.a.lainnya.j": "History and corrections",
+  "tur.a.lainnya":
+    "See your attendance history, request a correction if you forgot or made a mistake, and follow its status.",
+  "tur.a.riwayat.j": "Attendance history",
+  "tur.a.riwayat":
+    "Clock in and out times and each day's status, including late arrivals, are listed here.",
+  "tur.a.korTgl.j": "Correction: pick a date",
+  "tur.a.korTgl":
+    "Choose the date to fix. Only dates that have already passed can be selected.",
+  "tur.a.korJam.j": "Correction: correct times",
+  "tur.a.korJam": "Set the clock in and clock out times as they should be.",
+  "tur.a.korAlasan.j": "Correction: type and reason",
+  "tur.a.korAlasan":
+    "Choose the correction type and explain the reason clearly.",
+  "tur.a.korBukti.j": "Correction: evidence",
+  "tur.a.korBukti":
+    "Attach proof such as a screenshot, a guest book photo or a note from your manager. Some correction types require it.",
+  "tur.a.korKirim.j": "Correction: send",
+  "tur.a.korKirim":
+    "This bar tells you what is still missing. Send once it is complete, then wait for approval.",
+  "tur.r.jenisForm.j": "3. Requests",
+  "tur.r.jenisForm":
+    "Your requests are made on this page. Pick the type here, such as leave, overtime or WFH.",
+  "tur.r.cutiJenis.j": "Leave: leave type",
+  "tur.r.cutiJenis":
+    "Choose the leave type. The remaining balance is shown so you stay within your quota.",
+  "tur.r.cutiTgl.j": "Leave: dates",
+  "tur.r.cutiTgl":
+    "Tap the start date and then the end date. Working days are counted automatically.",
+  "tur.r.cutiDetail.j": "Leave: details",
+  "tur.r.cutiDetail":
+    "Write the reason, choose a colleague to cover your work, and attach proof if needed, such as a doctor's note.",
+  "tur.r.cutiAlur.j": "Approval flow",
+  "tur.r.cutiAlur": "This shows who will approve your request.",
+  "tur.r.cutiKirim.j": "Leave: send",
+  "tur.r.cutiKirim":
+    "The note on the left shows what is still missing. The send button appears once the form is complete.",
+  "tur.r.cutiDaftar.j": "Leave list",
+  "tur.r.cutiDaftar":
+    "Follow your balance and the status of every leave request here.",
+  "tur.r.lemburTgl.j": "Overtime: date",
+  "tur.r.lemburTgl":
+    "Overtime is requested after the work is done, so only today and earlier dates can be selected.",
+  "tur.r.lemburJam.j": "Overtime: duration",
+  "tur.r.lemburJam":
+    "Set the end time with the minus and plus buttons. The limit is 4 hours on workdays and 8 hours on holidays.",
+  "tur.r.lemburTugas.j": "Overtime: work done",
+  "tur.r.lemburTugas": "Describe the work you completed during overtime.",
+  "tur.r.lemburBukti.j": "Overtime: evidence",
+  "tur.r.lemburBukti": "Attach a photo or file of your work as proof.",
+  "tur.r.lemburKirim.j": "Overtime: send",
+  "tur.r.lemburKirim":
+    "Check the total hours, then send once the button appears.",
+  "tur.r.lemburDaftar.j": "Overtime list",
+  "tur.r.lemburDaftar":
+    "This month's overtime hours and the status of each request are here.",
+  "tur.r.wfhTgl.j": "WFH: period",
+  "tur.r.wfhTgl": "Choose the first and last day of working from home.",
+  "tur.r.wfhDetail.j": "WFH: days and reason",
+  "tur.r.wfhDetail":
+    "Mark the days you will work from home and write the reason.",
+  "tur.r.wfhKirim.j": "WFH: send",
+  "tur.r.wfhKirim":
+    "Once approved, you do not need to be at the office to clock in on those days.",
+  "tur.r.sif.j": "Shift request",
+  "tur.r.sif":
+    "Choose the shift, the start date and an end date if any, then send. Your history appears below the form.",
+  "tur.r.cair.j": "Leave encashment",
+  "tur.r.cair":
+    "Choose the leave type and the number of days to cash in, then send it to HR for review.",
+  "tur.r.aduan.j": "Grievance",
+  "tur.r.aduan":
+    "Choose the type and who it is about, add a subject and description, then send it. HR follows it up.",
+  "tur.i.ringkasan.j": "4. Other information",
+  "tur.i.ringkasan":
+    "Your attendance rate, leave balance, overtime hours and late arrivals are summarised on Home.",
+  "tur.i.onboarding.j": "Onboarding tasks",
+  "tur.i.onboarding": "Your orientation tasks and which ones are done.",
+  "tur.i.pelatihan.j": "Training",
+  "tur.i.pelatihan":
+    "Your training schedule. After attending, send your feedback here.",
+  "tur.i.slip.j": "Payslips",
+  "tur.i.slip": "Earnings and deductions for each period, downloadable as PDF.",
+  "tur.i.pajak.j": "Tax and BPJS",
+  "tur.i.pajak": "A summary of income tax and BPJS contributions.",
+  "tur.i.kinerja.j": "Performance",
+  "tur.i.kinerja":
+    "See goals and scores, fill in your self review and read feedback.",
+  "tur.i.notifikasi.j": "Notifications",
+  "tur.i.notifikasi":
+    "Approval results, reminders and announcements arrive here. Tap one to open it.",
+  "tur.i.approval.j": "Approvals",
+  "tur.i.approval": "Approve or reject your team's requests.",
+  "tur.i.karyawan.j": "Employee directory",
+  "tur.i.karyawan": "Find colleagues and view their details.",
+  "tur.i.verifDokumen.j": "Document review",
+  "tur.i.verifDokumen":
+    "Check employee documents, including ID cards, then approve or reject them.",
+  "tur.i.verifProfil.j": "Profile changes",
+  "tur.i.verifProfil": "Review employees' requests to change personal data.",
+  "tur.i.verifWajah.j": "Face review",
+  "tur.i.verifWajah": "Review employee face registrations.",
+  "tur.k.wajah.j": "5. Security: face",
+  "tur.k.wajah":
+    "Make sure your face status is active. Register again from this card when asked.",
+  "tur.k.biometrik.j": "Biometric login",
+  "tur.k.biometrik":
+    "Turn on your phone's fingerprint or face to sign in without a password, with auto lock when you leave the app.",
+  "tur.k.sandi.j": "Password",
+  "tur.k.sandi": "Change your password regularly and never share it.",
+  "tur.k.perangkat.j": "Devices and sessions",
+  "tur.k.perangkat":
+    "Check the devices signed in to your account. Sign out any you do not recognise.",
+  "tur.k.pengaturan.j": "Settings",
+  "tur.k.pengaturan":
+    "Set notifications, dark mode and language. You can replay any part of this tutorial from the menu below them.",
+  "tut.judul": "Tutorial",
+  "tut.pengantar":
+    "Choose the part you want to learn. The tutorial opens each page in turn and does not send anything.",
+  "tut.semua.j": "Everything",
+  "tut.semua": "Play from start to finish",
+  "tut.profil.j": "Complete your profile",
+  "tut.profil": "Data, ID card, face and device for attendance",
+  "tut.absen.j": "Attendance",
+  "tut.absen": "Check-in, history and corrections",
+  "tut.pengajuan.j": "Requests",
+  "tut.pengajuan": "Leave, overtime, WFH, shift and more",
+  "tut.lainnya.j": "Other information",
+  "tut.lainnya": "Payslips, notifications and other menus",
+  "tut.keamanan.j": "Security",
+  "tut.keamanan": "Biometrics, password and devices",
   "tour.count": "{n} of {total}",
   "tour.skip": "Skip",
   "tour.back": "Previous",
@@ -1312,39 +1482,10 @@ export const en: Record<TranslationKey, string> = {
   "tour.finish": "Done",
   "tour.welcomeTitle": "Welcome to HRIS",
   "tour.welcome":
-    "Your device is registered. We will show you the features available to you, one by one.",
-  "tour.clockTitle": "Today's attendance",
-  "tour.clock":
-    "Today's clock in and clock out. Tap the button to record attendance.",
-  "tour.statsTitle": "Summary",
-  "tour.stats":
-    "Your attendance rate, leave balance, overtime hours and late arrivals.",
+    "Let us walk you through the app, from completing your profile to securing your account. You can skip at any time.",
   "tour.doneTitle": "You are all set",
-  "tour.done": "That covers everything. Have a good day at work.",
-  "tour.menu.approval": "Approve or reject your team's requests.",
-  "tour.menu.employees": "The employee directory and details.",
-  "tour.menu.attendance": "Clock in and out with location and face check.",
-  "tour.menu.requestLeave": "Request leave or time off.",
-  "tour.menu.requestOvertime": "Request overtime.",
-  "tour.menu.wfh": "Request work-from-home days.",
-  "tour.menu.trip": "Request a business trip.",
-  "tour.menu.shiftRequest": "Request a different work shift.",
-  "tour.menu.leaveEncashment": "Request payment for unused leave.",
-  "tour.menu.grievance": "Raise a grievance with HR.",
-  "tour.menu.onboarding": "See your new-employee checklist.",
-  "tour.menu.training": "See your trainings and send feedback.",
-  "tour.menu.payslip": "View and download payslips.",
-  "tour.menu.appraisal": "Performance results and self appraisal.",
-  "tour.menu.history": "Your attendance history.",
-  "tour.menu.correction": "Request a correction to wrong attendance.",
-  "tour.menu.leaveList": "The status of your leave requests.",
-  "tour.menu.overtimeList": "Your overtime history and status.",
-  "tour.menu.tax": "Your income tax and social security details.",
-  "tour.menu.offlineReview": "Review attendance sent while offline.",
-  "tour.menu.teamAttendance": "Monitor your team's attendance.",
-  "tour.menu.documentReview": "Verify employee documents.",
-  "tour.menu.profileReview": "Review profile change requests.",
-  "tour.menu.faceReview": "Review employee face registrations.",
+  "tour.done":
+    "The tutorial is finished. You can replay any part from your Profile.",
   "tour.tabTitle.Beranda": "Home",
   "tour.tab.Beranda": "Back to your summary and all menus.",
   "tour.tabTitle.Absensi": "Attendance",

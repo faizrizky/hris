@@ -1,3 +1,4 @@
+import { TourTarget } from "@/components/TourTarget";
 import { useMemo } from "react";
 import { IconBox } from "@/components/IconBox";
 import type { ScreenProps } from "@/navigation/types";
@@ -145,34 +146,36 @@ export function ProfileDataScreen({ navigation }: ScreenProps) {
       {header}
 
       <ScrollView contentContainerStyle={styles.content}>
-        <View style={[styles.card, styles.photoCard]}>
-          {photoUri ? (
-            <Image source={{ uri: photoUri }} style={styles.photo} />
-          ) : (
-            <LinearGradient
-              colors={[c.accent, c.accent2]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.photo}
-            >
-              <Text style={styles.photoInitial}>
-                {initialsOf(profile.fullName)}
+        <TourTarget id="p.fotoCard">
+          <View style={[styles.card, styles.photoCard]}>
+            {photoUri ? (
+              <Image source={{ uri: photoUri }} style={styles.photo} />
+            ) : (
+              <LinearGradient
+                colors={[c.accent, c.accent2]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.photo}
+              >
+                <Text style={styles.photoInitial}>
+                  {initialsOf(profile.fullName)}
+                </Text>
+              </LinearGradient>
+            )}
+            <View style={{ flex: 1, minWidth: 0 }}>
+              <Text style={styles.cardTitle}>{t("pd.fotoProfil")}</Text>
+              <Text style={styles.famMeta}>
+                {photoUri ? t("pd.fotoAda") : t("pd.fotoBelum")}
               </Text>
-            </LinearGradient>
-          )}
-          <View style={{ flex: 1, minWidth: 0 }}>
-            <Text style={styles.cardTitle}>{t("pd.fotoProfil")}</Text>
-            <Text style={styles.famMeta}>
-              {photoUri ? t("pd.fotoAda") : t("pd.fotoBelum")}
-            </Text>
+            </View>
+            <Pressable
+              style={styles.photoBtn}
+              onPress={() => navigation.navigate("ProfilePhoto")}
+            >
+              <Text style={styles.addBtnText}>{t("pd.ubahFoto")}</Text>
+            </Pressable>
           </View>
-          <Pressable
-            style={styles.photoBtn}
-            onPress={() => navigation.navigate("ProfilePhoto")}
-          >
-            <Text style={styles.addBtnText}>{t("pd.ubahFoto")}</Text>
-          </Pressable>
-        </View>
+        </TourTarget>
 
         {shouldShowHero ? (
           <LinearGradient

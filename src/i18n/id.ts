@@ -33,8 +33,8 @@ export const id = {
   "profil.modeGelapIkuti": "Mengikuti pilihanmu",
   "profil.bahasa": "Bahasa",
   "profil.bahasaSub": "Indonesia atau English",
-  "profil.tutorial": "Lihat tutorial lagi",
-  "profil.tutorialSub": "Pengenalan fitur aplikasi",
+  "profil.tutorial": "Tutorial",
+  "profil.tutorialSub": "Pilih bagian yang ingin dipelajari",
   "profil.keamanan": "Keamanan & Biometrik",
   "profil.keamananSub": "Biometrik, ubah password",
   "profil.sinkron": "Status sinkronisasi",
@@ -1306,6 +1306,178 @@ export const id = {
     "Lengkapi datamu: daftarkan wajah untuk verifikasi absensi. Siapkan KTP terverifikasi dan foto profil.",
   "fe.ditolakJudul": "Verifikasi wajah ditolak",
   "fe.ditolakIsi": "Pendaftaran wajahmu ditolak HR. Silakan daftar ulang.",
+  "tur.p.data.j": "1. Lengkapi profil",
+  "tur.p.data":
+    "Supaya bisa absen, profilmu harus lengkap. Semuanya dimulai dari Data Pribadi dan Dokumen di halaman Profil.",
+  "tur.p.foto.j": "Foto profil",
+  "tur.p.foto":
+    "Pasang foto wajah yang jelas lewat tombol ubah foto. Foto ini dipakai sebagai pembanding saat verifikasi wajah.",
+  "tur.p.kontak.j": "Kontak dan alamat",
+  "tur.p.kontak":
+    "Isi nomor telepon, email pribadi, dan alamat domisili. Perubahan dikirim ke HR dan berlaku setelah disetujui.",
+  "tur.p.darurat.j": "Kontak darurat",
+  "tur.p.darurat":
+    "Tambahkan orang yang bisa dihubungi saat darurat beserta hubungannya, lalu simpan di bagian bawah halaman.",
+  "tur.p.ktp.j": "Unggah KTP",
+  "tur.p.ktp":
+    "Tekan Unggah, pilih kategori identitas, lalu foto KTP dengan terang dan tidak terpotong. Tunggu HR memverifikasinya.",
+  "tur.p.wajah.j": "Status verifikasi wajah",
+  "tur.p.wajah":
+    "Kartu ini menunjukkan apakah wajahmu sudah terdaftar. Siapkan KTP yang sudah diverifikasi dan foto profil, lalu ketuk kartunya.",
+  "tur.p.wajahMulai.j": "Daftarkan wajah",
+  "tur.p.wajahMulai":
+    "Tekan tombol ini, posisikan wajah di dalam bingkai tanpa masker dan kacamata gelap, lalu ikuti gerakan yang diminta. HR akan meninjaunya.",
+  "tur.p.perangkat.j": "Daftarkan perangkat",
+  "tur.p.perangkat":
+    "HP pertamamu terdaftar otomatis. Kalau ganti HP, absen baru bisa setelah HR menyetujui perangkat baru itu.",
+  "tur.a.beranda.j": "2. Absensi",
+  "tur.a.beranda":
+    "Kartu ini menunjukkan jam masuk dan pulang hari ini. Ketuk tombolnya untuk membuka halaman Presensi.",
+  "tur.a.tahap.j": "Tiga tahap absen",
+  "tur.a.tahap":
+    "Absen berjalan berurutan: cek lokasi, verifikasi wajah, lalu selesai. Garis ini menunjukkan tahap saat ini.",
+  "tur.a.lokasi.j": "Cek lokasi",
+  "tur.a.lokasi":
+    "Nyalakan GPS dan izinkan akses lokasi. Untuk Clock In kamu harus berada di dalam radius kantor, kecuali pada hari WFH. Clock Out bebas di mana saja.",
+  "tur.a.wajah.j": "Verifikasi wajah",
+  "tur.a.wajah":
+    "Setelah lokasi sesuai, hadapkan wajah ke kamera di tempat terang. Lepas masker dan kacamata gelap, lalu ikuti petunjuk kedip atau toleh.",
+  "tur.a.tombol.j": "Tombol lanjut",
+  "tur.a.tombol":
+    "Tombol ini membawa ke tahap berikutnya dan mengirim absen di akhir. Kalau abu-abu, baca alasan di bawah nama lokasi. Tanpa sinyal, absen disimpan lalu dikirim saat tersambung.",
+  "tur.a.lainnya.j": "Riwayat dan koreksi",
+  "tur.a.lainnya":
+    "Lihat riwayat absen, ajukan koreksi bila lupa atau salah absen, dan pantau status koreksimu.",
+  "tur.a.riwayat.j": "Riwayat absensi",
+  "tur.a.riwayat":
+    "Di sini tampil jam masuk, jam pulang, dan status tiap hari, termasuk keterlambatan.",
+  "tur.a.korTgl.j": "Koreksi: pilih tanggal",
+  "tur.a.korTgl":
+    "Pilih tanggal yang mau diperbaiki. Hanya tanggal yang sudah berjalan yang bisa dipilih.",
+  "tur.a.korJam.j": "Koreksi: jam yang benar",
+  "tur.a.korJam": "Atur jam masuk dan jam pulang yang seharusnya.",
+  "tur.a.korAlasan.j": "Koreksi: jenis dan alasan",
+  "tur.a.korAlasan": "Pilih jenis koreksi lalu tulis alasannya dengan jelas.",
+  "tur.a.korBukti.j": "Koreksi: bukti",
+  "tur.a.korBukti":
+    "Lampirkan bukti seperti tangkapan layar, foto buku tamu, atau surat atasan. Beberapa jenis koreksi mewajibkannya.",
+  "tur.a.korKirim.j": "Koreksi: kirim",
+  "tur.a.korKirim":
+    "Bagian ini memberi tahu apa yang masih kurang. Tekan kirim setelah lengkap, lalu tunggu persetujuan atasan.",
+  "tur.r.jenisForm.j": "3. Pengajuan",
+  "tur.r.jenisForm":
+    "Semua pengajuan ada di halaman ini. Pilih jenisnya di sini, misalnya cuti, lembur, atau WFH.",
+  "tur.r.cutiJenis.j": "Cuti: jenis cuti",
+  "tur.r.cutiJenis":
+    "Pilih jenis cuti. Sisa saldo ikut ditampilkan supaya tidak melebihi jatah.",
+  "tur.r.cutiTgl.j": "Cuti: tanggal",
+  "tur.r.cutiTgl":
+    "Ketuk tanggal mulai lalu tanggal selesai. Jumlah hari kerja dihitung otomatis.",
+  "tur.r.cutiDetail.j": "Cuti: detail",
+  "tur.r.cutiDetail":
+    "Tulis alasan, pilih rekan yang menggantikan tugasmu, dan lampirkan bukti bila diperlukan, misalnya surat dokter.",
+  "tur.r.cutiAlur.j": "Alur persetujuan",
+  "tur.r.cutiAlur": "Di sini terlihat siapa yang akan menyetujui pengajuanmu.",
+  "tur.r.cutiKirim.j": "Cuti: kirim",
+  "tur.r.cutiKirim":
+    "Keterangan di kiri menunjukkan isian yang masih kurang. Tombol kirim muncul setelah form lengkap.",
+  "tur.r.cutiDaftar.j": "Daftar cuti",
+  "tur.r.cutiDaftar":
+    "Pantau sisa saldo dan status setiap pengajuan cuti di sini.",
+  "tur.r.lemburTgl.j": "Lembur: tanggal",
+  "tur.r.lemburTgl":
+    "Lembur diajukan setelah dikerjakan, jadi hanya hari ini dan sebelumnya yang bisa dipilih.",
+  "tur.r.lemburJam.j": "Lembur: durasi",
+  "tur.r.lemburJam":
+    "Atur jam selesai dengan tombol kurang dan tambah. Batasnya 4 jam pada hari kerja dan 8 jam pada hari libur.",
+  "tur.r.lemburTugas.j": "Lembur: pekerjaan",
+  "tur.r.lemburTugas": "Jelaskan pekerjaan yang diselesaikan saat lembur.",
+  "tur.r.lemburBukti.j": "Lembur: bukti",
+  "tur.r.lemburBukti": "Lampirkan foto atau berkas hasil kerja sebagai bukti.",
+  "tur.r.lemburKirim.j": "Lembur: kirim",
+  "tur.r.lemburKirim":
+    "Periksa total jam, lalu kirim setelah tombolnya muncul.",
+  "tur.r.lemburDaftar.j": "Daftar lembur",
+  "tur.r.lemburDaftar":
+    "Total jam lembur bulan ini dan status tiap pengajuan ada di sini.",
+  "tur.r.wfhTgl.j": "WFH: periode",
+  "tur.r.wfhTgl": "Pilih tanggal mulai dan selesai bekerja dari rumah.",
+  "tur.r.wfhDetail.j": "WFH: hari dan alasan",
+  "tur.r.wfhDetail":
+    "Tandai hari yang dijalani dari rumah dan tulis alasannya.",
+  "tur.r.wfhKirim.j": "WFH: kirim",
+  "tur.r.wfhKirim":
+    "Setelah disetujui, absen pada hari itu tidak perlu berada di kantor.",
+  "tur.r.sif.j": "Pengajuan sif",
+  "tur.r.sif":
+    "Pilih sif yang diinginkan, tanggal mulai, dan tanggal selesai bila ada, lalu kirim. Riwayatnya tampil di bawah form.",
+  "tur.r.cair.j": "Pencairan cuti",
+  "tur.r.cair":
+    "Pilih jenis cuti dan jumlah hari yang mau diuangkan, lalu kirim untuk ditinjau HR.",
+  "tur.r.aduan.j": "Pengaduan",
+  "tur.r.aduan":
+    "Pilih jenis dan pihak yang diadukan, isi judul serta uraian, lalu kirim. Hanya HR yang menindaklanjuti.",
+  "tur.i.ringkasan.j": "4. Informasi lainnya",
+  "tur.i.ringkasan":
+    "Ringkasan kehadiran, sisa cuti, jam lembur, dan keterlambatanmu ada di Beranda.",
+  "tur.i.onboarding.j": "Tugas karyawan baru",
+  "tur.i.onboarding":
+    "Daftar tugas masa orientasi dan mana yang sudah selesai.",
+  "tur.i.pelatihan.j": "Pelatihan",
+  "tur.i.pelatihan":
+    "Jadwal pelatihanmu. Setelah mengikutinya, kirim umpan balik di sini.",
+  "tur.i.slip.j": "Slip gaji",
+  "tur.i.slip":
+    "Rincian pendapatan dan potongan tiap periode, bisa diunduh sebagai PDF.",
+  "tur.i.pajak.j": "Pajak dan BPJS",
+  "tur.i.pajak": "Ringkasan PPh 21 dan iuran BPJS.",
+  "tur.i.kinerja.j": "Penilaian kinerja",
+  "tur.i.kinerja":
+    "Lihat sasaran dan nilai, isi penilaian diri, dan baca umpan balik.",
+  "tur.i.notifikasi.j": "Notifikasi",
+  "tur.i.notifikasi":
+    "Hasil persetujuan, pengingat, dan pengumuman masuk ke sini. Ketuk untuk membuka rinciannya.",
+  "tur.i.approval.j": "Persetujuan",
+  "tur.i.approval": "Setujui atau tolak pengajuan anggota tim.",
+  "tur.i.karyawan.j": "Direktori karyawan",
+  "tur.i.karyawan": "Cari rekan kerja dan lihat datanya.",
+  "tur.i.verifDokumen.j": "Verifikasi dokumen",
+  "tur.i.verifDokumen":
+    "Periksa dokumen karyawan, termasuk KTP, lalu setujui atau tolak.",
+  "tur.i.verifProfil.j": "Perubahan data",
+  "tur.i.verifProfil": "Tinjau permintaan perubahan data pribadi karyawan.",
+  "tur.i.verifWajah.j": "Verifikasi wajah",
+  "tur.i.verifWajah": "Tinjau pendaftaran wajah karyawan.",
+  "tur.k.wajah.j": "5. Keamanan: wajah",
+  "tur.k.wajah":
+    "Pastikan status wajahmu aktif. Daftar ulang dari kartu ini bila diminta.",
+  "tur.k.biometrik.j": "Login biometrik",
+  "tur.k.biometrik":
+    "Aktifkan sidik jari atau wajah HP untuk masuk tanpa kata sandi, dan kunci otomatis saat aplikasi ditinggal.",
+  "tur.k.sandi.j": "Kata sandi",
+  "tur.k.sandi":
+    "Ganti kata sandi secara berkala dan jangan dibagikan kepada siapa pun.",
+  "tur.k.perangkat.j": "Perangkat dan sesi",
+  "tur.k.perangkat":
+    "Periksa perangkat yang masuk ke akunmu. Keluarkan yang tidak kamu kenal.",
+  "tur.k.pengaturan.j": "Pengaturan",
+  "tur.k.pengaturan":
+    "Atur notifikasi, mode gelap, dan bahasa. Tutorial ini bisa diputar lagi per bagian dari menu di bawahnya.",
+  "tut.judul": "Tutorial",
+  "tut.pengantar":
+    "Pilih bagian yang ingin dipelajari. Tutorial membuka halamannya satu per satu dan tidak mengirim apa pun.",
+  "tut.semua.j": "Semua bagian",
+  "tut.semua": "Putar dari awal sampai akhir",
+  "tut.profil.j": "Lengkapi profil",
+  "tut.profil": "Data, KTP, wajah, dan perangkat untuk absen",
+  "tut.absen.j": "Absensi",
+  "tut.absen": "Check-in, riwayat, dan koreksi",
+  "tut.pengajuan.j": "Pengajuan",
+  "tut.pengajuan": "Cuti, lembur, WFH, sif, dan lainnya",
+  "tut.lainnya.j": "Informasi lainnya",
+  "tut.lainnya": "Slip gaji, notifikasi, dan menu lain",
+  "tut.keamanan.j": "Keamanan",
+  "tut.keamanan": "Biometrik, kata sandi, dan perangkat",
   "tour.count": "{n} dari {total}",
   "tour.skip": "Lewati",
   "tour.back": "Sebelumnya",
@@ -1314,38 +1486,10 @@ export const id = {
   "tour.finish": "Selesai",
   "tour.welcomeTitle": "Selamat datang di HRIS",
   "tour.welcome":
-    "Perangkatmu sudah terdaftar. Kami tunjukkan fitur yang tersedia untukmu satu per satu.",
-  "tour.clockTitle": "Absensi hari ini",
-  "tour.clock": "Jam masuk dan pulang hari ini. Tekan tombolnya untuk absen.",
-  "tour.statsTitle": "Ringkasan",
-  "tour.stats":
-    "Tingkat kehadiran, sisa cuti, jam lembur, dan keterlambatanmu.",
+    "Kami ajak kamu keliling aplikasi, dari melengkapi profil sampai keamanan akun. Kamu bisa melewatinya kapan saja.",
   "tour.doneTitle": "Siap digunakan",
-  "tour.done": "Itu semua fiturnya. Selamat bekerja.",
-  "tour.menu.approval": "Setujui atau tolak pengajuan anggota tim.",
-  "tour.menu.employees": "Daftar karyawan beserta detailnya.",
-  "tour.menu.attendance": "Absen masuk dan pulang dengan lokasi dan wajah.",
-  "tour.menu.requestLeave": "Ajukan cuti atau izin.",
-  "tour.menu.requestOvertime": "Ajukan lembur.",
-  "tour.menu.wfh": "Ajukan jadwal kerja dari rumah.",
-  "tour.menu.trip": "Ajukan perjalanan dinas.",
-  "tour.menu.shiftRequest": "Ajukan pergantian sif kerja.",
-  "tour.menu.leaveEncashment": "Ajukan pencairan sisa cuti menjadi uang.",
-  "tour.menu.grievance": "Sampaikan pengaduan kepada HR.",
-  "tour.menu.onboarding": "Lihat daftar tugas karyawan baru.",
-  "tour.menu.training": "Lihat pelatihanmu dan kirim umpan balik.",
-  "tour.menu.payslip": "Lihat dan unduh slip gaji.",
-  "tour.menu.appraisal": "Hasil penilaian kinerja dan penilaian diri.",
-  "tour.menu.history": "Riwayat absensimu.",
-  "tour.menu.correction": "Ajukan koreksi absensi yang keliru.",
-  "tour.menu.leaveList": "Status semua pengajuan cutimu.",
-  "tour.menu.overtimeList": "Riwayat dan status lemburmu.",
-  "tour.menu.tax": "Rincian PPh 21 dan BPJS.",
-  "tour.menu.offlineReview": "Tinjau absensi yang dikirim saat offline.",
-  "tour.menu.teamAttendance": "Pantau absensi anggota tim.",
-  "tour.menu.documentReview": "Verifikasi dokumen karyawan.",
-  "tour.menu.profileReview": "Tinjau permintaan perubahan profil.",
-  "tour.menu.faceReview": "Tinjau pendaftaran wajah karyawan.",
+  "tour.done":
+    "Tutorial selesai. Kamu bisa memutarnya lagi per bagian dari Profil.",
   "tour.tabTitle.Beranda": "Beranda",
   "tour.tab.Beranda": "Kembali ke ringkasan dan semua menu.",
   "tour.tabTitle.Absensi": "Absensi",

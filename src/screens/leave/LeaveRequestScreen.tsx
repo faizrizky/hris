@@ -1,3 +1,4 @@
+import { TourTarget } from "@/components/TourTarget";
 import { useMemo } from "react";
 import { getRouteParams, type ScreenProps } from "@/navigation/types";
 import {
@@ -147,56 +148,58 @@ function LeaveRequestForm({ navigation, route }: ScreenProps) {
           </View>
         </View>
 
-        <View
-          style={styles.segment}
-          onLayout={(e) => setSegW(e.nativeEvent.layout.width)}
-        >
-          {segW > 0 && (
-            <Animated.View
-              pointerEvents="none"
-              style={[
-                styles.segIndicator,
-                {
-                  width:
-                    (segW - 8 - 4 * (segments.length - 1)) / segments.length,
-                  transform: [
-                    {
-                      translateX: slide.interpolate({
-                        inputRange: segments.map((_, i) => i),
-                        outputRange: segments.map(
-                          (_, i) =>
-                            ((segW - 8 - 4 * (segments.length - 1)) /
-                              segments.length +
-                              4) *
-                            i,
-                        ),
-                      }),
-                    },
-                  ],
-                },
-              ]}
-            />
-          )}
-          {segments.map((s) => {
-            const isOn = kind === s.key;
-            return (
-              <Pressable
-                key={s.key}
-                onPress={() => switchKind(s.key)}
-                style={styles.segBtn}
-              >
-                <Text
-                  style={[styles.segText, isOn && styles.segTextOn]}
-                  numberOfLines={1}
-                  adjustsFontSizeToFit
-                  minimumFontScale={0.8}
+        <TourTarget id="f.segmen">
+          <View
+            style={styles.segment}
+            onLayout={(e) => setSegW(e.nativeEvent.layout.width)}
+          >
+            {segW > 0 && (
+              <Animated.View
+                pointerEvents="none"
+                style={[
+                  styles.segIndicator,
+                  {
+                    width:
+                      (segW - 8 - 4 * (segments.length - 1)) / segments.length,
+                    transform: [
+                      {
+                        translateX: slide.interpolate({
+                          inputRange: segments.map((_, i) => i),
+                          outputRange: segments.map(
+                            (_, i) =>
+                              ((segW - 8 - 4 * (segments.length - 1)) /
+                                segments.length +
+                                4) *
+                              i,
+                          ),
+                        }),
+                      },
+                    ],
+                  },
+                ]}
+              />
+            )}
+            {segments.map((s) => {
+              const isOn = kind === s.key;
+              return (
+                <Pressable
+                  key={s.key}
+                  onPress={() => switchKind(s.key)}
+                  style={styles.segBtn}
                 >
-                  {t(s.label)}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </View>
+                  <Text
+                    style={[styles.segText, isOn && styles.segTextOn]}
+                    numberOfLines={1}
+                    adjustsFontSizeToFit
+                    minimumFontScale={0.8}
+                  >
+                    {t(s.label)}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
+        </TourTarget>
       </View>
 
       <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding">
@@ -237,13 +240,15 @@ function LeaveRequestForm({ navigation, route }: ScreenProps) {
             ) : (
               <>
                 {kind === "cuti" && (
-                  <LeaveTypeCard
-                    kind={leaveKind}
-                    onPick={setLeaveKind}
-                    balanceList={leaveBalanceList}
-                    workdays={workdayCount}
-                    gender={gender}
-                  />
+                  <TourTarget id="f.jenisCuti">
+                    <LeaveTypeCard
+                      kind={leaveKind}
+                      onPick={setLeaveKind}
+                      balanceList={leaveBalanceList}
+                      workdays={workdayCount}
+                      gender={gender}
+                    />
+                  </TourTarget>
                 )}
                 {kind === "dinas" && (
                   <TripDestinationCard
@@ -252,74 +257,92 @@ function LeaveRequestForm({ navigation, route }: ScreenProps) {
                   />
                 )}
 
-                <DatePickerCard
-                  key={kind}
-                  // Lembur diajukan setelah dikerjakan: hanya hari ini dan sebelumnya.
-                  allow={kind === "lembur" ? "past" : "future"}
-                  mode={isSingle ? "single" : "range"}
-                  title={calTitle}
-                  hint={calHint}
-                  start={start}
-                  end={end}
-                  onChange={handleDateChange}
-                  footer={footer}
-                />
+                <TourTarget id="f.tanggal">
+                  <DatePickerCard
+                    key={kind}
+                    // Lembur diajukan setelah dikerjakan: hanya hari ini dan sebelumnya.
+                    allow={kind === "lembur" ? "past" : "future"}
+                    mode={isSingle ? "single" : "range"}
+                    title={calTitle}
+                    hint={calHint}
+                    start={start}
+                    end={end}
+                    onChange={handleDateChange}
+                    footer={footer}
+                  />
+                </TourTarget>
 
                 {kind === "cuti" && (
-                  <LeaveDetailCard
-                    kind={leaveKind}
-                    reason={reasonText}
-                    onChangeReason={setReasonText}
-                    colleagues={colleagueList}
-                    delegate={delegatePerson}
-                    onPickDelegate={setDelegatePerson}
-                    files={cutiFiles}
-                    onAdd={addLeaveProof}
-                    onRemove={(i) =>
-                      setCutiFiles((prev) => prev.filter((_, idx) => idx !== i))
-                    }
-                  />
+                  <TourTarget id="f.detail">
+                    <LeaveDetailCard
+                      kind={leaveKind}
+                      reason={reasonText}
+                      onChangeReason={setReasonText}
+                      colleagues={colleagueList}
+                      delegate={delegatePerson}
+                      onPickDelegate={setDelegatePerson}
+                      files={cutiFiles}
+                      onAdd={addLeaveProof}
+                      onRemove={(i) =>
+                        setCutiFiles((prev) =>
+                          prev.filter((_, idx) => idx !== i),
+                        )
+                      }
+                    />
+                  </TourTarget>
                 )}
 
                 {kind === "lembur" && (
                   <>
-                    <OvertimeHoursCard
-                      isHoliday={isOtHoliday}
-                      startLabel={formatHoursMinutes(otStart)}
-                      endLabel={formatHoursMinutes(otEnd)}
-                      rule={
-                        isOtHoliday ? t("lr.aturanLibur") : t("lr.aturanKerja")
-                      }
-                      onMinus={() => setOtEndRaw(otEnd - 30)}
-                      onPlus={() => setOtEndRaw(otEnd + 30)}
-                    />
-                    <OvertimeDescriptionCard
-                      description={taskDescription}
-                      onChange={setTaskDescription}
-                    />
-                    <OvertimeProofCard
-                      files={otFiles}
-                      onAdd={addProof}
-                      onRemove={(i) =>
-                        setOtFiles((prev) => prev.filter((_, idx) => idx !== i))
-                      }
-                    />
+                    <TourTarget id="f.jam">
+                      <OvertimeHoursCard
+                        isHoliday={isOtHoliday}
+                        startLabel={formatHoursMinutes(otStart)}
+                        endLabel={formatHoursMinutes(otEnd)}
+                        rule={
+                          isOtHoliday
+                            ? t("lr.aturanLibur")
+                            : t("lr.aturanKerja")
+                        }
+                        onMinus={() => setOtEndRaw(otEnd - 30)}
+                        onPlus={() => setOtEndRaw(otEnd + 30)}
+                      />
+                    </TourTarget>
+                    <TourTarget id="f.tugas">
+                      <OvertimeDescriptionCard
+                        description={taskDescription}
+                        onChange={setTaskDescription}
+                      />
+                    </TourTarget>
+                    <TourTarget id="f.bukti">
+                      <OvertimeProofCard
+                        files={otFiles}
+                        onAdd={addProof}
+                        onRemove={(i) =>
+                          setOtFiles((prev) =>
+                            prev.filter((_, idx) => idx !== i),
+                          )
+                        }
+                      />
+                    </TourTarget>
                   </>
                 )}
 
                 {kind === "wfh" && (
-                  <WfhDetailCard
-                    days={wfhWeekdays}
-                    onToggle={(d) =>
-                      setWfhWeekdays((prev) =>
-                        prev.includes(d)
-                          ? prev.filter((x) => x !== d)
-                          : [...prev, d],
-                      )
-                    }
-                    reason={wfhReason}
-                    onChangeReason={setWfhReason}
-                  />
+                  <TourTarget id="f.wfh">
+                    <WfhDetailCard
+                      days={wfhWeekdays}
+                      onToggle={(d) =>
+                        setWfhWeekdays((prev) =>
+                          prev.includes(d)
+                            ? prev.filter((x) => x !== d)
+                            : [...prev, d],
+                        )
+                      }
+                      reason={wfhReason}
+                      onChangeReason={setWfhReason}
+                    />
+                  </TourTarget>
                 )}
 
                 {kind === "dinas" && (
@@ -359,59 +382,67 @@ function LeaveRequestForm({ navigation, route }: ScreenProps) {
                     }
                   />
                 )}
-                <ApprovalFlowCard steps={approvalSteps} />
+                <TourTarget id="f.alur">
+                  <ApprovalFlowCard steps={approvalSteps} />
+                </TourTarget>
               </>
             )}
           </Animated.View>
         </ScrollView>
       </KeyboardAvoidingView>
       {!done && (
-        <View style={[styles.actionBar, { paddingBottom: insets.bottom + 14 }]}>
-          <View style={{ flex: 1, minWidth: 0 }}>
-            <Text
-              style={[
-                styles.sumSub,
-                blockMsg || errorMessage ? { color: c.bad.ink } : null,
-              ]}
-            >
-              {blockMsg || errorMessage || t("lr.siap")}
-            </Text>
-            <Text style={styles.sumTop}>
-              {kind === "cuti" && workdayCount > 0
-                ? t(
-                    leaveKind === "Melahirkan"
-                      ? "lr.nHariKalender"
-                      : "lr.nHariKerja",
-                    { n: workdayCount },
-                  )
-                : kind === "lembur" && otDate
-                  ? formatHourDuration(otJam)
-                  : kind === "dinas" && start && end
-                    ? rupiah(totalTrip.total)
-                    : "—"}
-            </Text>
-          </View>
-          {/* Tombol kirim baru muncul setelah form lengkap. */}
-          {canSubmit || isSending ? (
-            <Pressable onPress={handleSubmit} disabled={!canSubmit}>
-              <LinearGradient
-                colors={canSubmit ? [c.accent, c.accent2] : [c.track, c.track]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={styles.submitBtn}
+        <TourTarget id="f.kirim">
+          <View
+            style={[styles.actionBar, { paddingBottom: insets.bottom + 14 }]}
+          >
+            <View style={{ flex: 1, minWidth: 0 }}>
+              <Text
+                style={[
+                  styles.sumSub,
+                  blockMsg || errorMessage ? { color: c.bad.ink } : null,
+                ]}
               >
-                <Text
-                  style={[
-                    styles.submitText,
-                    canSubmit ? { color: "#fff" } : null,
-                  ]}
+                {blockMsg || errorMessage || t("lr.siap")}
+              </Text>
+              <Text style={styles.sumTop}>
+                {kind === "cuti" && workdayCount > 0
+                  ? t(
+                      leaveKind === "Melahirkan"
+                        ? "lr.nHariKalender"
+                        : "lr.nHariKerja",
+                      { n: workdayCount },
+                    )
+                  : kind === "lembur" && otDate
+                    ? formatHourDuration(otJam)
+                    : kind === "dinas" && start && end
+                      ? rupiah(totalTrip.total)
+                      : "—"}
+              </Text>
+            </View>
+            {/* Tombol kirim baru muncul setelah form lengkap. */}
+            {canSubmit || isSending ? (
+              <Pressable onPress={handleSubmit} disabled={!canSubmit}>
+                <LinearGradient
+                  colors={
+                    canSubmit ? [c.accent, c.accent2] : [c.track, c.track]
+                  }
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={styles.submitBtn}
                 >
-                  {isSending ? t("lr.mengirim") : t("lr.kirim")}
-                </Text>
-              </LinearGradient>
-            </Pressable>
-          ) : null}
-        </View>
+                  <Text
+                    style={[
+                      styles.submitText,
+                      canSubmit ? { color: "#fff" } : null,
+                    ]}
+                  >
+                    {isSending ? t("lr.mengirim") : t("lr.kirim")}
+                  </Text>
+                </LinearGradient>
+              </Pressable>
+            ) : null}
+          </View>
+        </TourTarget>
       )}
     </View>
   );
