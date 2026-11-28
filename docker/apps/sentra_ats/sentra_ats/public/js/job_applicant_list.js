@@ -12,6 +12,7 @@
 				prev_onload.call(this, listview);
 			}
 
+			if (!frappe.model.can_write("Job Applicant")) return;
 			listview.page.add_action_item(__("Rescreen"), function () {
 				let names = listview.get_checked_items().map(d => d.name);
 				if (!names.length) return;

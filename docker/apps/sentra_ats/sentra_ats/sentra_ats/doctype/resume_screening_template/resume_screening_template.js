@@ -15,8 +15,10 @@ const WEIGHT_TOTAL = 100;
 frappe.ui.form.on("Resume Screening Template", {
 	refresh(frm) {
 		frm.trigger("calculate_total_weight");
+		// every button below edits or creates a template
+		if (!frappe.model.can_write("Resume Screening Template")) return;
 		frm.add_custom_button(__("Simulate with a CV"), () => show_simulation_dialog(frm));
-		if (!frm.is_new()) {
+		if (!frm.is_new() && frappe.model.can_create("Resume Screening Template")) {
 			frm.add_custom_button(__("Clone"), () => clone_template(frm));
 		}
 		frm.add_custom_button(__("Distribute remaining weight"), () => distribute_remaining_weight(frm), __("Weights"));

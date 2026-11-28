@@ -14,7 +14,7 @@ frappe.ui.form.on("Background Check", {
 		frm.trigger("render_account_findings");
 		frm.trigger("toggle_social_consent_editing");
 
-		if (!frm.is_new() && frm.doc.consent_status === "Granted" && frm.doc.status !== "Crawling") {
+		if (!frm.is_new() && frm.doc.consent_status === "Granted" && frm.doc.status !== "Crawling" && frappe.model.can_write("Background Check")) {
 			frm.add_custom_button(__("Rerun"), function () {
 				frappe.confirm(
 					__("Rerun background check for this candidate?"),
@@ -39,15 +39,17 @@ frappe.ui.form.on("Background Check", {
 			}, __("Actions"));
 		}
 
-		if (frm.doc.job_applicant) {
+		if (frm.doc.job_applicant && frappe.model.can_read("Job Applicant")) {
 			frm.add_custom_button(__("View Applicant"), function () {
 				frappe.set_route("Form", "Job Applicant", frm.doc.job_applicant);
 			}, __("Navigation"));
 		}
 
-		frm.add_custom_button(__("Open Findings List"), function () {
-			frappe.set_route("List", "Background Check Finding", { background_check: frm.doc.name });
-		}, __("Navigation"));
+		if (frappe.model.can_read("Background Check Finding")) {
+			frm.add_custom_button(__("Open Findings List"), function () {
+				frappe.set_route("List", "Background Check Finding", { background_check: frm.doc.name });
+			}, __("Navigation"));
+		}
 	},
 
 	consent_method(frm) {

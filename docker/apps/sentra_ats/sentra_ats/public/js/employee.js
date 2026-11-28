@@ -4,7 +4,7 @@ frappe.ui.form.on("Employee", {
 	},
 
 	refresh(frm) {
-		if (frm.is_new()) return;
+		if (frm.is_new() || !frappe.model.can_create("Bank Account")) return;
 		frm.add_custom_button(
 			__("Bank Account"),
 			() => frappe.new_doc("Bank Account", { party_type: "Employee", party: frm.doc.name, account_name: frm.doc.employee_name }),

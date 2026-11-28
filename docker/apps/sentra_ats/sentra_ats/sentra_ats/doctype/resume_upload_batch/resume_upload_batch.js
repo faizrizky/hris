@@ -19,8 +19,10 @@ frappe.ui.form.on("Resume Upload Batch", {
 				frm.reload_doc();
 			}, BATCH_POLL_MS);
 		}
-		frm.add_custom_button(__("Job Applicants"), () =>
-			frappe.set_route("List", "Job Applicant", { job_title: frm.doc.job_opening })
-		);
+		if (frappe.model.can_read("Job Applicant")) {
+			frm.add_custom_button(__("Job Applicants"), () =>
+				frappe.set_route("List", "Job Applicant", { job_title: frm.doc.job_opening })
+			);
+		}
 	},
 });

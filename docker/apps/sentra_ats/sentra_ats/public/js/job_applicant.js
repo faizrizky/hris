@@ -46,7 +46,7 @@ frappe.ui.form.on("Job Applicant", {
 			});
 		}
 
-		if (!frm.is_new() && frm.doc.resume_attachment) {
+		if (!frm.is_new() && frm.doc.resume_attachment && frappe.model.can_write("Job Applicant")) {
 			frm.add_custom_button(__("Screen Again"), function () {
 				frappe.call({
 					method: "sentra_ats.scoring.workflow.rescreen_applicant",
@@ -66,7 +66,7 @@ frappe.ui.form.on("Job Applicant", {
 			});
 		}
 
-		if (frm.doc.screening_status === "Done" && !frm.is_new()) {
+		if (frm.doc.screening_status === "Done" && !frm.is_new() && frappe.model.can_write("Job Applicant")) {
 			if (!frm.doc.background_check || frm.doc.recruitment_stage === "Screening") {
 				frm.add_custom_button(__("Start Background Check"), function () {
 					frappe.confirm(

@@ -14,7 +14,7 @@ frappe.ui.form.on("Resume Screening", {
 		frm.trigger("render_explanation");
 		frm.trigger("setup_realtime_listener");
 
-		if (!frm.is_new() && frm.doc.status !== "Screening") {
+		if (!frm.is_new() && frm.doc.status !== "Screening" && frappe.model.can_write("Resume Screening")) {
 			frm.add_custom_button(__("Screen Again"), function () {
 				frappe.call({
 					method: "sentra_ats.scoring.workflow.rescreen",
