@@ -11,6 +11,7 @@ import {
   Animated,
   BackHandler,
   Easing,
+  PixelRatio,
   Pressable,
   StyleSheet,
   Text,
@@ -19,8 +20,8 @@ import {
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Ionicons } from "@expo/vector-icons";
-import Svg, { Defs, Mask, Rect } from "react-native-svg";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Spotlight } from "@/components/Spotlight";
 import { useT } from "@/i18n";
 import type { TranslationKey } from "@/i18n/id";
 import { hrisApi } from "@/services/api";
@@ -30,10 +31,8 @@ import { useTheme } from "@/theme/ThemeContext";
 const SEEN_KEY = "hris.tourSeen.v2"; // v2: ditampilkan sekali lagi ke semua pengguna
 const START_DELAY_MS = 900; // menunggu animasi masuk Beranda selesai
 const SCROLL_WAIT_MS = 380; // gulir beranimasi sebelum target diukur ulang
-const MOVE_MS = 340;
-const DIM = "rgba(8,12,18,0.74)";
+const MOVE_MS = 300;
 const PAD = 6;
-const RADIUS = 18;
 const TAB_BAR_SPACE = 130;
 
 interface Step {
@@ -46,8 +45,6 @@ interface Tour {
   steps: Step[];
   onScroll: (dy: number) => void;
 }
-
-const AnimatedRect = Animated.createAnimatedComponent(Rect);
 
 interface Box {
   x: number;
@@ -189,10 +186,10 @@ function TourSteps({ tour }: { tour: Tour }) {
     hole: null,
   });
   const [anim] = useState(() => ({
-    x: new Animated.Value(width / 2),
-    y: new Animated.Value(height / 2),
-    w: new Animated.Value(0),
-    h: new Animated.Value(0),
+    left: new Animated.Value(width / 2),
+    top: new Animated.Value(height / 2),
+    right: new Animated.Value(width / 2),
+    bottom: new Animated.Value(height / 2),
     ring: new Animated.Value(0),
     card: new Animated.Value(0),
   }));
@@ -214,18 +211,19 @@ function TourSteps({ tour }: { tour: Tour }) {
       };
       setShown({ index, hole });
       const to = hole ?? { x: width / 2, y: height / 2, w: 0, h: 0 };
+      const snap = PixelRatio.roundToNearestPixel; // tepi pecahan memunculkan garis rambut antar bidang
       const glide = (value: Animated.Value, toValue: number) =>
         Animated.timing(value, {
           toValue,
           duration: MOVE_MS,
           easing: Easing.out(Easing.cubic),
-          useNativeDriver: false,
+          useNativeDriver: true,
         });
       Animated.parallel([
-        glide(anim.x, to.x),
-        glide(anim.y, to.y),
-        glide(anim.w, to.w),
-        glide(anim.h, to.h),
+        glide(anim.left, snap(to.x)),
+        glide(anim.top, snap(to.y)),
+        glide(anim.right, snap(to.x + to.w)),
+        glide(anim.bottom, snap(to.y + to.h)),
         glide(anim.ring, hole ? 1 : 0),
         Animated.timing(anim.card, {
           toValue: 1,
@@ -291,46 +289,9 @@ function TourSteps({ tour }: { tour: Tour }) {
     <View ref={rootRef} collapsable={false} style={StyleSheet.absoluteFill}>
       {/* Menahan semua sentuhan ke layar di belakang. */}
       <Pressable style={StyleSheet.absoluteFill} accessible={false} />
-      <Svg
-        pointerEvents="none"
-        width={width}
-        height={height}
-        style={StyleSheet.absoluteFill}
-      >
-        <Defs>
-          <Mask id="tourHole">
-            <Rect width={width} height={height} fill="#FFFFFF" />
-            <AnimatedRect
-              x={anim.x}
-              y={anim.y}
-              width={anim.w}
-              height={anim.h}
-              rx={RADIUS}
-              fill="#000000"
-            />
-          </Mask>
-        </Defs>
-        <Rect
-          width={width}
-          height={height}
-          fill={DIM}
-          mask="url(#tourHole)"
-        />
-      </Svg>
+      <Spotlight edges={anim} width={width} height={height} />
       <Animated.View
-        pointerEvents="none"
-        style={[
-          styles.ring,
-          {
-            left: anim.x,
-            top: anim.y,
-            width: anim.w,
-            height: anim.h,
-            opacity: anim.ring,
-          },
-        ]}
-      />
-      <Animated.View
+        renderToHardwareTextureAndroid
         style={[
           styles.card,
           cardPosition,
@@ -419,12 +380,6 @@ function TourSteps({ tour }: { tour: Tour }) {
 
 const makeStyles = (c: Palette) =>
   StyleSheet.create({
-    ring: {
-      position: "absolute",
-      borderRadius: RADIUS,
-      borderWidth: 2,
-      borderColor: "rgba(255,255,255,0.95)",
-    },
     card: {
       position: "absolute",
       left: 16,
