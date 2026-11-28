@@ -82,7 +82,7 @@ export const mockApi: HrisApi = {
   },
 
   async registerDevice() {
-    return { status: "Approved" as const };
+    return { status: "Approved" as const, isTutorialSeen: false };
   },
 
   async getCurrentEmployee(): Promise<Employee> {

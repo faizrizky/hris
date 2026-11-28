@@ -1,5 +1,5 @@
-// Tutorial sorot (spotlight) sekali untuk perangkat yang baru terpasang dan sudah terdaftar. Elemen yang dijelaskan
-// mendaftarkan diri lewat `ref={tourTarget(id)}`; lapisan gelap diberi lubang di posisi elemen itu.
+// Tutorial sorot (spotlight), sekali per perangkat terdaftar: tanda "sudah dilihat" disimpan di HP dan di server
+// (Registered Device), jadi tidak muncul lagi setelah pasang ulang. Elemen yang dijelaskan mendaftarkan diri lewat `ref={tourTarget(id)}`; lapisan gelap diberi lubang di posisi elemen itu.
 import {
   useEffect,
   useMemo,
@@ -19,10 +19,11 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useT } from "@/i18n";
 import type { TranslationKey } from "@/i18n/id";
+import { hrisApi } from "@/services/api";
 import { Palette, primaryButtonStyle } from "@/theme/colors";
 import { useTheme } from "@/theme/ThemeContext";
 
-const SEEN_KEY = "hris.tourSeen";
+const SEEN_KEY = "hris.tourSeen.v2"; // v2: ditampilkan sekali lagi ke semua pengguna
 const START_DELAY_MS = 900; // menunggu animasi masuk Beranda selesai
 const SCROLL_WAIT_MS = 120;
 const DIM = "rgba(8,12,18,0.72)";
@@ -86,6 +87,8 @@ export const isTourSeen = async (): Promise<boolean> => {
 const finishTour = () => {
   setTour(null);
   AsyncStorage.setItem(SEEN_KEY, "1").catch(() => {});
+  // Gagal kirim tidak apa-apa: useHome mengirim ulang tanda di HP saat aplikasi dibuka lagi.
+  hrisApi.registerDevice(true).catch(() => {});
 };
 
 // Dipasang Beranda setelah datanya tampil; menyusun langkah dari menu yang benar-benar dimiliki akun ini.

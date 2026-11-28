@@ -3,12 +3,15 @@
 # Pakai (dari folder docker/):  ./seed/seed.sh             (site default SITE_NAME)
 #                               ./seed/seed.sh klien-a.localhost
 #                               ./seed/seed.sh --semua    (semua site company; Server Script ikut tersebar)
+#                               ./seed/seed.sh --skrip [site|--semua]   (HANYA Server Script, menu desk, dan field
+#                               yang dibutuhkannya; tanpa data contoh, aman untuk data klien. Pakai ini setelah rilis.)
 # Password dan API key dibaca/ditulis di docker/.credentials.local (di-ignore git).
 set -euo pipefail
 cd "$(dirname "${BASH_SOURCE[0]}")/.."
 CRED=.credentials.local
 [ -f .env ] && { set -a; . ./.env; set +a; }
 DEFAULT_SITE="${SITE_NAME:-falah.localhost}"
+if [ "${1:-}" = "--skrip" ]; then export SEED_MODE=skrip; shift; fi
 if [ "${1:-}" = "--semua" ]; then
   # Registry bukan site company (tidak punya erpnext/hrms), jadi dilewati.
   for s in $(docker compose exec -T backend sh -c 'cd sites && for d in */; do [ -f "$d/site_config.json" ] && echo "${d%/}"; done'); do
@@ -35,6 +38,7 @@ docker compose exec -T backend bench set-config -g server_script_enabled 1
 docker compose exec -T -u root backend rm -rf /tmp/hris-seed
 docker compose exec -T -u root backend mkdir -p -m 777 /tmp/hris-seed
 docker compose cp seed/seed.py backend:/tmp/hris-seed/seed.py
+docker compose cp seed/pasang.py backend:/tmp/hris-seed/pasang.py
 docker compose cp server-scripts backend:/tmp/hris-seed/server-scripts
 # Override per klien: clients/<site>/server-scripts/ menimpa skrip utama yang namanya sama (dan boleh menambah
 # skrip khusus klien). Skrip utama di server-scripts/ tidak pernah diubah; hanya salinan sementara untuk site ini.
@@ -44,7 +48,7 @@ if [ -d "clients/$SITE/server-scripts" ]; then
 fi
 docker compose exec -T -u root backend chmod -R a+rX /tmp/hris-seed
 out=$(docker compose exec -T -w /home/frappe/frappe-bench/sites \
-  -e SITE_NAME="$SITE" -e SEED_PAKET -e USER_EMAIL -e USER_PASSWORD -e MSS_USER_EMAIL -e MSS_USER_PASSWORD \
+  -e SITE_NAME="$SITE" -e SEED_MODE -e SEED_PAKET -e USER_EMAIL -e USER_PASSWORD -e MSS_USER_EMAIL -e MSS_USER_PASSWORD \
   -e HR_USER_EMAIL -e HR_USER_PASSWORD -e ARMAN_USER_EMAIL -e ARMAN_USER_PASSWORD -e SEED_REGEN_KEYS="$regen" \
   backend ../env/bin/python /tmp/hris-seed/seed.py 2>&1 | grep -v RuntimeWarning; exit ${PIPESTATUS[0]}) && rc=0 || rc=$?
 # Server Script baru baru terbaca setelah cache dibersihkan.

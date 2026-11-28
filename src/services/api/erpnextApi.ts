@@ -1441,16 +1441,23 @@ export const erpnextApi: HrisApi = {
     }
   },
 
-  async registerDevice() {
+  async registerDevice(isTutorialSeen) {
     const dev = await getDeviceInfo();
     const r = await post<{
-      message: { status: "Approved" | "Pending" | "Rejected" | "Unknown" };
+      message: {
+        status: "Approved" | "Pending" | "Rejected" | "Unknown";
+        tutorial_seen?: 0 | 1;
+      };
     }>("/api/method/hris_register_device", {
       device_id: dev.id,
       device_name: dev.nama,
       platform: dev.platform,
+      ...(isTutorialSeen ? { tutorial_seen: "1" } : {}),
     });
-    return { status: r.message.status };
+    return {
+      status: r.message.status,
+      isTutorialSeen: r.message.tutorial_seen === 1,
+    };
   },
 
   async getCurrentEmployee(): Promise<Employee> {

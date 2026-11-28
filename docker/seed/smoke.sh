@@ -16,13 +16,14 @@ expect() {
 }
 
 # call LABEL JAR_OR_TOKENHEADER METHOD URL [curl args...]  -> cetak status, simpan body di $TMP/body
+# WANT=403 untuk endpoint yang memang harus ditolak.
 call() {
   local label="$1" auth="$2" url="$3"; shift 3
   local args=()
   if [ "$auth" = token ]; then args+=(-H "Authorization: token $API_KEY:$API_SECRET"); else args+=(-b "$TMP/$auth.jar"); fi
   local code
   code=$(curl -s -o "$TMP/body" -w '%{http_code}' "${args[@]}" "$@" "$url")
-  [ "$code" = 200 ] || FAIL=1
+  [ "$code" = "${WANT:-200}" ] || FAIL=1
   printf '  %-4s %s\n' "$code" "$label"
   [ -n "${VERBOSE:-}" ] && head -c 600 "$TMP/body" | sed 's/^/        /' && echo
   return 0
@@ -61,7 +62,8 @@ except Exception: print("")' "$TMP/body")
   call "GET hris_get_active_sessions" "$auth" "$BASE/api/method/hris_get_active_sessions"
   call "GET hris_get_notifications" "$auth" "$BASE/api/method/hris_get_notifications"
   call "GET hris_get_my_language" "$auth" "$BASE/api/method/hris_get_my_language"
-  call "GET hris_get_travel_requests" "$auth" "$BASE/api/method/hris_get_travel_requests"
+  # Travel Request dikunci bersama modul Expenses: selain System Manager harus ditolak.
+  WANT=403 call "GET hris_get_travel_requests (dikunci, harus 403)" "$auth" "$BASE/api/method/hris_get_travel_requests"
   call "GET hris_get_wfh" "$auth" "$BASE/api/method/hris_get_wfh"
   call "GET hris_get_overtimes" "$auth" "$BASE/api/method/hris_get_overtimes"
   call "GET hris_get_my_documents" "$auth" "$BASE/api/method/hris_get_my_documents"

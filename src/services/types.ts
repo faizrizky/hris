@@ -590,8 +590,10 @@ export interface HrisApi {
     note?: string,
   ): Promise<void>;
   // Mendaftarkan perangkat ini (pertama otomatis disetujui; berikutnya menunggu HR) dan mengembalikan statusnya.
-  registerDevice(): Promise<{
+  // isTutorialSeen = true menandai tutorial sudah dilihat di perangkat ini; hasilnya status yang tersimpan di server.
+  registerDevice(isTutorialSeen: boolean): Promise<{
     status: "Approved" | "Pending" | "Rejected" | "Unknown";
+    isTutorialSeen: boolean;
   }>;
   submitFaceEnrollment(input: {
     embeddings: number[][];

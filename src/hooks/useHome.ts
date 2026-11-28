@@ -41,14 +41,15 @@ export function useHome() {
   const [employment, setEmployment] = useState<EmploymentSlice[] | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [canStartTour, setCanStartTour] = useState(false);
-  // Berurutan: dua dialog sekaligus saling membatalkan. Perangkat baru yang sudah terdaftar mendapat tutorial dulu;
-  // pengingat wajah menyusul saat Beranda dibuka lagi.
+  // Berurutan: dua dialog sekaligus saling membatalkan. Perangkat yang belum melihat tutorial mendapatkannya dulu;
+  // pengingat menyusul saat Beranda dibuka lagi.
   const remind = useCallback(
     async (employeeId: string) => {
       remindedEmployeeId = employeeId;
       try {
-        const device = await hrisApi.registerDevice();
-        if (device.status === "Approved" && !(await isTourSeen())) {
+        const isSeenHere = await isTourSeen();
+        const device = await hrisApi.registerDevice(isSeenHere);
+        if (!isSeenHere && !device.isTutorialSeen) {
           remindedEmployeeId = null;
           setCanStartTour(true);
           return;
