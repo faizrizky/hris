@@ -196,3 +196,15 @@ def test_a_doctype_everybody_may_read_is_not_a_menu_of_the_user(monkeypatch):
 	assert not menu.may_open(item, ["Employee", "Desk User", "All"])
 	assert menu.may_open(item, ["Quality Manager", "Desk User"])
 	assert menu.may_open(item, ["System Manager"])
+
+
+def test_the_employee_role_alone_does_not_open_company_style_menus(monkeypatch):
+	import frappe
+
+	from sentra_ats import menu
+
+	meta = type("Meta", (), {"permissions": [{"role": "Employee", "read": 1}, {"role": "HR Manager", "read": 1}]})
+	monkeypatch.setattr(frappe, "get_meta", lambda dt: meta, raising=False)
+	assert not menu.may_open({"link_type": "DocType", "link_to": "Company"}, ["Employee"])
+	assert menu.may_open({"link_type": "DocType", "link_to": "Company"}, ["Employee", "HR Manager"])
+	assert menu.may_open({"link_type": "DocType", "link_to": "Leave Application"}, ["Employee"])

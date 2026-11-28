@@ -155,9 +155,16 @@ def dashboard_has_content(name) -> bool:
 GENERIC_ROLES = {"All", "Desk User", "Guest"}
 
 
+# The Employee role may read these (ERPNext's default), but they are not part of an employee's work: for them the
+# menu entry needs a further job role. Permissions are unchanged; forms keep reading the records.
+NOT_AN_EMPLOYEE_MENU = {"Company", "Call Log", "Non Conformance", "Appointment"}
+
+
 def granted_by_own_role(doctype, roles) -> bool:
 	"""Whether one of the user's job roles (not a role everybody has) may read the doctype."""
 	own = set(roles) - GENERIC_ROLES
+	if doctype in NOT_AN_EMPLOYEE_MENU:
+		own.discard("Employee")
 	return any(p.get("read") and p.get("role") in own for p in frappe.get_meta(doctype).permissions)
 
 
