@@ -108,7 +108,7 @@ def in_both_languages(names):
 	"""Menu labels arrive already translated into the user's language, so a name must also match its translation."""
 	try:
 		return set(names) | {frappe._(name) for name in names}
-	except (AttributeError, RuntimeError):  # no site context (unit tests)
+	except (AttributeError, RuntimeError, OSError):  # no site context, so no translation files (unit tests)
 		return set(names)
 
 
