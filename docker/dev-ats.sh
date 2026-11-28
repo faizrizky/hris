@@ -44,6 +44,7 @@ if [ "$WITH_BROWSERS" -eq 1 ]; then
     docker compose exec -T -u root "$svc" env/bin/python -m playwright install-deps chromium
     echo "[dev-ats] Memasang browser Chromium (user frappe) di service $svc..."
     docker compose exec -T "$svc" env/bin/python -m playwright install chromium
+    docker compose exec -T "$svc" env/bin/python -m patchright install chromium
     docker compose exec -T "$svc" env/bin/python -c '
 from scrapling.cli import __PACKAGE_DIR__
 from tld.utils import update_tld_names

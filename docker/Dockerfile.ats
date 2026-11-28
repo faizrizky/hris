@@ -18,5 +18,7 @@ USER root
 RUN env/bin/python -m playwright install-deps chromium && rm -rf /var/lib/apt/lists/*
 
 USER frappe
+# patchright (mode stealth Scrapling) memakai revisi Chromium sendiri, berbeda dari playwright.
 RUN env/bin/python -m playwright install chromium \
+ && env/bin/python -m patchright install chromium \
  && env/bin/python -c "from scrapling.cli import __PACKAGE_DIR__; from tld.utils import update_tld_names; update_tld_names(fail_silently=True); __PACKAGE_DIR__.joinpath('.scrapling_dependencies_installed').touch()"
